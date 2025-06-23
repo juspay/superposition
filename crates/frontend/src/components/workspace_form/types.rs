@@ -12,4 +12,5 @@ pub struct RowData {
     pub created_by: String,
     pub created_at: String,
     pub metrics: Metrics,
+    pub allow_experiment_self_approval: bool,
 }

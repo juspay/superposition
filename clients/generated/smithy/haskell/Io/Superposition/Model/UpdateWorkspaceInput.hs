@@ -6,6 +6,7 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     setMandatoryDimensions,
     setWorkspaceStatus,
     setMetrics,
+    setAllowExperimentSelfApproval,
     build,
     UpdateWorkspaceInputBuilder,
     UpdateWorkspaceInput,
@@ -15,7 +16,8 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     config_version,
     mandatory_dimensions,
     workspace_status,
-    metrics
+    metrics,
+    allow_experiment_self_approval
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -36,7 +38,8 @@ data UpdateWorkspaceInput = UpdateWorkspaceInput {
     config_version :: Data.Maybe.Maybe Data.Text.Text,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    metrics :: Data.Maybe.Maybe Data.Aeson.Value
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value,
+    allow_experiment_self_approval :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -51,7 +54,8 @@ instance Data.Aeson.ToJSON UpdateWorkspaceInput where
         "config_version" Data.Aeson..= config_version a,
         "mandatory_dimensions" Data.Aeson..= mandatory_dimensions a,
         "workspace_status" Data.Aeson..= workspace_status a,
-        "metrics" Data.Aeson..= metrics a
+        "metrics" Data.Aeson..= metrics a,
+        "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a
         ]
     
 
@@ -65,6 +69,7 @@ instance Data.Aeson.FromJSON UpdateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..: "mandatory_dimensions")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_status")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
+        Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
     
 
 
@@ -76,7 +81,8 @@ data UpdateWorkspaceInputBuilderState = UpdateWorkspaceInputBuilderState {
     config_versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     mandatory_dimensionsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -89,7 +95,8 @@ defaultBuilderState = UpdateWorkspaceInputBuilderState {
     config_versionBuilderState = Data.Maybe.Nothing,
     mandatory_dimensionsBuilderState = Data.Maybe.Nothing,
     workspace_statusBuilderState = Data.Maybe.Nothing,
-    metricsBuilderState = Data.Maybe.Nothing
+    metricsBuilderState = Data.Maybe.Nothing,
+    allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing
 }
 
 newtype UpdateWorkspaceInputBuilder a = UpdateWorkspaceInputBuilder {
@@ -141,6 +148,10 @@ setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> UpdateWorkspaceInputBuilder (
 setMetrics value =
    UpdateWorkspaceInputBuilder (\s -> (s { metricsBuilderState = value }, ()))
 
+setAllowExperimentSelfApproval :: Data.Maybe.Maybe Bool -> UpdateWorkspaceInputBuilder ()
+setAllowExperimentSelfApproval value =
+   UpdateWorkspaceInputBuilder (\s -> (s { allow_experiment_self_approvalBuilderState = value }, ()))
+
 build :: UpdateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text UpdateWorkspaceInput
 build builder = do
     let (st, _) = runUpdateWorkspaceInputBuilder builder defaultBuilderState
@@ -151,6 +162,7 @@ build builder = do
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
+    allow_experiment_self_approval' <- Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     Data.Either.Right (UpdateWorkspaceInput { 
         org_id = org_id',
         workspace_name = workspace_name',
@@ -158,7 +170,8 @@ build builder = do
         config_version = config_version',
         mandatory_dimensions = mandatory_dimensions',
         workspace_status = workspace_status',
-        metrics = metrics'
+        metrics = metrics',
+        allow_experiment_self_approval = allow_experiment_self_approval'
     })
 
 

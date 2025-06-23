@@ -701,11 +701,12 @@ export const se_CreateWorkspaceCommand = async(
   b.bp("/workspaces");
   let body: any;
   body = JSON.stringify(take(input, {
+    'allow_experiment_self_approval': [],
     'metrics': _ => se_Document(_, context),
+    'strict_mode': [],
     'workspace_admin_email': [],
     'workspace_name': [],
     'workspace_status': [],
-    'workspace_strict_mode': [],
   }));
   b.m("POST")
   .h(headers)
@@ -1899,6 +1900,7 @@ export const se_UpdateWorkspaceCommand = async(
   b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
   let body: any;
   body = JSON.stringify(take(input, {
+    'allow_experiment_self_approval': [],
     'config_version': [],
     'mandatory_dimensions': _ => _json(_),
     'metrics': _ => se_Document(_, context),
@@ -2346,6 +2348,7 @@ export const de_CreateWorkspaceCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'allow_experiment_self_approval': __expectBoolean,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -2355,11 +2358,11 @@ export const de_CreateWorkspaceCommand = async(
     'metrics': _ => de_Document(_, context),
     'organisation_id': __expectString,
     'organisation_name': __expectString,
+    'strict_mode': __expectBoolean,
     'workspace_admin_email': __expectString,
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
-    'workspace_strict_mode': __expectBoolean,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3687,6 +3690,7 @@ export const de_UpdateWorkspaceCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'allow_experiment_self_approval': __expectBoolean,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -3696,11 +3700,11 @@ export const de_UpdateWorkspaceCommand = async(
     'metrics': _ => de_Document(_, context),
     'organisation_id': __expectString,
     'organisation_name': __expectString,
+    'strict_mode': __expectBoolean,
     'workspace_admin_email': __expectString,
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
-    'workspace_strict_mode': __expectBoolean,
   });
   Object.assign(contents, doc);
   return contents;
@@ -4775,6 +4779,7 @@ const de_CommandError = async(
     context: __SerdeContext
   ): WorkspaceResponse => {
     return take(output, {
+      'allow_experiment_self_approval': __expectBoolean,
       'config_version': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
@@ -4784,11 +4789,11 @@ const de_CommandError = async(
       'metrics': (_: any) => de_Document(_, context),
       'organisation_id': __expectString,
       'organisation_name': __expectString,
+      'strict_mode': __expectBoolean,
       'workspace_admin_email': __expectString,
       'workspace_name': __expectString,
       'workspace_schema_name': __expectString,
       'workspace_status': __expectString,
-      'workspace_strict_mode': __expectBoolean,
     }) as any;
   }
 

@@ -242,6 +242,7 @@ pub struct Workspace {
     pub mandatory_dimensions: Option<Vec<String>>,
     pub strict_mode: bool,
     pub metrics: Metrics,
+    pub allow_experiment_self_approval: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

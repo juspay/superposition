@@ -40,6 +40,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         .putMember("mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS)
         .putMember("workspace_status", WorkspaceStatus.$SCHEMA)
         .putMember("metrics", PreludeSchemas.DOCUMENT)
+        .putMember("allow_experiment_self_approval", PreludeSchemas.BOOLEAN)
         .build();
 
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
@@ -49,6 +50,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     private static final Schema $SCHEMA_MANDATORY_DIMENSIONS = $SCHEMA.member("mandatory_dimensions");
     private static final Schema $SCHEMA_WORKSPACE_STATUS = $SCHEMA.member("workspace_status");
     private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
+    private static final Schema $SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL = $SCHEMA.member("allow_experiment_self_approval");
 
     private final transient String orgId;
     private final transient String workspaceName;
@@ -57,6 +59,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     private final transient List<String> mandatoryDimensions;
     private final transient WorkspaceStatus workspaceStatus;
     private final transient Document metrics;
+    private final transient Boolean allowExperimentSelfApproval;
 
     private UpdateWorkspaceInput(Builder builder) {
         this.orgId = builder.orgId;
@@ -66,6 +69,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         this.mandatoryDimensions = builder.mandatoryDimensions == null ? null : Collections.unmodifiableList(builder.mandatoryDimensions);
         this.workspaceStatus = builder.workspaceStatus;
         this.metrics = builder.metrics;
+        this.allowExperimentSelfApproval = builder.allowExperimentSelfApproval;
     }
 
     public String orgId() {
@@ -103,6 +107,10 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         return metrics;
     }
 
+    public Boolean allowExperimentSelfApproval() {
+        return allowExperimentSelfApproval;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -123,12 +131,13 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                && Objects.equals(this.configVersion, that.configVersion)
                && Objects.equals(this.mandatoryDimensions, that.mandatoryDimensions)
                && Objects.equals(this.workspaceStatus, that.workspaceStatus)
-               && Objects.equals(this.metrics, that.metrics);
+               && Objects.equals(this.metrics, that.metrics)
+               && Objects.equals(this.allowExperimentSelfApproval, that.allowExperimentSelfApproval);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(orgId, workspaceName, workspaceAdminEmail, configVersion, mandatoryDimensions, workspaceStatus, metrics);
+        return Objects.hash(orgId, workspaceName, workspaceAdminEmail, configVersion, mandatoryDimensions, workspaceStatus, metrics, allowExperimentSelfApproval);
     }
 
     @Override
@@ -153,6 +162,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         if (metrics != null) {
             serializer.writeDocument($SCHEMA_METRICS, metrics);
         }
+        if (allowExperimentSelfApproval != null) {
+            serializer.writeBoolean($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, allowExperimentSelfApproval);
+        }
     }
 
     @Override
@@ -166,6 +178,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, workspaceStatus);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, allowExperimentSelfApproval);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -186,6 +199,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         builder.mandatoryDimensions(this.mandatoryDimensions);
         builder.workspaceStatus(this.workspaceStatus);
         builder.metrics(this.metrics);
+        builder.allowExperimentSelfApproval(this.allowExperimentSelfApproval);
         return builder;
     }
 
@@ -209,6 +223,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         private List<String> mandatoryDimensions;
         private WorkspaceStatus workspaceStatus;
         private Document metrics;
+        private Boolean allowExperimentSelfApproval;
 
         private Builder() {}
 
@@ -278,6 +293,14 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder allowExperimentSelfApproval(boolean allowExperimentSelfApproval) {
+            this.allowExperimentSelfApproval = allowExperimentSelfApproval;
+            return this;
+        }
+
         @Override
         public UpdateWorkspaceInput build() {
             tracker.validate();
@@ -295,6 +318,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                 case 4 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
                 case 5 -> workspaceStatus((WorkspaceStatus) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, value));
                 case 6 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
+                case 7 -> allowExperimentSelfApproval((boolean) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -338,6 +362,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                     case 4 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
                     case 5 -> builder.workspaceStatus(WorkspaceStatus.builder().deserializeMember(de, member).build());
                     case 6 -> builder.metrics(de.readDocument());
+                    case 7 -> builder.allowExperimentSelfApproval(de.readBoolean(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -41,6 +41,7 @@ data UpdateWorkspaceError =
 serUpdateWorkspacePAYLOAD:: Io.Superposition.Model.UpdateWorkspaceInput.UpdateWorkspaceInput -> Network.HTTP.Client.RequestBody
 serUpdateWorkspacePAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
+        "allow_experiment_self_approval" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.allow_experiment_self_approval input,
         "workspace_admin_email" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.workspace_admin_email input,
         "metrics" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.metrics input,
         "config_version" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.config_version input,
@@ -126,13 +127,6 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
-    workspace_strict_modeDocumentE :: Bool <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_strict_mode") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
     organisation_nameDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "organisation_name") responseObject
         Data.Function.& \case
@@ -189,8 +183,22 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    allow_experiment_self_approvalDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "allow_experiment_self_approval") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     workspace_schema_nameDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_schema_name") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    strict_modeDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "strict_mode") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -213,7 +221,6 @@ deserializeResponse response = do
     Io.Superposition.Model.UpdateWorkspaceOutput.build $ do
         Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceAdminEmail workspace_admin_emailDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setCreatedAt created_atDocumentE
-        Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceStrictMode workspace_strict_modeDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setOrganisationName organisation_nameDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setLastModifiedBy last_modified_byDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setCreatedBy created_byDocumentE
@@ -222,7 +229,9 @@ deserializeResponse response = do
         Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceStatus workspace_statusDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setLastModifiedAt last_modified_atDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setOrganisationId organisation_idDocumentE
+        Io.Superposition.Model.UpdateWorkspaceOutput.setAllowExperimentSelfApproval allow_experiment_self_approvalDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceSchemaName workspace_schema_nameDocumentE
+        Io.Superposition.Model.UpdateWorkspaceOutput.setStrictMode strict_modeDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setMetrics metricsDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceName workspace_nameDocumentE
     

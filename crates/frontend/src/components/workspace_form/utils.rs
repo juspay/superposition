@@ -23,6 +23,7 @@ pub async fn create_workspace(
     parse_json_response(response).await
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn update_workspace(
     key: String,
     org_id: String,
@@ -31,6 +32,7 @@ pub async fn update_workspace(
     workspace_status: WorkspaceStatus,
     mandatory_dimensions: Vec<String>,
     metrics: Metrics,
+    allow_experiment_self_approval: bool,
 ) -> Result<serde_json::Value, String> {
     let payload = UpdateWorkspaceRequest {
         workspace_admin_email,
@@ -41,6 +43,7 @@ pub async fn update_workspace(
         workspace_status: Some(workspace_status),
         mandatory_dimensions: Some(mandatory_dimensions),
         metrics: Some(metrics),
+        allow_experiment_self_approval: Some(allow_experiment_self_approval),
     };
     let host = get_host();
     let url = format!("{host}/workspaces/{key}");

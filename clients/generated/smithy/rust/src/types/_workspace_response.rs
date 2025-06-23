@@ -28,9 +28,11 @@ pub struct WorkspaceResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub workspace_strict_mode: bool,
+    pub strict_mode: bool,
     #[allow(missing_docs)] // documentation missing in model
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub allow_experiment_self_approval: bool,
 }
 impl  WorkspaceResponse  {
     #[allow(missing_docs)] // documentation missing in model
@@ -85,12 +87,16 @@ impl  WorkspaceResponse  {
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_strict_mode(&self) -> bool {
-        self.workspace_strict_mode
+    pub fn strict_mode(&self) -> bool {
+        self.strict_mode
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn allow_experiment_self_approval(&self) -> bool {
+        self.allow_experiment_self_approval
     }
 }
 impl WorkspaceResponse {
@@ -116,8 +122,9 @@ pub struct WorkspaceResponseBuilder {
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) workspace_strict_mode: ::std::option::Option<bool>,
+    pub(crate) strict_mode: ::std::option::Option<bool>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
 }
 impl WorkspaceResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -293,17 +300,17 @@ impl WorkspaceResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_strict_mode(mut self, input: bool) -> Self {
-        self.workspace_strict_mode = ::std::option::Option::Some(input);
+    pub fn strict_mode(mut self, input: bool) -> Self {
+        self.strict_mode = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_strict_mode(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.workspace_strict_mode = input; self
+    pub fn set_strict_mode(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.strict_mode = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_strict_mode(&self) -> &::std::option::Option<bool> {
-        &self.workspace_strict_mode
+    pub fn get_strict_mode(&self) -> &::std::option::Option<bool> {
+        &self.strict_mode
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
@@ -318,6 +325,20 @@ impl WorkspaceResponseBuilder {
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn allow_experiment_self_approval(mut self, input: bool) -> Self {
+        self.allow_experiment_self_approval = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.allow_experiment_self_approval = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
+        &self.allow_experiment_self_approval
+    }
     /// Consumes the builder and constructs a [`WorkspaceResponse`](crate::types::WorkspaceResponse).
     /// This method will fail if any of the following fields are not set:
     /// - [`workspace_name`](crate::types::builders::WorkspaceResponseBuilder::workspace_name)
@@ -330,7 +351,8 @@ impl WorkspaceResponseBuilder {
     /// - [`last_modified_by`](crate::types::builders::WorkspaceResponseBuilder::last_modified_by)
     /// - [`last_modified_at`](crate::types::builders::WorkspaceResponseBuilder::last_modified_at)
     /// - [`created_at`](crate::types::builders::WorkspaceResponseBuilder::created_at)
-    /// - [`workspace_strict_mode`](crate::types::builders::WorkspaceResponseBuilder::workspace_strict_mode)
+    /// - [`strict_mode`](crate::types::builders::WorkspaceResponseBuilder::strict_mode)
+    /// - [`allow_experiment_self_approval`](crate::types::builders::WorkspaceResponseBuilder::allow_experiment_self_approval)
     pub fn build(self) -> ::std::result::Result<crate::types::WorkspaceResponse, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::types::WorkspaceResponse {
@@ -388,12 +410,17 @@ impl WorkspaceResponseBuilder {
                 ,
                 mandatory_dimensions: self.mandatory_dimensions
                 ,
-                workspace_strict_mode: self.workspace_strict_mode
+                strict_mode: self.strict_mode
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("workspace_strict_mode", "workspace_strict_mode was not specified but it is required when building WorkspaceResponse")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("strict_mode", "strict_mode was not specified but it is required when building WorkspaceResponse")
                     )?
                 ,
                 metrics: self.metrics
+                ,
+                allow_experiment_self_approval: self.allow_experiment_self_approval
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("allow_experiment_self_approval", "allow_experiment_self_approval was not specified but it is required when building WorkspaceResponse")
+                    )?
                 ,
             }
         )

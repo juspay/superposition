@@ -17,6 +17,8 @@ pub struct UpdateWorkspaceInput  {
     pub workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
     #[allow(missing_docs)] // documentation missing in model
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub allow_experiment_self_approval: ::std::option::Option<bool>,
 }
 impl  UpdateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -50,6 +52,10 @@ impl  UpdateWorkspaceInput  {
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn allow_experiment_self_approval(&self) -> ::std::option::Option<bool> {
+        self.allow_experiment_self_approval
+    }
 }
 impl UpdateWorkspaceInput {
     /// Creates a new builder-style object to manufacture [`UpdateWorkspaceInput`](crate::operation::update_workspace::UpdateWorkspaceInput).
@@ -69,6 +75,7 @@ pub struct UpdateWorkspaceInputBuilder {
     pub(crate) mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
 }
 impl UpdateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -170,6 +177,19 @@ impl UpdateWorkspaceInputBuilder {
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn allow_experiment_self_approval(mut self, input: bool) -> Self {
+        self.allow_experiment_self_approval = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.allow_experiment_self_approval = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
+        &self.allow_experiment_self_approval
+    }
     /// Consumes the builder and constructs a [`UpdateWorkspaceInput`](crate::operation::update_workspace::UpdateWorkspaceInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_workspace::UpdateWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -187,6 +207,8 @@ impl UpdateWorkspaceInputBuilder {
                 workspace_status: self.workspace_status
                 ,
                 metrics: self.metrics
+                ,
+                allow_experiment_self_approval: self.allow_experiment_self_approval
                 ,
             }
         )

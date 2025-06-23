@@ -57,6 +57,7 @@ pub mod superposition {
             mandatory_dimensions -> Nullable<Array<Text>>,
             strict_mode -> Bool,
             metrics -> Json,
+            allow_experiment_self_approval -> Bool,
         }
     }
 

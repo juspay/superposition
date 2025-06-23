@@ -5538,8 +5538,9 @@ class CreateWorkspaceInput:
     workspace_admin_email: str | None = None
     workspace_name: str | None = None
     workspace_status: str | None = None
-    workspace_strict_mode: bool | None = None
+    strict_mode: bool | None = None
     metrics: Document | None = None
+    allow_experiment_self_approval: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_INPUT, self)
@@ -5554,11 +5555,14 @@ class CreateWorkspaceInput:
         if self.workspace_status is not None:
             serializer.write_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_status"], self.workspace_status)
 
-        if self.workspace_strict_mode is not None:
-            serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_strict_mode"], self.workspace_strict_mode)
+        if self.strict_mode is not None:
+            serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["strict_mode"], self.strict_mode)
 
         if self.metrics is not None:
             serializer.write_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"], self.metrics)
+
+        if self.allow_experiment_self_approval is not None:
+            serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5583,10 +5587,13 @@ class CreateWorkspaceInput:
                     kwargs["workspace_status"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_status"])
 
                 case 4:
-                    kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_strict_mode"])
+                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["strict_mode"])
 
                 case 5:
                     kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"])
+
+                case 6:
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5635,7 +5642,9 @@ class CreateWorkspaceOutput:
 
     created_at: datetime
 
-    workspace_strict_mode: bool
+    strict_mode: bool
+
+    allow_experiment_self_approval: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
@@ -5661,9 +5670,11 @@ class CreateWorkspaceOutput:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"], self.workspace_strict_mode)
+        serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
         if self.metrics is not None:
             serializer.write_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
+
+        serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5712,10 +5723,13 @@ class CreateWorkspaceOutput:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"])
+                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["strict_mode"])
 
                 case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"])
+
+                case 14:
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -11704,7 +11718,9 @@ class WorkspaceResponse:
 
     created_at: datetime
 
-    workspace_strict_mode: bool
+    strict_mode: bool
+
+    allow_experiment_self_approval: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
@@ -11730,9 +11746,11 @@ class WorkspaceResponse:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_strict_mode"], self.workspace_strict_mode)
+        serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["strict_mode"], self.strict_mode)
         if self.metrics is not None:
             serializer.write_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"], self.metrics)
+
+        serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -11781,10 +11799,13 @@ class WorkspaceResponse:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_strict_mode"])
+                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["strict_mode"])
 
                 case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"])
+
+                case 14:
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -12460,6 +12481,7 @@ class UpdateWorkspaceInput:
     mandatory_dimensions: list[str] | None = None
     workspace_status: str | None = None
     metrics: Document | None = None
+    allow_experiment_self_approval: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_INPUT, self)
@@ -12479,6 +12501,9 @@ class UpdateWorkspaceInput:
 
         if self.metrics is not None:
             serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["metrics"], self.metrics)
+
+        if self.allow_experiment_self_approval is not None:
+            serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12511,6 +12536,9 @@ class UpdateWorkspaceInput:
                 case 6:
                     kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["metrics"])
 
+                case 7:
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -12540,7 +12568,9 @@ class UpdateWorkspaceOutput:
 
     created_at: datetime
 
-    workspace_strict_mode: bool
+    strict_mode: bool
+
+    allow_experiment_self_approval: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
@@ -12566,9 +12596,11 @@ class UpdateWorkspaceOutput:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"], self.workspace_strict_mode)
+        serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
         if self.metrics is not None:
             serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
+
+        serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12617,10 +12649,13 @@ class UpdateWorkspaceOutput:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["workspace_strict_mode"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_strict_mode"])
+                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["strict_mode"])
 
                 case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"])
+
+                case 14:
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

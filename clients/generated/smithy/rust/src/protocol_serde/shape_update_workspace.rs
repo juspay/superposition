@@ -93,6 +93,11 @@ pub(crate) fn de_update_workspace(value: &[u8], mut builder: crate::operation::u
             Some(::aws_smithy_json::deserialize::Token::EndObject { .. }) => break,
                                     Some(::aws_smithy_json::deserialize::Token::ObjectKey { key, .. }) => {
                 match key.to_unescaped()?.as_ref() {
+                    "allow_experiment_self_approval" => {
+                        builder = builder.set_allow_experiment_self_approval(
+                            ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                        );
+                    }
                     "config_version" => {
                         builder = builder.set_config_version(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -158,6 +163,11 @@ pub(crate) fn de_update_workspace(value: &[u8], mut builder: crate::operation::u
                             ).transpose()?
                         );
                     }
+                    "strict_mode" => {
+                        builder = builder.set_strict_mode(
+                            ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                        );
+                    }
                     "workspace_admin_email" => {
                         builder = builder.set_workspace_admin_email(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -192,11 +202,6 @@ pub(crate) fn de_update_workspace(value: &[u8], mut builder: crate::operation::u
                                     crate::types::WorkspaceStatus::from(u.as_ref())
                                 )
                             ).transpose()?
-                        );
-                    }
-                    "workspace_strict_mode" => {
-                        builder = builder.set_workspace_strict_mode(
-                            ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                         );
                     }
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

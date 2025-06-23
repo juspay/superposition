@@ -1,42 +1,38 @@
 {
-    "method": "POST",
-    "header": [
-      {
-        "key": "Authorization",
-        "value": "Bearer {{token}}",
-        "type": "text"
-      },
-      {
-        "key": "Content-Type",
-        "value": "application/json",
-        "type": "text"
-      },
-      {
-        "key": "x-org-id",
-        "value": "{{org_id}}",
-        "type": "text"
-      }
-    ],
-    "body": {
-       "mode": "raw",
-       "options": {
-           "raw": {
-           "language": "json"
-        }
-       },
-       "raw_json_formatted": {
-          "workspace_admin_email": "test@gmail.com",
-          "workspace_name": "test",
-          "workspace_strict_mode": true
-       }
+  "method": "POST",
+  "header": [
+    {
+      "key": "Authorization",
+      "value": "Bearer {{token}}",
+      "type": "text"
     },
-    "url": {
-      "raw": "{{host}}/workspaces",
-      "host": [
-        "{{host}}"
-      ],
-      "path": [
-        "workspaces"
-      ]
+    {
+      "key": "Content-Type",
+      "value": "application/json",
+      "type": "text"
+    },
+    {
+      "key": "x-org-id",
+      "value": "{{org_id}}",
+      "type": "text"
     }
+  ],
+  "body": {
+    "mode": "raw",
+    "options": {
+      "raw": {
+        "language": "json"
+      }
+    },
+    "raw_json_formatted": {
+      "workspace_admin_email": "test@gmail.com",
+      "workspace_name": "test",
+      "strict_mode": true
+    }
+  },
+  "url": {
+    "raw": "{{host}}/workspaces",
+    "host": ["{{host}}"],
+    "path": ["workspaces"]
   }
+}

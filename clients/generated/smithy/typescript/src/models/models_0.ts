@@ -1160,8 +1160,9 @@ export interface CreateWorkspaceRequest {
   workspace_admin_email: string | undefined;
   workspace_name: string | undefined;
   workspace_status?: WorkspaceStatus | undefined;
-  workspace_strict_mode: boolean | undefined;
+  strict_mode: boolean | undefined;
   metrics?: __DocumentType | undefined;
+  allow_experiment_self_approval: boolean | undefined;
 }
 
 /**
@@ -1180,8 +1181,9 @@ export interface WorkspaceResponse {
   last_modified_at: Date | undefined;
   created_at: Date | undefined;
   mandatory_dimensions?: (string)[] | undefined;
-  workspace_strict_mode: boolean | undefined;
+  strict_mode: boolean | undefined;
   metrics?: __DocumentType | undefined;
+  allow_experiment_self_approval: boolean | undefined;
 }
 
 /**
@@ -1915,6 +1917,7 @@ export interface UpdateWorkspaceRequest {
   mandatory_dimensions?: (string)[] | undefined;
   workspace_status?: WorkspaceStatus | undefined;
   metrics?: __DocumentType | undefined;
+  allow_experiment_self_approval?: boolean | undefined;
 }
 
 /**

@@ -171,7 +171,7 @@ fn parse_input(
 #[component]
 pub fn toggle(
     value: bool,
-    on_change: Callback<Value, ()>,
+    #[prop(into)] on_change: Callback<Value, ()>,
     #[prop(into, default = String::new())] class: String,
     #[prop(default = false)] disabled: bool,
     #[prop(into, default = String::new())] name: String,

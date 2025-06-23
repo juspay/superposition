@@ -17,7 +17,6 @@ public final class Workspace implements ApiResource {
         "workspace_name", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.of("workspace_admin_email", PreludeSchemas.STRING,
         "created_at", SharedSchemas.DATE_TIME,
-        "workspace_strict_mode", PreludeSchemas.BOOLEAN,
         "organisation_name", PreludeSchemas.STRING,
         "last_modified_by", PreludeSchemas.STRING,
         "created_by", PreludeSchemas.STRING,
@@ -26,7 +25,9 @@ public final class Workspace implements ApiResource {
         "workspace_status", WorkspaceStatus.$SCHEMA,
         "last_modified_at", SharedSchemas.DATE_TIME,
         "organisation_id", PreludeSchemas.STRING,
+        "allow_experiment_self_approval", PreludeSchemas.BOOLEAN,
         "workspace_schema_name", PreludeSchemas.STRING,
+        "strict_mode", PreludeSchemas.BOOLEAN,
         "metrics", PreludeSchemas.DOCUMENT);
 
     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA);

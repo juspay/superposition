@@ -81,6 +81,10 @@ pub fn workspace() -> impl IntoView {
             let metrics: Metrics =
                 serde_json::from_value(row["metrics"].clone()).unwrap_or_default();
 
+            let allow_experiment_self_approval = row["allow_experiment_self_approval"]
+                .as_bool()
+                .unwrap_or_default();
+
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     workspace_name: workspace_name.clone(),
@@ -94,6 +98,7 @@ pub fn workspace() -> impl IntoView {
                     created_by: created_by.clone(),
                     created_at: created_at.clone(),
                     metrics: metrics.clone(),
+                    allow_experiment_self_approval,
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -190,6 +195,8 @@ pub fn workspace() -> impl IntoView {
                                         .mandatory_dimensions
                                         .unwrap_or_default()
                                     metrics=selected_workspace_data.metrics
+                                    allow_experiment_self_approval=selected_workspace_data
+                                        .allow_experiment_self_approval
                                     handle_submit=move |_| {
                                         workspace_resource.refetch();
                                         selected_workspace.set(None);

@@ -30,6 +30,7 @@ pub fn workspace_form(
     #[prop(default = vec![])] mandatory_dimensions: Vec<String>,
     #[prop(default = Value::Null)] config_version: Value,
     #[prop(default = Metrics::default())] metrics: Metrics,
+    #[prop(default = false)] allow_experiment_self_approval: bool,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
@@ -42,6 +43,7 @@ pub fn workspace_form(
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (strict_mode_rs, strict_mode_ws) = create_signal(true);
     let metrics_rws = RwSignal::new(metrics);
+    let allow_experiment_self_approval_rs = RwSignal::new(allow_experiment_self_approval);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -59,6 +61,7 @@ pub fn workspace_form(
                         workspace_status_rs.get_untracked(),
                         mandatory_dimensions_rs.get_untracked(),
                         metrics_rws.get_untracked(),
+                        allow_experiment_self_approval_rs.get_untracked(),
                     )
                     .await
                 } else {
@@ -66,8 +69,10 @@ pub fn workspace_form(
                         workspace_admin_email: workspace_admin_email_rs.get_untracked(),
                         workspace_name: workspace_name_rs.get_untracked(),
                         workspace_status: Some(workspace_status_rs.get_untracked()),
-                        workspace_strict_mode: strict_mode_rs.get_untracked(),
+                        strict_mode: strict_mode_rs.get_untracked(),
                         metrics: Some(metrics_rws.get_untracked()),
+                        allow_experiment_self_approval: allow_experiment_self_approval_rs
+                            .get_untracked(),
                     };
                     create_workspace(org_id.get_untracked().0, create_payload).await
                 };
@@ -198,6 +203,20 @@ pub fn workspace_form(
                                 workspace_status_ws.set(WorkspaceStatus::DISABLED)
                             }
                         })
+                    />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">"Allow self approval for Experiments"</span>
+                    </label>
+                    <Toggle
+                        name="workspace-status"
+                        value=allow_experiment_self_approval_rs.get_untracked()
+                        on_change=move |flag: serde_json::Value| {
+                            let flag = flag.as_bool().unwrap();
+                            allow_experiment_self_approval_rs.set(flag);
+                        }
                     />
                 </div>
 
