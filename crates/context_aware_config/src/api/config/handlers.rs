@@ -67,12 +67,43 @@ pub fn endpoints() -> Scope {
     scope
 }
 
-fn validate_version_in_params(
+fn get_config_version_from_workspace(
+    workspace_context: &WorkspaceContext,
+    conn: &mut DBConnection,
+) -> Option<i64> {
+    match workspaces::dsl::workspaces
+        .select(workspaces::config_version)
+        .filter(
+            workspaces::organisation_id
+                .eq(&workspace_context.organisation_id.0)
+                .and(workspaces::workspace_name.eq(&workspace_context.workspace_id.0)),
+        )
+        .get_result::<Option<i64>>(conn)
+    {
+        Ok(version) => version,
+        Err(e) => {
+            log::error!(
+                "Failed to get config_version for org_id: {}, workspace_name: {} — {:?}",
+                workspace_context.organisation_id.0,
+                workspace_context.workspace_id.0,
+                e
+            );
+            None
+        }
+    }
+}
+fn get_config_version(
     query_params_map: &mut Map<String, Value>,
+    workspace_context: &WorkspaceContext,
+    conn: &mut DBConnection,
 ) -> superposition::Result<Option<i64>> {
-    query_params_map
-        .remove("version")
-        .map_or(Ok(None), |version| {
+    query_params_map.remove("version").map_or_else(
+        || Ok(get_config_version_from_workspace(workspace_context, conn)),
+        |version| {
+            if version == Value::String("latest".to_string()) {
+                log::info!("latest config request");
+                return Ok(None);
+            }
             version.as_i64().map_or_else(
                 || {
                     log::error!("failed to decode version as integer: {}", version);
@@ -80,7 +111,8 @@ fn validate_version_in_params(
                 },
                 |v| Ok(Some(v)),
             )
-        })
+        },
+    )
 }
 
 pub fn add_audit_id_to_header(
@@ -701,12 +733,11 @@ async fn get_config(
     body: Option<Json<ContextPayload>>,
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
-    schema_name: SchemaName,
     workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    let max_created_at = get_max_created_at(&mut conn, &schema_name)
+    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
         .ok();
 
@@ -719,21 +750,14 @@ async fn get_config(
     }
 
     let mut query_params_map = query_map.into_inner();
-    let mut version = match validate_version_in_params(&mut query_params_map)? {
-        Some(val) => Some(val),
-        None => workspaces::dsl::workspaces
-            .select(workspaces::config_version)
-            .filter(
-                workspaces::organisation_id
-                    .eq(&workspace_context.organisation_id.0)
-                    .and(
-                        workspaces::workspace_name.eq(&workspace_context.workspace_id.0),
-                    ),
-            )
-            .get_result::<Option<i64>>(&mut conn)?,
-    };
+    let mut version =
+        get_config_version(&mut query_params_map, &workspace_context, &mut conn)?;
 
-    let mut config = generate_config_from_version(&mut version, &mut conn, &schema_name)?;
+    let mut config = generate_config_from_version(
+        &mut version,
+        &mut conn,
+        &workspace_context.schema_name,
+    )?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
     let is_smithy: bool;
@@ -756,7 +780,7 @@ async fn get_config(
 
     let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
-    add_audit_id_to_header(&mut conn, &mut response, &schema_name);
+    add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
     add_config_version_to_header(&version, &mut response);
     Ok(response.json(config))
 }
@@ -767,12 +791,12 @@ async fn get_resolved_config(
     body: Option<Json<ContextPayload>>,
     db_conn: DbConnection,
     query_map: superposition_query::Query<QueryMap>,
-    schema_name: SchemaName,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let mut query_params_map = query_map.into_inner();
 
-    let max_created_at = get_max_created_at(&mut conn, &schema_name)
+    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
         .ok();
 
@@ -782,9 +806,13 @@ async fn get_resolved_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let mut config_version = validate_version_in_params(&mut query_params_map)?;
-    let mut config =
-        generate_config_from_version(&mut config_version, &mut conn, &schema_name)?;
+    let mut config_version =
+        get_config_version(&mut query_params_map, &workspace_context, &mut conn)?;
+    let mut config = generate_config_from_version(
+        &mut config_version,
+        &mut conn,
+        &workspace_context.schema_name,
+    )?;
 
     config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
 
@@ -862,7 +890,7 @@ async fn get_resolved_config(
     };
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
-    add_audit_id_to_header(&mut conn, &mut resp, &schema_name);
+    add_audit_id_to_header(&mut conn, &mut resp, &workspace_context.schema_name);
     add_config_version_to_header(&config_version, &mut resp);
 
     Ok(resp.json(response))
