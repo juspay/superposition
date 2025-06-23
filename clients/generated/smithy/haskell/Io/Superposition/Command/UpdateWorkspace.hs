@@ -42,6 +42,7 @@ serUpdateWorkspacePAYLOAD:: Io.Superposition.Model.UpdateWorkspaceInput.UpdateWo
 serUpdateWorkspacePAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
         "workspace_admin_email" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.workspace_admin_email input,
+        "metrics" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.metrics input,
         "config_version" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.config_version input,
         "mandatory_dimensions" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.mandatory_dimensions input,
         "workspace_status" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.workspace_status input
@@ -195,6 +196,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    metricsDocumentE :: Data.Maybe.Maybe Data.Aeson.Value <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "metrics") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     workspace_nameDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_name") responseObject
         Data.Function.& \case
@@ -215,6 +223,7 @@ deserializeResponse response = do
         Io.Superposition.Model.UpdateWorkspaceOutput.setLastModifiedAt last_modified_atDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setOrganisationId organisation_idDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceSchemaName workspace_schema_nameDocumentE
+        Io.Superposition.Model.UpdateWorkspaceOutput.setMetrics metricsDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceName workspace_nameDocumentE
     
     where

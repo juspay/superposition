@@ -78,6 +78,10 @@ export interface GetExperimentCommandOutput extends ExperimentResponse, __Metada
  * //   chosen_variant: "STRING_VALUE",
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
+ * //   started_at: new Date("TIMESTAMP"),
+ * //   started_by: "STRING_VALUE",
+ * //   metrics_url: "STRING_VALUE",
+ * //   metrics: "DOCUMENT_VALUE",
  * // };
  *
  * ```

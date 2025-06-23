@@ -23,6 +23,10 @@ impl super::Client {
     ///   - [`chosen_variant(Option<String>)`](crate::operation::resume_experiment::ResumeExperimentOutput::chosen_variant): (undocumented)
     ///   - [`description(String)`](crate::operation::resume_experiment::ResumeExperimentOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::resume_experiment::ResumeExperimentOutput::change_reason): (undocumented)
+    ///   - [`started_at(Option<DateTime>)`](crate::operation::resume_experiment::ResumeExperimentOutput::started_at): (undocumented)
+    ///   - [`started_by(Option<String>)`](crate::operation::resume_experiment::ResumeExperimentOutput::started_by): (undocumented)
+    ///   - [`metrics_url(Option<String>)`](crate::operation::resume_experiment::ResumeExperimentOutput::metrics_url): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::resume_experiment::ResumeExperimentOutput::metrics): (undocumented)
                             /// - On failure, responds with [`SdkError<ResumeExperimentError>`](crate::operation::resume_experiment::ResumeExperimentError)
     pub fn resume_experiment(&self) -> crate::operation::resume_experiment::builders::ResumeExperimentFluentBuilder {
                                 crate::operation::resume_experiment::builders::ResumeExperimentFluentBuilder::new(self.handle.clone())

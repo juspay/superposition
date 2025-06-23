@@ -15,9 +15,7 @@ public final class Workspace implements ApiResource {
     private static final Workspace $INSTANCE = new Workspace();
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("org_id", PreludeSchemas.STRING,
         "workspace_name", PreludeSchemas.STRING);
-    private static final Map<String, Schema> $PROPERTIES = Map.of("organisation_id", PreludeSchemas.STRING,
-        "workspace_admin_email", PreludeSchemas.STRING,
-        "workspace_schema_name", PreludeSchemas.STRING,
+    private static final Map<String, Schema> $PROPERTIES = Map.of("workspace_admin_email", PreludeSchemas.STRING,
         "created_at", SharedSchemas.DATE_TIME,
         "workspace_strict_mode", PreludeSchemas.BOOLEAN,
         "organisation_name", PreludeSchemas.STRING,
@@ -26,7 +24,10 @@ public final class Workspace implements ApiResource {
         "config_version", PreludeSchemas.STRING,
         "mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS,
         "workspace_status", WorkspaceStatus.$SCHEMA,
-        "last_modified_at", SharedSchemas.DATE_TIME);
+        "last_modified_at", SharedSchemas.DATE_TIME,
+        "organisation_id", PreludeSchemas.STRING,
+        "workspace_schema_name", PreludeSchemas.STRING,
+        "metrics", PreludeSchemas.DOCUMENT);
 
     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);

@@ -11,6 +11,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
+import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.DefaultTrait;
@@ -34,6 +35,7 @@ public final class CreateWorkspaceInput implements SerializableStruct {
         .putMember("workspace_status", WorkspaceStatus.$SCHEMA)
         .putMember("workspace_strict_mode", PreludeSchemas.BOOLEAN,
                 new RequiredTrait())
+        .putMember("metrics", PreludeSchemas.DOCUMENT)
         .build();
 
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
@@ -41,12 +43,14 @@ public final class CreateWorkspaceInput implements SerializableStruct {
     private static final Schema $SCHEMA_WORKSPACE_NAME = $SCHEMA.member("workspace_name");
     private static final Schema $SCHEMA_WORKSPACE_STATUS = $SCHEMA.member("workspace_status");
     private static final Schema $SCHEMA_WORKSPACE_STRICT_MODE = $SCHEMA.member("workspace_strict_mode");
+    private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
 
     private final transient String orgId;
     private final transient String workspaceAdminEmail;
     private final transient String workspaceName;
     private final transient WorkspaceStatus workspaceStatus;
     private final transient boolean workspaceStrictMode;
+    private final transient Document metrics;
 
     private CreateWorkspaceInput(Builder builder) {
         this.orgId = builder.orgId;
@@ -54,6 +58,7 @@ public final class CreateWorkspaceInput implements SerializableStruct {
         this.workspaceName = builder.workspaceName;
         this.workspaceStatus = builder.workspaceStatus;
         this.workspaceStrictMode = builder.workspaceStrictMode;
+        this.metrics = builder.metrics;
     }
 
     public String orgId() {
@@ -76,6 +81,10 @@ public final class CreateWorkspaceInput implements SerializableStruct {
         return workspaceStrictMode;
     }
 
+    public Document metrics() {
+        return metrics;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -94,12 +103,13 @@ public final class CreateWorkspaceInput implements SerializableStruct {
                && Objects.equals(this.workspaceAdminEmail, that.workspaceAdminEmail)
                && Objects.equals(this.workspaceName, that.workspaceName)
                && Objects.equals(this.workspaceStatus, that.workspaceStatus)
-               && this.workspaceStrictMode == that.workspaceStrictMode;
+               && this.workspaceStrictMode == that.workspaceStrictMode
+               && Objects.equals(this.metrics, that.metrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(orgId, workspaceAdminEmail, workspaceName, workspaceStatus, workspaceStrictMode);
+        return Objects.hash(orgId, workspaceAdminEmail, workspaceName, workspaceStatus, workspaceStrictMode, metrics);
     }
 
     @Override
@@ -116,6 +126,9 @@ public final class CreateWorkspaceInput implements SerializableStruct {
             serializer.writeString($SCHEMA_WORKSPACE_STATUS, workspaceStatus.value());
         }
         serializer.writeBoolean($SCHEMA_WORKSPACE_STRICT_MODE, workspaceStrictMode);
+        if (metrics != null) {
+            serializer.writeDocument($SCHEMA_METRICS, metrics);
+        }
     }
 
     @Override
@@ -127,6 +140,7 @@ public final class CreateWorkspaceInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STRICT_MODE, member, workspaceStrictMode);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, workspaceStatus);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -145,6 +159,7 @@ public final class CreateWorkspaceInput implements SerializableStruct {
         builder.workspaceName(this.workspaceName);
         builder.workspaceStatus(this.workspaceStatus);
         builder.workspaceStrictMode(this.workspaceStrictMode);
+        builder.metrics(this.metrics);
         return builder;
     }
 
@@ -166,6 +181,7 @@ public final class CreateWorkspaceInput implements SerializableStruct {
         private String workspaceName;
         private WorkspaceStatus workspaceStatus;
         private boolean workspaceStrictMode;
+        private Document metrics;
 
         private Builder() {}
 
@@ -221,6 +237,14 @@ public final class CreateWorkspaceInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder metrics(Document metrics) {
+            this.metrics = metrics;
+            return this;
+        }
+
         @Override
         public CreateWorkspaceInput build() {
             tracker.validate();
@@ -236,6 +260,7 @@ public final class CreateWorkspaceInput implements SerializableStruct {
                 case 2 -> workspaceStrictMode((boolean) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STRICT_MODE, member, value));
                 case 3 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 4 -> workspaceStatus((WorkspaceStatus) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, value));
+                case 5 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -280,6 +305,7 @@ public final class CreateWorkspaceInput implements SerializableStruct {
                     case 2 -> builder.workspaceStrictMode(de.readBoolean(member));
                     case 3 -> builder.orgId(de.readString(member));
                     case 4 -> builder.workspaceStatus(WorkspaceStatus.builder().deserializeMember(de, member).build());
+                    case 5 -> builder.metrics(de.readDocument());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

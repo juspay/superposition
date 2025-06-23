@@ -23,6 +23,10 @@ resource Experiments {
         chosen_variant: String
         description: String
         change_reason: String
+        started_at: DateTime
+        started_by: String
+        metrics_url: String
+        metrics: Document
     }
     read: GetExperiment
     operations: [
@@ -134,6 +138,14 @@ structure ExperimentResponse for Experiments {
 
     @required
     $change_reason
+
+    $started_at
+
+    $started_by
+    
+    $metrics_url
+    
+    $metrics
 }
 
 structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
@@ -153,6 +165,8 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
 
     @required
     $change_reason
+
+    $metrics
 }
 
 structure VariantUpdateRequest {
@@ -181,6 +195,8 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
 
     @required
     $change_reason
+
+    $metrics
 }
 
 list ExperimentList {

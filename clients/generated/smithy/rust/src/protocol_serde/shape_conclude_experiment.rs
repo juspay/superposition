@@ -167,6 +167,20 @@ pub(crate) fn de_conclude_experiment(value: &[u8], mut builder: crate::operation
                             ).transpose()?
                         );
                     }
+                    "metrics" => {
+                        builder = builder.set_metrics(
+                            Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                        );
+                    }
+                    "metrics_url" => {
+                        builder = builder.set_metrics_url(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
                     "name" => {
                         builder = builder.set_name(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -179,6 +193,20 @@ pub(crate) fn de_conclude_experiment(value: &[u8], mut builder: crate::operation
                     "override_keys" => {
                         builder = builder.set_override_keys(
                             crate::protocol_serde::shape_list_override_keys::de_list_override_keys(tokens)?
+                        );
+                    }
+                    "started_at" => {
+                        builder = builder.set_started_at(
+                            ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?
+                        );
+                    }
+                    "started_by" => {
+                        builder = builder.set_started_by(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
                         );
                     }
                     "status" => {

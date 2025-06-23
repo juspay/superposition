@@ -15,6 +15,8 @@ pub struct UpdateWorkspaceInput  {
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl  UpdateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -44,6 +46,10 @@ impl  UpdateWorkspaceInput  {
     pub fn workspace_status(&self) -> ::std::option::Option<&crate::types::WorkspaceStatus> {
         self.workspace_status.as_ref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
+        self.metrics.as_ref()
+    }
 }
 impl UpdateWorkspaceInput {
     /// Creates a new builder-style object to manufacture [`UpdateWorkspaceInput`](crate::operation::update_workspace::UpdateWorkspaceInput).
@@ -62,6 +68,7 @@ pub struct UpdateWorkspaceInputBuilder {
     pub(crate) config_version: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
+    pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl UpdateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -150,6 +157,19 @@ impl UpdateWorkspaceInputBuilder {
     pub fn get_workspace_status(&self) -> &::std::option::Option<crate::types::WorkspaceStatus> {
         &self.workspace_status
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
+        self.metrics = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+        self.metrics = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+        &self.metrics
+    }
     /// Consumes the builder and constructs a [`UpdateWorkspaceInput`](crate::operation::update_workspace::UpdateWorkspaceInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_workspace::UpdateWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -165,6 +185,8 @@ impl UpdateWorkspaceInputBuilder {
                 mandatory_dimensions: self.mandatory_dimensions
                 ,
                 workspace_status: self.workspace_status
+                ,
+                metrics: self.metrics
                 ,
             }
         )

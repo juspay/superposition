@@ -49,6 +49,7 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *   workspace_name: "STRING_VALUE", // required
  *   workspace_status: "ENABLED" || "DISABLED",
  *   workspace_strict_mode: true || false, // required
+ *   metrics: "DOCUMENT_VALUE",
  * };
  * const command = new CreateWorkspaceCommand(input);
  * const response = await client.send(command);
@@ -68,6 +69,7 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //     "STRING_VALUE",
  * //   ],
  * //   workspace_strict_mode: true || false, // required
+ * //   metrics: "DOCUMENT_VALUE",
  * // };
  *
  * ```

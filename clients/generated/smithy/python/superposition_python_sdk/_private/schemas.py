@@ -1355,6 +1355,26 @@ CONCLUDE_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
+        },
+
     }
 )
 
@@ -3769,6 +3789,11 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 8,
+        },
+
     }
 )
 
@@ -3910,6 +3935,26 @@ CREATE_EXPERIMENT_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
         },
 
     }
@@ -5191,6 +5236,11 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 5,
+        },
+
     }
 )
 
@@ -5322,6 +5372,11 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 13,
         },
 
     }
@@ -7094,6 +7149,26 @@ DISCARD_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
+        },
+
     }
 )
 
@@ -8160,6 +8235,26 @@ EXPERIMENT_RESPONSE = Schema.collection(
             ],
         },
 
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
+        },
+
     }
 )
 
@@ -8355,6 +8450,26 @@ GET_EXPERIMENT_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
         },
 
     }
@@ -8797,6 +8912,26 @@ PAUSE_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
+        },
+
     }
 )
 
@@ -9014,6 +9149,26 @@ RAMP_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
+        },
+
     }
 )
 
@@ -9222,6 +9377,26 @@ RESUME_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
+        },
+
     }
 )
 
@@ -9338,6 +9513,11 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 6,
         },
 
     }
@@ -9481,6 +9661,26 @@ UPDATE_OVERRIDES_EXPERIMENT_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 15,
+        },
+
+        "started_by": {
+            "target": STRING,
+            "index": 16,
+        },
+
+        "metrics_url": {
+            "target": STRING,
+            "index": 17,
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 18,
         },
 
     }
@@ -11579,6 +11779,11 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 13,
+        },
+
     }
 )
 
@@ -12305,6 +12510,11 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
             "index": 5,
         },
 
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 6,
+        },
+
     }
 )
 
@@ -12424,6 +12634,11 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 13,
         },
 
     }

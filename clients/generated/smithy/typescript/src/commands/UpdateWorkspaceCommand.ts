@@ -52,6 +52,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *     "STRING_VALUE",
  *   ],
  *   workspace_status: "ENABLED" || "DISABLED",
+ *   metrics: "DOCUMENT_VALUE",
  * };
  * const command = new UpdateWorkspaceCommand(input);
  * const response = await client.send(command);
@@ -71,6 +72,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //     "STRING_VALUE",
  * //   ],
  * //   workspace_strict_mode: true || false, // required
+ * //   metrics: "DOCUMENT_VALUE",
  * // };
  *
  * ```

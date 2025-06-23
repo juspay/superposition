@@ -13,6 +13,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
+import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.DefaultTrait;
@@ -41,6 +42,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         .putMember("description", PreludeSchemas.STRING)
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("metrics", PreludeSchemas.DOCUMENT)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -49,6 +51,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
     private static final Schema $SCHEMA_VARIANT_LIST = $SCHEMA.member("variant_list");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
+    private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -56,6 +59,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
     private final transient List<VariantUpdateRequest> variantList;
     private final transient String description;
     private final transient String changeReason;
+    private final transient Document metrics;
 
     private UpdateOverridesExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -64,6 +68,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         this.variantList = Collections.unmodifiableList(builder.variantList);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
+        this.metrics = builder.metrics;
     }
 
     public String workspaceId() {
@@ -94,6 +99,10 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         return changeReason;
     }
 
+    public Document metrics() {
+        return metrics;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -113,12 +122,13 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                && Objects.equals(this.id, that.id)
                && Objects.equals(this.variantList, that.variantList)
                && Objects.equals(this.description, that.description)
-               && Objects.equals(this.changeReason, that.changeReason);
+               && Objects.equals(this.changeReason, that.changeReason)
+               && Objects.equals(this.metrics, that.metrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, id, variantList, description, changeReason);
+        return Objects.hash(workspaceId, orgId, id, variantList, description, changeReason, metrics);
     }
 
     @Override
@@ -136,6 +146,9 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
             serializer.writeString($SCHEMA_DESCRIPTION, description);
         }
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        if (metrics != null) {
+            serializer.writeDocument($SCHEMA_METRICS, metrics);
+        }
     }
 
     @Override
@@ -148,6 +161,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -167,6 +181,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         builder.variantList(this.variantList);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
+        builder.metrics(this.metrics);
         return builder;
     }
 
@@ -189,6 +204,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         private List<VariantUpdateRequest> variantList;
         private String description;
         private String changeReason;
+        private Document metrics;
 
         private Builder() {}
 
@@ -254,6 +270,14 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder metrics(Document metrics) {
+            this.metrics = metrics;
+            return this;
+        }
+
         @Override
         public UpdateOverridesExperimentInput build() {
             tracker.validate();
@@ -270,6 +294,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 4 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 5 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 6 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -318,6 +343,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                     case 3 -> builder.changeReason(de.readString(member));
                     case 4 -> builder.orgId(de.readString(member));
                     case 5 -> builder.description(de.readString(member));
+                    case 6 -> builder.metrics(de.readDocument());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

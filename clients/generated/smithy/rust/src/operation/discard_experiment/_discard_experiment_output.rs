@@ -33,6 +33,14 @@ pub struct DiscardExperimentOutput  {
     pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::string::String,
+    #[allow(missing_docs)] // documentation missing in model
+    pub started_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub started_by: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub metrics_url: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl  DiscardExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -95,6 +103,22 @@ impl  DiscardExperimentOutput  {
     pub fn change_reason(&self) -> &str {
         use std::ops::Deref; self.change_reason.deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn started_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+        self.started_at.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn started_by(&self) -> ::std::option::Option<&str> {
+        self.started_by.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics_url(&self) -> ::std::option::Option<&str> {
+        self.metrics_url.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
+        self.metrics.as_ref()
+    }
 }
 impl DiscardExperimentOutput {
     /// Creates a new builder-style object to manufacture [`DiscardExperimentOutput`](crate::operation::discard_experiment::DiscardExperimentOutput).
@@ -122,6 +146,10 @@ pub struct DiscardExperimentOutputBuilder {
     pub(crate) chosen_variant: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) started_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub(crate) started_by: ::std::option::Option<::std::string::String>,
+    pub(crate) metrics_url: ::std::option::Option<::std::string::String>,
+    pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl DiscardExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -345,6 +373,58 @@ impl DiscardExperimentOutputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn started_at(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.started_at = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_started_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.started_at = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_started_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.started_at
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn started_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.started_by = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_started_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.started_by = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_started_by(&self) -> &::std::option::Option<::std::string::String> {
+        &self.started_by
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics_url(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.metrics_url = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_metrics_url(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.metrics_url = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_metrics_url(&self) -> &::std::option::Option<::std::string::String> {
+        &self.metrics_url
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
+        self.metrics = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+        self.metrics = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+        &self.metrics
+    }
     /// Consumes the builder and constructs a [`DiscardExperimentOutput`](crate::operation::discard_experiment::DiscardExperimentOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::operation::discard_experiment::builders::DiscardExperimentOutputBuilder::id)
@@ -435,6 +515,14 @@ impl DiscardExperimentOutputBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building DiscardExperimentOutput")
                     )?
+                ,
+                started_at: self.started_at
+                ,
+                started_by: self.started_by
+                ,
+                metrics_url: self.metrics_url
+                ,
+                metrics: self.metrics
                 ,
             }
         )

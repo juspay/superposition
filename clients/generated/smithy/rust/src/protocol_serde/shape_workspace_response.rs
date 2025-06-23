@@ -112,6 +112,11 @@ pub(crate) fn de_workspace_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                                 );
                             }
+                            "metrics" => {
+                                builder = builder.set_metrics(
+                                    Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                                );
+                            }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                         }
                     }

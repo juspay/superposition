@@ -9,6 +9,7 @@ impl super::Client {
     ///   - [`config_version(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::config_version) / [`set_config_version(Option<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_config_version):<br>required: **false**<br>(undocumented)<br>
     ///   - [`mandatory_dimensions(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::mandatory_dimensions) / [`set_mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_mandatory_dimensions):<br>required: **false**<br>(undocumented)<br>
     ///   - [`workspace_status(WorkspaceStatus)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::workspace_status) / [`set_workspace_status(Option<WorkspaceStatus>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_workspace_status):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`metrics(Document)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::metrics) / [`set_metrics(Option<Document>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_metrics):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput) with field(s):
     ///   - [`workspace_name(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_name): (undocumented)
     ///   - [`organisation_id(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::organisation_id): (undocumented)
@@ -23,6 +24,7 @@ impl super::Client {
     ///   - [`created_at(DateTime)`](crate::operation::update_workspace::UpdateWorkspaceOutput::created_at): (undocumented)
     ///   - [`mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::update_workspace::UpdateWorkspaceOutput::mandatory_dimensions): (undocumented)
     ///   - [`workspace_strict_mode(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_strict_mode): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::update_workspace::UpdateWorkspaceOutput::metrics): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateWorkspaceError>`](crate::operation::update_workspace::UpdateWorkspaceError)
     pub fn update_workspace(&self) -> crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder {
                                 crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::new(self.handle.clone())

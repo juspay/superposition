@@ -12,6 +12,7 @@ module Io.Superposition.Model.CreateWorkspaceOutput (
     setCreatedAt,
     setMandatoryDimensions,
     setWorkspaceStrictMode,
+    setMetrics,
     build,
     CreateWorkspaceOutputBuilder,
     CreateWorkspaceOutput,
@@ -27,7 +28,8 @@ module Io.Superposition.Model.CreateWorkspaceOutput (
     last_modified_at,
     created_at,
     mandatory_dimensions,
-    workspace_strict_mode
+    workspace_strict_mode,
+    metrics
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -55,7 +57,8 @@ data CreateWorkspaceOutput = CreateWorkspaceOutput {
     last_modified_at :: Data.Time.UTCTime,
     created_at :: Data.Time.UTCTime,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
-    workspace_strict_mode :: Bool
+    workspace_strict_mode :: Bool,
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -76,7 +79,8 @@ instance Data.Aeson.ToJSON CreateWorkspaceOutput where
         "last_modified_at" Data.Aeson..= last_modified_at a,
         "created_at" Data.Aeson..= created_at a,
         "mandatory_dimensions" Data.Aeson..= mandatory_dimensions a,
-        "workspace_strict_mode" Data.Aeson..= workspace_strict_mode a
+        "workspace_strict_mode" Data.Aeson..= workspace_strict_mode a,
+        "metrics" Data.Aeson..= metrics a
         ]
     
 
@@ -96,6 +100,7 @@ instance Data.Aeson.FromJSON CreateWorkspaceOutput where
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory_dimensions")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_strict_mode")
+        Control.Applicative.<*> (v Data.Aeson..: "metrics")
     
 
 
@@ -113,7 +118,8 @@ data CreateWorkspaceOutputBuilderState = CreateWorkspaceOutputBuilderState {
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     mandatory_dimensionsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
-    workspace_strict_modeBuilderState :: Data.Maybe.Maybe Bool
+    workspace_strict_modeBuilderState :: Data.Maybe.Maybe Bool,
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Generics.Generic
   )
@@ -132,7 +138,8 @@ defaultBuilderState = CreateWorkspaceOutputBuilderState {
     last_modified_atBuilderState = Data.Maybe.Nothing,
     created_atBuilderState = Data.Maybe.Nothing,
     mandatory_dimensionsBuilderState = Data.Maybe.Nothing,
-    workspace_strict_modeBuilderState = Data.Maybe.Nothing
+    workspace_strict_modeBuilderState = Data.Maybe.Nothing,
+    metricsBuilderState = Data.Maybe.Nothing
 }
 
 newtype CreateWorkspaceOutputBuilder a = CreateWorkspaceOutputBuilder {
@@ -208,6 +215,10 @@ setWorkspaceStrictMode :: Bool -> CreateWorkspaceOutputBuilder ()
 setWorkspaceStrictMode value =
    CreateWorkspaceOutputBuilder (\s -> (s { workspace_strict_modeBuilderState = Data.Maybe.Just value }, ()))
 
+setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> CreateWorkspaceOutputBuilder ()
+setMetrics value =
+   CreateWorkspaceOutputBuilder (\s -> (s { metricsBuilderState = value }, ()))
+
 build :: CreateWorkspaceOutputBuilder () -> Data.Either.Either Data.Text.Text CreateWorkspaceOutput
 build builder = do
     let (st, _) = runCreateWorkspaceOutputBuilder builder defaultBuilderState
@@ -224,6 +235,7 @@ build builder = do
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceOutput.CreateWorkspaceOutput.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
     workspace_strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceOutput.CreateWorkspaceOutput.workspace_strict_mode is a required property.") Data.Either.Right (workspace_strict_modeBuilderState st)
+    metrics' <- Data.Either.Right (metricsBuilderState st)
     Data.Either.Right (CreateWorkspaceOutput { 
         workspace_name = workspace_name',
         organisation_id = organisation_id',
@@ -237,7 +249,8 @@ build builder = do
         last_modified_at = last_modified_at',
         created_at = created_at',
         mandatory_dimensions = mandatory_dimensions',
-        workspace_strict_mode = workspace_strict_mode'
+        workspace_strict_mode = workspace_strict_mode',
+        metrics = metrics'
     })
 
 
