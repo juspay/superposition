@@ -9,8 +9,8 @@ use std::{
 
 use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
+use reqwest::StatusCode;
 use serde_json::Value;
-use strum::IntoEnumIterator;
 use superposition_types::{
     api::experiments::ExperimentListFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
@@ -67,19 +67,21 @@ impl Client {
                     *start_date,
                     self.client_config.tenant.to_string(),
                 )
-                .await
-                .unwrap_or(HashMap::new());
-
-                let mut exp_store = self.experiments.write().await;
-                for (exp_id, experiment) in experiments.into_iter() {
-                    if experiment.status.active() {
-                        exp_store.insert(exp_id, experiment)
-                    } else {
-                        exp_store.remove(&exp_id)
-                    };
-                }
+                .await;
+                match experiments {
+                    Ok(experiments) => {
+                        let mut exp_store = self.experiments.write().await;
+                        *exp_store = experiments;
+                        *start_date = Utc::now();
+                    }
+                    Err(e) => {
+                        log::error!(
+                            "Failed to fetch experiments from the server with error: {}",
+                            e
+                        );
+                    }
+                };
             } // write lock on exp store releases here
-            *start_date = Utc::now();
             interval.tick().await;
         }
     }
@@ -248,14 +250,8 @@ async fn get_experiments(
     start_date: DateTime<Utc>,
     tenant: String,
 ) -> Result<ExperimentStore, String> {
-    let mut curr_exp_store: ExperimentStore = HashMap::new();
-    let mut pagination_params = PaginationParams::default();
-    let mut page = 1;
-
     let list_filters = ExperimentListFilters {
-        status: Some(CommaSeparatedQParams(
-            ExperimentStatusType::iter().collect(),
-        )),
+        status: Some(CommaSeparatedQParams(ExperimentStatusType::active_list())),
         from_date: Some(start_date),
         to_date: Some(Utc::now()),
         experiment_name: None,
@@ -265,37 +261,39 @@ async fn get_experiments(
         sort_on: None,
         sort_by: None,
     };
+    let pagination_params = PaginationParams::all_entries();
+    let endpoint = format!("{hostname}/experiments?{pagination_params}&{list_filters}");
+    let experiment_response = http_client
+        .get(endpoint)
+        .header("x-tenant", tenant.to_string())
+        .header("If-Modified-Since", start_date.to_rfc2822())
+        .send()
+        .await
+        .map_err_to_string()?;
 
-    loop {
-        pagination_params = PaginationParams {
-            page: Some(page),
-            ..pagination_params
-        };
-        let endpoint =
-            format!("{hostname}/experiments?{pagination_params}&{list_filters}");
-        let list_experiments_response = http_client
-            .get(endpoint)
-            .header("x-tenant", tenant.to_string())
-            .send()
-            .await
-            .map_err_to_string()?
-            .json::<PaginatedResponse<ExperimentResponse>>()
-            .await
-            .map_err_to_string()?;
-
-        let experiments = list_experiments_response.data;
-
-        for experiment in experiments.into_iter() {
-            curr_exp_store.insert(experiment.id.to_string(), experiment);
+    match experiment_response.status() {
+        StatusCode::NOT_MODIFIED => {
+            return Err(format!(
+                "{} EXP: skipping update, remote not modified",
+                tenant
+            ));
         }
-        if page < list_experiments_response.total_pages {
-            page += 1;
-        } else {
-            break;
-        }
-    }
+        StatusCode::OK => log::info!(
+            "{}",
+            format!("{} EXP: new config received, updating", tenant)
+        ),
+        x => return Err(format!("{} CAC: fetch failed, status: {}", tenant, x)),
+    };
+    let list_experiments_response = experiment_response
+        .json::<PaginatedResponse<ExperimentResponse>>()
+        .await
+        .map_err_to_string()?;
 
-    Ok(curr_exp_store)
+    let experiments = list_experiments_response.data;
+    Ok(experiments
+        .into_iter()
+        .map(|exp| (exp.id.clone(), exp))
+        .collect())
 }
 
 #[derive(Deref, DerefMut)]
