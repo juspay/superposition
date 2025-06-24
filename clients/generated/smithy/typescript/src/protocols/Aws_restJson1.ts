@@ -469,6 +469,7 @@ export const se_CreateDefaultConfigCommand = async(
   b.bp("/default-config");
   let body: any;
   body = JSON.stringify(take(input, {
+    'autocomplete_function_name': [],
     'change_reason': [],
     'description': [],
     'function_name': [],
@@ -498,6 +499,7 @@ export const se_CreateDimensionCommand = async(
   b.bp("/dimension");
   let body: any;
   body = JSON.stringify(take(input, {
+    'autocomplete_function_name': [],
     'change_reason': [],
     'dependencies': _ => _json(_),
     'description': [],
@@ -1116,6 +1118,7 @@ export const se_GetTypeTemplatesListCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1162,10 +1165,11 @@ export const se_ListAuditLogsCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
     [_ta]: [,input[_t]!],
-    [_a]: [,input[_a]!],
+    [_ac]: [,input[_ac]!],
     [_u]: [,input[_u]!],
   });
   let body: any;
@@ -1223,6 +1227,7 @@ export const se_ListDefaultConfigsCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1248,6 +1253,7 @@ export const se_ListDimensionsCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1273,7 +1279,7 @@ export const se_ListExperimentCommand = async(
   const query: any = map({
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
-    [_al]: [() => input.all !== void 0, () => (input[_al]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_s]: [,input[_s]!],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
@@ -1313,7 +1319,7 @@ export const se_ListExperimentGroupsCommand = async(
     [_lmb]: [,input[_lmb]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
-    [_al]: [() => input.all !== void 0, () => (input[_al]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1339,6 +1345,7 @@ export const se_ListFunctionCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1362,6 +1369,7 @@ export const se_ListOrganisationCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1412,6 +1420,7 @@ export const se_ListWebhookCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1436,6 +1445,7 @@ export const se_ListWorkspaceCommand = async(
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1642,6 +1652,7 @@ export const se_UpdateDefaultConfigCommand = async(
   b.p('key', () => input.key!, '{key}', false)
   let body: any;
   body = JSON.stringify(take(input, {
+    'autocomplete_function_name': [],
     'change_reason': [],
     'description': [],
     'function_name': [],
@@ -1671,6 +1682,7 @@ export const se_UpdateDimensionCommand = async(
   b.p('dimension', () => input.dimension!, '{dimension}', false)
   let body: any;
   body = JSON.stringify(take(input, {
+    'autocomplete_function_name': [],
     'change_reason': [],
     'dependencies': _ => _json(_),
     'description': [],
@@ -2084,6 +2096,7 @@ export const de_CreateDefaultConfigCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -2114,6 +2127,7 @@ export const de_CreateDimensionCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -2660,6 +2674,7 @@ export const de_GetDimensionCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -3395,6 +3410,7 @@ export const de_UpdateDefaultConfigCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -3425,6 +3441,7 @@ export const de_UpdateDimensionCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
+    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -4308,6 +4325,7 @@ const de_CommandError = async(
     context: __SerdeContext
   ): DefaultConfigFull => {
     return take(output, {
+      'autocomplete_function_name': __expectString,
       'change_reason': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
@@ -4333,6 +4351,7 @@ const de_CommandError = async(
     context: __SerdeContext
   ): DimensionExt => {
     return take(output, {
+      'autocomplete_function_name': __expectString,
       'change_reason': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
@@ -4817,9 +4836,9 @@ const de_CommandError = async(
   // Encode Uint8Array data into string with utf-8.
   const collectBodyString = (streamBody: any, context: __SerdeContext): Promise<string> => collectBody(streamBody, context).then(body => context.utf8Encoder(body))
 
-  const _a = "action";
+  const _a = "all";
+  const _ac = "action";
   const _ai = "audit_id";
-  const _al = "all";
   const _c = "count";
   const _cb = "created_by";
   const _ci = "context_id";

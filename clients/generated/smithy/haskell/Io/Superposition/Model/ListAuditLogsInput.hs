@@ -3,6 +3,7 @@ module Io.Superposition.Model.ListAuditLogsInput (
     setOrgId,
     setCount,
     setPage,
+    setAll',
     setFromDate,
     setToDate,
     setTables,
@@ -15,6 +16,7 @@ module Io.Superposition.Model.ListAuditLogsInput (
     org_id,
     count,
     page,
+    all',
     from_date,
     to_date,
     tables,
@@ -38,6 +40,7 @@ data ListAuditLogsInput = ListAuditLogsInput {
     org_id :: Data.Text.Text,
     count :: Data.Maybe.Maybe Integer,
     page :: Data.Maybe.Maybe Integer,
+    all' :: Data.Maybe.Maybe Bool,
     from_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     tables :: Data.Maybe.Maybe Data.Text.Text,
@@ -55,6 +58,7 @@ instance Data.Aeson.ToJSON ListAuditLogsInput where
         "org_id" Data.Aeson..= org_id a,
         "count" Data.Aeson..= count a,
         "page" Data.Aeson..= page a,
+        "all" Data.Aeson..= all' a,
         "from_date" Data.Aeson..= from_date a,
         "to_date" Data.Aeson..= to_date a,
         "tables" Data.Aeson..= tables a,
@@ -70,6 +74,7 @@ instance Data.Aeson.FromJSON ListAuditLogsInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "count")
         Control.Applicative.<*> (v Data.Aeson..: "page")
+        Control.Applicative.<*> (v Data.Aeson..: "all")
         Control.Applicative.<*> (v Data.Aeson..: "from_date")
         Control.Applicative.<*> (v Data.Aeson..: "to_date")
         Control.Applicative.<*> (v Data.Aeson..: "tables")
@@ -84,6 +89,7 @@ data ListAuditLogsInputBuilderState = ListAuditLogsInputBuilderState {
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     countBuilderState :: Data.Maybe.Maybe Integer,
     pageBuilderState :: Data.Maybe.Maybe Integer,
+    all'BuilderState :: Data.Maybe.Maybe Bool,
     from_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     tablesBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -99,6 +105,7 @@ defaultBuilderState = ListAuditLogsInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
     countBuilderState = Data.Maybe.Nothing,
     pageBuilderState = Data.Maybe.Nothing,
+    all'BuilderState = Data.Maybe.Nothing,
     from_dateBuilderState = Data.Maybe.Nothing,
     to_dateBuilderState = Data.Maybe.Nothing,
     tablesBuilderState = Data.Maybe.Nothing,
@@ -143,6 +150,10 @@ setPage :: Data.Maybe.Maybe Integer -> ListAuditLogsInputBuilder ()
 setPage value =
    ListAuditLogsInputBuilder (\s -> (s { pageBuilderState = value }, ()))
 
+setAll' :: Data.Maybe.Maybe Bool -> ListAuditLogsInputBuilder ()
+setAll' value =
+   ListAuditLogsInputBuilder (\s -> (s { all'BuilderState = value }, ()))
+
 setFromDate :: Data.Maybe.Maybe Data.Time.UTCTime -> ListAuditLogsInputBuilder ()
 setFromDate value =
    ListAuditLogsInputBuilder (\s -> (s { from_dateBuilderState = value }, ()))
@@ -170,6 +181,7 @@ build builder = do
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListAuditLogsInput.ListAuditLogsInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     count' <- Data.Either.Right (countBuilderState st)
     page' <- Data.Either.Right (pageBuilderState st)
+    all'' <- Data.Either.Right (all'BuilderState st)
     from_date' <- Data.Either.Right (from_dateBuilderState st)
     to_date' <- Data.Either.Right (to_dateBuilderState st)
     tables' <- Data.Either.Right (tablesBuilderState st)
@@ -180,6 +192,7 @@ build builder = do
         org_id = org_id',
         count = count',
         page = page',
+        all' = all'',
         from_date = from_date',
         to_date = to_date',
         tables = tables',

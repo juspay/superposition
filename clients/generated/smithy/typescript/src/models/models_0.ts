@@ -130,6 +130,7 @@ export interface ListAuditLogsInput {
   org_id: string | undefined;
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
   from_date?: Date | undefined;
   to_date?: Date | undefined;
   /**
@@ -856,6 +857,7 @@ export interface CreateDefaultConfigInput {
    */
   function_name?: string | undefined;
 
+  autocomplete_function_name?: string | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -875,6 +877,7 @@ export interface DefaultConfigFull {
    */
   function_name?: string | undefined;
 
+  autocomplete_function_name?: string | undefined;
   created_at: Date | undefined;
   created_by: string | undefined;
   last_modified_at: Date | undefined;
@@ -894,6 +897,7 @@ export interface CreateDimensionInput {
   dependencies?: (string)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  autocomplete_function_name?: string | undefined;
 }
 
 /**
@@ -913,6 +917,7 @@ export interface DimensionExt {
   dependencies: (string)[] | undefined;
   dependents: (string)[] | undefined;
   dependency_graph: Record<string, __DocumentType> | undefined;
+  autocomplete_function_name?: string | undefined;
   mandatory?: boolean | undefined;
 }
 
@@ -1207,6 +1212,7 @@ export interface DeleteDefaultConfigOutput {
 export interface ListDefaultConfigsInput {
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -1232,6 +1238,7 @@ export interface UpdateDefaultConfigInput {
   schema?: __DocumentType | undefined;
   function_name?: string | undefined;
   description?: string | undefined;
+  autocomplete_function_name?: string | undefined;
 }
 
 /**
@@ -1335,6 +1342,7 @@ export interface GetDimensionInput {
 export interface ListDimensionsInput {
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -1361,6 +1369,7 @@ export interface UpdateDimensionInput {
   description?: string | undefined;
   dependencies?: (string)[] | undefined;
   change_reason: string | undefined;
+  autocomplete_function_name?: string | undefined;
 }
 
 /**
@@ -1609,6 +1618,7 @@ export interface GetFunctionInput {
 export interface ListFunctionInput {
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -1769,6 +1779,7 @@ export class OrganisationNotFound extends __BaseException {
 export interface GetTypeTemplatesListInput {
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -1797,6 +1808,7 @@ export interface GetWebhookInput {
 export interface ListOrganisationInput {
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
 }
 
 /**
@@ -1814,6 +1826,7 @@ export interface ListOrganisationOutput {
 export interface ListWebhookInput {
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -1833,6 +1846,7 @@ export interface WebhookListResponse {
 export interface ListWorkspaceInput {
   count?: number | undefined;
   page?: number | undefined;
+  all?: boolean | undefined;
   org_id: string | undefined;
 }
 

@@ -8,6 +8,8 @@ pub struct ListWebhookInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub page: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
+    pub all: ::std::option::Option<bool>,
+    #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
@@ -20,6 +22,10 @@ impl  ListWebhookInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn page(&self) -> ::std::option::Option<i32> {
         self.page
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(&self) -> ::std::option::Option<bool> {
+        self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
@@ -43,6 +49,7 @@ impl ListWebhookInput {
 pub struct ListWebhookInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
     pub(crate) page: ::std::option::Option<i32>,
+    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
 }
@@ -72,6 +79,19 @@ impl ListWebhookInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_page(&self) -> &::std::option::Option<i32> {
         &self.page
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(mut self, input: bool) -> Self {
+        self.all = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.all = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+        &self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -108,6 +128,8 @@ impl ListWebhookInputBuilder {
                 count: self.count
                 ,
                 page: self.page
+                ,
+                all: self.all
                 ,
                 workspace_id: self.workspace_id
                 ,

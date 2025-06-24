@@ -1186,6 +1186,8 @@ async def _serialize_get_type_templates_list(input: GetTypeTemplatesListInput, c
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1253,6 +1255,8 @@ async def _serialize_list_audit_logs(input: ListAuditLogsInput, config: Config) 
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
     if input.from_date is not None:
         query_params.append(("from_date", serialize_rfc3339(ensure_utc(input.from_date))))
     if input.to_date is not None:
@@ -1345,6 +1349,8 @@ async def _serialize_list_default_configs(input: ListDefaultConfigsInput, config
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1380,6 +1386,8 @@ async def _serialize_list_dimensions(input: ListDimensionsInput, config: Config)
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1517,6 +1525,8 @@ async def _serialize_list_function(input: ListFunctionInput, config: Config) -> 
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1552,6 +1562,8 @@ async def _serialize_list_organisation(input: ListOrganisationInput, config: Con
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1618,6 +1630,8 @@ async def _serialize_list_webhook(input: ListWebhookInput, config: Config) -> HT
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1653,6 +1667,8 @@ async def _serialize_list_workspace(input: ListWorkspaceInput, config: Config) -
         query_params.append(("count", str(input.count)))
     if input.page is not None:
         query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 

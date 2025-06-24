@@ -1,6 +1,7 @@
 module Io.Superposition.Model.ListWebhookInput (
     setCount,
     setPage,
+    setAll',
     setWorkspaceId,
     setOrgId,
     build,
@@ -8,6 +9,7 @@ module Io.Superposition.Model.ListWebhookInput (
     ListWebhookInput,
     count,
     page,
+    all',
     workspace_id,
     org_id
 ) where
@@ -25,6 +27,7 @@ import qualified GHC.Show
 data ListWebhookInput = ListWebhookInput {
     count :: Data.Maybe.Maybe Integer,
     page :: Data.Maybe.Maybe Integer,
+    all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text
 } deriving (
@@ -37,6 +40,7 @@ instance Data.Aeson.ToJSON ListWebhookInput where
     toJSON a = Data.Aeson.object [
         "count" Data.Aeson..= count a,
         "page" Data.Aeson..= page a,
+        "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a
         ]
@@ -47,6 +51,7 @@ instance Data.Aeson.FromJSON ListWebhookInput where
     parseJSON = Data.Aeson.withObject "ListWebhookInput" $ \v -> ListWebhookInput
         Data.Functor.<$> (v Data.Aeson..: "count")
         Control.Applicative.<*> (v Data.Aeson..: "page")
+        Control.Applicative.<*> (v Data.Aeson..: "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
     
@@ -56,6 +61,7 @@ instance Data.Aeson.FromJSON ListWebhookInput where
 data ListWebhookInputBuilderState = ListWebhookInputBuilderState {
     countBuilderState :: Data.Maybe.Maybe Integer,
     pageBuilderState :: Data.Maybe.Maybe Integer,
+    all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
@@ -66,6 +72,7 @@ defaultBuilderState :: ListWebhookInputBuilderState
 defaultBuilderState = ListWebhookInputBuilderState {
     countBuilderState = Data.Maybe.Nothing,
     pageBuilderState = Data.Maybe.Nothing,
+    all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing
 }
@@ -99,6 +106,10 @@ setPage :: Data.Maybe.Maybe Integer -> ListWebhookInputBuilder ()
 setPage value =
    ListWebhookInputBuilder (\s -> (s { pageBuilderState = value }, ()))
 
+setAll' :: Data.Maybe.Maybe Bool -> ListWebhookInputBuilder ()
+setAll' value =
+   ListWebhookInputBuilder (\s -> (s { all'BuilderState = value }, ()))
+
 setWorkspaceId :: Data.Text.Text -> ListWebhookInputBuilder ()
 setWorkspaceId value =
    ListWebhookInputBuilder (\s -> (s { workspace_idBuilderState = Data.Maybe.Just value }, ()))
@@ -112,11 +123,13 @@ build builder = do
     let (st, _) = runListWebhookInputBuilder builder defaultBuilderState
     count' <- Data.Either.Right (countBuilderState st)
     page' <- Data.Either.Right (pageBuilderState st)
+    all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListWebhookInput.ListWebhookInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListWebhookInput.ListWebhookInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     Data.Either.Right (ListWebhookInput { 
         count = count',
         page = page',
+        all' = all'',
         workspace_id = workspace_id',
         org_id = org_id'
     })

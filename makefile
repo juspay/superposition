@@ -38,11 +38,12 @@ export SMITHY_MAVEN_REPOS = https://repo.maven.apache.org/maven|https://sandbox.
 	kill
 	run
 	ci-test
+	clients
+	setup-clients
 	validate-aws-connection
 	validate-psql-connection
 	cac
 	schema-file
-	setup-clients
 	node-dependencies
 	grafana-local
 
@@ -120,7 +121,10 @@ setup-clients:
 		npm run build:cjs &&\
 		npm run build:types &&\
 		npm run build:es
+	cd clients/tests/typescript && bun install
 
+clients: smithy-clients setup-clients
+	
 kill:
 	-@pkill -f target/debug/superposition &
 
@@ -183,7 +187,7 @@ test: setup frontend superposition
 				--connect-timeout 2 \
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
-	cd clients/tests/typescript && bun install && bun test
+	cd clients/tests/typescript && bun test
 	-@pkill -f target/debug/superposition &
 
 ## npm run test
@@ -209,6 +213,8 @@ smithy-clients: smithy-build
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
+
+	
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
@@ -248,3 +254,4 @@ schema-file:
 	diesel print-schema --schema superposition > crates/superposition_types/src/database/superposition_schema.rs
 	git apply crates/superposition_types/src/database/superposition_schema.patch
 	git apply crates/superposition_types/src/database/schema-timestamp-migration.patch
+

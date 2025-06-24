@@ -12,6 +12,7 @@ impl super::Client {
     ///   - [`dependencies(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::dependencies) / [`set_dependencies(Option<Vec::<String>>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_dependencies):<br>required: **false**<br>(undocumented)<br>
     ///   - [`description(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_description):<br>required: **true**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`autocomplete_function_name(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::autocomplete_function_name) / [`set_autocomplete_function_name(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_autocomplete_function_name):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`CreateDimensionOutput`](crate::operation::create_dimension::CreateDimensionOutput) with field(s):
     ///   - [`dimension(String)`](crate::operation::create_dimension::CreateDimensionOutput::dimension): (undocumented)
     ///   - [`position(i32)`](crate::operation::create_dimension::CreateDimensionOutput::position): (undocumented)
@@ -26,6 +27,7 @@ impl super::Client {
     ///   - [`dependencies(Vec::<String>)`](crate::operation::create_dimension::CreateDimensionOutput::dependencies): (undocumented)
     ///   - [`dependents(Vec::<String>)`](crate::operation::create_dimension::CreateDimensionOutput::dependents): (undocumented)
     ///   - [`dependency_graph(HashMap::<String, Document>)`](crate::operation::create_dimension::CreateDimensionOutput::dependency_graph): (undocumented)
+    ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::create_dimension::CreateDimensionOutput::autocomplete_function_name): (undocumented)
     ///   - [`mandatory(Option<bool>)`](crate::operation::create_dimension::CreateDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<CreateDimensionError>`](crate::operation::create_dimension::CreateDimensionError)
     pub fn create_dimension(&self) -> crate::operation::create_dimension::builders::CreateDimensionFluentBuilder {

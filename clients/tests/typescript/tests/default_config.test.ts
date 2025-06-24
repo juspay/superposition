@@ -74,6 +74,12 @@ describe("Default Config API Integration Tests", () => {
                 return true;
             }
         `;
+        
+        const autocompleteCode = `
+            async function autocomplete(name, prefix, environment) {
+                return [];
+            }
+        `;
 
         console.log("Creating function false_validation");
         await superpositionClient.send(
@@ -106,6 +112,21 @@ describe("Default Config API Integration Tests", () => {
         );
         // Track created function
         createdFunctions.push("true_function");
+        
+        await superpositionClient.send(
+            new CreateFunctionCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                function_name: "auto_fn",
+                function: autocompleteCode,
+                description: "Test autocomplete function",
+                change_reason: "Initial creation",
+                runtime_version: "1",
+                function_type: FunctionTypes.Autocomplete,
+            })
+        );
+        
+        createdFunctions.push("auto_fn");
 
         console.log("Publishing function false_validation");
         await superpositionClient.send(
@@ -122,6 +143,14 @@ describe("Default Config API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 function_name: "true_function",
+            })
+        );
+        
+        await superpositionClient.send(
+            new PublishCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                function_name: "auto_fn",
             })
         );
     }
@@ -250,6 +279,32 @@ describe("Default Config API Integration Tests", () => {
                 "Function validation failed for test-key-2 with error Error: The function did not return a value that was expected. Check the return type and logic of the function\n. "
             );
         });
+        
+        test("should pass when autocomplete function attaches", async () => {
+            const input = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+
+                key: "test-key-3",
+                schema: {
+                    type: "object",
+                    properties: {
+                        name: { type: "string" },
+                    },
+                },
+                value: { name: "valid Value" },
+                description: "Test configuration",
+                autocomplete_function_name: "auto_fn",
+                change_reason: "Test function completion",
+            };
+
+            const cmd = new CreateDefaultConfigCommand(input);
+            let response = await superpositionClient.send(cmd);
+            expect(response).toBeDefined();
+            expect(response.autocomplete_function_name).toBe("auto_fn");
+            
+        });
+
 
         test("should fail when function does not exist", async () => {
             const input = {

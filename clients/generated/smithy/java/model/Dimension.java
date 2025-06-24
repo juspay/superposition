@@ -17,17 +17,18 @@ public final class Dimension implements ApiResource {
         "org_id", PreludeSchemas.STRING,
         "dimension", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.of("schema", PreludeSchemas.DOCUMENT,
-        "change_reason", PreludeSchemas.STRING,
-        "function_name", PreludeSchemas.STRING,
         "description", PreludeSchemas.STRING,
         "created_at", SharedSchemas.DATE_TIME,
-        "dependents", SharedSchemas.DEPENDENTS,
-        "position", PreludeSchemas.INTEGER,
         "last_modified_by", PreludeSchemas.STRING,
         "created_by", PreludeSchemas.STRING,
         "dependencies", SharedSchemas.DEPENDENCIES,
         "dependency_graph", SharedSchemas.OBJECT,
-        "last_modified_at", SharedSchemas.DATE_TIME);
+        "last_modified_at", SharedSchemas.DATE_TIME,
+        "autocomplete_function_name", PreludeSchemas.STRING,
+        "change_reason", PreludeSchemas.STRING,
+        "function_name", PreludeSchemas.STRING,
+        "dependents", SharedSchemas.DEPENDENTS,
+        "position", PreludeSchemas.INTEGER);
 
     private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
         CreateDimension.$SCHEMA);

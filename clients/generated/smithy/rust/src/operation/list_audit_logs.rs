@@ -145,29 +145,34 @@ fn uri_query(_input: &crate::operation::list_audit_logs::ListAuditLogsInput, mut
             query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_3) = &_input.from_date {
+    if let ::std::option::Option::Some(inner_3) = &_input.all {
          {
-            query.push_kv("from_date", &::aws_smithy_http::query::fmt_timestamp(inner_3, ::aws_smithy_types::date_time::Format::DateTime)?);
+            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_4) = &_input.to_date {
+    if let ::std::option::Option::Some(inner_4) = &_input.from_date {
          {
-            query.push_kv("to_date", &::aws_smithy_http::query::fmt_timestamp(inner_4, ::aws_smithy_types::date_time::Format::DateTime)?);
+            query.push_kv("from_date", &::aws_smithy_http::query::fmt_timestamp(inner_4, ::aws_smithy_types::date_time::Format::DateTime)?);
         }
     }
-    if let ::std::option::Option::Some(inner_5) = &_input.tables {
+    if let ::std::option::Option::Some(inner_5) = &_input.to_date {
          {
-            query.push_kv("table", &::aws_smithy_http::query::fmt_string(inner_5));
+            query.push_kv("to_date", &::aws_smithy_http::query::fmt_timestamp(inner_5, ::aws_smithy_types::date_time::Format::DateTime)?);
         }
     }
-    if let ::std::option::Option::Some(inner_6) = &_input.action {
+    if let ::std::option::Option::Some(inner_6) = &_input.tables {
          {
-            query.push_kv("action", &::aws_smithy_http::query::fmt_string(inner_6));
+            query.push_kv("table", &::aws_smithy_http::query::fmt_string(inner_6));
         }
     }
-    if let ::std::option::Option::Some(inner_7) = &_input.username {
+    if let ::std::option::Option::Some(inner_7) = &_input.action {
          {
-            query.push_kv("username", &::aws_smithy_http::query::fmt_string(inner_7));
+            query.push_kv("action", &::aws_smithy_http::query::fmt_string(inner_7));
+        }
+    }
+    if let ::std::option::Option::Some(inner_8) = &_input.username {
+         {
+            query.push_kv("username", &::aws_smithy_http::query::fmt_string(inner_8));
         }
     }
     ::std::result::Result::Ok(())

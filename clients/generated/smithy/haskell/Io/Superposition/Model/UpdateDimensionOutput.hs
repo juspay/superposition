@@ -12,6 +12,7 @@ module Io.Superposition.Model.UpdateDimensionOutput (
     setDependencies,
     setDependents,
     setDependencyGraph,
+    setAutocompleteFunctionName,
     setMandatory,
     build,
     UpdateDimensionOutputBuilder,
@@ -29,6 +30,7 @@ module Io.Superposition.Model.UpdateDimensionOutput (
     dependencies,
     dependents,
     dependency_graph,
+    autocomplete_function_name,
     mandatory
 ) where
 import qualified Control.Applicative
@@ -58,6 +60,7 @@ data UpdateDimensionOutput = UpdateDimensionOutput {
     dependencies :: [] Data.Text.Text,
     dependents :: [] Data.Text.Text,
     dependency_graph :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
     mandatory :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
@@ -80,6 +83,7 @@ instance Data.Aeson.ToJSON UpdateDimensionOutput where
         "dependencies" Data.Aeson..= dependencies a,
         "dependents" Data.Aeson..= dependents a,
         "dependency_graph" Data.Aeson..= dependency_graph a,
+        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
         "mandatory" Data.Aeson..= mandatory a
         ]
     
@@ -100,6 +104,7 @@ instance Data.Aeson.FromJSON UpdateDimensionOutput where
         Control.Applicative.<*> (v Data.Aeson..: "dependencies")
         Control.Applicative.<*> (v Data.Aeson..: "dependents")
         Control.Applicative.<*> (v Data.Aeson..: "dependency_graph")
+        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory")
     
 
@@ -119,6 +124,7 @@ data UpdateDimensionOutputBuilderState = UpdateDimensionOutputBuilderState {
     dependenciesBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     dependentsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     dependency_graphBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     mandatoryBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
@@ -139,6 +145,7 @@ defaultBuilderState = UpdateDimensionOutputBuilderState {
     dependenciesBuilderState = Data.Maybe.Nothing,
     dependentsBuilderState = Data.Maybe.Nothing,
     dependency_graphBuilderState = Data.Maybe.Nothing,
+    autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
     mandatoryBuilderState = Data.Maybe.Nothing
 }
 
@@ -215,6 +222,10 @@ setDependencyGraph :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> UpdateDime
 setDependencyGraph value =
    UpdateDimensionOutputBuilder (\s -> (s { dependency_graphBuilderState = Data.Maybe.Just value }, ()))
 
+setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDimensionOutputBuilder ()
+setAutocompleteFunctionName value =
+   UpdateDimensionOutputBuilder (\s -> (s { autocomplete_function_nameBuilderState = value }, ()))
+
 setMandatory :: Data.Maybe.Maybe Bool -> UpdateDimensionOutputBuilder ()
 setMandatory value =
    UpdateDimensionOutputBuilder (\s -> (s { mandatoryBuilderState = value }, ()))
@@ -235,6 +246,7 @@ build builder = do
     dependencies' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDimensionOutput.UpdateDimensionOutput.dependencies is a required property.") Data.Either.Right (dependenciesBuilderState st)
     dependents' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDimensionOutput.UpdateDimensionOutput.dependents is a required property.") Data.Either.Right (dependentsBuilderState st)
     dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDimensionOutput.UpdateDimensionOutput.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
+    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
     mandatory' <- Data.Either.Right (mandatoryBuilderState st)
     Data.Either.Right (UpdateDimensionOutput { 
         dimension = dimension',
@@ -250,6 +262,7 @@ build builder = do
         dependencies = dependencies',
         dependents = dependents',
         dependency_graph = dependency_graph',
+        autocomplete_function_name = autocomplete_function_name',
         mandatory = mandatory'
     })
 

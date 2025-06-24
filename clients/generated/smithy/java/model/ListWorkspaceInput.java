@@ -27,6 +27,8 @@ public final class ListWorkspaceInput implements SerializableStruct {
                 new HttpQueryTrait("count"))
         .putMember("page", PreludeSchemas.INTEGER,
                 new HttpQueryTrait("page"))
+        .putMember("all", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("all"))
         .putMember("org_id", PreludeSchemas.STRING,
                 new DefaultTrait(Node.from("juspay")),
                 new RequiredTrait(),
@@ -35,15 +37,18 @@ public final class ListWorkspaceInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
     private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
+    private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
 
     private final transient Integer count;
     private final transient Integer page;
+    private final transient Boolean all;
     private final transient String orgId;
 
     private ListWorkspaceInput(Builder builder) {
         this.count = builder.count;
         this.page = builder.page;
+        this.all = builder.all;
         this.orgId = builder.orgId;
     }
 
@@ -53,6 +58,10 @@ public final class ListWorkspaceInput implements SerializableStruct {
 
     public Integer page() {
         return page;
+    }
+
+    public Boolean all() {
+        return all;
     }
 
     public String orgId() {
@@ -75,12 +84,13 @@ public final class ListWorkspaceInput implements SerializableStruct {
         ListWorkspaceInput that = (ListWorkspaceInput) other;
         return Objects.equals(this.count, that.count)
                && Objects.equals(this.page, that.page)
+               && Objects.equals(this.all, that.all)
                && Objects.equals(this.orgId, that.orgId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, orgId);
+        return Objects.hash(count, page, all, orgId);
     }
 
     @Override
@@ -96,6 +106,9 @@ public final class ListWorkspaceInput implements SerializableStruct {
         if (page != null) {
             serializer.writeInteger($SCHEMA_PAGE, page);
         }
+        if (all != null) {
+            serializer.writeBoolean($SCHEMA_ALL, all);
+        }
         serializer.writeString($SCHEMA_ORG_ID, orgId);
     }
 
@@ -105,7 +118,8 @@ public final class ListWorkspaceInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -121,6 +135,7 @@ public final class ListWorkspaceInput implements SerializableStruct {
         var builder = new Builder();
         builder.count(this.count);
         builder.page(this.page);
+        builder.all(this.all);
         builder.orgId(this.orgId);
         return builder;
     }
@@ -139,6 +154,7 @@ public final class ListWorkspaceInput implements SerializableStruct {
         private static final String ORG_ID_DEFAULT = "juspay";
         private Integer count;
         private Integer page;
+        private Boolean all;
         private String orgId = ORG_ID_DEFAULT;
 
         private Builder() {}
@@ -165,6 +181,14 @@ public final class ListWorkspaceInput implements SerializableStruct {
         }
 
         /**
+         * @return this builder.
+         */
+        public Builder all(boolean all) {
+            this.all = all;
+            return this;
+        }
+
+        /**
          * <p><strong>Required</strong>
          * @return this builder.
          */
@@ -184,7 +208,8 @@ public final class ListWorkspaceInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 1 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
-                case 2 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 2 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 3 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -209,7 +234,8 @@ public final class ListWorkspaceInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.count(de.readInteger(member));
                     case 1 -> builder.page(de.readInteger(member));
-                    case 2 -> builder.orgId(de.readString(member));
+                    case 2 -> builder.all(de.readBoolean(member));
+                    case 3 -> builder.orgId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

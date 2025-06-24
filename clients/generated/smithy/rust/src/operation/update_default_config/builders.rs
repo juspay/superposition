@@ -207,5 +207,19 @@ impl UpdateDefaultConfigFluentBuilder {
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_description()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.autocomplete_function_name(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_autocomplete_function_name(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_autocomplete_function_name()
+                }
 }
 

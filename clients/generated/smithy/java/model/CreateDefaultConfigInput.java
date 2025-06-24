@@ -35,6 +35,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("function_name", PreludeSchemas.STRING)
+        .putMember("autocomplete_function_name", PreludeSchemas.STRING)
         .putMember("workspace_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-tenant"),
                 new RequiredTrait())
@@ -50,6 +51,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_FUNCTION_NAME = $SCHEMA.member("function_name");
+    private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
 
@@ -59,6 +61,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
     private final transient String description;
     private final transient String changeReason;
     private final transient String functionName;
+    private final transient String autocompleteFunctionName;
     private final transient String workspaceId;
     private final transient String orgId;
 
@@ -69,6 +72,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         this.description = builder.description;
         this.changeReason = builder.changeReason;
         this.functionName = builder.functionName;
+        this.autocompleteFunctionName = builder.autocompleteFunctionName;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
     }
@@ -100,6 +104,10 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         return functionName;
     }
 
+    public String autocompleteFunctionName() {
+        return autocompleteFunctionName;
+    }
+
     public String workspaceId() {
         return workspaceId;
     }
@@ -128,13 +136,14 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
                && Objects.equals(this.functionName, that.functionName)
+               && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName)
                && Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key, value, schemaMember, description, changeReason, functionName, workspaceId, orgId);
+        return Objects.hash(key, value, schemaMember, description, changeReason, functionName, autocompleteFunctionName, workspaceId, orgId);
     }
 
     @Override
@@ -152,6 +161,9 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         if (functionName != null) {
             serializer.writeString($SCHEMA_FUNCTION_NAME, functionName);
         }
+        if (autocompleteFunctionName != null) {
+            serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
+        }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
     }
@@ -167,7 +179,8 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -187,6 +200,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         builder.description(this.description);
         builder.changeReason(this.changeReason);
         builder.functionName(this.functionName);
+        builder.autocompleteFunctionName(this.autocompleteFunctionName);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
         return builder;
@@ -211,6 +225,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         private String description;
         private String changeReason;
         private String functionName;
+        private String autocompleteFunctionName;
         private String workspaceId;
         private String orgId = ORG_ID_DEFAULT;
 
@@ -282,6 +297,14 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         }
 
         /**
+         * @return this builder.
+         */
+        public Builder autocompleteFunctionName(String autocompleteFunctionName) {
+            this.autocompleteFunctionName = autocompleteFunctionName;
+            return this;
+        }
+
+        /**
          * <p><strong>Required</strong>
          * @return this builder.
          */
@@ -317,7 +340,8 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                 case 4 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 5 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 6 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
-                case 7 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 7 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
+                case 8 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -373,7 +397,8 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                     case 4 -> builder.changeReason(de.readString(member));
                     case 5 -> builder.workspaceId(de.readString(member));
                     case 6 -> builder.functionName(de.readString(member));
-                    case 7 -> builder.orgId(de.readString(member));
+                    case 7 -> builder.autocompleteFunctionName(de.readString(member));
+                    case 8 -> builder.orgId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

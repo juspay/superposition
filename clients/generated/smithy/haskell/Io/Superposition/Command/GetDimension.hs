@@ -170,6 +170,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    autocomplete_function_nameDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "autocomplete_function_name") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     change_reasonDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "change_reason") responseObject
         Data.Function.& \case
@@ -215,6 +222,7 @@ deserializeResponse response = do
         Io.Superposition.Model.GetDimensionOutput.setLastModifiedAt last_modified_atDocumentE
         Io.Superposition.Model.GetDimensionOutput.setDependencies dependenciesDocumentE
         Io.Superposition.Model.GetDimensionOutput.setDependencyGraph dependency_graphDocumentE
+        Io.Superposition.Model.GetDimensionOutput.setAutocompleteFunctionName autocomplete_function_nameDocumentE
         Io.Superposition.Model.GetDimensionOutput.setChangeReason change_reasonDocumentE
         Io.Superposition.Model.GetDimensionOutput.setFunctionName function_nameDocumentE
         Io.Superposition.Model.GetDimensionOutput.setDependents dependentsDocumentE

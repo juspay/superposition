@@ -46,6 +46,7 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  * const input = { // ListFunctionInput
  *   count: Number("int"),
  *   page: Number("int"),
+ *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
  * };

@@ -16,6 +16,8 @@ pub struct CreateDefaultConfigInput  {
     /// Optional
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
@@ -46,6 +48,10 @@ impl  CreateDefaultConfigInput  {
         self.function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
+        self.autocomplete_function_name.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
     }
@@ -71,6 +77,7 @@ pub struct CreateDefaultConfigInputBuilder {
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
 }
@@ -159,6 +166,19 @@ impl CreateDefaultConfigInputBuilder {
         &self.function_name
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.autocomplete_function_name = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.autocomplete_function_name
+    }
+    #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
@@ -201,6 +221,8 @@ impl CreateDefaultConfigInputBuilder {
                 change_reason: self.change_reason
                 ,
                 function_name: self.function_name
+                ,
+                autocomplete_function_name: self.autocomplete_function_name
                 ,
                 workspace_id: self.workspace_id
                 ,

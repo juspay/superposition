@@ -23,17 +23,22 @@ public final class ListOrganisationInput implements SerializableStruct {
                 new HttpQueryTrait("count"))
         .putMember("page", PreludeSchemas.INTEGER,
                 new HttpQueryTrait("page"))
+        .putMember("all", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("all"))
         .build();
 
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
     private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
+    private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
 
     private final transient Integer count;
     private final transient Integer page;
+    private final transient Boolean all;
 
     private ListOrganisationInput(Builder builder) {
         this.count = builder.count;
         this.page = builder.page;
+        this.all = builder.all;
     }
 
     public Integer count() {
@@ -42,6 +47,10 @@ public final class ListOrganisationInput implements SerializableStruct {
 
     public Integer page() {
         return page;
+    }
+
+    public Boolean all() {
+        return all;
     }
 
     @Override
@@ -59,12 +68,13 @@ public final class ListOrganisationInput implements SerializableStruct {
         }
         ListOrganisationInput that = (ListOrganisationInput) other;
         return Objects.equals(this.count, that.count)
-               && Objects.equals(this.page, that.page);
+               && Objects.equals(this.page, that.page)
+               && Objects.equals(this.all, that.all);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page);
+        return Objects.hash(count, page, all);
     }
 
     @Override
@@ -80,6 +90,9 @@ public final class ListOrganisationInput implements SerializableStruct {
         if (page != null) {
             serializer.writeInteger($SCHEMA_PAGE, page);
         }
+        if (all != null) {
+            serializer.writeBoolean($SCHEMA_ALL, all);
+        }
     }
 
     @Override
@@ -88,6 +101,7 @@ public final class ListOrganisationInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -103,6 +117,7 @@ public final class ListOrganisationInput implements SerializableStruct {
         var builder = new Builder();
         builder.count(this.count);
         builder.page(this.page);
+        builder.all(this.all);
         return builder;
     }
 
@@ -119,6 +134,7 @@ public final class ListOrganisationInput implements SerializableStruct {
     public static final class Builder implements ShapeBuilder<ListOrganisationInput> {
         private Integer count;
         private Integer page;
+        private Boolean all;
 
         private Builder() {}
 
@@ -143,6 +159,14 @@ public final class ListOrganisationInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder all(boolean all) {
+            this.all = all;
+            return this;
+        }
+
         @Override
         public ListOrganisationInput build() {
             return new ListOrganisationInput(this);
@@ -154,6 +178,7 @@ public final class ListOrganisationInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 1 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
+                case 2 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -178,6 +203,7 @@ public final class ListOrganisationInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.count(de.readInteger(member));
                     case 1 -> builder.page(de.readInteger(member));
+                    case 2 -> builder.all(de.readBoolean(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

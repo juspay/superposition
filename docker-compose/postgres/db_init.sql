@@ -1378,7 +1378,6 @@ CREATE TABLE IF NOT EXISTS localorg_test.experiment_groups(
 ALTER TABLE superposition.workspaces add column if not exists config_version bigint;
 
 -- keeping self approval enabled by default for test and dev workspaces
-ALTER TABLE superposition.workspaces ADD COLUMN IF NOT EXISTS allow_experiment_self_approval boolean NOT NULL DEFAULT true;
-ALTER TABLE superposition.workspaces ALTER COLUMN allow_experiment_self_approval SET DEFAULT false;
-
+ALTER TABLE superposition.workspaces ADD COLUMN IF NOT EXISTS allow_experiment_self_approval boolean NOT NULL DEFAULT false;
+UPDATE superposition.workspaces SET allow_experiment_self_approval = true;
 COMMIT;

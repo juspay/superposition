@@ -46,6 +46,7 @@ export interface GetTypeTemplatesListCommandOutput extends GetTypeTemplatesListO
  * const input = { // GetTypeTemplatesListInput
  *   count: Number("int"),
  *   page: Number("int"),
+ *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
  * };

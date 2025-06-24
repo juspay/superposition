@@ -102,6 +102,15 @@ pub(crate) fn de_dimension_ext<'a, I>(tokens: &mut ::std::iter::Peekable<I>) -> 
                                     crate::protocol_serde::shape_object::de_object(tokens)?
                                 );
                             }
+                            "autocomplete_function_name" => {
+                                builder = builder.set_autocomplete_function_name(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             "mandatory" => {
                                 builder = builder.set_mandatory(
                                     ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?

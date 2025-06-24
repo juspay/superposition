@@ -41,6 +41,12 @@ serListFunctionQUERY input =
         staticParams = [
             ]
         
+        all'Query = Io.Superposition.Model.ListFunctionInput.all' input
+                    Data.Functor.<&> (\x -> [x])
+                    Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
+                    Data.Functor.<&> Data.List.map (\x -> toQueryItem ("all", x))
+                    Data.Function.& Data.Maybe.maybe [] (id)
+        
         countQuery = Io.Superposition.Model.ListFunctionInput.count input
                     Data.Functor.<&> (\x -> [x])
                     Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
@@ -53,7 +59,7 @@ serListFunctionQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("page", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        m = staticParams ++ countQuery ++ pageQuery
+        m = staticParams ++ all'Query ++ countQuery ++ pageQuery
         in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
     
     where

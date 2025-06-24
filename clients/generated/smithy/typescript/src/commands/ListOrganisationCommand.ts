@@ -46,6 +46,7 @@ export interface ListOrganisationCommandOutput extends ListOrganisationOutput, _
  * const input = { // ListOrganisationInput
  *   count: Number("int"),
  *   page: Number("int"),
+ *   all: true || false,
  * };
  * const command = new ListOrganisationCommand(input);
  * const response = await client.send(command);

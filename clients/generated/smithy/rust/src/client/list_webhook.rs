@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`count(i32)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::count) / [`set_count(Option<i32>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::set_count):<br>required: **false**<br>(undocumented)<br>
     ///   - [`page(i32)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::page) / [`set_page(Option<i32>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::set_page):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`all(bool)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::all) / [`set_all(Option<bool>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::set_all):<br>required: **false**<br>(undocumented)<br>
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`ListWebhookOutput`](crate::operation::list_webhook::ListWebhookOutput) with field(s):

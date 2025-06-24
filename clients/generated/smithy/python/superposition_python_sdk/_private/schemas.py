@@ -486,9 +486,18 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "from_date": {
             "target": DATE_TIME,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="from_date"),
@@ -498,7 +507,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "to_date": {
             "target": DATE_TIME,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="to_date"),
@@ -508,7 +517,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "tables": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="table"),
@@ -518,7 +527,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "action": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="action"),
@@ -528,7 +537,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "username": {
             "target": STRING,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="username"),
@@ -3316,9 +3325,14 @@ CREATE_DEFAULT_CONFIG_INPUT = Schema.collection(
             "index": 5,
         },
 
-        "workspace_id": {
+        "autocomplete_function_name": {
             "target": STRING,
             "index": 6,
+        },
+
+        "workspace_id": {
+            "target": STRING,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -3328,7 +3342,7 @@ CREATE_DEFAULT_CONFIG_INPUT = Schema.collection(
 
         "org_id": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
@@ -3399,9 +3413,14 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
             "index": 5,
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 6,
+        },
+
         "created_at": {
             "target": DATE_TIME,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3410,7 +3429,7 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
 
         "created_by": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3419,7 +3438,7 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
 
         "last_modified_at": {
             "target": DATE_TIME,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3428,7 +3447,7 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3545,6 +3564,11 @@ CREATE_DIMENSION_INPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 9,
         },
 
     }
@@ -3684,9 +3708,14 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 13,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -5506,9 +5535,18 @@ LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "workspace_id": {
             "target": STRING,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -5518,7 +5556,7 @@ LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
 
         "org_id": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
@@ -5584,9 +5622,14 @@ DEFAULT_CONFIG_FULL = Schema.collection(
             "index": 5,
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 6,
+        },
+
         "created_at": {
             "target": DATE_TIME,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5595,7 +5638,7 @@ DEFAULT_CONFIG_FULL = Schema.collection(
 
         "created_by": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5604,7 +5647,7 @@ DEFAULT_CONFIG_FULL = Schema.collection(
 
         "last_modified_at": {
             "target": DATE_TIME,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5613,7 +5656,7 @@ DEFAULT_CONFIG_FULL = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5743,6 +5786,11 @@ UPDATE_DEFAULT_CONFIG_INPUT = Schema.collection(
             "index": 7,
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 8,
+        },
+
     }
 )
 
@@ -5805,9 +5853,14 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
             "index": 5,
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 6,
+        },
+
         "created_at": {
             "target": DATE_TIME,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5816,7 +5869,7 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
 
         "created_by": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5825,7 +5878,7 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
 
         "last_modified_at": {
             "target": DATE_TIME,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5834,7 +5887,7 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6496,9 +6549,14 @@ GET_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 13,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -6547,9 +6605,18 @@ LIST_DIMENSIONS_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "workspace_id": {
             "target": STRING,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6559,7 +6626,7 @@ LIST_DIMENSIONS_INPUT = Schema.collection(
 
         "org_id": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
@@ -6688,9 +6755,14 @@ DIMENSION_EXT = Schema.collection(
             ],
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 13,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -6825,6 +6897,11 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 9,
+        },
+
     }
 )
 
@@ -6950,9 +7027,14 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 13,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -9921,9 +10003,18 @@ LIST_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "workspace_id": {
             "target": STRING,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -9933,7 +10024,7 @@ LIST_FUNCTION_INPUT = Schema.collection(
 
         "org_id": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
@@ -10865,9 +10956,18 @@ GET_TYPE_TEMPLATES_LIST_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "workspace_id": {
             "target": STRING,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -10877,7 +10977,7 @@ GET_TYPE_TEMPLATES_LIST_INPUT = Schema.collection(
 
         "org_id": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
@@ -11241,6 +11341,15 @@ LIST_ORGANISATION_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
     }
 )
 
@@ -11421,9 +11530,18 @@ LIST_WEBHOOK_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "workspace_id": {
             "target": STRING,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-tenant"),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -11433,7 +11551,7 @@ LIST_WEBHOOK_INPUT = Schema.collection(
 
         "org_id": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
@@ -11670,9 +11788,18 @@ LIST_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "org_id": {
             "target": STRING,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),

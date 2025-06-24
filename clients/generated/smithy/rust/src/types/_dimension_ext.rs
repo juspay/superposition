@@ -30,6 +30,8 @@ pub struct DimensionExt  {
     #[allow(missing_docs)] // documentation missing in model
     pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
+    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub mandatory: ::std::option::Option<bool>,
 }
 impl  DimensionExt  {
@@ -86,6 +88,10 @@ impl  DimensionExt  {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
+        self.autocomplete_function_name.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn mandatory(&self) -> ::std::option::Option<bool> {
         self.mandatory
     }
@@ -114,6 +120,7 @@ pub struct DimensionExtBuilder {
     pub(crate) dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) dependents: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory: ::std::option::Option<bool>,
 }
 impl DimensionExtBuilder {
@@ -311,6 +318,19 @@ impl DimensionExtBuilder {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.autocomplete_function_name = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.autocomplete_function_name
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn mandatory(mut self, input: bool) -> Self {
         self.mandatory = ::std::option::Option::Some(input);
         self
@@ -401,6 +421,8 @@ impl DimensionExtBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("dependency_graph", "dependency_graph was not specified but it is required when building DimensionExt")
                     )?
+                ,
+                autocomplete_function_name: self.autocomplete_function_name
                 ,
                 mandatory: self.mandatory
                 ,

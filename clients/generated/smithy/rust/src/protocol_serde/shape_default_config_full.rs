@@ -57,6 +57,15 @@ pub(crate) fn de_default_config_full<'a, I>(tokens: &mut ::std::iter::Peekable<I
                                     ).transpose()?
                                 );
                             }
+                            "autocomplete_function_name" => {
+                                builder = builder.set_autocomplete_function_name(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             "created_at" => {
                                 builder = builder.set_created_at(
                                     ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?

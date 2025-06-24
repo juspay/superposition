@@ -723,6 +723,7 @@ class ListAuditLogsInput:
     org_id: str = "juspay"
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
     from_date: datetime | None = None
     to_date: datetime | None = None
     tables: str | None = None
@@ -758,18 +759,21 @@ class ListAuditLogsInput:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["page"])
 
                 case 4:
-                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["from_date"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["all"])
 
                 case 5:
-                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["to_date"])
+                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["from_date"])
 
                 case 6:
-                    kwargs["tables"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["tables"])
+                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["to_date"])
 
                 case 7:
-                    kwargs["action"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["action"])
+                    kwargs["tables"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["tables"])
 
                 case 8:
+                    kwargs["action"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["action"])
+
+                case 9:
                     kwargs["username"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["username"])
 
                 case _:
@@ -3887,6 +3891,7 @@ class CreateDefaultConfigInput:
     description: str | None = None
     change_reason: str | None = None
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
     workspace_id: str | None = None
     org_id: str = "juspay"
 
@@ -3911,6 +3916,9 @@ class CreateDefaultConfigInput:
 
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["function_name"], self.function_name)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3941,9 +3949,12 @@ class CreateDefaultConfigInput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["function_name"])
 
                 case 6:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["workspace_id"])
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"])
 
                 case 7:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["workspace_id"])
+
+                case 8:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["org_id"])
 
                 case _:
@@ -3980,6 +3991,7 @@ class CreateDefaultConfigOutput:
     last_modified_by: str
 
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT, self)
@@ -3992,6 +4004,9 @@ class CreateDefaultConfigOutput:
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["change_reason"], self.change_reason)
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["function_name"], self.function_name)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
         serializer.write_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
@@ -4027,15 +4042,18 @@ class CreateDefaultConfigOutput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["function_name"])
 
                 case 6:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_at"])
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"])
 
                 case 7:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_by"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_at"])
 
                 case 8:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_by"])
 
                 case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"])
+
+                case 10:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"])
 
                 case _:
@@ -4088,6 +4106,7 @@ class CreateDimensionInput:
     dependencies: list[str] | None = None
     description: str | None = None
     change_reason: str | None = None
+    autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_INPUT, self)
@@ -4113,6 +4132,9 @@ class CreateDimensionInput:
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["change_reason"], self.change_reason)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4150,6 +4172,9 @@ class CreateDimensionInput:
 
                 case 8:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["change_reason"])
+
+                case 9:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4203,6 +4228,7 @@ class CreateDimensionOutput:
     dependency_graph: dict[str, Document]
 
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
     mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4224,6 +4250,9 @@ class CreateDimensionOutput:
         _serialize_dependencies(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependencies"], self.dependencies)
         _serialize_dependents(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -4277,6 +4306,9 @@ class CreateDimensionOutput:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 13:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
+
+                case 14:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:
@@ -5835,6 +5867,7 @@ class ListDefaultConfigsInput:
 
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
     workspace_id: str | None = None
     org_id: str = "juspay"
 
@@ -5861,9 +5894,12 @@ class ListDefaultConfigsInput:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["page"])
 
                 case 2:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["workspace_id"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["all"])
 
                 case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["workspace_id"])
+
+                case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["org_id"])
 
                 case _:
@@ -5900,6 +5936,7 @@ class DefaultConfigFull:
     last_modified_by: str
 
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DEFAULT_CONFIG_FULL, self)
@@ -5912,6 +5949,9 @@ class DefaultConfigFull:
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["change_reason"], self.change_reason)
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["function_name"], self.function_name)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["autocomplete_function_name"], self.autocomplete_function_name)
 
         serializer.write_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_by"], self.created_by)
@@ -5947,15 +5987,18 @@ class DefaultConfigFull:
                     kwargs["function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["function_name"])
 
                 case 6:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_at"])
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["autocomplete_function_name"])
 
                 case 7:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_by"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_at"])
 
                 case 8:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["last_modified_at"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_by"])
 
                 case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["last_modified_at"])
+
+                case 10:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["last_modified_by"])
 
                 case _:
@@ -6052,6 +6095,7 @@ class UpdateDefaultConfigInput:
     schema: Document | None = None
     function_name: str | None = None
     description: str | None = None
+    autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT, self)
@@ -6071,6 +6115,9 @@ class UpdateDefaultConfigInput:
 
         if self.description is not None:
             serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["description"], self.description)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6106,6 +6153,9 @@ class UpdateDefaultConfigInput:
                 case 7:
                     kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["description"])
 
+                case 8:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"])
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -6140,6 +6190,7 @@ class UpdateDefaultConfigOutput:
     last_modified_by: str
 
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT, self)
@@ -6152,6 +6203,9 @@ class UpdateDefaultConfigOutput:
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["change_reason"], self.change_reason)
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["function_name"], self.function_name)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
         serializer.write_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
@@ -6187,15 +6241,18 @@ class UpdateDefaultConfigOutput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["function_name"])
 
                 case 6:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_at"])
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"])
 
                 case 7:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_by"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_at"])
 
                 case 8:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_by"])
 
                 case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"])
+
+                case 10:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"])
 
                 case _:
@@ -6783,6 +6840,7 @@ class GetDimensionOutput:
     dependency_graph: dict[str, Document]
 
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
     mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6804,6 +6862,9 @@ class GetDimensionOutput:
         _serialize_dependencies(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependencies"], self.dependencies)
         _serialize_dependents(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -6857,6 +6918,9 @@ class GetDimensionOutput:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 13:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"])
+
+                case 14:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:
@@ -6885,6 +6949,7 @@ class ListDimensionsInput:
 
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
     workspace_id: str | None = None
     org_id: str = "juspay"
 
@@ -6911,9 +6976,12 @@ class ListDimensionsInput:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_DIMENSIONS_INPUT.members["page"])
 
                 case 2:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_DIMENSIONS_INPUT.members["workspace_id"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_DIMENSIONS_INPUT.members["all"])
 
                 case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_DIMENSIONS_INPUT.members["workspace_id"])
+
+                case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_DIMENSIONS_INPUT.members["org_id"])
 
                 case _:
@@ -6950,6 +7018,7 @@ class DimensionExt:
     dependency_graph: dict[str, Document]
 
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
     mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6971,6 +7040,9 @@ class DimensionExt:
         _serialize_dependencies(serializer, _SCHEMA_DIMENSION_EXT.members["dependencies"], self.dependencies)
         _serialize_dependents(serializer, _SCHEMA_DIMENSION_EXT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_DIMENSION_EXT.members["dependency_graph"], self.dependency_graph)
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"], self.autocomplete_function_name)
+
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_DIMENSION_EXT.members["mandatory"], self.mandatory)
 
@@ -7024,6 +7096,9 @@ class DimensionExt:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_DIMENSION_EXT.members["dependency_graph"])
 
                 case 13:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"])
+
+                case 14:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_DIMENSION_EXT.members["mandatory"])
 
                 case _:
@@ -7120,6 +7195,7 @@ class UpdateDimensionInput:
     description: str | None = None
     dependencies: list[str] | None = None
     change_reason: str | None = None
+    autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_INPUT, self)
@@ -7142,6 +7218,9 @@ class UpdateDimensionInput:
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"], self.change_reason)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7180,6 +7259,9 @@ class UpdateDimensionInput:
                 case 8:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"])
 
+                case 9:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["autocomplete_function_name"])
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -7214,6 +7296,7 @@ class UpdateDimensionOutput:
     dependency_graph: dict[str, Document]
 
     function_name: str | None = None
+    autocomplete_function_name: str | None = None
     mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7235,6 +7318,9 @@ class UpdateDimensionOutput:
         _serialize_dependencies(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependencies"], self.dependencies)
         _serialize_dependents(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -7288,6 +7374,9 @@ class UpdateDimensionOutput:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 13:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
+
+                case 14:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:
@@ -9860,6 +9949,7 @@ class ListFunctionInput:
 
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
     workspace_id: str | None = None
     org_id: str = "juspay"
 
@@ -9886,9 +9976,12 @@ class ListFunctionInput:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_FUNCTION_INPUT.members["page"])
 
                 case 2:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_FUNCTION_INPUT.members["workspace_id"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_FUNCTION_INPUT.members["all"])
 
                 case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_FUNCTION_INPUT.members["workspace_id"])
+
+                case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_FUNCTION_INPUT.members["org_id"])
 
                 case _:
@@ -10860,6 +10953,7 @@ class GetTypeTemplatesListInput:
 
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
     workspace_id: str | None = None
     org_id: str = "juspay"
 
@@ -10886,9 +10980,12 @@ class GetTypeTemplatesListInput:
                     kwargs["page"] = de.read_integer(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT.members["page"])
 
                 case 2:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT.members["workspace_id"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT.members["all"])
 
                 case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT.members["workspace_id"])
+
+                case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT.members["org_id"])
 
                 case _:
@@ -11219,6 +11316,7 @@ class ListOrganisationInput:
 
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_ORGANISATION_INPUT, self)
@@ -11241,6 +11339,9 @@ class ListOrganisationInput:
 
                 case 1:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_ORGANISATION_INPUT.members["page"])
+
+                case 2:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_ORGANISATION_INPUT.members["all"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -11430,6 +11531,7 @@ class ListWebhookInput:
 
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
     workspace_id: str | None = None
     org_id: str = "juspay"
 
@@ -11456,9 +11558,12 @@ class ListWebhookInput:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_WEBHOOK_INPUT.members["page"])
 
                 case 2:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_WEBHOOK_INPUT.members["workspace_id"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_WEBHOOK_INPUT.members["all"])
 
                 case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_WEBHOOK_INPUT.members["workspace_id"])
+
+                case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_WEBHOOK_INPUT.members["org_id"])
 
                 case _:
@@ -11662,6 +11767,7 @@ class ListWorkspaceInput:
 
     count: int | None = None
     page: int | None = None
+    all: bool | None = None
     org_id: str = "juspay"
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11687,6 +11793,9 @@ class ListWorkspaceInput:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_WORKSPACE_INPUT.members["page"])
 
                 case 2:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_WORKSPACE_INPUT.members["all"])
+
+                case 3:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_WORKSPACE_INPUT.members["org_id"])
 
                 case _:

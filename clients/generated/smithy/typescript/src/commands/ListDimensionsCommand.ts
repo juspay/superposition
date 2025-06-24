@@ -46,6 +46,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * const input = { // ListDimensionsInput
  *   count: Number("int"),
  *   page: Number("int"),
+ *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
  * };
@@ -75,6 +76,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //       dependency_graph: { // Object // required
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
+ * //       autocomplete_function_name: "STRING_VALUE",
  * //       mandatory: true || false,
  * //     },
  * //   ],

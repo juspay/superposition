@@ -55,6 +55,7 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  *   ],
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
+ *   autocomplete_function_name: "STRING_VALUE",
  * };
  * const command = new CreateDimensionCommand(input);
  * const response = await client.send(command);
@@ -78,6 +79,7 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //   dependency_graph: { // Object // required
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
+ * //   autocomplete_function_name: "STRING_VALUE",
  * //   mandatory: true || false,
  * // };
  *

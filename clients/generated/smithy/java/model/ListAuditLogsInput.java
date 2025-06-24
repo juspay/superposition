@@ -36,6 +36,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 new HttpQueryTrait("count"))
         .putMember("page", PreludeSchemas.INTEGER,
                 new HttpQueryTrait("page"))
+        .putMember("all", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("all"))
         .putMember("from_date", SharedSchemas.DATE_TIME,
                 new HttpQueryTrait("from_date"))
         .putMember("to_date", SharedSchemas.DATE_TIME,
@@ -52,6 +54,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
     private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
+    private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_FROM_DATE = $SCHEMA.member("from_date");
     private static final Schema $SCHEMA_TO_DATE = $SCHEMA.member("to_date");
     private static final Schema $SCHEMA_TABLES = $SCHEMA.member("tables");
@@ -62,6 +65,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
     private final transient String orgId;
     private final transient Integer count;
     private final transient Integer page;
+    private final transient Boolean all;
     private final transient Instant fromDate;
     private final transient Instant toDate;
     private final transient String tables;
@@ -73,6 +77,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         this.orgId = builder.orgId;
         this.count = builder.count;
         this.page = builder.page;
+        this.all = builder.all;
         this.fromDate = builder.fromDate;
         this.toDate = builder.toDate;
         this.tables = builder.tables;
@@ -94,6 +99,10 @@ public final class ListAuditLogsInput implements SerializableStruct {
 
     public Integer page() {
         return page;
+    }
+
+    public Boolean all() {
+        return all;
     }
 
     public Instant fromDate() {
@@ -140,6 +149,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.count, that.count)
                && Objects.equals(this.page, that.page)
+               && Objects.equals(this.all, that.all)
                && Objects.equals(this.fromDate, that.fromDate)
                && Objects.equals(this.toDate, that.toDate)
                && Objects.equals(this.tables, that.tables)
@@ -149,7 +159,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, count, page, fromDate, toDate, tables, action, username);
+        return Objects.hash(workspaceId, orgId, count, page, all, fromDate, toDate, tables, action, username);
     }
 
     @Override
@@ -166,6 +176,9 @@ public final class ListAuditLogsInput implements SerializableStruct {
         }
         if (page != null) {
             serializer.writeInteger($SCHEMA_PAGE, page);
+        }
+        if (all != null) {
+            serializer.writeBoolean($SCHEMA_ALL, all);
         }
         if (fromDate != null) {
             serializer.writeTimestamp($SCHEMA_FROM_DATE, fromDate);
@@ -192,11 +205,12 @@ public final class ListAuditLogsInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, fromDate);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, toDate);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, tables);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, action);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, username);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, fromDate);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, toDate);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, tables);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, action);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, username);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -214,6 +228,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         builder.orgId(this.orgId);
         builder.count(this.count);
         builder.page(this.page);
+        builder.all(this.all);
         builder.fromDate(this.fromDate);
         builder.toDate(this.toDate);
         builder.tables(this.tables);
@@ -239,6 +254,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         private String orgId = ORG_ID_DEFAULT;
         private Integer count;
         private Integer page;
+        private Boolean all;
         private Instant fromDate;
         private Instant toDate;
         private String tables;
@@ -284,6 +300,14 @@ public final class ListAuditLogsInput implements SerializableStruct {
          */
         public Builder page(int page) {
             this.page = page;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder all(boolean all) {
+            this.all = all;
             return this;
         }
 
@@ -345,11 +369,12 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
-                case 4 -> fromDate((Instant) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, value));
-                case 5 -> toDate((Instant) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, value));
-                case 6 -> tables((String) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, value));
-                case 7 -> action((String) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, value));
-                case 8 -> username((String) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, value));
+                case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 5 -> fromDate((Instant) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, value));
+                case 6 -> toDate((Instant) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, value));
+                case 7 -> tables((String) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, value));
+                case 8 -> action((String) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, value));
+                case 9 -> username((String) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -387,11 +412,12 @@ public final class ListAuditLogsInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
-                    case 4 -> builder.fromDate(de.readTimestamp(member));
-                    case 5 -> builder.toDate(de.readTimestamp(member));
-                    case 6 -> builder.tables(de.readString(member));
-                    case 7 -> builder.action(de.readString(member));
-                    case 8 -> builder.username(de.readString(member));
+                    case 4 -> builder.all(de.readBoolean(member));
+                    case 5 -> builder.fromDate(de.readTimestamp(member));
+                    case 6 -> builder.toDate(de.readTimestamp(member));
+                    case 7 -> builder.tables(de.readString(member));
+                    case 8 -> builder.action(de.readString(member));
+                    case 9 -> builder.username(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

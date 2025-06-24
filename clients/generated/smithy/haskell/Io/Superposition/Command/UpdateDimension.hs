@@ -42,6 +42,7 @@ serUpdateDimensionPAYLOAD:: Io.Superposition.Model.UpdateDimensionInput.UpdateDi
 serUpdateDimensionPAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
         "schema" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.schema input,
+        "autocomplete_function_name" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.autocomplete_function_name input,
         "change_reason" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.change_reason input,
         "function_name" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.function_name input,
         "description" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.description input,
@@ -183,6 +184,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    autocomplete_function_nameDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "autocomplete_function_name") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     change_reasonDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "change_reason") responseObject
         Data.Function.& \case
@@ -228,6 +236,7 @@ deserializeResponse response = do
         Io.Superposition.Model.UpdateDimensionOutput.setLastModifiedAt last_modified_atDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setDependencies dependenciesDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setDependencyGraph dependency_graphDocumentE
+        Io.Superposition.Model.UpdateDimensionOutput.setAutocompleteFunctionName autocomplete_function_nameDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setChangeReason change_reasonDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setFunctionName function_nameDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setDependents dependentsDocumentE

@@ -21,6 +21,8 @@ pub struct UpdateDimensionInput  {
     pub dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -62,6 +64,10 @@ impl  UpdateDimensionInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
+        self.autocomplete_function_name.as_deref()
+    }
 }
 impl UpdateDimensionInput {
     /// Creates a new builder-style object to manufacture [`UpdateDimensionInput`](crate::operation::update_dimension::UpdateDimensionInput).
@@ -83,6 +89,7 @@ pub struct UpdateDimensionInputBuilder {
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl UpdateDimensionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -211,6 +218,19 @@ impl UpdateDimensionInputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.autocomplete_function_name = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.autocomplete_function_name
+    }
     /// Consumes the builder and constructs a [`UpdateDimensionInput`](crate::operation::update_dimension::UpdateDimensionInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_dimension::UpdateDimensionInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -232,6 +252,8 @@ impl UpdateDimensionInputBuilder {
                 dependencies: self.dependencies
                 ,
                 change_reason: self.change_reason
+                ,
+                autocomplete_function_name: self.autocomplete_function_name
                 ,
             }
         )

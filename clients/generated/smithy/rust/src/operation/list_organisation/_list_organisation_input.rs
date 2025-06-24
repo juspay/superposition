@@ -7,6 +7,8 @@ pub struct ListOrganisationInput  {
     pub count: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
     pub page: ::std::option::Option<i32>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub all: ::std::option::Option<bool>,
 }
 impl  ListOrganisationInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -16,6 +18,10 @@ impl  ListOrganisationInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn page(&self) -> ::std::option::Option<i32> {
         self.page
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(&self) -> ::std::option::Option<bool> {
+        self.all
     }
 }
 impl ListOrganisationInput {
@@ -31,6 +37,7 @@ impl ListOrganisationInput {
 pub struct ListOrganisationInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
     pub(crate) page: ::std::option::Option<i32>,
+    pub(crate) all: ::std::option::Option<bool>,
 }
 impl ListOrganisationInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -59,6 +66,19 @@ impl ListOrganisationInputBuilder {
     pub fn get_page(&self) -> &::std::option::Option<i32> {
         &self.page
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(mut self, input: bool) -> Self {
+        self.all = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.all = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+        &self.all
+    }
     /// Consumes the builder and constructs a [`ListOrganisationInput`](crate::operation::list_organisation::ListOrganisationInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_organisation::ListOrganisationInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -66,6 +86,8 @@ impl ListOrganisationInputBuilder {
                 count: self.count
                 ,
                 page: self.page
+                ,
+                all: self.all
                 ,
             }
         )
