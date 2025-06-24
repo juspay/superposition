@@ -2,7 +2,6 @@ use std::time::Duration;
 
 use leptos::*;
 use serde_json::{json, Map, Value};
-use strum::EnumProperty;
 use strum_macros::Display;
 use superposition_types::{custom_query::PaginationParams, Config};
 use wasm_bindgen::JsCast;
@@ -23,11 +22,8 @@ use crate::{
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
 enum ResolveTab {
-    #[strum(props(id = "resolved_config_tab"))]
     ResolvedConfig,
-    // #[strum(props(id = "selected_configs_tab"))]
     // SelectedConfig,
-    #[strum(props(id = "all_configs_tab"))]
     AllConfig,
 }
 
@@ -152,7 +148,7 @@ pub fn home() -> impl IntoView {
         move || (tenant_rws.get().0, org_rws.get().0),
         |(tenant, org)| fetch_config(tenant, None, org),
     );
-    let dimension_resource = create_resource(
+    let dimension_resource = create_blocking_resource(
         move || (tenant_rws.get().0, org_rws.get().0),
         |(tenant, org)| async {
             fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
@@ -340,12 +336,7 @@ pub fn home() -> impl IntoView {
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
                                                     resolve_mode=true
-                                                    handle_change=move |new_context| {
-                                                        context_ws
-                                                            .update(|value| {
-                                                                *value = new_context;
-                                                            });
-                                                    }
+                                                    handle_change=move |new_context| context_ws.set(new_context)
                                                     fn_environment
                                                 />
 
@@ -375,7 +366,7 @@ pub fn home() -> impl IntoView {
             <div role="tablist" class="tabs m-6 w-30 self-start tabs-lifted tabs-md">
                 <a
                     role="tab"
-                    id=ResolveTab::AllConfig.get_str("id").expect("ID not defined for Resolve tab")
+                    id="all_configs_tab"
                     class=move || match selected_tab_rs.get() {
                         ResolveTab::AllConfig => {
                             "tab tab-active [--tab-border-color:#a651f5] text-center"
@@ -402,9 +393,7 @@ pub fn home() -> impl IntoView {
                 </a>
                 <a
                     role="tab"
-                    id=ResolveTab::ResolvedConfig
-                        .get_str("id")
-                        .expect("ID not defined for Resolve tab")
+                    id="resolved_config_tab"
                     class=move || match selected_tab_rs.get() {
                         ResolveTab::ResolvedConfig => {
                             "tab tab-active [--tab-border-color:orange] text-center"
@@ -509,7 +498,7 @@ pub fn home() -> impl IntoView {
                                                                                     view! {
                                                                                         <tr class="min-w-48 max-w-72">
                                                                                             <td>{config}</td>
-                                                                                            <td style="word-break: break-word;">
+                                                                                            <td class="break-words">
                                                                                                 {match value {
                                                                                                     Value::String(s) => check_url_and_return_val(s),
                                                                                                     Value::Number(num) => num.to_string(),
