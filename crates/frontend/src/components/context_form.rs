@@ -1,6 +1,8 @@
-pub mod utils;
-
 use std::collections::{HashMap, HashSet};
+
+use leptos::*;
+use serde_json::Value;
+use superposition_types::database::types::DimensionWithMandatory;
 
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Expression, Operator};
@@ -11,9 +13,6 @@ use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
 };
-use leptos::*;
-use serde_json::Value;
-use superposition_types::database::types::DimensionWithMandatory;
 
 #[component]
 pub fn condition_input(
@@ -465,7 +464,7 @@ where
                                     on_value_change
                                     on_operator_change
                                     tooltip_text
-                                    autocomplete_callbacks = autocomplete_callbacks.clone()
+                                    autocomplete_callbacks=autocomplete_callbacks.clone()
                                 />
                                 {move || {
                                     if last_idx.get() != idx {

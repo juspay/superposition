@@ -355,7 +355,7 @@ impl TryFrom<String> for NonEmptyString {
     type Error = String;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {
-            return Err(String::from("Empty reason not allowed"));
+            return Err(String::from("Empty value not allowed"));
         }
         Ok(Self(value))
     }

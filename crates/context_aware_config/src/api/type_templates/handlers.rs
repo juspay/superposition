@@ -1,5 +1,5 @@
 use actix_web::web::{Json, Path, Query};
-use actix_web::{delete, get, post, put, HttpResponse, Scope};
+use actix_web::{delete, get, post, put, Scope};
 use chrono::Utc;
 use diesel::{
     ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
@@ -8,6 +8,9 @@ use jsonschema::JSONSchema;
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
+    api::type_templates::{
+        TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
+    },
     custom_query::PaginationParams,
     database::{
         models::cac::TypeTemplate,
@@ -16,12 +19,9 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
-use crate::api::type_templates::types::{
-    TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
-};
-
 pub fn endpoints() -> Scope {
     Scope::new("")
+        .service(get_type)
         .service(list_types)
         .service(create_type)
         .service(update_type)
@@ -34,7 +34,7 @@ async fn create_type(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let _ = JSONSchema::compile(&request.type_schema).map_err(|err| {
         log::error!(
@@ -64,7 +64,23 @@ async fn create_type(
             log::error!("failed to insert custom type with error: {}", err);
             db_error!(err)
         })?;
-    Ok(HttpResponse::Ok().json(type_template))
+    Ok(Json(type_template))
+}
+
+#[get("/{type_name}")]
+async fn get_type(
+    type_name: Path<TypeTemplateName>,
+    db_conn: DbConnection,
+    schema_name: SchemaName,
+) -> superposition::Result<Json<TypeTemplate>> {
+    let DbConnection(mut conn) = db_conn;
+    let type_name: String = type_name.into_inner().into();
+    let type_template = type_templates::table
+        .filter(type_templates::type_name.eq(type_name))
+        .schema_name(&schema_name)
+        .first::<TypeTemplate>(&mut conn)?;
+
+    Ok(Json(type_template))
 }
 
 #[put("/{type_name}")]
@@ -74,7 +90,7 @@ async fn update_type(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
     let _ = JSONSchema::compile(&request.type_schema).map_err(|err| {
@@ -131,7 +147,7 @@ async fn update_type(
             log::error!("failed to insert custom type with error: {}", err);
             db_error!(err)
         })?;
-    Ok(HttpResponse::Ok().json(updated_type))
+    Ok(Json(updated_type))
 }
 
 #[delete("/{type_name}")]
@@ -140,7 +156,7 @@ async fn delete_type(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let type_name: String = path.into_inner().into();
     diesel::update(dsl::type_templates)
@@ -156,7 +172,7 @@ async fn delete_type(
         diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
             .schema_name(&schema_name)
             .get_result::<TypeTemplate>(&mut conn)?;
-    Ok(HttpResponse::Ok().json(deleted_type))
+    Ok(Json(deleted_type))
 }
 
 #[get("")]
