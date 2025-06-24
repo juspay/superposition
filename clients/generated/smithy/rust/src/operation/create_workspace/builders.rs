@@ -152,18 +152,18 @@ impl CreateWorkspaceFluentBuilder {
                     self.inner.get_workspace_status()
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_strict_mode(mut self, input: bool) -> Self {
-                    self.inner = self.inner.workspace_strict_mode(input);
+    pub fn strict_mode(mut self, input: bool) -> Self {
+                    self.inner = self.inner.strict_mode(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_strict_mode(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_workspace_strict_mode(input);
+    pub fn set_strict_mode(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_strict_mode(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_strict_mode(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_workspace_strict_mode()
+    pub fn get_strict_mode(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_strict_mode()
                 }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
@@ -178,6 +178,20 @@ impl CreateWorkspaceFluentBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
                     self.inner.get_metrics()
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn allow_experiment_self_approval(mut self, input: bool) -> Self {
+                    self.inner = self.inner.allow_experiment_self_approval(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_allow_experiment_self_approval(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_allow_experiment_self_approval()
                 }
 }
 

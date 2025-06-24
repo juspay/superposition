@@ -29,6 +29,7 @@ pub struct WorkspaceResponse {
     pub mandatory_dimensions: Option<Vec<String>>,
     pub strict_mode: bool,
     pub metrics: Metrics,
+    pub allow_experiment_self_approval: bool,
 }
 
 impl From<Workspace> for WorkspaceResponse {
@@ -48,6 +49,7 @@ impl From<Workspace> for WorkspaceResponse {
             mandatory_dimensions: workspace.mandatory_dimensions,
             strict_mode: workspace.strict_mode,
             metrics: workspace.metrics,
+            allow_experiment_self_approval: workspace.allow_experiment_self_approval,
         }
     }
 }
@@ -57,8 +59,10 @@ pub struct CreateWorkspaceRequest {
     pub workspace_admin_email: String,
     pub workspace_name: String,
     pub workspace_status: Option<WorkspaceStatus>,
-    pub workspace_strict_mode: bool,
+    #[serde(alias = "workspace_strict_mode")]
+    pub strict_mode: bool,
     pub metrics: Option<Metrics>,
+    pub allow_experiment_self_approval: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -71,6 +75,7 @@ pub struct UpdateWorkspaceRequest {
     #[serde(default, deserialize_with = "deserialize_config_version")]
     pub config_version: Option<ConfigVersionUpdate>,
     pub metrics: Option<Metrics>,
+    pub allow_experiment_self_approval: Option<bool>,
 }
 
 #[derive(Debug)]

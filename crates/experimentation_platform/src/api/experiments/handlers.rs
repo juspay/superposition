@@ -19,8 +19,7 @@ use service_utils::{
         construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
     },
     service::types::{
-        AppEnv, AppHeader, AppState, CustomHeaders, DbConnection, SchemaName,
-        WorkspaceContext,
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
     },
 };
 use std::collections::{HashMap, HashSet};
@@ -942,12 +941,13 @@ pub fn get_experiment(
 }
 
 pub fn user_allowed_to_ramp(
-    state: &Data<AppState>,
     experiment: &Experiment,
     user: &User,
+    allow_experiment_self_approval: bool,
 ) -> bool {
-    !matches!(state.app_env, AppEnv::PROD if experiment.status == ExperimentStatusType::CREATED
-        && experiment.created_by == user.get_email())
+    allow_experiment_self_approval
+        || !(experiment.status == ExperimentStatusType::CREATED
+            && experiment.created_by == user.get_email())
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -975,9 +975,15 @@ async fn ramp(
         ));
     }
 
-    if !user_allowed_to_ramp(&state, &experiment, &user) {
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if !user_allowed_to_ramp(
+        &experiment,
+        &user,
+        workspace_settings.allow_experiment_self_approval,
+    ) {
         return Err(bad_argument!(
-            "experiment creator is not allowed to start experiment"
+            "Experiment creator is not allowed to start experiment, if this is not intended, please change the workspace settings to allow self-approval"
         ));
     }
 

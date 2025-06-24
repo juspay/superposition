@@ -26,10 +26,11 @@ async function setupWorkspace() {
             workspace_admin_email: "admin@example.com",
             workspace_name: TEST_WORKSPACE,
             workspace_status: WorkspaceStatus.ENABLED,
-            workspace_strict_mode: true,
+            strict_mode: true,
+            allow_experiment_self_approval: true,
         });
 
-        console.info(`Create test workspace as ${TEST_ORG_NAME}`);
+        console.info(`Create test workspace as ${TEST_WORKSPACE}`);
         await superpositionClient.send(createWorkspaceCommand);
     } else {
         console.info(

@@ -10,6 +10,7 @@ impl super::Client {
     ///   - [`mandatory_dimensions(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::mandatory_dimensions) / [`set_mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_mandatory_dimensions):<br>required: **false**<br>(undocumented)<br>
     ///   - [`workspace_status(WorkspaceStatus)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::workspace_status) / [`set_workspace_status(Option<WorkspaceStatus>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_workspace_status):<br>required: **false**<br>(undocumented)<br>
     ///   - [`metrics(Document)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::metrics) / [`set_metrics(Option<Document>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_metrics):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`allow_experiment_self_approval(bool)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::allow_experiment_self_approval) / [`set_allow_experiment_self_approval(Option<bool>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_allow_experiment_self_approval):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput) with field(s):
     ///   - [`workspace_name(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_name): (undocumented)
     ///   - [`organisation_id(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::organisation_id): (undocumented)
@@ -23,8 +24,9 @@ impl super::Client {
     ///   - [`last_modified_at(DateTime)`](crate::operation::update_workspace::UpdateWorkspaceOutput::last_modified_at): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::update_workspace::UpdateWorkspaceOutput::created_at): (undocumented)
     ///   - [`mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::update_workspace::UpdateWorkspaceOutput::mandatory_dimensions): (undocumented)
-    ///   - [`workspace_strict_mode(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_strict_mode): (undocumented)
+    ///   - [`strict_mode(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::strict_mode): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::update_workspace::UpdateWorkspaceOutput::metrics): (undocumented)
+    ///   - [`allow_experiment_self_approval(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::allow_experiment_self_approval): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateWorkspaceError>`](crate::operation::update_workspace::UpdateWorkspaceError)
     pub fn update_workspace(&self) -> crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder {
                                 crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::new(self.handle.clone())

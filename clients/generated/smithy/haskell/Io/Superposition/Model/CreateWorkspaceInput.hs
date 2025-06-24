@@ -3,8 +3,9 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     setWorkspaceAdminEmail,
     setWorkspaceName,
     setWorkspaceStatus,
-    setWorkspaceStrictMode,
+    setStrictMode,
     setMetrics,
+    setAllowExperimentSelfApproval,
     build,
     CreateWorkspaceInputBuilder,
     CreateWorkspaceInput,
@@ -12,8 +13,9 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     workspace_admin_email,
     workspace_name,
     workspace_status,
-    workspace_strict_mode,
-    metrics
+    strict_mode,
+    metrics,
+    allow_experiment_self_approval
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -32,8 +34,9 @@ data CreateWorkspaceInput = CreateWorkspaceInput {
     workspace_admin_email :: Data.Text.Text,
     workspace_name :: Data.Text.Text,
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    workspace_strict_mode :: Bool,
-    metrics :: Data.Maybe.Maybe Data.Aeson.Value
+    strict_mode :: Bool,
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value,
+    allow_experiment_self_approval :: Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -46,8 +49,9 @@ instance Data.Aeson.ToJSON CreateWorkspaceInput where
         "workspace_admin_email" Data.Aeson..= workspace_admin_email a,
         "workspace_name" Data.Aeson..= workspace_name a,
         "workspace_status" Data.Aeson..= workspace_status a,
-        "workspace_strict_mode" Data.Aeson..= workspace_strict_mode a,
-        "metrics" Data.Aeson..= metrics a
+        "strict_mode" Data.Aeson..= strict_mode a,
+        "metrics" Data.Aeson..= metrics a,
+        "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a
         ]
     
 
@@ -58,8 +62,9 @@ instance Data.Aeson.FromJSON CreateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..: "workspace_admin_email")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_status")
-        Control.Applicative.<*> (v Data.Aeson..: "workspace_strict_mode")
+        Control.Applicative.<*> (v Data.Aeson..: "strict_mode")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
+        Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
     
 
 
@@ -69,8 +74,9 @@ data CreateWorkspaceInputBuilderState = CreateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    workspace_strict_modeBuilderState :: Data.Maybe.Maybe Bool,
-    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
+    strict_modeBuilderState :: Data.Maybe.Maybe Bool,
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -81,8 +87,9 @@ defaultBuilderState = CreateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState = Data.Maybe.Nothing,
     workspace_nameBuilderState = Data.Maybe.Nothing,
     workspace_statusBuilderState = Data.Maybe.Nothing,
-    workspace_strict_modeBuilderState = Data.Maybe.Nothing,
-    metricsBuilderState = Data.Maybe.Nothing
+    strict_modeBuilderState = Data.Maybe.Nothing,
+    metricsBuilderState = Data.Maybe.Nothing,
+    allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing
 }
 
 newtype CreateWorkspaceInputBuilder a = CreateWorkspaceInputBuilder {
@@ -122,13 +129,17 @@ setWorkspaceStatus :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.Wo
 setWorkspaceStatus value =
    CreateWorkspaceInputBuilder (\s -> (s { workspace_statusBuilderState = value }, ()))
 
-setWorkspaceStrictMode :: Bool -> CreateWorkspaceInputBuilder ()
-setWorkspaceStrictMode value =
-   CreateWorkspaceInputBuilder (\s -> (s { workspace_strict_modeBuilderState = Data.Maybe.Just value }, ()))
+setStrictMode :: Bool -> CreateWorkspaceInputBuilder ()
+setStrictMode value =
+   CreateWorkspaceInputBuilder (\s -> (s { strict_modeBuilderState = Data.Maybe.Just value }, ()))
 
 setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> CreateWorkspaceInputBuilder ()
 setMetrics value =
    CreateWorkspaceInputBuilder (\s -> (s { metricsBuilderState = value }, ()))
+
+setAllowExperimentSelfApproval :: Bool -> CreateWorkspaceInputBuilder ()
+setAllowExperimentSelfApproval value =
+   CreateWorkspaceInputBuilder (\s -> (s { allow_experiment_self_approvalBuilderState = Data.Maybe.Just value }, ()))
 
 build :: CreateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text CreateWorkspaceInput
 build builder = do
@@ -137,15 +148,17 @@ build builder = do
     workspace_admin_email' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_admin_email is a required property.") Data.Either.Right (workspace_admin_emailBuilderState st)
     workspace_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_name is a required property.") Data.Either.Right (workspace_nameBuilderState st)
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
-    workspace_strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_strict_mode is a required property.") Data.Either.Right (workspace_strict_modeBuilderState st)
+    strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.strict_mode is a required property.") Data.Either.Right (strict_modeBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
+    allow_experiment_self_approval' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.allow_experiment_self_approval is a required property.") Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     Data.Either.Right (CreateWorkspaceInput { 
         org_id = org_id',
         workspace_admin_email = workspace_admin_email',
         workspace_name = workspace_name',
         workspace_status = workspace_status',
-        workspace_strict_mode = workspace_strict_mode',
-        metrics = metrics'
+        strict_mode = strict_mode',
+        metrics = metrics',
+        allow_experiment_self_approval = allow_experiment_self_approval'
     })
 
 

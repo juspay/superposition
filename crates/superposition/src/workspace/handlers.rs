@@ -108,8 +108,9 @@ async fn create_workspace(
         last_modified_at: timestamp,
         created_at: timestamp,
         mandatory_dimensions: None,
-        strict_mode: request.workspace_strict_mode,
+        strict_mode: request.strict_mode,
         metrics: request.metrics.unwrap_or_default(),
+        allow_experiment_self_approval: request.allow_experiment_self_approval,
     };
 
     let created_workspace =

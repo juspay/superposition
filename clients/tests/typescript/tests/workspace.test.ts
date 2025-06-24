@@ -49,7 +49,8 @@ describe("Workspace API", () => {
             workspace_name: testWorkspaceName,
             description: "Test workspace created by automated tests",
             mandatory_dimensions: ["os", "client"],
-            workspace_strict_mode: true,
+            strict_mode: true,
+            allow_experiment_self_approval: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -66,6 +67,8 @@ describe("Workspace API", () => {
         expect(response.organisation_id).toBe(ENV.org_id);
         expect(response.workspace_admin_email).toBe("admin@example.com");
         expect(response.workspace_status).toBe(WorkspaceStatus.ENABLED);
+        expect(response.strict_mode).toBe(true);
+        expect(response.allow_experiment_self_approval).toBe(true);
 
         // Fix mandatory_dimensions check - it might be a string or differently structured
         if (response.mandatory_dimensions) {
@@ -150,7 +153,6 @@ describe("Workspace API", () => {
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["os", "client", "version"],
-            description: "Updated workspace description",
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
@@ -168,6 +170,9 @@ describe("Workspace API", () => {
             expect(response.workspace_admin_email).toBe(
                 "updated-admin@example.com"
             );
+            expect(response.workspace_status).toBe(WorkspaceStatus.ENABLED);
+            expect(response.strict_mode).toBe(true);
+            expect(response.allow_experiment_self_approval).toBe(true);
 
             // Check mandatory_dimensions with flexible type handling
             if (response.mandatory_dimensions) {
@@ -282,7 +287,8 @@ describe("Workspace API", () => {
             workspace_admin_email: "invalid-email", // Invalid email format
             workspace_name: "", // Empty name
             description: "Test invalid workspace",
-            workspace_strict_mode: true,
+            strict_mode: true,
+            allow_experiment_self_approval: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -304,7 +310,8 @@ describe("Workspace API", () => {
             // This should fail as the regex only allows letters and numbers
             workspace_name: "test-special-chars@!#",
             description: "Test with special characters",
-            workspace_strict_mode: true,
+            strict_mode: true,
+            allow_experiment_self_approval: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);

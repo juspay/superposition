@@ -3,26 +3,29 @@ pub fn ser_update_workspace_input_input(
                          object: &mut ::aws_smithy_json::serialize::JsonObjectWriter,
                          input: &crate::operation::update_workspace::UpdateWorkspaceInput,
                     ) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
-    if let Some(var_1) = &input.config_version {
-        object.key("config_version").string(var_1.as_str());
+    if let Some(var_1) = &input.allow_experiment_self_approval {
+        object.key("allow_experiment_self_approval").boolean(*var_1);
     }
-    if let Some(var_2) = &input.mandatory_dimensions {
-        let mut array_3 = object.key("mandatory_dimensions").start_array();
-        for item_4 in var_2 {
+    if let Some(var_2) = &input.config_version {
+        object.key("config_version").string(var_2.as_str());
+    }
+    if let Some(var_3) = &input.mandatory_dimensions {
+        let mut array_4 = object.key("mandatory_dimensions").start_array();
+        for item_5 in var_3 {
              {
-                array_3.value().string(item_4.as_str());
+                array_4.value().string(item_5.as_str());
             }
         }
-        array_3.finish();
+        array_4.finish();
     }
-    if let Some(var_5) = &input.metrics {
-        object.key("metrics").document(var_5);
+    if let Some(var_6) = &input.metrics {
+        object.key("metrics").document(var_6);
     }
-    if let Some(var_6) = &input.workspace_admin_email {
-        object.key("workspace_admin_email").string(var_6.as_str());
+    if let Some(var_7) = &input.workspace_admin_email {
+        object.key("workspace_admin_email").string(var_7.as_str());
     }
-    if let Some(var_7) = &input.workspace_status {
-        object.key("workspace_status").string(var_7.as_str());
+    if let Some(var_8) = &input.workspace_status {
+        object.key("workspace_status").string(var_8.as_str());
     }
     Ok(())
 }

@@ -198,5 +198,19 @@ impl UpdateWorkspaceFluentBuilder {
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
                     self.inner.get_metrics()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn allow_experiment_self_approval(mut self, input: bool) -> Self {
+                    self.inner = self.inner.allow_experiment_self_approval(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_allow_experiment_self_approval(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_allow_experiment_self_approval()
+                }
 }
 

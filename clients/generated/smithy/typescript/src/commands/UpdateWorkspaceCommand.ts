@@ -53,6 +53,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *   ],
  *   workspace_status: "ENABLED" || "DISABLED",
  *   metrics: "DOCUMENT_VALUE",
+ *   allow_experiment_self_approval: true || false,
  * };
  * const command = new UpdateWorkspaceCommand(input);
  * const response = await client.send(command);
@@ -71,8 +72,9 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   mandatory_dimensions: [ // ListMandatoryDimensions
  * //     "STRING_VALUE",
  * //   ],
- * //   workspace_strict_mode: true || false, // required
+ * //   strict_mode: true || false, // required
  * //   metrics: "DOCUMENT_VALUE",
+ * //   allow_experiment_self_approval: true || false, // required
  * // };
  *
  * ```

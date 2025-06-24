@@ -107,14 +107,19 @@ pub(crate) fn de_workspace_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     crate::protocol_serde::shape_list_mandatory_dimensions::de_list_mandatory_dimensions(tokens)?
                                 );
                             }
-                            "workspace_strict_mode" => {
-                                builder = builder.set_workspace_strict_mode(
+                            "strict_mode" => {
+                                builder = builder.set_strict_mode(
                                     ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                                 );
                             }
                             "metrics" => {
                                 builder = builder.set_metrics(
                                     Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                                );
+                            }
+                            "allow_experiment_self_approval" => {
+                                builder = builder.set_allow_experiment_self_approval(
+                                    ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                                 );
                             }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

@@ -19,8 +19,9 @@ resource Workspace {
         last_modified_at: DateTime
         created_at: DateTime
         mandatory_dimensions: ListMandatoryDimensions
-        workspace_strict_mode: Boolean
+        strict_mode: Boolean
         metrics: Document
+        allow_experiment_self_approval: Boolean
     }
     list: ListWorkspace
     put: UpdateWorkspace
@@ -48,9 +49,12 @@ structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $workspace_status
     
     @required
-    $workspace_strict_mode
+    $strict_mode
 
     $metrics
+
+    @required
+    $allow_experiment_self_approval
 }
 
 structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
@@ -68,6 +72,8 @@ structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $workspace_status
 
     $metrics
+
+    $allow_experiment_self_approval
 }
 
 structure WorkspaceResponse for Workspace {
@@ -106,9 +112,12 @@ structure WorkspaceResponse for Workspace {
     $mandatory_dimensions
     
     @required
-    $workspace_strict_mode
+    $strict_mode
 
     $metrics
+
+    @required
+    $allow_experiment_self_approval
 }
 
 list WorkspaceList {

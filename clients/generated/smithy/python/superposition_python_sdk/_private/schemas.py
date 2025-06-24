@@ -5227,7 +5227,7 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
             "index": 3,
         },
 
-        "workspace_strict_mode": {
+        "strict_mode": {
             "target": BOOLEAN,
             "index": 4,
             "traits": [
@@ -5239,6 +5239,15 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 5,
+        },
+
+        "allow_experiment_self_approval": {
+            "target": BOOLEAN,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
         },
 
     }
@@ -5365,7 +5374,7 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
             "index": 11,
         },
 
-        "workspace_strict_mode": {
+        "strict_mode": {
             "target": BOOLEAN,
             "index": 12,
             "traits": [
@@ -5377,6 +5386,15 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 13,
+        },
+
+        "allow_experiment_self_approval": {
+            "target": BOOLEAN,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
         },
 
     }
@@ -11770,7 +11788,7 @@ WORKSPACE_RESPONSE = Schema.collection(
             "index": 11,
         },
 
-        "workspace_strict_mode": {
+        "strict_mode": {
             "target": BOOLEAN,
             "index": 12,
             "traits": [
@@ -11782,6 +11800,15 @@ WORKSPACE_RESPONSE = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 13,
+        },
+
+        "allow_experiment_self_approval": {
+            "target": BOOLEAN,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
         },
 
     }
@@ -12515,6 +12542,11 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
             "index": 6,
         },
 
+        "allow_experiment_self_approval": {
+            "target": BOOLEAN,
+            "index": 7,
+        },
+
     }
 )
 
@@ -12627,7 +12659,7 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
             "index": 11,
         },
 
-        "workspace_strict_mode": {
+        "strict_mode": {
             "target": BOOLEAN,
             "index": 12,
             "traits": [
@@ -12639,6 +12671,15 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
         "metrics": {
             "target": DOCUMENT,
             "index": 13,
+        },
+
+        "allow_experiment_self_approval": {
+            "target": BOOLEAN,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
         },
 
     }

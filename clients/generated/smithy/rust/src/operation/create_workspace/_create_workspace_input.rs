@@ -12,9 +12,11 @@ pub struct CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
     #[allow(missing_docs)] // documentation missing in model
-    pub workspace_strict_mode: ::std::option::Option<bool>,
+    pub strict_mode: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub allow_experiment_self_approval: ::std::option::Option<bool>,
 }
 impl  CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -34,12 +36,16 @@ impl  CreateWorkspaceInput  {
         self.workspace_status.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_strict_mode(&self) -> ::std::option::Option<bool> {
-        self.workspace_strict_mode
+    pub fn strict_mode(&self) -> ::std::option::Option<bool> {
+        self.strict_mode
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn allow_experiment_self_approval(&self) -> ::std::option::Option<bool> {
+        self.allow_experiment_self_approval
     }
 }
 impl CreateWorkspaceInput {
@@ -57,8 +63,9 @@ pub struct CreateWorkspaceInputBuilder {
     pub(crate) workspace_admin_email: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_name: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
-    pub(crate) workspace_strict_mode: ::std::option::Option<bool>,
+    pub(crate) strict_mode: ::std::option::Option<bool>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
 }
 impl CreateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -118,17 +125,17 @@ impl CreateWorkspaceInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_strict_mode(mut self, input: bool) -> Self {
-        self.workspace_strict_mode = ::std::option::Option::Some(input);
+    pub fn strict_mode(mut self, input: bool) -> Self {
+        self.strict_mode = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_strict_mode(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.workspace_strict_mode = input; self
+    pub fn set_strict_mode(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.strict_mode = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_strict_mode(&self) -> &::std::option::Option<bool> {
-        &self.workspace_strict_mode
+    pub fn get_strict_mode(&self) -> &::std::option::Option<bool> {
+        &self.strict_mode
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
@@ -143,6 +150,20 @@ impl CreateWorkspaceInputBuilder {
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn allow_experiment_self_approval(mut self, input: bool) -> Self {
+        self.allow_experiment_self_approval = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.allow_experiment_self_approval = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
+        &self.allow_experiment_self_approval
+    }
     /// Consumes the builder and constructs a [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_workspace::CreateWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -155,9 +176,11 @@ impl CreateWorkspaceInputBuilder {
                 ,
                 workspace_status: self.workspace_status
                 ,
-                workspace_strict_mode: self.workspace_strict_mode
+                strict_mode: self.strict_mode
                 ,
                 metrics: self.metrics
+                ,
+                allow_experiment_self_approval: self.allow_experiment_self_approval
                 ,
             }
         )

@@ -11,8 +11,9 @@ module Io.Superposition.Model.WorkspaceResponse (
     setLastModifiedAt,
     setCreatedAt,
     setMandatoryDimensions,
-    setWorkspaceStrictMode,
+    setStrictMode,
     setMetrics,
+    setAllowExperimentSelfApproval,
     build,
     WorkspaceResponseBuilder,
     WorkspaceResponse,
@@ -28,8 +29,9 @@ module Io.Superposition.Model.WorkspaceResponse (
     last_modified_at,
     created_at,
     mandatory_dimensions,
-    workspace_strict_mode,
-    metrics
+    strict_mode,
+    metrics,
+    allow_experiment_self_approval
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -57,8 +59,9 @@ data WorkspaceResponse = WorkspaceResponse {
     last_modified_at :: Data.Time.UTCTime,
     created_at :: Data.Time.UTCTime,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
-    workspace_strict_mode :: Bool,
-    metrics :: Data.Maybe.Maybe Data.Aeson.Value
+    strict_mode :: Bool,
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value,
+    allow_experiment_self_approval :: Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -79,8 +82,9 @@ instance Data.Aeson.ToJSON WorkspaceResponse where
         "last_modified_at" Data.Aeson..= last_modified_at a,
         "created_at" Data.Aeson..= created_at a,
         "mandatory_dimensions" Data.Aeson..= mandatory_dimensions a,
-        "workspace_strict_mode" Data.Aeson..= workspace_strict_mode a,
-        "metrics" Data.Aeson..= metrics a
+        "strict_mode" Data.Aeson..= strict_mode a,
+        "metrics" Data.Aeson..= metrics a,
+        "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a
         ]
     
 
@@ -99,8 +103,9 @@ instance Data.Aeson.FromJSON WorkspaceResponse where
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory_dimensions")
-        Control.Applicative.<*> (v Data.Aeson..: "workspace_strict_mode")
+        Control.Applicative.<*> (v Data.Aeson..: "strict_mode")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
+        Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
     
 
 
@@ -118,8 +123,9 @@ data WorkspaceResponseBuilderState = WorkspaceResponseBuilderState {
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     mandatory_dimensionsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
-    workspace_strict_modeBuilderState :: Data.Maybe.Maybe Bool,
-    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
+    strict_modeBuilderState :: Data.Maybe.Maybe Bool,
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -138,8 +144,9 @@ defaultBuilderState = WorkspaceResponseBuilderState {
     last_modified_atBuilderState = Data.Maybe.Nothing,
     created_atBuilderState = Data.Maybe.Nothing,
     mandatory_dimensionsBuilderState = Data.Maybe.Nothing,
-    workspace_strict_modeBuilderState = Data.Maybe.Nothing,
-    metricsBuilderState = Data.Maybe.Nothing
+    strict_modeBuilderState = Data.Maybe.Nothing,
+    metricsBuilderState = Data.Maybe.Nothing,
+    allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing
 }
 
 newtype WorkspaceResponseBuilder a = WorkspaceResponseBuilder {
@@ -211,13 +218,17 @@ setMandatoryDimensions :: Data.Maybe.Maybe ([] Data.Text.Text) -> WorkspaceRespo
 setMandatoryDimensions value =
    WorkspaceResponseBuilder (\s -> (s { mandatory_dimensionsBuilderState = value }, ()))
 
-setWorkspaceStrictMode :: Bool -> WorkspaceResponseBuilder ()
-setWorkspaceStrictMode value =
-   WorkspaceResponseBuilder (\s -> (s { workspace_strict_modeBuilderState = Data.Maybe.Just value }, ()))
+setStrictMode :: Bool -> WorkspaceResponseBuilder ()
+setStrictMode value =
+   WorkspaceResponseBuilder (\s -> (s { strict_modeBuilderState = Data.Maybe.Just value }, ()))
 
 setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> WorkspaceResponseBuilder ()
 setMetrics value =
    WorkspaceResponseBuilder (\s -> (s { metricsBuilderState = value }, ()))
+
+setAllowExperimentSelfApproval :: Bool -> WorkspaceResponseBuilder ()
+setAllowExperimentSelfApproval value =
+   WorkspaceResponseBuilder (\s -> (s { allow_experiment_self_approvalBuilderState = Data.Maybe.Just value }, ()))
 
 build :: WorkspaceResponseBuilder () -> Data.Either.Either Data.Text.Text WorkspaceResponse
 build builder = do
@@ -234,8 +245,9 @@ build builder = do
     last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
-    workspace_strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.workspace_strict_mode is a required property.") Data.Either.Right (workspace_strict_modeBuilderState st)
+    strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.strict_mode is a required property.") Data.Either.Right (strict_modeBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
+    allow_experiment_self_approval' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.allow_experiment_self_approval is a required property.") Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     Data.Either.Right (WorkspaceResponse { 
         workspace_name = workspace_name',
         organisation_id = organisation_id',
@@ -249,8 +261,9 @@ build builder = do
         last_modified_at = last_modified_at',
         created_at = created_at',
         mandatory_dimensions = mandatory_dimensions',
-        workspace_strict_mode = workspace_strict_mode',
-        metrics = metrics'
+        strict_mode = strict_mode',
+        metrics = metrics',
+        allow_experiment_self_approval = allow_experiment_self_approval'
     })
 
 

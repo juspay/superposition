@@ -176,7 +176,8 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
-if builder.workspace_strict_mode.is_none() { builder.workspace_strict_mode = Some(Default::default()) }
+if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
                 builder
             }
 
@@ -598,7 +599,8 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
-if builder.workspace_strict_mode.is_none() { builder.workspace_strict_mode = Some(Default::default()) }
+if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
                 builder
             }
 
@@ -752,7 +754,8 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
-if builder.workspace_strict_mode.is_none() { builder.workspace_strict_mode = Some(Default::default()) }
+if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
                 builder
             }
 

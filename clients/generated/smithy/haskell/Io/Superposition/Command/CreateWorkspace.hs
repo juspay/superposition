@@ -39,8 +39,9 @@ data CreateWorkspaceError =
 serCreateWorkspacePAYLOAD:: Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput -> Network.HTTP.Client.RequestBody
 serCreateWorkspacePAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
+        "allow_experiment_self_approval" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.allow_experiment_self_approval input,
         "workspace_admin_email" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.workspace_admin_email input,
-        "workspace_strict_mode" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.workspace_strict_mode input,
+        "strict_mode" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.strict_mode input,
         "metrics" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.metrics input,
         "workspace_name" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.workspace_name input,
         "workspace_status" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.workspace_status input
@@ -121,13 +122,6 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
-    workspace_strict_modeDocumentE :: Bool <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_strict_mode") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
     organisation_nameDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "organisation_name") responseObject
         Data.Function.& \case
@@ -184,8 +178,22 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    allow_experiment_self_approvalDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "allow_experiment_self_approval") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     workspace_schema_nameDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_schema_name") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    strict_modeDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "strict_mode") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -208,7 +216,6 @@ deserializeResponse response = do
     Io.Superposition.Model.CreateWorkspaceOutput.build $ do
         Io.Superposition.Model.CreateWorkspaceOutput.setWorkspaceAdminEmail workspace_admin_emailDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setCreatedAt created_atDocumentE
-        Io.Superposition.Model.CreateWorkspaceOutput.setWorkspaceStrictMode workspace_strict_modeDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setOrganisationName organisation_nameDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setLastModifiedBy last_modified_byDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setCreatedBy created_byDocumentE
@@ -217,7 +224,9 @@ deserializeResponse response = do
         Io.Superposition.Model.CreateWorkspaceOutput.setWorkspaceStatus workspace_statusDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setLastModifiedAt last_modified_atDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setOrganisationId organisation_idDocumentE
+        Io.Superposition.Model.CreateWorkspaceOutput.setAllowExperimentSelfApproval allow_experiment_self_approvalDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setWorkspaceSchemaName workspace_schema_nameDocumentE
+        Io.Superposition.Model.CreateWorkspaceOutput.setStrictMode strict_modeDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setMetrics metricsDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setWorkspaceName workspace_nameDocumentE
     
