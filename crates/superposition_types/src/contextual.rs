@@ -33,7 +33,7 @@ pub trait Contextual: Clone {
                     context.clone().get_condition().into(),
                 ))
                 .and_then(|ast| ast.get_variable_names())
-                .map_or(false, |variables| {
+                .is_ok_and(|variables| {
                     dimension_keys
                         .iter()
                         .all(|dimension| variables.contains(dimension))

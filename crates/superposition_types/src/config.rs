@@ -8,6 +8,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{json, Map, Value};
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
+use uniffi::deps::anyhow;
 
 use crate::{overridden::filter_config_keys_by_prefix, Cac, Contextual, Exp};
 
@@ -49,6 +50,21 @@ macro_rules! impl_try_from_map {
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct Overrides(Map<String, Value>);
+uniffi::custom_type!(Overrides, HashMap<String, String>, {
+    lower: |v| {
+        v.iter().map(|(k, v)| (
+            k.clone(), serde_json::to_string(v).unwrap()
+        )).collect::<HashMap<String, String>>()
+    },
+    try_lift: |v| {
+        // Deserialize the JSON string back into a map
+        v.iter().map(|(k, s)| {
+            serde_json::from_str::<Value>(s)
+                .map(|v| (k.clone(), v))
+                .map_err(|err| anyhow::anyhow!(err.to_string()))
+        }).collect::<Result<Map<String, Value>, anyhow::Error>>().map(Overrides)
+    }
+});
 
 impl Overrides {
     fn validate_data(override_map: Map<String, Value>) -> Result<Self, String> {
@@ -79,6 +95,21 @@ impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct Condition(Map<String, Value>);
+uniffi::custom_type!(Condition, HashMap<String, String>, {
+    lower: |v| {
+        v.iter().map(|(k, v)| (
+            k.clone(), serde_json::to_string(v).unwrap()
+        )).collect::<HashMap<String, String>>()
+    },
+    try_lift: |v| {
+        // Deserialize the JSON string back into a map
+        v.iter().map(|(k, s)| {
+            serde_json::from_str::<Value>(s)
+                .map(|v| (k.clone(), v))
+                .map_err(|err| anyhow::anyhow!(err.to_string()))
+        }).collect::<Result<Map<String, Value>, anyhow::Error>>().map(Condition)
+    }
+});
 
 static CAC_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
     logic_validation::ValidationConfig {
@@ -154,14 +185,14 @@ impl Condition {
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
 impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct Context {
     pub id: String,
     pub condition: Condition,
     pub priority: i32,
     pub weight: i32,
-    pub override_with_keys: [String; 1],
+    pub override_with_keys: Vec<String>,
 }
 
 impl Contextual for Context {

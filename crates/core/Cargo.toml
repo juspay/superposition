@@ -16,12 +16,24 @@ reqwest = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-superposition_types = { path = "../superposition_types" }
+superposition_types = { path = "../superposition_types", features = ["experimentation", "api"] }
 tokio = { version = "1.29.1", features = ["full"] }
 serde = { workspace = true }
+uniffi = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { version = "1.0.57" }
+
+[dev-dependencies]
+uniffi = { workspace = true }
 
 [lints]
 workspace = true
 
 [lib]
-crate-type = ["cdylib"]  
+crate-type = ["cdylib"]
+name = "superposition_core"
+
+[[bin]]
+# This can be whatever name makes sense for your project, but the rest of this tutorial assumes uniffi-bindgen.
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"

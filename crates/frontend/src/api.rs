@@ -509,9 +509,9 @@ pub async fn delete_webhooks(
 }
 
 pub async fn resolve_config(
-    tenant: &String,
-    context: &String,
-    org_id: &String,
+    tenant: &str,
+    context: &str,
+    org_id: &str,
     show_reasoning: bool,
     context_id: Option<&String>,
 ) -> Result<Map<String, Value>, String> {
@@ -537,10 +537,10 @@ pub async fn resolve_config(
 }
 
 pub async fn pause_experiment(
-    exp_id: &String,
+    exp_id: &str,
     change_reason: String,
-    tenant: &String,
-    org_id: &String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentStateChangeRequest {
         change_reason: ChangeReason::try_from(change_reason)?,
@@ -561,10 +561,10 @@ pub async fn pause_experiment(
 }
 
 pub async fn resume_experiment(
-    exp_id: &String,
+    exp_id: &str,
     change_reason: String,
-    tenant: &String,
-    org_id: &String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentStateChangeRequest {
         change_reason: ChangeReason::try_from(change_reason)?,
@@ -626,9 +626,9 @@ pub async fn execute_autocomplete_function(
     name: &str,
     value: &str,
     environment: &Value,
-    fn_name: &String,
-    tenant: &String,
-    org_id: &String,
+    fn_name: &str,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<Vec<String>, String> {
     let host = use_host_server();
     let url = format!("{}/function/{}/PUBLISHED/test", host, fn_name);

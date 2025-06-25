@@ -20,7 +20,7 @@ pub fn validate_events(
     let result: Vec<Webhook> =
         dsl::webhooks.schema_name(schema_name).get_results(conn)?;
     for webhook in result {
-        if exclude_webhook.map_or(false, |val| &webhook.name == val) {
+        if exclude_webhook == Some(&webhook.name) {
             continue;
         }
         if let Some(duplicate_event) =

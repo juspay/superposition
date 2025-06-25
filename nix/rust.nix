@@ -39,9 +39,16 @@
               || (lib.hasInfix "frontend/src-js" path && lib.hasSuffix ".js" path);
           };
         crates = {
+          "superposition_types" = {
+            imports = [ globalCrateConfig ];
+          };
           "cac_client" = {
             imports = [ globalCrateConfig ];
-            autoWire = true; # Used by Haskell client
+            autoWire = [
+              "crate"
+              "clippy"
+              ## "doc"
+            ]; # Used by Haskell client
             crane = {
               args = {
                 buildInputs =
@@ -51,7 +58,147 @@
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
+          "context_aware_config" = {
+            imports = [ globalCrateConfig ];
+            autoWire = [
+              "crate"
+              "clippy"
+              ## "doc"
+            ]; # Used by Haskell client
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
+          "service_utils" = {
+            imports = [ globalCrateConfig ];
+            autoWire = [
+              "crate"
+              "clippy"
+              # ## "doc"
+            ]; # Used by Haskell client
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
+          "experimentation_platform" = {
+            imports = [ globalCrateConfig ];
+            autoWire = [
+              "crate"
+              "clippy"
+              ## "doc"
+            ]; # Used by Haskell client
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
+          "frontend" = {
+            imports = [ globalCrateConfig ];
+            autoWire = [
+              "crate"
+              "clippy"
+              ## "doc"
+            ]; # Used by Haskell client
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
+          "core" = {
+            imports = [ globalCrateConfig ];
+            autoWire = [
+              "crate"
+              "clippy"
+              ## "doc"
+            ]; # Used by Haskell client
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
                     pkgs.openssl
                   ];
               };
@@ -64,7 +211,11 @@
             };
           };
           "experimentation_client" = {
-            autoWire = true; # Used by Haskell client
+            autoWire = [
+              "crate"
+              "clippy"
+              ## "doc"
+            ]; # Used by Haskell client
             crane = {
               args = {
                 buildInputs =
@@ -74,7 +225,7 @@
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
                     pkgs.openssl
                   ];
               };
@@ -111,7 +262,7 @@
                   ])
                   ++ [
                     pkgs.openssl
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
                   ];
               };
             };
@@ -129,7 +280,7 @@
                   ++ [
                     pkgs.libiconv
                     pkgs.openssl
-                    pkgs.postgresql_12
+                    pkgs.postgresql_15
                   ];
                 nativeBuildInputs = with pkgs; [
                   pkg-config

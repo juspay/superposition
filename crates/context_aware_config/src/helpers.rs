@@ -260,7 +260,7 @@ pub fn generate_cac(
             condition,
             priority: weight.to_owned(),
             weight: weight.to_owned(),
-            override_with_keys: [override_id.to_owned()],
+            override_with_keys: vec![override_id.to_owned()],
         };
         contexts.push(ctxt);
         overrides.insert(override_id.to_owned(), override_);

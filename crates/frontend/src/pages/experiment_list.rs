@@ -217,7 +217,7 @@ fn experiment_table_filter_widget(
                                             filters_buffer_rws
                                                 .get()
                                                 .status
-                                                .map_or(false, |s| s.iter().any(|item| *item == status))
+                                                .is_some_and(|s| s.iter().any(|item| *item == status))
                                         }
                                         on:change=move |event| {
                                             let checked = event_target_checked(&event);

@@ -16,8 +16,8 @@ use crate::{
 pub async fn conclude_experiment(
     exp_id: String,
     variant_id: String,
-    tenant: &String,
-    org_id: &String,
+    tenant: &str,
+    org_id: &str,
     change_reason: String,
 ) -> Result<Result<ExperimentResponse, String>, String> {
     let payload = ConcludeExperimentRequest {

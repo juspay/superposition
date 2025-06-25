@@ -577,7 +577,7 @@ async fn reduce_config_key(
                     }
 
                     let mut elem = og_contexts[ctx_index].clone();
-                    elem.override_with_keys = [new_id];
+                    elem.override_with_keys = vec![new_id];
                     og_contexts[ctx_index] = elem;
 
                     if delete_old_oid {

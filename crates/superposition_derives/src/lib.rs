@@ -159,7 +159,7 @@ pub fn derive_is_empty(input: TokenStream) -> TokenStream {
                 .path
                 .segments
                 .first()
-                .map_or(false, |seg| seg.ident == "Option")
+                .is_some_and(|seg| seg.ident == "Option")
             {
                 checks.push(quote! {
                     if self.#field_name.is_some() {

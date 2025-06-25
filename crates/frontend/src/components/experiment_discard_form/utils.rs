@@ -6,9 +6,9 @@ use superposition_types::{
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
 pub async fn discard_experiment(
-    exp_id: &String,
-    tenant: &String,
-    org_id: &String,
+    exp_id: &str,
+    tenant: &str,
+    org_id: &str,
     change_reason: String,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentStateChangeRequest {

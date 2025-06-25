@@ -47,3 +47,11 @@ postman/superposition_env.json
 smithy/output
 .aider*
 clients/generated/smithy/ts
+
+# Emacs
+*~
+\#*\#
+.#*
+
+# Intellij
+**/.idea

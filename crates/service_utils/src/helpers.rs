@@ -317,7 +317,7 @@ pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, 
         .ok_or(String::from("failed to parse headers"))
 }
 
-pub async fn request<'a, T, R>(
+pub async fn request<T, R>(
     url: String,
     method: reqwest::Method,
     body: Option<T>,

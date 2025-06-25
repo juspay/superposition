@@ -209,7 +209,7 @@ where
     })
 }
 
-pub async fn request_with_skip_error<'a, T>(
+pub async fn request_with_skip_error<T>(
     url: String,
     method: reqwest::Method,
     body: Option<T>,
@@ -267,7 +267,7 @@ where
     Ok(response)
 }
 
-pub async fn request<'a, T>(
+pub async fn request<T>(
     url: String,
     method: reqwest::Method,
     body: Option<T>,

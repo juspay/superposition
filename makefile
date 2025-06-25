@@ -203,9 +203,10 @@ smithy-build:
 
 smithy-clients: smithy-build
 	mkdir -p $(SMITHY_CLIENT_DIR) $(SMITHY_CLIENT_DIR)/java
-## Moving the Java client like this as smithy publishes it as a plugin.
+## Moving the Java client like this as smithy publishes it as a java project.
 ## Probably want to use that to publish it ourselves in the future.
-	cp -r $(SMITHY_BUILD_SRC)/java-client-codegen/io/juspay/superposition/* $(SMITHY_CLIENT_DIR)/java
+	cp -r $(SMITHY_BUILD_SRC)/java-client-codegen/*\
+				$(SMITHY_CLIENT_DIR)/java/sdk
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
 		[[ "$$d" =~ "java" ]] && continue; \

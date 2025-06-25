@@ -158,7 +158,7 @@ pub fn workspace_form(
                         schema_type=SchemaType::Single(JsonSchemaType::String)
                         value=config_version_rs.get_untracked()
                         on_change=move |val: Value| {
-                            let value = if val.as_str().map_or(false, |s| s.is_empty()) {
+                            let value = if val.as_str().is_some_and(|s| s.is_empty()) {
                                 Value::Null
                             } else {
                                 val
