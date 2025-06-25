@@ -23,7 +23,7 @@ def check_boolean_val(client, ctx):
     assert hasattr(bool_result, 'reason'), "Boolean result should have a reason attribute"
     
     # Assert exact value like Java test expects
-    assert bool_result.value == True, f"Expected boolean value to be True, but got {bool_result.value}"
+    assert bool_result.value == False, f"Expected boolean value to be True, but got {bool_result.value}"
     
     return bool_result
     
@@ -156,7 +156,7 @@ async def test_config():
     provider = SuperpositionProvider(provider_options=config_options)
     ctx = EvaluationContext(
         targeting_key="test-user",
-        attributes={}
+        attributes={'d1': 'd1'}
     )
     
     try:

@@ -208,7 +208,7 @@ class ConfigurationClient:
                         override_with_keys=ele.override_with_keys,
                         condition=condition
                     )
-                context.append(cv)
+                    context.append(cv)
                 config_data['contexts'] = context
             
             return config_data
@@ -292,7 +292,7 @@ class ConfigurationClient:
                 return cached
 
             logger.debug("Fetching fresh configuration data")
-
+            
             result = ffi_eval_config(
                 self.cached_config.get('default_configs', {}),
                 self.cached_config.get('contexts', []),
