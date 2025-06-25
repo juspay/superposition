@@ -60,6 +60,10 @@ impl ExperimentStatusType {
         }
     }
 
+    pub fn active_list() -> Vec<Self> {
+        vec![Self::CREATED, Self::INPROGRESS]
+    }
+
     pub fn concludable(&self) -> bool {
         match self {
             Self::INPROGRESS => true,
