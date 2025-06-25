@@ -471,8 +471,7 @@ where
 
             {bread_crums
                 .iter()
-                .enumerate()
-                .map(|(_, ele)| {
+                .map(|ele| {
                     let value = ele.value.clone();
                     let is_link = ele.is_link;
                     let handler = folder_click_handler.clone();

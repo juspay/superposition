@@ -15,7 +15,8 @@
       "software.amazon.smithy.python.codegen:core:0.0.1",
       "software.amazon.smithy.java:client-core:0.0.1",
       "software.amazon.smithy.java.codegen:plugins:0.0.1",
-      "io.superposition.smithy.haskell:client-codegen:0.0.1-rc1"
+      "io.superposition.smithy.haskell:client-codegen:0.0.1-rc1",
+      "software.amazon.smithy.java:aws-client-restjson:0.0.1"
     ]
   },
   "plugins": {
@@ -33,7 +34,6 @@
         "moduleVersion": "0.0.1",
         "moduleDescription": "test",
         "moduleAuthors": ["protocoltest@example.com"]
-
     },
     "typescript-client-codegen": {
       "package": "io.juspay/superposition-typescript-sdk",
@@ -46,7 +46,8 @@
     },
     "java-client-codegen": {
       "namespace": "io.juspay.superposition",
-      "service": "io.superposition#Superposition"
+      "service": "io.superposition#Superposition",
+      "protocol": "aws.protocols#restJson1"
     },
     "haskell-client-codegen": {
       "packageName": "SuperpositionSDK",

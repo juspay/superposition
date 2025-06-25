@@ -165,7 +165,14 @@ pub fn eval_experiments(
 
             // Evaluate each variant's context
             for variant in experiment_variants {
-                let variant_context_matches = variant.context_id.is_none() || { true };
+                // For variants, we need to check if they have context
+                // Since Variant has context_id instead of context, we'll assume
+                // variants without context_id match all contexts
+                let variant_context_matches = variant.context_id.is_none() || {
+                    // If there's a context_id, we'd need to resolve it
+                    // For now, assume it matches (this would need context resolution logic)
+                    true
+                };
 
                 let variant_reasoning = if opts.include_reasoning {
                     Some(VariantReasoning {

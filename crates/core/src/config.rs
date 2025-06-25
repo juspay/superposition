@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use superposition_types::{Config, Context, Overrides};
 
 // Merge strategy for configuration resolution
-#[derive(Clone, Debug, PartialEq, strum_macros::Display, Default)]
+#[derive(Clone, Debug, PartialEq, strum_macros::Display, Default, uniffi::Enum)]
 #[strum(serialize_all = "snake_case")]
 pub enum MergeStrategy {
     #[default]
@@ -27,14 +27,16 @@ pub fn eval_config(
     overrides: &HashMap<String, Overrides>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
-    filter_prefixes: Option<&[String]>,
+    filter_prefixes: Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String> {
+    // Create Config struct to use existing filtering logic
     let mut config = Config {
         default_configs: default_config,
         contexts: contexts.to_vec(),
         overrides: overrides.clone(),
     };
 
+    // Apply prefix filtering if keys are provided (using existing superposition_types logic)
     if let Some(prefixes) = filter_prefixes {
         if !prefixes.is_empty() {
             config =
@@ -62,7 +64,7 @@ pub fn eval_config_with_reasoning(
     overrides: &HashMap<String, Overrides>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
-    filter_prefixes: Option<&[String]>,
+    filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
 ) -> Result<Map<String, Value>, String> {
     let mut reasoning: Vec<Value> = vec![];
 

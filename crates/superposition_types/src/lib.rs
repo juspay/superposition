@@ -1,4 +1,7 @@
 #![deny(unused_crate_dependencies)]
+
+uniffi::setup_scaffolding!();
+
 #[cfg(feature = "api")]
 pub mod api;
 mod config;

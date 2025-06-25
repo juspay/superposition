@@ -142,7 +142,7 @@ pub extern "C" fn core_get_resolved_config(
         &overrides,
         &query_data,
         merge_strategy,
-        filter_prefixes.as_deref(),
+        filter_prefixes,
     ) {
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
@@ -242,7 +242,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
         &overrides,
         &query_data,
         merge_strategy,
-        filter_prefixes.as_deref(),
+        filter_prefixes,
     ) {
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
@@ -393,7 +393,6 @@ pub extern "C" fn core_get_error_details() -> *mut c_char {
 /// - `s` must not be null
 /// - The caller must ensure `s` is not used after this function is called
 /// - Double-free will cause undefined behavior
-
 #[no_mangle]
 pub unsafe extern "C" fn core_free_string(s: *mut c_char) {
     if !s.is_null() {

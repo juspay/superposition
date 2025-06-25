@@ -6,11 +6,11 @@ use superposition_types::{
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
 
 pub async fn ramp_experiment(
-    exp_id: &String,
+    exp_id: &str,
     percent: u8,
     change_reason: Option<String>,
-    tenant: &String,
-    org_id: &String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = RampRequest {
         change_reason: ChangeReason::try_from(

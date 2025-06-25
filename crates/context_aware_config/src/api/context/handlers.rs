@@ -329,7 +329,7 @@ async fn list_contexts(
     };
 
     let perform_in_memory_filter =
-        dimension_params.len() > 0 || filter_params.prefix.is_some();
+        !dimension_params.is_empty() || filter_params.prefix.is_some();
 
     let paginated_response = if perform_in_memory_filter {
         let mut all_contexts: Vec<Context> = base_query.load(&mut conn)?;
