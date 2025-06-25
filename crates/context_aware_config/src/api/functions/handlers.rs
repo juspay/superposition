@@ -6,6 +6,7 @@ use actix_web::{
 use chrono::Utc;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::auth_action;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     api::functions::{
@@ -36,6 +37,7 @@ pub fn endpoints() -> Scope {
         .service(publish)
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create(
     request: web::Json<CreateFunctionRequest>,
@@ -96,6 +98,7 @@ async fn create(
     }
 }
 
+#[auth_action("update")]
 #[patch("/{function_name}")]
 async fn update(
     params: web::Path<FunctionName>,
@@ -129,6 +132,7 @@ async fn update(
     Ok(Json(updated_function))
 }
 
+#[auth_action("read")]
 #[get("/{function_name}")]
 async fn get(
     params: web::Path<FunctionName>,
@@ -142,6 +146,7 @@ async fn get(
     Ok(Json(function))
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_functions(
     db_conn: DbConnection,
@@ -178,6 +183,7 @@ async fn list_functions(
     }))
 }
 
+#[auth_action("delete")]
 #[delete("/{function_name}")]
 async fn delete_function(
     params: web::Path<FunctionName>,
@@ -210,6 +216,7 @@ async fn delete_function(
     }
 }
 
+#[auth_action("read")]
 #[put("/{function_name}/{stage}/test")]
 async fn test(
     params: Path<TestParam>,
@@ -259,6 +266,7 @@ async fn test(
     }
 }
 
+#[auth_action("read")]
 #[put("/{function_name}/publish")]
 async fn publish(
     params: web::Path<FunctionName>,
