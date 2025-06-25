@@ -39,6 +39,7 @@ serCreateDefaultConfigPAYLOAD:: Io.Superposition.Model.CreateDefaultConfigInput.
 serCreateDefaultConfigPAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
         "schema" Data.Aeson..= Io.Superposition.Model.CreateDefaultConfigInput.schema input,
+        "autocomplete_function_name" Data.Aeson..= Io.Superposition.Model.CreateDefaultConfigInput.autocomplete_function_name input,
         "change_reason" Data.Aeson..= Io.Superposition.Model.CreateDefaultConfigInput.change_reason input,
         "function_name" Data.Aeson..= Io.Superposition.Model.CreateDefaultConfigInput.function_name input,
         "description" Data.Aeson..= Io.Superposition.Model.CreateDefaultConfigInput.description input,
@@ -121,6 +122,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    autocomplete_function_nameDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "autocomplete_function_name") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     change_reasonDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "change_reason") responseObject
         Data.Function.& \case
@@ -186,6 +194,7 @@ deserializeResponse response = do
     
     Io.Superposition.Model.CreateDefaultConfigOutput.build $ do
         Io.Superposition.Model.CreateDefaultConfigOutput.setSchema schemaDocumentE
+        Io.Superposition.Model.CreateDefaultConfigOutput.setAutocompleteFunctionName autocomplete_function_nameDocumentE
         Io.Superposition.Model.CreateDefaultConfigOutput.setChangeReason change_reasonDocumentE
         Io.Superposition.Model.CreateDefaultConfigOutput.setFunctionName function_nameDocumentE
         Io.Superposition.Model.CreateDefaultConfigOutput.setDescription descriptionDocumentE

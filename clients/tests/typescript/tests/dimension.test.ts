@@ -8,6 +8,7 @@ import {
     DeleteFunctionCommand,
     FunctionTypes,
     ResourceNotFound,
+    PublishCommand,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, afterAll, test, expect } from "bun:test";
@@ -26,6 +27,7 @@ describe("Dimension API", () => {
     const createdDimensions: string[] = [];
     let createdDimension: any;
     let validationFunctionName: string;
+    let autocompleteFunctionName: string;
 
     // Clean up after tests
     afterAll(async () => {
@@ -77,6 +79,24 @@ describe("Dimension API", () => {
                 await superpositionClient.send(deleteCmd);
                 console.log(
                     `Cleaned up validation function: ${validationFunctionName}`
+                );
+            } catch (e) {
+                console.error(
+                    `Failed to clean up validation function: ${e.message}`
+                );
+            }
+        }
+        
+        if (autocompleteFunctionName) {
+            try {
+                const deleteCmd = new DeleteFunctionCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    function_name: autocompleteFunctionName,
+                });
+                await superpositionClient.send(deleteCmd);
+                console.log(
+                    `Cleaned up validation function: ${autocompleteFunctionName}`
                 );
             } catch (e) {
                 console.error(
@@ -434,6 +454,81 @@ describe("Dimension API", () => {
             throw e;
         }
     });
+    
+    test("CreateDimension: should create dimension with autocomplete function", async () => {
+        // First create a validation function
+        const functionName = `dimension-completor-${Date.now()}`;
+        const autocompleteCode = `
+            async function autocomplete(name, prefix, environment) {
+                return ["hello", "world"];
+            }
+        `;
+
+        const createFunctionCmd = new CreateFunctionCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            function_name: functionName,
+            function: autocompleteCode,
+            description: "autocomplete function for dimension test",
+            change_reason: "Creating test autocomplete function",
+            runtime_version: "1",
+            function_type: FunctionTypes.Autocomplete,
+        });
+
+        try {
+            const functionResponse = await superpositionClient.send(
+                createFunctionCmd
+            );
+            console.log("Created autocomplete function:", functionResponse);
+            autocompleteFunctionName = functionResponse.function_name;
+            await superpositionClient.send(
+                new PublishCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    function_name: functionResponse.function_name,
+                })
+            );
+            // Now create a dimension that uses this validation function
+            const validatedDimension = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                dimension: `validated-dimension-${Date.now()}`,
+                position: 2,
+                schema: { type: "string" },
+                description: "Dimension with validation function",
+                change_reason: "Testing validation function",
+                autocomplete_function_name: autocompleteFunctionName,
+            };
+
+            const createDimensionCmd = new CreateDimensionCommand(
+                validatedDimension
+            );
+            const dimensionResponse = await superpositionClient.send(
+                createDimensionCmd
+            );
+
+            console.log(
+                "Created dimension with validation:",
+                dimensionResponse
+            );
+
+            // Add to cleanup list
+            createdDimensions.push(dimensionResponse.dimension);
+
+            // Assertions
+            expect(dimensionResponse).toBeDefined();
+            expect(dimensionResponse.dimension).toBe(
+                validatedDimension.dimension
+            );
+            expect(dimensionResponse.autocomplete_function_name).toBe(
+                autocompleteFunctionName
+            );
+        } catch (e) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
 
     // ==================== DELETE DIMENSION TESTS ====================
 

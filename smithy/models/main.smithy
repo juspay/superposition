@@ -36,6 +36,9 @@ structure PaginationParams {
 
     @httpQuery("page")
     page: Integer
+    
+    @httpQuery("all")
+    all: Boolean
 }
 
 @mixin

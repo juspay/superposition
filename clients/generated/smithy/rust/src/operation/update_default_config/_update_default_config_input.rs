@@ -19,6 +19,8 @@ pub struct UpdateDefaultConfigInput  {
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateDefaultConfigInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -53,6 +55,10 @@ impl  UpdateDefaultConfigInput  {
     pub fn description(&self) -> ::std::option::Option<&str> {
         self.description.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
+        self.autocomplete_function_name.as_deref()
+    }
 }
 impl UpdateDefaultConfigInput {
     /// Creates a new builder-style object to manufacture [`UpdateDefaultConfigInput`](crate::operation::update_default_config::UpdateDefaultConfigInput).
@@ -73,6 +79,7 @@ pub struct UpdateDefaultConfigInputBuilder {
     pub(crate) schema: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
+    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl UpdateDefaultConfigInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -183,6 +190,19 @@ impl UpdateDefaultConfigInputBuilder {
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
         &self.description
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.autocomplete_function_name = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.autocomplete_function_name
+    }
     /// Consumes the builder and constructs a [`UpdateDefaultConfigInput`](crate::operation::update_default_config::UpdateDefaultConfigInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_default_config::UpdateDefaultConfigInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -202,6 +222,8 @@ impl UpdateDefaultConfigInputBuilder {
                 function_name: self.function_name
                 ,
                 description: self.description
+                ,
+                autocomplete_function_name: self.autocomplete_function_name
                 ,
             }
         )

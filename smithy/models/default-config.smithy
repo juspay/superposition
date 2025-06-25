@@ -19,6 +19,7 @@ resource DefaultConfig {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
+        autocomplete_function_name: String
     }
     list: ListDefaultConfigs
     put: UpdateDefaultConfig
@@ -48,6 +49,8 @@ structure DefaultConfigMixin for DefaultConfig {
 
     /// Optional
     $function_name
+    
+    $autocomplete_function_name
 }
 
 structure DefaultConfigFull for DefaultConfig with [DefaultConfigMixin] {
@@ -105,6 +108,8 @@ operation UpdateDefaultConfig {
         $function_name
 
         $description
+        
+        $autocomplete_function_name
     }
 
     output: DefaultConfigFull

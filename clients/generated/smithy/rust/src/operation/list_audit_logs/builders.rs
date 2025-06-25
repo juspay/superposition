@@ -152,6 +152,20 @@ impl ListAuditLogsFluentBuilder {
                     self.inner.get_page()
                 }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn all(mut self, input: bool) -> Self {
+                    self.inner = self.inner.all(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_all(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_all()
+                }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn from_date(mut self, input: ::aws_smithy_types::DateTime) -> Self {
                     self.inner = self.inner.from_date(input);
                     self

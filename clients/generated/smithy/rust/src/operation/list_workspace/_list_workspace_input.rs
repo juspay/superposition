@@ -8,6 +8,8 @@ pub struct ListWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub page: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
+    pub all: ::std::option::Option<bool>,
+    #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
 }
 impl  ListWorkspaceInput  {
@@ -18,6 +20,10 @@ impl  ListWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn page(&self) -> ::std::option::Option<i32> {
         self.page
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(&self) -> ::std::option::Option<bool> {
+        self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
@@ -37,6 +43,7 @@ impl ListWorkspaceInput {
 pub struct ListWorkspaceInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
     pub(crate) page: ::std::option::Option<i32>,
+    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
 }
 impl ListWorkspaceInputBuilder {
@@ -67,6 +74,19 @@ impl ListWorkspaceInputBuilder {
         &self.page
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn all(mut self, input: bool) -> Self {
+        self.all = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.all = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+        &self.all
+    }
+    #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
@@ -87,6 +107,8 @@ impl ListWorkspaceInputBuilder {
                 count: self.count
                 ,
                 page: self.page
+                ,
+                all: self.all
                 ,
                 org_id: self.org_id
                 ,

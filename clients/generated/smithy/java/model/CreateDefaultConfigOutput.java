@@ -33,6 +33,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("function_name", PreludeSchemas.STRING)
+        .putMember("autocomplete_function_name", PreludeSchemas.STRING)
         .putMember("created_at", SharedSchemas.DATE_TIME,
                 new RequiredTrait())
         .putMember("created_by", PreludeSchemas.STRING,
@@ -49,6 +50,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_FUNCTION_NAME = $SCHEMA.member("function_name");
+    private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
     private static final Schema $SCHEMA_CREATED_AT = $SCHEMA.member("created_at");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_AT = $SCHEMA.member("last_modified_at");
@@ -60,6 +62,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
     private final transient String description;
     private final transient String changeReason;
     private final transient String functionName;
+    private final transient String autocompleteFunctionName;
     private final transient Instant createdAt;
     private final transient String createdBy;
     private final transient Instant lastModifiedAt;
@@ -72,6 +75,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         this.description = builder.description;
         this.changeReason = builder.changeReason;
         this.functionName = builder.functionName;
+        this.autocompleteFunctionName = builder.autocompleteFunctionName;
         this.createdAt = builder.createdAt;
         this.createdBy = builder.createdBy;
         this.lastModifiedAt = builder.lastModifiedAt;
@@ -103,6 +107,10 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
      */
     public String functionName() {
         return functionName;
+    }
+
+    public String autocompleteFunctionName() {
+        return autocompleteFunctionName;
     }
 
     public Instant createdAt() {
@@ -141,6 +149,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
                && Objects.equals(this.functionName, that.functionName)
+               && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName)
                && Objects.equals(this.createdAt, that.createdAt)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedAt, that.lastModifiedAt)
@@ -149,7 +158,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(key, value, schemaMember, description, changeReason, functionName, createdAt, createdBy, lastModifiedAt, lastModifiedBy);
+        return Objects.hash(key, value, schemaMember, description, changeReason, functionName, autocompleteFunctionName, createdAt, createdBy, lastModifiedAt, lastModifiedBy);
     }
 
     @Override
@@ -166,6 +175,9 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
         if (functionName != null) {
             serializer.writeString($SCHEMA_FUNCTION_NAME, functionName);
+        }
+        if (autocompleteFunctionName != null) {
+            serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
         }
         serializer.writeTimestamp($SCHEMA_CREATED_AT, createdAt);
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
@@ -187,6 +199,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, lastModifiedAt);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -206,6 +219,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         builder.description(this.description);
         builder.changeReason(this.changeReason);
         builder.functionName(this.functionName);
+        builder.autocompleteFunctionName(this.autocompleteFunctionName);
         builder.createdAt(this.createdAt);
         builder.createdBy(this.createdBy);
         builder.lastModifiedAt(this.lastModifiedAt);
@@ -231,6 +245,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         private String description;
         private String changeReason;
         private String functionName;
+        private String autocompleteFunctionName;
         private Instant createdAt;
         private String createdBy;
         private Instant lastModifiedAt;
@@ -304,6 +319,14 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         }
 
         /**
+         * @return this builder.
+         */
+        public Builder autocompleteFunctionName(String autocompleteFunctionName) {
+            this.autocompleteFunctionName = autocompleteFunctionName;
+            return this;
+        }
+
+        /**
          * <p><strong>Required</strong>
          * @return this builder.
          */
@@ -363,6 +386,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
                 case 7 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
                 case 8 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 9 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
+                case 10 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -430,6 +454,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
                     case 7 -> builder.lastModifiedAt(de.readTimestamp(member));
                     case 8 -> builder.lastModifiedBy(de.readString(member));
                     case 9 -> builder.functionName(de.readString(member));
+                    case 10 -> builder.autocompleteFunctionName(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

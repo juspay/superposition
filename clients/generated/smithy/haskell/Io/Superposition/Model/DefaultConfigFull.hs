@@ -5,6 +5,7 @@ module Io.Superposition.Model.DefaultConfigFull (
     setDescription,
     setChangeReason,
     setFunctionName,
+    setAutocompleteFunctionName,
     setCreatedAt,
     setCreatedBy,
     setLastModifiedAt,
@@ -18,6 +19,7 @@ module Io.Superposition.Model.DefaultConfigFull (
     description,
     change_reason,
     function_name,
+    autocomplete_function_name,
     created_at,
     created_by,
     last_modified_at,
@@ -42,6 +44,7 @@ data DefaultConfigFull = DefaultConfigFull {
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     function_name :: Data.Maybe.Maybe Data.Text.Text,
+    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
     created_at :: Data.Time.UTCTime,
     created_by :: Data.Text.Text,
     last_modified_at :: Data.Time.UTCTime,
@@ -60,6 +63,7 @@ instance Data.Aeson.ToJSON DefaultConfigFull where
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
         "function_name" Data.Aeson..= function_name a,
+        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
         "created_at" Data.Aeson..= created_at a,
         "created_by" Data.Aeson..= created_by a,
         "last_modified_at" Data.Aeson..= last_modified_at a,
@@ -76,6 +80,7 @@ instance Data.Aeson.FromJSON DefaultConfigFull where
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
@@ -91,6 +96,7 @@ data DefaultConfigFullBuilderState = DefaultConfigFullBuilderState {
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -107,6 +113,7 @@ defaultBuilderState = DefaultConfigFullBuilderState {
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
     function_nameBuilderState = Data.Maybe.Nothing,
+    autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
     created_atBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_atBuilderState = Data.Maybe.Nothing,
@@ -158,6 +165,10 @@ setFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DefaultConfigFullBuilder (
 setFunctionName value =
    DefaultConfigFullBuilder (\s -> (s { function_nameBuilderState = value }, ()))
 
+setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DefaultConfigFullBuilder ()
+setAutocompleteFunctionName value =
+   DefaultConfigFullBuilder (\s -> (s { autocomplete_function_nameBuilderState = value }, ()))
+
 setCreatedAt :: Data.Time.UTCTime -> DefaultConfigFullBuilder ()
 setCreatedAt value =
    DefaultConfigFullBuilder (\s -> (s { created_atBuilderState = Data.Maybe.Just value }, ()))
@@ -183,6 +194,7 @@ build builder = do
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     function_name' <- Data.Either.Right (function_nameBuilderState st)
+    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
     last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
@@ -194,6 +206,7 @@ build builder = do
         description = description',
         change_reason = change_reason',
         function_name = function_name',
+        autocomplete_function_name = autocomplete_function_name',
         created_at = created_at',
         created_by = created_by',
         last_modified_at = last_modified_at',

@@ -12,6 +12,8 @@ pub struct ListAuditLogsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub page: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
+    pub all: ::std::option::Option<bool>,
+    #[allow(missing_docs)] // documentation missing in model
     pub from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
     pub to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -38,6 +40,10 @@ impl  ListAuditLogsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn page(&self) -> ::std::option::Option<i32> {
         self.page
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(&self) -> ::std::option::Option<bool> {
+        self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn from_date(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
@@ -75,6 +81,7 @@ pub struct ListAuditLogsInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) count: ::std::option::Option<i32>,
     pub(crate) page: ::std::option::Option<i32>,
+    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) tables: ::std::option::Option<::std::string::String>,
@@ -135,6 +142,19 @@ impl ListAuditLogsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_page(&self) -> &::std::option::Option<i32> {
         &self.page
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(mut self, input: bool) -> Self {
+        self.all = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.all = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+        &self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn from_date(mut self, input: ::aws_smithy_types::DateTime) -> Self {
@@ -212,6 +232,8 @@ impl ListAuditLogsInputBuilder {
                 count: self.count
                 ,
                 page: self.page
+                ,
+                all: self.all
                 ,
                 from_date: self.from_date
                 ,

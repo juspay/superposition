@@ -52,6 +52,7 @@ export interface UpdateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  *   schema: "DOCUMENT_VALUE",
  *   function_name: "STRING_VALUE",
  *   description: "STRING_VALUE",
+ *   autocomplete_function_name: "STRING_VALUE",
  * };
  * const command = new UpdateDefaultConfigCommand(input);
  * const response = await client.send(command);
@@ -62,6 +63,7 @@ export interface UpdateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
  * //   function_name: "STRING_VALUE",
+ * //   autocomplete_function_name: "STRING_VALUE",
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
  * //   last_modified_at: new Date("TIMESTAMP"), // required

@@ -46,6 +46,7 @@ export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __Met
  * const input = { // ListWorkspaceInput
  *   count: Number("int"),
  *   page: Number("int"),
+ *   all: true || false,
  *   org_id: "STRING_VALUE", // required
  * };
  * const command = new ListWorkspaceCommand(input);

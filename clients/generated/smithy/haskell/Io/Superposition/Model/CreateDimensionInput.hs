@@ -8,6 +8,7 @@ module Io.Superposition.Model.CreateDimensionInput (
     setDependencies,
     setDescription,
     setChangeReason,
+    setAutocompleteFunctionName,
     build,
     CreateDimensionInputBuilder,
     CreateDimensionInput,
@@ -19,7 +20,8 @@ module Io.Superposition.Model.CreateDimensionInput (
     function_name,
     dependencies,
     description,
-    change_reason
+    change_reason,
+    autocomplete_function_name
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -41,7 +43,8 @@ data CreateDimensionInput = CreateDimensionInput {
     function_name :: Data.Maybe.Maybe Data.Text.Text,
     dependencies :: Data.Maybe.Maybe ([] Data.Text.Text),
     description :: Data.Text.Text,
-    change_reason :: Data.Text.Text
+    change_reason :: Data.Text.Text,
+    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -58,7 +61,8 @@ instance Data.Aeson.ToJSON CreateDimensionInput where
         "function_name" Data.Aeson..= function_name a,
         "dependencies" Data.Aeson..= dependencies a,
         "description" Data.Aeson..= description a,
-        "change_reason" Data.Aeson..= change_reason a
+        "change_reason" Data.Aeson..= change_reason a,
+        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a
         ]
     
 
@@ -74,6 +78,7 @@ instance Data.Aeson.FromJSON CreateDimensionInput where
         Control.Applicative.<*> (v Data.Aeson..: "dependencies")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
+        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
     
 
 
@@ -87,7 +92,8 @@ data CreateDimensionInputBuilderState = CreateDimensionInputBuilderState {
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dependenciesBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -102,7 +108,8 @@ defaultBuilderState = CreateDimensionInputBuilderState {
     function_nameBuilderState = Data.Maybe.Nothing,
     dependenciesBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
-    change_reasonBuilderState = Data.Maybe.Nothing
+    change_reasonBuilderState = Data.Maybe.Nothing,
+    autocomplete_function_nameBuilderState = Data.Maybe.Nothing
 }
 
 newtype CreateDimensionInputBuilder a = CreateDimensionInputBuilder {
@@ -162,6 +169,10 @@ setChangeReason :: Data.Text.Text -> CreateDimensionInputBuilder ()
 setChangeReason value =
    CreateDimensionInputBuilder (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }, ()))
 
+setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDimensionInputBuilder ()
+setAutocompleteFunctionName value =
+   CreateDimensionInputBuilder (\s -> (s { autocomplete_function_nameBuilderState = value }, ()))
+
 build :: CreateDimensionInputBuilder () -> Data.Either.Either Data.Text.Text CreateDimensionInput
 build builder = do
     let (st, _) = runCreateDimensionInputBuilder builder defaultBuilderState
@@ -174,6 +185,7 @@ build builder = do
     dependencies' <- Data.Either.Right (dependenciesBuilderState st)
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
     Data.Either.Right (CreateDimensionInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -183,7 +195,8 @@ build builder = do
         function_name = function_name',
         dependencies = dependencies',
         description = description',
-        change_reason = change_reason'
+        change_reason = change_reason',
+        autocomplete_function_name = autocomplete_function_name'
     })
 
 

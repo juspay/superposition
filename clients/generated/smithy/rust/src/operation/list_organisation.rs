@@ -145,6 +145,11 @@ fn uri_query(_input: &crate::operation::list_organisation::ListOrganisationInput
             query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
         }
     }
+    if let ::std::option::Option::Some(inner_3) = &_input.all {
+         {
+            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

@@ -48,6 +48,7 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  *   org_id: "STRING_VALUE", // required
  *   count: Number("int"),
  *   page: Number("int"),
+ *   all: true || false,
  *   from_date: new Date("TIMESTAMP"),
  *   to_date: new Date("TIMESTAMP"),
  *   tables: "STRING_VALUE",

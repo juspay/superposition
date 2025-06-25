@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`count(i32)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::count) / [`set_count(Option<i32>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_count):<br>required: **false**<br>(undocumented)<br>
     ///   - [`page(i32)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::page) / [`set_page(Option<i32>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_page):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`all(bool)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::all) / [`set_all(Option<bool>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_all):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`ListOrganisationOutput`](crate::operation::list_organisation::ListOrganisationOutput) with field(s):
     ///   - [`total_pages(Option<i32>)`](crate::operation::list_organisation::ListOrganisationOutput::total_pages): (undocumented)
     ///   - [`total_items(Option<i32>)`](crate::operation::list_organisation::ListOrganisationOutput::total_items): (undocumented)

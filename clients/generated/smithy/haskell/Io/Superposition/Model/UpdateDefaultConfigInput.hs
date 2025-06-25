@@ -7,6 +7,7 @@ module Io.Superposition.Model.UpdateDefaultConfigInput (
     setSchema,
     setFunctionName,
     setDescription,
+    setAutocompleteFunctionName,
     build,
     UpdateDefaultConfigInputBuilder,
     UpdateDefaultConfigInput,
@@ -17,7 +18,8 @@ module Io.Superposition.Model.UpdateDefaultConfigInput (
     value,
     schema,
     function_name,
-    description
+    description,
+    autocomplete_function_name
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -38,7 +40,8 @@ data UpdateDefaultConfigInput = UpdateDefaultConfigInput {
     value :: Data.Maybe.Maybe Data.Aeson.Value,
     schema :: Data.Maybe.Maybe Data.Aeson.Value,
     function_name :: Data.Maybe.Maybe Data.Text.Text,
-    description :: Data.Maybe.Maybe Data.Text.Text
+    description :: Data.Maybe.Maybe Data.Text.Text,
+    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -54,7 +57,8 @@ instance Data.Aeson.ToJSON UpdateDefaultConfigInput where
         "value" Data.Aeson..= value a,
         "schema" Data.Aeson..= schema a,
         "function_name" Data.Aeson..= function_name a,
-        "description" Data.Aeson..= description a
+        "description" Data.Aeson..= description a,
+        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a
         ]
     
 
@@ -69,6 +73,7 @@ instance Data.Aeson.FromJSON UpdateDefaultConfigInput where
         Control.Applicative.<*> (v Data.Aeson..: "schema")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
         Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
     
 
 
@@ -81,7 +86,8 @@ data UpdateDefaultConfigInputBuilderState = UpdateDefaultConfigInputBuilderState
     valueBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     schemaBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -95,7 +101,8 @@ defaultBuilderState = UpdateDefaultConfigInputBuilderState {
     valueBuilderState = Data.Maybe.Nothing,
     schemaBuilderState = Data.Maybe.Nothing,
     function_nameBuilderState = Data.Maybe.Nothing,
-    descriptionBuilderState = Data.Maybe.Nothing
+    descriptionBuilderState = Data.Maybe.Nothing,
+    autocomplete_function_nameBuilderState = Data.Maybe.Nothing
 }
 
 newtype UpdateDefaultConfigInputBuilder a = UpdateDefaultConfigInputBuilder {
@@ -151,6 +158,10 @@ setDescription :: Data.Maybe.Maybe Data.Text.Text -> UpdateDefaultConfigInputBui
 setDescription value =
    UpdateDefaultConfigInputBuilder (\s -> (s { descriptionBuilderState = value }, ()))
 
+setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDefaultConfigInputBuilder ()
+setAutocompleteFunctionName value =
+   UpdateDefaultConfigInputBuilder (\s -> (s { autocomplete_function_nameBuilderState = value }, ()))
+
 build :: UpdateDefaultConfigInputBuilder () -> Data.Either.Either Data.Text.Text UpdateDefaultConfigInput
 build builder = do
     let (st, _) = runUpdateDefaultConfigInputBuilder builder defaultBuilderState
@@ -162,6 +173,7 @@ build builder = do
     schema' <- Data.Either.Right (schemaBuilderState st)
     function_name' <- Data.Either.Right (function_nameBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
+    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
     Data.Either.Right (UpdateDefaultConfigInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -170,7 +182,8 @@ build builder = do
         value = value',
         schema = schema',
         function_name = function_name',
-        description = description'
+        description = description',
+        autocomplete_function_name = autocomplete_function_name'
     })
 
 

@@ -16,6 +16,8 @@ pub struct CreateDefaultConfigOutput  {
     /// Optional
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::string::String,
@@ -48,6 +50,10 @@ impl  CreateDefaultConfigOutput  {
     /// Optional
     pub fn function_name(&self) -> ::std::option::Option<&str> {
         self.function_name.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
+        self.autocomplete_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -83,6 +89,7 @@ pub struct CreateDefaultConfigOutputBuilder {
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -171,6 +178,19 @@ impl CreateDefaultConfigOutputBuilder {
     /// Optional
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.autocomplete_function_name = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.autocomplete_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -268,6 +288,8 @@ impl CreateDefaultConfigOutputBuilder {
                     )?
                 ,
                 function_name: self.function_name
+                ,
+                autocomplete_function_name: self.autocomplete_function_name
                 ,
                 created_at: self.created_at
                     .ok_or_else(||

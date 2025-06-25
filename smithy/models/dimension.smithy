@@ -22,6 +22,7 @@ resource Dimension {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
+        autocomplete_function_name: String
     }
     list: ListDimensions
     put: UpdateDimension
@@ -79,6 +80,8 @@ structure DimensionMixin for Dimension {
 
     @required
     $dependency_graph
+    
+    $autocomplete_function_name
 }
 
 structure DimensionExt with [DimensionMixin] {
@@ -111,6 +114,8 @@ operation CreateDimension {
 
         @required
         $change_reason
+        
+        $autocomplete_function_name
     }
 
     output: DimensionExt
@@ -160,6 +165,8 @@ operation UpdateDimension {
 
         @required
         $change_reason
+        
+        $autocomplete_function_name
     }
 
     output: DimensionExt

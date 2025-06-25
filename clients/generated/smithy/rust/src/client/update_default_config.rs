@@ -11,6 +11,7 @@ impl super::Client {
     ///   - [`schema(Document)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::schema) / [`set_schema(Option<Document>)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::set_schema):<br>required: **false**<br>(undocumented)<br>
     ///   - [`function_name(impl Into<String>)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::function_name) / [`set_function_name(Option<String>)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::set_function_name):<br>required: **false**<br>(undocumented)<br>
     ///   - [`description(impl Into<String>)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::set_description):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`autocomplete_function_name(impl Into<String>)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::autocomplete_function_name) / [`set_autocomplete_function_name(Option<String>)`](crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::set_autocomplete_function_name):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateDefaultConfigOutput`](crate::operation::update_default_config::UpdateDefaultConfigOutput) with field(s):
     ///   - [`key(String)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::key): (undocumented)
     ///   - [`value(Document)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::value): (undocumented)
@@ -18,6 +19,7 @@ impl super::Client {
     ///   - [`description(String)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::change_reason): (undocumented)
     ///   - [`function_name(Option<String>)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::function_name): Optional
+    ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::autocomplete_function_name): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::created_at): (undocumented)
     ///   - [`created_by(String)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::created_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::last_modified_at): (undocumented)

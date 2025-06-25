@@ -70,6 +70,7 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * //   dependency_graph: { // Object // required
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
+ * //   autocomplete_function_name: "STRING_VALUE",
  * //   mandatory: true || false,
  * // };
  *

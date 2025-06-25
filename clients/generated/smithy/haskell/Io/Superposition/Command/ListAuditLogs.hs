@@ -41,6 +41,12 @@ serListAuditLogsQUERY input =
         staticParams = [
             ]
         
+        all'Query = Io.Superposition.Model.ListAuditLogsInput.all' input
+                    Data.Functor.<&> (\x -> [x])
+                    Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
+                    Data.Functor.<&> Data.List.map (\x -> toQueryItem ("all", x))
+                    Data.Function.& Data.Maybe.maybe [] (id)
+        
         tablesQuery = Io.Superposition.Model.ListAuditLogsInput.tables input
                     Data.Functor.<&> (\x -> [x])
                     Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
@@ -83,7 +89,7 @@ serListAuditLogsQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("username", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        m = staticParams ++ tablesQuery ++ from_dateQuery ++ to_dateQuery ++ countQuery ++ actionQuery ++ pageQuery ++ usernameQuery
+        m = staticParams ++ all'Query ++ tablesQuery ++ from_dateQuery ++ to_dateQuery ++ countQuery ++ actionQuery ++ pageQuery ++ usernameQuery
         in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
     
     where

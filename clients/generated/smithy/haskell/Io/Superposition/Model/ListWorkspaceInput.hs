@@ -1,12 +1,14 @@
 module Io.Superposition.Model.ListWorkspaceInput (
     setCount,
     setPage,
+    setAll',
     setOrgId,
     build,
     ListWorkspaceInputBuilder,
     ListWorkspaceInput,
     count,
     page,
+    all',
     org_id
 ) where
 import qualified Control.Applicative
@@ -23,6 +25,7 @@ import qualified GHC.Show
 data ListWorkspaceInput = ListWorkspaceInput {
     count :: Data.Maybe.Maybe Integer,
     page :: Data.Maybe.Maybe Integer,
+    all' :: Data.Maybe.Maybe Bool,
     org_id :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -34,6 +37,7 @@ instance Data.Aeson.ToJSON ListWorkspaceInput where
     toJSON a = Data.Aeson.object [
         "count" Data.Aeson..= count a,
         "page" Data.Aeson..= page a,
+        "all" Data.Aeson..= all' a,
         "org_id" Data.Aeson..= org_id a
         ]
     
@@ -43,6 +47,7 @@ instance Data.Aeson.FromJSON ListWorkspaceInput where
     parseJSON = Data.Aeson.withObject "ListWorkspaceInput" $ \v -> ListWorkspaceInput
         Data.Functor.<$> (v Data.Aeson..: "count")
         Control.Applicative.<*> (v Data.Aeson..: "page")
+        Control.Applicative.<*> (v Data.Aeson..: "all")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
     
 
@@ -51,6 +56,7 @@ instance Data.Aeson.FromJSON ListWorkspaceInput where
 data ListWorkspaceInputBuilderState = ListWorkspaceInputBuilderState {
     countBuilderState :: Data.Maybe.Maybe Integer,
     pageBuilderState :: Data.Maybe.Maybe Integer,
+    all'BuilderState :: Data.Maybe.Maybe Bool,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
@@ -60,6 +66,7 @@ defaultBuilderState :: ListWorkspaceInputBuilderState
 defaultBuilderState = ListWorkspaceInputBuilderState {
     countBuilderState = Data.Maybe.Nothing,
     pageBuilderState = Data.Maybe.Nothing,
+    all'BuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing
 }
 
@@ -92,6 +99,10 @@ setPage :: Data.Maybe.Maybe Integer -> ListWorkspaceInputBuilder ()
 setPage value =
    ListWorkspaceInputBuilder (\s -> (s { pageBuilderState = value }, ()))
 
+setAll' :: Data.Maybe.Maybe Bool -> ListWorkspaceInputBuilder ()
+setAll' value =
+   ListWorkspaceInputBuilder (\s -> (s { all'BuilderState = value }, ()))
+
 setOrgId :: Data.Text.Text -> ListWorkspaceInputBuilder ()
 setOrgId value =
    ListWorkspaceInputBuilder (\s -> (s { org_idBuilderState = Data.Maybe.Just value }, ()))
@@ -101,10 +112,12 @@ build builder = do
     let (st, _) = runListWorkspaceInputBuilder builder defaultBuilderState
     count' <- Data.Either.Right (countBuilderState st)
     page' <- Data.Either.Right (pageBuilderState st)
+    all'' <- Data.Either.Right (all'BuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListWorkspaceInput.ListWorkspaceInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     Data.Either.Right (ListWorkspaceInput { 
         count = count',
         page = page',
+        all' = all'',
         org_id = org_id'
     })
 
