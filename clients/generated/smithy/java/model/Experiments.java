@@ -29,6 +29,7 @@ public final class Experiments implements ApiResource {
         "name", PreludeSchemas.STRING,
         "context", SharedSchemas.CONDITION,
         "started_at", SharedSchemas.DATE_TIME,
+        "experiment_group_id", PreludeSchemas.STRING,
         "id", PreludeSchemas.STRING,
         "metrics", PreludeSchemas.DOCUMENT,
         "last_modified", SharedSchemas.DATE_TIME,

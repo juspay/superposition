@@ -27,6 +27,7 @@ impl super::Client {
     ///   - [`started_by(Option<String>)`](crate::operation::pause_experiment::PauseExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::pause_experiment::PauseExperimentOutput::metrics_url): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::pause_experiment::PauseExperimentOutput::metrics): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::pause_experiment::PauseExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<PauseExperimentError>`](crate::operation::pause_experiment::PauseExperimentError)
     pub fn pause_experiment(&self) -> crate::operation::pause_experiment::builders::PauseExperimentFluentBuilder {
                                 crate::operation::pause_experiment::builders::PauseExperimentFluentBuilder::new(self.handle.clone())

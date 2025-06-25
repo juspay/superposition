@@ -1380,4 +1380,8 @@ ALTER TABLE superposition.workspaces add column if not exists config_version big
 -- keeping self approval enabled by default for test and dev workspaces
 ALTER TABLE superposition.workspaces ADD COLUMN IF NOT EXISTS allow_experiment_self_approval boolean NOT NULL DEFAULT false;
 UPDATE superposition.workspaces SET allow_experiment_self_approval = true;
+
+ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+
 COMMIT;

@@ -29,6 +29,7 @@ impl super::Client {
     ///   - [`started_by(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::metrics_url): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::metrics): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<ConcludeExperimentError>`](crate::operation::conclude_experiment::ConcludeExperimentError)
     pub fn conclude_experiment(&self) -> crate::operation::conclude_experiment::builders::ConcludeExperimentFluentBuilder {
                                 crate::operation::conclude_experiment::builders::ConcludeExperimentFluentBuilder::new(self.handle.clone())

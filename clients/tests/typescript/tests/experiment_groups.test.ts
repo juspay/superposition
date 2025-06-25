@@ -444,7 +444,7 @@ describe("Experiment Groups API Integration Tests", () => {
             const input: CreateExperimentGroupCommandInput = {
                 ...baseCreateInput,
                 name: groupName,
-                member_experiment_ids: [expValid1Id, expValid2Id],
+                member_experiment_ids: [expValid2Id],
             };
             try {
                 const response = await superpositionClient.send(
@@ -454,13 +454,30 @@ describe("Experiment Groups API Integration Tests", () => {
                 expGroupId = response.id!;
                 expect(response.name).toBe(groupName);
                 expect(response.member_experiment_ids).toEqual(
-                    expect.arrayContaining([expValid1Id, expValid2Id]),
+                    expect.arrayContaining([expValid2Id]),
                 );
                 expect(response.traffic_percentage).toBe(100);
             } catch (error) {
                 console.error("Error creating experiment group:", error);
                 throw error;
             }
+        });
+
+        // Remove expValid2Id
+        test("should successfully remove members from a group", async () => {
+            expect(expGroupId).toBeString();
+            
+            const removeInput: RemoveMembersFromGroupCommandInput = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: expGroupId!,
+                member_experiment_ids: [expValid2Id],
+                change_reason: "Removing members",
+            };
+            const response = await superpositionClient.send(
+                new RemoveMembersFromGroupCommand(removeInput),
+            );
+            expect(response.member_experiment_ids).not.toContain(expValid2Id);
         });
 
         test("should successfully create an experiment group with no members", async () => {
@@ -491,7 +508,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     new CreateExperimentGroupCommand(input),
                 ),
             ).rejects.toThrow(
-                `the following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`,
+                `The following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`,
             );
         });
 
@@ -640,13 +657,30 @@ describe("Experiment Groups API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 id: expGroupId!,
-                member_experiment_ids: [expValid1Id],
+                member_experiment_ids: [expValid2Id],
                 change_reason: "Adding members",
             };
             const response = await superpositionClient.send(
                 new AddMembersToGroupCommand(input),
             );
-            expect(response.member_experiment_ids).toContain(expValid1Id);
+            expect(response.member_experiment_ids).toContain(expValid2Id);
+        });
+
+        // Remove the expValid2Id
+        test("should successfully remove members from a group", async () => {
+            expect(expGroupId).toBeString();
+            
+            const removeInput: RemoveMembersFromGroupCommandInput = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: expGroupId!,
+                member_experiment_ids: [expValid2Id],
+                change_reason: "Removing members",
+            };
+            const response = await superpositionClient.send(
+                new RemoveMembersFromGroupCommand(removeInput),
+            );
+            expect(response.member_experiment_ids).not.toContain(expValid2Id);
         });
         
         test("should fail to add an invalid member experiment", async () => {
@@ -663,7 +697,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     new AddMembersToGroupCommand(input),
                 ),
             ).rejects.toThrow(
-                `the following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`,
+                `The following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`,
             );
         });
 
@@ -672,7 +706,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 id: "123",
-                member_experiment_ids: [expValid1Id],
+                member_experiment_ids: [],
                 change_reason: "Adding to non-existent group",
             };
             expect(
@@ -712,10 +746,10 @@ describe("Experiment Groups API Integration Tests", () => {
             );
             expect(response.member_experiment_ids).not.toContain(expValid2Id);
         });
-        
+
         test("should successfully handle removing non-existent members", async () => {
             expect(expGroupId).toBeString();
-            
+
             // Get current group state
             const currentGroup = await superpositionClient.send(
                 new GetExperimentGroupCommand({
@@ -724,7 +758,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     id: expGroupId!,
                 }),
             );
-            
+
             // Try to remove a member that doesn't exist in the group
             const nonExistentId = "999999999";
             const removeInput: RemoveMembersFromGroupCommandInput = {
@@ -734,12 +768,13 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [nonExistentId],
                 change_reason: "Removing non-existent member",
             };
-            const response = await superpositionClient.send(
-                new RemoveMembersFromGroupCommand(removeInput),
+            expect(
+                superpositionClient.send(
+                    new RemoveMembersFromGroupCommand(removeInput),
+                ),
+            ).rejects.toThrow(
+                `The following experiment IDs are not present in the database: ${nonExistentId}`
             );
-            
-            // The group should remain unchanged
-            expect(response.member_experiment_ids!).toEqual(currentGroup.member_experiment_ids!);
         });
 
         test("should fail to remove members from a non-existent group", async () => {
@@ -755,7 +790,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     new RemoveMembersFromGroupCommand(input),
                 ),
             ).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters",
+                `The following experiment IDs are not present in the database: 999`
             );
         });
     });

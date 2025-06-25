@@ -46,6 +46,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("metrics", PreludeSchemas.DOCUMENT)
+        .putMember("experiment_group_id", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -57,6 +58,7 @@ public final class CreateExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
+    private static final Schema $SCHEMA_EXPERIMENT_GROUP_ID = $SCHEMA.member("experiment_group_id");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -67,6 +69,7 @@ public final class CreateExperimentInput implements SerializableStruct {
     private final transient String description;
     private final transient String changeReason;
     private final transient Document metrics;
+    private final transient String experimentGroupId;
 
     private CreateExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -78,6 +81,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         this.description = builder.description;
         this.changeReason = builder.changeReason;
         this.metrics = builder.metrics;
+        this.experimentGroupId = builder.experimentGroupId;
     }
 
     public String workspaceId() {
@@ -124,6 +128,10 @@ public final class CreateExperimentInput implements SerializableStruct {
         return metrics;
     }
 
+    public String experimentGroupId() {
+        return experimentGroupId;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -146,12 +154,13 @@ public final class CreateExperimentInput implements SerializableStruct {
                && Objects.equals(this.variants, that.variants)
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
-               && Objects.equals(this.metrics, that.metrics);
+               && Objects.equals(this.metrics, that.metrics)
+               && Objects.equals(this.experimentGroupId, that.experimentGroupId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, name, experimentType, context, variants, description, changeReason, metrics);
+        return Objects.hash(workspaceId, orgId, name, experimentType, context, variants, description, changeReason, metrics, experimentGroupId);
     }
 
     @Override
@@ -174,6 +183,9 @@ public final class CreateExperimentInput implements SerializableStruct {
         if (metrics != null) {
             serializer.writeDocument($SCHEMA_METRICS, metrics);
         }
+        if (experimentGroupId != null) {
+            serializer.writeString($SCHEMA_EXPERIMENT_GROUP_ID, experimentGroupId);
+        }
     }
 
     @Override
@@ -189,6 +201,7 @@ public final class CreateExperimentInput implements SerializableStruct {
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, experimentType);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, experimentGroupId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -211,6 +224,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         builder.description(this.description);
         builder.changeReason(this.changeReason);
         builder.metrics(this.metrics);
+        builder.experimentGroupId(this.experimentGroupId);
         return builder;
     }
 
@@ -236,6 +250,7 @@ public final class CreateExperimentInput implements SerializableStruct {
         private String description;
         private String changeReason;
         private Document metrics;
+        private String experimentGroupId;
 
         private Builder() {}
 
@@ -329,6 +344,14 @@ public final class CreateExperimentInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder experimentGroupId(String experimentGroupId) {
+            this.experimentGroupId = experimentGroupId;
+            return this;
+        }
+
         @Override
         public CreateExperimentInput build() {
             tracker.validate();
@@ -348,6 +371,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                 case 6 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 7 -> experimentType((ExperimentType) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, value));
                 case 8 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
+                case 9 -> experimentGroupId((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -405,6 +429,7 @@ public final class CreateExperimentInput implements SerializableStruct {
                     case 6 -> builder.orgId(de.readString(member));
                     case 7 -> builder.experimentType(ExperimentType.builder().deserializeMember(de, member).build());
                     case 8 -> builder.metrics(de.readDocument());
+                    case 9 -> builder.experimentGroupId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -63,6 +63,7 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   metrics: "DOCUMENT_VALUE",
+ *   experiment_group_id: "STRING_VALUE",
  * };
  * const command = new CreateExperimentCommand(input);
  * const response = await client.send(command);
@@ -98,6 +99,7 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  * //   started_by: "STRING_VALUE",
  * //   metrics_url: "STRING_VALUE",
  * //   metrics: "DOCUMENT_VALUE",
+ * //   experiment_group_id: "STRING_VALUE",
  * // };
  *
  * ```

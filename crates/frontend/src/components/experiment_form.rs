@@ -6,24 +6,31 @@ use serde_json::{json, Map, Value};
 use superposition_types::{
     api::workspace::WorkspaceResponse,
     database::{
-        models::{cac::DefaultConfig, experimentation::ExperimentType, Metrics},
+        models::{
+            cac::DefaultConfig,
+            experimentation::{ExperimentGroup, ExperimentType},
+            Metrics,
+        },
         types::DimensionWithMandatory,
     },
 };
 use utils::{create_experiment, update_experiment};
 use web_sys::MouseEvent;
 
-use crate::components::change_form::ChangeForm;
-use crate::components::context_form::ContextForm;
-use crate::components::{
-    metrics_form::MetricsForm,
-    variant_form::{DeleteVariantForm, VariantForm},
-};
-use crate::providers::alert_provider::enqueue_alert;
-use crate::types::{VariantFormT, VariantFormTs};
 use crate::{
-    components::{alert::AlertType, button::Button},
-    types::{OrganisationId, Tenant},
+    api::fetch_experiment_groups,
+    components::{
+        alert::AlertType,
+        button::Button,
+        change_form::ChangeForm,
+        context_form::ContextForm,
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        metrics_form::MetricsForm,
+        skeleton::{Skeleton, SkeletonVariant},
+        variant_form::{DeleteVariantForm, VariantForm},
+    },
+    providers::alert_provider::enqueue_alert,
+    types::{OrganisationId, Tenant, VariantFormT, VariantFormTs},
 };
 
 use crate::logic::Conditions;
@@ -72,6 +79,7 @@ pub fn experiment_form(
     dimensions: Vec<DimensionWithMandatory>,
     #[prop(default = String::new())] description: String,
     metrics: Metrics,
+    #[prop(default = None)] experiment_group_id: Option<String>,
 ) -> impl IntoView {
     let init_variants = get_init_state(&variants);
     let default_config = StoredValue::new(default_config);
@@ -90,6 +98,19 @@ pub fn experiment_form(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let metrics_rws = RwSignal::new(metrics);
+    let (experiment_group_id_rs, experiment_group_id_ws) =
+        create_signal(experiment_group_id);
+
+    let experiment_groups_resource: Resource<(String, String), Vec<ExperimentGroup>> =
+        create_blocking_resource(
+            move || (tenant_rws.get().0, org_rws.get().0),
+            |(current_tenant, org)| async move {
+                fetch_experiment_groups(current_tenant.to_string(), org.clone())
+                    .await
+                    .map(|data| data.data)
+                    .unwrap_or_default()
+            },
+        );
 
     let handle_context_form_change = move |updated_ctx: Conditions| {
         context_ws.set_untracked(updated_ctx);
@@ -129,6 +150,13 @@ pub fn experiment_form(
 
         spawn_local({
             async move {
+                let experiment_group_id = if let Some(experiment_group_id) =
+                    experiment_group_id_rs.get_untracked()
+                {
+                    Value::String(experiment_group_id)
+                } else {
+                    Value::Null
+                };
                 let result = if let Some(ref experiment_id) = edit_id.get_value() {
                     update_experiment(
                         experiment_id,
@@ -138,6 +166,7 @@ pub fn experiment_form(
                         org,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
+                        experiment_group_id,
                     )
                     .await
                 } else {
@@ -151,6 +180,7 @@ pub fn experiment_form(
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
                         org,
+                        experiment_group_id,
                     )
                     .await
                 };
@@ -210,6 +240,39 @@ pub fn experiment_form(
                 metrics=metrics_rws.get_untracked()
                 on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
             />
+
+            <Suspense fallback=move || view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }>
+                {move || {
+                    let experiment_groups = experiment_groups_resource.get().unwrap_or_default();
+                    let mut experiment_options: Vec<Option<String>> = experiment_groups
+                        .iter()
+                        .map(|group| Some(group.id.to_string()))
+                        .collect();
+                    experiment_options.insert(0, None);
+                    view! {
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Experiment Group</span>
+                            </label>
+                            <Dropdown
+                                dropdown_width="w-100"
+                                dropdown_icon="".to_string()
+                                dropdown_direction=DropdownDirection::Down
+                                dropdown_btn_type=DropdownBtnType::Select
+                                dropdown_text=experiment_group_id_rs
+                                    .get()
+                                    .map(|id| id.to_string())
+                                    .unwrap_or("Select Experiment Group".to_string())
+                                dropdown_options=experiment_options
+                                on_select=Callback::new(move |selected: Option<String>| {
+                                    experiment_group_id_ws.set(selected);
+                                })
+                            />
+                        </div>
+                    }
+                }}
+            </Suspense>
+
             <ChangeForm
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()

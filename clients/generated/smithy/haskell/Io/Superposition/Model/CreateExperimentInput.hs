@@ -8,6 +8,7 @@ module Io.Superposition.Model.CreateExperimentInput (
     setDescription,
     setChangeReason,
     setMetrics,
+    setExperimentGroupId,
     build,
     CreateExperimentInputBuilder,
     CreateExperimentInput,
@@ -19,7 +20,8 @@ module Io.Superposition.Model.CreateExperimentInput (
     variants,
     description,
     change_reason,
-    metrics
+    metrics,
+    experiment_group_id
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -44,7 +46,8 @@ data CreateExperimentInput = CreateExperimentInput {
     variants :: [] Io.Superposition.Model.Variant.Variant,
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
-    metrics :: Data.Maybe.Maybe Data.Aeson.Value
+    metrics :: Data.Maybe.Maybe Data.Aeson.Value,
+    experiment_group_id :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -61,7 +64,8 @@ instance Data.Aeson.ToJSON CreateExperimentInput where
         "variants" Data.Aeson..= variants a,
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
-        "metrics" Data.Aeson..= metrics a
+        "metrics" Data.Aeson..= metrics a,
+        "experiment_group_id" Data.Aeson..= experiment_group_id a
         ]
     
 
@@ -77,6 +81,7 @@ instance Data.Aeson.FromJSON CreateExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
+        Control.Applicative.<*> (v Data.Aeson..: "experiment_group_id")
     
 
 
@@ -90,7 +95,8 @@ data CreateExperimentInputBuilderState = CreateExperimentInputBuilderState {
     variantsBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.Variant.Variant),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
+    metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    experiment_group_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -105,7 +111,8 @@ defaultBuilderState = CreateExperimentInputBuilderState {
     variantsBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
-    metricsBuilderState = Data.Maybe.Nothing
+    metricsBuilderState = Data.Maybe.Nothing,
+    experiment_group_idBuilderState = Data.Maybe.Nothing
 }
 
 newtype CreateExperimentInputBuilder a = CreateExperimentInputBuilder {
@@ -165,6 +172,10 @@ setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> CreateExperimentInputBuilder 
 setMetrics value =
    CreateExperimentInputBuilder (\s -> (s { metricsBuilderState = value }, ()))
 
+setExperimentGroupId :: Data.Maybe.Maybe Data.Text.Text -> CreateExperimentInputBuilder ()
+setExperimentGroupId value =
+   CreateExperimentInputBuilder (\s -> (s { experiment_group_idBuilderState = value }, ()))
+
 build :: CreateExperimentInputBuilder () -> Data.Either.Either Data.Text.Text CreateExperimentInput
 build builder = do
     let (st, _) = runCreateExperimentInputBuilder builder defaultBuilderState
@@ -177,6 +188,7 @@ build builder = do
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateExperimentInput.CreateExperimentInput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateExperimentInput.CreateExperimentInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
+    experiment_group_id' <- Data.Either.Right (experiment_group_idBuilderState st)
     Data.Either.Right (CreateExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -186,7 +198,8 @@ build builder = do
         variants = variants',
         description = description',
         change_reason = change_reason',
-        metrics = metrics'
+        metrics = metrics',
+        experiment_group_id = experiment_group_id'
     })
 
 

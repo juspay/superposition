@@ -264,6 +264,7 @@ pub struct Experiment {
     pub description: Description,
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
+    pub experiment_group_id: Option<i64>,
 }
 
 pub type Experiments = Vec<Experiment>;

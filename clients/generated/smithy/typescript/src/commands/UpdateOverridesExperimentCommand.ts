@@ -56,6 +56,7 @@ export interface UpdateOverridesExperimentCommandOutput extends ExperimentRespon
  *   description: "STRING_VALUE",
  *   change_reason: "STRING_VALUE", // required
  *   metrics: "DOCUMENT_VALUE",
+ *   experiment_group_id: "STRING_VALUE",
  * };
  * const command = new UpdateOverridesExperimentCommand(input);
  * const response = await client.send(command);
@@ -91,6 +92,7 @@ export interface UpdateOverridesExperimentCommandOutput extends ExperimentRespon
  * //   started_by: "STRING_VALUE",
  * //   metrics_url: "STRING_VALUE",
  * //   metrics: "DOCUMENT_VALUE",
+ * //   experiment_group_id: "STRING_VALUE",
  * // };
  *
  * ```

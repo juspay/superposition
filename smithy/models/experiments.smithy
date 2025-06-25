@@ -27,6 +27,7 @@ resource Experiments {
         started_by: String
         metrics_url: String
         metrics: Document
+        experiment_group_id: String
     }
     read: GetExperiment
     operations: [
@@ -146,6 +147,7 @@ structure ExperimentResponse for Experiments {
     $metrics_url
     
     $metrics
+    $experiment_group_id
 }
 
 structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
@@ -167,6 +169,8 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
     $change_reason
 
     $metrics
+    
+    $experiment_group_id
 }
 
 structure VariantUpdateRequest {
@@ -197,6 +201,8 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
     $change_reason
 
     $metrics
+    
+    $experiment_group_id
 }
 
 list ExperimentList {

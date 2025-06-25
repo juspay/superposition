@@ -27,8 +27,17 @@ use superposition_types::{
 };
 
 use crate::api::{
-    experiment_groups::helpers::{add_members, remove_members, validate_members},
-    experiments::{cac_api::validate_context, helpers::hash},
+    experiment_groups::helpers::{
+        add_members, fetch_and_validate_members, remove_members,
+        validate_experiment_group_constraints,
+    },
+    experiments::{
+        cac_api::validate_context,
+        helpers::{
+            hash, validate_and_add_experiment_group_id,
+            validate_and_remove_experiment_group_id,
+        },
+    },
 };
 
 pub fn endpoints(scope: Scope) -> Scope {
@@ -54,18 +63,30 @@ async fn create_experiment_group(
     let req = req.into_inner();
     log::trace!("Creating experiment group with request: {:?}", req);
     let exp_context = req.context.into_inner();
-    validate_context(&state, &exp_context, &workspace_request, &user).await?;
-    let members = if let Some(members) = req.member_experiment_ids {
-        validate_members(
+    let member_experiments = if let Some(members) = req.member_experiment_ids {
+        fetch_and_validate_members(
             &members,
             &[],
-            &exp_context,
             &mut conn,
             &workspace_request.schema_name,
         )?
     } else {
         Vec::new()
     };
+
+    validate_context(&state, &exp_context, &workspace_request, &user).await?;
+    validate_experiment_group_constraints(
+        &member_experiments,
+        &[],
+        &exp_context,
+        &mut conn,
+        &workspace_request.schema_name,
+    )?;
+
+    let members = member_experiments
+        .iter()
+        .map(|exp| exp.id)
+        .collect::<Vec<_>>();
     let id = generate_snowflake_id(&state)?;
     let context_hash = hash(&Value::Object(exp_context.clone().into()));
     let now = chrono::Utc::now();
@@ -81,13 +102,26 @@ async fn create_experiment_group(
         last_modified_at: now,
         context: exp_context,
         traffic_percentage: req.traffic_percentage,
-        member_experiment_ids: members,
+        member_experiment_ids: members.clone(),
     };
-    let new_experiment_group = diesel::insert_into(experiment_groups::experiment_groups)
-        .values(&new_experiment_group)
-        .returning(ExperimentGroup::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_result::<ExperimentGroup>(&mut conn)?;
+
+    let new_experiment_group =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            validate_and_add_experiment_group_id(
+                &member_experiments,
+                &id,
+                &workspace_request.schema_name,
+                transaction_conn,
+                &user,
+            )?;
+            let new_experiment_group =
+                diesel::insert_into(experiment_groups::experiment_groups)
+                    .values(&new_experiment_group)
+                    .returning(ExperimentGroup::as_returning())
+                    .schema_name(&workspace_request.schema_name)
+                    .get_result::<ExperimentGroup>(transaction_conn)?;
+            Ok(new_experiment_group)
+        })?;
     Ok(Json(new_experiment_group))
 }
 
@@ -126,7 +160,32 @@ async fn add_members_to_group(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
-    add_members(&id, req, &mut conn, &schema_name, user)
+    let member_experiments = fetch_and_validate_members(
+        &req.member_experiment_ids,
+        &[],
+        &mut conn,
+        &schema_name,
+    )?;
+
+    let experiment_group =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            validate_and_add_experiment_group_id(
+                &member_experiments,
+                &id,
+                &schema_name,
+                transaction_conn,
+                &user,
+            )?;
+            add_members(
+                &id,
+                &member_experiments,
+                req,
+                transaction_conn,
+                &schema_name,
+                &user,
+            )
+        })?;
+    Ok(experiment_group)
 }
 
 #[patch("/{exp_group_id}/remove-members")]
@@ -140,7 +199,19 @@ async fn remove_members_to_group(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
-    remove_members(&id, req, &mut conn, &schema_name, user)
+
+    let experiment_group =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            validate_and_remove_experiment_group_id(
+                &req.member_experiment_ids,
+                &id,
+                &schema_name,
+                transaction_conn,
+                &user,
+            )?;
+            remove_members(&id, req, transaction_conn, &schema_name, &user)
+        })?;
+    Ok(experiment_group)
 }
 
 #[get("")]

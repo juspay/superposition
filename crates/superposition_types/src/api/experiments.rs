@@ -8,6 +8,7 @@ use strum_macros::Display;
 use superposition_derives::IsEmpty;
 
 use crate::{
+    api::{deserialize_option_i64, i64_option_formatter},
     custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
     database::models::{
         experimentation::{
@@ -18,6 +19,8 @@ use crate::{
     },
     Condition, Exp, IsEmpty, Overrides, SortBy,
 };
+
+use super::I64Update;
 
 /********** Experiment Response Type **************/
 // Same as models::Experiments but `id` field is String
@@ -47,6 +50,7 @@ pub struct ExperimentResponse {
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
     pub metrics_url: Option<String>,
+    pub experiment_group_id: Option<String>,
 }
 
 impl From<Experiment> for ExperimentResponse {
@@ -96,6 +100,7 @@ impl From<Experiment> for ExperimentResponse {
             change_reason: experiment.change_reason,
             metrics: experiment.metrics,
             metrics_url,
+            experiment_group_id: experiment.experiment_group_id.map(|id| id.to_string()),
         }
     }
 }
@@ -112,6 +117,8 @@ pub struct ExperimentCreateRequest {
     pub description: Description,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    #[serde(default, with = "i64_option_formatter")]
+    pub experiment_group_id: Option<i64>,
 }
 
 /********** Experiment Ramp Req Types **********/
@@ -315,6 +322,8 @@ pub struct OverrideKeysUpdateRequest {
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
+    #[serde(default, deserialize_with = "deserialize_option_i64")]
+    pub experiment_group_id: Option<I64Update>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

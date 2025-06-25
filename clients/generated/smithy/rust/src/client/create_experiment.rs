@@ -12,6 +12,7 @@ impl super::Client {
     ///   - [`description(impl Into<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_description):<br>required: **true**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
     ///   - [`metrics(Document)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::metrics) / [`set_metrics(Option<Document>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_metrics):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`experiment_group_id(impl Into<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::experiment_group_id) / [`set_experiment_group_id(Option<String>)`](crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::set_experiment_group_id):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`CreateExperimentOutput`](crate::operation::create_experiment::CreateExperimentOutput) with field(s):
     ///   - [`id(String)`](crate::operation::create_experiment::CreateExperimentOutput::id): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::create_experiment::CreateExperimentOutput::created_at): (undocumented)
@@ -32,6 +33,7 @@ impl super::Client {
     ///   - [`started_by(Option<String>)`](crate::operation::create_experiment::CreateExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::create_experiment::CreateExperimentOutput::metrics_url): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::create_experiment::CreateExperimentOutput::metrics): (undocumented)
+    ///   - [`experiment_group_id(Option<String>)`](crate::operation::create_experiment::CreateExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<CreateExperimentError>`](crate::operation::create_experiment::CreateExperimentError)
     pub fn create_experiment(&self) -> crate::operation::create_experiment::builders::CreateExperimentFluentBuilder {
                                 crate::operation::create_experiment::builders::CreateExperimentFluentBuilder::new(self.handle.clone())

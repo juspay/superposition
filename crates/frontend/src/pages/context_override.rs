@@ -440,7 +440,7 @@ pub fn context_override() -> impl IntoView {
                     &default_config_filters,
                     current_tenant.to_string(),
                     org_id.clone()
-                )
+                ),
             );
             PageResource {
                 contexts: contexts_result.unwrap_or_default(),

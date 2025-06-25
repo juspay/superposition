@@ -66,6 +66,25 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                     </div>
                 </div>
                 {experiment
+                    .with_value(|e| e.experiment_group_id.clone())
+                    .map(|experiment_group_id| {
+                        view! {
+                            <div class="h-fit w-[300px]">
+                                <div class="stat-title">Experiment group</div>
+                                <div
+                                    class="tooltip tooltip-left w-[inherit] text-left"
+                                    data-tip=&experiment_group_id
+                                >
+                                    <div class="stat-value text-sm text-ellipsis overflow-hidden">
+                                        {experiment_group_id}
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                            .into_view()
+                    })
+                    .unwrap_or_default()}
+                {experiment
                     .with_value(|e| e.started_by.clone())
                     .map(|started_by| {
                         view! {

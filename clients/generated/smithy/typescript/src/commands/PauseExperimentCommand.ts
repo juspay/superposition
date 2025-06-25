@@ -83,6 +83,7 @@ export interface PauseExperimentCommandOutput extends ExperimentResponse, __Meta
  * //   started_by: "STRING_VALUE",
  * //   metrics_url: "STRING_VALUE",
  * //   metrics: "DOCUMENT_VALUE",
+ * //   experiment_group_id: "STRING_VALUE",
  * // };
  *
  * ```
