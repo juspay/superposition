@@ -1,0 +1,51 @@
+{
+    "name": "@superposition/core-clients-typescript",
+    "description": "Core TypeScript clients for Superposition",
+    "version": "0.0.1",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "module": "./dist/index.esm.js",
+    "scripts": {
+        "build": "tsc && tsc -p tsconfig.esm.json",
+        "dev": "tsc --watch",
+        "clean": "rimraf dist",
+        "prepack": "npm run clean && npm run build",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage"
+    },
+    "dependencies": {
+        "@io.juspay/superposition-sdk": "../../generated/smithy/typescript",
+        "@openfeature/server-sdk": "^1.13.0",
+        "koffi": "^2.11.0",
+        "tslib": "^2.6.2"
+    },
+    "devDependencies": {
+        "@tsconfig/node18": "^18.2.4",
+        "@types/node": "^18.19.69",
+        "rimraf": "^3.0.0",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.1",
+        "typescript": "~5.2.2"
+    },
+    "jest": {
+        "preset": "ts-jest",
+        "testEnvironment": "node",
+        "testMatch": [
+            "**/*.test.ts"
+        ],
+        "testTimeout": 30000,
+        "collectCoverageFrom": [
+            "../openfeature/typescript/src/**/*.ts",
+            "!../openfeature/typescript/src/**/*.d.ts"
+        ],
+        "coverageDirectory": "coverage",
+        "verbose": true
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "files": [
+        "dist/**/*"
+    ]
+}
