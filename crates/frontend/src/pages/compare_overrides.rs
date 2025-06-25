@@ -93,7 +93,7 @@ pub fn compare_overrides() -> impl IntoView {
         let contexts = contexts_vector_rws.get();
         (tenant, org_id, contexts)
     };
-    let dimension_resource = create_resource(
+    let dimension_resource = create_blocking_resource(
         move || (tenant_rws.get().0, org_rws.get().0),
         |(tenant, org)| async {
             fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
