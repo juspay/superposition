@@ -112,32 +112,39 @@ class SuperpositionProvider(AbstractProvider):
             self.client = None
             self.status = ProviderStatus.FATAL
             raise
-
+    
+    def get_context_from_evaluation_context(self, evaluation_context: EvaluationContext) -> Dict[str, str]:
+        if evaluation_context is None or evaluation_context.attributes is None:
+            return {}
+        else:
+            return {k: json.dumps(v) for k, v in evaluation_context.attributes.items()}
+    
     def resolve_boolean_details(self, flag_key: str, default_value: bool, evaluation_context: EvaluationContext) -> FlagResolutionDetails[bool]:
-        data = (evaluation_context.attributes or {}) if evaluation_context else {}
+        data = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_boolean_value(flag_key, default_value, data)
         return FlagResolutionDetails(val)
 
     def resolve_string_details(self, flag_key: str, default_value: str, evaluation_context: EvaluationContext) -> FlagResolutionDetails[str]:
-        data = (evaluation_context.attributes or {}) if evaluation_context else {}
+        data = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_string_value(flag_key, default_value, data)
         return FlagResolutionDetails(val)
 
     def resolve_integer_details(self, flag_key: str, default_value: int, evaluation_context: EvaluationContext) -> FlagResolutionDetails[int]:
-        data = (evaluation_context.attributes or {}) if evaluation_context else {}
+        data = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_integer_value(flag_key, default_value, data)
         return FlagResolutionDetails(val)
 
     def resolve_float_details(self, flag_key: str, default_value: float, evaluation_context: EvaluationContext) -> FlagResolutionDetails[float]:
-        data = (evaluation_context.attributes or {}) if evaluation_context else {}
+        data = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_float_value(flag_key, default_value, data)
         return FlagResolutionDetails(val)
 
     def resolve_object_details(self, flag_key: str, default_value: Any, evaluation_context: EvaluationContext) -> FlagResolutionDetails[Any]:
-        data = (evaluation_context.attributes or {}) if evaluation_context else {}
+        data = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_object_value(flag_key, default_value, data)
         return FlagResolutionDetails(val)
 
+     
     def get_metadata(self) -> ProviderMetadata:
         return self.metadata
 
