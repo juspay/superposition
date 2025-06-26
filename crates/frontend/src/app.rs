@@ -8,6 +8,8 @@ use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
 use crate::pages::dimensions::Dimensions;
+use crate::pages::experiment_group_listing::ExperimentGroupListing;
+use crate::pages::experiment_groups::ExperimentGroups;
 use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
     function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
@@ -173,6 +175,30 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     view! {
                                         <Layout>
                                             <ExperimentPage />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:org_id/:tenant/experiment-groups"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ExperimentGroupListing />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:org_id/:tenant/experiment-groups/:id"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <ExperimentGroups />
                                         </Layout>
                                     }
                                 }

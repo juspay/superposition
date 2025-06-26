@@ -18,6 +18,12 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             label: "Experiments".to_string(),
         },
         AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/experiment-groups"),
+            path: format!("{base}/admin/{org}/{tenant}/experiment-groups"),
+            icon: "ri-flask-fill".to_string(),
+            label: "Experiment Groups".to_string(),
+        },
+        AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/function"),
             path: format!("{base}/admin/{org}/{tenant}/function"),
             icon: "ri-code-box-fill".to_string(),

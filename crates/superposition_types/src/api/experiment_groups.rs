@@ -8,25 +8,25 @@ use crate::{
         experimentation::{i64_vec_deserialize, i64_vec_formatter, TrafficPercentage},
         ChangeReason, Description,
     },
-    Cac, Condition, IsEmpty, SortBy,
+    Condition, Exp, IsEmpty, SortBy,
 };
 #[cfg(feature = "diesel_derives")]
 use diesel::query_builder::AsChangeset;
 use serde::{Deserialize, Serialize};
 use superposition_derives::IsEmpty;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExpGroupCreateRequest {
     pub name: String,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub context: Cac<Condition>,
+    pub context: Exp<Condition>,
     pub traffic_percentage: TrafficPercentage,
     #[serde(default, deserialize_with = "i64_vec_deserialize")]
     pub member_experiment_ids: Option<Vec<i64>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = experiment_groups))]
 pub struct ExpGroupUpdateRequest {
@@ -35,7 +35,7 @@ pub struct ExpGroupUpdateRequest {
     pub traffic_percentage: Option<TrafficPercentage>,
 }
 
-#[derive(Serialize, Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = experiment_groups))]
 pub struct ExpGroupMemberRequest {

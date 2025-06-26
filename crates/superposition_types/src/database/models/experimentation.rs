@@ -173,6 +173,19 @@ impl TryFrom<i32> for TrafficPercentage {
     }
 }
 
+impl TryFrom<String> for TrafficPercentage {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.parse::<i32>() {
+            Ok(percent) => TrafficPercentage::try_from(percent),
+            Err(err) => Err(format!(
+                "Traffic percent could not be parsed. reason: {}",
+                err,
+            )),
+        }
+    }
+}
+
 impl TrafficPercentage {
     pub fn check_max_allowed(&self, variants_count: u8) -> Result<(), String> {
         let max = if variants_count < 2 {
@@ -285,7 +298,7 @@ pub struct EventLog {
     pub query: String,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(QueryableByName, Queryable, Selectable, Insertable)
