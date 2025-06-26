@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::HashMap, fmt::Display, time::SystemTime};
 
 use chrono::{DateTime, Utc};
 use core::fmt;
@@ -27,7 +27,7 @@ use super::I64Update;
 // JS have limitation of 53-bit integers, so on
 // deserializing from JSON to JS Object will lead incorrect `id` values
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]
 pub struct ExperimentResponse {
     pub id: String,
     pub created_at: DateTime<Utc>,
@@ -52,6 +52,9 @@ pub struct ExperimentResponse {
     pub metrics_url: Option<String>,
     pub experiment_group_id: Option<String>,
 }
+
+struct FFITimestamp(DateTime<Utc>);
+uniffi::custom_type!(FFITimestamp, SystemTime);
 
 impl From<Experiment> for ExperimentResponse {
     fn from(experiment: Experiment) -> Self {
