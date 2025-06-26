@@ -30,11 +30,10 @@ use crate::{
         skeleton::{Skeleton, SkeletonVariant},
         variant_form::{DeleteVariantForm, VariantForm},
     },
+    logic::Conditions,
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Tenant, VariantFormT, VariantFormTs},
 };
-
-use crate::logic::Conditions;
 
 fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
     variants
