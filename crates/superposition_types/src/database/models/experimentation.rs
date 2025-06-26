@@ -32,6 +32,7 @@ use super::{ChangeReason, Description, Metrics};
     strum_macros::Display,
     strum_macros::EnumIter,
     strum_macros::EnumString,
+    uniffi::Enum,
 )]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
@@ -116,6 +117,7 @@ impl ExperimentStatusType {
     strum_macros::Display,
     strum_macros::EnumIter,
     strum_macros::EnumString,
+    uniffi::Enum,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
@@ -140,6 +142,7 @@ pub enum ExperimentType {
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Integer))]
 pub struct TrafficPercentage(u8);
+uniffi::custom_newtype!(TrafficPercentage, u8);
 
 #[cfg(feature = "diesel_derives")]
 impl FromSql<Integer, Pg> for TrafficPercentage {
@@ -207,7 +210,9 @@ impl TrafficPercentage {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]
+#[derive(
+    Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display, uniffi::Enum,
+)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum VariantType {
     CONTROL,
@@ -215,7 +220,7 @@ pub enum VariantType {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct Variant {
     pub id: String,
     pub variant_type: VariantType,
@@ -225,6 +230,19 @@ pub struct Variant {
     pub override_id: Option<String>,
     pub overrides: Exp<Overrides>,
 }
+
+type VariantOverrides = Exp<Overrides>;
+impl From<Overrides> for Exp<Overrides> {
+    fn from(value: Overrides) -> Self {
+        Exp(value)
+    }
+}
+impl From<Exp<Overrides>> for Overrides {
+    fn from(value: Exp<Overrides>) -> Self {
+        value.0
+    }
+}
+uniffi::custom_type!(VariantOverrides, Overrides);
 
 impl Overridden<Exp<Overrides>> for Variant {
     fn get_overrides(&self) -> Overrides {
@@ -239,6 +257,7 @@ impl Overridden<Exp<Overrides>> for Variant {
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct Variants(Vec<Variant>);
+uniffi::custom_newtype!(Variants, Vec<Variant>);
 
 impl Variants {
     pub fn new(data: Vec<Variant>) -> Self {

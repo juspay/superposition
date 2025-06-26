@@ -99,3 +99,16 @@ fn ffi_eval_config_with_reasoning(
         eval_config_with_reasoning,
     )
 }
+
+#[uniffi::export]
+fn ffi_eval_experiments(
+    experiments: &[ExperimentResponse],
+    variants: &[Variant],
+    overrides: &HashMap<String, Overrides>,
+    user_context: &Map<String, Value>,
+    toss: i32,
+    filter_prefixes: &[String],
+    options: Option<EvaluationOptions>, // Optional advanced features
+) -> Result<(), String> {
+    Ok(())
+}

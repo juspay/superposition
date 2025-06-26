@@ -47,6 +47,7 @@ use super::DisableDBValidation;
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
 pub struct ChangeReason(String);
+uniffi::custom_newtype!(ChangeReason, String);
 const CHANGE_REASON_CHAR_LIMIT: usize = 255;
 
 impl Default for ChangeReason {
@@ -105,6 +106,7 @@ impl TryFrom<String> for ChangeReason {
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
 pub struct Description(String);
+uniffi::custom_newtype!(Description, String);
 const DESCRIPTION_CHAR_LIMIT: usize = 1024;
 
 impl Default for Description {
@@ -245,7 +247,7 @@ pub struct Workspace {
     pub allow_experiment_self_approval: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, uniffi::Enum)]
 #[serde(rename_all = "lowercase")]
 pub enum MetricSource {
     Grafana {
@@ -267,7 +269,7 @@ impl Default for MetricSource {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Default)]
+#[derive(Clone, Debug, Serialize, Default, uniffi::Record)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
