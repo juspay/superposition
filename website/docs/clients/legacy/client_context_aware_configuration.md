@@ -174,8 +174,8 @@ pub fn get_resolved_config(context: Map<String, Value>, filter_keys: Option<Vec<
 
 | Param         | type                | description                                                                           | Example value                             |
 | ---------     | ------------------  | ------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `context`     | Map<String, Value>  | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
-| `filter_keys` | Option<Vec<String>> | The keys for which you want the values. If empty, all configuration keys are returned | `Some([payment, network, color])`         |
+| `context`     | `Map<String, Value>`  | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
+| `filter_keys` | `Option<Vec<String>>` | The keys for which you want the values. If empty, all configuration keys are returned | `Some([payment, network, color])`         |
 
 #### Get Default Config
 
@@ -189,7 +189,7 @@ pub fn get_default_config(filter_keys: Option<Vec<String>>) -> Result<Map<String
 ##### Param
 | Param         | type                | description                                                                           | Example value                     |
 | ------        | -----------         | ------------------------------------------------------------------------------------- | ---------------------------       |
-| `filter_keys` | Option<Vec<String>> | The keys for which you want the values. If None, all configuration keys are returned | `Some([payment, network, color])` |
+| `filter_keys` | `Option<Vec<String>>` | The keys for which you want the values. If None, all configuration keys are returned | `Some([payment, network, color])` |
 
 ---
 
