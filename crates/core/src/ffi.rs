@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use superposition_types::{Context, Overrides};
 use thiserror::Error;
 
-use crate::{eval_config, eval_config_with_reasoning, MergeStrategy};
+use crate::{
+    eval_config, eval_config_with_reasoning, get_applicable_variants, Experiments,
+    MergeStrategy,
+};
 
 #[derive(Debug, Error, uniffi::Error)]
 pub enum OperationError {
@@ -98,4 +101,20 @@ fn ffi_eval_config_with_reasoning(
         filter_prefixes,
         eval_config_with_reasoning,
     )
+}
+
+#[uniffi::export]
+fn ffi_get_applicable_variants(
+    experiments: &Experiments,
+    query_data: &HashMap<String, String>,
+    toss: i8,
+    prefix: Option<Vec<String>>,
+) -> Result<Vec<String>, OperationError> {
+    let _query_data = json_from_map(query_data.clone())
+        .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+
+    let r = get_applicable_variants(experiments, &_query_data, toss, prefix)
+        .map_err(OperationError::Unexpected)?;
+
+    Ok(r)
 }

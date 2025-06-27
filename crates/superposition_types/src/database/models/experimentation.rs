@@ -32,6 +32,7 @@ use super::{ChangeReason, Description, Metrics};
     strum_macros::Display,
     strum_macros::EnumIter,
     strum_macros::EnumString,
+    uniffi::Enum,
 )]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
@@ -116,6 +117,7 @@ impl ExperimentStatusType {
     strum_macros::Display,
     strum_macros::EnumIter,
     strum_macros::EnumString,
+    uniffi::Enum,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
@@ -207,7 +209,9 @@ impl TrafficPercentage {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display)]
+#[derive(
+    Deserialize, Serialize, Clone, PartialEq, Debug, strum_macros::Display, uniffi::Enum,
+)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum VariantType {
     CONTROL,
@@ -215,7 +219,7 @@ pub enum VariantType {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct Variant {
     pub id: String,
     pub variant_type: VariantType,
@@ -231,6 +235,18 @@ impl Overridden<Exp<Overrides>> for Variant {
         self.overrides.clone().into_inner()
     }
 }
+type VariantOverrides = Exp<Overrides>;
+impl From<Overrides> for Exp<Overrides> {
+    fn from(value: Overrides) -> Self {
+        Exp(value)
+    }
+}
+impl From<Exp<Overrides>> for Overrides {
+    fn from(value: Exp<Overrides>) -> Self {
+        value.0
+    }
+}
+uniffi::custom_type!(VariantOverrides, Overrides);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Deref, DerefMut)]
 #[cfg_attr(
@@ -239,7 +255,7 @@ impl Overridden<Exp<Overrides>> for Variant {
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct Variants(Vec<Variant>);
-
+uniffi::custom_newtype!(Variants, Vec<Variant>);
 impl Variants {
     pub fn new(data: Vec<Variant>) -> Self {
         Self(data)
