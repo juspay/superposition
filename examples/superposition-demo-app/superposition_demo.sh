@@ -15,4 +15,4 @@ echo "CREATE DATABASE config; ALTER USER postgres WITH PASSWORD 'docker';" | psq
 
 PGPASSWORD='docker' psql --username=postgres -h localhost config < /app/db_init.sql
 
-/usr/bin/supervisord
+/app/superposition
