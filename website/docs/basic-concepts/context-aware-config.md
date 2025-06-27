@@ -1,3 +1,10 @@
+---
+sidebar_position: 3
+title: Context Aware Config
+description: Context Aware Config component of Superposition platform
+---
+
+
 # Context Aware Config
 ---
 
