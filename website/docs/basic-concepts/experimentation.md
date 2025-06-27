@@ -1,3 +1,10 @@
+---
+sidebar_position: 4
+title: Experimentation
+description: Experimentation component of Superposition platform
+---
+
+
 # Experimentation
 
 ## Introduction

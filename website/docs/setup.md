@@ -1,3 +1,8 @@
+---
+sidebar_position: 2
+title: Setup
+---
+
 # Setup Instructions for Superposition Platform
 
 This document outlines the setup process for the `Superposition Platform`.
@@ -10,7 +15,7 @@ This document outlines the setup process for the `Superposition Platform`.
 
 - **Install Docker**
 
-- **Installing Lib Dependencies & Tools :** <br>
+- **Installing Lib Dependencies & Tools :**
     `libpq`, `openssl`, `libiconv` are required for building the project. `diesel_cli`, `yq` and `aws cli` is needed for dev.
 
     For MacOS :
@@ -30,10 +35,11 @@ This document outlines the setup process for the `Superposition Platform`.
     ```bash
     aws configure
     ```
-    Use the following values as input: <br>
-      - `AWS Access Key ID`: Test <br>
-      - `AWS Secret Access Key`: Test <br>
-      - `Default region name`: None <br>
+    Use the following values as input: 
+    
+      - `AWS Access Key ID`: Test
+      - `AWS Secret Access Key`: Test
+      - `Default region name`: None
       - `Default output format`: None
 
 - **Ensure `make` Command is Installed**
