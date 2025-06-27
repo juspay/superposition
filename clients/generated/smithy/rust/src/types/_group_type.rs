@@ -51,8 +51,8 @@ pub enum GroupType {
 impl ::std::convert::From<&str> for GroupType {
                     fn from(s: &str) -> Self {
                         match s {
-                            "SystemGenerated" => GroupType::SystemGenerated,
-"UserCreated" => GroupType::UserCreated,
+                            "SYSTEM_GENERATED" => GroupType::SystemGenerated,
+"USER_CREATED" => GroupType::UserCreated,
 other => GroupType::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
                         }
                     }
@@ -68,14 +68,14 @@ impl GroupType {
                 /// Returns the `&str` value of the enum member.
                 pub fn as_str(&self) -> &str {
                     match self {
-    GroupType::SystemGenerated => "SystemGenerated",
-    GroupType::UserCreated => "UserCreated",
+    GroupType::SystemGenerated => "SYSTEM_GENERATED",
+    GroupType::UserCreated => "USER_CREATED",
     GroupType::Unknown(value) => value.as_str()
 }
                 }
                 /// Returns all the `&str` representations of the enum members.
                 pub const fn values() -> &'static [&'static str] {
-                    &["SystemGenerated", "UserCreated"]
+                    &["SYSTEM_GENERATED", "USER_CREATED"]
                 }
             }
 impl ::std::convert::AsRef<str> for GroupType {
@@ -98,8 +98,8 @@ impl GroupType {
 impl ::std::fmt::Display for GroupType {
                         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                             match self {
-                                GroupType::SystemGenerated => write!(f, "SystemGenerated"),
-GroupType::UserCreated => write!(f, "UserCreated"),
+                                GroupType::SystemGenerated => write!(f, "SYSTEM_GENERATED"),
+GroupType::UserCreated => write!(f, "USER_CREATED"),
 GroupType::Unknown(value) => write!(f, "{}", value)
                             }
                         }

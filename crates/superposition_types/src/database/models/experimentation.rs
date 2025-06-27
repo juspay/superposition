@@ -18,7 +18,7 @@ use crate::{Condition, Exp, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::*;
-use super::{ChangeReason, Description, Metrics};
+use super::{Buckets, ChangeReason, Description, Metrics};
 
 #[derive(
     Debug,
@@ -219,7 +219,7 @@ pub enum VariantType {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record, PartialEq)]
 pub struct Variant {
     pub id: String,
     pub variant_type: VariantType,
@@ -313,6 +313,33 @@ pub struct EventLog {
     pub new_data: Option<Value>,
     pub query: String,
 }
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::schema::sql_types::GroupType"
+)]
+pub enum GroupType {
+    UserCreated,
+    SystemGenerated,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
@@ -336,6 +363,8 @@ pub struct ExperimentGroup {
     pub created_by: String,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
+    pub buckets: Buckets,
+    pub group_type: GroupType,
 }
 
 pub type ExperimentGroups = Vec<ExperimentGroup>;

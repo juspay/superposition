@@ -44,24 +44,27 @@ use superposition_types::{
     database::{
         models::{
             experimentation::{
-                EventLog, Experiment, ExperimentStatusType, ExperimentType,
-                TrafficPercentage, Variant, VariantType, Variants,
+                EventLog, Experiment, ExperimentGroup, ExperimentStatusType,
+                ExperimentType, TrafficPercentage, Variant, VariantType, Variants,
             },
             others::WebhookEvent,
             ChangeReason,
         },
         schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
-    result as superposition, Cac, Condition, DBConnection, Exp, ListResponse, Overrides,
+    result as superposition, Cac, Condition, Exp, ListResponse, Overrides,
     PaginatedResponse, SortBy, User,
 };
 
 use crate::api::{
-    experiment_groups::helpers::add_members,
+    experiment_groups::helpers::{
+        add_members, create_system_generated_experiment_group,
+        detach_experiment_from_group, update_bucket_allocation,
+    },
     experiments::{
         helpers::{
-            decide_variant, fetch_webhook_by_event, get_workspace,
-            validate_delete_experiment_variants,
+            calculate_bucket_index, decide_variant, fetch_webhook_by_event,
+            get_workspace, validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -75,11 +78,12 @@ use super::{
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
         check_variants_override_coverage, extract_override_keys, fetch_cac_config,
-        handle_experiment_group_membership, hash, validate_experiment,
+        get_experiment, handle_experiment_group_membership, hash, validate_experiment,
         validate_override_keys,
     },
     types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
 };
+use superposition_types::database::schema::experiment_groups::dsl as experiment_groups;
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
@@ -466,12 +470,12 @@ pub async fn conclude(
         ));
     }
 
-    let experiment_context: Map<String, Value> = experiment.context.into();
+    let experiment_context: Map<String, Value> = experiment.context.clone().into();
 
     let mut operations: Vec<ContextAction> = vec![];
 
     let mut is_valid_winner_variant = false;
-    for variant in experiment.variants.into_inner() {
+    for variant in experiment.variants.clone().into_inner() {
         let context_id = variant.context_id.ok_or_else(|| {
             log::error!("context id not available for variant {:?}", variant.id);
             unexpected_error!("Something went wrong, failed to conclude experiment")
@@ -611,19 +615,33 @@ pub async fn conclude(
     let (_, config_version_id) =
         process_cac_bulk_operation_http_response(response).await?;
 
-    // updating experiment status in db
-    let updated_experiment = diesel::update(dsl::experiments)
-        .filter(dsl::id.eq(experiment_id))
-        .set((
-            dsl::status.eq(ExperimentStatusType::CONCLUDED),
-            dsl::last_modified.eq(Utc::now()),
-            dsl::last_modified_by.eq(user.get_email()),
-            dsl::chosen_variant.eq(Some(winner_variant_id)),
-            dsl::change_reason.eq(req.change_reason),
-        ))
-        .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(conn)?;
+    let updated_experiment =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            if let Some(experiment_group_id) = experiment.experiment_group_id {
+                detach_experiment_from_group(
+                    &experiment,
+                    experiment_group_id,
+                    transaction_conn,
+                    workspace_request,
+                    user,
+                )?;
+            }
+
+            let updated_experiment = diesel::update(dsl::experiments)
+                .filter(dsl::id.eq(experiment_id))
+                .set((
+                    dsl::status.eq(ExperimentStatusType::CONCLUDED),
+                    dsl::last_modified.eq(Utc::now()),
+                    dsl::last_modified_by.eq(user.get_email()),
+                    dsl::chosen_variant.eq(Some(winner_variant_id)),
+                    dsl::change_reason.eq(req.change_reason),
+                    dsl::experiment_group_id.eq(None as Option<i64>),
+                ))
+                .returning(Experiment::as_returning())
+                .schema_name(&workspace_request.schema_name)
+                .get_result::<Experiment>(transaction_conn)?;
+            Ok(updated_experiment)
+        })?;
 
     Ok((updated_experiment, config_version_id))
 }
@@ -710,6 +728,7 @@ pub async fn discard(
 
     let operations: Vec<ContextAction> = experiment
         .variants
+        .clone()
         .into_inner()
         .into_iter()
         .map(|variant| {
@@ -761,19 +780,34 @@ pub async fn discard(
     let (_, config_version_id) =
         process_cac_bulk_operation_http_response(response).await?;
 
-    // updating experiment status in db
-    let updated_experiment = diesel::update(dsl::experiments)
-        .filter(dsl::id.eq(experiment_id))
-        .set((
-            dsl::status.eq(ExperimentStatusType::DISCARDED),
-            dsl::last_modified.eq(Utc::now()),
-            dsl::last_modified_by.eq(user.get_email()),
-            dsl::chosen_variant.eq(None as Option<String>),
-            dsl::change_reason.eq(req.change_reason),
-        ))
-        .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_result::<Experiment>(conn)?;
+    let updated_experiment =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            if let Some(experiment_group_id) = experiment.experiment_group_id {
+                detach_experiment_from_group(
+                    &experiment,
+                    experiment_group_id,
+                    transaction_conn,
+                    workspace_request,
+                    user,
+                )?;
+            }
+
+            let updated_experiment = diesel::update(dsl::experiments)
+                .filter(dsl::id.eq(experiment_id))
+                .set((
+                    dsl::status.eq(ExperimentStatusType::DISCARDED),
+                    dsl::last_modified.eq(Utc::now()),
+                    dsl::last_modified_by.eq(user.get_email()),
+                    dsl::chosen_variant.eq(None as Option<String>),
+                    dsl::change_reason.eq(req.change_reason),
+                    dsl::experiment_group_id.eq(None as Option<i64>),
+                ))
+                .returning(Experiment::as_returning())
+                .schema_name(&workspace_request.schema_name)
+                .get_result::<Experiment>(transaction_conn)?;
+
+            Ok(updated_experiment)
+        })?;
 
     Ok((updated_experiment, config_version_id))
 }
@@ -796,35 +830,31 @@ async fn get_applicable_variants(
             return Err(bad_argument!("Invalid input for the method"));
         }
     };
-    let experiments = experiments::experiments
-        .filter(experiments::status.ne_all(vec![
-            ExperimentStatusType::CONCLUDED,
-            ExperimentStatusType::DISCARDED,
-            ExperimentStatusType::PAUSED,
-        ]))
-        .schema_name(&schema_name)
-        .load::<Experiment>(&mut conn)?;
 
-    let experiments = experiments.into_iter().filter(|exp| {
+    let experiment_groups = experiment_groups::experiment_groups
+        .schema_name(&schema_name)
+        .load::<ExperimentGroup>(&mut conn)?;
+
+    let filtered_experiment_groups = experiment_groups.into_iter().filter(|exp| {
+        let hashed_toss = calculate_bucket_index(&req_data.toss, &exp.id);
         let context: Map<String, Value> = exp.context.clone().into();
-        context.is_empty()
+        (context.is_empty()
             || jsonlogic::apply(
                 &Value::Object(context),
                 &Value::Object(req_data.context.clone()),
-            ) == Ok(Value::Bool(true))
+            ) == Ok(Value::Bool(true)))
+            && *exp.traffic_percentage >= hashed_toss as u8
     });
 
     let mut variants = Vec::new();
-    for exp in experiments {
-        if let Some(v) = decide_variant(
-            *exp.traffic_percentage,
-            exp.variants.into_inner(),
-            req_data.toss,
-        )
-        .map_err(|e| {
-            log::error!("Unable to decide variant {e}");
-            unexpected_error!("Something went wrong.")
-        })? {
+    for exp in filtered_experiment_groups {
+        let hashed_toss = calculate_bucket_index(&req_data.toss, &exp.id);
+        if let Some(v) = decide_variant(&exp, hashed_toss, &mut conn, &schema_name)
+            .map_err(|e| {
+                log::error!("Unable to decide variant {e}");
+                unexpected_error!("Something went wrong.")
+            })?
+        {
             variants.push(v)
         }
     }
@@ -957,20 +987,6 @@ async fn get_experiment_handler(
     Ok(Json(ExperimentResponse::from(response)))
 }
 
-pub fn get_experiment(
-    experiment_id: i64,
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> superposition::Result<Experiment> {
-    use superposition_types::database::schema::experiments::dsl::*;
-    let result: Experiment = experiments
-        .find(experiment_id)
-        .schema_name(schema_name)
-        .get_result::<Experiment>(conn)?;
-
-    Ok(result)
-}
-
 pub fn user_allowed_to_ramp(
     experiment: &Experiment,
     user: &User,
@@ -1002,7 +1018,7 @@ async fn ramp(
 
     if !experiment.status.active() {
         return Err(bad_argument!(
-            "experiment already concluded, cannot ramp a concluded experiment"
+            "Experiment is not active, cannot ramp a concluded experiment"
         ));
     }
 
@@ -1020,7 +1036,7 @@ async fn ramp(
 
     let old_traffic_percentage = experiment.traffic_percentage;
     let new_traffic_percentage = &req.traffic_percentage;
-    let variants_count = experiment.variants.into_inner().len() as u8;
+    let variants_count = experiment.variants.clone().into_inner().len() as u8;
 
     new_traffic_percentage
         .check_max_allowed(variants_count)
@@ -1042,19 +1058,51 @@ async fn ramp(
         },
     };
 
-    let updated_experiment: Experiment = diesel::update(experiments::experiments)
-        .filter(experiments::id.eq(exp_id))
-        .set((
-            started_by_request,
-            experiments::traffic_percentage.eq(req.traffic_percentage),
-            experiments::last_modified.eq(now),
-            experiments::last_modified_by.eq(user.get_email()),
-            experiments::status.eq(ExperimentStatusType::INPROGRESS),
-            experiments::change_reason.eq(change_reason),
-        ))
-        .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
-        .get_result(&mut conn)?;
+    let mut experiment_group_id = experiment.experiment_group_id;
+
+    let updated_experiment =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            // make a system generated experiment group
+            if experiment.status == ExperimentStatusType::CREATED
+                && experiment_group_id.is_none()
+            {
+                let experiment_group = create_system_generated_experiment_group(
+                    &experiment,
+                    new_traffic_percentage,
+                    &state,
+                    transaction_conn,
+                    &workspace_request,
+                    &user,
+                )?;
+                experiment_group_id = Some(experiment_group.id);
+            }
+
+            if let Some(experiment_group_id) = experiment_group_id {
+                update_bucket_allocation(
+                    &experiment,
+                    experiment_group_id,
+                    &req.traffic_percentage,
+                    transaction_conn,
+                    &workspace_request,
+                    &user,
+                )?;
+            }
+            let updated_experiment: Experiment = diesel::update(experiments::experiments)
+                .filter(experiments::id.eq(exp_id))
+                .set((
+                    started_by_request,
+                    experiments::traffic_percentage.eq(req.traffic_percentage),
+                    experiments::last_modified.eq(now),
+                    experiments::last_modified_by.eq(user.get_email()),
+                    experiments::status.eq(ExperimentStatusType::INPROGRESS),
+                    experiments::change_reason.eq(change_reason),
+                    experiments::experiment_group_id.eq(experiment_group_id),
+                ))
+                .returning(Experiment::as_returning())
+                .schema_name(&workspace_request.schema_name)
+                .get_result(transaction_conn)?;
+            Ok(updated_experiment)
+        })?;
 
     let (_, config_version_id) = fetch_cac_config(&state, &workspace_request).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);

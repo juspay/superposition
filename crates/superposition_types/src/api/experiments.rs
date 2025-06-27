@@ -153,7 +153,7 @@ pub struct ExperimentStateChangeRequest {
 #[serde(try_from = "HashMap<String,String>")]
 pub struct ApplicableVariantsQuery {
     pub context: Map<String, Value>,
-    pub toss: i8,
+    pub toss: String,
 }
 
 impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
@@ -164,23 +164,12 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
             .map(|(key, value)| (key, value.parse().unwrap_or(Value::String(value))))
             .collect::<Map<_, _>>();
 
-        let toss = value
+        let toss: Value = value
             .remove("toss")
-            .and_then(|toss| toss.as_i64())
-            .and_then(|toss| {
-                if -1 <= toss && toss <= 100 {
-                    Some(toss as i8)
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| {
-                log::error!("toss should be a an interger between -1 and 100 (included)");
-                String::from("toss should be a an interger between -1 and 100 (included)")
-            })?;
+            .ok_or_else(|| "Missing 'toss' key in the request".to_string())?;
 
         Ok(Self {
-            toss,
+            toss: toss.to_string(),
             context: value,
         })
     }
@@ -189,8 +178,7 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApplicableVariantsRequest {
     pub context: Map<String, Value>,
-    #[serde(deserialize_with = "deserialize_toss")]
-    pub toss: i8,
+    pub toss: String,
 }
 
 impl From<ApplicableVariantsRequest> for ApplicableVariantsQuery {
@@ -199,20 +187,6 @@ impl From<ApplicableVariantsRequest> for ApplicableVariantsQuery {
             context: value.context,
             toss: value.toss,
         }
-    }
-}
-
-fn deserialize_toss<'de, D>(deserializer: D) -> Result<i8, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let toss: i8 = Deserialize::deserialize(deserializer)?;
-    if -1 <= toss && toss <= 100 {
-        Ok(toss)
-    } else {
-        Err(serde::de::Error::custom(
-            "toss should be a an interger between -1 and 100 (included)",
-        ))
     }
 }
 
@@ -335,4 +309,47 @@ pub struct AuditQueryFilters {
     pub username: Option<String>,
     pub count: Option<i64>,
     pub page: Option<i64>,
+}
+
+pub fn option_i64_from_value(value: Value) -> Result<Option<i64>, String> {
+    match value {
+        Value::Number(config_version) => {
+            if let Some(config_version) = config_version.as_i64() {
+                Ok(Some(config_version))
+            } else {
+                log::error!("Expected a bigint as the value.");
+                Err("Expected a bigint as the value.".to_string())
+            }
+        }
+        Value::String(val) => {
+            if &val == "null" {
+                Ok(None)
+            } else {
+                match val.parse::<i64>() {
+                    Ok(config_version) => Ok(Some(config_version)),
+                    Err(_) => {
+                        log::error!("Expected a bigint or bigint string as the value.");
+                        Err("Expected a bigint or bigint string as the value."
+                            .to_string())
+                    }
+                }
+            }
+        }
+        Value::Null => Ok(None),
+        _ => {
+            log::error!("Expected a bigint, bigint string or null literal as the value.");
+            Err(
+                "Expected a bigint, bigint string or null literal as the value."
+                    .to_string(),
+            )
+        }
+    }
+}
+
+pub fn i64_option_deserialize<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt: Value = Deserialize::deserialize(deserializer)?;
+    option_i64_from_value(opt).map_err(serde::de::Error::custom)
 }

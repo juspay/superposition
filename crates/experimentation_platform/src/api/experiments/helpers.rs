@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use actix_http::header;
 use actix_web::web::Data;
 use cac_client::utils::json_to_sorted_string;
@@ -8,17 +11,19 @@ use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
-use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+
+use service_utils::{
+    helpers::extract_dimensions,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
-use std::collections::HashSet;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{experiment_groups::ExpGroupMemberRequest, I64Update},
     database::{
         models::{
-            experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
+            experimentation::{
+                Experiment, ExperimentGroup, ExperimentStatusType, Variant, VariantType,
+            },
             others::{Webhook, WebhookEvent},
             ChangeReason, Workspace,
         },
@@ -415,31 +420,57 @@ pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> 
 }
 
 pub fn decide_variant(
-    traffic: u8,
-    applicable_variants: Vec<Variant>,
-    toss: i8,
-) -> Result<Option<Variant>, String> {
-    if toss < 0 {
-        for variant in applicable_variants.iter() {
-            if variant.variant_type == VariantType::EXPERIMENTAL {
-                return Ok(Some(variant.clone()));
-            }
-        }
-    }
-    let variant_count = applicable_variants.len() as u8;
-    let range = (traffic * variant_count) as i32;
-    if (toss as i32) >= range {
+    experiment_group: &ExperimentGroup,
+    toss: usize,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Option<Variant>> {
+    let bucket: Option<String> = experiment_group.buckets
+        .get(toss)
+        .ok_or_else(|| {
+            bad_argument!(
+                "Bucket index out of bounds. Ensure the bucket index is within the range of available buckets."
+            )
+        })?.clone();
+
+    // Extract experiment_id and variant_id, return None if either is missing
+    let variant_id = match &bucket {
+        Some(v_id) => v_id.clone(),
+        _ => return Ok(None),
+    };
+
+    // Extract experiment_id from variant_id
+    let experiment_id = variant_id.split('-')
+        .next()
+        .and_then(|id| id.parse::<i64>().ok())
+        .ok_or_else(|| {
+            bad_argument!(
+                "Invalid variant ID format. Ensure the variant ID is in the correct format."
+            )
+        })?;
+
+    // Get experiment and check if active
+    let experiment = get_experiment(experiment_id, conn, schema_name)?;
+    if !experiment.status.active() {
         return Ok(None);
     }
-    let buckets = (1..=variant_count)
-        .map(|i| (traffic * i) as i8)
-        .collect::<Vec<i8>>();
-    let index = buckets
-        .into_iter()
-        .position(|x| toss < x)
-        .ok_or_else(|| "Unable to fetch variant's index".to_string())?;
 
-    Ok(applicable_variants.get(index).cloned())
+    // Find and return the variant
+    let variant = experiment
+        .variants
+        .iter()
+        .find(|v| v.id == variant_id)
+        .cloned();
+
+    Ok(variant)
+}
+
+// rename this
+#[inline]
+pub fn calculate_bucket_index(toss: &str, group_id: &i64) -> usize {
+    let mut hasher = DefaultHasher::new();
+    (toss, group_id).hash(&mut hasher);
+    (hasher.finish() % 100) as usize
 }
 
 pub async fn fetch_cac_config(
@@ -749,4 +780,18 @@ pub fn ensure_experiments_exist(
         ));
     }
     Ok(())
+}
+
+pub fn get_experiment(
+    experiment_id: i64,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Experiment> {
+    use superposition_types::database::schema::experiments::dsl::*;
+    let result: Experiment = experiments
+        .find(experiment_id)
+        .schema_name(schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    Ok(result)
 }

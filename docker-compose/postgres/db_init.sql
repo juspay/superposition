@@ -1384,4 +1384,17 @@ UPDATE superposition.workspaces SET allow_experiment_self_approval = true;
 ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
 ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
 
+CREATE TYPE public.GROUP_TYPE AS ENUM (
+    'USER_CREATED',
+    'SYSTEM_GENERATED'
+);
+
+ALTER TABLE localorg_dev.experiment_groups ADD COLUMN buckets TEXT[] DEFAULT array_fill(NULL::TEXT, ARRAY[100]) NOT NULL;
+
+ALTER TABLE localorg_dev.experiment_groups ADD COLUMN group_type public.GROUP_TYPE DEFAULT 'USER_CREATED';
+
+ALTER TABLE localorg_test.experiment_groups ADD COLUMN buckets TEXT[] DEFAULT array_fill(NULL::TEXT, ARRAY[100]) NOT NULL;
+
+ALTER TABLE localorg_test.experiment_groups ADD COLUMN group_type public.GROUP_TYPE DEFAULT 'USER_CREATED';
+
 COMMIT;
