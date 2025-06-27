@@ -2,13 +2,13 @@ import json
 import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar, Generic
-from .superposition_client import ffi_eval_config
+from .uniffi_client import ffi_eval_config
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
 from clients.generated.smithy.python.superposition_python_sdk.client import Superposition, Config, GetConfigInput
 import asyncio
-from .superposition_client import MergeStrategy
+from .uniffi_client import MergeStrategy
 from datetime import datetime, timedelta
-from .superposition_types import Context
+from .uniffi_types import Context
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
