@@ -9,9 +9,9 @@ import asyncio
 import json
 import logging
 
-# Placeholder imports (implement these yourself)
-from .cac_client import ConfigurationClient
-from .types import SuperpositionOptions, SuperpositionProviderOptions, ConfigurationOptions
+# Updated imports
+from .superposition_client import SuperpositionClient
+from .types import SuperpositionOptions, SuperpositionProviderOptions, ConfigurationOptions, ExperimentationOptions
 
 logger = logging.getLogger(__name__)
 
@@ -33,18 +33,20 @@ class SuperpositionProvider(AbstractProvider):
 
             # Timeout handling
             try:
-                self.client = ConfigurationClient(
+                # Create SuperpositionClient instead of ConfigurationClient
+                self.client = SuperpositionClient(
                     superposition_options=SuperpositionOptions(
                         endpoint=self.options.endpoint,
                         token=self.options.token,
                         org_id=self.options.org_id,
                         workspace_id=self.options.workspace_id
                     ),
-                    options = ConfigurationOptions(
+                    cac_options=ConfigurationOptions(
                         refresh_strategy=self.options.refresh_strategy,
                         fallback_config=self.options.fallback_config,
                         evaluation_cache_options=self.options.evaluation_cache_options
                     ),
+                    exp_options=self.options.experimentation_options
                 )
                 await self.client.create_config()
                 # asyncio.wait_for(self._do_initialize(context), timeout=self.config["initOpts"]["timeout"] / 1000)
