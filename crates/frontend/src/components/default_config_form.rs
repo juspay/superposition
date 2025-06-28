@@ -46,8 +46,8 @@ pub fn default_config_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (config_key_rs, config_key_ws) = create_signal(
         prefix
@@ -76,7 +76,7 @@ where
 
     let validation_functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
-            move || (tenant_rws.get().0, org_rws.get().0),
+            move || (workspace.get().0, org.get().0),
             |(current_tenant, org)| async move {
                 let fn_filters = ListFunctionFilters {
                     function_type: None,
@@ -93,7 +93,7 @@ where
         );
 
     let type_template_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(current_tenant, org)| async move {
             fetch_types(&PaginationParams::all_entries(), current_tenant, org)
                 .await
@@ -131,8 +131,8 @@ where
                     // Call update_default_config when edit is true
                     update_default_config(
                         f_name,
-                        tenant_rws.get_untracked().0,
-                        org_rws.get_untracked().0,
+                        workspace.get_untracked().0,
+                        org.get_untracked().0,
                         f_value,
                         f_schema,
                         fun_name,
@@ -144,8 +144,8 @@ where
                 } else {
                     // Call create_default_config when edit is false
                     create_default_config(
-                        tenant_rws.get_untracked().0,
-                        org_rws.get_untracked().0,
+                        workspace.get_untracked().0,
+                        org.get_untracked().0,
                         config_key_rs.get_untracked(),
                         f_value,
                         f_schema,

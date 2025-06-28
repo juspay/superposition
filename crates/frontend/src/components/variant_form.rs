@@ -500,8 +500,8 @@ where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
     let variants_rws = RwSignal::new(variants);
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let combined_resource = create_blocking_resource(
         move || {
@@ -509,8 +509,8 @@ where
                 context.clone(),
                 context_data.clone(),
                 default_config.clone(),
-                tenant_rws.get_untracked().0,
-                org_rws.get_untracked().0,
+                workspace.get_untracked().0,
+                org.get_untracked().0,
             )
         },
         |(context, context_data, default_config, tenant, org_id)| async move {

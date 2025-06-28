@@ -93,8 +93,8 @@ fn form(
     #[prop(into)] handle_submit: Callback<bool, ()>,
     #[prop(default = String::new())] description: String,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
@@ -120,22 +120,22 @@ fn form(
             let f_overrides = overrides_rs.get_untracked();
             let result = if let Some(context_id) = edit_id.get_value() {
                 update_context(
-                    tenant_rws.get_untracked().0,
+                    workspace.get_untracked().0,
                     context_id,
                     Map::from_iter(f_overrides),
                     description_rs.get_untracked(),
                     change_reason_rs.get_untracked(),
-                    org_rws.get_untracked().0,
+                    org.get_untracked().0,
                 )
                 .await
             } else {
                 create_context(
-                    tenant_rws.get_untracked().0,
+                    workspace.get_untracked().0,
                     Map::from_iter(f_overrides),
                     context_rs.get_untracked(),
                     description_rs.get_untracked(),
                     change_reason_rs.get_untracked(),
-                    org_rws.get_untracked().0,
+                    org.get_untracked().0,
                 )
                 .await
             };
@@ -230,11 +230,11 @@ fn form(
 fn use_context_data(
     context_id: String,
 ) -> Resource<(String, String, String), Result<(Context, Conditions), String>> {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0, context_id.clone()),
+        move || (workspace.get().0, org.get().0, context_id.clone()),
         |(tenant, org, context_id)| async move {
             get_context(&context_id, &tenant, &org)
                 .await
@@ -369,8 +369,8 @@ fn autofill_experiment_form(
 
 #[component]
 pub fn context_override() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
@@ -406,8 +406,8 @@ pub fn context_override() -> impl IntoView {
     > = create_blocking_resource(
         move || {
             (
-                tenant_rws.get().0,
-                org_rws.get().0,
+                workspace.get().0,
+                org.get().0,
                 pagination_params_rws.get(),
                 context_filters_rws.get(),
                 dimension_params_rws.get(),
@@ -480,8 +480,8 @@ pub fn context_override() -> impl IntoView {
         page_resource.refetch();
         close_drawer("create_exp_drawer");
 
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org = org.get().0;
         let navigate = use_navigate();
         let redirect_url = format!("/admin/{org}/{tenant}/experiments/{experiment_id}");
         navigate(redirect_url.as_str(), Default::default())
@@ -524,8 +524,7 @@ pub fn context_override() -> impl IntoView {
     let on_delete_confirm = Callback::new(move |_| {
         if let Some(id) = delete_id.get().clone() {
             spawn_local(async move {
-                let result =
-                    delete_context(tenant_rws.get().0, id, org_rws.get().0).await;
+                let result = delete_context(workspace.get().0, id, org.get().0).await;
 
                 match result {
                     Ok(_) => {

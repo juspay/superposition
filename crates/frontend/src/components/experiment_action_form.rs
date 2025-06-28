@@ -27,8 +27,8 @@ pub fn experiment_action_form(
     #[prop(into)] handle_submit: Callback<(), ()>,
     #[prop(into)] handle_close: Callback<(), ()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason(&popup_type));
     let (req_inprogress_rs, req_inprogress_ws) = create_signal(false);
     let popup_type = StoredValue::new(popup_type);
@@ -68,8 +68,8 @@ pub fn experiment_action_form(
         let change_reason_value = change_reason_rs.get();
 
         spawn_local(async move {
-            let tenant = tenant_rws.get_untracked().0;
-            let org = org_rws.get_untracked().0;
+            let tenant = workspace.get_untracked().0;
+            let org = org.get_untracked().0;
 
             let result = match popup_type {
                 PopupType::ExperimentPause => {

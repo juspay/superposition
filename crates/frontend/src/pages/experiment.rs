@@ -46,11 +46,11 @@ pub enum PopupType {
 #[component]
 pub fn experiment_page() -> impl IntoView {
     let exp_params = use_params_map();
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let source = move || {
-        let t = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let t = workspace.get().0;
+        let org = org.get().0;
         let exp_id =
             exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
         (exp_id, t, org)

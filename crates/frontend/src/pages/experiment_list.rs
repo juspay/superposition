@@ -336,8 +336,8 @@ fn experiment_table_filter_widget(
 #[component]
 pub fn experiment_list() -> impl IntoView {
     // acquire tenant
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (reset_exp_form, set_exp_form) = create_signal(0);
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<ExperimentListFilters>::extract_non_empty(&query_string).into_inner()
@@ -355,10 +355,10 @@ pub fn experiment_list() -> impl IntoView {
     let combined_resource = create_blocking_resource(
         move || {
             (
-                tenant_rws.get().0,
+                workspace.get().0,
                 filters_rws.get(),
                 pagination_params_rws.get(),
-                org_rws.get().0,
+                org.get().0,
             )
         },
         |(current_tenant, filters, pagination_params, org_id)| async move {
