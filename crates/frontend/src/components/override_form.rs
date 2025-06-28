@@ -64,7 +64,7 @@ fn override_input(
     view! {
         <div class="flex flex-col">
             <div class="form-control">
-                <label class="label justify-start font-mono text-sm gap-2">
+                <label class="label justify-start text-sm gap-2">
                     <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
                     <div class="flex gap-1">
                         <TypeBadge r#type=r#type.clone() />

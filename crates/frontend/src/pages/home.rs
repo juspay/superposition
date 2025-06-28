@@ -48,7 +48,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                 let unique_name = gen_name_id(key, key, &value);
                 view! {
                     <tr>
-                        <td class="min-w-48 max-w-72 font-mono">
+                        <td class="min-w-48 max-w-72">
                             <span
                                 name=format!("{unique_name}-1")
                                 class="config-name"
@@ -59,7 +59,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                                 {key}
                             </span>
                         </td>
-                        <td class="min-w-48 max-w-72 font-mono" style="word-break: break-word;">
+                        <td class="min-w-48 max-w-72" style="word-break: break-word;">
                             <span
                                 name=format!("{unique_name}-2")
                                 class="config-value"
@@ -72,7 +72,8 @@ fn all_context_view(config: Config) -> impl IntoView {
                         </td>
                     </tr>
                 }
-            }).collect_view()
+            })
+            .collect_view()
     };
 
     view! {
@@ -90,7 +91,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                         let conditions: Conditions = context.try_into().unwrap_or_default();
                         view! {
                             <div class="card bg-base-100 shadow gap-4 p-6">
-                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md m-0 w-max">
                                     "Condition"
                                 </h3>
                                 <div class="pl-5">

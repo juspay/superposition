@@ -175,7 +175,7 @@ pub fn table(
                                                     value
                                                     formatter=column.formatter
                                                     row=row.clone()
-                                                    class_name=format!("min-w-48 max-w-106 px-3 break-words font-mono {cell_class_clone} {sticky_class}")
+                                                    class_name=format!("min-w-48 max-w-106 px-3 break-words {cell_class_clone} {sticky_class}")
                                                     is_expandable=column.expandable
                                                 />
                                             }
