@@ -445,7 +445,10 @@ pub fn experiment_list() -> impl IntoView {
                         {move || {
                             let value = combined_resource.get();
                             let pagination_params = pagination_params_rws.get();
-                            let table_columns = experiment_table_columns(filters_rws);
+                            let table_columns = experiment_table_columns(
+                                filters_rws,
+                                workspace_settings.with_value(|ws| ws.strict_mode),
+                            );
                             match value {
                                 Some(v) => {
                                     let data = v

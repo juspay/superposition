@@ -189,7 +189,7 @@ impl From<&Expression> for Operator {
 
 impl From<&Condition> for Operator {
     fn from(value: &Condition) -> Self {
-        (&value.expression).into()
+        Self::from(&value.expression)
     }
 }
 
@@ -204,13 +204,21 @@ impl Operator {
         }
     }
 
-    pub fn to_condition_json_operator(self) -> String {
+    pub fn to_condition_json_operator(&self) -> String {
         match self {
-            Self::Has => "in".to_owned(),
-            Self::Is => "==".to_owned(),
-            Self::In => "in".to_owned(),
-            Self::Between => "<=".to_owned(),
+            Self::Has => "in",
+            Self::Is => "==",
+            Self::In => "in",
+            Self::Between => "<=",
             Self::Other(o) => o,
+        }
+        .to_owned()
+    }
+
+    pub fn strict_mode_display(&self) -> String {
+        match self {
+            Self::Is => self.to_condition_json_operator(),
+            _ => self.to_string(),
         }
     }
 }

@@ -3,7 +3,7 @@ use std::{fmt::Display, ops::Deref, str::FromStr};
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::context::ContextListFilters,
+    api::{context::ContextListFilters, workspace::WorkspaceResponse},
     custom_query::{
         CommaSeparatedQParams, CommaSeparatedStringQParams, CustomQuery, DimensionQuery,
         PaginationParams, QueryMap,
@@ -80,6 +80,7 @@ pub fn context_filter_summary(
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
     filter_node_ref: NodeRef<html::Div>,
 ) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let force_open_rws = RwSignal::new(true);
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
@@ -178,6 +179,7 @@ pub fn context_filter_summary(
                                             id=condition_id
                                             grouped_view=false
                                             class="xl:w-[400px] h-fit"
+                                            strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                                         />
                                     </ConditionCollapseProvider>
                                 </div>
