@@ -1,39 +1,39 @@
+mod types;
+
 use std::collections::HashSet;
 
 use leptos::*;
-use leptos_router::{use_navigate, use_query_map};
+use leptos_router::A;
 use serde_json::{json, Map, Value};
+use superposition_macros::box_params;
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
     custom_query::{CustomQuery, PaginationParams, Query},
 };
+use types::PageParams;
 
-use crate::components::drawer::DrawerButtonStyle;
-use crate::components::table::types::Expandable;
+use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::{
     alert::AlertType,
     button::Button,
     default_config_form::DefaultConfigForm,
     delete_modal::DeleteModal,
     description_icon::InfoDescription,
-    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
+    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
     skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{Column, ColumnSortable, TablePaginationProps},
+        types::{
+            default_column_formatter, Column, ColumnSortable, Expandable,
+            TablePaginationProps,
+        },
         Table,
     },
 };
 use crate::providers::alert_provider::enqueue_alert;
-use crate::query_updater::use_signal_from_query;
+use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{BreadCrums, OrganisationId, Tenant};
-use crate::utils::{
-    get_local_storage, set_local_storage, unwrap_option_or_default_with_error,
-};
-use crate::{
-    api::{delete_default_config, fetch_default_config},
-    components::table::types::default_column_formatter,
-};
+use crate::utils::{unwrap_option_or_default_with_error, use_url_base};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -45,19 +45,43 @@ pub struct RowData {
     pub autocomplete_function_name: Option<String>,
 }
 
+#[derive(Clone)]
+pub enum DrawerType {
+    Create,
+    Edit(RowData),
+    None,
+}
+
 #[component]
 pub fn default_config() -> impl IntoView {
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
-    let enable_grouping = create_rw_signal(false);
-    let filters_rws = create_rw_signal(DefaultConfigFilters::default());
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
+    let filters_rws = use_signal_from_query(move |query_string| {
+        Query::<DefaultConfigFilters>::extract_non_empty(&query_string).into_inner()
     });
+    let page_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PageParams>::extract_non_empty(&query_string).into_inner()
+    });
+    let pagination_params_rws = use_signal_from_query(move |query_string| {
+        if page_params_rws.get_untracked().grouped {
+            PaginationParams::all_entries()
+        } else {
+            Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
+        }
+    });
+    let drawer_type = RwSignal::new(DrawerType::None);
+    let bread_crums =
+        Signal::derive(move || get_bread_crums(page_params_rws.get().prefix));
 
-    // use_param_updater(move || box_params!(pagination_params_rws.get()));
+    use_param_updater(move || {
+        box_params!(
+            pagination_params_rws.get(),
+            page_params_rws.get(),
+            filters_rws.get()
+        )
+    });
 
     let default_config_resource = create_blocking_resource(
         move || {
@@ -75,21 +99,10 @@ pub fn default_config() -> impl IntoView {
         },
     );
 
-    let selected_config = create_rw_signal::<Option<RowData>>(None);
-    let key_prefix = create_rw_signal::<Option<String>>(None);
-    let query_params = use_query_map();
-    let bread_crums = Signal::derive(move || get_bread_crums(key_prefix.get()));
-
-    let set_filters_all =
-        move || pagination_params_rws.set(PaginationParams::all_entries());
-
-    let set_filters_default =
-        move || pagination_params_rws.set(PaginationParams::default());
-
     let confirm_delete = Callback::new(move |_| {
         let tenant = tenant_rws.get().0;
         let org = org_rws.get().0;
-        let prefix = key_prefix.get().unwrap_or_default();
+        let prefix = page_params_rws.with(|p| p.prefix.clone().unwrap_or_default());
         if let Some(key_name) = delete_key_rs.get() {
             spawn_local({
                 async move {
@@ -117,40 +130,6 @@ pub fn default_config() -> impl IntoView {
         delete_modal_visible_ws.set(false);
     });
 
-    create_effect(move |_| {
-        let enable_grouping_val =
-            get_local_storage::<bool>("enable_grouping").unwrap_or(false);
-        enable_grouping.set(enable_grouping_val);
-        if enable_grouping_val {
-            set_filters_all();
-        } else {
-            set_filters_default();
-        }
-    });
-    create_effect(move |_| {
-        let query_params_map = query_params.try_get();
-        if let Some(query_map) = query_params_map {
-            let opt_prefix = query_map.get("prefix");
-            key_prefix.set(opt_prefix.cloned());
-            if opt_prefix.is_some() {
-                enable_grouping.set(true);
-                set_filters_all();
-            }
-        }
-    });
-
-    let folder_click_handler = move |key_name: Option<String>| {
-        let tenant = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
-        let mut redirect_url = format!("admin/{org_id}/{tenant}/default-config");
-        if let Some(prefix) = key_name {
-            redirect_url = format!("{redirect_url}?prefix={prefix}")
-        }
-        logging::log!("redirecting to {:?}", redirect_url.clone());
-        let navigate = use_navigate();
-        navigate(redirect_url.as_str(), Default::default());
-    };
-
     let handle_next_click = Callback::new(move |next_page: i64| {
         pagination_params_rws.update(|f| f.page = Some(next_page));
     });
@@ -159,8 +138,19 @@ pub fn default_config() -> impl IntoView {
         pagination_params_rws.update(|f| f.page = Some(prev_page));
     });
 
+    let redirect_url = move |prefix: Option<String>| -> String {
+        let base = use_url_base();
+        let tenant = tenant_rws.get_untracked().0;
+        let org_id = org_rws.get_untracked().0;
+        let mut redirect_url = format!("{base}/admin/{org_id}/{tenant}/default-config");
+        if let Some(prefix) = prefix {
+            redirect_url = format!("{redirect_url}?prefix={prefix}");
+        }
+        redirect_url
+    };
+
     let table_columns = create_memo(move |_| {
-        let grouping_enabled = enable_grouping.get();
+        let grouped = page_params_rws.with(|p| p.grouped);
         let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
             let row_key = row["key"].to_string().replace('"', "");
             let is_folder = row_key.contains('.');
@@ -196,7 +186,7 @@ pub fn default_config() -> impl IntoView {
                     autocomplete_function_name: autocomplete_function_name.clone(),
                 };
                 logging::log!("{:?}", row_data);
-                selected_config.set(Some(row_data));
+                drawer_type.set(DrawerType::Edit(row_data));
                 open_drawer("default_config_drawer");
             };
 
@@ -205,7 +195,7 @@ pub fn default_config() -> impl IntoView {
                 delete_modal_visible_ws.set(true);
             };
 
-            if is_folder && grouping_enabled {
+            if is_folder && grouped {
                 view! { <span>{"-"}</span> }.into_view()
             } else {
                 view! {
@@ -238,21 +228,20 @@ pub fn default_config() -> impl IntoView {
                 .unwrap_or("")
                 .to_string();
 
-            if is_folder && grouping_enabled {
-                view! {
-                    <span
-                        class="cursor-pointer text-blue-500 underline underline-offset-2"
-                        on:click=move |_| {
-                            let mut key = key_name.clone();
-                            if let Some(prefix_) = key_prefix.get() {
-                                key = prefix_.clone() + &key;
-                            }
-                            folder_click_handler(Some(key.clone()))
-                        }
-                    >
+            if is_folder && grouped {
+                let prefix = page_params_rws.with(|p| {
+                    p.prefix
+                        .as_ref()
+                        .map_or_else(|| key_name.clone(), |p| format!("{p}{key_name}"))
+                });
 
+                view! {
+                    <A
+                        class="cursor-pointer text-blue-500 underline underline-offset-2"
+                        href=redirect_url(Some(prefix))
+                    >
                         {label}
-                    </span>
+                    </A>
                 }
                 .into_view()
             } else {
@@ -291,7 +280,7 @@ pub fn default_config() -> impl IntoView {
     });
 
     let handle_close = move || {
-        selected_config.set(None);
+        drawer_type.set(DrawerType::None);
         close_drawer("default_config_drawer");
     };
 
@@ -300,52 +289,59 @@ pub fn default_config() -> impl IntoView {
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
-
                 {move || {
-                    let prefix = key_prefix.get();
-                    if let Some(selected_config_data) = selected_config.get() {
-                        view! {
-                            <Drawer
-                                id="default_config_drawer".to_string()
-                                header="Edit Key"
-                                handle_close=handle_close
-                            >
-                                <DefaultConfigForm
-                                    edit=true
-                                    config_key=selected_config_data.key
-                                    config_value=selected_config_data.value
-                                    type_schema=selected_config_data.schema
-                                    description=selected_config_data.description
-                                    validation_function_name=selected_config_data.validation_function_name
-                                    autocomplete_function_name=selected_config_data.autocomplete_function_name
-                                    prefix
-                                    handle_submit=move || {
-                                        default_config_resource.refetch();
-                                        selected_config.set(None);
-                                        close_drawer("default_config_drawer");
-                                    }
-                                />
+                    let prefix = page_params_rws.with(|p| p.prefix.clone());
+                    match drawer_type.get() {
+                        DrawerType::Edit(selected_config_data) => {
+                            view! {
+                                <Drawer
+                                    id="default_config_drawer".to_string()
+                                    header="Edit Key"
+                                    handle_close=handle_close
+                                >
+                                    <DefaultConfigForm
+                                        edit=true
+                                        config_key=selected_config_data.key
+                                        config_value=selected_config_data.value
+                                        type_schema=selected_config_data.schema
+                                        description=selected_config_data.description
+                                        validation_function_name=selected_config_data
+                                            .validation_function_name
+                                        autocomplete_function_name=selected_config_data
+                                            .autocomplete_function_name
+                                        prefix
+                                        handle_submit=move || {
+                                            default_config_resource.refetch();
+                                            handle_close();
+                                        }
+                                    />
 
-                            </Drawer>
+                                </Drawer>
+                            }
                         }
-                    } else {
-                        view! {
-                            <Drawer
-                                id="default_config_drawer".to_string()
-                                header="Create New Key"
-                                handle_close=handle_close
-                            >
-                                <DefaultConfigForm
-                                    prefix
-                                    handle_submit=move || {
-                                        default_config_resource.refetch();
-                                        selected_config.set(None);
-                                        close_drawer("default_config_drawer");
-                                    }
-                                />
+                        DrawerType::Create => {
+                            view! {
+                                <Drawer
+                                    id="default_config_drawer".to_string()
+                                    header="Create New Key"
+                                    handle_close=handle_close
+                                >
+                                    <DefaultConfigForm
+                                        prefix
+                                        handle_submit=move || {
+                                            filters_rws.set(DefaultConfigFilters::default());
+                                            if !page_params_rws.with(|p| p.grouped) {
+                                                pagination_params_rws.set(PaginationParams::default());
+                                            }
+                                            default_config_resource.refetch();
+                                            handle_close();
+                                        }
+                                    />
 
-                            </Drawer>
+                                </Drawer>
+                            }
                         }
+                        DrawerType::None => ().into_view(),
                     }
                 }}
                 {move || {
@@ -363,20 +359,22 @@ pub fn default_config() -> impl IntoView {
                             ele_map
                         })
                         .collect::<Vec<Map<String, Value>>>();
-                    let mut filtered_rows = table_rows.clone();
-                    if enable_grouping.get() {
-                        let empty_map = Map::new();
+                    let mut filtered_rows = table_rows;
+                    let page_params = page_params_rws.get();
+                    if page_params.grouped {
                         let cols = filtered_rows
                             .first()
-                            .unwrap_or(&empty_map)
-                            .keys()
-                            .map(|key| key.as_str())
-                            .collect();
-                        filtered_rows = modify_rows(filtered_rows.clone(), key_prefix.get(), cols);
+                            .map(|row| row.keys().cloned().collect())
+                            .unwrap_or_default();
+                        filtered_rows = modify_rows(
+                            filtered_rows.clone(),
+                            page_params.prefix,
+                            cols,
+                        );
                     }
                     let total_default_config_keys = default_config.total_items.to_string();
                     let pagination_params = pagination_params_rws.get();
-                    let (current_page, total_pages) = if enable_grouping.get() {
+                    let (current_page, total_pages) = if page_params.grouped {
                         (1, 1)
                     } else {
                         (pagination_params.page.unwrap_or_default(), default_config.total_pages)
@@ -400,42 +398,46 @@ pub fn default_config() -> impl IntoView {
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between pb-2">
-                                    <BreadCrums
-                                        bread_crums=bread_crums.get()
-                                        folder_click_handler
-                                    />
+                                    <BreadCrums bread_crums=bread_crums.get() redirect_url />
                                     <div class="flex">
                                         <label
                                             on:click=move |_| {
-                                                folder_click_handler(None);
-                                                enable_grouping.set(!enable_grouping.get());
-                                                set_local_storage(
-                                                    "enable_grouping",
-                                                    &enable_grouping.get().to_string(),
-                                                );
-                                                if enable_grouping.get() {
-                                                    set_filters_all();
-                                                } else {
-                                                    set_filters_default();
+                                                page_params_rws
+                                                    .update(|params| {
+                                                        params.grouped = !params.grouped;
+                                                        params.prefix = None;
+                                                    });
+                                                let grouped = page_params_rws.with(|p| p.grouped);
+                                                if !grouped {
+                                                    pagination_params_rws.set(PaginationParams::default());
                                                 }
                                             }
-
                                             class="cursor-pointer label mr-10"
                                         >
-                                            <span class="label-text mr-4">Enable Grouping</span>
+                                            <span class="label-text mr-4">Group Configs</span>
                                             <input
                                                 type="checkbox"
                                                 class="toggle toggle-primary"
-                                                checked=enable_grouping.get()
+                                                checked=page_params_rws.with(|p| p.grouped)
                                             />
                                         </label>
-                                        <DrawerBtn drawer_id="default_config_drawer"
-                                            .to_string()>
-                                            Create Key <i class="ri-edit-2-line ml-2"></i>
+                                        <DrawerBtn
+                                            drawer_id="default_config_drawer".to_string()
+                                            on_click=Callback::new(move |_| {
+                                                drawer_type.set(DrawerType::Create);
+                                                open_drawer("default_config_drawer");
+                                            })
+                                        >
+                                            Create Key
+                                            <i class="ri-edit-2-line ml-2"></i>
                                         </DrawerBtn>
                                     </div>
                                 </div>
-                                <DefaultConfigFilterWidget filters_rws key_prefix />
+                                <DefaultConfigFilterWidget
+                                    filters_rws
+                                    pagination_params_rws
+                                    prefix=page_params_rws.with(|p| p.prefix.clone())
+                                />
                                 <Table
                                     rows=filtered_rows
                                     key_column="id".to_string()
@@ -459,40 +461,32 @@ pub fn default_config() -> impl IntoView {
 }
 
 #[component]
-pub fn bread_crums<NF>(
+pub fn bread_crums(
     bread_crums: Vec<BreadCrums>,
-    folder_click_handler: NF,
-) -> impl IntoView
-where
-    NF: Fn(Option<String>) + 'static + Clone,
-{
+    #[prop(into)] redirect_url: Callback<Option<String>, String>,
+) -> impl IntoView {
     view! {
         <div class="flex justify-between pt-3">
-
             {bread_crums
                 .iter()
                 .map(|ele| {
-                    let value = ele.value.clone();
-                    let is_link = ele.is_link;
-                    let handler = folder_click_handler.clone();
                     view! {
                         <h2 class="flex after:content-['>'] after:mx-4 after:last:hidden">
-                            <span
-                                on:click=move |_| {
-                                    if is_link {
-                                        handler(value.clone())
-                                    }
+                            {if ele.is_link {
+                                let href = redirect_url.call(ele.value.clone());
+                                let label = ele.key.clone();
+                                view! {
+                                    <A
+                                        class="flex after:content-['>'] after:mx-4 after:last:hidden placeholder:cursor-pointer text-blue-500 underline underline-offset-2"
+                                        href
+                                    >
+                                        {label}
+                                    </A>
                                 }
-
-                                class=if ele.is_link {
-                                    "cursor-pointer text-blue-500 underline underline-offset-2"
-                                } else {
-                                    ""
-                                }
-                            >
-
-                                {ele.key.clone()}
-                            </span>
+                                    .into_view()
+                            } else {
+                                view! { <span>{ele.key.clone()}</span> }.into_view()
+                            }}
                         </h2>
                     }
                 })
@@ -539,8 +533,9 @@ pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
 
 #[component]
 fn default_config_filter_widget(
+    pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<DefaultConfigFilters>,
-    key_prefix: RwSignal<Option<String>>,
+    #[prop(into)] prefix: Option<String>,
 ) -> impl IntoView {
     let filters = filters_rws.get_untracked();
     let filters_buffer_rws = create_rw_signal(filters.clone());
@@ -567,13 +562,12 @@ fn default_config_filter_widget(
                         id="default-config-name-filter"
                         placeholder="eg: city"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        value=move || {
-                            let prefix = key_prefix.get();
-                            if prefix.is_some() && filters_buffer_rws.get().name.is_none() {
-                                prefix
-                            } else {
-                                filters_buffer_rws.get().name
-                            }
+                        value=if prefix.is_some()
+                            && filters_buffer_rws.get_untracked().name.is_none()
+                        {
+                            prefix
+                        } else {
+                            filters_buffer_rws.get_untracked().name
                         }
                         on:change=move |event| {
                             let key_name = event_target_value(&event);
@@ -592,6 +586,7 @@ fn default_config_filter_widget(
                         on_click=move |event| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
+                            pagination_params_rws.update(|f| f.reset_page());
                             filters_rws.set(filter);
                             close_drawer("default_config_filter_drawer")
                         }
@@ -602,6 +597,7 @@ fn default_config_filter_widget(
                         on_click=move |event| {
                             event.prevent_default();
                             let filters = DefaultConfigFilters::default();
+                            pagination_params_rws.update(|f| f.reset_page());
                             filters_rws.set(filters);
                             close_drawer("default_config_filter_drawer")
                         }
@@ -616,29 +612,32 @@ fn default_config_filter_widget(
 pub fn modify_rows(
     filtered_rows: Vec<Map<String, Value>>,
     key_prefix: Option<String>,
-    cols: Vec<&str>,
+    cols: Vec<String>,
 ) -> Vec<Map<String, Value>> {
     let mut groups: HashSet<String> = HashSet::new();
     let mut grouped_rows: Vec<Map<String, Value>> = filtered_rows
         .into_iter()
         .filter_map(|mut ele| {
-            let key = ele.get("key").unwrap().to_owned();
+            let key = ele
+                .get("key")
+                .and_then(|v| v.as_str())
+                .map(String::from)
+                .unwrap_or_default();
 
             let key_arr = match &key_prefix {
                 Some(prefix) => key
-                    .to_string()
-                    .split(prefix)
-                    .map(str::to_string)
+                    .splitn(2, prefix)
+                    .map(String::from)
                     .collect::<Vec<String>>(),
-                None => vec!["".to_string(), key.to_string()],
+                None => vec!["".to_string(), key],
             };
             // key_arr.get(1) retrieves the remaining part of the key, after removing the prefix.
             if let Some(filtered_key) = key_arr.get(1) {
                 let new_key = filtered_key
                     .split('.')
-                    .map(str::to_string)
+                    .map(String::from)
                     .collect::<Vec<String>>();
-                let key = new_key.first().unwrap().to_owned().replace('"', "");
+                let key = new_key.first().map(String::from).unwrap_or_default();
                 if new_key.len() == 1 {
                     // key
                     ele.insert("key".to_string(), json!(key));
@@ -649,7 +648,7 @@ pub fn modify_rows(
                         cols.iter().for_each(|col| {
                             ele.insert(
                                 col.to_string(),
-                                json!(if *col == "key" {
+                                Value::String(if *col == "key" {
                                     folder.clone()
                                 } else {
                                     "-".to_string()

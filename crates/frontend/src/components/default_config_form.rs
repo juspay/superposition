@@ -1,12 +1,13 @@
 pub mod utils;
 
-use leptos::*;
+use leptos::{html::Div, *};
 use serde_json::Value;
 use superposition_types::{
     api::functions::ListFunctionFilters,
     custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
+use wasm_bindgen::JsCast;
 use web_sys::MouseEvent;
 
 use crate::{
@@ -48,7 +49,11 @@ where
     let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
     let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
 
-    let (config_key_rs, config_key_ws) = create_signal(config_key);
+    let (config_key_rs, config_key_ws) = create_signal(
+        prefix
+            .as_ref()
+            .map_or_else(|| config_key.clone(), |p| format!("{p}{config_key}")),
+    );
     let (config_type_rs, config_type_ws) = create_signal(config_type);
     let (config_schema_rs, config_schema_ws) = create_signal(type_schema);
     let (config_value_rs, config_value_ws) = create_signal(config_value);
@@ -109,16 +114,13 @@ where
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
         ev.prevent_default();
-        let f_name = prefix.clone().map_or_else(
-            || config_key_rs.get(),
-            |prefix| prefix + &config_key_rs.get(),
-        );
-        let f_schema = config_schema_rs.get();
-        let f_value = config_value_rs.get();
+        let f_name = config_key_rs.get_untracked();
+        let f_schema = config_schema_rs.get_untracked();
+        let f_value = config_value_rs.get_untracked();
 
-        let fun_name = validation_fn_name_rs.get();
-        let description = description_rs.get();
-        let change_reason = change_reason_rs.get();
+        let fun_name = validation_fn_name_rs.get_untracked();
+        let description = description_rs.get_untracked();
+        let change_reason = change_reason_rs.get_untracked();
 
         let handle_submit_clone = handle_submit.clone();
         let is_edit = edit;
@@ -129,8 +131,8 @@ where
                     // Call update_default_config when edit is true
                     update_default_config(
                         f_name,
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        tenant_rws.get_untracked().0,
+                        org_rws.get_untracked().0,
                         f_value,
                         f_schema,
                         fun_name,
@@ -142,8 +144,8 @@ where
                 } else {
                     // Call create_default_config when edit is false
                     create_default_config(
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        tenant_rws.get_untracked().0,
+                        org_rws.get_untracked().0,
                         config_key_rs.get_untracked(),
                         f_value,
                         f_schema,
@@ -182,29 +184,60 @@ where
             }
         });
     };
+
+    let scroll_ref = create_node_ref::<Div>();
+
+    // Helper to scroll the div to center
+    Effect::new(move |_| {
+        if let Some(elem) = scroll_ref.get() {
+            if let Some(elem) = elem.dyn_ref::<web_sys::HtmlDivElement>() {
+                let scroll_width = elem.scroll_width();
+                let client_width = elem.client_width();
+                let center = (scroll_width - client_width) / 2;
+                elem.set_scroll_left(center);
+            }
+        }
+    });
+
     view! {
         <EditorProvider>
             <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Key Name</span>
+                        <span class="label-text">"Key Name"</span>
                     </label>
-                    <input
-                        disabled=edit
-                        type="text"
-                        placeholder="Key"
-                        class="input input-bordered w-full max-w-md"
-                        value=config_key_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            config_key_ws.set(value);
-                        }
-                    />
-
+                    <div class="input input-bordered w-full max-w-md p-0 flex" disabled=edit>
+                        <div
+                            node_ref=scroll_ref
+                            class="w-full px-4 py-2 flex items-center overflow-x-scroll whitespace-nowrap"
+                            style="scrollbar-gutter: stable;"
+                        >
+                            {prefix.as_ref().map(|p| view! {
+                                <span class="text-gray-500 select-none">{p}</span>
+                            })}
+                            <input
+                                disabled=edit
+                                type="text"
+                                placeholder="Enter your key"
+                                class="flex-shrink-0 min-w-0 w-kull bg-transparent focus:outline-none"
+                                value=config_key_rs
+                                    .with_untracked(|k| {
+                                        k.strip_prefix(&prefix.clone().unwrap_or_default())
+                                            .map(String::from)
+                                            .unwrap_or_else(|| k.clone())
+                                    })
+                                on:input=move |ev| {
+                                    let value = event_target_value(&ev);
+                                    config_key_ws
+                                        .set(format!("{}{value}", prefix.clone().unwrap_or_default()));
+                                }
+                            />
+                        </div>
+                    </div>
                 </div>
                 <Suspense>
                     {move || {
-                        let options = type_template_resource.get().unwrap_or(vec![]);
+                        let options = type_template_resource.get().unwrap_or_default();
                         let config_t = if config_type_rs.get().is_empty() && edit {
                             "change current type template".into()
                         } else if config_type_rs.get().is_empty() && !edit {
@@ -358,10 +391,15 @@ where
                 <Suspense>
                     {move || {
                         let mut functions = validation_functions_resource.get().unwrap_or_default();
-                        let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
-                        let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                        let mut validation_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
+                        let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
                         functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                        functions.iter()
+                        functions
+                            .iter()
                             .for_each(|ele| {
                                 if ele.function_type == FunctionType::Validation {
                                     validation_function_names.push(ele.function_name.clone());

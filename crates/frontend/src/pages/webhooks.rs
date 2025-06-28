@@ -213,7 +213,7 @@ pub fn webhooks() -> impl IntoView {
                     let options = RwSignal::new(events);
 
                     view! {
-                        <Badge options=options.read_only() />
+                        <Badge options />
                     }
                 },
                 ColumnSortable::No,

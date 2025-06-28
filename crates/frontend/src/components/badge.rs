@@ -4,7 +4,7 @@ use super::dropdown::utils::DropdownOption;
 
 #[component]
 pub fn badge<T>(
-    options: ReadSignal<Vec<T>>,
+    #[prop(into)] options: Signal<Vec<T>>,
     #[prop(default=Callback::new(|_| {}))] handle_remove: Callback<T, ()>,
     #[prop(default = false)] deletable: bool,
 ) -> impl IntoView
