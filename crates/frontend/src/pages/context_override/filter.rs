@@ -113,14 +113,16 @@ pub fn context_filter_summary(
                 }
             >
                 <div
-                    class=format!("h-max max-w-[1000px] pt-1 px-0.5 border-[1.5px] border-solid border-purple-400 rounded-[10px] ease-in-out duration-300 tranisition-[width] cursor-pointer {}", if scrolled_to_top.get() { "shadow-md" } else { "" })
+                    class=format!(
+                        "h-max max-w-[1000px] pt-1 px-0.5 border-[1.5px] border-solid border-purple-400 rounded-[10px] ease-in-out duration-300 tranisition-[width] cursor-pointer {}",
+                        if scrolled_to_top.get() { "shadow-md" } else { "" },
+                    )
                     // on:click=move |_| force_open_rws.set(!summary_expanded.get())
                     on:click=move |_| {
                         if scrolled_to_top.get() {
                             force_open_rws.update(|f| *f = !*f);
                         }
                     }
-
                 >
                     <i class=move || {
                         format!(
@@ -404,11 +406,12 @@ pub fn context_filter_drawer(
                         text="Submit".to_string()
                         on_click=move |event| {
                             event.prevent_default();
-                            pagination_params_rws.update(|f| {
-                                context_filters_rws.set_untracked(filters_buffer_rws.get());
-                                dimension_params_rws.set_untracked(dimension_buffer_rws.get());
-                                f.reset_page()
-                            });
+                            pagination_params_rws
+                                .update(|f| {
+                                    context_filters_rws.set_untracked(filters_buffer_rws.get());
+                                    dimension_params_rws.set_untracked(dimension_buffer_rws.get());
+                                    f.reset_page()
+                                });
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -418,11 +421,13 @@ pub fn context_filter_drawer(
                         icon_class="ri-restart-line".into()
                         on_click=move |event| {
                             event.prevent_default();
-                            pagination_params_rws.update(|f| {
-                                context_filters_rws.set_untracked(ContextListFilters::default());
-                                dimension_params_rws.set_untracked(DimensionQuery::default());
-                                f.reset_page()
-                        });
+                            pagination_params_rws
+                                .update(|f| {
+                                    context_filters_rws
+                                        .set_untracked(ContextListFilters::default());
+                                    dimension_params_rws.set_untracked(DimensionQuery::default());
+                                    f.reset_page()
+                                });
                             close_drawer("context_filter_drawer")
                         }
                     />

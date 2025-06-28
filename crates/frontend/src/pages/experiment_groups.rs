@@ -156,7 +156,11 @@ fn experiment_group_info(group: StoredValue<ExperimentGroup>) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body flex flex-row gap-2 flex-wrap">
-                <ConditionComponent conditions id="experiment-group-context" class="h-fit w-[300px]" />
+                <ConditionComponent
+                    conditions
+                    id="experiment-group-context"
+                    class="h-fit w-[300px]"
+                />
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Group ID</div>
                     <div class="stat-value text-sm">{group.id}</div>
@@ -309,7 +313,9 @@ pub fn experiment_groups() -> impl IntoView {
                                 <Drawer
                                     id="add_members_group_drawer".to_string()
                                     header="Add members to the group"
-                                    handle_close=move || { close_drawer("add_members_group_drawer") }
+                                    handle_close=move || {
+                                        close_drawer("add_members_group_drawer")
+                                    }
                                 >
                                     <AddExperimentToGroupForm
                                         experiment_group=resource_group

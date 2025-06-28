@@ -76,9 +76,7 @@ pub fn condition_expression(
                     }
                 >
 
-                    <span class="font-medium context_condition text-gray-500">
-                        {dimension}
-                    </span>
+                    <span class="font-medium context_condition text-gray-500">{dimension}</span>
                     <span class="font-medium text-gray-650 context_condition">
                         {operator.to_string()}
                     </span>

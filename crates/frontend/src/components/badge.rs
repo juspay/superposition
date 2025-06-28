@@ -24,8 +24,7 @@ where
                         let label = option.with_value(|o| o.label());
                         view! {
                             <div class="flex justify-between badge badge-primary badge-outline">
-                                {label.to_string()}
-                                <Show when=move || { deletable.get_value() }>
+                                {label.to_string()} <Show when=move || { deletable.get_value() }>
                                     <button
                                         class="btn btn-xs btn-circle btn-ghost"
                                         on:click=move |_| { handle_remove.call(option.get_value()) }

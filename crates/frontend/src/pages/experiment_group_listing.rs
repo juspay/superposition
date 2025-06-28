@@ -601,9 +601,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                         spawn_local(async move {
                             let tenant = tenant_rws.get().0;
                             let org_id = org_rws.get().0;
-                            if let Err(e) = delete(&group_id, &tenant, &org_id)
-                                .await
-                            {
+                            if let Err(e) = delete(&group_id, &tenant, &org_id).await {
                                 logging::error!("Failed to delete experiment group: {}", e);
                                 enqueue_alert(
                                     format!(

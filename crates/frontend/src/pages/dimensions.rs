@@ -239,8 +239,10 @@ pub fn dimensions() -> impl IntoView {
                                     dimension_name=selected_dimension_data.dimension
                                     dimension_schema=selected_dimension_data.schema
                                     dependencies=selected_dimension_data.dependencies
-                                    validation_function_name=selected_dimension_data.validation_function_name
-                                    autocomplete_function_name=selected_dimension_data.autocomplete_function_name
+                                    validation_function_name=selected_dimension_data
+                                        .validation_function_name
+                                    autocomplete_function_name=selected_dimension_data
+                                        .autocomplete_function_name
                                     dimensions
                                     handle_submit=move || {
                                         dimensions_resource.refetch();

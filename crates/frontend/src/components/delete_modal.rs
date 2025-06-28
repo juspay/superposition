@@ -25,7 +25,7 @@ pub fn delete_modal(
                                 placeholder="Enter a reason for this change".to_string()
                                 class="my-4".to_string()
                                 value=change_reason_rws.get_untracked()
-                                on_change=Callback::new(move |new_reason| change_reason_rws.set(new_reason))
+                                on_change=move |new_reason| change_reason_rws.set(new_reason)
                             />
                         </Show>
                         <div class="flex justify-end space-x-4">

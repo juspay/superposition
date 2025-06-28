@@ -143,13 +143,17 @@ pub fn experiment_conclude_form(
                             let disabled = req_inprogess_rws.get();
                             let (label, button_type_class) = match variant.variant_type {
                                 VariantType::CONTROL => ("Control".to_string(), "btn-info"),
-                                VariantType::EXPERIMENTAL => (format!("Variant-{idx}"), "btn-success"),
+                                VariantType::EXPERIMENTAL => {
+                                    (format!("Variant-{idx}"), "btn-success")
+                                }
                             };
 
                             view! {
                                 <button
                                     disabled=disabled
-                                    class=format!("max-w-md btn btn-block btn-outline {button_type_class}")
+                                    class=format!(
+                                        "max-w-md btn btn-block btn-outline {button_type_class}",
+                                    )
                                     class=("cursor-disabled", disabled)
                                     on:click=move |e| {
                                         e.prevent_default();
@@ -159,8 +163,6 @@ pub fn experiment_conclude_form(
                                     {label}
                                 </button>
                             }
-
-
                         })
                         .collect_view()
                 }

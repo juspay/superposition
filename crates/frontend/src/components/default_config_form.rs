@@ -212,9 +212,11 @@ where
                             class="w-full px-4 py-2 flex items-center overflow-x-scroll whitespace-nowrap"
                             style="scrollbar-gutter: stable;"
                         >
-                            {prefix.as_ref().map(|p| view! {
-                                <span class="text-gray-500 select-none">{p}</span>
-                            })}
+                            {prefix
+                                .as_ref()
+                                .map(|p| {
+                                    view! { <span class="text-gray-500 select-none">{p}</span> }
+                                })}
                             <input
                                 disabled=edit
                                 type="text"
@@ -229,7 +231,9 @@ where
                                 on:input=move |ev| {
                                     let value = event_target_value(&ev);
                                     config_key_ws
-                                        .set(format!("{}{value}", prefix.clone().unwrap_or_default()));
+                                        .set(
+                                            format!("{}{value}", prefix.clone().unwrap_or_default()),
+                                        );
                                 }
                             />
                         </div>

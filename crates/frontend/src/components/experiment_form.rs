@@ -247,7 +247,9 @@ pub fn experiment_form(
                 on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
             />
 
-            <Suspense fallback=move || view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }>
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
                 {move || {
                     let experiment_groups = experiment_groups_resource.get().unwrap_or_default();
                     let mut experiment_options: Vec<Option<String>> = experiment_groups
