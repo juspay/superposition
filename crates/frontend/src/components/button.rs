@@ -23,7 +23,7 @@ pub fn button<F: Fn(MouseEvent) + 'static>(
                     </>
                 }
             } else {
-                view! { <>{text}<i class={format!("{icon_class} pl-2")}></i></> }
+                view! { <>{text}<i class=format!("{icon_class} pl-2")></i></> }
             }}
 
         </button>

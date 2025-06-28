@@ -19,7 +19,9 @@ pub fn expandable_text(
     let get_child = move |val: &str| formatter(val, &row);
     let (is_expanded_rs, is_expanded_ws) = create_signal(false);
     view! {
-        <td class=format!("{class_name} align-top")>
+        <td class=format!(
+            "{class_name} align-top",
+        )>
             {move || {
                 let value = stored_value.get_value();
                 let is_expanded = is_expanded_rs.get();
@@ -175,7 +177,9 @@ pub fn table(
                                                     value
                                                     formatter=column.formatter
                                                     row=row.clone()
-                                                    class_name=format!("min-w-48 max-w-106 px-3 break-words {cell_class_clone} {sticky_class}")
+                                                    class_name=format!(
+                                                        "min-w-48 max-w-106 px-3 break-words {cell_class_clone} {sticky_class}",
+                                                    )
                                                     is_expandable=column.expandable
                                                 />
                                             }

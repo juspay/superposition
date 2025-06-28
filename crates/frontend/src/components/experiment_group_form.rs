@@ -104,7 +104,9 @@ pub fn add_experiment_to_group_form(
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason_rws.get_untracked()
-                on_change=Callback::new(move |new_change_reason| change_reason_rws.set_untracked(new_change_reason))
+                on_change=move |new_change_reason| {
+                    change_reason_rws.set_untracked(new_change_reason)
+                }
             />
             <div class="form-control w-full">
                 <label class="label">

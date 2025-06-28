@@ -112,8 +112,11 @@ pub fn side_nav(
 
     view! {
         <div class="fixed z-990 inset-y-0 xl:left-0 h-full w-full max-w-xs py-4 pl-4 flex flex-col gap-2 overflow-y-auto bg-white xl:bg-transparent rounded-2xl -translate-x-full xl:translate-x-0 transition-transform duration-200">
-            <A href="/admin" class="flex-0 px-8 py-6 text-sm font-semibold text-center text-slate-700 whitespace-nowrap transition-all duration-200">
-                    Superposition Platform
+            <A
+                href="/admin"
+                class="flex-0 px-8 py-6 text-sm font-semibold text-center text-slate-700 whitespace-nowrap transition-all duration-200"
+            >
+                Superposition Platform
             </A>
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }

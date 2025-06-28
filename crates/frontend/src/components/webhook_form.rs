@@ -133,6 +133,11 @@ where
             }
         });
     };
+
+    let method_options = HttpMethod::iter().collect::<Vec<HttpMethod>>();
+    let payload_version_options = PayloadVersion::iter().collect::<Vec<PayloadVersion>>();
+    let events_options = WebhookEvent::iter().collect::<Vec<WebhookEvent>>();
+
     view! {
         <form class="form-control w-full space-y-4 bg-white text-gray-700">
             <div class="form-control">
@@ -213,7 +218,7 @@ where
                     dropdown_text=method_rs.get_untracked().to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={HttpMethod::iter().collect::<Vec<HttpMethod>>()}
+                    dropdown_options=method_options
                     on_select=Callback::new(move |selected_item: HttpMethod| {
                         logging::log!("selected item {:?}", selected_item);
                         method_ws.set(selected_item);
@@ -231,7 +236,7 @@ where
                     dropdown_text=payload_version_rs.get().to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={PayloadVersion::iter().collect::<Vec<PayloadVersion>>()}
+                    dropdown_options=payload_version_options
                     on_select=Callback::new(move |selected_item: PayloadVersion| {
                         logging::log!("selected item {:?}", selected_item);
                         payload_version_ws.set(selected_item);
@@ -247,7 +252,7 @@ where
                     dropdown_text="Add Events".to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={WebhookEvent::iter().collect::<Vec<WebhookEvent>>()}
+                    dropdown_options=events_options
                     selected=events_rs.get()
                     multi_select=true
                     on_select=handle_select_webhook_event_dropdown_option
@@ -266,11 +271,11 @@ where
                         value=Value::Object((*custom_headers_rs.get_untracked()).clone())
                         schema_type=Single(JsonSchemaType::Object)
                         r#type=InputType::Monaco(vec![])
-                        on_change=Callback::new(move |value: Value| {
-                            if let Some(val)= value.as_object() {
+                        on_change=move |value: Value| {
+                            if let Some(val) = value.as_object() {
                                 custom_headers_ws.set(CustomHeaders::from(val.clone()));
                             }
-                        })
+                        }
                     />
                 </EditorProvider>
             </div>

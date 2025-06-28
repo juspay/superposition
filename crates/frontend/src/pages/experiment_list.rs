@@ -304,10 +304,11 @@ fn experiment_table_filter_widget(
                         on_click=move |event| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
-                            pagination_params_rws.update(|f| {
-                                filters_rws.set_untracked(filter);
-                                f.reset_page()
-                            });
+                            pagination_params_rws
+                                .update(|f| {
+                                    filters_rws.set_untracked(filter);
+                                    f.reset_page()
+                                });
                             close_drawer("experiment_filter_drawer")
                         }
                     />
@@ -317,10 +318,11 @@ fn experiment_table_filter_widget(
                         icon_class="ri-restart-line".into()
                         on_click=move |event| {
                             event.prevent_default();
-                            pagination_params_rws.update(|f| {
-                                filters_rws.set_untracked(ExperimentListFilters::default());
-                                f.reset_page()
-                            });
+                            pagination_params_rws
+                                .update(|f| {
+                                    filters_rws.set_untracked(ExperimentListFilters::default());
+                                    f.reset_page()
+                                });
                             close_drawer("experiment_filter_drawer")
                         }
                     />

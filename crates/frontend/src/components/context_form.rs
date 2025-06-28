@@ -465,7 +465,7 @@ where
                                     on_value_change
                                     on_operator_change
                                     tooltip_text
-                                    autocomplete_callbacks = autocomplete_callbacks.clone()
+                                    autocomplete_callbacks=autocomplete_callbacks.clone()
                                 />
                                 {move || {
                                     if last_idx.get() != idx {
