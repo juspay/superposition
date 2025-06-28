@@ -25,12 +25,17 @@ use crate::{
 };
 use leptos::*;
 use serde_json::{json, Map, Value};
-use superposition_types::custom_query::PaginationParams;
+use superposition_types::{
+    api::workspace::WorkspaceResponse, custom_query::PaginationParams,
+};
 
 // this maps the column context and the row config key to a particular value
 type ComparisonTable = HashMap<String, Map<String, Value>>;
 
-fn table_columns(contexts_vector_rws: RwSignal<Vec<String>>) -> Vec<Column> {
+fn table_columns(
+    contexts_vector_rws: RwSignal<Vec<String>>,
+    strict_mode: bool,
+) -> Vec<Column> {
     let contexts = contexts_vector_rws.get();
     let mut fixed_columns = vec![Column::default("config_key".into())];
     let column_formatter = move |value: &str| {
@@ -59,6 +64,7 @@ fn table_columns(contexts_vector_rws: RwSignal<Vec<String>>) -> Vec<Column> {
                             id=remove_column_name.get_value()
                             grouped_view=false
                             class="xl:w-[400px] h-fit"
+                            strict_mode
                         />
                     </ConditionCollapseProvider>
                 </div>
@@ -81,6 +87,7 @@ fn table_columns(contexts_vector_rws: RwSignal<Vec<String>>) -> Vec<Column> {
 
 #[component]
 pub fn compare_overrides() -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
@@ -146,7 +153,10 @@ pub fn compare_overrides() -> impl IntoView {
             }>
                 {move || {
                     let resolved_config_map = resolved_config_resource.get().unwrap_or_default();
-                    let table_columns = table_columns(contexts_vector_rws);
+                    let table_columns = table_columns(
+                        contexts_vector_rws,
+                        workspace_settings.with_value(|w| w.strict_mode),
+                    );
                     let dimensions = dimension_resource.get().unwrap_or_default();
                     let data = resolved_config_map.into_values().collect();
                     let (empty_context_rs, empty_context_ws) = create_signal(Conditions::default());

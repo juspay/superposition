@@ -1,6 +1,8 @@
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_types::database::models::cac::Context;
+use superposition_types::{
+    api::workspace::WorkspaceResponse, database::models::cac::Context,
+};
 
 use crate::{
     components::{
@@ -98,6 +100,7 @@ pub fn context_card(
     #[prop(into)] handle_clone: Callback<String, ()>,
     #[prop(into)] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let conditions: Conditions = (&context).try_into().unwrap_or_default();
     let description = context.description.clone();
     let change_reason = context.change_reason.clone();
@@ -217,6 +220,7 @@ pub fn context_card(
                     conditions=conditions
                     id=context.with_value(|c| c.id.clone())
                     class="xl:w-[400px] h-fit"
+                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                 />
                 <Table
                     rows=override_table_rows

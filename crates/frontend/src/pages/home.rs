@@ -3,6 +3,7 @@ use std::time::Duration;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use strum_macros::Display;
+use superposition_types::api::workspace::WorkspaceResponse;
 use superposition_types::{custom_query::PaginationParams, Config};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
@@ -32,7 +33,7 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 }
 
 #[component]
-fn all_context_view(config: Config) -> impl IntoView {
+fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
     let Config {
         contexts,
         overrides,
@@ -99,6 +100,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                                         conditions=conditions
                                         id=context.id.clone()
                                         class="xl:w-[400px] h-fit"
+                                        strict_mode
                                     />
                                     <div class="overflow-auto pt-5">
                                         <table class="table table-zebra">
@@ -145,6 +147,7 @@ fn all_context_view(config: Config) -> impl IntoView {
 pub fn home() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let config_data = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
         |(tenant, org)| fetch_config(tenant, None, org),
@@ -438,7 +441,12 @@ pub fn home() -> impl IntoView {
                                                 match result {
                                                     Some(Ok(config)) => {
                                                         vec![
-                                                            view! { <AllContextView config=config.clone() /> }
+                                                            view! {
+                                                                <AllContextView
+                                                                    config=config.clone()
+                                                                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
+                                                                />
+                                                            }
                                                                 .into_view(),
                                                         ]
                                                     }

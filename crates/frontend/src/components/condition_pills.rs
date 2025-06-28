@@ -33,6 +33,7 @@ pub fn condition_expression(
     #[prop(into)] id: String,
     #[prop(into)] list_id: String,
     condition: Condition,
+    strict_mode: bool,
 ) -> impl IntoView {
     let id = store_value(id);
     let condition = store_value(condition);
@@ -57,12 +58,17 @@ pub fn condition_expression(
             } else {
                 ("condition-item-collapsed", "condition-value-collapsed")
             };
-            let (dimension, operator, operands): (String, Operator, Vec<String>) = condition
+            let (dimension, operator, operands) = condition
                 .with_value(|v| {
                     (
                         v.variable.clone(),
-                        <&Condition as Into<Operator>>::into(v),
-                        v.expression.to_constants_vec().iter().map(|c| c.html_display()).collect(),
+                        Operator::from(v),
+                        v
+                            .expression
+                            .to_constants_vec()
+                            .iter()
+                            .map(|c| c.html_display())
+                            .collect::<Vec<_>>(),
                     )
                 });
             view! {
@@ -78,7 +84,11 @@ pub fn condition_expression(
 
                     <span class="font-medium context_condition text-gray-500">{dimension}</span>
                     <span class="font-medium text-gray-650 context_condition">
-                        {operator.to_string()}
+                        {if strict_mode {
+                            operator.strict_mode_display()
+                        } else {
+                            operator.to_string()
+                        }}
                     </span>
 
                     {match condition.get_value().expression {
@@ -116,6 +126,7 @@ pub fn condition(
     #[prop(into)] conditions: Conditions,
     #[prop(into, default=String::new())] class: String,
     #[prop(default = true)] grouped_view: bool,
+    strict_mode: bool,
 ) -> impl IntoView {
     let conditions = store_value(conditions);
 
@@ -140,6 +151,7 @@ pub fn condition(
                                 condition=condition.clone()
                                 id=item_id
                                 list_id=id.clone()
+                                strict_mode
                             />
                         }
                     })

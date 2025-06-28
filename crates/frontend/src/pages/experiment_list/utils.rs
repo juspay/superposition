@@ -15,6 +15,7 @@ use web_sys::MouseEvent;
 
 pub fn experiment_table_columns(
     filters_rws: RwSignal<ExperimentListFilters>,
+    strict_mode: bool,
 ) -> Vec<Column> {
     let current_filters = filters_rws.get();
     let current_sort_on = current_filters.sort_on.unwrap_or_default();
@@ -116,7 +117,7 @@ pub fn experiment_table_columns(
         Column::new(
             "context".to_string(),
             false,
-            |_, row: &Map<String, Value>| {
+            move |_, row: &Map<String, Value>| {
                 let context = row
                     .get("context")
                     .and_then(|v| v.as_object().cloned())
@@ -129,7 +130,7 @@ pub fn experiment_table_columns(
 
                 view! {
                     <div class="w-[400px]">
-                        <ConditionComponent conditions grouped_view=false id />
+                        <ConditionComponent conditions grouped_view=false id strict_mode  />
                     </div>
                 }
                 .into_view()
