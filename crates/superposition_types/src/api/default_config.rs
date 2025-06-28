@@ -6,15 +6,16 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
+use superposition_derives::IsEmpty;
 
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::default_configs;
 use crate::{
     database::models::{cac::deserialize_function_name, ChangeReason, Description},
-    RegexEnum,
+    IsEmpty, RegexEnum,
 };
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, IsEmpty)]
 pub struct DefaultConfigFilters {
     pub name: Option<String>,
 }
