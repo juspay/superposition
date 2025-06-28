@@ -36,8 +36,8 @@ pub fn webhook_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (webhook_name_rs, webhook_name_ws) = create_signal(webhook_name);
     let (description_rs, description_ws) = create_signal(description);
@@ -90,8 +90,8 @@ where
                         events,
                         description,
                         change_reason,
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        workspace.get().0,
+                        org.get().0,
                     )
                     .await
                 } else {
@@ -105,8 +105,8 @@ where
                         custom_headers,
                         events,
                         change_reason,
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        workspace.get().0,
+                        org.get().0,
                     )
                     .await
                 };

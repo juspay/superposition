@@ -26,8 +26,8 @@ pub fn type_template_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (error_message, set_error_message) = create_signal("".to_string());
     let (type_name_rs, type_name_ws) = create_signal(type_name);
@@ -53,7 +53,7 @@ where
                         "description": description_rs.get(),
                         "change_reason": change_reason_rs.get(),
                     });
-                    update_type(tenant_rws.get().0, type_name, payload, org_rws.get().0)
+                    update_type(workspace.get().0, type_name, payload, org.get().0)
                         .await
                 } else {
                     let description = description_rs.get();
@@ -64,8 +64,7 @@ where
                         "description": description,
                         "change_reason": change_reason
                     });
-                    create_type(tenant_rws.get().0, payload.clone(), org_rws.get().0)
-                        .await
+                    create_type(workspace.get().0, payload.clone(), org.get().0).await
                 };
 
                 req_inprogress_ws.set(false);

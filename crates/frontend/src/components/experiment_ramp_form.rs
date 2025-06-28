@@ -22,8 +22,8 @@ where
     NF: Fn() + 'static + Clone,
 {
     let (traffic, set_traffic) = create_signal(*experiment.traffic_percentage);
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let range_max = 100 / experiment.variants.len();
     let experiment_rc = Rc::new(experiment);
@@ -33,8 +33,8 @@ where
         let experiment_clone = experiment_rc.clone();
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
-            let tenant = tenant_rws.get_untracked().0;
-            let org = org_rws.get_untracked().0;
+            let tenant = workspace.get_untracked().0;
+            let org = org.get_untracked().0;
             let traffic_value = traffic.get_untracked();
             let result =
                 ramp_experiment(&experiment_clone.id, traffic_value, None, &tenant, &org)

@@ -347,8 +347,8 @@ where
         String::new()
     };
 
-    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let autocomplete_callbacks = dimensions
         .get_value()
         .iter()
@@ -357,7 +357,7 @@ where
                 d.dimension.clone(),
                 d.autocomplete_function_name.clone(),
                 fn_environment,
-                tenant.get_untracked().0,
+                workspace.get_untracked().0,
                 org_id.get_untracked().0,
             )
         })

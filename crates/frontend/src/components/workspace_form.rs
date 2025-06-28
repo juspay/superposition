@@ -22,7 +22,7 @@ use crate::{
 
 #[component]
 pub fn workspace_form(
-    org_id: RwSignal<OrganisationId>,
+    org_id: Signal<OrganisationId>,
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] workspace_admin_email: String,
     #[prop(default = String::new())] workspace_name: String,

@@ -81,20 +81,20 @@ fn table_columns(contexts_vector_rws: RwSignal<Vec<String>>) -> Vec<Column> {
 
 #[component]
 pub fn compare_overrides() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     // this vector stores the list of contexts the user is comparing
     let contexts_vector_rws = create_rw_signal(vec!["default_config".to_string()]);
     let source = move || {
-        let tenant = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org_id = org.get().0;
         let contexts = contexts_vector_rws.get();
         (tenant, org_id, contexts)
     };
     let dimension_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(tenant, org)| async {
             fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
                 .await

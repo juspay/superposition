@@ -180,15 +180,15 @@ fn experiment_group_info(group: StoredValue<ExperimentGroup>) -> impl IntoView {
 #[component]
 pub fn experiment_groups() -> impl IntoView {
     let group_params = use_params_map();
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (delete_modal_rs, delete_modal_ws) = create_signal(false);
     let delete_group_rws = create_rw_signal(RemoveRequest::default());
 
     let source = move || {
-        let tenant_id = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant_id = workspace.get().0;
+        let org_id = org.get().0;
         let group_id =
             group_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
         (group_id, tenant_id, org_id)
@@ -221,8 +221,8 @@ pub fn experiment_groups() -> impl IntoView {
     let confirm_delete = Callback::new(move |change_reason: String| {
         let delete_request = delete_group_rws.get();
         spawn_local(async move {
-            let tenant = tenant_rws.get().0;
-            let org_id = org_rws.get().0;
+            let tenant = workspace.get().0;
+            let org_id = org.get().0;
             let member_experiment_ids =
                 Vec::from([delete_request.experiment_id.parse().unwrap_or_default()]);
             let remove_request = ExpGroupMemberRequest {

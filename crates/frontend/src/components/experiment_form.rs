@@ -87,8 +87,8 @@ pub fn experiment_form(
     let edit_id = StoredValue::new(edit_id);
     let dimensions = StoredValue::new(dimensions);
     let experiment_form_type = StoredValue::new(experiment_form_type);
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
@@ -104,7 +104,7 @@ pub fn experiment_form(
 
     let experiment_groups_resource: Resource<(String, String), Vec<ExperimentGroup>> =
         create_blocking_resource(
-            move || (tenant_rws.get().0, org_rws.get().0),
+            move || (workspace.get().0, org.get().0),
             |(current_tenant, org)| async move {
                 experiment_groups::fetch_all(
                     &ExpGroupFilters::default(),
@@ -151,8 +151,8 @@ pub fn experiment_form(
             .into_iter()
             .map(|(_, variant)| variant)
             .collect::<Vec<VariantFormT>>();
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org = org.get().0;
 
         spawn_local({
             async move {

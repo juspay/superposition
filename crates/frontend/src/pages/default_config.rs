@@ -54,8 +54,8 @@ pub enum DrawerType {
 
 #[component]
 pub fn default_config() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
     let filters_rws = use_signal_from_query(move |query_string| {
@@ -86,9 +86,9 @@ pub fn default_config() -> impl IntoView {
     let default_config_resource = create_blocking_resource(
         move || {
             (
-                tenant_rws.get().0,
+                workspace.get().0,
                 pagination_params_rws.get(),
-                org_rws.get().0,
+                org.get().0,
                 filters_rws.get(),
             )
         },
@@ -100,8 +100,8 @@ pub fn default_config() -> impl IntoView {
     );
 
     let confirm_delete = Callback::new(move |_| {
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org = org.get().0;
         let prefix = page_params_rws.with(|p| p.prefix.clone().unwrap_or_default());
         if let Some(key_name) = delete_key_rs.get() {
             spawn_local({
@@ -140,8 +140,8 @@ pub fn default_config() -> impl IntoView {
 
     let redirect_url = move |prefix: Option<String>| -> String {
         let base = use_url_base();
-        let tenant = tenant_rws.get_untracked().0;
-        let org_id = org_rws.get_untracked().0;
+        let tenant = workspace.get_untracked().0;
+        let org_id = org.get_untracked().0;
         let mut redirect_url = format!("{base}/admin/{org_id}/{tenant}/default-config");
         if let Some(prefix) = prefix {
             redirect_url = format!("{redirect_url}?prefix={prefix}");

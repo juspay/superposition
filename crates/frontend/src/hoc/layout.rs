@@ -14,69 +14,53 @@ use superposition_types::{
     api::workspace::WorkspaceResponse, custom_query::PaginationParams, PaginatedResponse,
 };
 
-pub fn use_tenant() -> Tenant {
+pub fn use_tenant() -> Signal<Tenant> {
     let params_map = use_params_map();
-    let route_context = use_route();
-    logging::log!("use_route-params_map {:?}", params_map.get_untracked());
-    logging::log!(
-        "use_route-original_path {:?}",
-        route_context.original_path()
-    );
-    logging::log!("use_route-path {:?}", route_context.path());
 
-    match params_map.get_untracked().get("tenant") {
+    Signal::derive(move || match params_map.get().get("tenant") {
         Some(tenant) => Tenant(tenant.clone()),
         None => Tenant("no-tenant".into()),
-    }
+    })
 }
 
-pub fn use_org() -> OrganisationId {
+pub fn use_org() -> Signal<OrganisationId> {
     let params_map = use_params_map();
-    let route_context = use_route();
-    logging::log!("use_route-params_map {:?}", params_map.get_untracked());
-    logging::log!(
-        "use_route-original_path {:?}",
-        route_context.original_path()
-    );
-    logging::log!("use_route-path {:?}", route_context.path());
 
-    match params_map.get_untracked().get("org_id") {
+    Signal::derive(move || match params_map.get().get("org_id") {
         Some(org) => OrganisationId(org.clone()),
         None => OrganisationId("no-org".into()),
-    }
+    })
 }
 
 #[component]
 fn workspace_provider(
-    workspace: String,
-    route: String,
+    workspace_context_not_needed: bool,
     workspaces: Resource<String, PaginatedResponse<WorkspaceResponse>>,
     children: ChildrenFn,
 ) -> impl IntoView {
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
     let children = StoredValue::new(children);
-    let workspace = StoredValue::new(workspace);
-    let workspace_context_not_needed =
-        route.eq("/admin/organisations") || route.eq("/admin/:org_id/workspaces");
+
     view! {
         <Suspense fallback=move || {
             view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
+                let workspace = workspace.get().0;
                 let Some(workspace_items) = workspaces.get() else {
                     logging::log!("No workspaces found");
                     return view! { <Skeleton variant=SkeletonVariant::DetailPage /> }.into_view();
                 };
                 if workspace_context_not_needed {
-                    logging::log!("No workspace {} found", workspace.get_value());
+                    logging::log!("No workspace {} found", workspace);
                     return view! { <div>{children.get_value()()}</div> }.into_view();
                 }
                 let Some(workspace_settings) = workspace_items
                     .data
                     .into_iter()
-                    .find(|w| w.workspace_name == workspace.get_value()) else {
+                    .find(|w| w.workspace_name == workspace) else {
                     return view! { <Skeleton variant=SkeletonVariant::DetailPage /> }.into_view();
                 };
-                logging::log!("Setting workspace context: {:#?}", workspace_settings);
                 provide_context(StoredValue::new(workspace_settings));
                 view! { <div>{children.get_value()()}</div> }.into_view()
             }}
@@ -89,12 +73,12 @@ pub fn layout(
     #[prop(default = true)] show_side_nav: bool,
     children: ChildrenFn,
 ) -> impl IntoView {
-    let tenant_rws = create_rw_signal(use_tenant());
-    let org_rws = create_rw_signal(use_org());
-    provide_context(tenant_rws);
-    provide_context(org_rws);
+    let workspace = use_tenant();
+    let org = use_org();
+    provide_context(workspace);
+    provide_context(org);
     let workspaces = create_blocking_resource(
-        move || (org_rws.get().0),
+        move || (org.get().0),
         |org_id| async move {
             let filters = PaginationParams::all_entries();
             fetch_workspaces(&filters, &org_id)
@@ -102,22 +86,11 @@ pub fn layout(
                 .unwrap_or_default()
         },
     );
-    let route_context = use_route();
-    let original_path = StoredValue::new(String::from(route_context.original_path()));
-    let path = StoredValue::new(route_context.path());
     let children = StoredValue::new(children);
     view! {
-        <WorkspaceProvider
-            workspace=tenant_rws.get_untracked().0
-            route=original_path.get_value()
-            workspaces
-        >
+        <WorkspaceProvider workspace_context_not_needed=!show_side_nav workspaces>
             <Show when=move || show_side_nav>
-                <SideNav
-                    resolved_path=path.get_value()
-                    original_path=original_path.get_value()
-                    workspace_resource=workspaces
-                />
+                <SideNav workspace_resource=workspaces />
             </Show>
             // params_map=params_map
             <main class=format!(

@@ -392,8 +392,8 @@ fn experiment_group_filter_widget(
 
 #[component]
 pub fn experiment_group_listing() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<ExpGroupFilters>::extract_non_empty(&query_string).into_inner()
@@ -414,8 +414,8 @@ pub fn experiment_group_listing() -> impl IntoView {
         (
             filters_rws.get(),
             pagination_params_rws.get(),
-            tenant_rws.get().0,
-            org_rws.get().0,
+            workspace.get().0,
+            org.get().0,
         )
     };
 
@@ -599,8 +599,8 @@ pub fn experiment_group_listing() -> impl IntoView {
                             return;
                         }
                         spawn_local(async move {
-                            let tenant = tenant_rws.get().0;
-                            let org_id = org_rws.get().0;
+                            let tenant = workspace.get().0;
+                            let org_id = org.get().0;
                             if let Err(e) = delete(&group_id, &tenant, &org_id).await {
                                 logging::error!("Failed to delete experiment group: {}", e);
                                 enqueue_alert(

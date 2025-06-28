@@ -51,8 +51,8 @@ pub fn dimension_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (position_rs, position_ws) = create_signal(position);
     let (dimension_name_rs, dimension_name_ws) = create_signal(dimension_name);
@@ -68,7 +68,7 @@ where
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
-            move || (tenant_rws.get().0, org_rws.get().0),
+            move || (workspace.get().0, org.get().0),
             |(current_tenant, org)| async move {
                 let fn_filters = ListFunctionFilters {
                     function_type: None,
@@ -85,7 +85,7 @@ where
         );
 
     let type_template_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(current_tenant, org)| async move {
             fetch_types(&PaginationParams::all_entries(), current_tenant, org)
                 .await
@@ -144,10 +144,10 @@ where
                         change_reason: change_reason_rs.get(),
                     };
                     update_dimension(
-                        tenant_rws.get().0,
+                        workspace.get().0,
                         dimension_name,
                         update_payload,
-                        org_rws.get().0,
+                        org.get().0,
                     )
                     .await
                 } else {
@@ -161,8 +161,7 @@ where
                         description: description_rs.get(),
                         change_reason: change_reason_rs.get(),
                     };
-                    create_dimension(tenant_rws.get().0, create_payload, org_rws.get().0)
-                        .await
+                    create_dimension(workspace.get().0, create_payload, org.get().0).await
                 };
 
                 req_inprogress_ws.set(false);

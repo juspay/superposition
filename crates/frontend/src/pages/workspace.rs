@@ -1,5 +1,5 @@
 use leptos::*;
-use leptos_router::use_navigate;
+use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
@@ -23,8 +23,7 @@ use crate::{api::fetch_workspaces, components::table::types::default_column_form
 
 #[component]
 pub fn workspace() -> impl IntoView {
-    let org_id: RwSignal<OrganisationId> =
-        use_context::<RwSignal<OrganisationId>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -114,27 +113,17 @@ pub fn workspace() -> impl IntoView {
             .into_view()
         };
 
-        let navigate_to_workspace = move |org_id: String, workspace_name: String| {
-            let redirect_url = format!("admin/{org_id}/{workspace_name}/default-config");
-            logging::log!("redirecting to {:?}", redirect_url.clone());
-            let navigate = use_navigate();
-            navigate(redirect_url.as_str(), Default::default());
-        };
-
         let navigate = move |_: &str, row: &Map<String, Value>| {
             let org_id = org_id.get().0;
             let workspace_name = row["workspace_name"].to_string().replace('"', "");
-            let navigated_workspace_name = workspace_name.clone();
-            view! {
-                <span
-                    class="cursor-pointer text-blue-500"
-                    on:click=move |_| {
-                        navigate_to_workspace(org_id.clone(), navigated_workspace_name.clone())
-                    }
-                >
 
+            view! {
+                <A
+                    class="cursor-pointer text-blue-500"
+                    href=format!("/admin/{org_id}/{workspace_name}/default-config")
+                >
                     {workspace_name}
-                </span>
+                </A>
             }
             .into_view()
         };

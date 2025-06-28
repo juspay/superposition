@@ -20,8 +20,8 @@ pub fn experiment_conclude_form(
     experiment: ExperimentResponse,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let experiment = StoredValue::new(experiment);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let req_inprogess_rws = RwSignal::new(false);
@@ -30,8 +30,8 @@ pub fn experiment_conclude_form(
     let handle_conclude_experiment = move |variant_id: String| {
         req_inprogess_rws.set(true);
         spawn_local(async move {
-            let tenant = tenant_rws.get_untracked().0;
-            let org = org_rws.get_untracked().0;
+            let tenant = workspace.get_untracked().0;
+            let org = org.get_untracked().0;
             let result = conclude_experiment(
                 experiment.with_value(|e| e.id.clone()),
                 variant_id,
@@ -66,8 +66,8 @@ pub fn experiment_conclude_form(
 
     let handle_discard_experiment = move |change_reason: String| {
         req_inprogess_rws.set(true);
-        let tenant = tenant_rws.get_untracked().0;
-        let org = org_rws.get_untracked().0;
+        let tenant = workspace.get_untracked().0;
+        let org = org.get_untracked().0;
         spawn_local(async move {
             let result = discard_experiment(
                 &experiment.with_value(|e| e.id.clone()),

@@ -38,8 +38,8 @@ pub fn add_experiment_to_group_form(
     experiment_group: StoredValue<ExperimentGroup>,
     handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let members_selected_rws = create_rw_signal(Vec::new());
     let change_reason_rws = create_rw_signal(String::new());
@@ -49,8 +49,8 @@ pub fn add_experiment_to_group_form(
         loading_rws.set(true);
         event.prevent_default();
 
-        let tenant = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org_id = org.get().0;
 
         let change_reason =
             match ChangeReason::try_from(change_reason_rws.get_untracked()) {
@@ -177,8 +177,8 @@ pub fn experiment_group_form(
     is_edit: bool,
     handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let experiment_group_id_rws = create_rw_signal(group_id);
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
@@ -201,8 +201,8 @@ pub fn experiment_group_form(
         loading_rws.set(true);
         event.prevent_default();
 
-        let tenant = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org_id = org.get().0;
 
         let change_reason =
             match ChangeReason::try_from(change_reason_rws.get_untracked()) {

@@ -143,14 +143,14 @@ fn all_context_view(config: Config) -> impl IntoView {
 
 #[component]
 pub fn home() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let config_data = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(tenant, org)| fetch_config(tenant, None, org),
     );
     let dimension_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(tenant, org)| async {
             fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
                 .await
@@ -253,9 +253,9 @@ pub fn home() -> impl IntoView {
         spawn_local(async move {
             let context = context_updated.as_query_string();
             let mut config = resolve_config(
-                &tenant_rws.get_untracked().0,
+                &workspace.get_untracked().0,
                 &context,
-                &org_rws.get_untracked().0,
+                &org.get_untracked().0,
                 true,
                 None,
             )

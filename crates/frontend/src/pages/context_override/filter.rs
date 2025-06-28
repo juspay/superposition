@@ -51,8 +51,8 @@ where
 
     view! {
         <div class="flex gap-2 items-center">
-            <div class="min-w-fit flex gap-[2px] text-xs">
-                {label} <span class="text-[10px] text-slate-400">{"(any of)"}</span>
+            <div class="min-w-fit flex items-center gap-[2px] text-xs">
+                {label} <span class="text-[10px] text-slate-400">"(any of)"</span>
             </div>
             <div class="flex gap-[2px] items-center flex-wrap">
                 {items
@@ -345,7 +345,7 @@ pub fn context_filter_drawer(
                 </div>
                 <div class="form-control">
                     <label class="label flex flex-col items-start justify-center">
-                        <div class="flex gap-1 label-text font-semibold text-base">
+                        <div class="flex items-center gap-1 label-text font-semibold text-base">
                             {"Created By"}
                             <span class="text-sm font-normal text-slate-400">"(any of)"</span>
                         </div>
@@ -373,12 +373,12 @@ pub fn context_filter_drawer(
                 </div>
                 <div class="form-control">
                     <label class="label flex flex-col items-start justify-center">
-                        <div class="flex gap-1 label-text font-semibold text-base">
-                            {"Last Modified By"}
+                        <div class="flex items-center gap-1 label-text font-semibold text-base">
+                            "Last Modified By"
                             <span class="text-sm font-normal text-slate-400">"(any of)"</span>
                         </div>
                         <span class="label-text text-slate-400">
-                            {"Separate each user by a comma"}
+                            "Separate each user by a comma"
                         </span>
                     </label>
                     <input

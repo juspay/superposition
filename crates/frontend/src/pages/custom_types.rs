@@ -33,10 +33,10 @@ const TYPE_DRAWER_ID: &str = "type_template_drawer";
 
 #[component]
 pub fn types_page() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let types_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(t, org_id)| async move {
             fetch_types(&PaginationParams::default(), t, org_id)
                 .await
@@ -56,8 +56,8 @@ pub fn types_page() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(row_data) = delete_row_rs.get().clone() {
             spawn_local(async move {
-                let tenant = tenant_rws.get().0;
-                let org = org_rws.get().0;
+                let tenant = workspace.get().0;
+                let org = org.get().0;
                 let api_response =
                     delete_type(tenant, row_data.clone().type_name, org).await;
                 match api_response {

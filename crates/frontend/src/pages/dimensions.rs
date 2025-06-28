@@ -36,8 +36,8 @@ pub struct RowData {
 
 #[component]
 pub fn dimensions() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
@@ -49,9 +49,9 @@ pub fn dimensions() -> impl IntoView {
     let dimensions_resource = create_blocking_resource(
         move || {
             (
-                tenant_rws.get().0,
+                workspace.get().0,
                 pagination_params_rws.get(),
-                org_rws.get().0,
+                org.get().0,
             )
         },
         |(current_tenant, pagination_params, org_id)| async move {
@@ -65,7 +65,7 @@ pub fn dimensions() -> impl IntoView {
         if let Some(id) = delete_id_rs.get().clone() {
             spawn_local(async move {
                 let result =
-                    delete_dimension(id, tenant_rws.get().0, org_rws.get().0).await;
+                    delete_dimension(id, workspace.get().0, org.get().0).await;
 
                 match result {
                     Ok(_) => {
