@@ -199,38 +199,36 @@ fn experiment_table_filter_widget(
                     <div class="flex flex-row justify-start gap-10">
                         {ExperimentStatusType::iter()
                             .map(|status| {
-                                let current_status = status.to_string().to_lowercase();
                                 let label = status.to_string();
-                                let input_id = format!("{current_status}-checkbox");
-                                let input_peer_class = format!(
-                                    "hidden peer/{current_status}-checkbox",
-                                );
-                                let label_class = format!(
-                                    "px-6 h-[30px] py-2 badge peer-checked/{current_status}-checkbox:{} peer-checked/{current_status}-checkbox:text-white cursor-pointer transition duration-300 ease-in-out",
-                                    status.badge_color(),
-                                );
+                                let input_id = format!("{label}-checkbox");
+
                                 view! {
-                                    <input
-                                        type="checkbox"
-                                        id=&input_id
-                                        class=&input_peer_class
-                                        checked=move || {
-                                            filters_buffer_rws
-                                                .get()
-                                                .status
-                                                .is_some_and(|s| s.iter().any(|item| *item == status))
-                                        }
-                                        on:change=move |event| {
-                                            let checked = event_target_checked(&event);
-                                            status_filter_management(checked, status)
-                                        }
-                                    />
-                                    <label for=&input_id class=&label_class>
-                                        {label}
-                                    </label>
+                                    <div>
+                                        <input
+                                            type="checkbox"
+                                            id=&input_id
+                                            class="peer hidden"
+                                            checked=move || {
+                                                filters_buffer_rws
+                                                    .get()
+                                                    .status
+                                                    .is_some_and(|s| s.iter().any(|item| *item == status))
+                                            }
+                                            on:change=move |event| {
+                                                let checked = event_target_checked(&event);
+                                                status_filter_management(checked, status)
+                                            }
+                                        />
+                                        <label
+                                            for=&input_id
+                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out"
+                                        >
+                                            {label}
+                                        </label>
+                                    </div>
                                 }
                             })
-                            .collect::<Vec<_>>()}
+                            .collect_view()}
                     </div>
                 </div>
                 <div class="flex flex-col gap-5 justify-between">
