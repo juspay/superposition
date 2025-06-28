@@ -8,10 +8,6 @@
     src: url("/assets/codicon.ttf") format("truetype");
 }
 
-.h-sidenav {
-  height: calc(100vh - 370px);
-}
-
 .disable-click {
     pointer-events: none;
     cursor: not-allowed;
