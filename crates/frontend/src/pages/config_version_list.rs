@@ -37,13 +37,7 @@ pub fn config_version_list() -> impl IntoView {
         (String, PaginationParams, String),
         PaginatedResponse<ConfigVersion>,
     > = create_blocking_resource(
-        move || {
-            (
-                workspace.get().0,
-                pagination_params_rws.get(),
-                org.get().0,
-            )
-        },
+        move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(current_tenant, pagination_params, org_id)| async move {
             fetch_snapshots(&pagination_params, current_tenant.to_string(), org_id)
                 .await
@@ -51,12 +45,8 @@ pub fn config_version_list() -> impl IntoView {
         },
     );
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     view! {
@@ -115,8 +105,7 @@ pub fn config_version_list() -> impl IntoView {
                                             count,
                                             current_page: page,
                                             total_pages,
-                                            on_next: handle_next_click,
-                                            on_prev: handle_prev_click,
+                                            on_page_change: handle_page_change,
                                         };
                                         view! {
                                             <Table

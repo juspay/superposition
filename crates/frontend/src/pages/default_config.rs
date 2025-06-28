@@ -130,12 +130,8 @@ pub fn default_config() -> impl IntoView {
         delete_modal_visible_ws.set(false);
     });
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     let redirect_url = move |prefix: Option<String>| -> String {
@@ -384,8 +380,7 @@ pub fn default_config() -> impl IntoView {
                         count: pagination_params.count.unwrap_or_default(),
                         current_page,
                         total_pages,
-                        on_next: handle_next_click,
-                        on_prev: handle_prev_click,
+                        on_page_change: handle_page_change,
                     };
                     view! {
                         <div class="pb-4">

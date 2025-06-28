@@ -197,15 +197,14 @@ pub fn table(
         }>
 
             {move || {
-                let TablePaginationProps { current_page, total_pages, on_prev, on_next, .. } = pagination_props
+                let TablePaginationProps { current_page, total_pages, on_page_change, .. } = pagination_props
                     .get_value();
                 view! {
                     <div class="mt-2 flex justify-end">
                         <Pagination
                             current_page=current_page
                             total_pages=total_pages
-                            next=on_next
-                            previous=on_prev
+                            on_change=on_page_change
                         />
                     </div>
                 }

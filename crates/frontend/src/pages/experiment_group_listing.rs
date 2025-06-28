@@ -448,12 +448,8 @@ pub fn experiment_group_listing() -> impl IntoView {
         close_drawer("create_exp_group_drawer");
     });
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     view! {
@@ -527,8 +523,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                                         count: pagination_params.count.unwrap_or_default(),
                                         current_page: pagination_params.page.unwrap_or_default(),
                                         total_pages: v.experiment_groups.total_pages,
-                                        on_next: handle_next_click,
-                                        on_prev: handle_prev_click,
+                                        on_page_change: handle_page_change,
                                     };
                                     view! {
                                         <ConditionCollapseProvider>

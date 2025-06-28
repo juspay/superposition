@@ -513,13 +513,9 @@ pub fn context_override() -> impl IntoView {
         set_delete_modal.set(true);
     };
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
-    });
+    let handle_page_change = move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
+    };
 
     let on_delete_confirm = Callback::new(move |_| {
         if let Some(id) = delete_id.get().clone() {
@@ -701,8 +697,7 @@ pub fn context_override() -> impl IntoView {
                                 .map(|d| d.contexts)
                                 .unwrap_or_default()
                                 .total_pages
-                            next=handle_next_click
-                            previous=handle_prev_click
+                            on_change=handle_page_change
                         />
                     }
                 }}
