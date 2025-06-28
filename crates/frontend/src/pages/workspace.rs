@@ -40,13 +40,10 @@ pub fn workspace() -> impl IntoView {
     );
     let selected_workspace = create_rw_signal::<Option<RowData>>(None);
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
-    });
     let handle_close = move || {
         selected_workspace.set(None);
         close_drawer("workspace_drawer");
@@ -240,8 +237,7 @@ pub fn workspace() -> impl IntoView {
                         count: pagination_params.count.unwrap_or_default(),
                         current_page,
                         total_pages,
-                        on_next: handle_next_click,
-                        on_prev: handle_prev_click,
+                        on_page_change: handle_page_change,
                     };
                     view! {
                         <div class="pb-4">

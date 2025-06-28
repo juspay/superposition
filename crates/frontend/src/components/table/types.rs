@@ -113,8 +113,7 @@ pub struct TablePaginationProps {
     pub current_page: i64,
     pub total_pages: i64,
     pub count: i64,
-    pub on_next: Callback<i64>,
-    pub on_prev: Callback<i64>,
+    pub on_page_change: Callback<i64>,
 }
 
 impl Default for TablePaginationProps {
@@ -124,8 +123,7 @@ impl Default for TablePaginationProps {
             current_page: 0,
             total_pages: 0,
             count: 0,
-            on_next: Callback::new(move |_| {}),
-            on_prev: Callback::new(move |_| {}),
+            on_page_change: Callback::new(|_| {}),
         }
     }
 }

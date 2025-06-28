@@ -53,13 +53,7 @@ pub fn webhooks() -> impl IntoView {
     use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let webhooks_resource = create_blocking_resource(
-        move || {
-            (
-                workspace.get().0,
-                pagination_params_rws.get(),
-                org.get().0,
-            )
-        },
+        move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(current_tenant, pagination_params, org_id)| async move {
             fetch_webhooks(&pagination_params, current_tenant, org_id)
                 .await
@@ -70,8 +64,7 @@ pub fn webhooks() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id_rs.get().clone() {
             spawn_local(async move {
-                let result =
-                    delete_webhooks(id, workspace.get().0, org.get().0).await;
+                let result = delete_webhooks(id, workspace.get().0, org.get().0).await;
 
                 match result {
                     Ok(_) => {
@@ -87,12 +80,8 @@ pub fn webhooks() -> impl IntoView {
         delete_id_ws.set(None);
         delete_modal_visible_ws.set(false);
     });
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     let selected_webhook = create_rw_signal::<Option<RowData>>(None);
@@ -312,8 +301,7 @@ pub fn webhooks() -> impl IntoView {
                         count: pagination_params.count.unwrap_or_default(),
                         current_page: pagination_params.page.unwrap_or_default(),
                         total_pages: value.total_pages,
-                        on_next: handle_next_click,
-                        on_prev: handle_prev_click,
+                        on_page_change: handle_page_change,
                     };
                     view! {
                         <div class="pb-4">
