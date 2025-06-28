@@ -10,7 +10,7 @@ pub enum SkeletonVariant {
 
 #[component]
 pub fn skeleton(
-    #[prop(default = String::from("w-full"))] style_class: String,
+    #[prop(into, default = String::from("w-full"))] style_class: String,
     #[prop(default = SkeletonVariant::Page)] variant: SkeletonVariant,
 ) -> impl IntoView {
     let container_div_styles = format!("flex flex-col gap-4 {style_class}");
