@@ -55,6 +55,7 @@ struct CombinedResource {
 
 #[component]
 fn experiment_table_filter_widget(
+    pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<ExperimentListFilters>,
     combined_resource: CombinedResource,
 ) -> impl IntoView {
@@ -303,7 +304,10 @@ fn experiment_table_filter_widget(
                         on_click=move |event| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
-                            filters_rws.set(filter);
+                            pagination_params_rws.update(|f| {
+                                filters_rws.set_untracked(filter);
+                                f.reset_page()
+                            });
                             close_drawer("experiment_filter_drawer")
                         }
                     />
@@ -313,8 +317,10 @@ fn experiment_table_filter_widget(
                         icon_class="ri-restart-line".into()
                         on_click=move |event| {
                             event.prevent_default();
-                            let filters = ExperimentListFilters::default();
-                            filters_rws.set(filters);
+                            pagination_params_rws.update(|f| {
+                                filters_rws.set_untracked(ExperimentListFilters::default());
+                                f.reset_page()
+                            });
                             close_drawer("experiment_filter_drawer")
                         }
                     />
@@ -480,6 +486,7 @@ pub fn experiment_list() -> impl IntoView {
                                     view! {
                                         <ConditionCollapseProvider>
                                             <ExperimentTableFilterWidget
+                                                pagination_params_rws
                                                 filters_rws
                                                 combined_resource=v
                                             />
