@@ -313,7 +313,7 @@ pub fn context_filter_drawer(
                         .to_string()
                 />
                 <div class="form-control">
-                    <label class="label">
+                    <label class="label flex-col justify-center items-start">
                         <span class="label-text font-semibold text-base">
                             {"Free text search inside overrides"}
                         </span>
@@ -404,9 +404,11 @@ pub fn context_filter_drawer(
                         text="Submit".to_string()
                         on_click=move |event| {
                             event.prevent_default();
-                            context_filters_rws.set(filters_buffer_rws.get());
-                            dimension_params_rws.set(dimension_buffer_rws.get());
-                            pagination_params_rws.update(|f| f.reset_page());
+                            pagination_params_rws.update(|f| {
+                                context_filters_rws.set_untracked(filters_buffer_rws.get());
+                                dimension_params_rws.set_untracked(dimension_buffer_rws.get());
+                                f.reset_page()
+                            });
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -416,9 +418,11 @@ pub fn context_filter_drawer(
                         icon_class="ri-restart-line".into()
                         on_click=move |event| {
                             event.prevent_default();
-                            context_filters_rws.set(ContextListFilters::default());
-                            dimension_params_rws.set(DimensionQuery::default());
-                            pagination_params_rws.update(|f| f.reset_page());
+                            pagination_params_rws.update(|f| {
+                                context_filters_rws.set_untracked(ContextListFilters::default());
+                                dimension_params_rws.set_untracked(DimensionQuery::default());
+                                f.reset_page()
+                        });
                             close_drawer("context_filter_drawer")
                         }
                     />
