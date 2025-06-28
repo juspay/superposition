@@ -84,7 +84,7 @@ pub fn condition_input(
     view! {
         <div class="flex gap-x-6">
             <div class="form-control">
-                <label class="label font-mono text-sm">
+                <label class="label text-sm">
                     <span class="label-text">Dimension</span>
                 </label>
                 <input
@@ -95,7 +95,7 @@ pub fn condition_input(
                 />
             </div>
             <div class="form-control w-20">
-                <label class="label font-medium font-mono text-sm">
+                <label class="label font-medium text-sm">
                     <span class="label-text">Operator</span>
                 </label>
 
@@ -132,7 +132,7 @@ pub fn condition_input(
             </div>
         </div>
         <div class="form-control">
-            <label class="label font-mono text-sm">
+            <label class="label text-sm">
                 <span class="label-text">Value</span>
             </label>
 
@@ -471,7 +471,7 @@ where
                                     if last_idx.get() != idx {
                                         view! {
                                             <div class="my-3 ml-7">
-                                                <span class="font-mono text-xs font-bold">"&&"</span>
+                                                <span class="text-xs font-bold">"&&"</span>
                                             </div>
                                         }
                                             .into_view()

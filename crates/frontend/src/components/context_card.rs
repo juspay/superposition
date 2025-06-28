@@ -132,7 +132,7 @@ pub fn context_card(
         <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
             <div class="flex justify-between">
                 <div class="flex gap-4 items-center">
-                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md m-0 w-max">
                         "Condition"
                     </h3>
                     <InfoDescription description=description change_reason=change_reason />

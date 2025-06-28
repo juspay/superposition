@@ -201,7 +201,7 @@ where
 
     view! {
         <EditorProvider>
-            <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+            <form class="form-control w-full space-y-4 bg-white text-gray-700">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">"Key Name"</span>

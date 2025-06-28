@@ -161,7 +161,6 @@
 }
 
 .condition-value {
-    @apply font-mono;
 	@apply font-semibold;
 	@apply context_condition;
 	@apply w-full;
@@ -171,7 +170,6 @@
 
 
 .condition-value-collapsed {
-    @apply font-mono;
 	@apply font-semibold;
 	@apply context_condition;
 	@apply w-full;

@@ -76,10 +76,10 @@ pub fn condition_expression(
                     }
                 >
 
-                    <span class="font-mono font-medium context_condition text-gray-500">
+                    <span class="font-medium context_condition text-gray-500">
                         {dimension}
                     </span>
-                    <span class="font-mono font-medium text-gray-650 context_condition">
+                    <span class="font-medium text-gray-650 context_condition">
                         {operator.to_string()}
                     </span>
 
@@ -87,13 +87,13 @@ pub fn condition_expression(
                         Expression::Between(c1, c2) => {
                             view! {
                                 <>
-                                    <span class="font-mono font-semibold context_condition">
+                                    <span class="font-semibold context_condition">
                                         {c1.html_display()}
                                     </span>
-                                    <span class="font-mono font-medium text-gray-650 context_condition">
+                                    <span class="font-medium text-gray-650 context_condition">
                                         {"and"}
                                     </span>
-                                    <span class="font-mono font-semibold context_condition">
+                                    <span class="font-semibold context_condition">
                                         {c2.html_display()}
                                     </span>
                                 </>
