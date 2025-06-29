@@ -18,6 +18,7 @@ use crate::{
         context_form::ContextForm,
         drawer::{close_drawer, Drawer},
         dropdown::DropdownDirection,
+        form::label::Label,
     },
     logic::{Condition, Conditions, Expression},
     providers::condition_collapse_provider::ConditionCollapseProvider,
@@ -171,7 +172,7 @@ pub fn context_filter_summary(
                                 )
                                 .unwrap_or_else(|_| "[]".to_string());
                             view! {
-                                <div class="flex gap-2">
+                                <div class="flex justify-end gap-2">
                                     <div class="min-w-fit pt-1 text-xs">{"Context"}</div>
                                     <ConditionCollapseProvider>
                                         <Condition
@@ -291,7 +292,7 @@ pub fn context_filter_drawer(
             drawer_width="w-[50vw]"
             handle_close=move || close_drawer("context_filter_drawer")
         >
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-5">
                 <ContextForm
                     dimensions
                     context_rs
@@ -317,14 +318,11 @@ pub fn context_filter_drawer(
                         .to_string()
                 />
                 <div class="form-control">
-                    <label class="label flex-col justify-center items-start">
-                        <span class="label-text font-semibold text-base">
-                            {"Free text search inside overrides"}
-                        </span>
-                        <span class="label-text text-slate-400">
-                            {"Searches both keys as well as the values"}
-                        </span>
-                    </label>
+                    <Label
+                        title="Free text search inside overrides"
+                        info="(any of)"
+                        description="Searches both keys as well as the values"
+                    />
                     {move || {
                         view! {
                             <textarea
@@ -346,15 +344,11 @@ pub fn context_filter_drawer(
                     }}
                 </div>
                 <div class="form-control">
-                    <label class="label flex flex-col items-start justify-center">
-                        <div class="flex items-center gap-1 label-text font-semibold text-base">
-                            {"Created By"}
-                            <span class="text-sm font-normal text-slate-400">"(any of)"</span>
-                        </div>
-                        <span class="label-text text-slate-400">
-                            {"Separate each user by a comma"}
-                        </span>
-                    </label>
+                    <Label
+                        title="Created By"
+                        info="(any of)"
+                        description="Separate each ID by a comma"
+                    />
                     <input
                         type="text"
                         id="context-creator-filter"
@@ -374,15 +368,11 @@ pub fn context_filter_drawer(
                     />
                 </div>
                 <div class="form-control">
-                    <label class="label flex flex-col items-start justify-center">
-                        <div class="flex items-center gap-1 label-text font-semibold text-base">
-                            "Last Modified By"
-                            <span class="text-sm font-normal text-slate-400">"(any of)"</span>
-                        </div>
-                        <span class="label-text text-slate-400">
-                            "Separate each user by a comma"
-                        </span>
-                    </label>
+                    <Label
+                        title="Last Modified By"
+                        info="(any of)"
+                        description="Separate each ID by a comma"
+                    />
                     <input
                         type="text"
                         id="context-modifier-filter"
@@ -402,10 +392,11 @@ pub fn context_filter_drawer(
                         }
                     />
                 </div>
-                <div class="flex justify-end">
+                <div class="flex justify-end gap-2">
                     <Button
-                        class="h-12 w-48".to_string()
-                        text="Submit".to_string()
+                        class="h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=move |event| {
                             event.prevent_default();
                             pagination_params_rws
@@ -418,9 +409,9 @@ pub fn context_filter_drawer(
                         }
                     />
                     <Button
-                        class="h-12 w-48".to_string()
-                        text="Reset".to_string()
-                        icon_class="ri-restart-line".into()
+                        class="h-12 w-48"
+                        text="Reset"
+                        icon_class="ri-restart-line"
                         on_click=move |event| {
                             event.prevent_default();
                             pagination_params_rws

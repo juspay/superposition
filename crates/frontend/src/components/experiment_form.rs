@@ -26,6 +26,7 @@ use crate::{
         change_form::ChangeForm,
         context_form::ContextForm,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        form::label::Label,
         metrics_form::MetricsForm,
         skeleton::{Skeleton, SkeletonVariant},
         variant_form::{DeleteVariantForm, VariantForm},
@@ -217,11 +218,9 @@ pub fn experiment_form(
     };
 
     view! {
-        <div>
+        <div class="flex flex-col gap-5">
             <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">Experiment Name</span>
-                </label>
+                <Label title="Experiment Name" />
                 <input
                     disabled=edit_id.get_value().is_some()
                     value=move || experiment_name.get()
@@ -248,7 +247,7 @@ pub fn experiment_form(
             />
 
             <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }
             }>
                 {move || {
                     let experiment_groups = experiment_groups_resource.get().unwrap_or_default();
@@ -259,9 +258,7 @@ pub fn experiment_form(
                     experiment_options.insert(0, None);
                     view! {
                         <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Experiment Group</span>
-                            </label>
+                            <Label title="Experiment Group" />
                             <Dropdown
                                 dropdown_width="w-100"
                                 dropdown_icon="".to_string()
@@ -290,26 +287,23 @@ pub fn experiment_form(
                 })
             />
 
-            <div class="my-4">
-                {move || {
-                    view! {
-                        <ContextForm
-                            dimensions=dimensions.get_value()
-                            context_rs
-                            context_ws
-                            handle_change=handle_context_form_change
-                            resolve_mode=workspace_settings.get_value().strict_mode
-                            disabled=edit_id.get_value().is_some()
-                                || (experiment_form_type.get_value() != ExperimentFormType::Default)
-                            heading_sub_text=String::from(
-                                "Define rules under which this experiment would run",
-                            )
-                            fn_environment
-                        />
-                    }
-                }}
-
-            </div>
+            {move || {
+                view! {
+                    <ContextForm
+                        dimensions=dimensions.get_value()
+                        context_rs
+                        context_ws
+                        handle_change=handle_context_form_change
+                        resolve_mode=workspace_settings.get_value().strict_mode
+                        disabled=edit_id.get_value().is_some()
+                            || (experiment_form_type.get_value() != ExperimentFormType::Default)
+                        heading_sub_text=String::from(
+                            "Define rules under which this experiment would run",
+                        )
+                        fn_environment
+                    />
+                }
+            }}
 
             {move || {
                 let variants = variants_rs.get();
@@ -341,20 +335,18 @@ pub fn experiment_form(
                 }
             }}
 
-            <div class="flex justify-start mt-8">
-                {move || {
-                    let loading = req_inprogess_rs.get();
-                    view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit
-                            loading
-                        />
-                    }
-                }}
-
-            </div>
+            {move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
+                        on_click=on_submit
+                        loading
+                    />
+                }
+            }}
         </div>
     }
 }

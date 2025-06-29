@@ -32,6 +32,7 @@ use crate::{
         drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
         dropdown::DropdownDirection,
         experiment_form::ExperimentForm,
+        form::label::Label,
         input::DateInput,
         skeleton::Skeleton,
         stat::Stat,
@@ -115,42 +116,34 @@ fn experiment_table_filter_widget(
             drawer_width="w-[50vw]"
             handle_close=move || close_drawer("experiment_filter_drawer")
         >
-            <div class="card-body">
-                <div class="my-4">
-                    <ContextForm
-                        dimensions=dim
-                        context_rs
-                        context_ws
-                        dropdown_direction=DropdownDirection::Down
-                        handle_change=move |context: Conditions| {
-                            filters_buffer_rws
-                                .update(|f| {
-                                    f.context = Some(
-                                        CommaSeparatedQParams(
-                                            context
-                                                .iter()
-                                                .map(|v| v.to_condition_json().to_string())
-                                                .collect::<Vec<_>>(),
-                                        ),
-                                    );
-                                });
-                        }
-                        heading_sub_text=String::from("Search By Context")
-                        resolve_mode=true
-                        fn_environment
-                    />
-
-                </div>
-                <div class="w-full flex flex-row justify-start gap-10">
+            <div class="flex flex-col gap-5">
+                <ContextForm
+                    dimensions=dim
+                    context_rs
+                    context_ws
+                    dropdown_direction=DropdownDirection::Down
+                    handle_change=move |context: Conditions| {
+                        filters_buffer_rws
+                            .update(|f| {
+                                let context = context
+                                    .iter()
+                                    .map(|v| v.to_condition_json().to_string())
+                                    .collect::<Vec<_>>();
+                                f.context = (!context.is_empty())
+                                    .then_some(CommaSeparatedQParams(context));
+                            });
+                    }
+                    heading_sub_text="Search By Context"
+                    resolve_mode=true
+                    fn_environment
+                />
+                <div class="w-full flex flex-row justify-start items-end gap-10">
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Last Modified From</span>
-                        </label>
+                        <Label title="Last Modified From" />
                         <DateInput
-                            id="experiment_from_date_input".into()
-                            class="w-[19rem] flex-auto mt-3 mr-3".into()
-                            name="experiment_from_date".into()
-                            min=String::from("2020-01-01")
+                            id="experiment_from_date_input"
+                            name="experiment_from_date"
+                            min="2020-01-01"
                             value=filters
                                 .from_date
                                 .map(|s| s.format("%Y-%m-%d").to_string())
@@ -158,20 +151,17 @@ fn experiment_table_filter_widget(
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
                                 filters_buffer_rws.update(|f| f.from_date = Some(new_date));
                             })
-                            on_clear=Callback::new(move |_| {
+                            on_clear=move |_| {
                                 filters_buffer_rws.update(|f| f.from_date = None);
-                            })
+                            }
                         />
                     </div>
-                    <i class="mt-5 mr-3 text-3xl ri-arrow-right-line"></i>
+                    <i class="ri-arrow-right-line pb-2.5 text-3xl" />
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Last Modified To</span>
-                        </label>
+                        <Label title="Last Modified To" />
                         <DateInput
-                            id="experiment_to_date_input".into()
-                            class="w-[19rem] flex-auto mt-3 mr-3".into()
-                            name="experiment_to_date".into()
+                            id="experiment_to_date_input"
+                            name="experiment_to_date"
                             value=filters
                                 .to_date
                                 .unwrap_or(Utc::now())
@@ -185,18 +175,16 @@ fn experiment_table_filter_widget(
                                         );
                                     });
                             })
-                            on_clear=Callback::new(move |_| {
+                            on_clear=move |_| {
                                 filters_buffer_rws.update(|f| f.to_date = None);
-                            })
+                            }
                         />
                     </div>
                 </div>
 
                 <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">Experiment Status</span>
-                    </label>
-                    <div class="flex flex-row justify-start gap-10">
+                    <Label title="Experiment Status" />
+                    <div class="flex flex-row flex-wrap justify-start gap-x-8 gap-y-5">
                         {ExperimentStatusType::iter()
                             .map(|status| {
                                 let label = status.to_string();
@@ -231,74 +219,74 @@ fn experiment_table_filter_widget(
                             .collect_view()}
                     </div>
                 </div>
-                <div class="flex flex-col gap-5 justify-between">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Experiment Name</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="experiment-name-filter"
-                            placeholder="eg: city experiment"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_buffer_rws.get().experiment_name
-                            on:change=move |event| {
-                                let experiment_name = event_target_value(&event);
-                                let experiment_name = if experiment_name.is_empty() {
-                                    None
-                                } else {
-                                    Some(experiment_name)
-                                };
-                                filters_buffer_rws.update(|f| f.experiment_name = experiment_name);
-                            }
-                        />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Experiment IDs (Seperate by Comma)</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="experiment-id-filter"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || {
-                                filters_buffer_rws.get().experiment_ids.map(|d| d.to_string())
-                            }
-                            placeholder="eg: 7259558160762015744"
-                            on:change=move |event| {
-                                let ids = event_target_value(&event);
-                                let ids = (!ids.is_empty())
-                                    .then(|| serde_json::from_value(Value::String(ids)).ok())
-                                    .flatten();
-                                filters_buffer_rws.update(|filter| filter.experiment_ids = ids);
-                            }
-                        />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Created By (Seperate by Comma)</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="experiment-user-filter"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            placeholder="eg: user@superposition.io"
-                            value=move || filters_buffer_rws.get().created_by.map(|d| d.to_string())
-                            on:change=move |event| {
-                                let user_names = event_target_value(&event);
-                                let user_names = (!user_names.is_empty())
-                                    .then(|| serde_json::from_value(Value::String(user_names)).ok())
-                                    .flatten();
-                                filters_buffer_rws.update(|filter| filter.created_by = user_names);
-                            }
-                        />
-
-                    </div>
+                <div class="form-control">
+                    <Label title="Experiment Name" />
+                    <input
+                        type="text"
+                        id="experiment-name-filter"
+                        placeholder="eg: city experiment"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        value=move || filters_buffer_rws.get().experiment_name
+                        on:change=move |event| {
+                            let experiment_name = event_target_value(&event);
+                            let experiment_name = if experiment_name.is_empty() {
+                                None
+                            } else {
+                                Some(experiment_name)
+                            };
+                            filters_buffer_rws.update(|f| f.experiment_name = experiment_name);
+                        }
+                    />
                 </div>
-                <div class="flex justify-start mt-8">
+                <div class="form-control">
+                    <Label
+                        title="Experiment ID"
+                        info="(any of)"
+                        description="Separate each ID by a comma"
+                    />
+                    <input
+                        type="text"
+                        id="experiment-id-filter"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        value=move || {
+                            filters_buffer_rws.get().experiment_ids.map(|d| d.to_string())
+                        }
+                        placeholder="eg: 7259558160762015744"
+                        on:change=move |event| {
+                            let ids = event_target_value(&event);
+                            let ids = (!ids.is_empty())
+                                .then(|| serde_json::from_value(Value::String(ids)).ok())
+                                .flatten();
+                            filters_buffer_rws.update(|filter| filter.experiment_ids = ids);
+                        }
+                    />
+                </div>
+                <div class="form-control">
+                    <Label
+                        title="Created By"
+                        info="(any of)"
+                        description="Separate each user by a comma"
+                    />
+                    <input
+                        type="text"
+                        id="experiment-user-filter"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        placeholder="eg: user@superposition.io"
+                        value=move || filters_buffer_rws.get().created_by.map(|d| d.to_string())
+                        on:change=move |event| {
+                            let user_names = event_target_value(&event);
+                            let user_names = (!user_names.is_empty())
+                                .then(|| serde_json::from_value(Value::String(user_names)).ok())
+                                .flatten();
+                            filters_buffer_rws.update(|filter| filter.created_by = user_names);
+                        }
+                    />
+                </div>
+                <div class="flex justify-end gap-2">
                     <Button
-                        class="w-48 px-[70px] h-12".to_string()
-                        text="Submit".to_string()
+                        class="h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=move |event| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
@@ -311,9 +299,9 @@ fn experiment_table_filter_widget(
                         }
                     />
                     <Button
-                        class="px-[70px] h-12 w-48".to_string()
-                        text="Reset".to_string()
-                        icon_class="ri-restart-line".into()
+                        class="h-12 w-48"
+                        text="Reset"
+                        icon_class="ri-restart-line"
                         on_click=move |event| {
                             event.prevent_default();
                             pagination_params_rws
@@ -324,7 +312,6 @@ fn experiment_table_filter_widget(
                             close_drawer("experiment_filter_drawer")
                         }
                     />
-
                 </div>
             </div>
         </Drawer>

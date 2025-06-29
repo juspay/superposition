@@ -2,6 +2,7 @@ pub mod utils;
 
 use std::collections::{HashMap, HashSet};
 
+use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
@@ -197,7 +198,7 @@ pub fn context_form<NF>(
     fn_environment: Memo<Value>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
-    #[prop(default = String::new())] heading_sub_text: String,
+    #[prop(into, default = String::new())] heading_sub_text: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
 ) -> impl IntoView
 where
@@ -365,12 +366,7 @@ where
 
     view! {
         <div class="form-control w-full">
-            <div class="gap-1">
-                <label class="label flex-col justify-center items-start">
-                    <span class="label-text font-semibold text-base">Context</span>
-                    <span class="label-text text-slate-400">{heading_sub_text}</span>
-                </label>
-            </div>
+            <Label title="Context" description=heading_sub_text />
             <div class="card w-full bg-slate-50">
                 <div class="card-body">
                     <Show when=move || context_rs.get().is_empty()>

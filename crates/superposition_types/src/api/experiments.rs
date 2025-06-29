@@ -249,9 +249,9 @@ impl Display for ExperimentListFilters {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut query_params = vec![];
         if let Some(status) = &self.status {
-            let status: Vec<String> =
-                status.0.iter().map(|val| val.to_string()).collect();
-            query_params.push(format!("status={}", status.join(",")));
+            if !status.is_empty() {
+                query_params.push(format!("status={}", status));
+            }
         }
         if let Some(from_date) = self.from_date {
             query_params.push(format!("from_date={}", from_date));
@@ -263,13 +263,19 @@ impl Display for ExperimentListFilters {
             query_params.push(format!("experiment_name={}", experiment_name));
         }
         if let Some(experiment_ids) = &self.experiment_ids {
-            query_params.push(format!("experiment_ids={}", experiment_ids));
+            if !experiment_ids.is_empty() {
+                query_params.push(format!("experiment_ids={}", experiment_ids));
+            }
         }
         if let Some(created_by) = &self.created_by {
-            query_params.push(format!("created_by={}", created_by));
+            if !created_by.is_empty() {
+                query_params.push(format!("created_by={}", created_by));
+            }
         }
         if let Some(context) = &self.context {
-            query_params.push(format!("context={}", context));
+            if !context.is_empty() {
+                query_params.push(format!("context={}", context));
+            }
         }
         if let Some(sort_on) = self.sort_on {
             query_params.push(format!("sort_on={}", sort_on));
