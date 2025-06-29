@@ -215,13 +215,9 @@ pub fn webhooks() -> impl IntoView {
             Column::default("created_at".to_string()),
             Column::default("last_modified_by".to_string()),
             Column::default("last_modified_at".to_string()),
-            Column::new(
+            Column::default_with_cell_formatter(
                 "actions".to_string(),
-                false,
                 action_col_formatter,
-                ColumnSortable::No,
-                Expandable::Enabled(100),
-                default_column_formatter,
             ),
         ]
     });

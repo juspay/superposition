@@ -115,9 +115,8 @@ pub fn types_page() -> impl IntoView {
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::default("last_modified_at".to_string()),
-            Column::new(
+            Column::default_with_cell_formatter(
                 "actions".into(),
-                false,
                 move |_: &str, row: &Map<String, Value>| {
                     let edit_row_json = json!(row);
                     let delete_row_json = edit_row_json.clone();
@@ -149,9 +148,6 @@ pub fn types_page() -> impl IntoView {
                     }
                     .into_view()
                 },
-                ColumnSortable::No,
-                Expandable::Enabled(100),
-                default_column_formatter,
             ),
         ]
     });

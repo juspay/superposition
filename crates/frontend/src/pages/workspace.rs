@@ -140,13 +140,9 @@ pub fn workspace() -> impl IntoView {
             Column::default("strict_mode".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::new(
+            Column::default_with_cell_formatter(
                 "actions".to_string(),
-                false,
                 actions_col_formatter,
-                ColumnSortable::No,
-                Expandable::Disabled,
-                default_column_formatter,
             ),
         ]
     });

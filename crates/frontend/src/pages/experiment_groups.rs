@@ -123,9 +123,8 @@ fn table_columns(
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::new(
+        Column::default_with_cell_formatter(
             "actions".to_string(),
-            false,
             move |_, row: &Map<String, Value>| {
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
@@ -144,9 +143,6 @@ fn table_columns(
                 }
                 .into_view()
             },
-            ColumnSortable::No,
-            Expandable::Disabled,
-            default_column_formatter,
         ),
     ]
 }
