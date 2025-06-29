@@ -13,6 +13,7 @@ use crate::{
         button::Button,
         change_form::ChangeForm,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        form::label::Label,
         input::{Input, InputType, Toggle},
     },
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -139,11 +140,12 @@ where
     let events_options = WebhookEvent::iter().collect::<Vec<WebhookEvent>>();
 
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700">
+        <form class="w-full flex flex-col gap-5 bg-white text-gray-700">
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Name</span>
-                </label>
+                <Label
+                    title="Webhook Name"
+                    description="The name of the webhook. It should be unique within the workspace."
+                />
                 <Input
                     disabled=edit
                     r#type=InputType::Text
@@ -161,41 +163,25 @@ where
                 title="Description".to_string()
                 placeholder="Enter a description".to_string()
                 value=description_rs.get_untracked()
-                on_change=Callback::new(move |new_description| {
-                    description_ws.set(new_description)
-                })
+                on_change=move |new_description| description_ws.set(new_description)
             />
             <ChangeForm
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason_rs.get_untracked()
-                on_change=Callback::new(move |new_change_reason| {
-                    change_reason_ws.set(new_change_reason)
-                })
+                on_change=move |new_change_reason| change_reason_ws.set(new_change_reason)
             />
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Enable Webhook</span>
-                </label>
+            <div class="w-fit flex items-center gap-2">
                 <Toggle
                     name="Enable Webhook"
                     value=enabled_rs.get()
-                    on_change=Callback::new(move |flag: serde_json::Value| {
-                        let flag = flag.as_bool().unwrap();
-                        if flag {
-                            enabled_ws.set(true);
-                        } else {
-                            enabled_ws.set(false);
-                        }
-                    })
+                    on_change=move |_| enabled_ws.update(|v| *v = !*v)
                 />
+                <Label title="Enable Webhook" />
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">URL</span>
-                </label>
+                <Label title="URL" description="The URL to which the webhook will send requests." />
                 <Input
                     placeholder="Enter the webhook URL"
                     class="textarea textarea-bordered w-full max-w-md"
@@ -209,9 +195,10 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Method</span>
-                </label>
+                <Label
+                    title="Method"
+                    description="HTTP method to be used for the webhook request."
+                />
                 <Dropdown
                     dropdown_width="w-100"
                     dropdown_icon="".to_string()
@@ -227,9 +214,7 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Payload Version</span>
-                </label>
+                <Label title="Paylaod Version" />
                 <Dropdown
                     dropdown_width="w-100"
                     dropdown_icon="".to_string()
@@ -245,9 +230,10 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Events</span>
-                </label>
+                <Label
+                    title="Events"
+                    description="Events for which this webhook will be triggered."
+                />
                 <Dropdown
                     dropdown_text="Add Events".to_string()
                     dropdown_direction=DropdownDirection::Down
@@ -261,9 +247,10 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Custom Headers</span>
-                </label>
+                <Label
+                    title="Custom Headers"
+                    description="Custom headers are optional and can be used to pass additional information with the webhook request."
+                />
                 <EditorProvider>
                     <Input
                         id="custom_headers"
@@ -280,20 +267,18 @@ where
                 </EditorProvider>
             </div>
 
-            <div class="form-control grid w-full justify-start">
-                {move || {
-                    let loading = req_inprogess_rs.get();
-                    view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
-                    }
-                }}
-
-            </div>
+            {move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
+                        on_click=on_submit.clone()
+                        loading
+                    />
+                }
+            }}
 
         </form>
     }

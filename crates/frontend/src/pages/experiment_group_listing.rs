@@ -29,6 +29,7 @@ use crate::{
         description_icon::InfoDescription,
         drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
         experiment_group_form::ExperimentGroupForm,
+        form::label::Label,
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -277,6 +278,7 @@ fn table_columns(
 
 #[component]
 fn experiment_group_filter_widget(
+    pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<ExpGroupFilters>,
 ) -> impl IntoView {
     let filters = filters_rws.get_untracked();
@@ -296,12 +298,10 @@ fn experiment_group_filter_widget(
             drawer_width="w-[50vw]"
             handle_close=move || close_drawer("experiment_group_filter_drawer")
         >
-            <div class="card-body">
+            <div class="flex flex-col gap-5">
                 <div class="flex flex-col gap-5 justify-between">
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Experiment Group Name</span>
-                        </label>
+                        <Label title="Experiment Group Name" />
                         <input
                             type="text"
                             id="experiment-group-name-filter"
@@ -320,9 +320,7 @@ fn experiment_group_filter_widget(
                         />
                     </div>
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Created By</span>
-                        </label>
+                        <Label title="Created By" />
                         <input
                             type="text"
                             id="experiment-group-created-by-filter"
@@ -341,9 +339,7 @@ fn experiment_group_filter_widget(
                         />
                     </div>
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Last Modified By</span>
-                        </label>
+                        <Label title="Last Modified By" />
                         <input
                             type="text"
                             id="experiment-last-modified-filter"
@@ -364,27 +360,35 @@ fn experiment_group_filter_widget(
 
                     </div>
                 </div>
-                <div class="flex justify-start mt-8">
+                <div class="flex justify-end gap-2">
                     <Button
-                        class="w-48 px-[70px] h-12".to_string()
-                        text="Sumit".to_string()
+                        class="h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=move |event| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
-                            logging::log!("Submitting filters: {:?}", filter);
-                            filters_rws.set(filter);
+                            pagination_params_rws
+                                .update(|f| {
+                                    filters_rws.set_untracked(filter);
+                                    f.reset_page()
+                                });
                             close_drawer("experiment_group_filter_drawer")
                         }
                     />
                     <Button
-                        class="px-[70px] h-12 w-48".to_string()
-                        text="Reset".to_string()
-                        icon_class="ri-restart-line".into()
+                        class="h-12 w-48"
+                        text="Reset"
+                        icon_class="ri-restart-line"
                         on_click=move |event| {
                             event.prevent_default();
                             let filters = ExpGroupFilters::default();
                             filters_buffer_rws.set(filters.clone());
-                            filters_rws.set(filters);
+                            pagination_params_rws
+                                .update(|f| {
+                                    filters_rws.set_untracked(filters);
+                                    f.reset_page()
+                                });
                             close_drawer("experiment_group_filter_drawer")
                         }
                     />
@@ -531,7 +535,10 @@ pub fn experiment_group_listing() -> impl IntoView {
                                     };
                                     view! {
                                         <ConditionCollapseProvider>
-                                            <ExperimentGroupFilterWidget filters_rws />
+                                            <ExperimentGroupFilterWidget
+                                                filters_rws
+                                                pagination_params_rws
+                                            />
                                             <Table
                                                 rows=data
                                                 key_column="name".to_string()

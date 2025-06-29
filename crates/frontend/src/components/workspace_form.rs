@@ -7,6 +7,7 @@ use superposition_types::api::workspace::CreateWorkspaceRequest;
 use superposition_types::database::models::{Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;
 
+use crate::components::form::label::Label;
 use crate::components::metrics_form::MetricsForm;
 use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
@@ -107,11 +108,9 @@ pub fn workspace_form(
 
     view! {
         <EditorProvider>
-            <form class="flex flex-col gap-2 form-control w-full space-y-4 bg-white text-gray-700">
+            <form class="w-full flex flex-col gap-5 bg-white text-gray-700">
                 <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Workspace Name</span>
-                    </label>
+                    <Label title="Workspace Name" />
                     <input
                         disabled=edit
                         type="text"
@@ -126,9 +125,7 @@ pub fn workspace_form(
                 </div>
 
                 <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Workspace Admin Email</span>
-                    </label>
+                    <Label title="Workspace Admin Email" />
                     <input
                         type="text"
                         placeholder="Admin Email"
@@ -142,15 +139,10 @@ pub fn workspace_form(
                 </div>
 
                 <div class="form-control">
-                    <label class="label w-fit flex items-center gap-2">
-                        <span class="label-text">"Config Version"</span>
-                        <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
-                            <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
-                                "This will affect the config resolve since it will use now this version to generate the config"
-                            </p>
-                            <i class="ri-information-line ri-lg" />
-                        </div>
-                    </label>
+                    <Label
+                        title="Config Version"
+                        extra_info="This will affect the config resolve since it will use now this version to generate the config"
+                    />
                     <Input
                         r#type=InputType::Text
                         placeholder="Config Version"
@@ -170,9 +162,7 @@ pub fn workspace_form(
 
                 <Show when=move || edit>
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Mandatory Dimensions</span>
-                        </label>
+                        <Label title="Mandatory Dimensions" />
                         <input
                             type="text"
                             placeholder="Mandatory Dimensions"
@@ -188,55 +178,41 @@ pub fn workspace_form(
                     </div>
                 </Show>
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Workspace Status</span>
-                    </label>
+                <div class="w-fit flex items-center gap-2">
                     <Toggle
                         name="workspace-status"
                         value=workspace_status_rs.get_untracked() == WorkspaceStatus::ENABLED
-                        on_change=Callback::new(move |flag: serde_json::Value| {
+                        on_change=move |flag: serde_json::Value| {
                             let flag = flag.as_bool().unwrap();
                             if flag {
                                 workspace_status_ws.set(WorkspaceStatus::ENABLED)
                             } else {
                                 workspace_status_ws.set(WorkspaceStatus::DISABLED)
                             }
-                        })
-                    />
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">"Allow self approval for Experiments"</span>
-                    </label>
-                    <Toggle
-                        name="workspace-status"
-                        value=allow_experiment_self_approval_rs.get_untracked()
-                        on_change=move |flag: serde_json::Value| {
-                            let flag = flag.as_bool().unwrap();
-                            allow_experiment_self_approval_rs.set(flag);
                         }
                     />
+                    <Label title="Workspace Status" />
+                </div>
+
+                <div class="w-fit flex items-center gap-2">
+                    <Toggle
+                        name="workspace-self-approval"
+                        value=allow_experiment_self_approval_rs.get_untracked()
+                        on_change=move |_| allow_experiment_self_approval_rs.update(|v| *v = !*v)
+                    />
+                    <Label title="Allow self approval for Experiments" />
                 </div>
 
                 <Show when=move || !edit>
-                    <div class="form-control">
-                        <label class="label w-fit flex items-center gap-2">
-                            <span class="label-text">"Strict Mode"</span>
-                            <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
-                                <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
-                                    "Strict Mode limits the operators available to just ==. This is the recommended mode for production environments"
-                                </p>
-                                <i class="ri-information-line ri-lg" />
-                            </div>
-                        </label>
+                    <div class="w-fit flex items-center gap-2">
                         <Toggle
                             name="workspace-strict-mode"
-                            value=strict_mode_rs.get()
-                            on_change=Callback::new(move |_| {
-                                strict_mode_ws.update(|v| *v = !*v);
-                            })
+                            value=strict_mode_rs.get_untracked()
+                            on_change=move |_| strict_mode_ws.update(|v| *v = !*v)
+                        />
+                        <Label
+                            title="Strict Mode"
+                            extra_info="Strict Mode limits the operators available to just ==. This is the recommended mode for production environments"
                         />
                     </div>
                 </Show>
@@ -246,19 +222,19 @@ pub fn workspace_form(
                     on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
                 />
 
-                <div class="form-control grid w-full justify-start">
-                    {move || {
-                        let loading = req_inprogess_rs.get();
-                        view! {
-                            <Button
-                                class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                                text="Submit".to_string()
-                                on_click=on_submit
-                                loading
-                            />
-                        }
-                    }}
-                </div>
+                {move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="self-end h-12 w-48"
+                            text="Submit"
+                            icon_class="ri-send-plane-line"
+                            on_click=on_submit
+                            loading
+                        />
+                    }
+                }}
+
             </form>
         </EditorProvider>
     }

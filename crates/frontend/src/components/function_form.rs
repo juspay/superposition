@@ -253,8 +253,9 @@ where
                                 let loading = req_inprogess_rs.get();
                                 view! {
                                     <Button
-                                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                                        text="Submit".to_string()
+                                        class="h-12 w-48"
+                                        text="Submit"
+                                        icon_class="ri-send-plane-line"
                                         on_click=on_submit.clone()
                                         loading
                                     />
@@ -496,8 +497,9 @@ pub fn test_form(
                         let loading = req_inprogess_rs.get();
                         view! {
                             <Button
-                                class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                                text="Submit".to_string()
+                                class="h-12 w-48"
+                                text="Submit"
+                                icon_class="ri-send-plane-line"
                                 on_click=on_submit.clone()
                                 loading
                             />

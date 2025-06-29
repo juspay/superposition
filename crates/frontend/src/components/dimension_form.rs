@@ -15,14 +15,17 @@ use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
 use web_sys::MouseEvent;
 
-use crate::providers::alert_provider::enqueue_alert;
-use crate::providers::editor_provider::EditorProvider;
-use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::FunctionsName;
 use crate::{api::fetch_functions, components::button::Button};
 use crate::{
     api::fetch_types,
     types::{OrganisationId, Tenant},
+};
+use crate::{components::form::label::Label, providers::alert_provider::enqueue_alert};
+use crate::{components::skeleton::Skeleton, providers::editor_provider::EditorProvider};
+use crate::{
+    components::skeleton::SkeletonVariant,
+    schema::{JsonSchemaType, SchemaType},
 };
 use crate::{
     components::{
@@ -192,9 +195,7 @@ where
     view! {
         <form class="form-control w-full space-y-4 bg-white text-gray-700">
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Dimension</span>
-                </label>
+                <Label title="Dimension" />
                 <input
                     disabled=edit
                     type="text"
@@ -206,24 +207,19 @@ where
                         dimension_name_ws.set(value);
                     }
                 />
-
             </div>
 
             <ChangeForm
                 title="Description".to_string()
                 placeholder="Enter a description".to_string()
                 value=description_rs.get_untracked()
-                on_change=Callback::new(move |new_description| {
-                    description_ws.set(new_description)
-                })
+                on_change=move |new_description| { description_ws.set(new_description) }
             />
             <ChangeForm
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason_rs.get_untracked()
-                on_change=Callback::new(move |new_change_reason| {
-                    change_reason_ws.set(new_change_reason)
-                })
+                on_change=move |new_change_reason| { change_reason_ws.set(new_change_reason) }
             />
 
             <Suspense>
@@ -241,9 +237,7 @@ where
                     );
                     view! {
                         <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Set Schema</span>
-                            </label>
+                            <Label title="Set Schema" />
                             <Dropdown
                                 dropdown_width="w-100"
                                 dropdown_icon="".to_string()
@@ -272,15 +266,12 @@ where
                         </div>
                     }
                 }}
-
             </Suspense>
 
             {move || {
                 view! {
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Position</span>
-                        </label>
+                        <Label title="Position" />
                         <input
                             type="Number"
                             min=0
@@ -320,9 +311,7 @@ where
                     .collect::<Vec<_>>();
                 view! {
                     <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Dependencies</span>
-                        </label>
+                        <Label title="Dependencies" />
                         <Dropdown
                             dropdown_text="Add Dependencies".to_string()
                             dropdown_direction=DropdownDirection::Down
@@ -337,7 +326,9 @@ where
                 }
             }}
 
-            <Suspense>
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }
+            }>
                 {move || {
                     let mut functions = functions_resource.get().unwrap_or_default();
                     let mut validation_function_names: Vec<FunctionsName> = vec![
@@ -358,82 +349,58 @@ where
                         });
                     view! {
                         <div class="form-control">
-                            <div class="gap-1">
-                                <label class="label flex-col justify-center items-start">
-                                    <span class="label-text">Validation Function Name</span>
-                                    <span class="label-text text-slate-400">
-                                        Assign Function validation to your key
-                                    </span>
-                                </label>
-                            </div>
-
-                            <div class="mt-2">
-                                <Dropdown
-                                    dropdown_width="w-100"
-                                    dropdown_icon="".to_string()
-                                    dropdown_text=validation_fn_name_rs
-                                        .get()
-                                        .map_or("Add Function".to_string(), |v| v.to_string())
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_options=validation_function_names
-                                    on_select=handle_validation_fn_select
-                                />
-                            </div>
+                            <Label
+                                title="Validation Function"
+                                description="Function to add validation logic to your dimension"
+                            />
+                            <Dropdown
+                                dropdown_width="w-100"
+                                dropdown_icon="".to_string()
+                                dropdown_text=validation_fn_name_rs
+                                    .get()
+                                    .map_or("Add Function".to_string(), |v| v.to_string())
+                                dropdown_direction=DropdownDirection::Down
+                                dropdown_btn_type=DropdownBtnType::Select
+                                dropdown_options=validation_function_names
+                                on_select=handle_validation_fn_select
+                            />
                         </div>
 
                         <div class="form-control">
-                            <div class="gap-1">
-                                <label class="label flex-col justify-center items-start">
-                                    <span class="label-text">AutoComplete Function Name</span>
-                                    <span class="label-text text-slate-400">
-                                        Assign Autocomplete Function to your key
-                                    </span>
-                                </label>
-                            </div>
-
-                            <div class="mt-2">
-                                <Dropdown
-                                    dropdown_width="w-100"
-                                    dropdown_icon="".to_string()
-                                    dropdown_text=autocomplete_fn_name_rs
-                                        .get()
-                                        .map_or("Add Function".to_string(), |v| v.to_string())
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_options=autocomplete_function_names
-                                    on_select=handle_autocomplete_fn_select
-                                />
-                            </div>
+                            <Label
+                                title="AutoComplete Function"
+                                description="Function to add auto complete suggestion to your dimension"
+                            />
+                            <Dropdown
+                                dropdown_width="w-100"
+                                dropdown_icon="".to_string()
+                                dropdown_text=autocomplete_fn_name_rs
+                                    .get()
+                                    .map_or("Add Function".to_string(), |v| v.to_string())
+                                dropdown_direction=DropdownDirection::Down
+                                dropdown_btn_type=DropdownBtnType::Select
+                                dropdown_options=autocomplete_function_names
+                                on_select=handle_autocomplete_fn_select
+                            />
                         </div>
                     }
                 }}
-
             </Suspense>
 
-            <div class="form-control grid w-full justify-start">
-                {move || {
-                    let loading = req_inprogess_rs.get();
-                    view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
-                    }
-                }}
-
-            </div>
-
-            {
+            {move || {
+                let loading = req_inprogess_rs.get();
                 view! {
-                    <div>
-                        <p class="text-red-500">{move || error_message.get()}</p>
-                    </div>
+                    <Button
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
+                        on_click=on_submit.clone()
+                        loading
+                    />
                 }
-            }
+            }}
 
+            <p class="text-red-500">{move || error_message.get()}</p>
         </form>
     }
 }

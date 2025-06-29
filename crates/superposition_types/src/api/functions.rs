@@ -133,7 +133,9 @@ impl Display for ListFunctionFilters {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut query_params = vec![];
         if let Some(fntype) = &self.function_type {
-            query_params.push(format!("function_type={}", fntype));
+            if !fntype.is_empty() {
+                query_params.push(format!("function_type={}", fntype));
+            }
         }
         write!(f, "{}", query_params.join("&"))
     }

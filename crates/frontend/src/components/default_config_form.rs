@@ -17,6 +17,7 @@ use crate::{
         button::Button,
         change_form::ChangeForm,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        form::label::Label,
         input::{Input, InputType},
     },
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
@@ -201,11 +202,9 @@ where
 
     view! {
         <EditorProvider>
-            <form class="form-control w-full space-y-4 bg-white text-gray-700">
+            <form class="w-full flex flex-col gap-5 text-gray-700 bg-white">
                 <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">"Key Name"</span>
-                    </label>
+                    <Label title="Key Name" />
                     <div class="input input-bordered w-full max-w-md p-0 flex" disabled=edit>
                         <div
                             node_ref=scroll_ref
@@ -270,9 +269,7 @@ where
                                 })
                             />
                             <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Set Schema</span>
-                                </label>
+                                <Label title="Set Schema" />
                                 <Dropdown
                                     dropdown_width="w-100"
                                     dropdown_icon="".to_string()
@@ -341,9 +338,7 @@ where
                         };
                         return view! {
                             <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Default Value</span>
-                                </label>
+                                <Label title="Default Value" />
                                 <div class="tooltip text-left w-full max-w-md" data-tip=tooltip_txt>
                                     <textarea
                                         type="text"
@@ -370,10 +365,7 @@ where
                     };
                     view! {
                         <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Default Value</span>
-                            </label>
-
+                            <Label title="Default Value" />
                             <Input
                                 id="default-config-value-input"
                                 class
@@ -413,72 +405,56 @@ where
                             });
                         view! {
                             <div class="form-control">
-                                <div class="gap-1">
-                                    <label class="label flex-col justify-center items-start">
-                                        <span class="label-text">Validation Function Name</span>
-                                        <span class="label-text text-slate-400">
-                                            Assign Function validation to your key
-                                        </span>
-                                    </label>
-                                </div>
+                                <Label
+                                    title="Validation Function"
+                                    description="Function to add validation logic to your key"
+                                />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=validation_fn_name_rs
+                                        .get()
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=validation_function_names
+                                    on_select=handle_select_dropdown_option_validation
+                                />
 
-                                <div class="mt-2">
-                                    <Dropdown
-                                        dropdown_width="w-100"
-                                        dropdown_icon="".to_string()
-                                        dropdown_text=validation_fn_name_rs
-                                            .get()
-                                            .map_or("Add Function".to_string(), |v| v.to_string())
-                                        dropdown_direction=DropdownDirection::Down
-                                        dropdown_btn_type=DropdownBtnType::Select
-                                        dropdown_options=validation_function_names
-                                        on_select=handle_select_dropdown_option_validation
-                                    />
-                                </div>
                             </div>
 
                             <div class="form-control">
-                                <div class="gap-1">
-                                    <label class="label flex-col justify-center items-start">
-                                        <span class="label-text">AutoComplete Function Name</span>
-                                        <span class="label-text text-slate-400">
-                                            Assign Autocomplete Function to your key
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div class="mt-2">
-                                    <Dropdown
-                                        dropdown_width="w-100"
-                                        dropdown_icon="".to_string()
-                                        dropdown_text=autocomplete_fn_name_rs
-                                            .get()
-                                            .map_or("Add Function".to_string(), |v| v.to_string())
-                                        dropdown_direction=DropdownDirection::Down
-                                        dropdown_btn_type=DropdownBtnType::Select
-                                        dropdown_options=autocomplete_function_names
-                                        on_select=handle_select_dropdown_option_autocomplete
-                                    />
-                                </div>
+                                <Label
+                                    title="AutoComplete Function"
+                                    description="Function to add auto complete suggestion to your key"
+                                />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=autocomplete_fn_name_rs
+                                        .get()
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=autocomplete_function_names
+                                    on_select=handle_select_dropdown_option_autocomplete
+                                />
                             </div>
                         }
                     }}
-
                 </Suspense>
-
-                <div class="form-control grid w-full justify-start">
-                    {move || {
-                        let loading = req_inprogess_rs.get();
-                        view! {
-                            <Button
-                                class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                                text="Submit".to_string()
-                                on_click=on_submit.clone()
-                                loading
-                            />
-                        }
-                    }}
-                </div>
+                {move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="self-end h-12 w-48"
+                            text="Submit"
+                            icon_class="ri-send-plane-line"
+                            on_click=on_submit.clone()
+                            loading
+                        />
+                    }
+                }}
             </form>
         </EditorProvider>
     }

@@ -12,7 +12,6 @@ use superposition_types::{
 };
 use types::PageParams;
 
-use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -34,6 +33,10 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{unwrap_option_or_default_with_error, use_url_base};
+use crate::{
+    api::{delete_default_config, fetch_default_config},
+    components::form::label::Label,
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -547,11 +550,9 @@ fn default_config_filter_widget(
                 close_drawer("default_config_filter_drawer");
             }
         >
-            <div class="card-body">
-                <div class="form-control flex flex-col gap-9 justify-between">
-                    <label class="label">
-                        <span class="label-text">Configuration Name</span>
-                    </label>
+            <div class="flex flex-col gap-5">
+                <div class="form-control">
+                    <Label title="Configuration Name" />
                     <input
                         type="text"
                         id="default-config-name-filter"
@@ -574,10 +575,11 @@ fn default_config_filter_widget(
                         }
                     />
                 </div>
-                <div class="flex justify-start">
+                <div class="flex justify-end gap-2">
                     <Button
-                        class="h-12 w-48 px-[70px]".to_string()
-                        text="Submit".to_string()
+                        class="h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=move |event| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
@@ -587,8 +589,8 @@ fn default_config_filter_widget(
                         }
                     />
                     <Button
-                        class="h-12 w-48 px-[70px]".to_string()
-                        text="Reset".to_string()
+                        class="h-12 w-48"
+                        text="Reset"
                         on_click=move |event| {
                             event.prevent_default();
                             let filters = DefaultConfigFilters::default();

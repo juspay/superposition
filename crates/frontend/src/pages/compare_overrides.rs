@@ -202,9 +202,9 @@ pub fn compare_overrides() -> impl IntoView {
                                     let loading = req_inprogess_rs.get();
                                     view! {
                                         <Button
-                                            id="resolve_btn".to_string()
-                                            text="Submit".to_string()
-                                            class="my-4".into()
+                                            id="resolve_btn"
+                                            text="Submit"
+                                            icon_class="ri-send-plane-line"
                                             on_click=move |_| {
                                                 req_inprogress_ws.set(true);
                                                 let query = context_rs.get().as_query_string();

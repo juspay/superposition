@@ -3,7 +3,10 @@ use serde_json::Value;
 use superposition_types::database::models::{MetricSource, Metrics};
 
 use crate::{
-    components::input::{Input, InputType, Toggle},
+    components::{
+        form::label::Label,
+        input::{Input, InputType, Toggle},
+    },
     schema::{JsonSchemaType, SchemaType},
 };
 
@@ -182,17 +185,14 @@ pub fn metrics_form(
     };
 
     view! {
-        <div class="pt-2 flex flex-col">
-            <label class="label w-fit flex items-center gap-2">
+        <div class="flex flex-col">
+            <div class="w-fit flex items-center gap-2">
                 <Toggle value=metrics_rws.with_untracked(|m| m.enabled) on_change=toggle_enabled />
-                <span class="label-text">"Metrics"</span>
-                <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
-                    <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
-                        "To view metrics from Grafana, make sure that your setup allows iframe embedding. Also, experiment viewers must have access to the Grafana instance, to view the metrics."
-                    </p>
-                    <i class="ri-information-line ri-lg" />
-                </div>
-            </label>
+                <Label
+                    title="Metrics"
+                    extra_info="To view metrics from Grafana, make sure that your setup allows iframe embedding. Also, experiment viewers must have access to the Grafana instance, to view the metrics."
+                />
+            </div>
 
             <Show when=move || {
                 metrics_rws

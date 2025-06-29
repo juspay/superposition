@@ -166,62 +166,49 @@ fn form(
         });
     };
     view! {
-        <ContextForm
-            dimensions=dimensions.get_value()
-            resolve_mode=workspace_settings.get_value().strict_mode
-            context_rs
-            context_ws
-            fn_environment
-            handle_change=move |new_context| {
+        <div class="flex flex-col gap-5">
+            <ContextForm
+                dimensions=dimensions.get_value()
+                resolve_mode=workspace_settings.get_value().strict_mode
+                context_rs
                 context_ws
-                    .update(|value| {
-                        *value = new_context;
-                    });
-            }
+                fn_environment
+                handle_change=move |new_context| context_ws.set(new_context)
+                disabled=edit_id.get_value().is_some()
+            />
 
-            disabled=edit_id.get_value().is_some()
-        />
+            <ChangeForm
+                title="Description".to_string()
+                placeholder="Enter a description".to_string()
+                value=description_rs.get_untracked()
+                on_change=move |new_description| description_ws.set(new_description)
+            />
+            <ChangeForm
+                title="Reason for Change".to_string()
+                placeholder="Enter a reason for this change".to_string()
+                value=change_reason_rs.get_untracked()
+                on_change=move |new_change_reason| change_reason_ws.set(new_change_reason)
+            />
 
-        <ChangeForm
-            title="Description".to_string()
-            placeholder="Enter a description".to_string()
-            value=description_rs.get_untracked()
-            on_change=Callback::new(move |new_description| { description_ws.set(new_description) })
-        />
-        <ChangeForm
-            title="Reason for Change".to_string()
-            placeholder="Enter a reason for this change".to_string()
-            value=change_reason_rs.get_untracked()
-            on_change=Callback::new(move |new_change_reason| {
-                change_reason_ws.set(new_change_reason)
-            })
-        />
+            <OverrideForm
+                overrides=overrides_rs.get_untracked()
+                default_config=default_config
+                handle_change=move |new_overrides| overrides_ws.set(new_overrides)
+                fn_environment
+            />
 
-        <OverrideForm
-            overrides=overrides_rs.get_untracked()
-            default_config=default_config
-            handle_change=move |new_overrides| {
-                overrides_ws
-                    .update(|value| {
-                        *value = new_overrides;
-                    });
-            }
-            fn_environment
-        />
-
-        <div class="flex justify-start w-full mt-10">
             {move || {
                 let loading = req_inprogess_rs.get();
                 view! {
                     <Button
-                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                        text="Submit".to_string()
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=on_submit
                         loading
                     />
                 }
             }}
-
         </div>
     }
 }
@@ -584,7 +571,7 @@ pub fn context_override() -> impl IntoView {
                                 SortBy::Asc => "ri-sort-asc",
                             };
                             view! {
-                                <div class="flex gap-2">
+                                <div class="flex justify-end gap-2">
                                     <Stat
                                         heading="Overrides"
                                         icon="ri-guide-fill"
