@@ -420,7 +420,7 @@ pub fn default_config() -> impl IntoView {
                                             />
                                         </label>
                                         <DrawerBtn
-                                            drawer_id="default_config_drawer".to_string()
+                                            drawer_id="default_config_drawer"
                                             on_click=Callback::new(move |_| {
                                                 drawer_type.set(DrawerType::Create);
                                                 open_drawer("default_config_drawer");
@@ -535,7 +535,7 @@ fn default_config_filter_widget(
     let filters = filters_rws.get_untracked();
     let filters_buffer_rws = create_rw_signal(filters.clone());
     view! {
-        <DrawerBtn drawer_id="default_config_filter_drawer".into() style=DrawerButtonStyle::Outline>
+        <DrawerBtn drawer_id="default_config_filter_drawer" style=DrawerButtonStyle::Outline>
             Filters
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>

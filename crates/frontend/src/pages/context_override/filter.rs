@@ -1,18 +1,19 @@
-use std::{fmt::Display, ops::Deref, str::FromStr};
+use std::ops::Deref;
 
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
     api::{context::ContextListFilters, workspace::WorkspaceResponse},
     custom_query::{
-        CommaSeparatedQParams, CommaSeparatedStringQParams, CustomQuery, DimensionQuery,
-        PaginationParams, QueryMap,
+        CommaSeparatedStringQParams, CustomQuery, DimensionQuery, PaginationParams,
+        QueryMap,
     },
     database::types::DimensionWithMandatory,
 };
 
 use crate::{
     components::{
+        badge::{GrayPill, ListPills},
         button::Button,
         condition_pills::Condition,
         context_form::ContextForm,
@@ -23,56 +24,6 @@ use crate::{
     logic::{Condition, Conditions, Expression},
     providers::condition_collapse_provider::ConditionCollapseProvider,
 };
-
-#[component]
-fn gray_pill(
-    text: String,
-    #[prop(into, default = Callback::new(move |_| () ))] on_delete: Callback<()>,
-) -> impl IntoView {
-    view! {
-        <div class="badge badge-sm !h-fit py-[1px] bg-gray-200 flex gap-1">
-            {text}
-            <i class="ri-close-line cursor-pointer" on:click=move |_| { on_delete.call(()) } />
-        </div>
-    }
-}
-
-#[component]
-fn list_pills<T>(
-    #[prop(into)] label: String,
-    items: CommaSeparatedQParams<T>,
-    #[prop(into)] on_delete: Callback<usize>,
-) -> impl IntoView
-where
-    T: Display + FromStr,
-{
-    if items.is_empty() {
-        return ().into_view();
-    }
-
-    view! {
-        <div class="flex gap-2 items-center">
-            <div class="min-w-fit flex items-center gap-[2px] text-xs">
-                {label} <span class="text-[10px] text-slate-400">"(any of)"</span>
-            </div>
-            <div class="flex gap-[2px] items-center flex-wrap">
-                {items
-                    .iter()
-                    .enumerate()
-                    .map(|(idx, item)| {
-                        view! {
-                            <GrayPill
-                                text=item.to_string()
-                                on_delete=move |_| on_delete.call(idx)
-                            />
-                        }
-                    })
-                    .collect_view()}
-            </div>
-        </div>
-    }
-    .into_view()
-}
 
 #[component]
 pub fn context_filter_summary(
@@ -172,7 +123,7 @@ pub fn context_filter_summary(
                                 )
                                 .unwrap_or_else(|_| "[]".to_string());
                             view! {
-                                <div class="flex justify-end gap-2">
+                                <div class="flex gap-2">
                                     <div class="min-w-fit pt-1 text-xs">{"Context"}</div>
                                     <ConditionCollapseProvider>
                                         <Condition
@@ -195,8 +146,8 @@ pub fn context_filter_summary(
                             <ListPills
                                 label="Key prefix"
                                 items=context_filters_rws
-                                    .with(|f| f.prefix.clone())
-                                    .unwrap_or_default()
+                                    .with(|f| f.prefix.clone().unwrap_or_default())
+                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| f.prefix = filter_index(&f.prefix, idx))
@@ -210,7 +161,7 @@ pub fn context_filter_summary(
                             .map(|plaintext| {
                                 view! {
                                     <div class="flex gap-2 items-center">
-                                        <span class="text-xs">{"Free text"}</span>
+                                        <span class="text-xs">"Free text"</span>
                                         <GrayPill
                                             text=plaintext.clone()
                                             on_delete=move |_| {
@@ -226,8 +177,8 @@ pub fn context_filter_summary(
                             <ListPills
                                 label="Created by"
                                 items=context_filters_rws
-                                    .with(|f| f.created_by.clone())
-                                    .unwrap_or_default()
+                                    .with(|f| f.created_by.clone().unwrap_or_default())
+                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| f.created_by = filter_index(&f.created_by, idx))
@@ -240,8 +191,8 @@ pub fn context_filter_summary(
                             <ListPills
                                 label="Last Modified by"
                                 items=context_filters_rws
-                                    .with(|f| f.last_modified_by.clone())
-                                    .unwrap_or_default()
+                                    .with(|f| f.last_modified_by.clone().unwrap_or_default())
+                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| {
@@ -295,8 +246,8 @@ pub fn context_filter_drawer(
             <div class="flex flex-col gap-5">
                 <ContextForm
                     dimensions
-                    context_rs
-                    context_ws
+                    context=context_rs.get_untracked()
+                    on_context_change=move |new_context| context_ws.set(new_context)
                     fn_environment
                     dropdown_direction=DropdownDirection::Down
                     resolve_mode=true
@@ -399,12 +350,11 @@ pub fn context_filter_drawer(
                         icon_class="ri-send-plane-line"
                         on_click=move |event| {
                             event.prevent_default();
-                            pagination_params_rws
-                                .update(|f| {
-                                    context_filters_rws.set_untracked(filters_buffer_rws.get());
-                                    dimension_params_rws.set_untracked(dimension_buffer_rws.get());
-                                    f.reset_page()
-                                });
+                            batch(|| {
+                                context_filters_rws.set(filters_buffer_rws.get());
+                                dimension_params_rws.set(dimension_buffer_rws.get());
+                                pagination_params_rws.update(|f| f.reset_page());
+                            });
                             close_drawer("context_filter_drawer")
                         }
                     />
@@ -414,13 +364,11 @@ pub fn context_filter_drawer(
                         icon_class="ri-restart-line"
                         on_click=move |event| {
                             event.prevent_default();
-                            pagination_params_rws
-                                .update(|f| {
-                                    context_filters_rws
-                                        .set_untracked(ContextListFilters::default());
-                                    dimension_params_rws.set_untracked(DimensionQuery::default());
-                                    f.reset_page()
-                                });
+                            batch(|| {
+                                context_filters_rws.set(ContextListFilters::default());
+                                dimension_params_rws.set(DimensionQuery::default());
+                                pagination_params_rws.update(|f| f.reset_page());
+                            });
                             close_drawer("context_filter_drawer")
                         }
                     />

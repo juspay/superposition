@@ -1,13 +1,11 @@
+pub mod filter;
 pub mod utils;
 
-use std::collections::HashSet;
-
-use chrono::{prelude::Utc, DateTime, Days, Duration};
+use filter::{ExperimentTableFilterWidget, FilterSummary};
 use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
-use strum::IntoEnumIterator;
 use superposition_macros::box_params;
 use superposition_types::{
     api::{
@@ -15,11 +13,8 @@ use superposition_types::{
         experiments::{ExperimentListFilters, ExperimentResponse},
         workspace::WorkspaceResponse,
     },
-    custom_query::{CommaSeparatedQParams, CustomQuery, PaginationParams, Query},
-    database::{
-        models::{cac::DefaultConfig, experimentation::ExperimentStatusType},
-        types::DimensionWithMandatory,
-    },
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
+    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
     PaginatedResponse,
 };
 use utils::experiment_table_columns;
@@ -27,18 +22,13 @@ use utils::experiment_table_columns;
 use crate::{
     api::{fetch_default_config, fetch_dimensions, fetch_experiments},
     components::{
-        button::Button,
-        context_form::ContextForm,
-        drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-        dropdown::DropdownDirection,
+        drawer::{close_drawer, Drawer, DrawerBtn},
         experiment_form::ExperimentForm,
-        form::label::Label,
-        input::DateInput,
         skeleton::Skeleton,
         stat::Stat,
         table::{types::TablePaginationProps, Table},
     },
-    logic::{Condition, Conditions},
+    logic::Conditions,
     providers::{
         condition_collapse_provider::ConditionCollapseProvider,
         editor_provider::EditorProvider,
@@ -49,278 +39,14 @@ use crate::{
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 struct CombinedResource {
-    experiments: PaginatedResponse<ExperimentResponse>,
-    dimensions: Vec<DimensionWithMandatory>,
-    default_config: Vec<DefaultConfig>,
-}
-
-#[component]
-fn experiment_table_filter_widget(
-    pagination_params_rws: RwSignal<PaginationParams>,
-    filters_rws: RwSignal<ExperimentListFilters>,
-    combined_resource: CombinedResource,
-) -> impl IntoView {
-    let filters = filters_rws.get_untracked();
-    let filters_buffer_rws = create_rw_signal(filters.clone());
-    let context: Conditions = filters
-        .context
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|v| {
-                    v.parse()
-                        .ok()
-                        .and_then(|v| Condition::try_from_condition_json(&v).ok())
-                })
-                .collect()
-        })
-        .map(Conditions)
-        .unwrap_or_default();
-
-    let (context_rs, context_ws) = create_signal(context);
-
-    let dim = combined_resource.dimensions;
-
-    let status_filter_management =
-        move |checked: bool, filter_status: ExperimentStatusType| {
-            filters_buffer_rws.update(|f| {
-                let status_types = f.status.clone().unwrap_or_default();
-                let mut old_status_vector: HashSet<ExperimentStatusType> =
-                    HashSet::from_iter(status_types.0);
-
-                if checked {
-                    old_status_vector.insert(filter_status);
-                } else {
-                    old_status_vector.remove(&filter_status);
-                }
-                let new_status_vector = old_status_vector.into_iter().collect();
-                f.status = Some(CommaSeparatedQParams(new_status_vector))
-            })
-        };
-
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
-        json!({
-            "context": context,
-            "overrides": [],
-        })
-    });
-
-    view! {
-        <DrawerBtn drawer_id="experiment_filter_drawer".into() style=DrawerButtonStyle::Outline>
-            Filters
-            <i class="ri-filter-3-line"></i>
-        </DrawerBtn>
-        <Drawer
-            id="experiment_filter_drawer".to_string()
-            header="Experiment Filters"
-            drawer_width="w-[50vw]"
-            handle_close=move || close_drawer("experiment_filter_drawer")
-        >
-            <div class="flex flex-col gap-5">
-                <ContextForm
-                    dimensions=dim
-                    context_rs
-                    context_ws
-                    dropdown_direction=DropdownDirection::Down
-                    handle_change=move |context: Conditions| {
-                        filters_buffer_rws
-                            .update(|f| {
-                                let context = context
-                                    .iter()
-                                    .map(|v| v.to_condition_json().to_string())
-                                    .collect::<Vec<_>>();
-                                f.context = (!context.is_empty())
-                                    .then_some(CommaSeparatedQParams(context));
-                            });
-                    }
-                    heading_sub_text="Search By Context"
-                    resolve_mode=true
-                    fn_environment
-                />
-                <div class="w-full flex flex-row justify-start items-end gap-10">
-                    <div class="form-control">
-                        <Label title="Last Modified From" />
-                        <DateInput
-                            id="experiment_from_date_input"
-                            name="experiment_from_date"
-                            min="2020-01-01"
-                            value=filters
-                                .from_date
-                                .map(|s| s.format("%Y-%m-%d").to_string())
-                                .unwrap_or_default()
-                            on_change=Callback::new(move |new_date: DateTime<Utc>| {
-                                filters_buffer_rws.update(|f| f.from_date = Some(new_date));
-                            })
-                            on_clear=move |_| {
-                                filters_buffer_rws.update(|f| f.from_date = None);
-                            }
-                        />
-                    </div>
-                    <i class="ri-arrow-right-line pb-2.5 text-3xl" />
-                    <div class="form-control">
-                        <Label title="Last Modified To" />
-                        <DateInput
-                            id="experiment_to_date_input"
-                            name="experiment_to_date"
-                            value=filters
-                                .to_date
-                                .unwrap_or(Utc::now())
-                                .format("%Y-%m-%d")
-                                .to_string()
-                            on_change=Callback::new(move |new_date: DateTime<Utc>| {
-                                filters_buffer_rws
-                                    .update(|f| {
-                                        f.to_date = Some(
-                                            new_date + Days::new(1) - Duration::seconds(1),
-                                        );
-                                    });
-                            })
-                            on_clear=move |_| {
-                                filters_buffer_rws.update(|f| f.to_date = None);
-                            }
-                        />
-                    </div>
-                </div>
-
-                <div class="form-control w-full">
-                    <Label title="Experiment Status" />
-                    <div class="flex flex-row flex-wrap justify-start gap-x-8 gap-y-5">
-                        {ExperimentStatusType::iter()
-                            .map(|status| {
-                                let label = status.to_string();
-                                let input_id = format!("{label}-checkbox");
-
-                                view! {
-                                    <div>
-                                        <input
-                                            type="checkbox"
-                                            id=&input_id
-                                            class="peer hidden"
-                                            checked=move || {
-                                                filters_buffer_rws
-                                                    .get()
-                                                    .status
-                                                    .is_some_and(|s| s.iter().any(|item| *item == status))
-                                            }
-                                            on:change=move |event| {
-                                                let checked = event_target_checked(&event);
-                                                status_filter_management(checked, status)
-                                            }
-                                        />
-                                        <label
-                                            for=&input_id
-                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out"
-                                        >
-                                            {label}
-                                        </label>
-                                    </div>
-                                }
-                            })
-                            .collect_view()}
-                    </div>
-                </div>
-                <div class="form-control">
-                    <Label title="Experiment Name" />
-                    <input
-                        type="text"
-                        id="experiment-name-filter"
-                        placeholder="eg: city experiment"
-                        class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        value=move || filters_buffer_rws.get().experiment_name
-                        on:change=move |event| {
-                            let experiment_name = event_target_value(&event);
-                            let experiment_name = if experiment_name.is_empty() {
-                                None
-                            } else {
-                                Some(experiment_name)
-                            };
-                            filters_buffer_rws.update(|f| f.experiment_name = experiment_name);
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <Label
-                        title="Experiment ID"
-                        info="(any of)"
-                        description="Separate each ID by a comma"
-                    />
-                    <input
-                        type="text"
-                        id="experiment-id-filter"
-                        class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        value=move || {
-                            filters_buffer_rws.get().experiment_ids.map(|d| d.to_string())
-                        }
-                        placeholder="eg: 7259558160762015744"
-                        on:change=move |event| {
-                            let ids = event_target_value(&event);
-                            let ids = (!ids.is_empty())
-                                .then(|| serde_json::from_value(Value::String(ids)).ok())
-                                .flatten();
-                            filters_buffer_rws.update(|filter| filter.experiment_ids = ids);
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <Label
-                        title="Created By"
-                        info="(any of)"
-                        description="Separate each user by a comma"
-                    />
-                    <input
-                        type="text"
-                        id="experiment-user-filter"
-                        class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        placeholder="eg: user@superposition.io"
-                        value=move || filters_buffer_rws.get().created_by.map(|d| d.to_string())
-                        on:change=move |event| {
-                            let user_names = event_target_value(&event);
-                            let user_names = (!user_names.is_empty())
-                                .then(|| serde_json::from_value(Value::String(user_names)).ok())
-                                .flatten();
-                            filters_buffer_rws.update(|filter| filter.created_by = user_names);
-                        }
-                    />
-                </div>
-                <div class="flex justify-end gap-2">
-                    <Button
-                        class="h-12 w-48"
-                        text="Submit"
-                        icon_class="ri-send-plane-line"
-                        on_click=move |event| {
-                            event.prevent_default();
-                            let filter = filters_buffer_rws.get();
-                            pagination_params_rws
-                                .update(|f| {
-                                    filters_rws.set_untracked(filter);
-                                    f.reset_page()
-                                });
-                            close_drawer("experiment_filter_drawer")
-                        }
-                    />
-                    <Button
-                        class="h-12 w-48"
-                        text="Reset"
-                        icon_class="ri-restart-line"
-                        on_click=move |event| {
-                            event.prevent_default();
-                            pagination_params_rws
-                                .update(|f| {
-                                    filters_rws.set_untracked(ExperimentListFilters::default());
-                                    f.reset_page()
-                                });
-                            close_drawer("experiment_filter_drawer")
-                        }
-                    />
-                </div>
-            </div>
-        </Drawer>
-    }
+    pub(self) experiments: PaginatedResponse<ExperimentResponse>,
+    pub(self) dimensions: Vec<DimensionWithMandatory>,
+    pub(self) default_config: Vec<DefaultConfig>,
 }
 
 #[component]
 pub fn experiment_list() -> impl IntoView {
-    // acquire tenant
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (reset_exp_form, set_exp_form) = create_signal(0);
@@ -330,11 +56,16 @@ pub fn experiment_list() -> impl IntoView {
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
-
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
+    let dimension_params_rws = use_signal_from_query(move |query_string| {
+        DimensionQuery::<QueryMap>::extract_non_empty(&query_string)
+    });
 
     use_param_updater(move || {
-        box_params!(pagination_params_rws.get(), filters_rws.get())
+        box_params![
+            filters_rws.get(),
+            pagination_params_rws.get(),
+            dimension_params_rws.get(),
+        ]
     });
 
     let combined_resource = create_blocking_resource(
@@ -342,17 +73,19 @@ pub fn experiment_list() -> impl IntoView {
             (
                 workspace.get().0,
                 filters_rws.get(),
+                dimension_params_rws.get(),
                 pagination_params_rws.get(),
                 org.get().0,
             )
         },
-        |(current_tenant, filters, pagination_params, org_id)| async move {
+        |(current_tenant, filters, dimension_params, pagination_params, org_id)| async move {
             // Perform all fetch operations concurrently
             let fetch_all_filters = PaginationParams::all_entries();
             let default_config_filters = DefaultConfigFilters::default();
             let experiments_future = fetch_experiments(
                 &filters,
                 &pagination_params,
+                &dimension_params,
                 current_tenant.to_string(),
                 org_id.clone(),
             );
@@ -421,9 +154,16 @@ pub fn experiment_list() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">"Experiments"</h2>
-                            <DrawerBtn drawer_id="create_exp_drawer"
-                                .to_string()>
+                            <div class="flex items-center gap-4">
+                                <h2 class="card-title">"Experiments"</h2>
+                                <ExperimentTableFilterWidget
+                                    dimension_params_rws
+                                    pagination_params_rws
+                                    filters_rws
+                                    combined_resource=combined_resource.get().unwrap_or_default()
+                                />
+                            </div>
+                            <DrawerBtn drawer_id="create_exp_drawer">
                                 Create Experiment <i class="ri-edit-2-line ml-2"></i>
                             </DrawerBtn>
                         </div>
@@ -467,12 +207,8 @@ pub fn experiment_list() -> impl IntoView {
                                         on_page_change: handle_page_change,
                                     };
                                     view! {
+                                        <FilterSummary filters_rws dimension_params_rws />
                                         <ConditionCollapseProvider>
-                                            <ExperimentTableFilterWidget
-                                                pagination_params_rws
-                                                filters_rws
-                                                combined_resource=v
-                                            />
                                             <Table
                                                 rows=data
                                                 key_column="id".to_string()

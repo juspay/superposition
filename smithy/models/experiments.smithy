@@ -354,10 +354,6 @@ operation ListExperiment {
         @notProperty
         created_by: String
 
-        @httpQuery("context")
-        @notProperty
-        context_query: String
-
         @httpQuery("sort_on")
         @notProperty        
         sort_on: ExperimentSortOn,

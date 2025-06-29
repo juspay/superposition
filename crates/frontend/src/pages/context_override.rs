@@ -170,8 +170,8 @@ fn form(
             <ContextForm
                 dimensions=dimensions.get_value()
                 resolve_mode=workspace_settings.get_value().strict_mode
-                context_rs
-                context_ws
+                context=context_rs.get_untracked()
+                on_context_change=move |new_context| context_ws.set(new_context)
                 fn_environment
                 handle_change=move |new_context| context_ws.set(new_context)
                 disabled=edit_id.get_value().is_some()
@@ -606,17 +606,17 @@ pub fn context_override() -> impl IntoView {
                                         />
                                     </div>
                                     <DrawerBtn
-                                        drawer_id="context_filter_drawer".into()
+                                        drawer_id="context_filter_drawer"
                                         style=DrawerButtonStyle::Outline
-                                        class="self-end".to_string()
+                                        class="self-end"
                                     >
                                         "Filters"
                                         <i class="ri-filter-3-line"></i>
                                     </DrawerBtn>
                                 </div>
                                 <DrawerBtn
-                                    class="self-end h-fit".to_string()
-                                    drawer_id="context_and_override_drawer".to_string()
+                                    class="self-end h-fit"
+                                    drawer_id="context_and_override_drawer"
                                     on_click=on_create_context_click
                                 >
                                     "Create Override"

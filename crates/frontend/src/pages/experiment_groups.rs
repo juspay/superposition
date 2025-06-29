@@ -8,7 +8,7 @@ use superposition_types::{
         experiments::{ExperimentListFilters, ExperimentResponse},
         workspace::WorkspaceResponse,
     },
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    custom_query::{CommaSeparatedQParams, DimensionQuery, PaginationParams},
     database::models::{experimentation::ExperimentGroup, ChangeReason},
 };
 
@@ -206,16 +206,22 @@ pub fn experiment_groups() -> impl IntoView {
             .iter()
             .map(i64::to_string)
             .collect::<Vec<_>>();
-        let filters = ExperimentListFilters::default();
+
         let filters = ExperimentListFilters {
             experiment_ids: Some(CommaSeparatedQParams(members)),
-            ..filters
+            ..ExperimentListFilters::default()
         };
         let pagination = PaginationParams::all_entries();
-        let experiments = fetch_experiments(&filters, &pagination, tenant, org_id)
-            .await
-            .ok()?
-            .data;
+        let experiments = fetch_experiments(
+            &filters,
+            &pagination,
+            &DimensionQuery::default(),
+            tenant,
+            org_id,
+        )
+        .await
+        .ok()?
+        .data;
         Some(ExperimentGroupResource { group, experiments })
     });
 
@@ -298,8 +304,7 @@ pub fn experiment_groups() -> impl IntoView {
                                     <div class="card-body">
                                         <div class="flex justify-between">
                                             <h2 class="card-title">"Member Experiments"</h2>
-                                            <DrawerBtn drawer_id="add_members_group_drawer"
-                                                .to_string()>
+                                            <DrawerBtn drawer_id="add_members_group_drawer">
                                                 Add Members <i class="ri-add-large-fill ml-2"></i>
                                             </DrawerBtn>
                                         </div>

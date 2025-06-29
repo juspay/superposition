@@ -288,8 +288,7 @@ pub fn dimensions() -> impl IntoView {
                             <div class="card-body">
                                 <div class="flex justify-between">
                                     <h2 class="card-title">"Dimensions"</h2>
-                                    <DrawerBtn drawer_id="dimension_drawer"
-                                        .to_string()>
+                                    <DrawerBtn drawer_id="dimension_drawer">
                                         Create Dimension <i class="ri-edit-2-line ml-2"></i>
                                     </DrawerBtn>
                                 </div>
