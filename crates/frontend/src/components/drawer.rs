@@ -30,7 +30,7 @@ pub enum DrawerButtonStyle {
 pub fn drawer_btn(
     #[prop(into)] drawer_id: String,
     children: Children,
-    #[prop(default = Callback::new(|_| {}))] on_click: Callback<MouseEvent, ()>,
+    #[prop(into, default = Callback::new(|_| {}))] on_click: Callback<MouseEvent, ()>,
     #[prop(into, default = String::new())] class: String,
     #[prop(default = DrawerButtonStyle::Fill)] style: DrawerButtonStyle,
 ) -> impl IntoView {

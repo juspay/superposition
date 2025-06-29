@@ -1,5 +1,8 @@
+mod filter;
+
 use std::time::Duration;
 
+use filter::{ExperimentGroupFilterWidget, FilterSummary};
 use leptos::*;
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
@@ -23,13 +26,11 @@ use crate::{
     },
     components::{
         alert::AlertType,
-        button::Button,
         condition_pills::Condition as ConditionComponent,
         delete_modal::DeleteModal,
         description_icon::InfoDescription,
-        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
         experiment_group_form::ExperimentGroupForm,
-        form::label::Label,
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -273,125 +274,6 @@ fn table_columns(
 }
 
 #[component]
-fn experiment_group_filter_widget(
-    pagination_params_rws: RwSignal<PaginationParams>,
-    filters_rws: RwSignal<ExpGroupFilters>,
-) -> impl IntoView {
-    let filters = filters_rws.get_untracked();
-    let filters_buffer_rws = create_rw_signal(filters.clone());
-
-    view! {
-        <DrawerBtn drawer_id="experiment_group_filter_drawer" style=DrawerButtonStyle::Outline>
-            Filters
-            <i class="ri-filter-3-line"></i>
-        </DrawerBtn>
-        <Drawer
-            id="experiment_group_filter_drawer".to_string()
-            header="Experiment Group Filters"
-            drawer_width="w-[50vw]"
-            handle_close=move || close_drawer("experiment_group_filter_drawer")
-        >
-            <div class="flex flex-col gap-5">
-                <div class="flex flex-col gap-5 justify-between">
-                    <div class="form-control">
-                        <Label title="Experiment Group Name" />
-                        <input
-                            type="text"
-                            id="experiment-group-name-filter"
-                            placeholder="eg: city experiment group"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_buffer_rws.get().name.unwrap_or_default()
-                            on:change=move |event| {
-                                let name = event_target_value(&event);
-                                let group_name = if name.trim().is_empty() {
-                                    None
-                                } else {
-                                    Some(name)
-                                };
-                                filters_buffer_rws.update(|f| f.name = group_name);
-                            }
-                        />
-                    </div>
-                    <div class="form-control">
-                        <Label title="Created By" />
-                        <input
-                            type="text"
-                            id="experiment-group-created-by-filter"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_buffer_rws.get().created_by.unwrap_or_default()
-                            placeholder="eg: user@superposition.io"
-                            on:change=move |event| {
-                                let created_by = event_target_value(&event);
-                                let created_by = if created_by.trim().is_empty() {
-                                    None
-                                } else {
-                                    Some(created_by)
-                                };
-                                filters_buffer_rws.update(|filter| filter.created_by = created_by);
-                            }
-                        />
-                    </div>
-                    <div class="form-control">
-                        <Label title="Last Modified By" />
-                        <input
-                            type="text"
-                            id="experiment-last-modified-filter"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            placeholder="eg: user@superposition.io"
-                            value=move || filters_buffer_rws.get().last_modified_by
-                            on:change=move |event| {
-                                let last_modified = event_target_value(&event);
-                                let last_modified_by = if last_modified.trim().is_empty() {
-                                    None
-                                } else {
-                                    Some(last_modified)
-                                };
-                                filters_buffer_rws
-                                    .update(|filter| filter.last_modified_by = last_modified_by);
-                            }
-                        />
-
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <Button
-                        class="h-12 w-48"
-                        text="Submit"
-                        icon_class="ri-send-plane-line"
-                        on_click=move |event| {
-                            event.prevent_default();
-                            let filter = filters_buffer_rws.get();
-                            pagination_params_rws
-                                .update(|f| {
-                                    filters_rws.set_untracked(filter);
-                                    f.reset_page()
-                                });
-                            close_drawer("experiment_group_filter_drawer")
-                        }
-                    />
-                    <Button
-                        class="h-12 w-48"
-                        text="Reset"
-                        icon_class="ri-restart-line"
-                        on_click=move |event| {
-                            event.prevent_default();
-                            let filters = ExpGroupFilters::default();
-                            filters_buffer_rws.set(filters.clone());
-                            pagination_params_rws
-                                .update(|f| {
-                                    filters_rws.set_untracked(filters);
-                                    f.reset_page()
-                                });
-                            close_drawer("experiment_group_filter_drawer")
-                        }
-                    />
-                </div>
-            </div>
-        </Drawer>
-    }
-}
-
-#[component]
 pub fn experiment_group_listing() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -477,7 +359,10 @@ pub fn experiment_group_listing() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">"Experiment Groups"</h2>
+                            <div class="flex items-center gap-4">
+                                <h2 class="card-title">"Experiment Groups"</h2>
+                                <ExperimentGroupFilterWidget filters_rws pagination_params_rws />
+                            </div>
                             <DrawerBtn drawer_id="create_exp_group_drawer"
                                 .to_string()>
                                 Create Group <i class="ri-edit-2-line ml-2"></i>
@@ -525,11 +410,8 @@ pub fn experiment_group_listing() -> impl IntoView {
                                         on_page_change: handle_page_change,
                                     };
                                     view! {
+                                        <FilterSummary filters_rws />
                                         <ConditionCollapseProvider>
-                                            <ExperimentGroupFilterWidget
-                                                filters_rws
-                                                pagination_params_rws
-                                            />
                                             <Table
                                                 rows=data
                                                 key_column="name".to_string()

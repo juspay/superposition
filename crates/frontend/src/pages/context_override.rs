@@ -571,13 +571,13 @@ pub fn context_override() -> impl IntoView {
                                 SortBy::Asc => "ri-sort-asc",
                             };
                             view! {
-                                <div class="flex justify-end gap-2">
+                                <div class="flex items-center gap-2">
                                     <Stat
                                         heading="Overrides"
                                         icon="ri-guide-fill"
                                         number=total_items
                                     />
-                                    <div class="w-max flex flex-col justify-end">
+                                    <div class="w-max flex flex-col justify-center">
                                         <Dropdown
                                             class="!w-fit !h-fit".to_string()
                                             dropdown_width="w-max".to_string()
@@ -608,7 +608,7 @@ pub fn context_override() -> impl IntoView {
                                     <DrawerBtn
                                         drawer_id="context_filter_drawer"
                                         style=DrawerButtonStyle::Outline
-                                        class="self-end"
+                                        class="!h-9 !min-h-[32px] !w-fit px-2"
                                     >
                                         "Filters"
                                         <i class="ri-filter-3-line"></i>

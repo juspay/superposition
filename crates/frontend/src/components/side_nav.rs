@@ -90,9 +90,8 @@ pub fn workspace_selector(
 
     let base = use_url_base();
     let route_context = use_route();
-    let original_path = StoredValue::new(String::from(
-        route_context.original_path().replace(&base, ""),
-    ));
+    let original_path =
+        StoredValue::new(route_context.original_path().replace(&base, ""));
     let resolved_path = StoredValue::new({
         let curr_path = route_context.path();
         app_routes
