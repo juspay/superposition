@@ -193,13 +193,9 @@ pub fn dimensions() -> impl IntoView {
             Column::default("autocomplete_function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::new(
+            Column::default_with_cell_formatter(
                 "actions".to_string(),
-                false,
                 action_col_formatter,
-                ColumnSortable::No,
-                Expandable::Enabled(100),
-                default_column_formatter,
             ),
         ]
     });

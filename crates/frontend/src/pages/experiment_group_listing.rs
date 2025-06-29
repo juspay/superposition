@@ -171,9 +171,8 @@ fn table_columns(
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::new(
+        Column::default_with_cell_formatter(
             "traffic_percentage".to_string(),
-            false,
             |value: &str, _| {
                 let percentage = format!("{}%", value);
                 view! {
@@ -183,9 +182,6 @@ fn table_columns(
                 }
                 .into_view()
             },
-            ColumnSortable::No,
-            Expandable::Disabled,
-            default_column_formatter,
         ),
         Column::default_with_sort(
             "last_modified_at".to_string(),

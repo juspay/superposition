@@ -23,10 +23,6 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
     }
 }
 
-use super::table::types::{
-    default_column_formatter, default_formatter, ColumnSortable, Expandable,
-};
-
 #[component]
 fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
     view! {
@@ -275,14 +271,7 @@ pub fn gen_variant_table(variants: &[Variant]) -> (Vec<Map<String, Value>>, Vec<
             VariantType::CONTROL => format!("{}", variant.variant_type),
             VariantType::EXPERIMENTAL => format!("Variant-{}", i),
         };
-        columns.push(Column::new(
-            name.clone(),
-            false,
-            default_formatter,
-            ColumnSortable::No,
-            Expandable::Enabled(100),
-            default_column_formatter,
-        ));
+        columns.push(Column::default(name.clone()));
         for (config, value) in variant.overrides.clone().into_inner().into_iter() {
             match row_map.get_mut(&config) {
                 Some(c) => {

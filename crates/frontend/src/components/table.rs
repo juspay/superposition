@@ -82,7 +82,7 @@ pub fn table(
             <table class="table table-zebra">
                 <thead class=head_class>
                     <tr class="bg-white">
-                        <th class="sticky left-0 z-20 bg-inherit min-w-[5rem] px-3"></th>
+                        <th class="sticky left-0 z-20 bg-inherit min-w-[5rem] px-3" />
 
                         {columns
                             .iter()
@@ -100,32 +100,35 @@ pub fn table(
                                         view! {
                                             <th
                                                 class=format!(
-                                                    "uppercase cursor-pointer px-3 {}",
-                                                    sticky_class,
+                                                    "px-3 flex items-center gap-1 cursor-pointer {sticky_class}",
                                                 )
                                                 on:click=move |_| sort_fn.call(())
                                             >
                                                 {col_formatter(&column.name)}
                                                 {match (currently_sorted, sort_by) {
                                                     (false, _) => {
-                                                        view! { <i class="ri-expand-up-down-line"></i> }
+                                                        view! {
+                                                            <i class="ri-expand-up-down-fill ri-xl self-center" />
+                                                        }
                                                     }
                                                     (_, SortBy::Desc) => {
-                                                        view! { <i class="ri-arrow-down-s-line"></i> }
+                                                        view! {
+                                                            <i class="ri-arrow-down-s-fill ri-xl text-purple-700" />
+                                                        }
                                                     }
                                                     (_, SortBy::Asc) => {
-                                                        view! { <i class="ri-arrow-up-s-line"></i> }
+                                                        view! {
+                                                            <i class="ri-arrow-up-s-fill ri-xl text-purple-700" />
+                                                        }
                                                     }
                                                 }}
-
                                             </th>
                                         }
                                     }
                                     types::ColumnSortable::No => {
                                         view! {
                                             <th class=format!(
-                                                "uppercase px-3 {}",
-                                                sticky_class,
+                                                "px-3 {sticky_class}",
                                             )>{col_formatter(&column.name)}</th>
                                         }
                                     }

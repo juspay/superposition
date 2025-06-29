@@ -1,6 +1,5 @@
 use leptos::*;
 
-use chrono::DateTime;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
@@ -146,9 +145,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                     id
                 );
                 view! {
-                    <div class="w-24">
-                        <A href=href class="btn-link">{id}</A>
-                    </div>
+                    <A href=href class="btn-link">{id}</A>
                 }
                 .into_view()
             },
@@ -156,27 +153,9 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::new(
-            "created_at".to_string(),
-            false,
-            |value: &str, _row: &Map<String, Value>| {
-                let formatted_date =
-                    match DateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f") {
-                        Ok(dt) => dt.format("%d-%b-%Y").to_string(),
-                        Err(_) => {
-                            logging::log!("Failed to parse date: {}", value);
-                            value.to_string()
-                        }
-                    };
-                view! { <span class="w-24">{formatted_date}</span> }.into_view()
-            },
-            ColumnSortable::No,
-            Expandable::Enabled(100),
-            default_column_formatter,
-        ),
-        Column::new(
+        Column::default_no_collapse("created_at".to_string()),
+        Column::default_with_cell_formatter(
             "tags".to_string(),
-            false,
             |_value: &str, row: &Map<String, Value>| {
                 let tags = row.get("tags").and_then(|v| v.as_array());
                 match tags {
@@ -192,9 +171,6 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 }
                 .into_view()
             },
-            ColumnSortable::No,
-            Expandable::Enabled(100),
-            default_column_formatter,
         ),
     ]
 }
