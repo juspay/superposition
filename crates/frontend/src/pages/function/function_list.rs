@@ -87,18 +87,13 @@ pub fn function_list() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">Functions</h2>
-                            <div>
-
-                                <A
-                                    href="create".to_string()
-                                    class="btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 btn-link"
-                                >
-                                    <button>
-                                        Create Function <i class="ri-edit-2-line ml-2"></i>
-                                    </button>
-                                </A>
-                            </div>
+                            <h2 class="card-title">"Functions"</h2>
+                            <A
+                                href="create".to_string()
+                                class="btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 btn-link"
+                            >
+                                <button>Create Function <i class="ri-edit-2-line ml-2"></i></button>
+                            </A>
                         </div>
                         <div>
 

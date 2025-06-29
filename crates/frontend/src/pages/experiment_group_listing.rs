@@ -480,13 +480,11 @@ pub fn experiment_group_listing() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">Experiment Groups</h2>
-                            <div>
-                                <DrawerBtn drawer_id="create_exp_group_drawer"
-                                    .to_string()>
-                                    Create Group <i class="ri-edit-2-line ml-2"></i>
-                                </DrawerBtn>
-                            </div>
+                            <h2 class="card-title">"Experiment Groups"</h2>
+                            <DrawerBtn drawer_id="create_exp_group_drawer"
+                                .to_string()>
+                                Create Group <i class="ri-edit-2-line ml-2"></i>
+                            </DrawerBtn>
                         </div>
                         {move || {
                             let value = experiment_groups_resource.get();

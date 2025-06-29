@@ -297,7 +297,7 @@ pub fn experiment_groups() -> impl IntoView {
                                 <div class="card rounded-xl w-full bg-base-100 shadow">
                                     <div class="card-body">
                                         <div class="flex justify-between">
-                                            <h2 class="card-title">Member Experiments</h2>
+                                            <h2 class="card-title">"Member Experiments"</h2>
                                             <DrawerBtn drawer_id="add_members_group_drawer"
                                                 .to_string()>
                                                 Add Members <i class="ri-add-large-fill ml-2"></i>

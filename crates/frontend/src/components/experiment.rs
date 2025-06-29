@@ -363,7 +363,7 @@ where
             <ExperimentInfo experiment />
             <div class="card bg-base-100 max-w-screen shadow">
                 <div class="card-body">
-                    <h2 class="card-title">Context</h2>
+                    <h2 class="card-title">"Context"</h2>
                     <div class="flex flex-row flex-wrap gap-2">
 
                         {contexts
@@ -455,7 +455,7 @@ where
             </Show>
             <div class="card bg-base-100 max-w-screen shadow">
                 <div class="card-body">
-                    <h2 class="card-title">Variants</h2>
+                    <h2 class="card-title">"Variants"</h2>
                     <Table
                         rows=variant_rows
                         key_column="overrides".to_string()

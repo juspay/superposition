@@ -123,7 +123,7 @@ fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
             </ConditionCollapseProvider>
             <div class="card bg-base-100 shadow m-6">
                 <div class="card-body">
-                    <h2 class="card-title">Default Configuration</h2>
+                    <h2 class="card-title">"Default Configuration"</h2>
                     <table class="table table-zebra">
                         <thead>
                             <tr>
@@ -331,7 +331,7 @@ pub fn home() -> impl IntoView {
                                     <div class="card h-4/5 shadow bg-base-100">
                                         <div class="card flex flex-row m-2 bg-base-100">
                                             <div class="card-body">
-                                                <h2 class="card-title">Resolve Configs</h2>
+                                                <h2 class="card-title">"Resolve Configs"</h2>
 
                                                 <ContextForm
                                                     dimensions=dimension
@@ -490,7 +490,7 @@ pub fn home() -> impl IntoView {
                                                         view! {
                                                             <div class="card m-6 shadow bg-base-100">
                                                                 <div class="card-body">
-                                                                    <h2 class="card-title">Resolved Config</h2>
+                                                                    <h2 class="card-title">"Resolved Config"</h2>
                                                                     <table class="table table-zebra">
                                                                         <thead>
                                                                             <tr>

@@ -287,9 +287,7 @@ pub fn dimensions() -> impl IntoView {
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between">
-                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white">
-                                        "Dimensions"
-                                    </h2>
+                                    <h2 class="card-title">"Dimensions"</h2>
                                     <DrawerBtn drawer_id="dimension_drawer"
                                         .to_string()>
                                         Create Dimension <i class="ri-edit-2-line ml-2"></i>

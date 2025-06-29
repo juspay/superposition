@@ -164,7 +164,7 @@ pub fn compare_overrides() -> impl IntoView {
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between">
-                                    <h2 class="card-title">Compare Overrides</h2>
+                                    <h2 class="card-title">"Compare Overrides"</h2>
                                     <DrawerBtn drawer_id="add_comparison_drawer"
                                         .to_string()>
                                         Add Comparison <i class="ri-edit-2-line ml-2"></i>

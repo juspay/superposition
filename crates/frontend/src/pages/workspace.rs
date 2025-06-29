@@ -245,13 +245,12 @@ pub fn workspace() -> impl IntoView {
                         </div>
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
-                                <div class="flex justify-end pb-2">
-                                    <div class="flex">
-                                        <DrawerBtn drawer_id="workspace_drawer"
-                                            .to_string()>
-                                            Create Workspace <i class="ri-edit-2-line ml-2"></i>
-                                        </DrawerBtn>
-                                    </div>
+                                <div class="flex justify-between">
+                                    <h2 class="card-title">"Workspaces"</h2>
+                                    <DrawerBtn drawer_id="workspace_drawer"
+                                        .to_string()>
+                                        Create Workspace <i class="ri-edit-2-line ml-2"></i>
+                                    </DrawerBtn>
                                 </div>
                                 <Table
                                     rows=table_rows

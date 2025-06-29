@@ -395,7 +395,7 @@ pub fn default_config() -> impl IntoView {
                         </div>
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
-                                <div class="flex justify-between pb-2">
+                                <div class="flex justify-between">
                                     <BreadCrums bread_crums=bread_crums.get() redirect_url />
                                     <div class="flex">
                                         <label
@@ -464,20 +464,17 @@ pub fn bread_crums(
     #[prop(into)] redirect_url: Callback<Option<String>, String>,
 ) -> impl IntoView {
     view! {
-        <div class="flex justify-between pt-3">
+        <div class="flex justify-between items-center gap-2">
             {bread_crums
                 .iter()
                 .map(|ele| {
                     view! {
-                        <h2 class="flex after:content-['>'] after:mx-4 after:last:hidden">
+                        <h2 class="first:card-title flex gap-2 after:content-['>'] after:font-normal after:text-base after:last:hidden">
                             {if ele.is_link {
                                 let href = redirect_url.call(ele.value.clone());
                                 let label = ele.key.clone();
                                 view! {
-                                    <A
-                                        class="flex after:content-['>'] after:mx-4 after:last:hidden placeholder:cursor-pointer text-blue-500 underline underline-offset-2"
-                                        href
-                                    >
+                                    <A class="text-blue-500 underline underline-offset-2" href>
                                         {label}
                                     </A>
                                 }
