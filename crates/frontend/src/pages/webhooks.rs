@@ -306,9 +306,7 @@ pub fn webhooks() -> impl IntoView {
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between">
-                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white">
-                                        "Webhooks"
-                                    </h2>
+                                    <h2 class="card-title">"Webhooks"</h2>
                                     <DrawerBtn drawer_id="webhook_drawer"
                                         .to_string()>
                                         Create Webhook <i class="ri-edit-2-line ml-2"></i>

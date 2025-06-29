@@ -421,13 +421,11 @@ pub fn experiment_list() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">Experiments</h2>
-                            <div>
-                                <DrawerBtn drawer_id="create_exp_drawer"
-                                    .to_string()>
-                                    Create Experiment <i class="ri-edit-2-line ml-2"></i>
-                                </DrawerBtn>
-                            </div>
+                            <h2 class="card-title">"Experiments"</h2>
+                            <DrawerBtn drawer_id="create_exp_drawer"
+                                .to_string()>
+                                Create Experiment <i class="ri-edit-2-line ml-2"></i>
+                            </DrawerBtn>
                         </div>
                         {move || {
                             let value = combined_resource.get();
