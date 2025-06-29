@@ -192,14 +192,14 @@ pub fn condition_input(
 #[component]
 pub fn context_form<NF>(
     handle_change: NF,
-    context_rs: ReadSignal<Conditions>,
-    context_ws: WriteSignal<Conditions>,
+    context: Conditions,
     dimensions: Vec<DimensionWithMandatory>,
     fn_environment: Memo<Value>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(into, default = String::new())] heading_sub_text: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
+    #[prop(into)] on_context_change: Callback<Conditions, ()>,
 ) -> impl IntoView
 where
     NF: Fn(Conditions) + 'static,
@@ -249,13 +249,27 @@ where
                 });
         };
 
-    if !disabled && !resolve_mode {
-        dimensions
-            .get_value()
-            .into_iter()
-            .filter(|dim| dim.mandatory)
-            .for_each(|dimension| context_ws.update(|c| insert_dimension(c, &dimension)));
-    }
+    let context_data = {
+        let mut context = context;
+        if !disabled && !resolve_mode {
+            dimensions
+                .get_value()
+                .into_iter()
+                .filter(|dim| dim.mandatory)
+                .for_each(|dimension| {
+                    insert_dimension(&mut context, &dimension);
+                });
+        }
+        context
+    };
+
+    let (context_rs, context_ws) = create_signal(context_data);
+
+    Effect::new(move |_| {
+        let context = context_rs.get();
+        logging::log!("Context form effect {:?}", context);
+        on_context_change.call(context.clone());
+    });
 
     let used_dimensions = Signal::derive(move || {
         context_rs

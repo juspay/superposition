@@ -136,6 +136,7 @@ pub async fn delete_context(
 pub async fn fetch_experiments(
     filters: &ExperimentListFilters,
     pagination: &PaginationParams,
+    dimension_params: &DimensionQuery<QueryMap>,
     tenant: String,
     org_id: String,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
@@ -143,11 +144,7 @@ pub async fn fetch_experiments(
     let host = use_host_server();
     let pagination = pagination.to_string();
 
-    let url = if pagination.is_empty() {
-        format!("{}/experiments?{}", host, filters)
-    } else {
-        format!("{}/experiments?{}&{}", host, filters, pagination)
-    };
+    let url = format!("{host}/experiments?{filters}&{pagination}&{dimension_params}");
     let response: PaginatedResponse<ExperimentResponse> = client
         .get(url)
         .header("x-tenant", tenant)

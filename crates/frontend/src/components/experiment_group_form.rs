@@ -319,8 +319,8 @@ pub fn experiment_group_form(
 
                 <ContextForm
                     dimensions=dimensions
-                    context_rs
-                    context_ws
+                    context=context_rs.get_untracked()
+                    on_context_change=move |new_context| context_ws.set(new_context)
                     handle_change=move |new_context: Conditions| {
                         context_ws.set_untracked(new_context);
                     }

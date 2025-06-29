@@ -236,8 +236,7 @@ pub fn types_page() -> impl IntoView {
                                 <div class="card-body">
                                     <div class="flex justify-between">
                                         <h2 class="card-title">"Type Templates"</h2>
-                                        <DrawerBtn drawer_id=TYPE_DRAWER_ID
-                                            .to_string()>
+                                        <DrawerBtn drawer_id=TYPE_DRAWER_ID>
                                             Create Type <i class="ri-add-fill ml-2"></i>
                                         </DrawerBtn>
                                     </div>

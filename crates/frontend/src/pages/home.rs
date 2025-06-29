@@ -335,8 +335,10 @@ pub fn home() -> impl IntoView {
 
                                                 <ContextForm
                                                     dimensions=dimension
-                                                    context_rs
-                                                    context_ws
+                                                    context=context_rs.get_untracked()
+                                                    on_context_change=move |new_context| {
+                                                        context_ws.set(new_context);
+                                                    }
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
                                                     resolve_mode=true

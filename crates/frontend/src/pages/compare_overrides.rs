@@ -57,7 +57,7 @@ fn table_columns(
                                         })
                                 })
                         }
-                    ></i>
+                    />
                     <ConditionCollapseProvider>
                         <ConditionComponent
                             conditions
@@ -159,14 +159,12 @@ pub fn compare_overrides() -> impl IntoView {
                     );
                     let dimensions = dimension_resource.get().unwrap_or_default();
                     let data = resolved_config_map.into_values().collect();
-                    let (empty_context_rs, empty_context_ws) = create_signal(Conditions::default());
                     view! {
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between">
                                     <h2 class="card-title">"Compare Overrides"</h2>
-                                    <DrawerBtn drawer_id="add_comparison_drawer"
-                                        .to_string()>
+                                    <DrawerBtn drawer_id="add_comparison_drawer">
                                         Add Comparison <i class="ri-edit-2-line ml-2"></i>
                                     </DrawerBtn>
                                 </div>
@@ -188,8 +186,7 @@ pub fn compare_overrides() -> impl IntoView {
                             <EditorProvider>
                                 <ContextForm
                                     dimensions=dimensions.data
-                                    context_rs=empty_context_rs
-                                    context_ws=empty_context_ws
+                                    context=Conditions::default()
                                     heading_sub_text="Compare to...".to_string()
                                     dropdown_direction=DropdownDirection::Right
                                     resolve_mode=true
@@ -197,7 +194,9 @@ pub fn compare_overrides() -> impl IntoView {
                                         context_ws.update(|value| *value = new_context)
                                     }
                                     fn_environment
+                                    on_context_change=move |_| ()
                                 />
+
                                 {move || {
                                     let loading = req_inprogess_rs.get();
                                     view! {

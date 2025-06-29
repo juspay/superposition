@@ -291,8 +291,8 @@ pub fn experiment_form(
                 view! {
                     <ContextForm
                         dimensions=dimensions.get_value()
-                        context_rs
-                        context_ws
+                        context=context_rs.get_untracked()
+                        on_context_change=move |new_context| context_ws.set(new_context)
                         handle_change=handle_context_form_change
                         resolve_mode=workspace_settings.get_value().strict_mode
                         disabled=edit_id.get_value().is_some()

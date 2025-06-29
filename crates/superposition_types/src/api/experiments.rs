@@ -240,7 +240,6 @@ pub struct ExperimentListFilters {
     pub experiment_name: Option<String>,
     pub experiment_ids: Option<CommaSeparatedStringQParams>,
     pub created_by: Option<CommaSeparatedStringQParams>,
-    pub context: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
 }
@@ -272,11 +271,6 @@ impl Display for ExperimentListFilters {
                 query_params.push(format!("created_by={}", created_by));
             }
         }
-        if let Some(context) = &self.context {
-            if !context.is_empty() {
-                query_params.push(format!("context={}", context));
-            }
-        }
         if let Some(sort_on) = self.sort_on {
             query_params.push(format!("sort_on={}", sort_on));
         }
@@ -305,7 +299,6 @@ impl Default for ExperimentListFilters {
             experiment_name: None,
             experiment_ids: None,
             created_by: None,
-            context: None,
             sort_on: None,
             sort_by: Some(SortBy::Desc),
         }

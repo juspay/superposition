@@ -281,10 +281,7 @@ fn experiment_group_filter_widget(
     let filters_buffer_rws = create_rw_signal(filters.clone());
 
     view! {
-        <DrawerBtn
-            drawer_id="experiment_group_filter_drawer".into()
-            style=DrawerButtonStyle::Outline
-        >
+        <DrawerBtn drawer_id="experiment_group_filter_drawer" style=DrawerButtonStyle::Outline>
             Filters
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>
