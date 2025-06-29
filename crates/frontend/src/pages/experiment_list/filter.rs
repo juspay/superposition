@@ -30,7 +30,7 @@ use crate::{
 use super::CombinedResource;
 
 #[component]
-pub fn filter_summary(
+pub(super) fn filter_summary(
     filters_rws: RwSignal<ExperimentListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
 ) -> impl IntoView {
@@ -50,13 +50,14 @@ pub fn filter_summary(
 
     view! {
         <Show when=move || {
-            let context_filters_empty = filters_rws
+            let filters_empty = filters_rws
                 .with(|f| {
                     f.created_by.is_none() && f.from_date.is_none() && f.to_date.is_none()
                         && f.status.is_none() && f.experiment_name.is_none()
                         && f.experiment_ids.is_none()
                 });
-            !context_filters_empty
+            let dimension_params_empty = dimension_params_rws.with(|f| f.is_empty());
+            !filters_empty || !dimension_params_empty
         }>
             <div class="flex gap-2">
                 <div
@@ -128,7 +129,7 @@ pub fn filter_summary(
                     }}
                     {move || {
                         filters_rws
-                            .with(|f| f.from_date.clone())
+                            .with(|f| f.from_date)
                             .map(|from_date| {
                                 view! {
                                     <div class="flex gap-2 items-center">
@@ -145,7 +146,7 @@ pub fn filter_summary(
                     }}
                     {move || {
                         filters_rws
-                            .with(|f| f.to_date.clone())
+                            .with(|f| f.to_date)
                             .map(|to_date| {
                                 view! {
                                     <div class="flex gap-2 items-center">
@@ -330,7 +331,7 @@ pub(super) fn experiment_table_filter_widget(
                             name="experiment_from_date"
                             min="2020-01-01"
                             value=filters_buffer_rws
-                                .with(|f| f.from_date.clone())
+                                .with(|f| f.from_date)
                                 .map(|s| s.format("%Y-%m-%d").to_string())
                                 .unwrap_or_default()
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
@@ -348,7 +349,7 @@ pub(super) fn experiment_table_filter_widget(
                             id="experiment_to_date_input"
                             name="experiment_to_date"
                             value=filters_buffer_rws
-                                .with(|f| f.to_date.clone())
+                                .with(|f| f.to_date)
                                 .map(|s| s.format("%Y-%m-%d").to_string())
                                 .unwrap_or_default()
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {

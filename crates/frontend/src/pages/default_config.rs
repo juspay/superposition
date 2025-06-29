@@ -1,7 +1,9 @@
+mod filter;
 mod types;
 
 use std::collections::HashSet;
 
+use filter::{DefaultConfigFilterWidget, FilterSummary};
 use leptos::*;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
@@ -12,13 +14,13 @@ use superposition_types::{
 };
 use types::PageParams;
 
+use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::{
     alert::AlertType,
-    button::Button,
     default_config_form::DefaultConfigForm,
     delete_modal::DeleteModal,
     description_icon::InfoDescription,
-    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -33,10 +35,6 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{BreadCrums, OrganisationId, Tenant};
 use crate::utils::{unwrap_option_or_default_with_error, use_url_base};
-use crate::{
-    api::{delete_default_config, fetch_default_config},
-    components::form::label::Label,
-};
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -396,7 +394,14 @@ pub fn default_config() -> impl IntoView {
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between">
-                                    <BreadCrums bread_crums=bread_crums.get() redirect_url />
+                                    <div class="flex items-center gap-4">
+                                        <BreadCrums bread_crums=bread_crums.get() redirect_url />
+                                        <DefaultConfigFilterWidget
+                                            filters_rws
+                                            pagination_params_rws
+                                            prefix=page_params_rws.with(|p| p.prefix.clone())
+                                        />
+                                    </div>
                                     <div class="flex">
                                         <label
                                             on:click=move |_| {
@@ -421,21 +426,17 @@ pub fn default_config() -> impl IntoView {
                                         </label>
                                         <DrawerBtn
                                             drawer_id="default_config_drawer"
-                                            on_click=Callback::new(move |_| {
+                                            on_click=move |_| {
                                                 drawer_type.set(DrawerType::Create);
                                                 open_drawer("default_config_drawer");
-                                            })
+                                            }
                                         >
                                             Create Key
                                             <i class="ri-edit-2-line ml-2"></i>
                                         </DrawerBtn>
                                     </div>
                                 </div>
-                                <DefaultConfigFilterWidget
-                                    filters_rws
-                                    pagination_params_rws
-                                    prefix=page_params_rws.with(|p| p.prefix.clone())
-                                />
+                                <FilterSummary filters_rws />
                                 <Table
                                     rows=filtered_rows
                                     key_column="id".to_string()
@@ -524,83 +525,6 @@ pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
         last_crumb.is_link = false;
     }
     bread_crums
-}
-
-#[component]
-fn default_config_filter_widget(
-    pagination_params_rws: RwSignal<PaginationParams>,
-    filters_rws: RwSignal<DefaultConfigFilters>,
-    #[prop(into)] prefix: Option<String>,
-) -> impl IntoView {
-    let filters = filters_rws.get_untracked();
-    let filters_buffer_rws = create_rw_signal(filters.clone());
-    view! {
-        <DrawerBtn drawer_id="default_config_filter_drawer" style=DrawerButtonStyle::Outline>
-            Filters
-            <i class="ri-filter-3-line"></i>
-        </DrawerBtn>
-        <Drawer
-            id="default_config_filter_drawer".to_string()
-            header="Default Config Filters"
-            drawer_width="w-[50vw]"
-            handle_close=move || {
-                close_drawer("default_config_filter_drawer");
-            }
-        >
-            <div class="flex flex-col gap-5">
-                <div class="form-control">
-                    <Label title="Configuration Name" />
-                    <input
-                        type="text"
-                        id="default-config-name-filter"
-                        placeholder="eg: city"
-                        class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        value=if prefix.is_some()
-                            && filters_buffer_rws.get_untracked().name.is_none()
-                        {
-                            prefix
-                        } else {
-                            filters_buffer_rws.get_untracked().name
-                        }
-                        on:change=move |event| {
-                            let key_name = event_target_value(&event);
-                            let key_name = if key_name.is_empty() { None } else { Some(key_name) };
-                            let filters = DefaultConfigFilters {
-                                name: key_name,
-                            };
-                            filters_buffer_rws.set(filters);
-                        }
-                    />
-                </div>
-                <div class="flex justify-end gap-2">
-                    <Button
-                        class="h-12 w-48"
-                        text="Submit"
-                        icon_class="ri-send-plane-line"
-                        on_click=move |event| {
-                            event.prevent_default();
-                            let filter = filters_buffer_rws.get();
-                            pagination_params_rws.update(|f| f.reset_page());
-                            filters_rws.set(filter);
-                            close_drawer("default_config_filter_drawer")
-                        }
-                    />
-                    <Button
-                        class="h-12 w-48"
-                        text="Reset"
-                        on_click=move |event| {
-                            event.prevent_default();
-                            let filters = DefaultConfigFilters::default();
-                            pagination_params_rws.update(|f| f.reset_page());
-                            filters_rws.set(filters);
-                            close_drawer("default_config_filter_drawer")
-                        }
-                    />
-
-                </div>
-            </div>
-        </Drawer>
-    }
 }
 
 pub fn modify_rows(
