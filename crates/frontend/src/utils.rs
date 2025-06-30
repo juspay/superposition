@@ -165,6 +165,21 @@ pub fn close_modal(id: &str) {
     }
 }
 
+pub fn url_or_string(s: &str) -> impl IntoView {
+    match Url::parse(s) {
+        Ok(_) => {
+            let s = s.to_string();
+            view! {
+                <a class="value_link" href=s.clone() target="_blank">
+                    {s}
+                </a>
+            }
+            .into_view()
+        }
+        Err(_) => s.to_string().into_view(),
+    }
+}
+
 pub fn check_url_and_return_val(s: String) -> String {
     match Url::parse(&s) {
         Ok(_) => format!(
