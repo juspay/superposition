@@ -14,7 +14,7 @@ use superposition_types::{
             FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
         },
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
-        workspace::WorkspaceResponse,
+        workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap},
     database::{
@@ -22,7 +22,7 @@ use superposition_types::{
             cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
             experimentation::ExperimentGroup,
             others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-            ChangeReason, Description, NonEmptyString,
+            ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
         },
         types::DimensionWithMandatory,
     },
@@ -370,6 +370,62 @@ pub async fn fetch_types(
         .map_err(err_handler)
 }
 
+pub async fn create_workspace(
+    org_id: String,
+    payload: CreateWorkspaceRequest,
+) -> Result<serde_json::Value, String> {
+    let host = get_host();
+    let url = format!("{host}/workspaces");
+
+    let response = request(
+        url,
+        reqwest::Method::POST,
+        Some(payload),
+        construct_request_headers(&[("x-org-id", org_id.as_str())])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn update_workspace(
+    key: String,
+    org_id: String,
+    workspace_admin_email: String,
+    config_version: Value,
+    workspace_status: WorkspaceStatus,
+    mandatory_dimensions: Vec<String>,
+    metrics: Metrics,
+    allow_experiment_self_approval: bool,
+    auto_populate_control: bool,
+) -> Result<serde_json::Value, String> {
+    let payload = UpdateWorkspaceRequest {
+        workspace_admin_email,
+        config_version: Some(
+            serde_json::from_value(config_version)
+                .map_err(|e| format!("Invalid config version: {}", e))?,
+        ),
+        workspace_status: Some(workspace_status),
+        mandatory_dimensions: Some(mandatory_dimensions),
+        metrics: Some(metrics),
+        allow_experiment_self_approval: Some(allow_experiment_self_approval),
+        auto_populate_control: Some(auto_populate_control),
+    };
+    let host = get_host();
+    let url = format!("{host}/workspaces/{key}");
+
+    let response = request(
+        url,
+        reqwest::Method::PUT,
+        Some(payload),
+        construct_request_headers(&[("x-org-id", org_id.as_str())])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
 pub async fn fetch_workspaces(
     filters: &PaginationParams,
     org_id: &String,
@@ -378,6 +434,25 @@ pub async fn fetch_workspaces(
     let host = use_host_server();
     let url = format!("{}/workspaces?{}", host, filters);
     let response: PaginatedResponse<WorkspaceResponse> = client
+        .get(url)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    Ok(response)
+}
+
+pub async fn fetch_workspace(
+    workspace_id: &str,
+    org_id: &String,
+) -> Result<WorkspaceResponse, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+    let url = format!("{}/workspaces/{}", host, workspace_id);
+    let response: WorkspaceResponse = client
         .get(url)
         .header("x-org-id", org_id)
         .send()

@@ -1384,4 +1384,7 @@ UPDATE superposition.workspaces SET allow_experiment_self_approval = true;
 ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
 ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
 
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT FALSE;
+
 COMMIT;

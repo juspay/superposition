@@ -308,7 +308,7 @@ impl Default for ExperimentListFilters {
 
 /********** Update API type ********/
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct VariantUpdateRequest {
     pub id: String,
     pub overrides: Exp<Overrides>,
