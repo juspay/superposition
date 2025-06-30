@@ -40,7 +40,10 @@ use superposition_types::{
             OverrideKeysUpdateRequest, RampRequest,
         },
     },
-    custom_query::PaginationParams,
+    custom_query::{
+        self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
+        QueryMap,
+    },
     database::{
         models::{
             experimentation::{
@@ -839,8 +842,9 @@ async fn get_applicable_variants(
 #[get("")]
 async fn list_experiments(
     req: HttpRequest,
-    pagination_params: Query<PaginationParams>,
-    filters: Query<ExperimentListFilters>,
+    pagination_params: superposition_query::Query<PaginationParams>,
+    filters: superposition_query::Query<ExperimentListFilters>,
+    dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
@@ -866,7 +870,9 @@ async fn list_experiments(
         return Ok(HttpResponse::NotModified().finish());
     };
 
-    let query_builder = |filters: &ExperimentListFilters| {
+    let dimension_params = dimension_params.into_inner();
+
+    let query_builder = |filters: &ExperimentListFilters, query_map: &QueryMap| {
         let mut builder = experiments::experiments
             .schema_name(&schema_name)
             .into_boxed();
@@ -877,13 +883,11 @@ async fn list_experiments(
             builder =
                 builder.filter(experiments::name.like(format!("%{}%", experiment_name)));
         }
-        if let Some(ref context_search) = filters.context {
-            for c in context_search.iter() {
-                builder = builder.filter(
-                    sql::<Bool>("context::text LIKE ")
-                        .bind::<Text, _>(format!("%{}%", c)),
-                );
-            }
+        for (key, value) in query_map.iter() {
+            let c = json!({"==": [{"var": key}, value]});
+            builder = builder.filter(
+                sql::<Bool>("context::text LIKE ").bind::<Text, _>(format!("%{}%", c)),
+            );
         }
         if let Some(ref created_by) = filters.created_by {
             builder =
@@ -908,7 +912,7 @@ async fn list_experiments(
     };
 
     let filters = filters.into_inner();
-    let base_query = query_builder(&filters);
+    let base_query = query_builder(&filters, &dimension_params);
 
     let sort_by = filters.sort_by.clone().unwrap_or(SortBy::Desc);
     let sort_on = filters.sort_on.unwrap_or_default();
@@ -921,6 +925,7 @@ async fn list_experiments(
         (ExperimentSortOn::CreatedAt, SortBy::Asc)       => base_query.order(experiments::created_at.asc()),
     };
 
+    let pagination_params = pagination_params.into_inner();
     if let Some(true) = pagination_params.all {
         let result = base_query.load::<Experiment>(&mut conn)?;
         return Ok(HttpResponse::Ok().json(PaginatedResponse::all(
@@ -928,7 +933,7 @@ async fn list_experiments(
         )));
     }
 
-    let count_query = query_builder(&filters);
+    let count_query = query_builder(&filters, &dimension_params);
     let number_of_experiments = count_query.count().get_result(&mut conn)?;
     let limit = pagination_params.count.unwrap_or(10);
     let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;

@@ -48,9 +48,53 @@ pub fn default_formatter(value: &str, _row: &Map<String, Value>) -> View {
     view! { <span>{value.to_string()}</span> }.into_view()
 }
 
+fn to_title_case(input: &str) -> String {
+    let mut words = Vec::new();
+    let mut current_word = String::new();
+
+    for (i, c) in input.char_indices() {
+        if c == '_' {
+            if !current_word.is_empty() {
+                words.push(current_word.clone());
+                current_word.clear();
+            }
+        } else if c.is_uppercase()
+            && i != 0
+            && !input.chars().nth(i - 1).unwrap().is_uppercase()
+        {
+            if !current_word.is_empty() {
+                words.push(current_word.clone());
+                current_word.clear();
+            }
+            current_word.push(c);
+        } else {
+            current_word.push(c);
+        }
+    }
+
+    if !current_word.is_empty() {
+        words.push(current_word);
+    }
+
+    words
+        .into_iter()
+        .map(|w| {
+            let mut c = w.chars();
+            match c.next() {
+                Some(f) => {
+                    f.to_uppercase().collect::<String>() + &c.as_str().to_lowercase()
+                }
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<String>>()
+        .join(" ")
+}
+
 pub fn default_column_formatter(value: &str) -> View {
-    let column_name = value.replace('_', " ");
-    view! { <span>{column_name}</span> }.into_view()
+    let column_name = to_title_case(value);
+    view! { <span class="font-medium text-sm text-black">{column_name}</span> }
+        .into_view()
 }
 
 impl Column {
@@ -59,6 +103,19 @@ impl Column {
             name,
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
+            sortable: ColumnSortable::No,
+            expandable: Expandable::Enabled(100),
+            column_formatter: Box::new(Rc::new(default_column_formatter)),
+        }
+    }
+    pub fn default_with_cell_formatter<NF>(name: String, formatter: NF) -> Column
+    where
+        NF: Fn(&str, &Map<String, Value>) -> View + 'static,
+    {
+        Column {
+            name,
+            hidden: false,
+            formatter: Box::new(Rc::new(formatter)),
             sortable: ColumnSortable::No,
             expandable: Expandable::Enabled(100),
             column_formatter: Box::new(Rc::new(default_column_formatter)),
@@ -113,8 +170,7 @@ pub struct TablePaginationProps {
     pub current_page: i64,
     pub total_pages: i64,
     pub count: i64,
-    pub on_next: Callback<i64>,
-    pub on_prev: Callback<i64>,
+    pub on_page_change: Callback<i64>,
 }
 
 impl Default for TablePaginationProps {
@@ -124,8 +180,7 @@ impl Default for TablePaginationProps {
             current_page: 0,
             total_pages: 0,
             count: 0,
-            on_next: Callback::new(move |_| {}),
-            on_prev: Callback::new(move |_| {}),
+            on_page_change: Callback::new(|_| {}),
         }
     }
 }

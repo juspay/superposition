@@ -1,6 +1,8 @@
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_types::database::models::cac::Context;
+use superposition_types::{
+    api::workspace::WorkspaceResponse, database::models::cac::Context,
+};
 
 use crate::{
     components::{
@@ -20,7 +22,7 @@ fn option(
 ) -> impl IntoView {
     view! {
         <li on:click=move |_| on_click.call(())>
-            <div class="flex gap-2">
+            <div class="flex justify-end gap-2">
                 <i class=format!("w-fit {icon} ri-lg {icon_color_class}") />
                 <span>{label}</span>
             </div>
@@ -98,6 +100,7 @@ pub fn context_card(
     #[prop(into)] handle_clone: Callback<String, ()>,
     #[prop(into)] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let conditions: Conditions = (&context).try_into().unwrap_or_default();
     let description = context.description.clone();
     let change_reason = context.change_reason.clone();
@@ -132,7 +135,7 @@ pub fn context_card(
         <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
             <div class="flex justify-between">
                 <div class="flex gap-4 items-center">
-                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                    <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md m-0 w-max">
                         "Condition"
                     </h3>
                     <InfoDescription description=description change_reason=change_reason />
@@ -217,6 +220,7 @@ pub fn context_card(
                     conditions=conditions
                     id=context.with_value(|c| c.id.clone())
                     class="xl:w-[400px] h-fit"
+                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                 />
                 <Table
                     rows=override_table_rows

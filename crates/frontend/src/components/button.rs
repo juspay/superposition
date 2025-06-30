@@ -3,11 +3,11 @@ use web_sys::MouseEvent;
 
 #[component]
 pub fn button<F: Fn(MouseEvent) + 'static>(
-    text: String,
+    #[prop(into)] text: String,
     on_click: F,
-    #[prop(default = String::new())] class: String,
-    #[prop(default = String::new())] id: String,
-    #[prop(default = String::from("ri-edit-2-line"))] icon_class: String,
+    #[prop(into, default = String::new())] class: String,
+    #[prop(into, default = String::new())] id: String,
+    #[prop(into, default = String::from("ri-edit-2-line"))] icon_class: String,
     #[prop(default = false)] loading: bool,
 ) -> impl IntoView {
     let mut button_class = format!("btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 {class}");
@@ -23,7 +23,7 @@ pub fn button<F: Fn(MouseEvent) + 'static>(
                     </>
                 }
             } else {
-                view! { <>{text}<i class={format!("{icon_class} pl-2")}></i></> }
+                view! { <>{text}<i class=format!("{icon_class} pl-2")></i></> }
             }}
 
         </button>

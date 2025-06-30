@@ -1,12 +1,13 @@
 pub mod utils;
 
-use leptos::*;
+use leptos::{html::Div, *};
 use serde_json::Value;
 use superposition_types::{
     api::functions::ListFunctionFilters,
     custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
+use wasm_bindgen::JsCast;
 use web_sys::MouseEvent;
 
 use crate::{
@@ -16,6 +17,7 @@ use crate::{
         button::Button,
         change_form::ChangeForm,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        form::label::Label,
         input::{Input, InputType},
     },
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
@@ -45,10 +47,14 @@ pub fn default_config_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
-    let (config_key_rs, config_key_ws) = create_signal(config_key);
+    let (config_key_rs, config_key_ws) = create_signal(
+        prefix
+            .as_ref()
+            .map_or_else(|| config_key.clone(), |p| format!("{p}{config_key}")),
+    );
     let (config_type_rs, config_type_ws) = create_signal(config_type);
     let (config_schema_rs, config_schema_ws) = create_signal(type_schema);
     let (config_value_rs, config_value_ws) = create_signal(config_value);
@@ -71,7 +77,7 @@ where
 
     let validation_functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
-            move || (tenant_rws.get().0, org_rws.get().0),
+            move || (workspace.get().0, org.get().0),
             |(current_tenant, org)| async move {
                 let fn_filters = ListFunctionFilters {
                     function_type: None,
@@ -88,7 +94,7 @@ where
         );
 
     let type_template_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(current_tenant, org)| async move {
             fetch_types(&PaginationParams::all_entries(), current_tenant, org)
                 .await
@@ -109,16 +115,13 @@ where
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
         ev.prevent_default();
-        let f_name = prefix.clone().map_or_else(
-            || config_key_rs.get(),
-            |prefix| prefix + &config_key_rs.get(),
-        );
-        let f_schema = config_schema_rs.get();
-        let f_value = config_value_rs.get();
+        let f_name = config_key_rs.get_untracked();
+        let f_schema = config_schema_rs.get_untracked();
+        let f_value = config_value_rs.get_untracked();
 
-        let fun_name = validation_fn_name_rs.get();
-        let description = description_rs.get();
-        let change_reason = change_reason_rs.get();
+        let fun_name = validation_fn_name_rs.get_untracked();
+        let description = description_rs.get_untracked();
+        let change_reason = change_reason_rs.get_untracked();
 
         let handle_submit_clone = handle_submit.clone();
         let is_edit = edit;
@@ -129,8 +132,8 @@ where
                     // Call update_default_config when edit is true
                     update_default_config(
                         f_name,
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        workspace.get_untracked().0,
+                        org.get_untracked().0,
                         f_value,
                         f_schema,
                         fun_name,
@@ -142,8 +145,8 @@ where
                 } else {
                     // Call create_default_config when edit is false
                     create_default_config(
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        workspace.get_untracked().0,
+                        org.get_untracked().0,
                         config_key_rs.get_untracked(),
                         f_value,
                         f_schema,
@@ -182,29 +185,62 @@ where
             }
         });
     };
+
+    let scroll_ref = create_node_ref::<Div>();
+
+    // Helper to scroll the div to center
+    Effect::new(move |_| {
+        if let Some(elem) = scroll_ref.get() {
+            if let Some(elem) = elem.dyn_ref::<web_sys::HtmlDivElement>() {
+                let scroll_width = elem.scroll_width();
+                let client_width = elem.client_width();
+                let center = (scroll_width - client_width) / 2;
+                elem.set_scroll_left(center);
+            }
+        }
+    });
+
     view! {
         <EditorProvider>
-            <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+            <form class="w-full flex flex-col gap-5 text-gray-700 bg-white">
                 <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Key Name</span>
-                    </label>
-                    <input
-                        disabled=edit
-                        type="text"
-                        placeholder="Key"
-                        class="input input-bordered w-full max-w-md"
-                        value=config_key_rs.get_untracked()
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            config_key_ws.set(value);
-                        }
-                    />
-
+                    <Label title="Key Name" />
+                    <div class="input input-bordered w-full max-w-md p-0 flex" disabled=edit>
+                        <div
+                            node_ref=scroll_ref
+                            class="w-full px-4 py-2 flex items-center overflow-x-scroll whitespace-nowrap"
+                            style="scrollbar-gutter: stable;"
+                        >
+                            {prefix
+                                .as_ref()
+                                .map(|p| {
+                                    view! { <span class="text-gray-500 select-none">{p}</span> }
+                                })}
+                            <input
+                                disabled=edit
+                                type="text"
+                                placeholder="Enter your key"
+                                class="flex-shrink-0 min-w-0 w-kull bg-transparent focus:outline-none"
+                                value=config_key_rs
+                                    .with_untracked(|k| {
+                                        k.strip_prefix(&prefix.clone().unwrap_or_default())
+                                            .map(String::from)
+                                            .unwrap_or_else(|| k.clone())
+                                    })
+                                on:input=move |ev| {
+                                    let value = event_target_value(&ev);
+                                    config_key_ws
+                                        .set(
+                                            format!("{}{value}", prefix.clone().unwrap_or_default()),
+                                        );
+                                }
+                            />
+                        </div>
+                    </div>
                 </div>
                 <Suspense>
                     {move || {
-                        let options = type_template_resource.get().unwrap_or(vec![]);
+                        let options = type_template_resource.get().unwrap_or_default();
                         let config_t = if config_type_rs.get().is_empty() && edit {
                             "change current type template".into()
                         } else if config_type_rs.get().is_empty() && !edit {
@@ -233,9 +269,7 @@ where
                                 })
                             />
                             <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Set Schema</span>
-                                </label>
+                                <Label title="Set Schema" />
                                 <Dropdown
                                     dropdown_width="w-100"
                                     dropdown_icon="".to_string()
@@ -304,9 +338,7 @@ where
                         };
                         return view! {
                             <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Default Value</span>
-                                </label>
+                                <Label title="Default Value" />
                                 <div class="tooltip text-left w-full max-w-md" data-tip=tooltip_txt>
                                     <textarea
                                         type="text"
@@ -333,10 +365,7 @@ where
                     };
                     view! {
                         <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Default Value</span>
-                            </label>
-
+                            <Label title="Default Value" />
                             <Input
                                 id="default-config-value-input"
                                 class
@@ -358,10 +387,15 @@ where
                 <Suspense>
                     {move || {
                         let mut functions = validation_functions_resource.get().unwrap_or_default();
-                        let mut validation_function_names: Vec<FunctionsName> = vec!["None".to_string()];
-                        let mut autocomplete_function_names: Vec<FunctionsName> = vec!["None".to_string()];
+                        let mut validation_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
+                        let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
                         functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                        functions.iter()
+                        functions
+                            .iter()
                             .for_each(|ele| {
                                 if ele.function_type == FunctionType::Validation {
                                     validation_function_names.push(ele.function_name.clone());
@@ -371,72 +405,56 @@ where
                             });
                         view! {
                             <div class="form-control">
-                                <div class="gap-1">
-                                    <label class="label flex-col justify-center items-start">
-                                        <span class="label-text">Validation Function Name</span>
-                                        <span class="label-text text-slate-400">
-                                            Assign Function validation to your key
-                                        </span>
-                                    </label>
-                                </div>
+                                <Label
+                                    title="Validation Function"
+                                    description="Function to add validation logic to your key"
+                                />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=validation_fn_name_rs
+                                        .get()
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=validation_function_names
+                                    on_select=handle_select_dropdown_option_validation
+                                />
 
-                                <div class="mt-2">
-                                    <Dropdown
-                                        dropdown_width="w-100"
-                                        dropdown_icon="".to_string()
-                                        dropdown_text=validation_fn_name_rs
-                                            .get()
-                                            .map_or("Add Function".to_string(), |v| v.to_string())
-                                        dropdown_direction=DropdownDirection::Down
-                                        dropdown_btn_type=DropdownBtnType::Select
-                                        dropdown_options=validation_function_names
-                                        on_select=handle_select_dropdown_option_validation
-                                    />
-                                </div>
                             </div>
 
                             <div class="form-control">
-                                <div class="gap-1">
-                                    <label class="label flex-col justify-center items-start">
-                                        <span class="label-text">AutoComplete Function Name</span>
-                                        <span class="label-text text-slate-400">
-                                            Assign Autocomplete Function to your key
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div class="mt-2">
-                                    <Dropdown
-                                        dropdown_width="w-100"
-                                        dropdown_icon="".to_string()
-                                        dropdown_text=autocomplete_fn_name_rs
-                                            .get()
-                                            .map_or("Add Function".to_string(), |v| v.to_string())
-                                        dropdown_direction=DropdownDirection::Down
-                                        dropdown_btn_type=DropdownBtnType::Select
-                                        dropdown_options=autocomplete_function_names
-                                        on_select=handle_select_dropdown_option_autocomplete
-                                    />
-                                </div>
+                                <Label
+                                    title="AutoComplete Function"
+                                    description="Function to add auto complete suggestion to your key"
+                                />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=autocomplete_fn_name_rs
+                                        .get()
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=autocomplete_function_names
+                                    on_select=handle_select_dropdown_option_autocomplete
+                                />
                             </div>
                         }
                     }}
-
                 </Suspense>
-
-                <div class="form-control grid w-full justify-start">
-                    {move || {
-                        let loading = req_inprogess_rs.get();
-                        view! {
-                            <Button
-                                class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                                text="Submit".to_string()
-                                on_click=on_submit.clone()
-                                loading
-                            />
-                        }
-                    }}
-                </div>
+                {move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="self-end h-12 w-48"
+                            text="Submit"
+                            icon_class="ri-send-plane-line"
+                            on_click=on_submit.clone()
+                            loading
+                        />
+                    }
+                }}
             </form>
         </EditorProvider>
     }

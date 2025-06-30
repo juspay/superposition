@@ -3,6 +3,7 @@ use std::time::Duration;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use strum_macros::Display;
+use superposition_types::api::workspace::WorkspaceResponse;
 use superposition_types::{custom_query::PaginationParams, Config};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
@@ -32,7 +33,7 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 }
 
 #[component]
-fn all_context_view(config: Config) -> impl IntoView {
+fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
     let Config {
         contexts,
         overrides,
@@ -48,7 +49,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                 let unique_name = gen_name_id(key, key, &value);
                 view! {
                     <tr>
-                        <td class="min-w-48 max-w-72 font-mono">
+                        <td class="min-w-48 max-w-72">
                             <span
                                 name=format!("{unique_name}-1")
                                 class="config-name"
@@ -59,7 +60,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                                 {key}
                             </span>
                         </td>
-                        <td class="min-w-48 max-w-72 font-mono" style="word-break: break-word;">
+                        <td class="min-w-48 max-w-72" style="word-break: break-word;">
                             <span
                                 name=format!("{unique_name}-2")
                                 class="config-value"
@@ -72,7 +73,8 @@ fn all_context_view(config: Config) -> impl IntoView {
                         </td>
                     </tr>
                 }
-            }).collect_view()
+            })
+            .collect_view()
     };
 
     view! {
@@ -90,7 +92,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                         let conditions: Conditions = context.try_into().unwrap_or_default();
                         view! {
                             <div class="card bg-base-100 shadow gap-4 p-6">
-                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md font-mono m-0 w-max">
+                                <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md m-0 w-max">
                                     "Condition"
                                 </h3>
                                 <div class="pl-5">
@@ -98,6 +100,7 @@ fn all_context_view(config: Config) -> impl IntoView {
                                         conditions=conditions
                                         id=context.id.clone()
                                         class="xl:w-[400px] h-fit"
+                                        strict_mode
                                     />
                                     <div class="overflow-auto pt-5">
                                         <table class="table table-zebra">
@@ -120,7 +123,7 @@ fn all_context_view(config: Config) -> impl IntoView {
             </ConditionCollapseProvider>
             <div class="card bg-base-100 shadow m-6">
                 <div class="card-body">
-                    <h2 class="card-title">Default Configuration</h2>
+                    <h2 class="card-title">"Default Configuration"</h2>
                     <table class="table table-zebra">
                         <thead>
                             <tr>
@@ -142,14 +145,15 @@ fn all_context_view(config: Config) -> impl IntoView {
 
 #[component]
 pub fn home() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let config_data = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(tenant, org)| fetch_config(tenant, None, org),
     );
     let dimension_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(tenant, org)| async {
             fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
                 .await
@@ -252,9 +256,9 @@ pub fn home() -> impl IntoView {
         spawn_local(async move {
             let context = context_updated.as_query_string();
             let mut config = resolve_config(
-                &tenant_rws.get_untracked().0,
+                &workspace.get_untracked().0,
                 &context,
-                &org_rws.get_untracked().0,
+                &org.get_untracked().0,
                 true,
                 None,
             )
@@ -327,12 +331,14 @@ pub fn home() -> impl IntoView {
                                     <div class="card h-4/5 shadow bg-base-100">
                                         <div class="card flex flex-row m-2 bg-base-100">
                                             <div class="card-body">
-                                                <h2 class="card-title">Resolve Configs</h2>
+                                                <h2 class="card-title">"Resolve Configs"</h2>
 
                                                 <ContextForm
                                                     dimensions=dimension
-                                                    context_rs
-                                                    context_ws
+                                                    context=context_rs.get_untracked()
+                                                    on_context_change=move |new_context| {
+                                                        context_ws.set(new_context);
+                                                    }
                                                     heading_sub_text="Query your configs".to_string()
                                                     dropdown_direction=DropdownDirection::Right
                                                     resolve_mode=true
@@ -437,7 +443,12 @@ pub fn home() -> impl IntoView {
                                                 match result {
                                                     Some(Ok(config)) => {
                                                         vec![
-                                                            view! { <AllContextView config=config.clone() /> }
+                                                            view! {
+                                                                <AllContextView
+                                                                    config=config.clone()
+                                                                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
+                                                                />
+                                                            }
                                                                 .into_view(),
                                                         ]
                                                     }
@@ -481,7 +492,7 @@ pub fn home() -> impl IntoView {
                                                         view! {
                                                             <div class="card m-6 shadow bg-base-100">
                                                                 <div class="card-body">
-                                                                    <h2 class="card-title">Resolved Config</h2>
+                                                                    <h2 class="card-title">"Resolved Config"</h2>
                                                                     <table class="table table-zebra">
                                                                         <thead>
                                                                             <tr>

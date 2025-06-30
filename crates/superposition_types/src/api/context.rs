@@ -51,7 +51,9 @@ impl Display for ContextListFilters {
         let mut parts = vec![];
 
         if let Some(prefix) = &self.prefix {
-            parts.push(format!("prefix={prefix}"));
+            if !prefix.is_empty() {
+                parts.push(format!("prefix={prefix}"));
+            }
         }
 
         if let Some(sort_on) = &self.sort_on {
@@ -63,11 +65,15 @@ impl Display for ContextListFilters {
         }
 
         if let Some(created_by) = &self.created_by {
-            parts.push(format!("created_by={created_by}"));
+            if !created_by.is_empty() {
+                parts.push(format!("created_by={created_by}"));
+            }
         }
 
         if let Some(last_modified_by) = &self.last_modified_by {
-            parts.push(format!("last_modified_by={last_modified_by}"));
+            if !last_modified_by.is_empty() {
+                parts.push(format!("last_modified_by={last_modified_by}"));
+            }
         }
 
         if let Some(plaintext) = &self.plaintext {

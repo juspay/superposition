@@ -1,6 +1,5 @@
 use leptos::*;
 
-use chrono::DateTime;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
@@ -21,8 +20,8 @@ use crate::{api::fetch_snapshots, components::table::types::default_column_forma
 
 #[component]
 pub fn config_version_list() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
@@ -31,19 +30,13 @@ pub fn config_version_list() -> impl IntoView {
     use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let table_columns =
-        create_memo(move |_| snapshot_table_columns(tenant_rws.get().0, org_rws.get().0));
+        create_memo(move |_| snapshot_table_columns(workspace.get().0, org.get().0));
 
     let snapshots_resource: Resource<
         (String, PaginationParams, String),
         PaginatedResponse<ConfigVersion>,
     > = create_blocking_resource(
-        move || {
-            (
-                tenant_rws.get().0,
-                pagination_params_rws.get(),
-                org_rws.get().0,
-            )
-        },
+        move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(current_tenant, pagination_params, org_id)| async move {
             fetch_snapshots(&pagination_params, current_tenant.to_string(), org_id)
                 .await
@@ -51,12 +44,8 @@ pub fn config_version_list() -> impl IntoView {
         },
     );
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     view! {
@@ -82,7 +71,7 @@ pub fn config_version_list() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">Config Versions</h2>
+                            <h2 class="card-title">"Config Versions"</h2>
                         </div>
                         <div>
                             {move || {
@@ -115,8 +104,7 @@ pub fn config_version_list() -> impl IntoView {
                                             count,
                                             current_page: page,
                                             total_pages,
-                                            on_next: handle_next_click,
-                                            on_prev: handle_prev_click,
+                                            on_page_change: handle_page_change,
                                         };
                                         view! {
                                             <Table
@@ -157,9 +145,7 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                     id
                 );
                 view! {
-                    <div class="w-24">
-                        <A href=href class="btn-link">{id}</A>
-                    </div>
+                    <A href=href class="btn-link">{id}</A>
                 }
                 .into_view()
             },
@@ -167,27 +153,9 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::new(
-            "created_at".to_string(),
-            false,
-            |value: &str, _row: &Map<String, Value>| {
-                let formatted_date =
-                    match DateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f") {
-                        Ok(dt) => dt.format("%d-%b-%Y").to_string(),
-                        Err(_) => {
-                            logging::log!("Failed to parse date: {}", value);
-                            value.to_string()
-                        }
-                    };
-                view! { <span class="w-24">{formatted_date}</span> }.into_view()
-            },
-            ColumnSortable::No,
-            Expandable::Enabled(100),
-            default_column_formatter,
-        ),
-        Column::new(
+        Column::default_no_collapse("created_at".to_string()),
+        Column::default_with_cell_formatter(
             "tags".to_string(),
-            false,
             |_value: &str, row: &Map<String, Value>| {
                 let tags = row.get("tags").and_then(|v| v.as_array());
                 match tags {
@@ -203,9 +171,6 @@ pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
                 }
                 .into_view()
             },
-            ColumnSortable::No,
-            Expandable::Enabled(100),
-            default_column_formatter,
         ),
     ]
 }

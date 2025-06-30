@@ -19,7 +19,9 @@ pub fn expandable_text(
     let get_child = move |val: &str| formatter(val, &row);
     let (is_expanded_rs, is_expanded_ws) = create_signal(false);
     view! {
-        <td class=format!("{class_name} align-top")>
+        <td class=format!(
+            "{class_name} align-top",
+        )>
             {move || {
                 let value = stored_value.get_value();
                 let is_expanded = is_expanded_rs.get();
@@ -80,7 +82,7 @@ pub fn table(
             <table class="table table-zebra">
                 <thead class=head_class>
                     <tr class="bg-white">
-                        <th class="sticky left-0 z-20 bg-inherit min-w-[5rem] px-3"></th>
+                        <th class="sticky left-0 z-20 bg-inherit min-w-[5rem] px-3" />
 
                         {columns
                             .iter()
@@ -98,32 +100,35 @@ pub fn table(
                                         view! {
                                             <th
                                                 class=format!(
-                                                    "uppercase cursor-pointer px-3 {}",
-                                                    sticky_class,
+                                                    "px-3 flex items-center gap-1 cursor-pointer {sticky_class}",
                                                 )
                                                 on:click=move |_| sort_fn.call(())
                                             >
                                                 {col_formatter(&column.name)}
                                                 {match (currently_sorted, sort_by) {
                                                     (false, _) => {
-                                                        view! { <i class="ri-expand-up-down-line"></i> }
+                                                        view! {
+                                                            <i class="ri-expand-up-down-fill ri-xl self-center" />
+                                                        }
                                                     }
                                                     (_, SortBy::Desc) => {
-                                                        view! { <i class="ri-arrow-down-s-line"></i> }
+                                                        view! {
+                                                            <i class="ri-arrow-down-s-fill ri-xl text-purple-700" />
+                                                        }
                                                     }
                                                     (_, SortBy::Asc) => {
-                                                        view! { <i class="ri-arrow-up-s-line"></i> }
+                                                        view! {
+                                                            <i class="ri-arrow-up-s-fill ri-xl text-purple-700" />
+                                                        }
                                                     }
                                                 }}
-
                                             </th>
                                         }
                                     }
                                     types::ColumnSortable::No => {
                                         view! {
                                             <th class=format!(
-                                                "uppercase px-3 {}",
-                                                sticky_class,
+                                                "px-3 {sticky_class}",
                                             )>{col_formatter(&column.name)}</th>
                                         }
                                     }
@@ -175,7 +180,9 @@ pub fn table(
                                                     value
                                                     formatter=column.formatter
                                                     row=row.clone()
-                                                    class_name=format!("min-w-48 max-w-106 px-3 break-words font-mono {cell_class_clone} {sticky_class}")
+                                                    class_name=format!(
+                                                        "min-w-48 max-w-106 px-3 break-words {cell_class_clone} {sticky_class}",
+                                                    )
                                                     is_expandable=column.expandable
                                                 />
                                             }
@@ -193,15 +200,14 @@ pub fn table(
         }>
 
             {move || {
-                let TablePaginationProps { current_page, total_pages, on_prev, on_next, .. } = pagination_props
+                let TablePaginationProps { current_page, total_pages, on_page_change, .. } = pagination_props
                     .get_value();
                 view! {
                     <div class="mt-2 flex justify-end">
                         <Pagination
                             current_page=current_page
                             total_pages=total_pages
-                            next=on_next
-                            previous=on_prev
+                            on_change=on_page_change
                         />
                     </div>
                 }

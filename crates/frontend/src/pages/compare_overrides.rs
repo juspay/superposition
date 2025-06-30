@@ -25,12 +25,17 @@ use crate::{
 };
 use leptos::*;
 use serde_json::{json, Map, Value};
-use superposition_types::custom_query::PaginationParams;
+use superposition_types::{
+    api::workspace::WorkspaceResponse, custom_query::PaginationParams,
+};
 
 // this maps the column context and the row config key to a particular value
 type ComparisonTable = HashMap<String, Map<String, Value>>;
 
-fn table_columns(contexts_vector_rws: RwSignal<Vec<String>>) -> Vec<Column> {
+fn table_columns(
+    contexts_vector_rws: RwSignal<Vec<String>>,
+    strict_mode: bool,
+) -> Vec<Column> {
     let contexts = contexts_vector_rws.get();
     let mut fixed_columns = vec![Column::default("config_key".into())];
     let column_formatter = move |value: &str| {
@@ -52,13 +57,14 @@ fn table_columns(contexts_vector_rws: RwSignal<Vec<String>>) -> Vec<Column> {
                                         })
                                 })
                         }
-                    ></i>
+                    />
                     <ConditionCollapseProvider>
                         <ConditionComponent
                             conditions
                             id=remove_column_name.get_value()
                             grouped_view=false
                             class="xl:w-[400px] h-fit"
+                            strict_mode
                         />
                     </ConditionCollapseProvider>
                 </div>
@@ -81,20 +87,21 @@ fn table_columns(contexts_vector_rws: RwSignal<Vec<String>>) -> Vec<Column> {
 
 #[component]
 pub fn compare_overrides() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     // this vector stores the list of contexts the user is comparing
     let contexts_vector_rws = create_rw_signal(vec!["default_config".to_string()]);
     let source = move || {
-        let tenant = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org_id = org.get().0;
         let contexts = contexts_vector_rws.get();
         (tenant, org_id, contexts)
     };
     let dimension_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(tenant, org)| async {
             fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
                 .await
@@ -146,17 +153,18 @@ pub fn compare_overrides() -> impl IntoView {
             }>
                 {move || {
                     let resolved_config_map = resolved_config_resource.get().unwrap_or_default();
-                    let table_columns = table_columns(contexts_vector_rws);
+                    let table_columns = table_columns(
+                        contexts_vector_rws,
+                        workspace_settings.with_value(|w| w.strict_mode),
+                    );
                     let dimensions = dimension_resource.get().unwrap_or_default();
                     let data = resolved_config_map.into_values().collect();
-                    let (empty_context_rs, empty_context_ws) = create_signal(Conditions::default());
                     view! {
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between">
-                                    <h2 class="card-title">Compare Overrides</h2>
-                                    <DrawerBtn drawer_id="add_comparison_drawer"
-                                        .to_string()>
+                                    <h2 class="card-title">"Compare Overrides"</h2>
+                                    <DrawerBtn drawer_id="add_comparison_drawer">
                                         Add Comparison <i class="ri-edit-2-line ml-2"></i>
                                     </DrawerBtn>
                                 </div>
@@ -178,8 +186,7 @@ pub fn compare_overrides() -> impl IntoView {
                             <EditorProvider>
                                 <ContextForm
                                     dimensions=dimensions.data
-                                    context_rs=empty_context_rs
-                                    context_ws=empty_context_ws
+                                    context=Conditions::default()
                                     heading_sub_text="Compare to...".to_string()
                                     dropdown_direction=DropdownDirection::Right
                                     resolve_mode=true
@@ -187,14 +194,16 @@ pub fn compare_overrides() -> impl IntoView {
                                         context_ws.update(|value| *value = new_context)
                                     }
                                     fn_environment
+                                    on_context_change=move |_| ()
                                 />
+
                                 {move || {
                                     let loading = req_inprogess_rs.get();
                                     view! {
                                         <Button
-                                            id="resolve_btn".to_string()
-                                            text="Submit".to_string()
-                                            class="my-4".into()
+                                            id="resolve_btn"
+                                            text="Submit"
+                                            icon_class="ri-send-plane-line"
                                             on_click=move |_| {
                                                 req_inprogress_ws.set(true);
                                                 let query = context_rs.get().as_query_string();

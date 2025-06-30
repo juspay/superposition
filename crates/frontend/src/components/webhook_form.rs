@@ -13,6 +13,7 @@ use crate::{
         button::Button,
         change_form::ChangeForm,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        form::label::Label,
         input::{Input, InputType, Toggle},
     },
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -36,8 +37,8 @@ pub fn webhook_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (webhook_name_rs, webhook_name_ws) = create_signal(webhook_name);
     let (description_rs, description_ws) = create_signal(description);
@@ -90,8 +91,8 @@ where
                         events,
                         description,
                         change_reason,
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        workspace.get().0,
+                        org.get().0,
                     )
                     .await
                 } else {
@@ -105,8 +106,8 @@ where
                         custom_headers,
                         events,
                         change_reason,
-                        tenant_rws.get().0,
-                        org_rws.get().0,
+                        workspace.get().0,
+                        org.get().0,
                     )
                     .await
                 };
@@ -133,12 +134,18 @@ where
             }
         });
     };
+
+    let method_options = HttpMethod::iter().collect::<Vec<HttpMethod>>();
+    let payload_version_options = PayloadVersion::iter().collect::<Vec<PayloadVersion>>();
+    let events_options = WebhookEvent::iter().collect::<Vec<WebhookEvent>>();
+
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+        <form class="w-full flex flex-col gap-5 bg-white text-gray-700">
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Name</span>
-                </label>
+                <Label
+                    title="Webhook Name"
+                    description="The name of the webhook. It should be unique within the workspace."
+                />
                 <Input
                     disabled=edit
                     r#type=InputType::Text
@@ -156,41 +163,25 @@ where
                 title="Description".to_string()
                 placeholder="Enter a description".to_string()
                 value=description_rs.get_untracked()
-                on_change=Callback::new(move |new_description| {
-                    description_ws.set(new_description)
-                })
+                on_change=move |new_description| description_ws.set(new_description)
             />
             <ChangeForm
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason_rs.get_untracked()
-                on_change=Callback::new(move |new_change_reason| {
-                    change_reason_ws.set(new_change_reason)
-                })
+                on_change=move |new_change_reason| change_reason_ws.set(new_change_reason)
             />
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Enable Webhook</span>
-                </label>
+            <div class="w-fit flex items-center gap-2">
                 <Toggle
                     name="Enable Webhook"
                     value=enabled_rs.get()
-                    on_change=Callback::new(move |flag: serde_json::Value| {
-                        let flag = flag.as_bool().unwrap();
-                        if flag {
-                            enabled_ws.set(true);
-                        } else {
-                            enabled_ws.set(false);
-                        }
-                    })
+                    on_change=move |_| enabled_ws.update(|v| *v = !*v)
                 />
+                <Label title="Enable Webhook" />
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">URL</span>
-                </label>
+                <Label title="URL" description="The URL to which the webhook will send requests." />
                 <Input
                     placeholder="Enter the webhook URL"
                     class="textarea textarea-bordered w-full max-w-md"
@@ -204,16 +195,17 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Method</span>
-                </label>
+                <Label
+                    title="Method"
+                    description="HTTP method to be used for the webhook request."
+                />
                 <Dropdown
                     dropdown_width="w-100"
                     dropdown_icon="".to_string()
                     dropdown_text=method_rs.get_untracked().to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={HttpMethod::iter().collect::<Vec<HttpMethod>>()}
+                    dropdown_options=method_options
                     on_select=Callback::new(move |selected_item: HttpMethod| {
                         logging::log!("selected item {:?}", selected_item);
                         method_ws.set(selected_item);
@@ -222,16 +214,14 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Payload Version</span>
-                </label>
+                <Label title="Paylaod Version" />
                 <Dropdown
                     dropdown_width="w-100"
                     dropdown_icon="".to_string()
                     dropdown_text=payload_version_rs.get().to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={PayloadVersion::iter().collect::<Vec<PayloadVersion>>()}
+                    dropdown_options=payload_version_options
                     on_select=Callback::new(move |selected_item: PayloadVersion| {
                         logging::log!("selected item {:?}", selected_item);
                         payload_version_ws.set(selected_item);
@@ -240,14 +230,15 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Events</span>
-                </label>
+                <Label
+                    title="Events"
+                    description="Events for which this webhook will be triggered."
+                />
                 <Dropdown
                     dropdown_text="Add Events".to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
-                    dropdown_options={WebhookEvent::iter().collect::<Vec<WebhookEvent>>()}
+                    dropdown_options=events_options
                     selected=events_rs.get()
                     multi_select=true
                     on_select=handle_select_webhook_event_dropdown_option
@@ -256,9 +247,10 @@ where
             </div>
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Custom Headers</span>
-                </label>
+                <Label
+                    title="Custom Headers"
+                    description="Custom headers are optional and can be used to pass additional information with the webhook request."
+                />
                 <EditorProvider>
                     <Input
                         id="custom_headers"
@@ -266,29 +258,27 @@ where
                         value=Value::Object((*custom_headers_rs.get_untracked()).clone())
                         schema_type=Single(JsonSchemaType::Object)
                         r#type=InputType::Monaco(vec![])
-                        on_change=Callback::new(move |value: Value| {
-                            if let Some(val)= value.as_object() {
+                        on_change=move |value: Value| {
+                            if let Some(val) = value.as_object() {
                                 custom_headers_ws.set(CustomHeaders::from(val.clone()));
                             }
-                        })
+                        }
                     />
                 </EditorProvider>
             </div>
 
-            <div class="form-control grid w-full justify-start">
-                {move || {
-                    let loading = req_inprogess_rs.get();
-                    view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
-                    }
-                }}
-
-            </div>
+            {move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
+                        on_click=on_submit.clone()
+                        loading
+                    />
+                }
+            }}
 
         </form>
     }

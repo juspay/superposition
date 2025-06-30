@@ -1,5 +1,5 @@
 use leptos::*;
-use leptos_router::use_navigate;
+use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
@@ -23,8 +23,7 @@ use crate::{api::fetch_workspaces, components::table::types::default_column_form
 
 #[component]
 pub fn workspace() -> impl IntoView {
-    let org_id: RwSignal<OrganisationId> =
-        use_context::<RwSignal<OrganisationId>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -41,13 +40,10 @@ pub fn workspace() -> impl IntoView {
     );
     let selected_workspace = create_rw_signal::<Option<RowData>>(None);
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
-    });
     let handle_close = move || {
         selected_workspace.set(None);
         close_drawer("workspace_drawer");
@@ -114,27 +110,17 @@ pub fn workspace() -> impl IntoView {
             .into_view()
         };
 
-        let navigate_to_workspace = move |org_id: String, workspace_name: String| {
-            let redirect_url = format!("admin/{org_id}/{workspace_name}/default-config");
-            logging::log!("redirecting to {:?}", redirect_url.clone());
-            let navigate = use_navigate();
-            navigate(redirect_url.as_str(), Default::default());
-        };
-
         let navigate = move |_: &str, row: &Map<String, Value>| {
             let org_id = org_id.get().0;
             let workspace_name = row["workspace_name"].to_string().replace('"', "");
-            let navigated_workspace_name = workspace_name.clone();
-            view! {
-                <span
-                    class="cursor-pointer text-blue-500"
-                    on:click=move |_| {
-                        navigate_to_workspace(org_id.clone(), navigated_workspace_name.clone())
-                    }
-                >
 
+            view! {
+                <A
+                    class="cursor-pointer text-blue-500"
+                    href=format!("/admin/{org_id}/{workspace_name}/default-config")
+                >
                     {workspace_name}
-                </span>
+                </A>
             }
             .into_view()
         };
@@ -154,13 +140,9 @@ pub fn workspace() -> impl IntoView {
             Column::default("strict_mode".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::new(
+            Column::default_with_cell_formatter(
                 "actions".to_string(),
-                false,
                 actions_col_formatter,
-                ColumnSortable::No,
-                Expandable::Disabled,
-                default_column_formatter,
             ),
         ]
     });
@@ -251,8 +233,7 @@ pub fn workspace() -> impl IntoView {
                         count: pagination_params.count.unwrap_or_default(),
                         current_page,
                         total_pages,
-                        on_next: handle_next_click,
-                        on_prev: handle_prev_click,
+                        on_page_change: handle_page_change,
                     };
                     view! {
                         <div class="pb-4">
@@ -264,13 +245,11 @@ pub fn workspace() -> impl IntoView {
                         </div>
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
-                                <div class="flex justify-end pb-2">
-                                    <div class="flex">
-                                        <DrawerBtn drawer_id="workspace_drawer"
-                                            .to_string()>
-                                            Create Workspace <i class="ri-edit-2-line ml-2"></i>
-                                        </DrawerBtn>
-                                    </div>
+                                <div class="flex justify-between">
+                                    <h2 class="card-title">"Workspaces"</h2>
+                                    <DrawerBtn drawer_id="workspace_drawer">
+                                        Create Workspace <i class="ri-edit-2-line ml-2"></i>
+                                    </DrawerBtn>
                                 </div>
                                 <Table
                                     rows=table_rows

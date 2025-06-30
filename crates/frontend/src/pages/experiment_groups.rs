@@ -6,8 +6,9 @@ use superposition_types::{
     api::{
         experiment_groups::ExpGroupMemberRequest,
         experiments::{ExperimentListFilters, ExperimentResponse},
+        workspace::WorkspaceResponse,
     },
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    custom_query::{CommaSeparatedQParams, DimensionQuery, PaginationParams},
     database::models::{experimentation::ExperimentGroup, ChangeReason},
 };
 
@@ -56,6 +57,7 @@ fn table_columns(
     delete_group_rws: RwSignal<RemoveRequest>,
     delete_modal_ws: WriteSignal<bool>,
     group_id: String,
+    strict_mode: bool,
 ) -> Vec<Column> {
     let group_id = StoredValue::new(group_id);
     vec![
@@ -104,7 +106,7 @@ fn table_columns(
         Column::new(
             "context".to_string(),
             false,
-            |_, row: &Map<String, Value>| {
+            move |_, row: &Map<String, Value>| {
                 let context = row
                     .get("context")
                     .and_then(|v| v.as_object().cloned())
@@ -114,16 +116,15 @@ fn table_columns(
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                view! { <ConditionComponent conditions grouped_view=false id /> }
+                view! { <ConditionComponent conditions grouped_view=false id strict_mode /> }
                     .into_view()
             },
             ColumnSortable::No,
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::new(
+        Column::default_with_cell_formatter(
             "actions".to_string(),
-            false,
             move |_, row: &Map<String, Value>| {
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
@@ -142,21 +143,24 @@ fn table_columns(
                 }
                 .into_view()
             },
-            ColumnSortable::No,
-            Expandable::Disabled,
-            default_column_formatter,
         ),
     ]
 }
 
 #[component]
 fn experiment_group_info(group: StoredValue<ExperimentGroup>) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let group = group.get_value();
     let conditions = Conditions::from_context_json(&group.context).unwrap_or_default();
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body flex flex-row gap-2 flex-wrap">
-                <ConditionComponent conditions id="experiment-group-context" class="h-fit w-[300px]" />
+                <ConditionComponent
+                    conditions
+                    id="experiment-group-context"
+                    class="h-fit w-[300px]"
+                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
+                />
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Group ID</div>
                     <div class="stat-value text-sm">{group.id}</div>
@@ -176,15 +180,16 @@ fn experiment_group_info(group: StoredValue<ExperimentGroup>) -> impl IntoView {
 #[component]
 pub fn experiment_groups() -> impl IntoView {
     let group_params = use_params_map();
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (delete_modal_rs, delete_modal_ws) = create_signal(false);
     let delete_group_rws = create_rw_signal(RemoveRequest::default());
 
     let source = move || {
-        let tenant_id = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant_id = workspace.get().0;
+        let org_id = org.get().0;
         let group_id =
             group_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
         (group_id, tenant_id, org_id)
@@ -201,24 +206,30 @@ pub fn experiment_groups() -> impl IntoView {
             .iter()
             .map(i64::to_string)
             .collect::<Vec<_>>();
-        let filters = ExperimentListFilters::default();
+
         let filters = ExperimentListFilters {
             experiment_ids: Some(CommaSeparatedQParams(members)),
-            ..filters
+            ..ExperimentListFilters::default()
         };
         let pagination = PaginationParams::all_entries();
-        let experiments = fetch_experiments(&filters, &pagination, tenant, org_id)
-            .await
-            .ok()?
-            .data;
+        let experiments = fetch_experiments(
+            &filters,
+            &pagination,
+            &DimensionQuery::default(),
+            tenant,
+            org_id,
+        )
+        .await
+        .ok()?
+        .data;
         Some(ExperimentGroupResource { group, experiments })
     });
 
     let confirm_delete = Callback::new(move |change_reason: String| {
         let delete_request = delete_group_rws.get();
         spawn_local(async move {
-            let tenant = tenant_rws.get().0;
-            let org_id = org_rws.get().0;
+            let tenant = workspace.get().0;
+            let org_id = org.get().0;
             let member_experiment_ids =
                 Vec::from([delete_request.experiment_id.parse().unwrap_or_default()]);
             let remove_request = ExpGroupMemberRequest {
@@ -270,6 +281,7 @@ pub fn experiment_groups() -> impl IntoView {
                         delete_group_rws,
                         delete_modal_ws,
                         resource.group.id.to_string(),
+                        workspace_settings.with_value(|w| w.strict_mode),
                     );
                     let data = resource
                         .experiments
@@ -291,9 +303,8 @@ pub fn experiment_groups() -> impl IntoView {
                                 <div class="card rounded-xl w-full bg-base-100 shadow">
                                     <div class="card-body">
                                         <div class="flex justify-between">
-                                            <h2 class="card-title">Member Experiments</h2>
-                                            <DrawerBtn drawer_id="add_members_group_drawer"
-                                                .to_string()>
+                                            <h2 class="card-title">"Member Experiments"</h2>
+                                            <DrawerBtn drawer_id="add_members_group_drawer">
                                                 Add Members <i class="ri-add-large-fill ml-2"></i>
                                             </DrawerBtn>
                                         </div>
@@ -309,7 +320,9 @@ pub fn experiment_groups() -> impl IntoView {
                                 <Drawer
                                     id="add_members_group_drawer".to_string()
                                     header="Add members to the group"
-                                    handle_close=move || { close_drawer("add_members_group_drawer") }
+                                    handle_close=move || {
+                                        close_drawer("add_members_group_drawer")
+                                    }
                                 >
                                     <AddExperimentToGroupForm
                                         experiment_group=resource_group

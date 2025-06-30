@@ -8,14 +8,16 @@ use leptos_router::use_params_map;
 
 #[component]
 pub fn config_version() -> impl IntoView {
-    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();
     let version = params.with(|p| p.get("version").cloned());
 
     let config_resource = create_blocking_resource(
-        move || (tenant.get().0, version.clone(), org_id.get().0),
-        |(tenant, version, org_id)| async move { fetch_config(tenant, version, org_id).await },
+        move || (workspace.get().0, version.clone(), org_id.get().0),
+        |(workspace, version, org_id)| async move {
+            fetch_config(workspace, version, org_id).await
+        },
     );
 
     view! {

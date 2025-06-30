@@ -2179,6 +2179,7 @@ dependencies = [
  "serde_json",
  "strum",
  "strum_macros",
+ "superposition_derives",
  "superposition_macros",
  "superposition_types",
  "url",

@@ -93,8 +93,8 @@ fn form(
     #[prop(into)] handle_submit: Callback<bool, ()>,
     #[prop(default = String::new())] description: String,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
@@ -120,22 +120,22 @@ fn form(
             let f_overrides = overrides_rs.get_untracked();
             let result = if let Some(context_id) = edit_id.get_value() {
                 update_context(
-                    tenant_rws.get_untracked().0,
+                    workspace.get_untracked().0,
                     context_id,
                     Map::from_iter(f_overrides),
                     description_rs.get_untracked(),
                     change_reason_rs.get_untracked(),
-                    org_rws.get_untracked().0,
+                    org.get_untracked().0,
                 )
                 .await
             } else {
                 create_context(
-                    tenant_rws.get_untracked().0,
+                    workspace.get_untracked().0,
                     Map::from_iter(f_overrides),
                     context_rs.get_untracked(),
                     description_rs.get_untracked(),
                     change_reason_rs.get_untracked(),
-                    org_rws.get_untracked().0,
+                    org.get_untracked().0,
                 )
                 .await
             };
@@ -166,62 +166,49 @@ fn form(
         });
     };
     view! {
-        <ContextForm
-            dimensions=dimensions.get_value()
-            resolve_mode=workspace_settings.get_value().strict_mode
-            context_rs
-            context_ws
-            fn_environment
-            handle_change=move |new_context| {
-                context_ws
-                    .update(|value| {
-                        *value = new_context;
-                    });
-            }
+        <div class="flex flex-col gap-5">
+            <ContextForm
+                dimensions=dimensions.get_value()
+                resolve_mode=workspace_settings.get_value().strict_mode
+                context=context_rs.get_untracked()
+                on_context_change=move |new_context| context_ws.set(new_context)
+                fn_environment
+                handle_change=move |new_context| context_ws.set(new_context)
+                disabled=edit_id.get_value().is_some()
+            />
 
-            disabled=edit_id.get_value().is_some()
-        />
+            <ChangeForm
+                title="Description".to_string()
+                placeholder="Enter a description".to_string()
+                value=description_rs.get_untracked()
+                on_change=move |new_description| description_ws.set(new_description)
+            />
+            <ChangeForm
+                title="Reason for Change".to_string()
+                placeholder="Enter a reason for this change".to_string()
+                value=change_reason_rs.get_untracked()
+                on_change=move |new_change_reason| change_reason_ws.set(new_change_reason)
+            />
 
-        <ChangeForm
-            title="Description".to_string()
-            placeholder="Enter a description".to_string()
-            value=description_rs.get_untracked()
-            on_change=Callback::new(move |new_description| { description_ws.set(new_description) })
-        />
-        <ChangeForm
-            title="Reason for Change".to_string()
-            placeholder="Enter a reason for this change".to_string()
-            value=change_reason_rs.get_untracked()
-            on_change=Callback::new(move |new_change_reason| {
-                change_reason_ws.set(new_change_reason)
-            })
-        />
+            <OverrideForm
+                overrides=overrides_rs.get_untracked()
+                default_config=default_config
+                handle_change=move |new_overrides| overrides_ws.set(new_overrides)
+                fn_environment
+            />
 
-        <OverrideForm
-            overrides=overrides_rs.get_untracked()
-            default_config=default_config
-            handle_change=move |new_overrides| {
-                overrides_ws
-                    .update(|value| {
-                        *value = new_overrides;
-                    });
-            }
-            fn_environment
-        />
-
-        <div class="flex justify-start w-full mt-10">
             {move || {
                 let loading = req_inprogess_rs.get();
                 view! {
                     <Button
-                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                        text="Submit".to_string()
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=on_submit
                         loading
                     />
                 }
             }}
-
         </div>
     }
 }
@@ -230,11 +217,11 @@ fn form(
 fn use_context_data(
     context_id: String,
 ) -> Resource<(String, String, String), Result<(Context, Conditions), String>> {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0, context_id.clone()),
+        move || (workspace.get().0, org.get().0, context_id.clone()),
         |(tenant, org, context_id)| async move {
             get_context(&context_id, &tenant, &org)
                 .await
@@ -369,8 +356,8 @@ fn autofill_experiment_form(
 
 #[component]
 pub fn context_override() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let (delete_modal, set_delete_modal) = create_signal(false);
     let (delete_id, set_delete_id) = create_signal::<Option<String>>(None);
@@ -406,8 +393,8 @@ pub fn context_override() -> impl IntoView {
     > = create_blocking_resource(
         move || {
             (
-                tenant_rws.get().0,
-                org_rws.get().0,
+                workspace.get().0,
+                org.get().0,
                 pagination_params_rws.get(),
                 context_filters_rws.get(),
                 dimension_params_rws.get(),
@@ -480,8 +467,8 @@ pub fn context_override() -> impl IntoView {
         page_resource.refetch();
         close_drawer("create_exp_drawer");
 
-        let tenant = tenant_rws.get().0;
-        let org = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org = org.get().0;
         let navigate = use_navigate();
         let redirect_url = format!("/admin/{org}/{tenant}/experiments/{experiment_id}");
         navigate(redirect_url.as_str(), Default::default())
@@ -513,19 +500,14 @@ pub fn context_override() -> impl IntoView {
         set_delete_modal.set(true);
     };
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
-    });
+    let handle_page_change = move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
+    };
 
     let on_delete_confirm = Callback::new(move |_| {
         if let Some(id) = delete_id.get().clone() {
             spawn_local(async move {
-                let result =
-                    delete_context(tenant_rws.get().0, id, org_rws.get().0).await;
+                let result = delete_context(workspace.get().0, id, org.get().0).await;
 
                 match result {
                     Ok(_) => {
@@ -589,13 +571,13 @@ pub fn context_override() -> impl IntoView {
                                 SortBy::Asc => "ri-sort-asc",
                             };
                             view! {
-                                <div class="flex gap-2">
+                                <div class="flex items-center gap-2">
                                     <Stat
                                         heading="Overrides"
                                         icon="ri-guide-fill"
                                         number=total_items
                                     />
-                                    <div class="w-max flex flex-col justify-end">
+                                    <div class="w-max flex flex-col justify-center">
                                         <Dropdown
                                             class="!w-fit !h-fit".to_string()
                                             dropdown_width="w-max".to_string()
@@ -624,17 +606,17 @@ pub fn context_override() -> impl IntoView {
                                         />
                                     </div>
                                     <DrawerBtn
-                                        drawer_id="context_filter_drawer".into()
+                                        drawer_id="context_filter_drawer"
                                         style=DrawerButtonStyle::Outline
-                                        class="self-end".to_string()
+                                        class="!h-9 !min-h-[32px] !w-fit px-2"
                                     >
                                         "Filters"
                                         <i class="ri-filter-3-line"></i>
                                     </DrawerBtn>
                                 </div>
                                 <DrawerBtn
-                                    class="self-end h-fit".to_string()
-                                    drawer_id="context_and_override_drawer".to_string()
+                                    class="self-end h-fit"
+                                    drawer_id="context_and_override_drawer"
                                     on_click=on_create_context_click
                                 >
                                     "Create Override"
@@ -702,8 +684,7 @@ pub fn context_override() -> impl IntoView {
                                 .map(|d| d.contexts)
                                 .unwrap_or_default()
                                 .total_pages
-                            next=handle_next_click
-                            previous=handle_prev_click
+                            on_change=handle_page_change
                         />
                     }
                 }}

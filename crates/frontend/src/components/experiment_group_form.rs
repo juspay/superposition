@@ -25,6 +25,7 @@ use crate::{
         button::Button,
         change_form::ChangeForm,
         context_form::ContextForm,
+        form::label::Label,
         input::{Input, InputType},
     },
     logic::Conditions,
@@ -38,8 +39,8 @@ pub fn add_experiment_to_group_form(
     experiment_group: StoredValue<ExperimentGroup>,
     handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let members_selected_rws = create_rw_signal(Vec::new());
     let change_reason_rws = create_rw_signal(String::new());
@@ -49,8 +50,8 @@ pub fn add_experiment_to_group_form(
         loading_rws.set(true);
         event.prevent_default();
 
-        let tenant = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org_id = org.get().0;
 
         let change_reason =
             match ChangeReason::try_from(change_reason_rws.get_untracked()) {
@@ -104,12 +105,12 @@ pub fn add_experiment_to_group_form(
                 title="Reason for Change".to_string()
                 placeholder="Enter a reason for this change".to_string()
                 value=change_reason_rws.get_untracked()
-                on_change=Callback::new(move |new_change_reason| change_reason_rws.set_untracked(new_change_reason))
+                on_change=move |new_change_reason| {
+                    change_reason_rws.set_untracked(new_change_reason)
+                }
             />
             <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">Experiment Group Members</span>
-                </label>
+                <Label title="Experiment Group Members" />
                 <Input
                     id="experiment_group_members"
                     class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
@@ -152,8 +153,9 @@ pub fn add_experiment_to_group_form(
                 let loading = loading_rws.get();
                 view! {
                     <Button
-                        class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                        text="Submit".to_string()
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=on_submit
                         loading
                     />
@@ -175,8 +177,8 @@ pub fn experiment_group_form(
     is_edit: bool,
     handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let experiment_group_id_rws = create_rw_signal(group_id);
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
@@ -199,8 +201,8 @@ pub fn experiment_group_form(
         loading_rws.set(true);
         event.prevent_default();
 
-        let tenant = tenant_rws.get().0;
-        let org_id = org_rws.get().0;
+        let tenant = workspace.get().0;
+        let org_id = org.get().0;
 
         let change_reason =
             match ChangeReason::try_from(change_reason_rws.get_untracked()) {
@@ -300,11 +302,9 @@ pub fn experiment_group_form(
     };
     view! {
         <EditorProvider>
-            <div>
+            <div class="flex flex-col gap-5">
                 <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">Experiment Group Name</span>
-                    </label>
+                    <Label title="Experiment Group Name" />
                     <input
                         disabled=is_edit
                         value=group_name_rws.get_untracked()
@@ -317,22 +317,20 @@ pub fn experiment_group_form(
                     />
                 </div>
 
-                <div class="my-4">
-                    <ContextForm
-                        dimensions=dimensions
-                        context_rs
-                        context_ws
-                        handle_change=move |new_context: Conditions| {
-                            context_ws.set_untracked(new_context);
-                        }
-                        resolve_mode=workspace_settings.get_value().strict_mode
-                        disabled=is_edit
-                        heading_sub_text=String::from(
-                            "Define rules under which this experiment group would function",
-                        )
-                        fn_environment
-                    />
-                </div>
+                <ContextForm
+                    dimensions=dimensions
+                    context=context_rs.get_untracked()
+                    on_context_change=move |new_context| context_ws.set(new_context)
+                    handle_change=move |new_context: Conditions| {
+                        context_ws.set_untracked(new_context);
+                    }
+                    resolve_mode=workspace_settings.get_value().strict_mode
+                    disabled=is_edit
+                    heading_sub_text=String::from(
+                        "Define rules under which this experiment group would function",
+                    )
+                    fn_environment
+                />
 
                 <ChangeForm
                     title="Description".to_string()
@@ -352,9 +350,7 @@ pub fn experiment_group_form(
                 />
 
                 <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">Traffic Percentage</span>
-                    </label>
+                    <Label title="Traffic Percentage" />
                     <input
                         value=traffic_percentage_rws.get_untracked().to_string()
                         on:input=move |ev| {
@@ -381,12 +377,10 @@ pub fn experiment_group_form(
 
                 <Show when=move || !is_edit>
                     <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">Experiment Group Members (Optional)</span>
-                        </label>
+                        <Label title="Experiment Group Members" info="(optional)" />
                         <Input
                             id="experiment_group_members"
-                            class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                            class="w-full max-w-md pt-3 rounded-md resize-y"
                             schema_type=SchemaType::Single(JsonSchemaType::Array)
                             value=Value::Array(
                                 group_members_rws
@@ -427,8 +421,9 @@ pub fn experiment_group_form(
                     let loading = loading_rws.get();
                     view! {
                         <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
+                            class="h-12 w-48"
+                            text="Submit"
+                            icon_class="ri-send-plane-line"
                             on_click=on_submit
                             loading
                         />

@@ -22,8 +22,8 @@ where
     NF: Fn() + 'static + Clone,
 {
     let (change_reason, set_change_reason) = create_signal(String::new());
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let experiment_rc = Rc::new(experiment);
 
@@ -33,8 +33,8 @@ where
         let experiment_id = experiment_rc.id.clone();
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
-            let tenant = tenant_rws.get().0;
-            let org = org_rws.get().0;
+            let tenant = workspace.get().0;
+            let org = org.get().0;
             let change_reason_value = change_reason.get();
             let result =
                 discard_experiment(&experiment_id, &tenant, &org, change_reason_value)

@@ -33,10 +33,10 @@ const TYPE_DRAWER_ID: &str = "type_template_drawer";
 
 #[component]
 pub fn types_page() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let types_resource = create_blocking_resource(
-        move || (tenant_rws.get().0, org_rws.get().0),
+        move || (workspace.get().0, org.get().0),
         |(t, org_id)| async move {
             fetch_types(&PaginationParams::default(), t, org_id)
                 .await
@@ -56,8 +56,8 @@ pub fn types_page() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(row_data) = delete_row_rs.get().clone() {
             spawn_local(async move {
-                let tenant = tenant_rws.get().0;
-                let org = org_rws.get().0;
+                let tenant = workspace.get().0;
+                let org = org.get().0;
                 let api_response =
                     delete_type(tenant, row_data.clone().type_name, org).await;
                 match api_response {
@@ -115,9 +115,8 @@ pub fn types_page() -> impl IntoView {
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::default("last_modified_at".to_string()),
-            Column::new(
+            Column::default_with_cell_formatter(
                 "actions".into(),
-                false,
                 move |_: &str, row: &Map<String, Value>| {
                     let edit_row_json = json!(row);
                     let delete_row_json = edit_row_json.clone();
@@ -149,9 +148,6 @@ pub fn types_page() -> impl IntoView {
                     }
                     .into_view()
                 },
-                ColumnSortable::No,
-                Expandable::Enabled(100),
-                default_column_formatter,
             ),
         ]
     });
@@ -239,13 +235,10 @@ pub fn types_page() -> impl IntoView {
                             <div class="card rounded-xl w-full bg-base-100 shadow">
                                 <div class="card-body">
                                     <div class="flex justify-between">
-                                        <h2 class="card-title">Type Templates</h2>
-                                        <div>
-                                            <DrawerBtn drawer_id=TYPE_DRAWER_ID
-                                                .to_string()>
-                                                Create Type <i class="ri-add-fill ml-2"></i>
-                                            </DrawerBtn>
-                                        </div>
+                                        <h2 class="card-title">"Type Templates"</h2>
+                                        <DrawerBtn drawer_id=TYPE_DRAWER_ID>
+                                            Create Type <i class="ri-add-fill ml-2"></i>
+                                        </DrawerBtn>
                                     </div>
                                     <Table
                                         rows=data

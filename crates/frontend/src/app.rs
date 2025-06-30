@@ -89,12 +89,11 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         }
                     }}
                 }
-            }}
-            // sets the document title
+            }} // sets the document title
             <Title text="Welcome to Superposition" />
             <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
             <Router base=service_prefix>
-                <body class="m-0 min-h-screen bg-gray-50 font-mono">
+                <body class="m-0 min-h-screen bg-gray-50">
                     <AlertProvider>
                         <Routes base=service_prefix.to_string()>
                             <Route

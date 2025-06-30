@@ -1,13 +1,15 @@
 use leptos::*;
 
+use crate::components::form::label::Label;
+
 #[component]
 pub fn change_form(
-    title: String,
-    placeholder: String,
-    #[prop(default = String::new())] class: String,
-    #[prop(default = "textarea textarea-bordered w-full max-w-md".to_string())]
+    #[prop(into)] title: String,
+    #[prop(into)] placeholder: String,
+    #[prop(into, default = String::new())] class: String,
+    #[prop(into, default = "textarea textarea-bordered w-full max-w-md".to_string())]
     textarea_class: String,
-    value: String,
+    #[prop(into)] value: String,
     #[prop(into)] on_change: Callback<String, ()>,
     #[prop(default = false)] disabled: bool,
 ) -> impl IntoView {
@@ -17,9 +19,7 @@ pub fn change_form(
     };
     view! {
         <div class=format!("form-control {class}")>
-            <label class="label">
-                <span class="label-text">{title}</span>
-            </label>
+            <Label title />
             <textarea
                 type="text"
                 disabled=disabled

@@ -1,12 +1,18 @@
+mod filter;
+
 use std::time::Duration;
 
+use filter::{ExperimentGroupFilterWidget, FilterSummary};
 use leptos::*;
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
-    api::experiment_groups::{ExpGroupFilters, SortOn},
+    api::{
+        experiment_groups::{ExpGroupFilters, SortOn},
+        workspace::WorkspaceResponse,
+    },
     custom_query::{CustomQuery, PaginationParams, Query},
     database::{models::experimentation::ExperimentGroup, types::DimensionWithMandatory},
     PaginatedResponse,
@@ -20,11 +26,10 @@ use crate::{
     },
     components::{
         alert::AlertType,
-        button::Button,
         condition_pills::Condition as ConditionComponent,
         delete_modal::DeleteModal,
         description_icon::InfoDescription,
-        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
         experiment_group_form::ExperimentGroupForm,
         skeleton::Skeleton,
         stat::Stat,
@@ -67,6 +72,7 @@ fn table_columns(
     selected_group_rws: RwSignal<Option<RowData>>,
     filters_rws: RwSignal<ExpGroupFilters>,
 ) -> Vec<Column> {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let current_filters = filters_rws.get();
     let current_sort_on = current_filters.sort_on.unwrap_or_default();
     let current_sort_by = current_filters.sort_by.unwrap_or_default();
@@ -158,7 +164,7 @@ fn table_columns(
                     Conditions::from_context_json(&context).unwrap_or_default();
 
                 view! {
-                    <ConditionComponent conditions grouped_view=false id class="w-[300px]" />
+                    <ConditionComponent conditions grouped_view=false id class="w-[300px]" strict_mode=workspace_settings.with_value(|w| w.strict_mode)  />
                 }
                 .into_view()
             },
@@ -166,9 +172,8 @@ fn table_columns(
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::new(
+        Column::default_with_cell_formatter(
             "traffic_percentage".to_string(),
-            false,
             |value: &str, _| {
                 let percentage = format!("{}%", value);
                 view! {
@@ -178,9 +183,6 @@ fn table_columns(
                 }
                 .into_view()
             },
-            ColumnSortable::No,
-            Expandable::Disabled,
-            default_column_formatter,
         ),
         Column::default_with_sort(
             "last_modified_at".to_string(),
@@ -272,128 +274,9 @@ fn table_columns(
 }
 
 #[component]
-fn experiment_group_filter_widget(
-    filters_rws: RwSignal<ExpGroupFilters>,
-) -> impl IntoView {
-    let filters = filters_rws.get_untracked();
-    let filters_buffer_rws = create_rw_signal(filters.clone());
-
-    view! {
-        <DrawerBtn
-            drawer_id="experiment_group_filter_drawer".into()
-            style=DrawerButtonStyle::Outline
-        >
-            Filters
-            <i class="ri-filter-3-line"></i>
-        </DrawerBtn>
-        <Drawer
-            id="experiment_group_filter_drawer".to_string()
-            header="Experiment Group Filters"
-            drawer_width="w-[50vw]"
-            handle_close=move || close_drawer("experiment_group_filter_drawer")
-        >
-            <div class="card-body">
-                <div class="flex flex-col gap-5 justify-between">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Experiment Group Name</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="experiment-group-name-filter"
-                            placeholder="eg: city experiment group"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_buffer_rws.get().name.unwrap_or_default()
-                            on:change=move |event| {
-                                let name = event_target_value(&event);
-                                let group_name = if name.trim().is_empty() {
-                                    None
-                                } else {
-                                    Some(name)
-                                };
-                                filters_buffer_rws.update(|f| f.name = group_name);
-                            }
-                        />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Created By</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="experiment-group-created-by-filter"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            value=move || filters_buffer_rws.get().created_by.unwrap_or_default()
-                            placeholder="eg: user@superposition.io"
-                            on:change=move |event| {
-                                let created_by = event_target_value(&event);
-                                let created_by = if created_by.trim().is_empty() {
-                                    None
-                                } else {
-                                    Some(created_by)
-                                };
-                                filters_buffer_rws.update(|filter| filter.created_by = created_by);
-                            }
-                        />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Last Modified By</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="experiment-last-modified-filter"
-                            class="input input-bordered rounded-md resize-y w-full max-w-md"
-                            placeholder="eg: user@superposition.io"
-                            value=move || filters_buffer_rws.get().last_modified_by
-                            on:change=move |event| {
-                                let last_modified = event_target_value(&event);
-                                let last_modified_by = if last_modified.trim().is_empty() {
-                                    None
-                                } else {
-                                    Some(last_modified)
-                                };
-                                filters_buffer_rws
-                                    .update(|filter| filter.last_modified_by = last_modified_by);
-                            }
-                        />
-
-                    </div>
-                </div>
-                <div class="flex justify-start mt-8">
-                    <Button
-                        class="w-48 px-[70px] h-12".to_string()
-                        text="Sumit".to_string()
-                        on_click=move |event| {
-                            event.prevent_default();
-                            let filter = filters_buffer_rws.get();
-                            logging::log!("Submitting filters: {:?}", filter);
-                            filters_rws.set(filter);
-                            close_drawer("experiment_group_filter_drawer")
-                        }
-                    />
-                    <Button
-                        class="px-[70px] h-12 w-48".to_string()
-                        text="Reset".to_string()
-                        icon_class="ri-restart-line".into()
-                        on_click=move |event| {
-                            event.prevent_default();
-                            let filters = ExpGroupFilters::default();
-                            filters_buffer_rws.set(filters.clone());
-                            filters_rws.set(filters);
-                            close_drawer("experiment_group_filter_drawer")
-                        }
-                    />
-                </div>
-            </div>
-        </Drawer>
-    }
-}
-
-#[component]
 pub fn experiment_group_listing() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<ExpGroupFilters>::extract_non_empty(&query_string).into_inner()
@@ -414,8 +297,8 @@ pub fn experiment_group_listing() -> impl IntoView {
         (
             filters_rws.get(),
             pagination_params_rws.get(),
-            tenant_rws.get().0,
-            org_rws.get().0,
+            workspace.get().0,
+            org.get().0,
         )
     };
 
@@ -448,12 +331,8 @@ pub fn experiment_group_listing() -> impl IntoView {
         close_drawer("create_exp_group_drawer");
     });
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     view! {
@@ -480,13 +359,14 @@ pub fn experiment_group_listing() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">Experiment Groups</h2>
-                            <div>
-                                <DrawerBtn drawer_id="create_exp_group_drawer"
-                                    .to_string()>
-                                    Create Group <i class="ri-edit-2-line ml-2"></i>
-                                </DrawerBtn>
+                            <div class="flex items-center gap-4">
+                                <h2 class="card-title">"Experiment Groups"</h2>
+                                <ExperimentGroupFilterWidget filters_rws pagination_params_rws />
                             </div>
+                            <DrawerBtn drawer_id="create_exp_group_drawer"
+                                .to_string()>
+                                Create Group <i class="ri-edit-2-line ml-2"></i>
+                            </DrawerBtn>
                         </div>
                         {move || {
                             let value = experiment_groups_resource.get();
@@ -527,12 +407,11 @@ pub fn experiment_group_listing() -> impl IntoView {
                                         count: pagination_params.count.unwrap_or_default(),
                                         current_page: pagination_params.page.unwrap_or_default(),
                                         total_pages: v.experiment_groups.total_pages,
-                                        on_next: handle_next_click,
-                                        on_prev: handle_prev_click,
+                                        on_page_change: handle_page_change,
                                     };
                                     view! {
+                                        <FilterSummary filters_rws />
                                         <ConditionCollapseProvider>
-                                            <ExperimentGroupFilterWidget filters_rws />
                                             <Table
                                                 rows=data
                                                 key_column="name".to_string()
@@ -599,11 +478,9 @@ pub fn experiment_group_listing() -> impl IntoView {
                             return;
                         }
                         spawn_local(async move {
-                            let tenant = tenant_rws.get().0;
-                            let org_id = org_rws.get().0;
-                            if let Err(e) = delete(&group_id, &tenant, &org_id)
-                                .await
-                            {
+                            let tenant = workspace.get().0;
+                            let org_id = org.get().0;
+                            if let Err(e) = delete(&group_id, &tenant, &org_id).await {
                                 logging::error!("Failed to delete experiment group: {}", e);
                                 enqueue_alert(
                                     format!(

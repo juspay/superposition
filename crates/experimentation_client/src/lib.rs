@@ -257,7 +257,6 @@ async fn get_experiments(
         experiment_name: None,
         experiment_ids: None,
         created_by: None,
-        context: None,
         sort_on: None,
         sort_by: None,
     };

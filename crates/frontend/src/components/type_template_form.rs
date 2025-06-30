@@ -1,5 +1,6 @@
 pub mod utils;
 
+use crate::components::form::label::Label;
 use crate::components::type_template_form::utils::create_type;
 use crate::components::{
     alert::AlertType,
@@ -26,8 +27,8 @@ pub fn type_template_form<NF>(
 where
     NF: Fn() + 'static + Clone,
 {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (error_message, set_error_message) = create_signal("".to_string());
     let (type_name_rs, type_name_ws) = create_signal(type_name);
@@ -53,8 +54,7 @@ where
                         "description": description_rs.get(),
                         "change_reason": change_reason_rs.get(),
                     });
-                    update_type(tenant_rws.get().0, type_name, payload, org_rws.get().0)
-                        .await
+                    update_type(workspace.get().0, type_name, payload, org.get().0).await
                 } else {
                     let description = description_rs.get();
                     let change_reason = change_reason_rs.get();
@@ -64,8 +64,7 @@ where
                         "description": description,
                         "change_reason": change_reason
                     });
-                    create_type(tenant_rws.get().0, payload.clone(), org_rws.get().0)
-                        .await
+                    create_type(workspace.get().0, payload.clone(), org.get().0).await
                 };
 
                 req_inprogress_ws.set(false);
@@ -92,11 +91,9 @@ where
         });
     };
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700 font-mono">
+        <form class="w-full flex flex-col gap-5 bg-white text-gray-700">
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Type Name</span>
-                </label>
+                <Label title="Type Name" />
                 <input
                     disabled=edit
                     type="text"
@@ -110,7 +107,6 @@ where
                         type_name_ws.set(value);
                     }
                 />
-
             </div>
 
             <ChangeForm
@@ -131,9 +127,7 @@ where
             />
 
             <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Type Schema</span>
-                </label>
+                <Label title="Type Schema" />
                 {move || {
                     let schem = type_schema_rs.get();
                     let schema_type = SchemaType::Single(JsonSchemaType::from(&schem));
@@ -141,12 +135,10 @@ where
                         <EditorProvider>
                             <Input
                                 id="type-schema"
-                                class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                class="w-full max-w-md pt-3 rounded-md resize-y"
                                 schema_type
                                 value=schem
-                                on_change=Callback::new(move |new_type_schema| {
-                                    type_schema_ws.set(new_type_schema)
-                                })
+                                on_change=move |new_type_schema| type_schema_ws.set(new_type_schema)
                                 r#type=InputType::Monaco(vec![])
                             />
                         </EditorProvider>
@@ -155,23 +147,20 @@ where
 
             </div>
 
-            <div class="form-control grid w-full mt-5 justify-start">
-                {move || {
-                    let loading = req_inprogess_rs.get();
-                    view! {
-                        <Button
-                            class="pl-[70px] pr-[70px] w-48 h-12".to_string()
-                            text="Submit".to_string()
-                            on_click=on_submit.clone()
-                            loading
-                        />
-                    }
-                }}
+            {move || {
+                let loading = req_inprogess_rs.get();
+                view! {
+                    <Button
+                        class="self-end h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
+                        on_click=on_submit.clone()
+                        loading
+                    />
+                }
+            }}
+            <p class="text-red-500">{move || error_message.get()}</p>
 
-            </div>
-            <div>
-                <p class="text-red-500">{move || error_message.get()}</p>
-            </div>
         </form>
     }
 }

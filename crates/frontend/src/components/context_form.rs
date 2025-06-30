@@ -2,6 +2,7 @@ pub mod utils;
 
 use std::collections::{HashMap, HashSet};
 
+use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
@@ -84,7 +85,7 @@ pub fn condition_input(
     view! {
         <div class="flex gap-x-6">
             <div class="form-control">
-                <label class="label font-mono text-sm">
+                <label class="label text-sm">
                     <span class="label-text">Dimension</span>
                 </label>
                 <input
@@ -95,7 +96,7 @@ pub fn condition_input(
                 />
             </div>
             <div class="form-control w-20">
-                <label class="label font-medium font-mono text-sm">
+                <label class="label font-medium text-sm">
                     <span class="label-text">Operator</span>
                 </label>
 
@@ -132,7 +133,7 @@ pub fn condition_input(
             </div>
         </div>
         <div class="form-control">
-            <label class="label font-mono text-sm">
+            <label class="label text-sm">
                 <span class="label-text">Value</span>
             </label>
 
@@ -191,14 +192,14 @@ pub fn condition_input(
 #[component]
 pub fn context_form<NF>(
     handle_change: NF,
-    context_rs: ReadSignal<Conditions>,
-    context_ws: WriteSignal<Conditions>,
+    context: Conditions,
     dimensions: Vec<DimensionWithMandatory>,
     fn_environment: Memo<Value>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
-    #[prop(default = String::new())] heading_sub_text: String,
+    #[prop(into, default = String::new())] heading_sub_text: String,
     #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
+    #[prop(into)] on_context_change: Callback<Conditions, ()>,
 ) -> impl IntoView
 where
     NF: Fn(Conditions) + 'static,
@@ -248,13 +249,27 @@ where
                 });
         };
 
-    if !disabled && !resolve_mode {
-        dimensions
-            .get_value()
-            .into_iter()
-            .filter(|dim| dim.mandatory)
-            .for_each(|dimension| context_ws.update(|c| insert_dimension(c, &dimension)));
-    }
+    let context_data = {
+        let mut context = context;
+        if !disabled && !resolve_mode {
+            dimensions
+                .get_value()
+                .into_iter()
+                .filter(|dim| dim.mandatory)
+                .for_each(|dimension| {
+                    insert_dimension(&mut context, &dimension);
+                });
+        }
+        context
+    };
+
+    let (context_rs, context_ws) = create_signal(context_data);
+
+    Effect::new(move |_| {
+        let context = context_rs.get();
+        logging::log!("Context form effect {:?}", context);
+        on_context_change.call(context.clone());
+    });
 
     let used_dimensions = Signal::derive(move || {
         context_rs
@@ -347,8 +362,8 @@ where
         String::new()
     };
 
-    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let autocomplete_callbacks = dimensions
         .get_value()
         .iter()
@@ -357,7 +372,7 @@ where
                 d.dimension.clone(),
                 d.autocomplete_function_name.clone(),
                 fn_environment,
-                tenant.get_untracked().0,
+                workspace.get_untracked().0,
                 org_id.get_untracked().0,
             )
         })
@@ -365,12 +380,7 @@ where
 
     view! {
         <div class="form-control w-full">
-            <div class="gap-1">
-                <label class="label flex-col justify-center items-start">
-                    <span class="label-text font-semibold text-base">Context</span>
-                    <span class="label-text text-slate-400">{heading_sub_text}</span>
-                </label>
-            </div>
+            <Label title="Context" description=heading_sub_text />
             <div class="card w-full bg-slate-50">
                 <div class="card-body">
                     <Show when=move || context_rs.get().is_empty()>
@@ -465,13 +475,13 @@ where
                                     on_value_change
                                     on_operator_change
                                     tooltip_text
-                                    autocomplete_callbacks = autocomplete_callbacks.clone()
+                                    autocomplete_callbacks=autocomplete_callbacks.clone()
                                 />
                                 {move || {
                                     if last_idx.get() != idx {
                                         view! {
                                             <div class="my-3 ml-7">
-                                                <span class="font-mono text-xs font-bold">"&&"</span>
+                                                <span class="text-xs font-bold">"&&"</span>
                                             </div>
                                         }
                                             .into_view()

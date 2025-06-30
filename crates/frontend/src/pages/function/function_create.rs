@@ -15,8 +15,8 @@ struct CombinedResource {
 
 #[component]
 pub fn create_function_view() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     view! {
         <div>
 
@@ -24,8 +24,8 @@ pub fn create_function_view() -> impl IntoView {
             <FunctionEditor
                 edit=false
                 handle_submit=move || {
-                    let tenant = tenant_rws.get().0;
-                    let org = org_rws.get().0;
+                    let tenant = workspace.get().0;
+                    let org = org.get().0;
                     let redirect_url = format!("admin/{org}/{tenant}/function");
                     let navigate = use_navigate();
                     navigate(redirect_url.as_str(), Default::default())

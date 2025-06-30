@@ -8,10 +8,6 @@
     src: url("/assets/codicon.ttf") format("truetype");
 }
 
-.h-sidenav {
-  height: calc(100vh - 370px);
-}
-
 .disable-click {
     pointer-events: none;
     cursor: not-allowed;
@@ -161,7 +157,6 @@
 }
 
 .condition-value {
-    @apply font-mono;
 	@apply font-semibold;
 	@apply context_condition;
 	@apply w-full;
@@ -171,7 +166,6 @@
 
 
 .condition-value-collapsed {
-    @apply font-mono;
 	@apply font-semibold;
 	@apply context_condition;
 	@apply w-full;

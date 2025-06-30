@@ -36,8 +36,8 @@ pub struct RowData {
 
 #[component]
 pub fn dimensions() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
@@ -47,13 +47,7 @@ pub fn dimensions() -> impl IntoView {
     use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let dimensions_resource = create_blocking_resource(
-        move || {
-            (
-                tenant_rws.get().0,
-                pagination_params_rws.get(),
-                org_rws.get().0,
-            )
-        },
+        move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(current_tenant, pagination_params, org_id)| async move {
             fetch_dimensions(&pagination_params, current_tenant, org_id)
                 .await
@@ -64,8 +58,7 @@ pub fn dimensions() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id_rs.get().clone() {
             spawn_local(async move {
-                let result =
-                    delete_dimension(id, tenant_rws.get().0, org_rws.get().0).await;
+                let result = delete_dimension(id, workspace.get().0, org.get().0).await;
 
                 match result {
                     Ok(_) => {
@@ -81,12 +74,8 @@ pub fn dimensions() -> impl IntoView {
         delete_id_ws.set(None);
         delete_modal_visible_ws.set(false);
     });
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     let selected_dimension = create_rw_signal::<Option<RowData>>(None);
@@ -204,13 +193,9 @@ pub fn dimensions() -> impl IntoView {
             Column::default("autocomplete_function_name".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::new(
+            Column::default_with_cell_formatter(
                 "actions".to_string(),
-                false,
                 action_col_formatter,
-                ColumnSortable::No,
-                Expandable::Enabled(100),
-                default_column_formatter,
             ),
         ]
     });
@@ -239,8 +224,10 @@ pub fn dimensions() -> impl IntoView {
                                     dimension_name=selected_dimension_data.dimension
                                     dimension_schema=selected_dimension_data.schema
                                     dependencies=selected_dimension_data.dependencies
-                                    validation_function_name=selected_dimension_data.validation_function_name
-                                    autocomplete_function_name=selected_dimension_data.autocomplete_function_name
+                                    validation_function_name=selected_dimension_data
+                                        .validation_function_name
+                                    autocomplete_function_name=selected_dimension_data
+                                        .autocomplete_function_name
                                     dimensions
                                     handle_submit=move || {
                                         dimensions_resource.refetch();
@@ -291,8 +278,7 @@ pub fn dimensions() -> impl IntoView {
                         count: pagination_params.count.unwrap_or_default(),
                         current_page: pagination_params.page.unwrap_or_default(),
                         total_pages: value.total_pages,
-                        on_next: handle_next_click,
-                        on_prev: handle_prev_click,
+                        on_page_change: handle_page_change,
                     };
                     view! {
                         <div class="pb-4">
@@ -301,11 +287,8 @@ pub fn dimensions() -> impl IntoView {
                         <div class="card rounded-xl w-full bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between">
-                                    <h2 class="card-title chat-bubble text-gray-800 dark:text-white bg-white font-mono">
-                                        "Dimensions"
-                                    </h2>
-                                    <DrawerBtn drawer_id="dimension_drawer"
-                                        .to_string()>
+                                    <h2 class="card-title">"Dimensions"</h2>
+                                    <DrawerBtn drawer_id="dimension_drawer">
                                         Create Dimension <i class="ri-edit-2-line ml-2"></i>
                                     </DrawerBtn>
                                 </div>

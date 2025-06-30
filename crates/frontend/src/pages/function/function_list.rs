@@ -27,8 +27,8 @@ struct CombinedResource {
 
 #[component]
 pub fn function_list() -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -45,10 +45,10 @@ pub fn function_list() -> impl IntoView {
     let combined_resource = create_blocking_resource(
         move || {
             (
-                tenant_rws.get().0,
+                workspace.get().0,
                 pagination_params_rws.get(),
                 filters_rws.get(),
-                org_rws.get().0,
+                org.get().0,
             )
         },
         |(current_tenant, pagination, filters, org)| async move {
@@ -62,12 +62,8 @@ pub fn function_list() -> impl IntoView {
         },
     );
 
-    let handle_next_click = Callback::new(move |next_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(next_page));
-    });
-
-    let handle_prev_click = Callback::new(move |prev_page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(prev_page));
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
     });
 
     view! {
@@ -91,18 +87,13 @@ pub fn function_list() -> impl IntoView {
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
                         <div class="flex justify-between">
-                            <h2 class="card-title">Functions</h2>
-                            <div>
-
-                                <A
-                                    href="create".to_string()
-                                    class="btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 btn-link"
-                                >
-                                    <button>
-                                        Create Function <i class="ri-edit-2-line ml-2"></i>
-                                    </button>
-                                </A>
-                            </div>
+                            <h2 class="card-title">"Functions"</h2>
+                            <A
+                                href="create".to_string()
+                                class="btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 btn-link"
+                            >
+                                <button>Create Function <i class="ri-edit-2-line ml-2"></i></button>
+                            </A>
                         </div>
                         <div>
 
@@ -138,8 +129,7 @@ pub fn function_list() -> impl IntoView {
                                             count: pagination_params.count.unwrap_or_default(),
                                             current_page: pagination_params.page.unwrap_or_default(),
                                             total_pages,
-                                            on_next: handle_next_click,
-                                            on_prev: handle_prev_click,
+                                            on_page_change: handle_page_change,
                                         };
                                         view! {
                                             <Table

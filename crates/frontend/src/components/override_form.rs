@@ -64,7 +64,7 @@ fn override_input(
     view! {
         <div class="flex flex-col">
             <div class="form-control">
-                <label class="label justify-start font-mono text-sm gap-2">
+                <label class="label justify-start text-sm gap-2">
                     <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
                     <div class="flex gap-1">
                         <TypeBadge r#type=r#type.clone() />
@@ -184,8 +184,8 @@ pub fn override_form(
         };
     });
 
-    let tenant = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_id = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
 
     let autocomplete_callbacks = default_config
         .get_value()
@@ -195,7 +195,7 @@ pub fn override_form(
                 d.key.clone(),
                 d.autocomplete_function_name.clone(),
                 fn_environment,
-                tenant.get_untracked().0,
+                workspace.get_untracked().0,
                 org_id.get_untracked().0,
             )
         })

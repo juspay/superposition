@@ -26,6 +26,7 @@ serde-wasm-bindgen = "0.6.5"
 reqwest = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
+superposition_derives = { path = "../superposition_derives" }
 superposition_macros = { path = "../superposition_macros" }
 superposition_types = { path = "../superposition_types", features = [
     "experimentation",
@@ -38,7 +39,6 @@ web-sys = { version = "0.3.64", features = [
     "Worker",
     "Blob",
     "Window",
-    "Storage",
     "Element",
     "DomRect",
     "HtmlElement",

@@ -1,77 +1,29 @@
-use std::{fmt::Display, ops::Deref, str::FromStr};
+use std::ops::Deref;
 
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::context::ContextListFilters,
+    api::{context::ContextListFilters, workspace::WorkspaceResponse},
     custom_query::{
-        CommaSeparatedQParams, CommaSeparatedStringQParams, CustomQuery, DimensionQuery,
-        PaginationParams, QueryMap,
+        CommaSeparatedStringQParams, CustomQuery, DimensionQuery, PaginationParams,
+        QueryMap,
     },
     database::types::DimensionWithMandatory,
 };
 
 use crate::{
     components::{
+        badge::{GrayPill, ListPills},
         button::Button,
         condition_pills::Condition,
         context_form::ContextForm,
         drawer::{close_drawer, Drawer},
         dropdown::DropdownDirection,
+        form::label::Label,
     },
     logic::{Condition, Conditions, Expression},
     providers::condition_collapse_provider::ConditionCollapseProvider,
 };
-
-#[component]
-fn gray_pill(
-    text: String,
-    #[prop(into, default = Callback::new(move |_| () ))] on_delete: Callback<()>,
-) -> impl IntoView {
-    view! {
-        <div class="badge badge-sm !h-fit py-[1px] bg-gray-200 flex gap-1">
-            {text}
-            <i class="ri-close-line cursor-pointer" on:click=move |_| { on_delete.call(()) } />
-        </div>
-    }
-}
-
-#[component]
-fn list_pills<T>(
-    #[prop(into)] label: String,
-    items: CommaSeparatedQParams<T>,
-    #[prop(into)] on_delete: Callback<usize>,
-) -> impl IntoView
-where
-    T: Display + FromStr,
-{
-    if items.is_empty() {
-        return ().into_view();
-    }
-
-    view! {
-        <div class="flex gap-2 items-center">
-            <div class="min-w-fit flex gap-[2px] text-xs">
-                {label} <span class="text-[10px] text-slate-400">{"(any of)"}</span>
-            </div>
-            <div class="flex gap-[2px] items-center flex-wrap">
-                {items
-                    .iter()
-                    .enumerate()
-                    .map(|(idx, item)| {
-                        view! {
-                            <GrayPill
-                                text=item.to_string()
-                                on_delete=move |_| on_delete.call(idx)
-                            />
-                        }
-                    })
-                    .collect_view()}
-            </div>
-        </div>
-    }
-    .into_view()
-}
 
 #[component]
 pub fn context_filter_summary(
@@ -80,6 +32,7 @@ pub fn context_filter_summary(
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
     filter_node_ref: NodeRef<html::Div>,
 ) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let force_open_rws = RwSignal::new(true);
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
@@ -113,14 +66,16 @@ pub fn context_filter_summary(
                 }
             >
                 <div
-                    class=format!("h-max max-w-[1000px] pt-1 px-0.5 border-[1.5px] border-solid border-purple-400 rounded-[10px] ease-in-out duration-300 tranisition-[width] cursor-pointer {}", if scrolled_to_top.get() { "shadow-md" } else { "" })
+                    class=format!(
+                        "h-max max-w-[1000px] pt-1 px-0.5 border-[1.5px] border-solid border-purple-400 rounded-[10px] ease-in-out duration-300 tranisition-[width] cursor-pointer {}",
+                        if scrolled_to_top.get() { "shadow-md" } else { "" },
+                    )
                     // on:click=move |_| force_open_rws.set(!summary_expanded.get())
                     on:click=move |_| {
                         if scrolled_to_top.get() {
                             force_open_rws.update(|f| *f = !*f);
                         }
                     }
-
                 >
                     <i class=move || {
                         format!(
@@ -176,6 +131,7 @@ pub fn context_filter_summary(
                                             id=condition_id
                                             grouped_view=false
                                             class="xl:w-[400px] h-fit"
+                                            strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                                         />
                                     </ConditionCollapseProvider>
                                 </div>
@@ -190,8 +146,8 @@ pub fn context_filter_summary(
                             <ListPills
                                 label="Key prefix"
                                 items=context_filters_rws
-                                    .with(|f| f.prefix.clone())
-                                    .unwrap_or_default()
+                                    .with(|f| f.prefix.clone().unwrap_or_default())
+                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| f.prefix = filter_index(&f.prefix, idx))
@@ -205,7 +161,7 @@ pub fn context_filter_summary(
                             .map(|plaintext| {
                                 view! {
                                     <div class="flex gap-2 items-center">
-                                        <span class="text-xs">{"Free text"}</span>
+                                        <span class="text-xs">"Free text"</span>
                                         <GrayPill
                                             text=plaintext.clone()
                                             on_delete=move |_| {
@@ -221,8 +177,8 @@ pub fn context_filter_summary(
                             <ListPills
                                 label="Created by"
                                 items=context_filters_rws
-                                    .with(|f| f.created_by.clone())
-                                    .unwrap_or_default()
+                                    .with(|f| f.created_by.clone().unwrap_or_default())
+                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| f.created_by = filter_index(&f.created_by, idx))
@@ -235,8 +191,8 @@ pub fn context_filter_summary(
                             <ListPills
                                 label="Last Modified by"
                                 items=context_filters_rws
-                                    .with(|f| f.last_modified_by.clone())
-                                    .unwrap_or_default()
+                                    .with(|f| f.last_modified_by.clone().unwrap_or_default())
+                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| {
@@ -287,11 +243,11 @@ pub fn context_filter_drawer(
             drawer_width="w-[50vw]"
             handle_close=move || close_drawer("context_filter_drawer")
         >
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-5">
                 <ContextForm
                     dimensions
-                    context_rs
-                    context_ws
+                    context=context_rs.get_untracked()
+                    on_context_change=move |new_context| context_ws.set(new_context)
                     fn_environment
                     dropdown_direction=DropdownDirection::Down
                     resolve_mode=true
@@ -313,14 +269,11 @@ pub fn context_filter_drawer(
                         .to_string()
                 />
                 <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold text-base">
-                            {"Free text search inside overrides"}
-                        </span>
-                        <span class="label-text text-slate-400">
-                            {"Searches both keys as well as the values"}
-                        </span>
-                    </label>
+                    <Label
+                        title="Free text search inside overrides"
+                        info="(any of)"
+                        description="Searches both keys as well as the values"
+                    />
                     {move || {
                         view! {
                             <textarea
@@ -342,15 +295,11 @@ pub fn context_filter_drawer(
                     }}
                 </div>
                 <div class="form-control">
-                    <label class="label flex flex-col items-start justify-center">
-                        <div class="flex gap-1 label-text font-semibold text-base">
-                            {"Created By"}
-                            <span class="text-sm font-normal text-slate-400">"(any of)"</span>
-                        </div>
-                        <span class="label-text text-slate-400">
-                            {"Separate each user by a comma"}
-                        </span>
-                    </label>
+                    <Label
+                        title="Created By"
+                        info="(any of)"
+                        description="Separate each ID by a comma"
+                    />
                     <input
                         type="text"
                         id="context-creator-filter"
@@ -370,15 +319,11 @@ pub fn context_filter_drawer(
                     />
                 </div>
                 <div class="form-control">
-                    <label class="label flex flex-col items-start justify-center">
-                        <div class="flex gap-1 label-text font-semibold text-base">
-                            {"Last Modified By"}
-                            <span class="text-sm font-normal text-slate-400">"(any of)"</span>
-                        </div>
-                        <span class="label-text text-slate-400">
-                            {"Separate each user by a comma"}
-                        </span>
-                    </label>
+                    <Label
+                        title="Last Modified By"
+                        info="(any of)"
+                        description="Separate each ID by a comma"
+                    />
                     <input
                         type="text"
                         id="context-modifier-filter"
@@ -398,27 +343,32 @@ pub fn context_filter_drawer(
                         }
                     />
                 </div>
-                <div class="flex justify-end">
+                <div class="flex justify-end gap-2">
                     <Button
-                        class="h-12 w-48".to_string()
-                        text="Submit".to_string()
+                        class="h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
                         on_click=move |event| {
                             event.prevent_default();
-                            context_filters_rws.set(filters_buffer_rws.get());
-                            dimension_params_rws.set(dimension_buffer_rws.get());
-                            pagination_params_rws.update(|f| f.reset_page());
+                            batch(|| {
+                                context_filters_rws.set(filters_buffer_rws.get());
+                                dimension_params_rws.set(dimension_buffer_rws.get());
+                                pagination_params_rws.update(|f| f.reset_page());
+                            });
                             close_drawer("context_filter_drawer")
                         }
                     />
                     <Button
-                        class="h-12 w-48".to_string()
-                        text="Reset".to_string()
-                        icon_class="ri-restart-line".into()
+                        class="h-12 w-48"
+                        text="Reset"
+                        icon_class="ri-restart-line"
                         on_click=move |event| {
                             event.prevent_default();
-                            context_filters_rws.set(ContextListFilters::default());
-                            dimension_params_rws.set(DimensionQuery::default());
-                            pagination_params_rws.update(|f| f.reset_page());
+                            batch(|| {
+                                context_filters_rws.set(ContextListFilters::default());
+                                dimension_params_rws.set(DimensionQuery::default());
+                                pagination_params_rws.update(|f| f.reset_page());
+                            });
                             close_drawer("context_filter_drawer")
                         }
                     />

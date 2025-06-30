@@ -547,11 +547,11 @@ pub fn monaco_input(
 
 #[component]
 pub fn date_input(
-    id: String,
-    class: String,
-    name: String,
-    on_change: Callback<DateTime<Utc>, ()>,
-    #[prop(default = Callback::new(|_| {}))] on_clear: Callback<(), ()>,
+    #[prop(into)] id: String,
+    #[prop(into, default = String::new())] class: String,
+    #[prop(into)] name: String,
+    #[prop(into)] on_change: Callback<DateTime<Utc>, ()>,
+    #[prop(into, default = Callback::new(|_| {}))] on_clear: Callback<(), ()>,
     #[prop(into, default = Utc::now().format("%Y-%m-%d").to_string())] value: String,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] required: bool,
