@@ -1102,6 +1102,175 @@ public object FfiConverterTypeContext: FfiConverterRustBuffer<Context> {
 
 
 
+data class Variant (
+    var `id`: kotlin.String, 
+    var `variantType`: VariantType, 
+    var `contextId`: kotlin.String?, 
+    var `overrideId`: kotlin.String?, 
+    var `overrides`: VariantOverrides
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeVariant: FfiConverterRustBuffer<Variant> {
+    override fun read(buf: ByteBuffer): Variant {
+        return Variant(
+            FfiConverterString.read(buf),
+            FfiConverterTypeVariantType.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterTypeVariantOverrides.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Variant) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterTypeVariantType.allocationSize(value.`variantType`) +
+            FfiConverterOptionalString.allocationSize(value.`contextId`) +
+            FfiConverterOptionalString.allocationSize(value.`overrideId`) +
+            FfiConverterTypeVariantOverrides.allocationSize(value.`overrides`)
+    )
+
+    override fun write(value: Variant, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterTypeVariantType.write(value.`variantType`, buf)
+            FfiConverterOptionalString.write(value.`contextId`, buf)
+            FfiConverterOptionalString.write(value.`overrideId`, buf)
+            FfiConverterTypeVariantOverrides.write(value.`overrides`, buf)
+    }
+}
+
+
+
+
+enum class ExperimentStatusType {
+    
+    CREATED,
+    INPROGRESS,
+    PAUSED,
+    CONCLUDED,
+    DISCARDED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeExperimentStatusType: FfiConverterRustBuffer<ExperimentStatusType> {
+    override fun read(buf: ByteBuffer) = try {
+        ExperimentStatusType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ExperimentStatusType) = 4UL
+
+    override fun write(value: ExperimentStatusType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class ExperimentType {
+    
+    DEFAULT,
+    DELETE_OVERRIDES;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeExperimentType: FfiConverterRustBuffer<ExperimentType> {
+    override fun read(buf: ByteBuffer) = try {
+        ExperimentType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ExperimentType) = 4UL
+
+    override fun write(value: ExperimentType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class VariantType {
+    
+    CONTROL,
+    EXPERIMENTAL;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeVariantType: FfiConverterRustBuffer<VariantType> {
+    override fun read(buf: ByteBuffer) = try {
+        VariantType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: VariantType) = 4UL
+
+    override fun write(value: VariantType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
+    override fun read(buf: ByteBuffer): kotlin.String? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterString.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.String?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.String?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterString.write(value, buf)
+        }
+    }
+}
+
+
+
 
 /**
  * @suppress
@@ -1124,6 +1293,34 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterString.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeVariant: FfiConverterRustBuffer<List<Variant>> {
+    override fun read(buf: ByteBuffer): List<Variant> {
+        val len = buf.getInt()
+        return List<Variant>(len) {
+            FfiConverterTypeVariant.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Variant>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeVariant.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Variant>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeVariant.write(it, buf)
         }
     }
 }
@@ -1186,4 +1383,24 @@ public typealias FfiConverterTypeCondition = FfiConverterMapStringString
  */
 public typealias Overrides = Map<kotlin.String, kotlin.String>
 public typealias FfiConverterTypeOverrides = FfiConverterMapStringString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias VariantOverrides = Overrides
+public typealias FfiConverterTypeVariantOverrides = FfiConverterTypeOverrides
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Variants = List<Variant>
+public typealias FfiConverterTypeVariants = FfiConverterSequenceTypeVariant
 
