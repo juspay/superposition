@@ -264,47 +264,45 @@ fn basic_input(
     let show_suggestions_rws = create_rw_signal(false);
     view! {
         <div class="flex flex-col gap-1">
-            <label class=format!("input input-bordered flex justify-between {}", class)>
-                <input
-                    id=id.clone()
-                    name=name
-                    placeholder=placeholder
-                    required=required
-                    disabled=disabled
-                    class="flex-grow"
-                    type=r#type.to_html_input_type()
-                    value=value.html_display()
-                    on:keyup=debounce(
-                        debounce_delay,
-                        move |e| {
-                            let v = event_target_value(&e);
-                            if let Some(autocomplete_function) = autocomplete_function {
-                                suggestions_loading_rws.set(true);
-                                show_suggestions_rws.set(true);
-                                autocomplete_function.call((v, suggestions_ws));
-                            }
-                        },
-                    )
-                    on:change=move |e| {
+            <input
+                id=id.clone()
+                name=name
+                placeholder=placeholder
+                required=required
+                disabled=disabled
+                class=format!("input input-bordered flex justify-between flex-grow {}", class)
+                type=r#type.to_html_input_type()
+                value=value.html_display()
+                on:keyup=debounce(
+                    debounce_delay,
+                    move |e| {
                         let v = event_target_value(&e);
-                        match parse_input(v, schema_type.get_value(), &operator) {
-                            Ok(v) => {
-                                on_change.call(v);
-                                error_ws.set(None);
-                            }
-                            Err(e) => error_ws.set(Some(e)),
+                        if let Some(autocomplete_function) = autocomplete_function {
+                            suggestions_loading_rws.set(true);
+                            show_suggestions_rws.set(true);
+                            autocomplete_function.call((v, suggestions_ws));
                         }
+                    },
+                )
+                on:change=move |e| {
+                    let v = event_target_value(&e);
+                    match parse_input(v, schema_type.get_value(), &operator) {
+                        Ok(v) => {
+                            on_change.call(v);
+                            error_ws.set(None);
+                        }
+                        Err(e) => error_ws.set(Some(e)),
                     }
-                />
-                <Show when=move || suggestions_loading_rws.get()>
-                    <span class="loading loading-spinner loading-md text-purple-500"></span>
-                </Show>
-                <Show when=move || show_suggestions_rws.get() && !suggestions_loading_rws.get()>
-                    <button on:click=move |_| show_suggestions_rws.set(false)>
-                        <i class="text-red-600 ri-close-circle-fill"></i>
-                    </button>
-                </Show>
-            </label>
+                }
+            />
+            <Show when=move || suggestions_loading_rws.get()>
+                <span class="loading loading-spinner loading-md text-purple-500"></span>
+            </Show>
+            <Show when=move || show_suggestions_rws.get() && !suggestions_loading_rws.get()>
+                <button on:click=move |_| show_suggestions_rws.set(false)>
+                    <i class="text-red-600 ri-close-circle-fill"></i>
+                </button>
+            </Show>
 
             {move || {
                 match error_rs.get() {

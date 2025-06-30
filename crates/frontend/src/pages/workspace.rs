@@ -81,6 +81,9 @@ pub fn workspace() -> impl IntoView {
                 .as_bool()
                 .unwrap_or_default();
 
+            let auto_populate_control =
+                row["auto_populate_control"].as_bool().unwrap_or_default();
+
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     workspace_name: workspace_name.clone(),
@@ -95,6 +98,7 @@ pub fn workspace() -> impl IntoView {
                     created_at: created_at.clone(),
                     metrics: metrics.clone(),
                     allow_experiment_self_approval,
+                    auto_populate_control,
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -138,6 +142,7 @@ pub fn workspace() -> impl IntoView {
             Column::default("config_version".to_string()),
             Column::default("mandatory_dimensions".to_string()),
             Column::default("strict_mode".to_string()),
+            Column::default("auto_populate_control".to_string()),
             Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
             Column::default_with_cell_formatter(
@@ -179,6 +184,8 @@ pub fn workspace() -> impl IntoView {
                                     metrics=selected_workspace_data.metrics
                                     allow_experiment_self_approval=selected_workspace_data
                                         .allow_experiment_self_approval
+                                    auto_populate_control=selected_workspace_data
+                                        .auto_populate_control
                                     handle_submit=move |_| {
                                         workspace_resource.refetch();
                                         selected_workspace.set(None);
