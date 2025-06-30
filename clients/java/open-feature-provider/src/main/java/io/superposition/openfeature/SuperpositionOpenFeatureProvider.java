@@ -1,42 +1,42 @@
 package io.superposition.openfeature;
 
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 import io.juspay.superposition.client.SuperpositionAsyncClient;
-import io.juspay.superposition.model.GetConfigOutput;
+import io.juspay.superposition.model.*;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import software.amazon.smithy.java.auth.api.AuthProperties;
 import software.amazon.smithy.java.client.core.auth.identity.IdentityResolver;
 import software.amazon.smithy.java.auth.api.identity.TokenIdentity;
 import software.amazon.smithy.java.client.core.auth.identity.IdentityResult;
 import software.amazon.smithy.java.client.core.endpoint.EndpointResolver;
 import dev.openfeature.sdk.*;
-import io.juspay.superposition.model.GetConfigInput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
+import uniffi.superposition_client.ExperimentationArgs;
+import uniffi.superposition_client.FfiExperiment;
+import uniffi.superposition_client.OperationException;
+
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.List;
+import java.util.stream.Collectors;
 
 import static software.amazon.smithy.java.auth.api.identity.TokenIdentity.*;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+@Slf4j
 public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     private static final Gson gson = new Gson();
-    private static final Logger logger =
-        LoggerFactory.getLogger(SuperpositionOpenFeatureProvider.class);
     private final SuperpositionAsyncClient sdk;
-    private final SuperpositionProviderOptions options;
-    private final GetConfigInput input;
-    private RefreshJob<GetConfigOutput> configRefresh;
+    private final RefreshJob<EvaluationArgs> configRefresh;
+    private final Optional<RefreshJob<List<FfiExperiment>>> expRefresh;
     private Optional<EvaluationContext> defaultCtx;
     private final Optional<EvaluationArgs> fallbackArgs;
 
     SuperpositionOpenFeatureProvider(@NonNull SuperpositionProviderOptions options) {
-        this.options = options;
         if (options.fallbackConfig != null) {
             fallbackArgs = Optional.of(new EvaluationArgs(options.fallbackConfig));
         } else {
@@ -46,11 +46,35 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             .endpointResolver(EndpointResolver.staticEndpoint(options.endpoint))
             .addIdentityResolver(new IdentityResolverImpl(options.token));
         this.sdk = builder.build();
-        this.input = GetConfigInput.builder()
+        var getConfigInput = GetConfigInput.builder()
             .context(Map.of())
             .orgId(options.orgId)
             .workspaceId(options.workspaceId)
             .build();
+        this.configRefresh = RefreshJob.create(
+            options.refreshStrategy,
+            () -> sdk.getConfig(getConfigInput).thenApply(EvaluationArgs::new)
+        );
+        if (options.experimentationOptions != null) {
+            var listExpInput = ListExperimentInput.builder()
+                .orgId(options.orgId)
+                .workspaceId(options.workspaceId)
+                .status(ExperimentStatusType.INPROGRESS)
+                .build();
+            this.expRefresh = Optional.of(
+                RefreshJob.create(
+                    options.experimentationOptions.refreshStrategy,
+                    () -> sdk.listExperiment(listExpInput)
+                        .thenApply(e -> e
+                            .data()
+                            .stream()
+                            .map(EvaluationArgs.Helpers::toFfiExperiment)
+                            .toList()
+                        ))
+            );
+        } else {
+            this.expRefresh = Optional.empty();
+        }
     }
 
     @Override
@@ -61,7 +85,15 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     @Override
     public void initialize(EvaluationContext eCtx) {
         this.defaultCtx = Optional.ofNullable(eCtx);
-        this.configRefresh = RefreshJob.create(options.refreshStrategy, () -> sdk.getConfig(input));
+        if (configRefresh instanceof RefreshJob.Poll) {
+            ((RefreshJob.Poll<?>) configRefresh).start();
+        }
+        if (expRefresh.isPresent()) {
+            var r = expRefresh.get();
+            if (r instanceof RefreshJob.Poll) {
+                ((RefreshJob.Poll<?>) r).start();
+            }
+        }
     }
 
     @Override
@@ -72,36 +104,36 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     @SneakyThrows
     @Override
     public ProviderEvaluation<Boolean> getBooleanEvaluation(
-       @NonNull String key,
-       @NonNull Boolean defaultValue,
-       @NonNull EvaluationContext ctx
+        @NonNull String key,
+        @NonNull Boolean defaultValue,
+        @NonNull EvaluationContext ctx
     ) {
         return getEvaluation(key, defaultValue, ctx, Boolean.class);
     }
 
     @Override
     public ProviderEvaluation<String> getStringEvaluation(
-       @NonNull String key,
-       @NonNull String defaultValue,
-       @NonNull EvaluationContext ctx
+        @NonNull String key,
+        @NonNull String defaultValue,
+        @NonNull EvaluationContext ctx
     ) {
         return getEvaluation(key, defaultValue, ctx, String.class);
     }
 
     @Override
     public ProviderEvaluation<Integer> getIntegerEvaluation(
-       @NonNull String key,
-       @NonNull Integer defaultValue,
-       @NonNull EvaluationContext ctx
+        @NonNull String key,
+        @NonNull Integer defaultValue,
+        @NonNull EvaluationContext ctx
     ) {
         return getEvaluation(key, defaultValue, ctx, Integer.class);
     }
 
     @Override
     public ProviderEvaluation<Double> getDoubleEvaluation(
-       @NonNull String key,
-       @NonNull Double defaultValue,
-       @NonNull EvaluationContext ctx
+        @NonNull String key,
+        @NonNull Double defaultValue,
+        @NonNull EvaluationContext ctx
     ) {
         return getEvaluation(key, defaultValue, ctx, Double.class);
     }
@@ -109,32 +141,13 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     @SneakyThrows
     @Override
     public ProviderEvaluation<Value> getObjectEvaluation(
-       @NonNull String key,
-       @NonNull Value defaultValue,
-       @NonNull EvaluationContext ctx
+        @NonNull String key,
+        @NonNull Value defaultValue,
+        @NonNull EvaluationContext ctx
     ) {
         ProviderEvaluation<Object> pe = getEvaluation(key, defaultValue, ctx, Object.class);
-        var val = pe.getValue();
-        if (!(val instanceof Value)) {
-            // REVIEW Is this even needed?
-            if (val instanceof String) {
-                // If resulted into a String, this could be a serialized object/array as `stringToValue`
-                // only handles primitives.
-                try {
-                    logger.debug("Trying to cast as an object.");
-                    val = gson.fromJson((String)val, new TypeToken<Map<String, Object>>(){}.getType());
-                } catch (Exception ignored) {
-                    logger.debug("Not an object, trying to cast as a list.");
-                    try {
-                        val = gson.fromJson((String)val, new TypeToken<List<Object>>(){}.getType());
-                    } catch (Exception ignored1) {
-                    }
-                }
-            }
-            val = Value.objectToValue(val);
-        }
         return ProviderEvaluation.<Value>builder()
-            .value((Value)val)
+            .value(Value.objectToValue(pe.getValue()))
             .variant(pe.getVariant())
             .errorMessage(pe.getErrorMessage())
             .errorCode(pe.getErrorCode())
@@ -143,10 +156,10 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
 
     private <T> ProviderEvaluation<T> getEvaluation(String key, T defaultValue, EvaluationContext ctx, Class<T> c) {
         try {
-            var config = runEvaluation(ctx);
+            var config = evaluateConfigInternal(ctx);
             var entry = config.get(key);
             if (entry == null) {
-                throw new NullPointerException("Key not found!");
+                throw new NullPointerException("Evaluation-key: " + key + " not found!");
             }
             var value = gson.fromJson(entry, c);
             return ProviderEvaluation.<T>builder()
@@ -154,12 +167,14 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
                 .variant("evaluated")
                 .build();
         } catch (Exception e) {
-            logger.error("An exception occurred during evaluation.\nMessage: {}.", e.getMessage());
-            ErrorCode ec = ErrorCode.PROVIDER_FATAL;
+            log.error("An exception occurred during evaluation.\nMessage: {}.", e.getMessage());
+            ErrorCode ec = ErrorCode.PROVIDER_NOT_READY;
             if (e instanceof JsonSyntaxException) {
                 ec = ErrorCode.TYPE_MISMATCH;
             } else if (e instanceof NullPointerException) {
-                ec = ErrorCode.TARGETING_KEY_MISSING;
+                ec = ErrorCode.FLAG_NOT_FOUND;
+            } else if (e instanceof OperationException) {
+                ec = ErrorCode.PROVIDER_FATAL;
             }
             return ProviderEvaluation.<T>builder()
                 .value(defaultValue)
@@ -170,21 +185,59 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         }
     }
 
-    private Map<String, String> runEvaluation(EvaluationContext ctx) throws Exception {
+    public @Nullable List<String> applicableVariants(@NonNull EvaluationContext ctx) {
+        try {
+            return EvaluationArgs.Companion.getApplicableVariants$open_feature_provider(ctx, getExperimentationArgs(ctx));
+        } catch (Exception e) {
+            log.error("An exception occurred during evaluation.\nMessage: {}.", e.getMessage());
+            return null;
+        }
+    }
+
+    public @Nullable Map<String, Object> evaluateConfig(@NonNull EvaluationContext ctx) {
+        try {
+            var config = evaluateConfigInternal(ctx);
+            return config.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> gson.fromJson(entry.getValue(), Object.class)
+            ));
+        } catch (Exception e) {
+            log.error("An exception occurred during evaluation.\nMessage: {}.", e.getMessage());
+            return null;
+        }
+    }
+
+    private Map<String, String> evaluateConfigInternal(EvaluationContext ctx) throws Exception {
         EvaluationArgs args;
         var out = configRefresh.getOutput();
         if (out.isEmpty() && fallbackArgs.isPresent()) {
-            logger.error("Config refresh failed, evaluating using fallback-config.");
+            log.error("Config refresh failed, evaluating using fallback-config.");
             args = fallbackArgs.get();
         } else if (out.isPresent()) {
-            // FIXME Move this setup out into refresh, invalid configs should be rejected.
-            args = new EvaluationArgs(out.get());
+            args = out.get();
         } else {
             throw new Exception("No configuration available to evaluate.");
         }
-        return args.evaluate(defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx);
+        var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
+        return args.evaluate(ctx_, getExperimentationArgs(ctx_));
     }
 
+    private ExperimentationArgs getExperimentationArgs(EvaluationContext ctx) {
+        var job = expRefresh.orElse(null);
+        var tkey = ctx.getTargetingKey();
+        if (tkey != null) {
+            log.debug("Targeting-key is: {}", tkey);
+            if (job == null) {
+                log.warn("Attempting to use targeting-key w/o setting up experimentation.");
+            } else if (job.getOutput().isEmpty()) {
+                log.error("Experimentation data is not available.");
+            } else {
+                log.debug("Using experimentation output: {}", job.getOutput().get());
+                return new ExperimentationArgs(job.getOutput().get(), tkey);
+            }
+        }
+        return null;
+    }
 
     // TODO EXPLAIN???
     @SuppressWarnings("rawtypes")
