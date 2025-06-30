@@ -60,19 +60,22 @@ pub fn expandable_text(
 
 #[component]
 pub fn table(
-    key_column: String,
+    #[prop(into)] key_column: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,
     #[prop(into, default = String::new())] class: String,
     #[prop(into, default = String::new())] cell_class: String,
     #[prop(into, default = String::new())] head_class: String,
+    #[prop(into, default = String::new())] body_class: String,
     #[prop(default = TablePaginationProps::default())] pagination: TablePaginationProps,
 ) -> impl IntoView {
     let pagination_props = StoredValue::new(pagination);
     let container_style = format!("{} overflow-x-auto overflow-y-clip", class);
-    let get_sticky_position_classes = |index: usize| {
-        match index {
-        0 => "sticky left-20 z-20 bg-inherit after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]",
+    let get_sticky_position_classes = |index: usize, header: bool| {
+        match (header, index) {
+        (true, 0) => "sticky left-20 top-0 z-30 after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]",
+        (true, _) => "sticky z-20 top-0",
+        (false, 0) => "sticky left-20 z-20 after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]",
         _ => "",
     }
     };
@@ -82,14 +85,14 @@ pub fn table(
             <table class="table table-zebra">
                 <thead class=head_class>
                     <tr class="bg-white">
-                        <th class="sticky left-0 z-20 bg-inherit min-w-[5rem] px-3" />
+                        <th class="sticky left-0 top-0 z-30 bg-inherit min-w-[5rem] px-3" />
 
                         {columns
                             .iter()
                             .filter(|column| !column.hidden)
                             .enumerate()
                             .map(|(index, column)| {
-                                let sticky_class = get_sticky_position_classes(index);
+                                let sticky_class = get_sticky_position_classes(index, true);
                                 let col_formatter = column.column_formatter.clone();
                                 match column.sortable.clone() {
                                     types::ColumnSortable::Yes {
@@ -100,7 +103,7 @@ pub fn table(
                                         view! {
                                             <th
                                                 class=format!(
-                                                    "px-3 flex items-center gap-1 cursor-pointer {sticky_class}",
+                                                    "px-3 flex items-center gap-1 bg-inherit cursor-pointer {sticky_class}",
                                                 )
                                                 on:click=move |_| sort_fn.call(())
                                             >
@@ -128,7 +131,7 @@ pub fn table(
                                     types::ColumnSortable::No => {
                                         view! {
                                             <th class=format!(
-                                                "px-3 {sticky_class}",
+                                                "px-3 bg-inherit {sticky_class}",
                                             )>{col_formatter(&column.name)}</th>
                                         }
                                     }
@@ -138,7 +141,7 @@ pub fn table(
 
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class=body_class>
 
                     {rows
                         .iter()
@@ -174,14 +177,17 @@ pub fn table(
                                                 .get(&column.name)
                                                 .unwrap_or(&Value::String(String::new()))
                                                 .html_display();
-                                            let sticky_class = get_sticky_position_classes(index);
+                                            let sticky_class = get_sticky_position_classes(
+                                                index,
+                                                false,
+                                            );
                                             view! {
                                                 <ExpandableText
                                                     value
                                                     formatter=column.formatter
                                                     row=row.clone()
                                                     class_name=format!(
-                                                        "min-w-48 max-w-106 px-3 break-words {cell_class_clone} {sticky_class}",
+                                                        "min-w-48 max-w-106 px-3 bg-inherit break-words {cell_class_clone} {sticky_class}",
                                                     )
                                                     is_expandable=column.expandable
                                                 />

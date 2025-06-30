@@ -2,11 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
-use superposition_types::{
-    custom_query::{CustomQuery, Query, QueryMap},
-    database::models::cac::Context,
-    Context as ConfigContext,
-};
+use superposition_types::{database::models::cac::Context, Context as ConfigContext};
 
 use crate::schema::{HtmlDisplay, SchemaType};
 
@@ -147,6 +143,14 @@ impl Expression {
     }
     pub fn to_operator(&self) -> Operator {
         Operator::from(self)
+    }
+
+    pub fn to_value(&self) -> Value {
+        match self {
+            Expression::Is(c) | Expression::In(c) | Expression::Has(c) => c.clone(),
+            Expression::Between(c1, c2) => json!([c1, c2]),
+            Expression::Other(_, operands) => Value::Array(operands.clone()),
+        }
     }
 }
 
@@ -329,6 +333,27 @@ impl Conditions {
             None => Condition::try_from_condition_map(context).map(|v| vec![v])?,
         }))
     }
+
+    pub fn from_resolve_context(context: &Map<String, serde_json::Value>) -> Self {
+        Self(
+            context
+                .iter()
+                .map(|(k, v)| Condition {
+                    variable: k.clone(),
+                    expression: Expression::Is(v.clone()),
+                })
+                .collect::<Vec<_>>(),
+        )
+    }
+
+    pub fn try_from_resolve_context_str(context: &str) -> Result<Self, &'static str> {
+        let parsed: Value = serde_json::from_str(context)
+            .map_err(|_| "failed to parse context string as JSON")?;
+        Ok(Self::from_resolve_context(
+            parsed.as_object().ok_or("not a valid context JSON")?,
+        ))
+    }
+
     pub fn as_context_json(&self) -> Map<String, Value> {
         if self.is_empty() {
             return Map::new();
@@ -349,15 +374,10 @@ impl Conditions {
             .join("&")
     }
 
-    pub fn from_query_string(query: &str) -> Self {
-        Query::<QueryMap>::extract_non_empty(query)
-            .into_inner()
-            .iter()
-            .map(|(k, v)| Condition {
-                variable: k.clone(),
-                expression: Expression::Is(v.clone()),
-            })
-            .collect::<Conditions>()
+    pub fn as_resolve_context(&self) -> Map<String, Value> {
+        self.iter()
+            .map(|c| (c.variable.clone(), c.expression.to_value()))
+            .collect()
     }
 }
 

@@ -49,12 +49,6 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             label: "Overrides".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/resolve"),
-            path: format!("{base}/admin/{org}/{tenant}/resolve"),
-            icon: "ri-equalizer-fill".to_string(),
-            label: "Resolve".to_string(),
-        },
-        AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/compare"),
             path: format!("{base}/admin/{org}/{tenant}/compare"),
             icon: "ri-arrow-left-right-line".to_string(),

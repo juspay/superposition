@@ -76,12 +76,16 @@ pub fn organisations() -> impl IntoView {
                                 number=organisations.len().to_string()
                             />
                         </div>
-                        <Table
-                            class="card-body card rounded-lg w-full bg-base-100 shadow"
-                            rows=table_rows
-                            key_column="id".to_string()
-                            columns=table_columns.get()
-                        />
+                        <div class="card rounded-lg w-full bg-base-100 shadow">
+                            <div class="card-body">
+                                <h2 class="card-title">"Organisations"</h2>
+                                <Table
+                                    rows=table_rows
+                                    key_column="id".to_string()
+                                    columns=table_columns.get()
+                                />
+                            </div>
+                        </div>
                     }
                 }}
             </Suspense>

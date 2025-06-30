@@ -460,7 +460,6 @@ where
                         rows=variant_rows
                         key_column="overrides".to_string()
                         columns=variant_col
-                        class="overflow-y-auto"
                     />
                 </div>
             </div>
