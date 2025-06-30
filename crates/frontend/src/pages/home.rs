@@ -256,11 +256,11 @@ pub fn home() -> impl IntoView {
         spawn_local(async move {
             let context = context_updated.as_query_string();
             let mut config = resolve_config(
-                &workspace.get_untracked().0,
                 &context,
-                &org.get_untracked().0,
                 true,
                 None,
+                &workspace.get_untracked().0,
+                &org.get_untracked().0,
             )
             .await
             .unwrap_or_default();

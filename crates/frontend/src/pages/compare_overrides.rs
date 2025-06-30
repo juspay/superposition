@@ -1,4 +1,16 @@
+mod types;
+
 use std::collections::HashMap;
+
+use leptos::*;
+use leptos_router::A;
+use serde_json::{json, Map, Value};
+use superposition_macros::box_params;
+use superposition_types::{
+    api::workspace::WorkspaceResponse,
+    custom_query::{CustomQuery, PaginationParams, Query},
+};
+use types::{ComparisonTable, ContextList, PageParams};
 
 use crate::{
     api::{fetch_dimensions, resolve_config},
@@ -7,43 +19,48 @@ use crate::{
         button::Button,
         condition_pills::Condition as ConditionComponent,
         context_form::ContextForm,
-        drawer::{close_drawer, Drawer, DrawerBtn},
         dropdown::DropdownDirection,
-        skeleton::Skeleton,
+        skeleton::{Skeleton, SkeletonVariant},
         table::{
-            types::{default_formatter, Column, ColumnSortable, Expandable},
+            types::{Column, ColumnSortable, Expandable},
             Table,
         },
     },
     logic::Conditions,
+    pages::default_config::utils::{get_bread_crums, modify_rows, BreadCrums},
     providers::{
         alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
-        editor_provider::EditorProvider,
     },
+    query_updater::{use_param_updater, use_signal_from_query},
     types::{OrganisationId, Tenant},
-};
-use leptos::*;
-use serde_json::{json, Map, Value};
-use superposition_types::{
-    api::workspace::WorkspaceResponse, custom_query::PaginationParams,
+    utils::{url_or_string, use_url_base},
 };
 
-// this maps the column context and the row config key to a particular value
-type ComparisonTable = HashMap<String, Map<String, Value>>;
+const DEFAULT_CONFIG_COLUMN: &str = "default_config";
+const KEY_COLUMN: &str = "config_key";
 
 fn table_columns(
-    contexts_vector_rws: RwSignal<Vec<String>>,
+    contexts_vector_rws: RwSignal<ContextList>,
     strict_mode: bool,
+    expand: Callback<String, View>,
 ) -> Vec<Column> {
-    let contexts = contexts_vector_rws.get();
-    let mut fixed_columns = vec![Column::default("config_key".into())];
+    let mut contexts = contexts_vector_rws
+        .with(|contexts| contexts.iter().map(|(k, _)| k.clone()).collect::<Vec<_>>());
+    contexts.push(DEFAULT_CONFIG_COLUMN.to_string());
+
+    let mut fixed_columns = vec![Column::default_with_cell_formatter(
+        KEY_COLUMN.to_string(),
+        move |key, _row| expand.call(key.to_string()),
+    )];
+
     let column_formatter = move |value: &str| {
-        let remove_column_name = StoredValue::new(value.to_string());
-        let conditions = Conditions::from_query_string(&remove_column_name.get_value());
-        if remove_column_name.get_value() == "default_config" {
+        let column = StoredValue::new(value.to_string());
+        if value == DEFAULT_CONFIG_COLUMN {
             view! { <kbd class="kbd">Default Config</kbd> }.into_view()
         } else {
+            let conditions =
+                Conditions::try_from_resolve_context_str(value).unwrap_or_default();
             view! {
                 <div class="flex flex-row gap-2 items-center">
                     <i
@@ -51,17 +68,14 @@ fn table_columns(
                         on:click=move |_| {
                             contexts_vector_rws
                                 .update(|context_vector| {
-                                    context_vector
-                                        .retain(|context| {
-                                            *context != remove_column_name.get_value()
-                                        })
+                                    context_vector.remove(&column.get_value());
                                 })
                         }
                     />
                     <ConditionCollapseProvider>
                         <ConditionComponent
                             conditions
-                            id=remove_column_name.get_value()
+                            id=column.get_value()
                             grouped_view=false
                             class="xl:w-[400px] h-fit"
                             strict_mode
@@ -72,11 +86,13 @@ fn table_columns(
             .into_view()
         }
     };
-    for context in contexts {
+    for context in contexts.into_iter().rev() {
         fixed_columns.push(Column::new(
             context,
             false,
-            default_formatter,
+            |value: &str, _row: &Map<String, Value>| {
+                view! { <span>{url_or_string(value)}</span> }.into_view()
+            },
             ColumnSortable::No,
             Expandable::Enabled(100),
             column_formatter,
@@ -93,13 +109,22 @@ pub fn compare_overrides() -> impl IntoView {
     let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     // this vector stores the list of contexts the user is comparing
-    let contexts_vector_rws = create_rw_signal(vec!["default_config".to_string()]);
-    let source = move || {
-        let tenant = workspace.get().0;
-        let org_id = org.get().0;
-        let contexts = contexts_vector_rws.get();
-        (tenant, org_id, contexts)
-    };
+    // let contexts_vector_rws = RwSignal::new(Vec::new());
+    let page_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PageParams>::extract_non_empty(&query_string).into_inner()
+    });
+    let context_vec_rws = use_signal_from_query(move |query_string| {
+        ContextList::extract_non_empty(&query_string)
+    });
+    let bread_crums = Signal::derive(move || {
+        get_bread_crums(
+            page_params_rws.with(|p| p.prefix.clone()),
+            "Compare Overrides".to_string(),
+        )
+    });
+
+    use_param_updater(move || box_params!(page_params_rws.get(), context_vec_rws.get()));
+
     let dimension_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
         |(tenant, org)| async {
@@ -108,11 +133,24 @@ pub fn compare_overrides() -> impl IntoView {
                 .unwrap_or_default()
         },
     );
+
+    let source = move || {
+        let tenant = workspace.get().0;
+        let org_id = org.get().0;
+        let contexts = context_vec_rws.get();
+        (tenant, org_id, contexts)
+    };
     let resolved_config_resource =
-        create_blocking_resource(source, |(tenant, org_id, contexts)| async move {
+        create_blocking_resource(source, |(tenant, org_id, mut contexts)| async move {
+            contexts.insert(DEFAULT_CONFIG_COLUMN.to_string(), Map::new());
             let mut contexts_config_vector_map: ComparisonTable = HashMap::new();
-            for context in contexts {
-                match resolve_config(&tenant, &context, &org_id, false, None).await {
+            for (context_key, context) in contexts.iter() {
+                let context = context
+                    .iter()
+                    .map(|(k, v)| format!("{}={}", k, v))
+                    .collect::<Vec<_>>()
+                    .join("&");
+                match resolve_config(&context, false, None, &tenant, &org_id).await {
                     Ok(config) => {
                         for (config_key, resolved_value) in config {
                             let mut row_vector = contexts_config_vector_map
@@ -120,24 +158,32 @@ pub fn compare_overrides() -> impl IntoView {
                                 .cloned()
                                 .unwrap_or_default();
                             row_vector.insert(
-                                "config_key".into(),
+                                KEY_COLUMN.to_string(),
                                 Value::String(config_key.clone()),
                             );
-                            row_vector.insert(context.clone(), resolved_value);
+                            row_vector.insert(context_key.clone(), resolved_value);
                             contexts_config_vector_map.insert(config_key, row_vector);
                         }
                     }
                     Err(e) => {
                         logging::error!(
                             "Error resolving config for context {}: {}",
-                            context,
+                            context_key,
                             e
                         );
                         enqueue_alert(e.clone(), AlertType::Error, 1000);
                     }
                 }
             }
-            contexts_config_vector_map
+            let mut resolved_config_map: Vec<Map<String, Value>> =
+                contexts_config_vector_map.into_values().collect();
+
+            resolved_config_map.sort_by(|a, b| {
+                let key_a = a.get(KEY_COLUMN).and_then(Value::as_str).unwrap_or("");
+                let key_b = b.get(KEY_COLUMN).and_then(Value::as_str).unwrap_or("");
+                key_a.to_lowercase().cmp(&key_b.to_lowercase())
+            });
+            resolved_config_map
         });
     let fn_environment = create_memo(move |_| {
         let context = context_rs.get();
@@ -146,88 +192,171 @@ pub fn compare_overrides() -> impl IntoView {
             "overrides": [],
         })
     });
+
+    let redirect_url = move |prefix: Option<String>| -> String {
+        let base = use_url_base();
+        let tenant = workspace.get_untracked().0;
+        let org_id = org.get_untracked().0;
+        let context_vec = context_vec_rws.get_untracked();
+        let mut redirect_url =
+            format!("{base}/admin/{org_id}/{tenant}/compare?{context_vec}");
+        if let Some(prefix) = prefix {
+            redirect_url = format!("{redirect_url}&prefix={prefix}");
+        }
+        redirect_url
+    };
+
+    let expand = Callback::new(move |label: String| {
+        let is_folder = label.ends_with('.');
+
+        if is_folder {
+            let prefix = page_params_rws.with(|p| {
+                p.prefix
+                    .as_ref()
+                    .map_or_else(|| label.clone(), |p| format!("{p}{label}"))
+            });
+            view! {
+                <A
+                    class="cursor-pointer text-blue-500 underline underline-offset-2"
+                    href=redirect_url(Some(prefix))
+                >
+                    {label}
+                </A>
+            }
+            .into_view()
+        } else {
+            view! { <span>{label}</span> }.into_view()
+        }
+    });
+
     view! {
-        <div class="p-8">
+        <div class="h-screen p-8 flex flex-col gap-8">
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block /> }
+            }>
+                <div class="card bg-base-100 shadow">
+                    <div class="card-body collapse collapse-arrow gap-4">
+                        <input type="checkbox" checked=true />
+                        <h2 class="card-title collapse-title h-fit !p-0">"Add Contexts"</h2>
+                        <div class="collapse-content !p-0 flex flex-col gap-8">
+                            {move || {
+                                let dimensions = dimension_resource
+                                    .with(|d| {
+                                        d.as_ref().map(|d| d.data.clone()).unwrap_or_default()
+                                    });
+                                view! {
+                                    <ContextForm
+                                        dimensions
+                                        context=context_rs.get_untracked()
+                                        on_context_change=move |new_context| {
+                                            context_ws.set(new_context)
+                                        }
+                                        heading_sub_text="Query your configs"
+                                        dropdown_direction=DropdownDirection::Right
+                                        resolve_mode=true
+                                        handle_change=move |new_context| context_ws.set(new_context)
+                                        fn_environment
+                                    />
+                                }
+                            }}
+                            {move || {
+                                let loading = req_inprogess_rs.get();
+                                view! {
+                                    <Button
+                                        id="compare"
+                                        text="Add Comparision"
+                                        class="self-end"
+                                        on_click=move |_| {
+                                            req_inprogress_ws.set(true);
+                                            let context = context_rs.get();
+                                            if context.is_empty() {
+                                                enqueue_alert(
+                                                    "Please provide a valid context to compare".into(),
+                                                    AlertType::Error,
+                                                    1000,
+                                                );
+                                                req_inprogress_ws.set(false);
+                                                return;
+                                            }
+                                            let context = context.as_resolve_context();
+                                            let query = Value::Object(context.clone()).to_string();
+                                            context_vec_rws
+                                                .update(|value| {
+                                                    if value.contains_key(&query) {
+                                                        enqueue_alert(
+                                                            "This context has already been added to compare".into(),
+                                                            AlertType::Error,
+                                                            1000,
+                                                        );
+                                                    } else {
+                                                        value.insert(query, context);
+                                                    }
+                                                });
+                                            req_inprogress_ws.set(false);
+                                        }
+                                        loading=loading
+                                    />
+                                }
+                            }}
+                        </div>
+                    </div>
+                </div>
+            </Suspense>
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
                 {move || {
-                    let resolved_config_map = resolved_config_resource.get().unwrap_or_default();
+                    let mut filtered_rows = resolved_config_resource.get().unwrap_or_default();
                     let table_columns = table_columns(
-                        contexts_vector_rws,
+                        context_vec_rws,
                         workspace_settings.with_value(|w| w.strict_mode),
+                        expand,
                     );
-                    let dimensions = dimension_resource.get().unwrap_or_default();
-                    let data = resolved_config_map.into_values().collect();
+                    let page_params = page_params_rws.get();
+                    if page_params.grouped {
+                        let cols = filtered_rows
+                            .first()
+                            .map(|row| row.keys().cloned().collect())
+                            .unwrap_or_default();
+                        filtered_rows = modify_rows(
+                            filtered_rows.clone(),
+                            page_params.prefix,
+                            cols,
+                            KEY_COLUMN,
+                        );
+                    }
+
                     view! {
-                        <div class="card rounded-xl w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card min-h-[200px] w-full overflow-hidden bg-base-100 rounded-xl shadow">
+                            <div class="card-body overflow-y-auto">
                                 <div class="flex justify-between">
-                                    <h2 class="card-title">"Compare Overrides"</h2>
-                                    <DrawerBtn drawer_id="add_comparison_drawer">
-                                        Add Comparison <i class="ri-edit-2-line ml-2"></i>
-                                    </DrawerBtn>
+                                    <BreadCrums redirect_url bread_crums=bread_crums.get() />
+                                    <label
+                                        on:click=move |_| {
+                                            page_params_rws
+                                                .update(|params| {
+                                                    params.grouped = !params.grouped;
+                                                    params.prefix = None;
+                                                });
+                                        }
+                                        class="label gap-4 cursor-pointer"
+                                    >
+                                        <span class="label-text min-w-max">Group Configs</span>
+                                        <input
+                                            type="checkbox"
+                                            class="toggle toggle-primary"
+                                            checked=page_params_rws.with(|p| p.grouped)
+                                        />
+                                    </label>
                                 </div>
                                 <Table
-                                    rows=data
-                                    key_column="config_key".to_string()
+                                    class="!overflow-y-auto"
+                                    rows=filtered_rows
+                                    key_column=KEY_COLUMN
                                     columns=table_columns
                                 />
                             </div>
                         </div>
-                        <Drawer
-                            id="add_comparison_drawer".to_string()
-                            header="Add a context to compare"
-                            handle_close=move || {
-                                close_drawer("add_comparison_drawer");
-                            }
-                        >
-
-                            <EditorProvider>
-                                <ContextForm
-                                    dimensions=dimensions.data
-                                    context=Conditions::default()
-                                    heading_sub_text="Compare to...".to_string()
-                                    dropdown_direction=DropdownDirection::Right
-                                    resolve_mode=true
-                                    handle_change=move |new_context| {
-                                        context_ws.update(|value| *value = new_context)
-                                    }
-                                    fn_environment
-                                    on_context_change=move |_| ()
-                                />
-
-                                {move || {
-                                    let loading = req_inprogess_rs.get();
-                                    view! {
-                                        <Button
-                                            id="resolve_btn"
-                                            text="Submit"
-                                            icon_class="ri-send-plane-line"
-                                            on_click=move |_| {
-                                                req_inprogress_ws.set(true);
-                                                let query = context_rs.get().as_query_string();
-                                                contexts_vector_rws
-                                                    .update(|value| {
-                                                        if value.contains(&query) {
-                                                            enqueue_alert(
-                                                                "This context has already been added to compare".into(),
-                                                                AlertType::Error,
-                                                                1000,
-                                                            );
-                                                        } else {
-                                                            value.push(query);
-                                                        }
-                                                    });
-                                                req_inprogress_ws.set(false);
-                                            }
-                                            loading=loading
-                                        />
-                                    }
-                                }}
-
-                            </EditorProvider>
-                        </Drawer>
                     }
                 }}
 
