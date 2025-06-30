@@ -1,11 +1,12 @@
+use rand::Rng;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use superposition_types::{Context, Overrides};
 use thiserror::Error;
 
 use crate::{
-    eval_config, eval_config_with_reasoning, get_applicable_variants, Experiments,
-    MergeStrategy,
+    eval_config, eval_config_with_reasoning, experiment::ExperimentationArgs,
+    get_applicable_variants, MergeStrategy,
 };
 
 #[derive(Debug, Error, uniffi::Error)]
@@ -26,6 +27,7 @@ fn json_from_map(m: HashMap<String, String>) -> serde_json::Result<Map<String, V
         .collect::<serde_json::Result<Map<String, Value>>>()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn ffi_eval_logic<F>(
     default_config: HashMap<String, String>,
     contexts: &[Context],
@@ -33,6 +35,7 @@ fn ffi_eval_logic<F>(
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
+    experimentation: Option<ExperimentationArgs>,
     eval_fn: F,
 ) -> Result<HashMap<String, String>, OperationError>
 where
@@ -47,8 +50,26 @@ where
 {
     let _d = json_from_map(default_config)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
-    let _q = json_from_map(query_data)
+    let mut _q = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+
+    if let Some(e_args) = experimentation {
+        // NOTE Parsing to allow for testing. This has to be migrated to the new
+        // bucketing procedure.
+        let toss = e_args
+            .targeting_key
+            .parse::<i8>()
+            .unwrap_or(rand::rng().random_range(0..=99))
+            % 100;
+        let variants = get_applicable_variants(
+            &e_args.experiments,
+            &_q,
+            toss,
+            filter_prefixes.clone(),
+        )
+        .map_err(OperationError::Unexpected)?;
+        _q.insert("variantIds".to_string(), variants.into());
+    }
 
     let r = eval_fn(
         _d,
@@ -71,6 +92,7 @@ fn ffi_eval_config(
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
+    experimentation: Option<ExperimentationArgs>,
 ) -> Result<HashMap<String, String>, OperationError> {
     ffi_eval_logic(
         default_config,
@@ -79,6 +101,7 @@ fn ffi_eval_config(
         query_data,
         merge_strategy,
         filter_prefixes,
+        experimentation,
         eval_config,
     )
 }
@@ -91,6 +114,7 @@ fn ffi_eval_config_with_reasoning(
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
+    experimentation: Option<ExperimentationArgs>,
 ) -> Result<HashMap<String, String>, OperationError> {
     ffi_eval_logic(
         default_config,
@@ -99,21 +123,27 @@ fn ffi_eval_config_with_reasoning(
         query_data,
         merge_strategy,
         filter_prefixes,
+        experimentation,
         eval_config_with_reasoning,
     )
 }
 
 #[uniffi::export]
 fn ffi_get_applicable_variants(
-    experiments: &Experiments,
-    query_data: &HashMap<String, String>,
-    toss: i8,
+    eargs: ExperimentationArgs,
+    query_data: HashMap<String, String>,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, OperationError> {
     let _query_data = json_from_map(query_data.clone())
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
-    let r = get_applicable_variants(experiments, &_query_data, toss, prefix)
+    // TODO Migrate to new bucketing procedure.
+    let toss = eargs
+        .targeting_key
+        .parse::<i8>()
+        .unwrap_or(rand::rng().random_range(0..=99))
+        % 100;
+    let r = get_applicable_variants(&eargs.experiments, &_query_data, toss, prefix)
         .map_err(OperationError::Unexpected)?;
 
     Ok(r)

@@ -30,6 +30,13 @@ pub struct FfiExperiment {
     context: Condition,
 }
 
+#[derive(Serialize, Deserialize, Debug, uniffi::Record)]
+pub struct ExperimentationArgs {
+    pub experiments: Vec<FfiExperiment>,
+    // Named as per OpenFeature verbiage.
+    pub targeting_key: String,
+}
+
 pub type Experiments = Vec<FfiExperiment>;
 
 pub fn get_applicable_variants(
