@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from .provider import SuperpositionProvider
-from .types import SuperpositionProviderOptions, PollingStrategy
+from .types import ExperimentationOptions, SuperpositionProviderOptions, PollingStrategy
 from openfeature import api
 from openfeature.evaluation_context import EvaluationContext
 
@@ -41,6 +41,23 @@ def check_string_val(client, ctx):
     
     # Assert exact value like Java test expects
     assert string_result.value == "something", f"Expected string value to be 'something', but got '{string_result.value}'"
+    
+    return string_result
+
+def check_exp_string_val(client, ctx, expected_val: str):
+    """Test string flag evaluation with assertions - matches Java testStringEvaluation"""
+    string_result = client.get_string_details("string", "", ctx)  # Using "string" key like Java test
+    print(f"String flag 'string': '{string_result.value}'")
+    
+    # Assertions for string evaluation
+    assert string_result is not None, "String result should not be None"
+    assert hasattr(string_result, 'value'), "String result should have a value attribute"
+    assert isinstance(string_result.value, str), f"Expected string, got {type(string_result.value)}"
+    assert len(string_result.value) >= 0, "String value should have valid length"
+    assert hasattr(string_result, 'reason'), "String result should have a reason attribute"
+    
+    # Assert exact value like Java test expects
+    assert string_result.value == expected_val, f"Expected string value to be 'something', but got '{string_result.value}'"
     
     return string_result
 
@@ -150,12 +167,16 @@ async def test_config():
         ),
         fallback_config=None,
         evaluation_cache_options=None,
-        experimentation_options=None
+        experimentation_options=ExperimentationOptions(
+            refresh_strategy=PollingStrategy(
+                interval=5,  # Poll every 5 seconds
+                timeout=3    # Timeout after 3 seconds
+            )
+        )
     )
     
     provider = SuperpositionProvider(provider_options=config_options)
     ctx = EvaluationContext(
-        targeting_key="test-user",
         attributes={'d1': 'd1'}
     )
     
@@ -165,31 +186,44 @@ async def test_config():
         api.set_provider(provider)
         client = api.get_client()
 
+        sup_client = provider.get_superpositon_client()
+        resp = sup_client.get_all_config_details({}, ctx)
+        print(f"Response for all config: {resp}")
+
         # Test boolean flag
         bool_result = check_boolean_val(client, ctx)
         
-        # Test string flag
+        # # Test string flag
         string_result = check_string_val(client, ctx)
         
-        # Test integer flag
+        # # Test integer flag
         int_result = check_integer_val(client, ctx)
         
-        # Test object flag
+        # # Test object flag
         obj_result = check_object_val(client, ctx)
         
-        # Test float flag
+        # # Test float flag
         float_result = check_float_val(client, ctx)
         
         # Check provider status and metadata
         metadata, status = check_provider_status(provider)
 
-        # Wait and test again to verify polling
-        print("Waiting 15 seconds to test polling refresh...")
-        await asyncio.sleep(15)
+        exp_ctx_control = EvaluationContext(
+            targeting_key="5",
+            attributes={'d1': 'd1'}
+        )
 
-        # Test again after polling interval
-        bool_result_2 = client.get_boolean_details("bool_key", True, ctx)
-        print(f"Boolean flag 'bool_key' (after refresh): {bool_result_2.value}")
+
+        exp_control = check_exp_string_val(client, exp_ctx_control, "control")
+
+        exp_ctx_variant = EvaluationContext(
+            targeting_key="15",
+            attributes={'d1': 'd1'}
+        )
+
+        exp_variant = check_exp_string_val(client, exp_ctx_variant, "variant")
+        #With experiment test
+
         
     except Exception as e:
         print(f"Test failed with error: {e}")

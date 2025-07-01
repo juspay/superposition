@@ -2,16 +2,18 @@ import json
 import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar, Generic
-from .uniffi_client import ffi_get_applicable_variants
+from .superposition_client import FfiExperiment
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions, ExperimentationOptions
 from clients.generated.smithy.python.superposition_python_sdk.client import Superposition, Config, ListExperimentInput
 import asyncio
-from .uniffi_client import MergeStrategy
 from datetime import datetime, timedelta
-from .uniffi_types import Context
+from .superposition_types import Variant, VariantType
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
+for name in logging.root.manager.loggerDict:
+    if not name.startswith("python"):  # e.g., "my_project"
+        logging.getLogger(name).setLevel(logging.INFO)
 
 from smithy_core.documents import Document
 from smithy_core.shapes import ShapeType
@@ -90,7 +92,8 @@ class ExperimentationClient():
 
                 await asyncio.sleep(interval)
 
-        latest_exp_list = await self._get_config(self.superposition_options)
+        latest_exp_list = await self._get_experiments(self.superposition_options)
+        logger.info("response from experimentation: " + str(latest_exp_list))
         if latest_exp_list is not None:
             self.cached_experiments = latest_exp_list
             self.last_updated = datetime.utcnow()
@@ -127,24 +130,7 @@ class ExperimentationClient():
             # Create Superposition client
             client = Superposition(config=sdk_config)
             
-            # Prepare input for get_config API call
-            # @dataclass(kw_only=True)
-            # class ListExperimentInput:
-
-            #     workspace_id: str | None = None
-            #     org_id: str = "juspay"
-            #     page: int | None = None
-            #     count: int | None = None
-            #     all: bool | None = None
-            #     status: str | None = None
-            #     from_date: datetime | None = None
-            #     to_date: datetime | None = None
-            #     experiment_name: str | None = None
-            #     experiment_ids: str | None = None
-            #     created_by: str | None = None
-            #     context_query: str | None = None
-            #     sort_on: str | None = None
-            #     sort_by: str | None = None
+           
 
             list_exp_input = ListExperimentInput(
                 workspace_id=superposition_options.workspace_id,
@@ -152,22 +138,46 @@ class ExperimentationClient():
                 all=True
             )
             
-            # Call the get_config API
+
             response = await client.list_experiment(list_exp_input)
-            
-            # Convert the response to a dictionary format
-            exp_list = response.get("data", [])
+           
+            exp_list = response.data
+            logger.info(f"Fetched {len(exp_list)} experiments from Superposition")
             trimmed_exp_list = []
             for exp in exp_list:
-                trimmed_exp = {
-                    "id": exp.id,
-                    "context": exp.context,
-                    "variants": exp.variants,
-                    "traffic_percentage": exp.traffic_percentage,
-                }
+                condition = {}
+                for key, value in exp.context.items():
+                    condition[key] = json.dumps(document_to_python_value(value))
+                
+                variants = []
+                
+                for variant in exp.variants:
+                    variant_type = VariantType.CONTROL if variant.variant_type == "CONTROL" else VariantType.EXPERIMENTAL
+                    override =  document_to_python_value(variant.overrides)
+                    overrides = {}
+                    if isinstance(override, dict):
+                        overrides = {k: json.dumps(v) for k, v in override.items()}
+                    variants.append(
+                        Variant(
+                            id=variant.id,
+                            variant_type=variant_type,
+                            context_id=variant.context_id,
+                            override_id=variant.override_id,
+                            overrides = overrides
+                        )
+                    )
+                 
+                    
+                trimmed_exp = FfiExperiment(
+                    id=exp.id,
+                    context=condition,
+                    variants=variants,
+                    traffic_percentage=exp.traffic_percentage,
+                )
+
+
                 trimmed_exp_list.append(trimmed_exp)
-            
-            # Add default config
+                
             
             return trimmed_exp_list
             
@@ -203,155 +213,7 @@ class ExperimentationClient():
 
         return self.cached_experiments
     
-    # async def eval_async(self, query_data: dict) -> dict[str, Any]:
-    #     try:
-    #         cache_key = self._generate_cache_key(query_data)
-    #         cached = self._get_from_eval_cache(cache_key)
-
-    #         if cached:
-    #             logger.debug("Using cached evaluation result")
-    #             return cached
-
-    #         logger.debug("Fetching fresh configuration data")
-    #         match self.options.refresh_strategy:
-    #             case OnDemandStrategy(ttl=ttl, use_stale_on_error=use_stale, timeout=timeout):
-    #                 await self.on_demand_config(ttl, use_stale)
-            
-
-    #         result = ffi_eval_config(
-    #             self.cached_config.get('default_configs', {}),
-    #             self.cached_config.get('contexts', []),
-    #             self.cached_config.get('overrides', {}),
-    #             query_data,
-    #             MergeStrategy.MERGE,
-    #             filter_prefixes=None
-    #         )
-    #         eval_result = {}
-    #         for (key, value) in result.items():
-    #             eval_result[key] = json.loads(value)
-    #         logger.debug(f"Resolution result: {eval_result}")
-
-    #         return eval_result
-
-    #     except Exception as e:
-    #         logger.error(f"Evaluation failed: {e}")
-    #         raise
-            
-    # def eval(self, query_data: dict) -> dict[str, Any]:
-    #     try:
-    #         cache_key = self._generate_cache_key(query_data)
-    #         cached = self._get_from_eval_cache(cache_key)
-
-    #         if cached:
-    #             logger.debug("Using cached evaluation result")
-    #             return cached
-
-    #         logger.debug("Fetching fresh configuration data")
-            
-    #         result = ffi_eval_config(
-    #             self.cached_config.get('default_configs', {}),
-    #             self.cached_config.get('contexts', []),
-    #             self.cached_config.get('overrides', {}),
-    #             query_data,
-    #             MergeStrategy.MERGE,
-    #             filter_prefixes=None
-    #         )
-            
-    #         eval_result = {}
-    #         for (key, value) in result.items():
-    #             eval_result[key] = json.loads(value)
-    #         logger.debug(f"Resolution result: {eval_result}")
-
-    #         return eval_result
-
-    #     except Exception as e:
-    #         logger.error(f"Evaluation failed: {e}")
-    #         raise
-
-    # def get_boolean_value(self, key: str, default_value: bool, query_data: dict) -> bool:
-    #     config = self.eval(query_data)
-    #     value = self._get_nested(config, key)
-    #     return self._to_boolean(value, default_value)
-
-    # def get_string_value(self, key: str, default_value: str, query_data: dict) -> str:
-    #     config = self.eval(query_data)
-    #     value = self._get_nested(config, key)
-    #     return self._to_string(value, default_value)
-
-    # def get_integer_value(self, key: str, default_value: int, query_data: dict) -> int:
-    #     config = self.eval(query_data)
-    #     value = self._get_nested(config, key)
-    #     return self._to_integer(value, default_value)
-
-    # def get_float_value(self, key: str, default_value: int, query_data: dict) -> int:
-    #     config = self.eval(query_data)
-    #     value = self._get_nested(config, key)
-    #     return self._to_float(value, default_value)
-
-    # def get_object_value(self, key: str, default_value: T, query_data: dict) -> T:
-    #     config = self.eval(query_data)
-    #     value = self._get_nested(config, key)
-    #     return self._to_object(value, default_value)
-
-    # def get_all(self, query_data: dict) -> dict:
-    #     return self.eval(query_data)
-
-
-    # Internal helpers
-    def get_applicable_variant(self, context: Dict[str, Any], toss: Optional[int] = None) -> list[str]:
-        """
-        Get applicable variant for the given context.
-        
-        Args:
-            context: Dictionary containing context data
-            toss: Optional integer to determine variant selection
-            
-        Returns:
-            List of applicable variants
-        """
-        if self.cached_experiments is None:
-            raise ValueError("No experiments available. Please fetch experiments first.")
-        
-        # Filter experiments based on context and toss
-        
-        applicable_variants = ffi_get_applicable_variants(self.cached_experiments, context, toss)
-
-    def _get_nested(self, obj: Any, key: str) -> Any:
-        keys = key.split('.')
-        for k in keys:
-            if not isinstance(obj, dict):
-                return None
-            obj = obj.get(k)
-        return obj
-
-    def _to_boolean(self, value: Any, default: bool) -> bool:
-        if isinstance(value, bool): return value
-        if isinstance(value, str):
-            if value.lower() == "true": return True
-            if value.lower() == "false": return False
-        if isinstance(value, (int, float)): return value != 0
-        return default
-
-    def _to_string(self, value: Any, default: str) -> str:
-        if isinstance(value, str): return value
-        if value is not None: return str(value)
-        return default
-
-    def _to_integer(self, value: Any, default: int) -> int:
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return default
-    def _to_float(self, value: Any, default: int) -> int:
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return default
-
-    def _to_object(self, value: Any, default: T) -> T:
-        if isinstance(value, dict): return value
-        return default
-
+    
     def _generate_cache_key(self, query_data: dict) -> str:
         return json.dumps(query_data, sort_keys=True)
 
@@ -389,3 +251,5 @@ class ExperimentationClient():
         except Exception as e:
             logger.error(f"Error during ConfigurationClient cleanup: {e}")
             raise
+
+
