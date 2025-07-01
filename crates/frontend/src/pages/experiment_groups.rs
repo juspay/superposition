@@ -318,7 +318,7 @@ pub fn experiment_groups() -> impl IntoView {
                                     </div>
                                 </div>
                                 <Drawer
-                                    id="add_members_group_drawer".to_string()
+                                    id="add_members_group_drawer"
                                     header="Add members to the group"
                                     handle_close=move || {
                                         close_drawer("add_members_group_drawer")

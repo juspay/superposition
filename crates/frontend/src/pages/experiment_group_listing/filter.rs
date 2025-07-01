@@ -143,9 +143,8 @@ pub(super) fn experiment_group_filter_widget(
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>
         <Drawer
-            id="experiment_group_filter_drawer".to_string()
+            id="experiment_group_filter_drawer"
             header="Experiment Group Filters"
-            drawer_width="w-[50vw]"
             handle_close=move || close_drawer("experiment_group_filter_drawer")
         >
             <div class="flex flex-col gap-5">

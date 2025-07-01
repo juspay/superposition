@@ -1,6 +1,6 @@
 mod types;
 
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap};
 
 use leptos::*;
 use leptos_router::A;
@@ -19,7 +19,6 @@ use crate::{
         button::Button,
         condition_pills::Condition as ConditionComponent,
         context_form::ContextForm,
-        dropdown::DropdownDirection,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
             types::{Column, ColumnSortable, Expandable},
@@ -235,7 +234,7 @@ pub fn compare_overrides() -> impl IntoView {
                 view! { <Skeleton variant=SkeletonVariant::Block /> }
             }>
                 <div class="card bg-base-100 shadow">
-                    <div class="card-body collapse collapse-arrow gap-4">
+                    <div class="card-body collapse collapse-arrow gap-4" style="overflow: unset">
                         <input type="checkbox" checked=true />
                         <h2 class="card-title collapse-title h-fit !p-0">"Add Contexts"</h2>
                         <div class="collapse-content !p-0 flex flex-col gap-8">
@@ -252,7 +251,6 @@ pub fn compare_overrides() -> impl IntoView {
                                             context_ws.set(new_context)
                                         }
                                         heading_sub_text="Query your configs"
-                                        dropdown_direction=DropdownDirection::Right
                                         resolve_mode=true
                                         handle_change=move |new_context| context_ws.set(new_context)
                                         fn_environment
@@ -282,14 +280,14 @@ pub fn compare_overrides() -> impl IntoView {
                                             let query = Value::Object(context.clone()).to_string();
                                             context_vec_rws
                                                 .update(|value| {
-                                                    if value.contains_key(&query) {
+                                                    if let Entry::Vacant(e) = value.entry(query) {
+                                                        e.insert(context);
+                                                    } else {
                                                         enqueue_alert(
                                                             "This context has already been added to compare".into(),
                                                             AlertType::Error,
                                                             1000,
                                                         );
-                                                    } else {
-                                                        value.insert(query, context);
                                                     }
                                                 });
                                             req_inprogress_ws.set(false);

@@ -235,8 +235,9 @@ pub fn experiment_list() -> impl IntoView {
                     let _ = reset_exp_form.get();
                     view! {
                         <Drawer
-                            id="create_exp_drawer".to_string()
+                            id="create_exp_drawer"
                             header="Create New Experiment"
+                            width_class="max-w-[780px] min-w-[680px] w-[45vw]"
                             handle_close=move || {
                                 close_drawer("create_exp_drawer");
                                 set_exp_form.update(|i| *i += 1);

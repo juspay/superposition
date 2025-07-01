@@ -348,8 +348,8 @@ pub fn experiment_group_listing() -> impl IntoView {
                             .to_string();
                         view! {
                             <Stat
-                                heading="Experiments"
-                                icon="ri-test-tube-fill"
+                                heading="Experiment Groups"
+                                icon="ri-flask-fill"
                                 number=total_items
                             />
                         }
@@ -395,7 +395,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                                                 );
                                             ele_map
                                                 .insert(
-                                                    "last_modified".to_string(),
+                                                    "last_modified_at".to_string(),
                                                     json!(ele.last_modified_at.format("%v %T").to_string()),
                                                 );
                                             ele_map
@@ -441,7 +441,8 @@ pub fn experiment_group_listing() -> impl IntoView {
                     let group = experiment_group.unwrap_or_default();
                     view! {
                         <Drawer
-                            id="create_exp_group_drawer".to_string()
+                            id="create_exp_group_drawer"
+                            width_class="max-w-[720px] min-w-[560px] w-[45vw]"
                             header=header
                             handle_close=move || {
                                 selected_group_rws.set(None);

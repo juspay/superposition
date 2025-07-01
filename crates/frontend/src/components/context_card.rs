@@ -22,7 +22,7 @@ fn option(
 ) -> impl IntoView {
     view! {
         <li on:click=move |_| on_click.call(())>
-            <div class="flex justify-end gap-2">
+            <div class="flex gap-2">
                 <i class=format!("w-fit {icon} ri-lg {icon_color_class}") />
                 <span>{label}</span>
             </div>

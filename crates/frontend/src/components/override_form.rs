@@ -219,7 +219,7 @@ pub fn override_form(
                         <Show when=move || { overrides.get().is_empty() && show_add_override }>
                             <div class="flex justify-center">
                                 <Dropdown
-                                    dropdown_direction=DropdownDirection::Left
+                                    dropdown_direction=DropdownDirection::Down
                                     dropdown_text=String::from("Add Override")
                                     dropdown_icon=String::from("ri-add-line")
                                     dropdown_options=default_config.get_value()
