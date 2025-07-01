@@ -1,8 +1,12 @@
+---
+sidebar_position: 2
+title: Experimentation Client Integration
+---
+
 # Experimentation Client Integration
 
 This provides SDK to interact with ```experimentation-platform```
 
-- [Experimentation Client Integration](#experimentation-client-integration)
   - [Rust](#rust)
     - [Client Factory Methods Reference](#client-factory-methods-reference)
       - [Create Client](#create-client)

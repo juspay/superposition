@@ -1,3 +1,9 @@
+---
+sidebar_position: 3
+title: Creating a Client
+---
+ 
+ # Creating your own client for Superposition
  
 - [Contributing Guidelines](#contributing-guidelines)
 - [Context Aware Config](#context-aware-config)
@@ -39,18 +45,18 @@ Superposition and her clients for CAC and Experimentation are written in rust. S
 
 If you want to add support for a programming language, read on.
 
-# Contributing Guidelines
+## Contributing Guidelines
 
 Thank you for considering adding support for a new language in superposition clients! The following conditions must be met for your PR to be reviewed:
 
 - Your client code should be formatted (You can mention the formatter used in the PR)
 - Unit tests of your client code
-- Documentation of your client functions is necessary ([See this for an example](client-context-aware-configuration.md))
+- Documentation of your client functions is necessary ([See this for an example](client_context_aware_configuration.md))
 - An example implementation of the client calling Superposition, loading the configurations and calling all exposed functions of your implemented client
 
-# Context Aware Config
+## Context Aware Config
 
-## Understanding the C structs and functions
+### Understanding the C structs and functions
 
 All C structs and functions are generated automatically when the  `cac-client` written in rust is compiled. Superposition uses the crate `cbindgen` to do this. The compiler generates a `.h` header file and an object file specific to the target platform, for example a `.dll` for windows or `.so` for linux. Some tips for writing an FFI/ABI to these files:
 
@@ -141,9 +147,9 @@ returns a string that represents the default config of your tenant based on your
 
 Checkout the examples directory to understand how to create examples for `cac_client_integration_example` 
 
-# Experimentation
+## Experimentation
 
-## Understanding the C structs and functions
+### Understanding the C structs and functions
 
 All C structs and functions are generated automatically when the  `exp-client` written in rust is compiled. Superposition uses the crate `cbindgen` to do this. The compiler generates a `.h` header file and an object file specific to the target platform, for example a `.dll` for windows or `.so` for linux. Some tips for writing an FFI/ABI to these files:
 

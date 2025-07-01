@@ -10,7 +10,6 @@ description: Context Aware Config component of Superposition platform
 
 Context Aware Config (abbreviated as CAC) is the foundational service of the Superposition Platform.  It is the configuration management system that can override configuration values under certain domain contexts.
 
-- [Context Aware Config](#context-aware-config)
   - [Concepts](#concepts)
     - [Default Configs](#default-configs)
     - [Dimensions](#dimensions)
@@ -170,4 +169,4 @@ surge_factor = 5.0
 surge_factor = 5.0
 ```
 
-This file is also available in the caclang crate - [example.cac.toml](/crates/caclang/example.cac.toml).
+This file is also available in the caclang crate - [example.cac.toml](example.cac.toml).

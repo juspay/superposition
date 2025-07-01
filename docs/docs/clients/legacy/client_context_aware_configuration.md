@@ -1,9 +1,12 @@
+---
+sidebar_position: 1
+title: CAC Client Integration
+---
+
 # Context Aware Config Client Integration
-----
 
 This provides SDK to interact with ```context-aware-config```. 
 
-- [Context Aware Config Client Integration](#context-aware-config-client-integration)
   - [Rust](#rust)
     - [Client Factory Methods Reference](#client-factory-methods-reference)
       - [Create Client](#create-client)

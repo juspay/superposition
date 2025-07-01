@@ -1,3 +1,8 @@
+---
+sidebar_position: 1
+title: Context Aware Configuration with TOML
+---
+
 # Toml formatted CAC configuration file in a simple rust application
 This document shows how to use a TOML formatted CAC configuration file in your Rust application.
 
