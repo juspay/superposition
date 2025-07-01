@@ -16,7 +16,7 @@ jobs:
                       cac_zip_name: superposition_cac_client-x86_64-unknown-linux-gnu.zip
                       exp_zip_name: superposition_experimentation_client-x86_64-unknown-linux-gnu.zip
                       core_zip_name: superposition_core_client-x86_64-unknown-linux-gnu.zip
-                    - os: macos-latest
+                    - os: macos-13
                       target: x86_64-apple-darwin
                       cac_bin_name: libcac_client.dylib
                       exp_bin_name: libexperimentation_client.dylib
