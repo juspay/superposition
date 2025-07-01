@@ -121,9 +121,9 @@ fn table_columns(
                             <span class="text-xs">
                                 {group_id}
                             </span>
-                            <i class="ri-file-copy-line cursor-pointer ml-2" on:click:undelegated=handle_copy></i>
+                            <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
                             <Show when=move || copied_rs.get()>
-                                <div class="inline-block bg-gray-600 ml-2 rounded-xl px-2">
+                                <div class="inline-block ml-2 px-2 bg-gray-600 rounded-xl">
                                     <span class="text-white text-xs font-semibold">
                                         "copied!"
                                     </span>
@@ -336,38 +336,38 @@ pub fn experiment_group_listing() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton /> }>
-                <div class="pb-4">
-
-                    {move || {
-                        let value = experiment_groups_resource.get();
-                        let total_items = value
-                            .map(|v| v.experiment_groups.total_items)
-                            .unwrap_or(0)
-                            .to_string();
-                        view! {
+        <div class="p-8 flex flex-col gap-4">
+            <Suspense fallback=move || {
+                view! { <Skeleton /> }
+            }>
+                {move || {
+                    let value = experiment_groups_resource.get();
+                    let total_items = value
+                        .map(|v| v.experiment_groups.total_items)
+                        .unwrap_or(0)
+                        .to_string();
+                    view! {
+                        <div class="flex justify-between">
                             <Stat
                                 heading="Experiment Groups"
                                 icon="ri-flask-fill"
                                 number=total_items
                             />
-                        }
-                    }}
-
-                </div>
+                            <div class="flex items-end gap-4">
+                                <ExperimentGroupFilterWidget filters_rws pagination_params_rws />
+                                <DrawerBtn
+                                    drawer_id="create_exp_group_drawer".to_string()
+                                    class="flex gap-2"
+                                >
+                                    Create Group
+                                    <i class="ri-edit-2-line" />
+                                </DrawerBtn>
+                            </div>
+                        </div>
+                    }
+                }} <FilterSummary filters_rws />
                 <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
-                        <div class="flex justify-between">
-                            <div class="flex items-center gap-4">
-                                <h2 class="card-title">"Experiment Groups"</h2>
-                                <ExperimentGroupFilterWidget filters_rws pagination_params_rws />
-                            </div>
-                            <DrawerBtn drawer_id="create_exp_group_drawer"
-                                .to_string()>
-                                Create Group <i class="ri-edit-2-line ml-2"></i>
-                            </DrawerBtn>
-                        </div>
                         {move || {
                             let value = experiment_groups_resource.get();
                             let pagination_params = pagination_params_rws.get();
@@ -410,7 +410,6 @@ pub fn experiment_group_listing() -> impl IntoView {
                                         on_page_change: handle_page_change,
                                     };
                                     view! {
-                                        <FilterSummary filters_rws />
                                         <ConditionCollapseProvider>
                                             <Table
                                                 rows=data
@@ -428,7 +427,6 @@ pub fn experiment_group_listing() -> impl IntoView {
 
                     </div>
                 </div>
-
                 {move || {
                     let resource = experiment_groups_resource.get();
                     let experiment_group = selected_group_rws.get();
@@ -449,7 +447,6 @@ pub fn experiment_group_listing() -> impl IntoView {
                                 close_drawer("create_exp_group_drawer")
                             }
                         >
-
                             <EditorProvider>
                                 <ExperimentGroupForm
                                     group_id=group.id
@@ -465,7 +462,6 @@ pub fn experiment_group_listing() -> impl IntoView {
                         </Drawer>
                     }
                 }}
-
                 <DeleteModal
                     modal_visible=delete_modal_rs
                     confirm_delete=Callback::new(move |_| {
@@ -506,7 +502,6 @@ pub fn experiment_group_listing() -> impl IntoView {
                     header_text="Are you sure you want to delete this config? Action is irreversible."
                         .to_string()
                 />
-
             </Suspense>
         </div>
     }

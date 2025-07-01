@@ -61,9 +61,9 @@ pub fn experiment_table_columns(
                                 <span class="text-xs">
                                     {experiment_id}
                                 </span>
-                                <i class="ri-file-copy-line cursor-pointer ml-2" on:click:undelegated=handle_copy></i>
+                                <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
                                 <Show when=move || copied.get()>
-                                    <div class="inline-block bg-gray-600 ml-2 rounded-xl px-2">
+                                    <div class="inline-block ml-2 px-2 bg-gray-600 rounded-xl">
                                         <span class="text-white text-xs font-semibold">
                                             "copied!"
                                         </span>

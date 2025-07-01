@@ -36,7 +36,7 @@ pub fn drawer_btn(
 ) -> impl IntoView {
     let open_drawer_id = drawer_id.clone();
     let style = match style {
-        DrawerButtonStyle::Fill => "btn-purple drawer-button mr-2 mb-2 px-5 py-2.5 font-medium rounded-lg text-sm text-center",
+        DrawerButtonStyle::Fill => "btn-purple drawer-button px-5 py-2.5 font-medium rounded-lg text-sm text-center",
         DrawerButtonStyle::Outline => "btn btn-purple-outline w-[8rem] cursor-pointer",
     }.to_string();
 

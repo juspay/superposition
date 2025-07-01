@@ -63,7 +63,7 @@ fn table_columns(
             view! {
                 <div class="flex flex-row gap-2 items-center">
                     <i
-                        class="ri-close-circle-fill text-lg cursor-pointer ml-2"
+                        class="ri-close-circle-fill text-lg cursor-pointer"
                         on:click=move |_| {
                             contexts_vector_rws
                                 .update(|context_vector| {
