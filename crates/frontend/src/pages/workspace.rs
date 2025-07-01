@@ -161,7 +161,7 @@ pub fn workspace() -> impl IntoView {
                         };
                         view! {
                             <Drawer
-                                id="workspace_drawer".to_string()
+                                id="workspace_drawer"
                                 header="Edit Workspace"
                                 handle_close=handle_close
                             >
@@ -190,7 +190,7 @@ pub fn workspace() -> impl IntoView {
                     } else {
                         view! {
                             <Drawer
-                                id="workspace_drawer".to_string()
+                                id="workspace_drawer"
                                 header="Create Workspace"
                                 handle_close=handle_close
                             >

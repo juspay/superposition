@@ -198,7 +198,7 @@ pub fn context_form<NF>(
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(into, default = String::new())] heading_sub_text: String,
-    #[prop(default = DropdownDirection::Right)] dropdown_direction: DropdownDirection,
+    #[prop(default = DropdownDirection::Down)] dropdown_direction: DropdownDirection,
     #[prop(into)] on_context_change: Callback<Conditions, ()>,
 ) -> impl IntoView
 where

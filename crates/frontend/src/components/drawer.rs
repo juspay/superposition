@@ -57,10 +57,10 @@ pub fn drawer_btn(
 
 #[component]
 pub fn drawer<NF>(
-    id: String,
+    #[prop(into)] id: String,
     children: Children,
     #[prop(into, default = String::new())] header: String,
-    #[prop(default = "w-[60vw]")] drawer_width: &'static str,
+    #[prop(default = "max-w-[610px] min-w-[560px] w-[35vw]")] width_class: &'static str,
     handle_close: NF,
 ) -> impl IntoView
 where
@@ -77,7 +77,7 @@ where
             <div class="drawer-side drawer-zindex w-full">
                 <label for=id.clone() class="drawer-overlay" on:click=close_drawer.clone()></label>
                 <div class=format!(
-                    "h-full {drawer_width} flex flex-col bg-base-100 overflow-x-hidden",
+                    "h-full {width_class} flex flex-col bg-base-100 overflow-x-hidden",
                 )>
                     <div class="px-4 py-4 flex justify-between items-center">
                         <h3 class="text-lg font-bold">{header}</h3>

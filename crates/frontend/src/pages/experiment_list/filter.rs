@@ -19,7 +19,6 @@ use crate::{
         condition_pills::Condition,
         context_form::ContextForm,
         drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-        dropdown::DropdownDirection,
         form::label::Label,
         input::DateInput,
     },
@@ -294,9 +293,9 @@ pub(super) fn experiment_table_filter_widget(
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>
         <Drawer
-            id="experiment_filter_drawer".to_string()
+            id="experiment_filter_drawer"
             header="Experiment Filters"
-            drawer_width="w-[50vw]"
+            width_class="max-w-[780px] min-w-[560px] w-[45vw]"
             handle_close=move || close_drawer("experiment_filter_drawer")
         >
             <div class="flex flex-col gap-5">
@@ -304,7 +303,6 @@ pub(super) fn experiment_table_filter_widget(
                     dimensions=dim
                     context=context_rws.get_untracked()
                     on_context_change=move |new_context| context_rws.set(new_context)
-                    dropdown_direction=DropdownDirection::Down
                     handle_change=move |context: Conditions| {
                         let map = context
                             .iter()
@@ -393,7 +391,7 @@ pub(super) fn experiment_table_filter_widget(
                                         />
                                         <label
                                             for=&input_id
-                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out"
+                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:border-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out peer-checked:shadow-purple-500 peer-checked:shadow-md shadow-inner shadow-slate-500"
                                         >
                                             {label}
                                         </label>

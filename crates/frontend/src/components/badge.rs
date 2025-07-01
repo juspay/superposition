@@ -45,13 +45,20 @@ where
 
 #[component]
 pub fn gray_pill(
-    text: String,
+    #[prop(into)] text: String,
+    #[prop(into, default = String::new())] icon_class: String,
+    #[prop(default = true)] deletable: bool,
     #[prop(into, default = Callback::new(move |_| () ))] on_delete: Callback<()>,
 ) -> impl IntoView {
     view! {
         <div class="badge badge-sm !h-fit py-[1px] bg-gray-200 flex gap-1">
-            {text}
-            <i class="ri-close-line cursor-pointer" on:click=move |_| { on_delete.call(()) } />
+            {if !icon_class.is_empty() {
+                view! { <i class=icon_class.clone() /> }.into_view()
+            } else {
+                ().into_view()
+            }} {text} <Show when=move || { deletable }>
+                <i class="ri-close-line cursor-pointer" on:click=move |_| { on_delete.call(()) } />
+            </Show>
         </div>
     }
 }

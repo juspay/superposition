@@ -294,7 +294,7 @@ pub fn default_config() -> impl IntoView {
                         DrawerType::Edit(selected_config_data) => {
                             view! {
                                 <Drawer
-                                    id="default_config_drawer".to_string()
+                                    id="default_config_drawer"
                                     header="Edit Key"
                                     handle_close=handle_close
                                 >
@@ -321,7 +321,7 @@ pub fn default_config() -> impl IntoView {
                         DrawerType::Create => {
                             view! {
                                 <Drawer
-                                    id="default_config_drawer".to_string()
+                                    id="default_config_drawer"
                                     header="Create New Key"
                                     handle_close=handle_close
                                 >
