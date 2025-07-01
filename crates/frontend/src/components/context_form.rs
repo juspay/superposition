@@ -2,7 +2,9 @@ use std::collections::{HashMap, HashSet};
 
 use leptos::*;
 use serde_json::Value;
-use superposition_types::database::types::DimensionWithMandatory;
+use superposition_types::{
+    api::workspace::WorkspaceResponse, database::types::DimensionWithMandatory,
+};
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
@@ -29,6 +31,7 @@ pub fn condition_input(
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
     #[prop(default = String::new())] tooltip_text: String,
 ) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (dimension, operator): (String, Operator) =
         condition.with_value(|v| (v.variable.clone(), v.into()));
     let tooltip_text = StoredValue::new(tooltip_text);
@@ -81,6 +84,9 @@ pub fn condition_input(
         }
         _ => vec![],
     };
+
+    let strict_mode = workspace_settings.with_value(|v| v.strict_mode);
+
     view! {
         <div class="flex gap-x-6">
             <div class="form-control">
@@ -114,17 +120,27 @@ pub fn condition_input(
                         value="=="
                         selected={ matches!(operator, Operator::Is) } || resolve_mode
                     >
-                        "IS"
+                        {if strict_mode {
+                            {Operator::Is.strict_mode_display().to_uppercase()}
+                        } else {
+                            {Operator::Is.to_string().to_uppercase()}
+                        }}
                     </option>
                     <option value="in" selected=matches!(operator, Operator::In)>
-                        "IN"
+                        {if strict_mode {
+                            {Operator::In.strict_mode_display().to_uppercase()}
+                        } else {
+                            {Operator::In.to_string().to_uppercase()}
+                        }}
                     </option>
                     <option value="has" selected=matches!(operator, Operator::Has)>
-
-                        "HAS"
+                        {if strict_mode {
+                            {Operator::Has.strict_mode_display().to_uppercase()}
+                        } else {
+                            {Operator::Has.to_string().to_uppercase()}
+                        }}
                     </option>
                     <option value="<=" selected=matches!(operator, Operator::Between)>
-
                         "BETWEEN (inclusive)"
                     </option>
                 </select>
