@@ -650,12 +650,12 @@ pub fn context_override() -> impl IntoView {
                                     </DrawerBtn>
                                 </div>
                                 <DrawerBtn
-                                    class="self-end h-fit"
+                                    class="self-end h-fit flex gap-2"
                                     drawer_id="context_and_override_drawer"
                                     on_click=on_create_context_click
                                 >
                                     "Create Override"
-                                    <i class="ri-edit-2-line ml-2"></i>
+                                    <i class="ri-edit-2-line" />
                                 </DrawerBtn>
                             }
                         }}

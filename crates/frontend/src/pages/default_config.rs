@@ -278,10 +278,120 @@ pub fn default_config() -> impl IntoView {
     };
 
     view! {
-        <div class="p-8">
+        <div class="p-8 flex flex-col gap-4">
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
+                {move || {
+                    let default_config = default_config_resource.get().unwrap_or_default();
+                    let table_rows = default_config
+                        .data
+                        .into_iter()
+                        .map(|config| {
+                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
+                            ele_map
+                                .insert(
+                                    "created_at".to_string(),
+                                    json!(config.created_at.format("%v %T").to_string()),
+                                );
+                            ele_map
+                        })
+                        .collect::<Vec<Map<String, Value>>>();
+                    let mut filtered_rows = table_rows;
+                    let page_params = page_params_rws.get();
+                    if page_params.grouped {
+                        let cols = filtered_rows
+                            .first()
+                            .map(|row| row.keys().cloned().collect())
+                            .unwrap_or_default();
+                        filtered_rows = modify_rows(
+                            filtered_rows.clone(),
+                            page_params.prefix,
+                            cols,
+                            "key",
+                        );
+                    }
+                    let total_default_config_keys = default_config.total_items.to_string();
+                    let pagination_params = pagination_params_rws.get();
+                    let (current_page, total_pages) = if page_params.grouped {
+                        (1, 1)
+                    } else {
+                        (pagination_params.page.unwrap_or_default(), default_config.total_pages)
+                    };
+                    let pagination_props = TablePaginationProps {
+                        enabled: true,
+                        count: pagination_params.count.unwrap_or_default(),
+                        current_page,
+                        total_pages,
+                        on_page_change: handle_page_change,
+                    };
+                    view! {
+                        <div class="flex justify-between">
+                            <Stat
+                                heading="Config Keys"
+                                icon="ri-tools-line"
+                                number=total_default_config_keys
+                            />
+                            <div class="flex items-end gap-4">
+                                <label
+                                    on:click=move |_| {
+                                        batch(|| {
+                                            page_params_rws
+                                                .update(|params| {
+                                                    params.grouped = !params.grouped;
+                                                    params.prefix = None;
+                                                });
+                                            let grouped = page_params_rws.with(|p| p.grouped);
+                                            if !grouped {
+                                                pagination_params_rws.set(PaginationParams::default());
+                                            }
+                                        });
+                                    }
+                                    class="label gap-4 cursor-pointer"
+                                >
+                                    <span class="label-text min-w-max">Group Configs</span>
+                                    <input
+                                        type="checkbox"
+                                        class="toggle toggle-primary"
+                                        checked=page_params_rws.with(|p| p.grouped)
+                                    />
+                                </label>
+                                <DefaultConfigFilterWidget
+                                    filters_rws
+                                    pagination_params_rws
+                                    prefix=page_params_rws.with(|p| p.prefix.clone())
+                                />
+                                <DrawerBtn
+                                    drawer_id="default_config_drawer"
+                                    class="flex gap-2"
+                                    on_click=move |_| {
+                                        drawer_type.set(DrawerType::Create);
+                                        open_drawer("default_config_drawer");
+                                    }
+                                >
+                                    Create Key
+                                    <i class="ri-edit-2-line" />
+                                </DrawerBtn>
+                            </div>
+                        </div>
+                        <FilterSummary filters_rws />
+                        <div class="card rounded-lg w-full bg-base-100 shadow">
+                            <div class="card-body">
+                                <BreadCrums
+                                    bread_crums=bread_crums.get()
+                                    redirect_url
+                                    show_root=false
+                                />
+                                <Table
+                                    rows=filtered_rows
+                                    key_column="id".to_string()
+                                    columns=table_columns.get()
+                                    pagination=pagination_props
+                                />
+                            </div>
+                        </div>
+                    }
+                }}
                 {move || {
                     let prefix = page_params_rws.with(|p| p.prefix.clone());
                     match drawer_type.get() {
@@ -334,115 +444,6 @@ pub fn default_config() -> impl IntoView {
                             }
                         }
                         DrawerType::None => ().into_view(),
-                    }
-                }}
-                {move || {
-                    let default_config = default_config_resource.get().unwrap_or_default();
-                    let table_rows = default_config
-                        .data
-                        .into_iter()
-                        .map(|config| {
-                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(config.created_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let mut filtered_rows = table_rows;
-                    let page_params = page_params_rws.get();
-                    if page_params.grouped {
-                        let cols = filtered_rows
-                            .first()
-                            .map(|row| row.keys().cloned().collect())
-                            .unwrap_or_default();
-                        filtered_rows = modify_rows(
-                            filtered_rows.clone(),
-                            page_params.prefix,
-                            cols,
-                            "key",
-                        );
-                    }
-                    let total_default_config_keys = default_config.total_items.to_string();
-                    let pagination_params = pagination_params_rws.get();
-                    let (current_page, total_pages) = if page_params.grouped {
-                        (1, 1)
-                    } else {
-                        (pagination_params.page.unwrap_or_default(), default_config.total_pages)
-                    };
-                    let pagination_props = TablePaginationProps {
-                        enabled: true,
-                        count: pagination_params.count.unwrap_or_default(),
-                        current_page,
-                        total_pages,
-                        on_page_change: handle_page_change,
-                    };
-                    view! {
-                        <div class="pb-4">
-                            <Stat
-                                heading="Config Keys"
-                                icon="ri-tools-line"
-                                number=total_default_config_keys
-                            />
-                        </div>
-                        <div class="card rounded-lg w-full bg-base-100 shadow">
-                            <div class="card-body">
-                                <div class="flex justify-between">
-                                    <div class="flex items-center gap-4">
-                                        <BreadCrums bread_crums=bread_crums.get() redirect_url />
-                                        <DefaultConfigFilterWidget
-                                            filters_rws
-                                            pagination_params_rws
-                                            prefix=page_params_rws.with(|p| p.prefix.clone())
-                                        />
-                                    </div>
-                                    <div class="flex gap-10">
-                                        <label
-                                            on:click=move |_| {
-                                                batch(|| {
-                                                    page_params_rws
-                                                        .update(|params| {
-                                                            params.grouped = !params.grouped;
-                                                            params.prefix = None;
-                                                        });
-                                                    let grouped = page_params_rws.with(|p| p.grouped);
-                                                    if !grouped {
-                                                        pagination_params_rws.set(PaginationParams::default());
-                                                    }
-                                                });
-                                            }
-                                            class="label gap-4 cursor-pointer"
-                                        >
-                                            <span class="label-text min-w-max">Group Configs</span>
-                                            <input
-                                                type="checkbox"
-                                                class="toggle toggle-primary"
-                                                checked=page_params_rws.with(|p| p.grouped)
-                                            />
-                                        </label>
-                                        <DrawerBtn
-                                            drawer_id="default_config_drawer"
-                                            on_click=move |_| {
-                                                drawer_type.set(DrawerType::Create);
-                                                open_drawer("default_config_drawer");
-                                            }
-                                        >
-                                            Create Key
-                                            <i class="ri-edit-2-line ml-2"></i>
-                                        </DrawerBtn>
-                                    </div>
-                                </div>
-                                <FilterSummary filters_rws />
-                                <Table
-                                    rows=filtered_rows
-                                    key_column="id".to_string()
-                                    columns=table_columns.get()
-                                    pagination=pagination_props
-                                />
-                            </div>
-                        </div>
                     }
                 }}
             </Suspense>
