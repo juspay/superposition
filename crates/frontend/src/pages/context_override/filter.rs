@@ -18,7 +18,6 @@ use crate::{
         condition_pills::Condition,
         context_form::ContextForm,
         drawer::{close_drawer, Drawer},
-        dropdown::DropdownDirection,
         form::label::Label,
     },
     logic::{Condition, Conditions, Expression},
@@ -238,9 +237,9 @@ pub fn context_filter_drawer(
     });
     view! {
         <Drawer
-            id="context_filter_drawer".to_string()
+            id="context_filter_drawer"
             header="Context Filters"
-            drawer_width="w-[50vw]"
+            width_class="max-w-[720px] min-w-[560px] w-[45vw]"
             handle_close=move || close_drawer("context_filter_drawer")
         >
             <div class="flex flex-col gap-5">
@@ -249,7 +248,6 @@ pub fn context_filter_drawer(
                     context=context_rs.get_untracked()
                     on_context_change=move |new_context| context_ws.set(new_context)
                     fn_environment
-                    dropdown_direction=DropdownDirection::Down
                     resolve_mode=true
                     handle_change=move |context: Conditions| {
                         let map = context

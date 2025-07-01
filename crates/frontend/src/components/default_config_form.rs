@@ -16,6 +16,7 @@ use crate::{
     api::{fetch_functions, fetch_types, get_default_config},
     components::{
         alert::AlertType,
+        badge::GrayPill,
         button::Button,
         change_form::ChangeForm,
         change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
@@ -221,39 +222,41 @@ pub fn default_config_form(
         <EditorProvider>
             <form class="w-full flex flex-col gap-5 text-gray-700 bg-white">
                 <div class="form-control">
-                    <Label title="Key Name" />
-                    <div class="input input-bordered w-full max-w-md p-0 flex" disabled=edit>
-                        <div
-                            node_ref=scroll_ref
-                            class="w-full px-4 py-2 flex items-center overflow-x-scroll whitespace-nowrap"
-                            style="scrollbar-gutter: stable;"
-                        >
-                            {prefix
-                                .as_ref()
-                                .map(|p| {
-                                    view! { <span class="text-gray-500 select-none">{p}</span> }
-                                })}
-                            <input
-                                disabled=edit
-                                type="text"
-                                placeholder="Enter your key"
-                                class="flex-shrink-0 min-w-0 w-kull bg-transparent focus:outline-none"
-                                value=config_key_rs
-                                    .with_untracked(|k| {
-                                        k.strip_prefix(&prefix.clone().unwrap_or_default())
-                                            .map(String::from)
-                                            .unwrap_or_else(|| k.clone())
-                                    })
-                                on:input=move |ev| {
-                                    let value = event_target_value(&ev);
-                                    config_key_ws
-                                        .set(
-                                            format!("{}{value}", prefix.clone().unwrap_or_default()),
-                                        );
+                    <div class="flex items-center gap-2">
+                        <Label title="Key Name" />
+                        {prefix
+                            .as_ref()
+                            .map(|p| {
+                                view! {
+                                    <GrayPill
+                                        text=p
+                                        deletable=false
+                                        icon_class="ri-map-pin-2-fill"
+                                    />
                                 }
-                            />
-                        </div>
+                            })}
                     </div>
+                    <input
+                        disabled=edit
+                        type="text"
+                        placeholder=if prefix.is_some() {
+                            "Enter your key (prefix will be added)"
+                        } else {
+                            "Enter your key"
+                        }
+                        class="input input-bordered w-full max-w-md"
+                        value=config_key_rs
+                            .with_untracked(|k| {
+                                k.strip_prefix(&prefix.clone().unwrap_or_default())
+                                    .map(String::from)
+                                    .unwrap_or_else(|| k.clone())
+                            })
+                        on:input=move |ev| {
+                            let value = event_target_value(&ev);
+                            config_key_ws
+                                .set(format!("{}{value}", prefix.clone().unwrap_or_default()));
+                        }
+                    />
                 </div>
                 <Suspense>
                     {move || {

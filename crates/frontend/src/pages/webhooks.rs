@@ -233,7 +233,7 @@ pub fn webhooks() -> impl IntoView {
                     if let Some(selected_webhook_data) = selected_webhook.get() {
                         view! {
                             <Drawer
-                                id="webhook_drawer".to_string()
+                                id="webhook_drawer"
                                 header="Edit Webhook"
                                 handle_close=handle_close
                             >
@@ -259,7 +259,7 @@ pub fn webhooks() -> impl IntoView {
                     } else {
                         view! {
                             <Drawer
-                                id="webhook_drawer".to_string()
+                                id="webhook_drawer"
                                 header="Create New Webhook"
                                 handle_close=handle_close
                             >
@@ -285,6 +285,11 @@ pub fn webhooks() -> impl IntoView {
                                 .insert(
                                     "created_at".to_string(),
                                     json!(ele.created_at.format("%v %T").to_string()),
+                                );
+                            ele_map
+                                .insert(
+                                    "last_modified_at".to_string(),
+                                    json!(ele.last_modified_at.format("%v %T").to_string()),
                                 );
                             ele_map
                         })

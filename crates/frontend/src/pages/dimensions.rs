@@ -215,7 +215,7 @@ pub fn dimensions() -> impl IntoView {
                     if let Some(selected_dimension_data) = selected_dimension.get() {
                         view! {
                             <Drawer
-                                id="dimension_drawer".to_string()
+                                id="dimension_drawer"
                                 header="Edit Dimension"
                                 handle_close=handle_close
                             >
@@ -242,7 +242,7 @@ pub fn dimensions() -> impl IntoView {
                     } else {
                         view! {
                             <Drawer
-                                id="dimension_drawer".to_string()
+                                id="dimension_drawer"
                                 header="Create New Dimension"
                                 handle_close=handle_close
                             >
