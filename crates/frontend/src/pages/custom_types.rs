@@ -156,11 +156,7 @@ pub fn types_page() -> impl IntoView {
             };
             if let Some(selected_type_data) = selected_type.get() {
                 view! {
-                    <Drawer
-                        id=TYPE_DRAWER_ID.to_string()
-                        header="Edit Type Template"
-                        handle_close=handle_close
-                    >
+                    <Drawer id=TYPE_DRAWER_ID header="Edit Type Template" handle_close=handle_close>
                         <TypeTemplateForm
                             edit=true
                             type_name=selected_type_data.type_name
@@ -178,7 +174,7 @@ pub fn types_page() -> impl IntoView {
             } else {
                 view! {
                     <Drawer
-                        id=TYPE_DRAWER_ID.to_string()
+                        id=TYPE_DRAWER_ID
                         header="Create New Type Template"
                         handle_close=handle_close
                     >

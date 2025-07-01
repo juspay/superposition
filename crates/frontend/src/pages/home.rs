@@ -15,9 +15,7 @@ use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Tenant};
 use crate::{
     api::{fetch_config, fetch_dimensions, resolve_config},
-    components::{
-        button::Button, context_form::ContextForm, dropdown::DropdownDirection,
-    },
+    components::{button::Button, context_form::ContextForm},
     utils::{check_url_and_return_val, get_element_by_id},
 };
 
@@ -340,7 +338,6 @@ pub fn home() -> impl IntoView {
                                                         context_ws.set(new_context);
                                                     }
                                                     heading_sub_text="Query your configs".to_string()
-                                                    dropdown_direction=DropdownDirection::Right
                                                     resolve_mode=true
                                                     handle_change=move |new_context| context_ws.set(new_context)
                                                     fn_environment
