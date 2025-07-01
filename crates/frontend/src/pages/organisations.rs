@@ -50,7 +50,7 @@ pub fn organisations() -> impl IntoView {
     });
 
     view! {
-        <form class="p-8">
+        <form class="p-8 flex flex-col gap-4">
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
@@ -69,16 +69,13 @@ pub fn organisations() -> impl IntoView {
                         })
                         .collect::<Vec<Map<String, Value>>>();
                     view! {
-                        <div class="pb-4">
-                            <Stat
-                                heading="Oraganisations"
-                                icon="ri-building-fill"
-                                number=organisations.len().to_string()
-                            />
-                        </div>
+                        <Stat
+                            heading="Oraganisations"
+                            icon="ri-building-fill"
+                            number=organisations.len().to_string()
+                        />
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
-                                <h2 class="card-title">"Organisations"</h2>
                                 <Table
                                     rows=table_rows
                                     key_column="id".to_string()

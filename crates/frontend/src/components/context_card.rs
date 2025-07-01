@@ -201,14 +201,14 @@ pub fn context_card(
                             />
                         </Show>
                         <Show when=move || edit_unsupported>
-                            <span class="badge badge-warning text-xs ml-2 flex items-center">
+                            <span class="badge badge-warning text-xs flex items-center">
                                 {"Edit Unsupported"}
                             </span>
                         </Show>
                     </div>
                 </Show>
                 <Show when=move || !actions_supported>
-                    <span class="badge badge-warning text-xs ml-2 flex items-center">
+                    <span class="badge badge-warning text-xs flex items-center">
                         {"Edit Unsupported"}
                     </span>
                 </Show>
