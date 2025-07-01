@@ -304,8 +304,12 @@ pub fn experiment_groups() -> impl IntoView {
                                     <div class="card-body">
                                         <div class="flex justify-between">
                                             <h2 class="card-title">"Member Experiments"</h2>
-                                            <DrawerBtn drawer_id="add_members_group_drawer">
-                                                Add Members <i class="ri-add-large-fill ml-2"></i>
+                                            <DrawerBtn
+                                                drawer_id="add_members_group_drawer"
+                                                class="flex gap-2"
+                                            >
+                                                Add Members
+                                                <i class="ri-add-large-fill" />
                                             </DrawerBtn>
                                         </div>
 

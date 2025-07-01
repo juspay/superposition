@@ -49,79 +49,73 @@ pub fn config_version_list() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton /> }>
-                <div class="pb-4">
-                    {move || {
-                        let snapshot_res = snapshots_resource.get();
-                        let total_items = match snapshot_res {
-                            Some(snapshot_resp) => snapshot_resp.total_items.to_string(),
-                            _ => "0".to_string(),
-                        };
-                        view! {
-                            <Stat
-                                heading="Config Versions"
-                                icon="ri-camera-lens-fill"
-                                number=total_items
-                            />
-                        }
-                    }}
+        <div class="p-8 flex flex-col gap-4">
+            <Suspense fallback=move || {
+                view! { <Skeleton /> }
+            }>
 
-                </div>
-                <div class="card rounded-xl w-full bg-base-100 shadow">
+                {move || {
+                    let snapshot_res = snapshots_resource.get();
+                    let total_items = match snapshot_res {
+                        Some(snapshot_resp) => snapshot_resp.total_items.to_string(),
+                        _ => "0".to_string(),
+                    };
+                    view! {
+                        <Stat
+                            heading="Config Versions"
+                            icon="ri-camera-lens-fill"
+                            number=total_items
+                        />
+                    }
+                }} <div class="card rounded-xl w-full bg-base-100 shadow">
                     <div class="card-body">
-                        <div class="flex justify-between">
-                            <h2 class="card-title">"Config Versions"</h2>
-                        </div>
-                        <div>
-                            {move || {
-                                let value = snapshots_resource.get();
-                                let pagination_params = pagination_params_rws.get();
-                                match value {
-                                    Some(snapshot_resp) => {
-                                        let page = pagination_params.page.unwrap_or(1);
-                                        let count = pagination_params.count.unwrap_or(10);
-                                        let total_pages = snapshot_resp.clone().total_pages;
-                                        let resp = snapshot_resp
-                                            .data
-                                            .into_iter()
-                                            .map(|config_version| {
-                                                let mut map = Map::new();
-                                                map.insert(
-                                                    "id".to_string(),
-                                                    Value::String(config_version.id.to_string()),
-                                                );
-                                                map.insert(
-                                                    "created_at".to_string(),
-                                                    json!(config_version.created_at.format("%v %T").to_string()),
-                                                );
-                                                map.insert("tags".to_string(), json!(config_version.tags));
-                                                map
-                                            })
-                                            .collect();
-                                        let pagination_props = TablePaginationProps {
-                                            enabled: true,
-                                            count,
-                                            current_page: page,
-                                            total_pages,
-                                            on_page_change: handle_page_change,
-                                        };
-                                        view! {
-                                            <Table
-                                                rows=resp
-                                                key_column="id".to_string()
-                                                columns=table_columns.get()
-                                                pagination=pagination_props
-                                            />
-                                        }
-                                    }
-                                    None => {
-                                        view! { <Skeleton /> }
+                        {move || {
+                            let value = snapshots_resource.get();
+                            let pagination_params = pagination_params_rws.get();
+                            match value {
+                                Some(snapshot_resp) => {
+                                    let page = pagination_params.page.unwrap_or(1);
+                                    let count = pagination_params.count.unwrap_or(10);
+                                    let total_pages = snapshot_resp.clone().total_pages;
+                                    let resp = snapshot_resp
+                                        .data
+                                        .into_iter()
+                                        .map(|config_version| {
+                                            let mut map = Map::new();
+                                            map.insert(
+                                                "id".to_string(),
+                                                Value::String(config_version.id.to_string()),
+                                            );
+                                            map.insert(
+                                                "created_at".to_string(),
+                                                json!(config_version.created_at.format("%v %T").to_string()),
+                                            );
+                                            map.insert("tags".to_string(), json!(config_version.tags));
+                                            map
+                                        })
+                                        .collect();
+                                    let pagination_props = TablePaginationProps {
+                                        enabled: true,
+                                        count,
+                                        current_page: page,
+                                        total_pages,
+                                        on_page_change: handle_page_change,
+                                    };
+                                    view! {
+                                        <Table
+                                            rows=resp
+                                            key_column="id".to_string()
+                                            columns=table_columns.get()
+                                            pagination=pagination_props
+                                        />
                                     }
                                 }
-                            }}
+                                None => {
+                                    view! { <Skeleton /> }
+                                }
+                            }
+                        }}
 
-                        </div>
                     </div>
                 </div>
             </Suspense>

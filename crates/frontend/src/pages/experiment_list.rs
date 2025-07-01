@@ -131,42 +131,40 @@ pub fn experiment_list() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton /> }>
-                <div class="pb-4">
-
-                    {move || {
-                        let value = combined_resource.get();
-                        let total_items = match value {
-                            Some(v) => v.experiments.total_items.to_string(),
-                            _ => "0".to_string(),
-                        };
-                        view! {
+        <div class="p-8 flex flex-col gap-4">
+            <Suspense fallback=move || {
+                view! { <Skeleton /> }
+            }>
+                {move || {
+                    let value = combined_resource.get();
+                    let total_items = match value {
+                        Some(v) => v.experiments.total_items.to_string(),
+                        _ => "0".to_string(),
+                    };
+                    view! {
+                        <div class="flex justify-between">
                             <Stat
                                 heading="Experiments"
                                 icon="ri-test-tube-fill"
                                 number=total_items
                             />
-                        }
-                    }}
-
-                </div>
-                <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
-                        <div class="flex justify-between">
-                            <div class="flex items-center gap-4">
-                                <h2 class="card-title">"Experiments"</h2>
+                            <div class="flex items-end gap-4">
                                 <ExperimentTableFilterWidget
                                     dimension_params_rws
                                     pagination_params_rws
                                     filters_rws
                                     combined_resource=combined_resource.get().unwrap_or_default()
                                 />
+                                <DrawerBtn drawer_id="create_exp_drawer" class="flex gap-2">
+                                    Create Experiment
+                                    <i class="ri-edit-2-line" />
+                                </DrawerBtn>
                             </div>
-                            <DrawerBtn drawer_id="create_exp_drawer">
-                                Create Experiment <i class="ri-edit-2-line ml-2"></i>
-                            </DrawerBtn>
                         </div>
+                    }
+                }} <FilterSummary filters_rws dimension_params_rws />
+                <div class="card rounded-xl w-full bg-base-100 shadow">
+                    <div class="card-body">
                         {move || {
                             let value = combined_resource.get();
                             let pagination_params = pagination_params_rws.get();
@@ -207,7 +205,6 @@ pub fn experiment_list() -> impl IntoView {
                                         on_page_change: handle_page_change,
                                     };
                                     view! {
-                                        <FilterSummary filters_rws dimension_params_rws />
                                         <ConditionCollapseProvider>
                                             <Table
                                                 rows=data
@@ -222,10 +219,8 @@ pub fn experiment_list() -> impl IntoView {
                                 None => view! { Loading.... }.into_view(),
                             }
                         }}
-
                     </div>
                 </div>
-
                 {move || {
                     let CombinedResource {
                         dimensions: dim,

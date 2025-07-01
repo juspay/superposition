@@ -11,14 +11,23 @@ use crate::utils::unwrap_option_or_default_with_error;
 pub fn bread_crums(
     bread_crums: Vec<BreadCrums>,
     #[prop(into)] redirect_url: Callback<Option<String>, String>,
+    #[prop(default = true)] show_root: bool,
 ) -> impl IntoView {
+    if !show_root && bread_crums.len() <= 1 {
+        return ().into_view();
+    }
+
+    let root_title_class = if show_root { "first:card-title" } else { "" };
+
     view! {
         <div class="flex items-center flex-wrap gap-2">
             {bread_crums
                 .iter()
                 .map(|ele| {
                     view! {
-                        <h2 class="first:card-title flex gap-2 after:content-['>'] after:font-normal after:text-base after:last:hidden">
+                        <h2 class=format!(
+                            "{root_title_class} flex gap-2 after:content-['>'] after:font-normal after:text-base after:last:hidden",
+                        )>
                             {if ele.is_link {
                                 let href = redirect_url.call(ele.value.clone());
                                 let label = ele.key.clone();
@@ -36,7 +45,7 @@ pub fn bread_crums(
                 })
                 .collect_view()}
         </div>
-    }
+    }.into_view()
 }
 
 pub fn get_bread_crums(

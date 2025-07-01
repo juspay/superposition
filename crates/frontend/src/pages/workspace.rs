@@ -148,7 +148,7 @@ pub fn workspace() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
+        <div class="p-8 flex flex-col gap-4">
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
@@ -236,21 +236,19 @@ pub fn workspace() -> impl IntoView {
                         on_page_change: handle_page_change,
                     };
                     view! {
-                        <div class="pb-4">
+                        <div class="flex justify-between">
                             <Stat
                                 heading="Workspaces"
                                 icon="ri-briefcase-fill"
                                 number=total_workspaces
                             />
+                            <DrawerBtn drawer_id="workspace_drawer" class="self-end flex gap-2">
+                                Create Workspace
+                                <i class="ri-edit-2-line" />
+                            </DrawerBtn>
                         </div>
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
-                                <div class="flex justify-between">
-                                    <h2 class="card-title">"Workspaces"</h2>
-                                    <DrawerBtn drawer_id="workspace_drawer">
-                                        Create Workspace <i class="ri-edit-2-line ml-2"></i>
-                                    </DrawerBtn>
-                                </div>
                                 <Table
                                     rows=table_rows
                                     key_column="id".to_string()
