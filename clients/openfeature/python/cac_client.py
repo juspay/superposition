@@ -1,14 +1,12 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Any, Dict, Optional, TypeVar, Generic
-from .uniffi_client import ffi_eval_config
+from typing import Any, Dict, Optional, TypeVar
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
 from clients.generated.smithy.python.superposition_python_sdk.client import Superposition, Config, GetConfigInput
 import asyncio
-from .uniffi_client import MergeStrategy
 from datetime import datetime, timedelta
-from .uniffi_types import Context
+from .superposition_types import Context
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
@@ -95,7 +93,7 @@ def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Option
     
     return converted
 
-class ConfigurationClient:
+class CacClient:
     def __init__(self, superposition_options: SuperpositionOptions, options: ConfigurationOptions):
         self.superposition_options = superposition_options
         self.options = options
@@ -247,138 +245,7 @@ class ConfigurationClient:
                     logger.info("Using stale config due to error.")
 
         return self.cached_config
-    
-    async def eval_async(self, query_data: dict) -> dict[str, Any]:
-        try:
-            cache_key = self._generate_cache_key(query_data)
-            cached = self._get_from_eval_cache(cache_key)
 
-            if cached:
-                logger.debug("Using cached evaluation result")
-                return cached
-
-            logger.debug("Fetching fresh configuration data")
-            match self.options.refresh_strategy:
-                case OnDemandStrategy(ttl=ttl, use_stale_on_error=use_stale, timeout=timeout):
-                    await self.on_demand_config(ttl, use_stale)
-            
-
-            result = ffi_eval_config(
-                self.cached_config.get('default_configs', {}),
-                self.cached_config.get('contexts', []),
-                self.cached_config.get('overrides', {}),
-                query_data,
-                MergeStrategy.MERGE,
-                filter_prefixes=None
-            )
-            eval_result = {}
-            for (key, value) in result.items():
-                eval_result[key] = json.loads(value)
-            logger.debug(f"Resolution result: {eval_result}")
-
-            return eval_result
-
-        except Exception as e:
-            logger.error(f"Evaluation failed: {e}")
-            raise
-            
-    def eval(self, query_data: dict) -> dict[str, Any]:
-        try:
-            cache_key = self._generate_cache_key(query_data)
-            cached = self._get_from_eval_cache(cache_key)
-
-            if cached:
-                logger.debug("Using cached evaluation result")
-                return cached
-
-            logger.debug("Fetching fresh configuration data")
-            
-            result = ffi_eval_config(
-                self.cached_config.get('default_configs', {}),
-                self.cached_config.get('contexts', []),
-                self.cached_config.get('overrides', {}),
-                query_data,
-                MergeStrategy.MERGE,
-                filter_prefixes=None
-            )
-            
-            eval_result = {}
-            for (key, value) in result.items():
-                eval_result[key] = json.loads(value)
-            logger.debug(f"Resolution result: {eval_result}")
-
-            return eval_result
-
-        except Exception as e:
-            logger.error(f"Evaluation failed: {e}")
-            raise
-
-    def get_boolean_value(self, key: str, default_value: bool, query_data: dict) -> bool:
-        config = self.eval(query_data)
-        value = self._get_nested(config, key)
-        return self._to_boolean(value, default_value)
-
-    def get_string_value(self, key: str, default_value: str, query_data: dict) -> str:
-        config = self.eval(query_data)
-        value = self._get_nested(config, key)
-        return self._to_string(value, default_value)
-
-    def get_integer_value(self, key: str, default_value: int, query_data: dict) -> int:
-        config = self.eval(query_data)
-        value = self._get_nested(config, key)
-        return self._to_integer(value, default_value)
-
-    def get_float_value(self, key: str, default_value: int, query_data: dict) -> int:
-        config = self.eval(query_data)
-        value = self._get_nested(config, key)
-        return self._to_float(value, default_value)
-
-    def get_object_value(self, key: str, default_value: T, query_data: dict) -> T:
-        config = self.eval(query_data)
-        value = self._get_nested(config, key)
-        return self._to_object(value, default_value)
-
-    def get_all(self, query_data: dict) -> dict:
-        return self.eval(query_data)
-
-
-    # Internal helpers
-
-    def _get_nested(self, obj: Any, key: str) -> Any:
-        keys = key.split('.')
-        for k in keys:
-            if not isinstance(obj, dict):
-                return None
-            obj = obj.get(k)
-        return obj
-
-    def _to_boolean(self, value: Any, default: bool) -> bool:
-        if isinstance(value, bool): return value
-        if isinstance(value, str):
-            if value.lower() == "true": return True
-            if value.lower() == "false": return False
-        if isinstance(value, (int, float)): return value != 0
-        return default
-
-    def _to_string(self, value: Any, default: str) -> str:
-        if isinstance(value, str): return value
-        if value is not None: return str(value)
-        return default
-
-    def _to_integer(self, value: Any, default: int) -> int:
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return default
-    def _to_float(self, value: Any, default: int) -> int:
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return default
-
-    def _to_object(self, value: Any, default: T) -> T:
-        if isinstance(value, dict): return value
-        return default
 
     def _generate_cache_key(self, query_data: dict) -> str:
         return json.dumps(query_data, sort_keys=True)
