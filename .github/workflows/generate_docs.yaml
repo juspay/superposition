@@ -20,14 +20,18 @@ jobs:
               uses: oven-sh/setup-bun@v2
 
             - name: Install dependencies
-              run: bun ci
+              run: |
+                cd docs
+                bun install --frozen-lockfile
             - name: Build website
-              run: bun run build
+              run: |
+                cd docs
+                bun run build
 
             - name: Upload Build Artifact
               uses: actions/upload-pages-artifact@v3
               with:
-                  path: build
+                  path: docs/build
 
     deploy:
         name: Deploy to GitHub Pages

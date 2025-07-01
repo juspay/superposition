@@ -15,8 +15,8 @@ jobs:
                       core_bin_name: libsuperposition_core.so
                       cac_zip_name: superposition_cac_client-x86_64-unknown-linux-gnu.zip
                       exp_zip_name: superposition_experimentation_client-x86_64-unknown-linux-gnu.zip
-                      core_zip_name: superposition_core_client-x86_64-unknown-linux-gnu.zip
-                    - os: macos-latest
+                      core_zip_name: superposition_core-x86_64-unknown-linux-gnu.zip
+                    - os: macos-13
                       target: x86_64-apple-darwin
                       cac_bin_name: libcac_client.dylib
                       exp_bin_name: libexperimentation_client.dylib
@@ -99,22 +99,36 @@ jobs:
         needs: generate-builds
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  
+            - name: Download all artifacts
+                    # This step downloads all artifacts uploaded by the 'generate-builds' job.
+                    # They will be placed into the 'artifacts_dir' directory.
+              uses: actions/download-artifact@v4
+              with:
+                path: artifacts_dir
+    
+            - name: List downloaded files
+              run: ls -R artifacts_dir
+
             - uses: softprops/action-gh-release@v2
               name: Create GitHub Release
               # if: startsWith(github.ref, 'refs/tags/')
               with:
-                  body_path: CHANGELOG.md
                   draft: true
                   files: |
-                      superposition_cac_client-x86_64-unknown-linux-gnu.zip
-                      superposition_experimentation_client-x86_64-unknown-linux-gnu.zip
-                      superposition_core_client-x86_64-unknown-linux-gnu.zip
-                      superposition_cac_client-x86_64-apple-darwin.zip
-                      superposition_experimentation_client-x86_64-apple-darwin.zip
-                      superposition_core-x86_64-apple-darwin.zip
-                      superposition_cac_client-aarch64-apple-darwin.zip
-                      superposition_experimentation_client-aarch64-apple-darwin.zip
-                      superposition_core-aarch64-apple-darwin.zip
-                      superposition_cac_client-x86_64-pc-windows-msvc.zip
-                      superposition_experimentation_client-x86_64-pc-windows-msvc.zip
-                      superposition_core-x86_64-pc-windows-msvc.zip
+                      artifacts_dir/superposition_cac_client-x86_64-unknown-linux-gnu.zip/superposition_cac_client-x86_64-unknown-linux-gnu.zip
+                      artifacts_dir/superposition_experimentation_client-x86_64-unknown-linux-gnu.zip/superposition_experimentation_client-x86_64-unknown-linux-gnu.zip
+                      artifacts_dir/superposition_core-x86_64-unknown-linux-gnu.zip/superposition_core-x86_64-unknown-linux-gnu.zip
+                      artifacts_dir/superposition_cac_client-x86_64-apple-darwin.zip/superposition_cac_client-x86_64-apple-darwin.zip
+                      artifacts_dir/superposition_experimentation_client-x86_64-apple-darwin.zip/superposition_experimentation_client-x86_64-apple-darwin.zip
+                      artifacts_dir/superposition_core-x86_64-apple-darwin.zip/superposition_core-x86_64-apple-darwin.zip
+                      artifacts_dir/superposition_cac_client-aarch64-apple-darwin.zip/superposition_cac_client-aarch64-apple-darwin.zip
+                      artifacts_dir/superposition_experimentation_client-aarch64-apple-darwin.zip/superposition_experimentation_client-aarch64-apple-darwin.zip
+                      artifacts_dir/superposition_core-aarch64-apple-darwin.zip/superposition_core-aarch64-apple-darwin.zip
+                      artifacts_dir/superposition_cac_client-x86_64-pc-windows-msvc.zip/superposition_cac_client-x86_64-pc-windows-msvc.zip
+                      artifacts_dir/superposition_experimentation_client-x86_64-pc-windows-msvc.zip/superposition_experimentation_client-x86_64-pc-windows-msvc.zip
+                      artifacts_dir/superposition_core-x86_64-pc-windows-msvc.zip/superposition_core-x86_64-pc-windows-msvc.zip
