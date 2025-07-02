@@ -1384,4 +1384,8 @@ UPDATE superposition.workspaces SET allow_experiment_self_approval = true;
 ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
 ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
 
+CREATE TRIGGER experiment_groups_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.experiment_groups FOR EACH ROW EXECUTE FUNCTION localorg_dev.event_logger();
+
+CREATE TRIGGER experiment_groups_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.experiment_groups FOR EACH ROW EXECUTE FUNCTION localorg_test.event_logger();
+
 COMMIT;
