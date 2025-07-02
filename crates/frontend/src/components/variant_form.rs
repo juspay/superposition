@@ -42,6 +42,7 @@ fn get_init_state(variants: &[(String, VariantFormT)]) -> HashSet<String> {
 #[component]
 pub fn variant_form<HC>(
     edit: bool,
+    context: Conditions,
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
@@ -50,6 +51,8 @@ pub fn variant_form<HC>(
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let init_override_keys = get_init_state(&variants);
     let (f_variants, set_variants) = create_signal(variants);
     let (override_keys, set_override_keys) = create_signal(init_override_keys);
@@ -69,6 +72,24 @@ where
             .filter(|config| !override_keys.get().contains(&config.key))
             .collect::<Vec<DefaultConfig>>()
     });
+
+    let resolved_config_resource: Resource<
+        (Conditions, String, String),
+        Map<String, Value>,
+    > = create_blocking_resource(
+        move || {
+            (
+                context.clone(),
+                tenant_rws.get_untracked().0,
+                org_rws.get_untracked().0,
+            )
+        },
+        |(context, tenant, org_id)| async move {
+            resolve_config(&tenant, &context.as_query_string(), &org_id, false, None)
+                .await
+                .unwrap_or_default()
+        },
+    );
 
     let on_key_remove = move |removed_key: String| {
         logging::log!("Removing key {:?}", removed_key);
@@ -279,37 +300,54 @@ where
                                         </span>
                                     </Show>
 
-                                    <Show when=move || {
-                                        !override_keys.get().is_empty()
-                                    }>
-                                        {move || {
-                                            if is_control_variant {
-                                                view! {
-                                                    <OverrideForm
-                                                        id=key.get_value()
-                                                        overrides=overrides.get_value()
-                                                        default_config=default_config.get_value()
-                                                        handle_change=handle_change
-                                                        show_add_override=false
-                                                        handle_key_remove=on_key_remove
-                                                        fn_environment
-                                                    />
-                                                }
-                                            } else {
-                                                view! {
-                                                    <OverrideForm
-                                                        id=key.get_value()
-                                                        overrides=overrides.get_value()
-                                                        default_config=default_config.get_value()
-                                                        handle_change=handle_change
-                                                        show_add_override=false
-                                                        disable_remove=true
-                                                        fn_environment
-                                                    />
-                                                }
-                                            }
-                                        }}
+                                    <Show when=move || { !override_keys.get().is_empty() }>
+                                        <Suspense fallback=move || {
+                                            view! { <Skeleton variant=SkeletonVariant::Block /> }
+                                        }>
+                                            {move || {
+                                                if is_control_variant {
+                                                    let overrides = overrides.get_value();
+                                                    let resolved_config_resource = resolved_config_resource
+                                                        .get()
+                                                        .unwrap_or_default();
+                                                    let control_overrides = overrides
+                                                        .iter()
+                                                        .map(|(k, _)| {
+                                                            let default_value = resolved_config_resource
+                                                                .get(k.as_str())
+                                                                .cloned()
+                                                                .unwrap_or_default();
+                                                            (k.clone(), default_value)
+                                                        })
+                                                        .collect::<Vec<_>>();
 
+                                                    view! {
+                                                        <OverrideForm
+                                                            id=key.get_value()
+                                                            overrides=control_overrides
+                                                            default_config=default_config.get_value()
+                                                            handle_change=handle_change
+                                                            show_add_override=false
+                                                            handle_key_remove=on_key_remove
+                                                            fn_environment
+                                                            disabled=!edit
+                                                        />
+                                                    }
+                                                } else {
+                                                    view! {
+                                                        <OverrideForm
+                                                            id=key.get_value()
+                                                            overrides=overrides.get_value()
+                                                            default_config=default_config.get_value()
+                                                            handle_change=handle_change
+                                                            show_add_override=false
+                                                            disable_remove=true
+                                                            fn_environment
+                                                        />
+                                                    }
+                                                }
+                                            }}
+                                        </Suspense>
                                     </Show>
 
                                 </div>
