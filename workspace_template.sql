@@ -595,3 +595,9 @@ CREATE TABLE IF NOT EXISTS {replaceme}.experiment_groups(
 );
 
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS experiment_group_id bigint;
+
+DO $$ BEGIN
+    CREATE TRIGGER experiment_groups_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.experiment_groups FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
