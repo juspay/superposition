@@ -256,6 +256,7 @@ async fn get_experiments(
         to_date: Some(Utc::now()),
         experiment_name: None,
         experiment_ids: None,
+        experiment_group_ids: None,
         created_by: None,
         sort_on: None,
         sort_by: None,

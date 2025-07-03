@@ -1,3 +1,4 @@
+use futures::join;
 use leptos::*;
 use leptos_router::{use_params_map, use_route};
 use serde::{Deserialize, Serialize};
@@ -100,7 +101,9 @@ fn table_columns(
             },
             ColumnSortable::No,
             Expandable::Disabled,
-            move |_| view! { <span>Experiment Name</span> }.into_view(),
+            move |_| {
+                view! { <span class="font-medium text-sm text-black">Experiment Name</span> }.into_view()
+            },
         ),
         Column::default("traffic_percentage".to_string()),
         Column::new(
@@ -199,30 +202,22 @@ pub fn experiment_groups() -> impl IntoView {
         (String, String, String),
         Option<ExperimentGroupResource>,
     > = create_blocking_resource(source, |(group_id, tenant, org_id)| async move {
-        let group = fetch(&group_id, &tenant, &org_id).await.ok()?;
-
-        let members = group
-            .member_experiment_ids
-            .iter()
-            .map(i64::to_string)
-            .collect::<Vec<_>>();
-
+        let group_future = fetch(&group_id, &tenant, &org_id);
         let filters = ExperimentListFilters {
-            experiment_ids: Some(CommaSeparatedQParams(members)),
+            experiment_group_ids: Some(CommaSeparatedQParams(vec![group_id.clone()])),
             ..ExperimentListFilters::default()
         };
         let pagination = PaginationParams::all_entries();
-        let experiments = fetch_experiments(
-            &filters,
-            &pagination,
-            &DimensionQuery::default(),
-            tenant,
-            org_id,
-        )
-        .await
-        .ok()?
-        .data;
-        Some(ExperimentGroupResource { group, experiments })
+        let dimension_params = DimensionQuery::default();
+        let experiments_future =
+            fetch_experiments(&filters, &pagination, &dimension_params, &tenant, &org_id);
+
+        let (group_result, experiments_result) = join!(group_future, experiments_future);
+
+        Some(ExperimentGroupResource {
+            group: group_result.ok()?,
+            experiments: experiments_result.ok()?.data,
+        })
     });
 
     let confirm_delete = Callback::new(move |change_reason: String| {
