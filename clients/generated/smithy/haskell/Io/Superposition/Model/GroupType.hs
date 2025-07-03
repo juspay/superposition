@@ -12,8 +12,8 @@ import qualified Io.Superposition.Utility
 
 -- Enum implementation for GroupType
 data GroupType =
-    UserCreated
-    | SystemGenerated
+    USER_CREATED
+    | SYSTEM_GENERATED
     deriving (
         GHC.Generics.Generic,
         Data.Eq.Eq,
@@ -21,26 +21,26 @@ data GroupType =
     )
 
 instance Data.Aeson.ToJSON GroupType where
-    toJSON UserCreated = Data.Aeson.String $ Data.Text.pack "UserCreated"
-    toJSON SystemGenerated = Data.Aeson.String $ Data.Text.pack "SystemGenerated"
+    toJSON USER_CREATED = Data.Aeson.String $ Data.Text.pack "USER_CREATED"
+    toJSON SYSTEM_GENERATED = Data.Aeson.String $ Data.Text.pack "SYSTEM_GENERATED"
 
 instance Io.Superposition.Utility.RequestSegment GroupType where
-    toRequestSegment UserCreated = "UserCreated"
-    toRequestSegment SystemGenerated = "SystemGenerated"
+    toRequestSegment USER_CREATED = "USER_CREATED"
+    toRequestSegment SYSTEM_GENERATED = "SYSTEM_GENERATED"
 
 instance Data.Aeson.FromJSON GroupType where
     parseJSON = Data.Aeson.withText "GroupType" $ \v ->
         case v of
-            "UserCreated" -> pure UserCreated
-            "SystemGenerated" -> pure SystemGenerated
+            "USER_CREATED" -> pure USER_CREATED
+            "SYSTEM_GENERATED" -> pure SYSTEM_GENERATED
             _ -> fail $ "Unknown value for GroupType: " <> Data.Text.unpack v
         
     
 
 instance Io.Superposition.Utility.ResponseSegment GroupType where
     fromResponseSegment b = case (Data.Text.Encoding.decodeUtf8' b) of
-        Data.Either.Right "UserCreated" -> Data.Either.Right UserCreated
-        Data.Either.Right "SystemGenerated" -> Data.Either.Right SystemGenerated
+        Data.Either.Right "USER_CREATED" -> Data.Either.Right USER_CREATED
+        Data.Either.Right "SYSTEM_GENERATED" -> Data.Either.Right SYSTEM_GENERATED
         Data.Either.Right s -> Data.Either.Left $ "Not a valid enum constructor: " <> s
         Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
     

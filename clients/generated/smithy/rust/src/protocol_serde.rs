@@ -249,6 +249,8 @@ pub(crate) mod shape_workspace_not_found;
 
 pub(crate) mod shape_audit_log_list;
 
+pub(crate) mod shape_buckets;
+
 pub(crate) mod shape_bulk_operation_out;
 
 pub(crate) mod shape_bulk_operation_req;

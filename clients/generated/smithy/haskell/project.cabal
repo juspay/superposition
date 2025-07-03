@@ -30,6 +30,7 @@ library
                         Io.Superposition.Model.DiscardExperimentOutput,
                         Io.Superposition.Model.WeightRecomputeOutput,
                         Io.Superposition.Model.GetOrganisationInput,
+                        Io.Superposition.Model.GroupType,
                         Io.Superposition.Command.GetContextFromCondition,
                         Io.Superposition.Model.GetDimensionOutput,
                         Io.Superposition.Model.CreateTypeTemplatesOutput,

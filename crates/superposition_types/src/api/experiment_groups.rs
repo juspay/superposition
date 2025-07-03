@@ -5,7 +5,9 @@ use std::fmt::Display;
 use crate::database::schema::experiment_groups;
 use crate::{
     database::models::{
-        experimentation::{i64_vec_deserialize, i64_vec_formatter, TrafficPercentage},
+        experimentation::{
+            i64_vec_deserialize, i64_vec_formatter, GroupType, TrafficPercentage,
+        },
         ChangeReason, Description,
     },
     Condition, Exp, IsEmpty, SortBy,
@@ -63,13 +65,27 @@ pub enum SortOn {
     LastModifiedAt,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, IsEmpty)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, IsEmpty)]
 pub struct ExpGroupFilters {
     pub name: Option<String>,
     pub created_by: Option<String>,
     pub last_modified_by: Option<String>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
+    pub group_type: Option<GroupType>,
+}
+
+impl Default for ExpGroupFilters {
+    fn default() -> Self {
+        ExpGroupFilters {
+            name: None,
+            created_by: None,
+            last_modified_by: None,
+            sort_on: None,
+            sort_by: None,
+            group_type: Some(GroupType::UserCreated),
+        }
+    }
 }
 
 impl Display for ExpGroupFilters {
@@ -89,6 +105,9 @@ impl Display for ExpGroupFilters {
         }
         if let Some(sort_by) = &self.sort_by {
             query_params.push(format!("sort_by={}", sort_by));
+        }
+        if let Some(group_type) = &self.group_type {
+            query_params.push(format!("group_type={}", group_type));
         }
         write!(f, "{}", query_params.join("&"))
     }

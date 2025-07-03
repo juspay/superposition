@@ -7,9 +7,13 @@ use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
+
 #[cfg(feature = "diesel_derives")]
 use diesel::{
-    sql_types::{Json, Text},
+    deserialize::{self, FromSql},
+    pg::{Pg, PgValue},
+    serialize::{self, Output, ToSql},
+    sql_types::{Array, Json, Nullable, Text},
     AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
@@ -358,5 +362,54 @@ impl TryFrom<String> for NonEmptyString {
             return Err(String::from("Empty reason not allowed"));
         }
         Ok(Self(value))
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut, Default)]
+#[serde(try_from = "Vec<Option<String>>")]
+#[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Array<Nullable<Text>>))]
+pub struct Buckets(Vec<Option<String>>);
+
+impl Buckets {
+    pub fn from_array(arr: [Option<String>; 100]) -> Self {
+        Self(arr.to_vec())
+    }
+
+    pub fn new() -> Self {
+        Self(vec![None; 100])
+    }
+}
+
+impl TryFrom<Vec<Option<String>>> for Buckets {
+    type Error = String;
+
+    fn try_from(value: Vec<Option<String>>) -> Result<Self, Self::Error> {
+        if value.len() != 100 {
+            return Err(format!(
+                "Buckets must contain exactly 100 elements, got {}",
+                value.len()
+            ));
+        }
+        Ok(Self(value))
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl FromSql<Array<Nullable<Text>>, Pg> for Buckets {
+    fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
+        let string_array: Vec<Option<String>> =
+            FromSql::<Array<Nullable<Text>>, Pg>::from_sql(bytes)?;
+        Self::try_from(string_array).map_err(Into::into)
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl ToSql<Array<Nullable<Text>>, Pg> for Buckets {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
+        <Vec<Option<String>> as ToSql<Array<Nullable<Text>>, Pg>>::to_sql(
+            &self.0,
+            &mut out.reborrow(),
+        )
     }
 }

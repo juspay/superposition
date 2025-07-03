@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use superposition_types::api::experiments::ExperimentResponse;
+use superposition_types::{
+    api::experiments::ExperimentResponse,
+    database::models::experimentation::ExperimentGroup,
+};
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -12,3 +15,5 @@ pub struct Config {
 pub type Experiments = Vec<ExperimentResponse>;
 
 pub(crate) type ExperimentStore = HashMap<String, ExperimentResponse>;
+
+pub(crate) type ExperimentGroupStore = HashMap<String, ExperimentGroup>;

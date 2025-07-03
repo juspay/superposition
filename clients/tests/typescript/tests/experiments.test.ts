@@ -26,6 +26,7 @@ import {
     WorkspaceStatus,
     UpdateWorkspaceCommand,
     SuperpositionClient,
+    GetExperimentGroupCommand,
 } from "@io.juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
@@ -659,7 +660,8 @@ describe("Experiments API", () => {
             expect(out.id).toBe(experimentId1);
             expect(out.traffic_percentage).toBe(rampPercentage);
             expect(out.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(out.experiment_group_id).toBeUndefined();
+            expect(out.experiment_group_id).toBeDefined();
+            experimentGroupId = out.experiment_group_id;
 
             const getCmd = new GetExperimentCommand({
                 workspace_id: ENV.workspace_id,
@@ -669,7 +671,7 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(updatedExp.experiment_group_id).toBeUndefined();
+            expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
         } catch (e: any) {
             console.error(
                 "Error in test '3. Ramp Experiment 1':",
@@ -720,6 +722,32 @@ describe("Experiments API", () => {
             expect(updatedExp.status).toBe(ExperimentStatusType.CONCLUDED);
             expect(updatedExp.chosen_variant).toBe(winnerVariantId);
             expect(updatedExp.experiment_group_id).toBeUndefined();
+
+            // Verify that the experiment group is now deleted
+            if (experimentGroupId) {
+                try {
+                    console.log("Checking if experiment group is deleted...");
+                    expect(
+                        superpositionClient.send(
+                            new GetExperimentGroupCommand({
+                                workspace_id: ENV.workspace_id,
+                                org_id: ENV.org_id,
+                                id: experimentGroupId,
+                            }),
+                        ),
+                    ).rejects.toThrow(
+                        "No records found. Please refine or correct your search parameters",
+                    );
+                } catch (error: any) {
+                    if (error.name !== "ResourceNotFound") {
+                        console.error(
+                            "Unexpected error when checking experiment group:",
+                            error.message
+                        );
+                        throw error;
+                    }
+                }
+            }
         } catch (e: any) {
             console.error(
                 "Error in test '4. Conclude Experiment 1':",
@@ -755,6 +783,7 @@ describe("Experiments API", () => {
             expect(out.id).toBeString();
             expect(out.name).toBe("experiment-2-from-test");
             expect(out.status).toBe(ExperimentStatusType.CREATED);
+            expect(out.experiment_group_id).toBeUndefined();
             const allInitialOverrideKeys2 = new Set<string>();
             experiment2InitialVariants.forEach((v) =>
                 Object.keys(v.overrides).forEach((k) =>
@@ -877,6 +906,7 @@ describe("Experiments API", () => {
             expect(out.chosen_variant).toBeUndefined();
             expect(out.context).toEqual(experiment2Context);
             expect(out.name).toBe("experiment-2-from-test");
+            expect(out.experiment_group_id).toBeUndefined();
 
             for (const updatedVariantRequest of updatedVariants) {
                 const returnedVariant = out.variants?.find(
@@ -929,7 +959,9 @@ describe("Experiments API", () => {
             expect(foundExp2).toBe(true);
             
             const exp1 = out.data?.find((exp) => exp.id === experimentId1);
+            const exp2 = out.data?.find((exp) => exp.id === experimentId2);
             expect(exp1?.experiment_group_id).toBeUndefined();
+            expect(exp2?.experiment_group_id).toBeUndefined();
         } catch (e: any) {
             console.error(
                 "Error in test '7. List Experiments (Basic)':",
