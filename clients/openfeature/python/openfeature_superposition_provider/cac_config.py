@@ -1,19 +1,15 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Any, Dict, Optional, TypeVar, Generic
-from .superposition_client import FfiExperiment
-from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions, ExperimentationOptions
-from clients.generated.smithy.python.superposition_python_sdk.client import Superposition, Config, ListExperimentInput
+from typing import Any, Dict, Optional, TypeVar
+from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
+from superposition_python_sdk.client import Superposition, Config, GetConfigInput
 import asyncio
 from datetime import datetime, timedelta
-from .superposition_types import Variant, VariantType
+from .superposition_types import Context
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
-for name in logging.root.manager.loggerDict:
-    if not name.startswith("python"):  # e.g., "my_project"
-        logging.getLogger(name).setLevel(logging.INFO)
 
 from smithy_core.documents import Document
 from smithy_core.shapes import ShapeType
@@ -67,12 +63,45 @@ def document_to_python_value(doc: Document) -> Any:
                 return float(val)
             return val
 
+def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Convert fallback config to the expected format."""
+    if not fallback_config:
+        return None
+    
+    converted = {}
+    if 'default_configs' in fallback_config:
+        converted['default_configs'] = {
+            key: json.dumps(value)
+            for key, value in fallback_config['default_configs'].items()
+        }
+    if 'overrides' in fallback_config:
+        converted['overrides'] = {
+            key: {k: json.dumps(v) for k, v in value.items()}
+            for key, value in fallback_config['overrides'].items()
+        }
+    if 'contexts' in fallback_config:
+        converted['contexts'] = [
+            Context(
+                id=ctx['id'],
+                priority=ctx['priority'],
+                weight=ctx['weight'],
+                override_with_keys=ctx.get('override_with_keys', []),
+                condition={k: json.dumps(v) for k, v in ctx.get('condition', {}).items()}
+            )
+            for ctx in fallback_config['contexts']
+        ]
+    
+    return converted
 
-class ExperimentationClient():
-    def __init__(self, superposition_options: SuperpositionOptions, experiment_options: ExperimentationOptions):
+class CacConfig:
+    def __init__(self, superposition_options: SuperpositionOptions, options: ConfigurationOptions):
         self.superposition_options = superposition_options
-        self.options = experiment_options
-        self.cached_experiments = None
+        self.options = options
+        self.fallback_config = None
+        if options.fallback_config:
+            self.fallback_config = convert_fallback_config(options.fallback_config)
+        
+        self.cached_config = None
         self.last_updated = None
         self.evaluation_cache: Dict[str, Dict[str, Any]] = {}
         self._polling_task = None
@@ -81,23 +110,28 @@ class ExperimentationClient():
         async def poll_config(interval: int, timeout: int) -> None:
             while True:
                 try:
-                    latest_exp_list = await self._get_experiments(self.superposition_options)
-                    if latest_exp_list is not None:
-                        self.cached_experiments = latest_exp_list
+                    latest_config = await self._get_config(self.superposition_options)
+                    if latest_config is None and self.cached_config is None:
+                        logger.warning("No config found, using fallback config.")
+                        self.cached_config = self.fallback_config
+                    elif latest_config is not None:
+                        self.cached_config = latest_config
                         self.last_updated = datetime.utcnow()
-                        logger.info("Experiment List fetched successfully.")
+                        logger.info("Config fetched successfully.")
 
                 except Exception as e:
                     logger.error(f"Polling error: {e}")
 
                 await asyncio.sleep(interval)
 
-        latest_exp_list = await self._get_experiments(self.superposition_options)
-        logger.info("response from experimentation: " + str(latest_exp_list))
-        if latest_exp_list is not None:
-            self.cached_experiments = latest_exp_list
+        latest_config = await self._get_config(self.superposition_options)
+        if latest_config is None and self.cached_config is None:
+            logger.warning("No config found, using fallback config.")
+            self.cached_config = self.fallback_config
+        elif latest_config is not None:
+            self.cached_config = latest_config
             self.last_updated = datetime.utcnow()
-            logger.info("Experiment List fetched successfully.")
+            logger.info("Config fetched successfully.")
         
         match self.options.refresh_strategy:
             case PollingStrategy(interval=interval, timeout=timeout):
@@ -111,7 +145,7 @@ class ExperimentationClient():
         
 
     @staticmethod
-    async def _get_experiments(superposition_options: SuperpositionOptions) -> Optional[Dict[str, Any]]:
+    async def _get_config(superposition_options: SuperpositionOptions) -> Optional[Dict[str, Any]]:
         """
         Fetch configuration from Superposition service using the generated Python SDK.
         
@@ -130,56 +164,52 @@ class ExperimentationClient():
             # Create Superposition client
             client = Superposition(config=sdk_config)
             
-           
-
-            list_exp_input = ListExperimentInput(
+            # Prepare input for get_config API call
+            get_config_input = GetConfigInput(
                 workspace_id=superposition_options.workspace_id,
                 org_id=superposition_options.org_id,
-                all=True
+                context={},  # No specific context filtering for now
+                prefix=None,   # No prefix filtering for now
+                version=None   # Get latest version
             )
             
-
-            response = await client.list_experiment(list_exp_input)
-           
-            exp_list = response.data
-            logger.info(f"Fetched {len(exp_list)} experiments from Superposition")
-            trimmed_exp_list = []
-            for exp in exp_list:
-                condition = {}
-                for key, value in exp.context.items():
-                    condition[key] = json.dumps(document_to_python_value(value))
-                
-                variants = []
-                
-                for variant in exp.variants:
-                    variant_type = VariantType.CONTROL if variant.variant_type == "CONTROL" else VariantType.EXPERIMENTAL
-                    override =  document_to_python_value(variant.overrides)
-                    overrides = {}
-                    if isinstance(override, dict):
-                        overrides = {k: json.dumps(v) for k, v in override.items()}
-                    variants.append(
-                        Variant(
-                            id=variant.id,
-                            variant_type=variant_type,
-                            context_id=variant.context_id,
-                            override_id=variant.override_id,
-                            overrides = overrides
-                        )
-                    )
-                 
-                    
-                trimmed_exp = FfiExperiment(
-                    id=exp.id,
-                    context=condition,
-                    variants=variants,
-                    traffic_percentage=exp.traffic_percentage,
-                )
-
-
-                trimmed_exp_list.append(trimmed_exp)
-                
+            # Call the get_config API
+            response = await client.get_config(get_config_input)
             
-            return trimmed_exp_list
+            # Convert the response to a dictionary format
+            config_data = {}
+            
+            # Add default configs
+            if response.default_configs:
+                default_configs: dict[str, str] = {}
+                for key, value in response.default_configs.items():
+                    default_configs[key] = json.dumps(document_to_python_value(value))
+                config_data['default_configs'] = default_configs
+            if response.overrides:
+                overrides = {}
+                for (key, value) in response.overrides.items():
+                    override = {}
+                    for (key1,value1) in value.items():
+                        override[key1] = json.dumps(document_to_python_value(value1))
+                    overrides[key] = override
+                config_data['overrides'] = overrides
+            if response.contexts:
+                context = []
+                for ele in response.contexts:
+                    condition = {}
+                    for key, value in ele.condition.items():
+                        condition[key] = json.dumps(document_to_python_value(value))
+                    cv = Context(
+                        id=ele.id,
+                        priority=ele.priority,
+                        weight=ele.weight,
+                        override_with_keys=ele.override_with_keys,
+                        condition=condition
+                    )
+                    context.append(cv)
+                config_data['contexts'] = context
+            
+            return config_data
             
         except Exception as e:
             # Log the error and return empty config as fallback
@@ -197,23 +227,26 @@ class ExperimentationClient():
         if should_refresh:
             try:
                 logger.debug("TTL expired. Fetching config on-demand.")
-                latest_exp_list = await self._get_experiments(self.superposition_options)
+                latest_config = await self._get_config(self.superposition_options)
 
-                if latest_exp_list is not None:
-                    logger.info("Experiment List fetched successfully.")
-                    self.cached_experiments = latest_exp_list
+                if latest_config is None and self.cached_config is None:
+                    logger.warning("No config found, using fallback config.")
+                    self.cached_config = self.fallback_config
+                elif latest_config is not None:
+                    logger.info("Config fetched successfully.")
+                    self.cached_config = latest_config
                     self.last_updated = datetime.utcnow()
                 
             except Exception as e:
                 logger.warning(f"On-demand fetch failed: {e}")
-                if not use_stale or self.cached_experiments is None:
+                if not use_stale or self.cached_config is None:
                     raise e
                 else:
                     logger.info("Using stale config due to error.")
 
-        return self.cached_experiments
-    
-    
+        return self.cached_config
+
+
     def _generate_cache_key(self, query_data: dict) -> str:
         return json.dumps(query_data, sort_keys=True)
 
@@ -243,7 +276,7 @@ class ExperimentationClient():
             
             # Clear caches
             self._clear_eval_cache()
-            self.cached_experiments = None
+            self.cached_config = None
             self.last_updated = None
             
             logger.info("ConfigurationClient closed successfully")
@@ -251,5 +284,3 @@ class ExperimentationClient():
         except Exception as e:
             logger.error(f"Error during ConfigurationClient cleanup: {e}")
             raise
-
-

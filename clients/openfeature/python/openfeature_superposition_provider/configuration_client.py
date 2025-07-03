@@ -2,8 +2,8 @@ import asyncio
 import logging
 import json
 from typing import Dict, Any, Optional
-from .cac_client import CacClient
-from .exp_client import ExperimentationClient
+from .cac_config import CacConfig
+from .exp_config import ExperimentationConfig
 from .types import SuperpositionOptions, ConfigurationOptions, ExperimentationOptions
 from .superposition_client import ExperimentationArgs, ffi_eval_config, ffi_get_applicable_variants
 from .superposition_client import MergeStrategy
@@ -19,15 +19,15 @@ class ConfigurationClient:
         self.exp_options = exp_options
         
         # Initialize the CAC client
-        self.cac_client = CacClient(
+        self.cac_config = CacConfig(
             superposition_options=superposition_options,
             options=cac_options
         )
         
         # Initialize the experimentation client if options are provided
-        self.exp_client = None
+        self.exp_config = None
         if exp_options:
-            self.exp_client = ExperimentationClient(
+            self.exp_config = ExperimentationConfig(
                 superposition_options=superposition_options,
                 experiment_options=exp_options
             )
@@ -41,12 +41,12 @@ class ConfigurationClient:
         logger.info("Creating SuperpositionClient configuration...")
         
         # Initialize CAC client
-        await self.cac_client.create_config()
+        await self.cac_config.create_config()
         
         # Initialize experimentation client if available
-        if self.exp_client:
+        if self.exp_config:
             logger.info("Creating ExperimentationClient configuration...")
-            await self.exp_client.create_config()
+            await self.exp_config.create_config()
             
         logger.info("SuperpositionClient configuration created successfully")
 
@@ -55,24 +55,24 @@ class ConfigurationClient:
         logger.info("Starting polling for SuperpositionClient...")
         
         # Start CAC polling
-        if hasattr(self.cac_client, 'start_polling_update'):
-            self.cac_client.start_polling_update()
+        if hasattr(self.cac_config, 'start_polling_update'):
+            self.cac_config.start_polling_update()
         
         # Start experimentation polling
-        if self.exp_client and hasattr(self.exp_client, 'start_polling_update'):
-            self.exp_client.start_polling_update()
+        if self.exp_config and hasattr(self.exp_config, 'start_polling_update'):
+            self.exp_config.start_polling_update()
 
     def eval(self, query_data: dict, targeting_key: Optional[str]) -> dict[str, Any]:
         
         experimentdata = None
-        if self.exp_client:
+        if self.exp_config:
             experimentdata = ExperimentationArgs(
-                experiments=self.exp_client.cached_experiments,
+                experiments=self.exp_config.cached_experiments,
                 targeting_key= targeting_key if targeting_key else "",
             )
         try:
-            cache_key = self.cac_client._generate_cache_key(query_data)
-            cached = self.cac_client._get_from_eval_cache(cache_key)
+            cache_key = self.cac_config._generate_cache_key(query_data)
+            cached = self.cac_config._get_from_eval_cache(cache_key)
 
             if cached:
                 logger.debug("Using cached evaluation result")
@@ -80,9 +80,9 @@ class ConfigurationClient:
 
             print(f"Evaluating configuration with query data: {query_data}")
             result = ffi_eval_config(
-                self.cac_client.cached_config.get('default_configs', {}),
-                self.cac_client.cached_config.get('contexts', []),
-                self.cac_client.cached_config.get('overrides', {}),
+                self.cac_config.cached_config.get('default_configs', {}),
+                self.cac_config.cached_config.get('contexts', []),
+                self.cac_config.cached_config.get('overrides', {}),
                 query_data,
                 MergeStrategy.MERGE,
                 filter_prefixes=None,
@@ -102,8 +102,8 @@ class ConfigurationClient:
     
 
     def get_applicable_variants(self, context: Dict[str, str], toss: Optional[int] = None) -> list:
-        if self.exp_client:
-            return self.exp_client.get_applicable_variants(context, toss)
+        if self.exp_config:
+            return self.exp_config.get_applicable_variants(context, toss)
         else:
             return []
 
@@ -175,9 +175,9 @@ class ConfigurationClient:
 
     def get_applicable_variant(self, context: Dict[str, Any], targeting_key: Optional[str] = None) -> list:
         """Get applicable variant from experimentation client"""
-        if self.exp_client:
+        if self.exp_config:
             experimentdata = ExperimentationArgs(
-                experiments=self.exp_client.cached_experiments(),
+                experiments=self.exp_config.cached_experiments(),
                 targeting_key= targeting_key if targeting_key else "",
             )
             return ffi_get_applicable_variants(experimentdata,context, prefix=None)
@@ -185,8 +185,8 @@ class ConfigurationClient:
 
     def _clear_eval_cache(self):
         """Clear evaluation cache"""
-        if hasattr(self.cac_client, '_clear_eval_cache'):
-            self.cac_client._clear_eval_cache()
+        if hasattr(self.cac_config, '_clear_eval_cache'):
+            self.cac_config._clear_eval_cache()
         self.cached_config = None
         self.last_updated = None
 
@@ -242,15 +242,15 @@ class ConfigurationClient:
                     logger.debug("Polling task cancelled successfully")
 
             # Close CAC client
-            if self.cac_client and hasattr(self.cac_client, 'close'):
-                if asyncio.iscoroutinefunction(self.cac_client.close):
-                    await self.cac_client.close()
+            if self.cac_config and hasattr(self.cac_config, 'close'):
+                if asyncio.iscoroutinefunction(self.cac_config.close):
+                    await self.cac_config.close()
                 else:
-                    self.cac_client.close()
+                    self.cac_config.close()
 
             # Close experimentation client
-            if self.exp_client and hasattr(self.exp_client, 'free_client'):
-                self.exp_client.free_client()
+            if self.exp_config and hasattr(self.exp_config, 'free_client'):
+                self.exp_config.free_client()
 
             # Clear cached data
             self._clear_eval_cache()

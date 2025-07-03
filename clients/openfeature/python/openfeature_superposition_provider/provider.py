@@ -25,28 +25,6 @@ from openfeature.flag_evaluation import (
 )
 
 from typing import Any, Optional
-class SuperpositionClient(OpenFeatureClient):
-    def __init__(
-        self,
-        sup_provider: Any,
-        domain: Optional[str],
-        version: Optional[str],
-        context: Optional[EvaluationContext] = None,
-        hooks: Optional[list[Hook]] = None,
-    ) -> None:
-        # Call the parent constructor
-        super().__init__(domain, version, context, hooks)
-        self.sup_provider = sup_provider
-
-    def get_all_config_details(
-        self,
-        default_value: Any,
-        evaluation_context: Optional[EvaluationContext] = None,
-        flag_evaluation_options: Optional[FlagEvaluationOptions] = None,
-    ) -> FlagResolutionDetails[Any]:
-        """Get boolean details for a flag"""
-        return self.sup_provider.resolve_all_config_details(default_value, evaluation_context)
-
 
 class SuperpositionProvider(AbstractProvider):
     def __init__(self, provider_options: SuperpositionProviderOptions):
@@ -148,13 +126,6 @@ class SuperpositionProvider(AbstractProvider):
             self.client = None
             self.status = ProviderStatus.FATAL
             raise
-    
-    def get_superpositon_client(
-        self,
-        domain: Optional[str] = None, version: Optional[str] = None
-    ) -> SuperpositionClient:
-        return SuperpositionClient(self, domain=domain, version=version)
-
     def get_context_from_evaluation_context(self, evaluation_context: EvaluationContext) -> Tuple[Dict[str, str], Optional[str]]:
         if evaluation_context is None or evaluation_context.attributes is None:
             return ({}, None)

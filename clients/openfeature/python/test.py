@@ -1,11 +1,13 @@
 import asyncio
 import logging
 
-from .provider import SuperpositionProvider
-from .types import ExperimentationOptions, SuperpositionProviderOptions, PollingStrategy
+from openfeature_superposition_provider.provider import SuperpositionProvider
+from openfeature_superposition_provider.types import ExperimentationOptions, SuperpositionProviderOptions, PollingStrategy
 from openfeature import api
 from openfeature.evaluation_context import EvaluationContext
-
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 # Set up logging for debugging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -57,7 +59,7 @@ def check_exp_string_val(client, ctx, expected_val: str):
     assert hasattr(string_result, 'reason'), "String result should have a reason attribute"
     
     # Assert exact value like Java test expects
-    assert string_result.value == expected_val, f"Expected string value to be 'something', but got '{string_result.value}'"
+    assert string_result.value == expected_val, f"Expected string value to be '{expected_val}', but got '{string_result.value}'"
     
     return string_result
 
@@ -177,6 +179,7 @@ async def test_config():
     
     provider = SuperpositionProvider(provider_options=config_options)
     ctx = EvaluationContext(
+        targeting_key="25",  # Using a targeting key like in Java test
         attributes={'d1': 'd1'}
     )
     
@@ -186,8 +189,7 @@ async def test_config():
         api.set_provider(provider)
         client = api.get_client()
 
-        sup_client = provider.get_superpositon_client()
-        resp = sup_client.get_all_config_details({}, ctx)
+        resp = provider.resolve_all_config_details({}, ctx)
         print(f"Response for all config: {resp}")
 
         # Test boolean flag
