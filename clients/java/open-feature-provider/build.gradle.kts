@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    kotlin("jvm") version "1.9.10"
     id("io.freefair.lombok") version "8.6"
 }
 
@@ -7,6 +8,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
@@ -17,7 +22,7 @@ dependencies {
     implementation("dev.openfeature:sdk:1.15.1")
     implementation("com.google.code.gson:gson:2.10")
     implementation("org.slf4j:slf4j-api:2.0.9")
-
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
     compileOnly("org.jetbrains:annotations:24.1.0")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

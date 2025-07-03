@@ -24,23 +24,11 @@ public class SuperpositionProviderOptions {
     @Nullable SuperpositionConfig fallbackConfig;
     @Nullable ExperimentationOptions experimentationOptions;
 
+    @Builder
     public static class ExperimentationOptions {
+        @NonNull
         RefreshStrategy refreshStrategy;
+        @Nullable
         EvaluationCacheOptions evaluationCacheOptions;
-
-        ExperimentationOptions(
-            RefreshStrategy refreshStrategy,
-            EvaluationCacheOptions evaluationCacheOptions
-        ) {
-            this.refreshStrategy = refreshStrategy;
-            this.evaluationCacheOptions = evaluationCacheOptions;
-        }
-
-        public ExperimentationOptions of(
-            @NonNull RefreshStrategy refreshStrategy,
-            @NonNull EvaluationCacheOptions evaluationCacheOptions
-        ) {
-            return new ExperimentationOptions(refreshStrategy, evaluationCacheOptions);
-        }
     }
 }
