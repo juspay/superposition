@@ -86,8 +86,8 @@ pub fn experiment_list() -> impl IntoView {
                 &filters,
                 &pagination_params,
                 &dimension_params,
-                current_tenant.to_string(),
-                org_id.clone(),
+                &current_tenant,
+                &org_id,
             );
             let dimensions_future = fetch_dimensions(
                 &fetch_all_filters,

@@ -239,6 +239,7 @@ pub struct ExperimentListFilters {
     pub to_date: Option<DateTime<Utc>>,
     pub experiment_name: Option<String>,
     pub experiment_ids: Option<CommaSeparatedStringQParams>,
+    pub experiment_group_ids: Option<CommaSeparatedStringQParams>,
     pub created_by: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
@@ -264,6 +265,12 @@ impl Display for ExperimentListFilters {
         if let Some(experiment_ids) = &self.experiment_ids {
             if !experiment_ids.is_empty() {
                 query_params.push(format!("experiment_ids={}", experiment_ids));
+            }
+        }
+        if let Some(experiment_group_ids) = &self.experiment_group_ids {
+            if !experiment_group_ids.is_empty() {
+                query_params
+                    .push(format!("experiment_group_ids={}", experiment_group_ids));
             }
         }
         if let Some(created_by) = &self.created_by {
@@ -298,6 +305,7 @@ impl Default for ExperimentListFilters {
             to_date: None,
             experiment_name: None,
             experiment_ids: None,
+            experiment_group_ids: None,
             created_by: None,
             sort_on: None,
             sort_by: Some(SortBy::Desc),
