@@ -8,6 +8,7 @@ import {
     OpenFeatureEventEmitter,
     ErrorCode,
     ProviderMetadata,
+    OpenFeature,
     Hook,
     Logger,
 } from '@openfeature/server-sdk';
@@ -21,7 +22,7 @@ import {
     ConfigData,
     ExperimentationOptions,
 } from './types';
-import { NativeResolver } from './native-resolver';
+import { NativeResolver } from 'superposition-bindings';
 
 export interface SuperpositionProviderOptions {
     endpoint: string;
@@ -74,13 +75,15 @@ export class SuperpositionProvider implements Provider {
                 fallbackConfig: config.fallbackConfig,
                 evaluationCache: config.evaluationCache,
                 refreshStrategy: config.refreshStrategy,
-            }
+            },
+            config.experimentationOptions
         );
     }
 
     async initialize(context?: EvaluationContext): Promise<void> {
         this.status = ProviderStatus.NOT_READY;
         try {
+            await this.client.initialize();
             await this.client.eval(context || {});
             this.status = ProviderStatus.READY;
             this.events.emit(ProviderEvents.Ready, { message: 'Provider ready' });
@@ -95,6 +98,7 @@ export class SuperpositionProvider implements Provider {
     async onClose(): Promise<void> {
         this.status = ProviderStatus.NOT_READY;
         this.processedContextCache = new WeakMap();
+        await this.client.close();
     }
 
     private async evaluateFlag<T>(
@@ -202,6 +206,29 @@ export class SuperpositionProvider implements Provider {
         logger?: Logger
     ): Promise<ResolutionDetails<T>> {
         return this.createResolver<T>('object')(flagKey, defaultValue, context);
+    }
+
+    async resolveAllConfigDetails(
+        defaultValue: Record<string, any>,
+        context: EvaluationContext
+    ): Promise<Record<string, any>> {
+        if (this.status !== ProviderStatus.READY && this.status !== ProviderStatus.STALE) {
+            return defaultValue;
+        }
+
+        try {
+            const processedContext = this.processedContextCache.get(context) || this.filterContext(context);
+            if (!this.processedContextCache.has(context)) {
+                this.processedContextCache.set(context, processedContext);
+            }
+
+            const targetingKey = context.targetingKey;
+            return await this.client.getAllConfigValue(defaultValue, processedContext, targetingKey);
+        }
+        catch (error) {
+            console.error('Error resolving all config details:', error);
+            return defaultValue;
+        }
     }
 
     getStatus(): ProviderStatus { return this.status; }

@@ -3,7 +3,7 @@ import {
     CreateWorkspaceCommand,
     UpdateWorkspaceCommand,
     WorkspaceStatus,
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect } from "bun:test";
 

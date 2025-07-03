@@ -25,6 +25,7 @@ export interface PollingStrategy {
 export interface OnDemandStrategy {
     ttl: number;
     timeout?: number;
+    use_stale_on_error?: boolean;
 }
 
 export type RefreshStrategy = PollingStrategy | OnDemandStrategy;
@@ -32,6 +33,7 @@ export type RefreshStrategy = PollingStrategy | OnDemandStrategy;
 export interface ExperimentationOptions {
     refreshStrategy: RefreshStrategy;
     evaluationCache?: EvaluationCacheOptions;
+    defaultToss?: number;
 }
 
 export interface ConfigOptions {
@@ -44,4 +46,24 @@ export interface ConfigData {
     default_configs: Record<string, any>;
     contexts: any[];
     overrides: Record<string, Record<string, any>>;
+}
+
+export interface FfiExperiment {
+    id: string;
+    context: Record<string, string>;
+    variants: Variant[];
+    traffic_percentage: number;
+}
+
+export interface Variant {
+    id: string;
+    variant_type: 'CONTROL' | 'EXPERIMENTAL';
+    context_id?: string;
+    override_id?: string;
+    overrides: Record<string, string>;
+}
+
+export interface ExperimentationArgs {
+    experiments: FfiExperiment[];
+    targeting_key: string;
 }

@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as os from 'os';
 
 export class NativeResolver {
     private lib: any;
@@ -9,18 +10,18 @@ export class NativeResolver {
             const koffi = require('koffi');
             this.lib = koffi.load(libPath || this.getDefaultLibPath());
 
-            // Define the core resolution functions with CORRECT 6 parameters each
+            // Define the core resolution functions with CORRECT 7 parameters each
             this.lib.core_get_resolved_config = this.lib.func(
-                'char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*)'
+                'char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*)'
             );
             this.lib.core_get_resolved_config_with_reasoning = this.lib.func(
-                'char* core_get_resolved_config_with_reasoning(const char*, const char*, const char*, const char*, const char*, const char*)'
+                'char* core_get_resolved_config_with_reasoning(const char*, const char*, const char*, const char*, const char*, const char*, const char*)'
             );
             this.lib.core_free_string = this.lib.func('void core_free_string(char*)');
             this.lib.core_last_error_message = this.lib.func('char* core_last_error_message()');
             this.lib.core_last_error_length = this.lib.func('int core_last_error_length()');
-            this.lib.core_evaluate_experiments = this.lib.func(
-                'char* core_evaluate_experiments(const char*, const char*, const char*, const char*, int, const char*, const char*)'
+            this.lib.core_get_applicable_variants = this.lib.func(
+                'char* core_get_applicable_variants(const char*, const char*, int8, const char*)'
             );
             this.lib.core_test_connection = this.lib.func('int core_test_connection()');
 
@@ -41,7 +42,8 @@ export class NativeResolver {
         overrides: Record<string, Record<string, any>>,
         queryData: Record<string, any>,
         mergeStrategy: 'merge' | 'replace' = 'merge',
-        filterPrefixes?: string[]
+        filterPrefixes?: string[],
+        experimentation?: any
     ): Record<string, any> {
         if (!this.isAvailable) {
             throw new Error('Native resolver is not available. Please ensure the native library is built and accessible.');
@@ -68,6 +70,7 @@ export class NativeResolver {
         const filterPrefixesJson = filterPrefixes && filterPrefixes.length > 0
             ? JSON.stringify(filterPrefixes)
             : null;
+        const experimentationJson = experimentation ? JSON.stringify(experimentation) : null;
 
         console.log('🔧 Calling FFI with parameters:');
         console.log('  defaultConfigs:', defaultConfigs);
@@ -76,6 +79,7 @@ export class NativeResolver {
         console.log('  queryData :', queryDataJson);
         console.log('  mergeStrategy:', mergeStrategy);
         console.log('  filterPrefixes:', filterPrefixes);
+        console.log('  experimentation:', experimentationJson);
 
         if (!defaultConfigsJson || defaultConfigsJson === 'null' || defaultConfigsJson === 'undefined') {
             throw new Error('defaultConfigs serialization failed');
@@ -96,7 +100,8 @@ export class NativeResolver {
             overridesJson,
             queryDataJson,
             mergeStrategy,
-            filterPrefixesJson
+            filterPrefixesJson,
+            experimentationJson
         );
 
         console.log('🔧 FFI call completed, result:', result);
@@ -111,7 +116,13 @@ export class NativeResolver {
             this.lib.core_free_string(result);
         }
 
-        return JSON.parse(configStr);
+        try {
+            return JSON.parse(configStr);
+        } catch (parseError) {
+            console.error('Failed to parse config result:', parseError);
+            console.error('Raw result string:', configStr);
+            throw new Error(`Failed to parse config evaluation result: ${parseError}`);
+        }
     }
 
     resolveConfigWithReasoning(
@@ -120,7 +131,8 @@ export class NativeResolver {
         overrides: Record<string, Record<string, any>>,
         queryData: Record<string, any>,
         mergeStrategy: 'merge' | 'replace' = 'merge',
-        filterPrefixes?: string[]
+        filterPrefixes?: string[],
+        experimentation?: any
     ): Record<string, any> {
         if (!this.isAvailable) {
             throw new Error('Native resolver is not available. Please ensure the native library is built and accessible.');
@@ -129,7 +141,9 @@ export class NativeResolver {
         const filterPrefixesJson = filterPrefixes && filterPrefixes.length > 0
             ? JSON.stringify(filterPrefixes)
             : null;
-
+        const experimentationJson = experimentation
+            ? JSON.stringify(experimentation)
+            : null;
 
         const result = this.lib.core_get_resolved_config_with_reasoning(
             JSON.stringify(defaultConfigs || {}),
@@ -137,7 +151,8 @@ export class NativeResolver {
             JSON.stringify(overrides),
             JSON.stringify(queryData),
             mergeStrategy,
-            filterPrefixesJson
+            filterPrefixesJson,
+            experimentationJson
         );
 
         if (!result) {
@@ -150,18 +165,21 @@ export class NativeResolver {
             this.lib.core_free_string(result);
         }
 
-        return JSON.parse(configStr);
+        try {
+            return JSON.parse(configStr);
+        } catch (parseError) {
+            console.error('Failed to parse reasoning result:', parseError);
+            console.error('Raw result string:', configStr);
+            throw new Error(`Failed to parse reasoning evaluation result: ${parseError}`);
+        }
     }
 
-    evaluateExperiments(
+    getApplicableVariants(
         experiments: any[],
-        variants: any[],
-        overrides: Record<string, Record<string, any>>,
         userContext: Record<string, any>,
         toss: number,
-        filterPrefixes: string[] = [],
-        evaluationOptions?: any
-    ): Record<string, any> {
+        filterPrefixes: string[] = []
+    ): string[] {
         if (!this.isAvailable) {
             throw new Error('Native resolver is not available. Please ensure the native library is built and accessible.');
         }
@@ -169,55 +187,31 @@ export class NativeResolver {
         if (!experiments) {
             throw new Error('experiments parameter is required');
         }
-        if (!variants) {
-            throw new Error('variants parameter is required');
-        }
-        if (!overrides) {
-            throw new Error('overrides parameter is required');
-        }
         if (!userContext) {
             throw new Error('userContext parameter is required');
         }
 
-        if (typeof toss !== 'number' || toss < -1) {
-            throw new Error('toss must be a number >= -1');
-        }
-
         const experimentsJson = JSON.stringify(experiments);
-        const variantsJson = JSON.stringify(variants);
-        const overridesJson = JSON.stringify(overrides);
         const userContextJson = JSON.stringify(userContext);
-        const filterPrefixesJson = JSON.stringify(filterPrefixes);
-        const evaluationOptionsJson = evaluationOptions ? JSON.stringify(evaluationOptions) : null;
+        const filterPrefixesJson = filterPrefixes.length > 0 ? JSON.stringify(filterPrefixes) : null;
 
-        if (!experimentsJson || experimentsJson === 'null' || experimentsJson === 'undefined') {
-            throw new Error('experiments serialization failed');
-        }
-        if (!variantsJson || variantsJson === 'null' || variantsJson === 'undefined') {
-            throw new Error('variants serialization failed');
-        }
-        if (!overridesJson || overridesJson === 'null' || overridesJson === 'undefined') {
-            throw new Error('overrides serialization failed');
-        }
-        if (!userContextJson || userContextJson === 'null' || userContextJson === 'undefined') {
-            throw new Error('userContext serialization failed');
-        }
-        if (!filterPrefixesJson || filterPrefixesJson === 'null' || filterPrefixesJson === 'undefined') {
-            throw new Error('filterPrefixes serialization failed');
-        }
+        console.log('🔧 Calling FFI getApplicableVariants with parameters:');
+        console.log('  experiments:', experiments);
+        console.log('  userContext:', userContext);
+        console.log('  toss:', toss);
+        console.log('  filterPrefixes:', filterPrefixes);
 
-        const result = this.lib.core_evaluate_experiments(
+        const result = this.lib.core_get_applicable_variants(
             experimentsJson,
-            variantsJson,
-            overridesJson,
             userContextJson,
             toss,
-            filterPrefixesJson,
-            evaluationOptionsJson
+            filterPrefixesJson
         );
 
+        console.log('FFI getApplicableVariants call completed, result:', result);
+
         if (!result) {
-            this.throwLastError('Failed to evaluate experiments');
+            this.throwLastError('Failed to get applicable variants');
         }
 
         const resultStr = typeof result === 'string' ? result : this.lib.decode(result, 'string');
@@ -229,23 +223,80 @@ export class NativeResolver {
         try {
             return JSON.parse(resultStr);
         } catch (parseError) {
-            console.error('Failed to parse experiment result:', parseError);
+            console.error('Failed to parse variants result:', parseError);
             console.error('Raw result string:', resultStr);
-            throw new Error(`Failed to parse experiment evaluation result: ${parseError}`);
+            throw new Error(`Failed to parse variants evaluation result: ${parseError}`);
         }
     }
 
+    /**
+     * Get the path to the native library.
+     * Uses the same approach as Java and Python - looks for GitHub artifacts first,
+     * then falls back to local build.
+     */
     private getDefaultLibPath(): string {
-        let filename;
-        if (process.platform === 'win32') {
-            filename = 'core.dll';
-        } else if (process.platform === 'darwin') {
-            filename = 'libcore.dylib';
+        const platform = os.platform();
+        const arch = os.arch();
+
+        let filename: string;
+        let extension: string;
+
+        // Determine file extension based on platform
+        if (platform === 'win32') {
+            extension = '.dll';
+        } else if (platform === 'darwin') {
+            extension = '.dylib';
         } else {
-            filename = 'libcore.so';
+            extension = '.so';
         }
 
-        return path.resolve(__dirname, `../../../../../target/release/${filename}`);
+        // Create platform-specific filename
+        if (platform === 'darwin' || platform === 'linux') {
+            filename = `libsuperposition_core${extension}`;
+        } else {
+            filename = `superposition_core${extension}`;
+        }
+
+        const packageRootPath = path.resolve(__dirname, '..', filename);
+        if (this.fileExists(packageRootPath)) {
+            console.log(`Using native library from package root: ${packageRootPath}`);
+            return packageRootPath;
+        }
+
+        // 1. First try to load from package's native-lib directory (GitHub artifacts)
+        const packageNativeLibPath = path.resolve(__dirname, '..', 'native-lib', filename);
+        if (this.fileExists(packageNativeLibPath)) {
+            console.log(`Using native library from package: ${packageNativeLibPath}`);
+            return packageNativeLibPath;
+        }
+
+        // 2. Try platform-specific subdirectory in native-lib
+        const platformDir = `${platform}-${arch}`;
+        const platformSpecificPath = path.resolve(__dirname, '..', 'native-lib', platformDir, filename);
+        if (this.fileExists(platformSpecificPath)) {
+            console.log(`Using platform-specific native library: ${platformSpecificPath}`);
+            return platformSpecificPath;
+        }
+
+        // 3. Fall back to local build (relative to repository root)
+        const localBuildPath = path.resolve(__dirname, '..', '..', '..', '..', 'target', 'release', filename);
+        if (this.fileExists(localBuildPath)) {
+            console.log(`Using local build: ${localBuildPath}`);
+            return localBuildPath;
+        }
+
+        // 4. Final fallback - assume it's in the system path
+        console.warn(`Native library not found in expected locations, trying: ${filename}`);
+        return filename;
+    }
+
+    private fileExists(filePath: string): boolean {
+        try {
+            const fs = require('fs');
+            return fs.existsSync(filePath);
+        } catch {
+            return false;
+        }
     }
 
     private throwLastError(prefix: string): never {

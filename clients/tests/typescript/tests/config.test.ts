@@ -3,7 +3,7 @@ import {
     ListVersionsCommand,
     UpdateWorkspaceCommand,
 
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect } from "bun:test";
 
@@ -46,7 +46,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
         //getConfigandCheck
         const input_1 = {
             workspace_id: ENV.workspace_id,
-            org_id:ENV.org_id,
+            org_id: ENV.org_id,
             prefix: "test-prefix",
             // version: 1,
             context: {},
@@ -74,7 +74,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
 
         const cmd_2 = new UpdateWorkspaceCommand(input_2);
         const resp = await superpositionClient.send(cmd_2);
-        
+
 
         expect(resp).toBeDefined();
         expect(resp.workspace_name).toBe(ENV.workspace_id);
@@ -101,7 +101,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
 
 describe("Config API - ListVersions", () => {
     test("should list all configuration versions", async () => {
-        
+
 
         const input = {
             workspace_id: ENV.workspace_id,
@@ -119,7 +119,7 @@ describe("Config API - ListVersions", () => {
         }
 
 
-        
+
     });
 });
 

@@ -1,15 +1,15 @@
 {
-    "name": "io.juspay/superposition-typescript-sdk",
+    "name": "superposition-sdk",
     "description": "io.juspay/superposition-typescript-sdk client",
     "version": "0.0.1",
     "scripts": {
-        "build": "concurrently 'yarn:build:cjs' 'yarn:build:es' 'yarn:build:types'",
+        "build": "npm run build:types && npm run build:cjs && npm run build:es",
         "build:cjs": "tsc -p tsconfig.cjs.json",
         "build:es": "tsc -p tsconfig.es.json",
         "build:types": "tsc -p tsconfig.types.json",
         "build:types:downlevel": "downlevel-dts dist-types dist-types/ts3.4",
-        "clean": "rimraf ./dist-* && rimraf *.tsbuildinfo || exit 0",
-        "prepack": "yarn run clean && yarn run build"
+        "clean": "rimraf ./dist-* && rimraf *.tsbuildinfo",
+        "prepack": "npm run clean && npm run build"
     },
     "main": "./dist-cjs/index.js",
     "types": "./dist-types/index.d.ts",
@@ -53,11 +53,11 @@
     },
     "devDependencies": {
         "@tsconfig/node18": "18.2.4",
-        "concurrently": "7.0.0",
         "downlevel-dts": "0.10.1",
-        "rimraf": "^3.0.0",
+        "rimraf": "^5.0.0",
         "typescript": "~5.2.2",
-        "@types/node": "^18.19.69"
+        "@types/node": "^18.19.69",
+        "concurrently": "^6.2.0"
     },
     "engines": {
         "node": ">=18.0.0"
