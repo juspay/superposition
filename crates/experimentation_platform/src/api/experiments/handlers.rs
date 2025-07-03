@@ -901,6 +901,15 @@ async fn list_experiments(
                 .collect();
             builder = builder.filter(experiments::id.eq_any(experiment_ids));
         }
+        if let Some(experiment_group_ids) = filters.experiment_group_ids.clone() {
+            let experiment_group_ids: HashSet<i64> = experiment_group_ids
+                .0
+                .iter()
+                .filter_map(|i| i.parse::<i64>().ok())
+                .collect();
+            builder = builder
+                .filter(experiments::experiment_group_id.eq_any(experiment_group_ids));
+        }
         if let Some(from_data) = filters.from_date {
             builder = builder.filter(experiments::last_modified.ge(from_data));
         }

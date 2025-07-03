@@ -121,23 +121,23 @@ pub fn condition_input(
                         selected={ matches!(operator, Operator::Is) } || resolve_mode
                     >
                         {if strict_mode {
-                            {Operator::Is.strict_mode_display().to_uppercase()}
+                            { Operator::Is.strict_mode_display().to_uppercase() }
                         } else {
-                            {Operator::Is.to_string().to_uppercase()}
+                            { Operator::Is.to_string().to_uppercase() }
                         }}
                     </option>
                     <option value="in" selected=matches!(operator, Operator::In)>
                         {if strict_mode {
-                            {Operator::In.strict_mode_display().to_uppercase()}
+                            { Operator::In.strict_mode_display().to_uppercase() }
                         } else {
-                            {Operator::In.to_string().to_uppercase()}
+                            { Operator::In.to_string().to_uppercase() }
                         }}
                     </option>
                     <option value="has" selected=matches!(operator, Operator::Has)>
                         {if strict_mode {
-                            {Operator::Has.strict_mode_display().to_uppercase()}
+                            { Operator::Has.strict_mode_display().to_uppercase() }
                         } else {
-                            {Operator::Has.to_string().to_uppercase()}
+                            { Operator::Has.to_string().to_uppercase() }
                         }}
                     </option>
                     <option value="<=" selected=matches!(operator, Operator::Between)>
