@@ -1,6 +1,6 @@
-package io.superposition.openfeature;
+package io.juspay.superposition.openfeature;
 
-import io.superposition.openfeature.options.RefreshStrategy;
+import io.juspay.superposition.openfeature.options.RefreshStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,5 +104,14 @@ class ProviderTest {
         provider.initialize(ctx);
         var pe = provider.getBooleanEvaluation("bool", true, ctx);
         assertEquals(false, pe.getValue());
+    }
+
+    @Test
+    void testOpenfeatureClient() {
+        var ctx = new ImmutableContext(Map.of());
+        provider.initialize(ctx);
+        OpenFeatureAPI.getInstance().setProvider(provider);
+        Client client = OpenFeatureAPI.getInstance().getClient();
+        assertEquals(true, client.getBooleanValue("bool", false, ctx));
     }
 }
