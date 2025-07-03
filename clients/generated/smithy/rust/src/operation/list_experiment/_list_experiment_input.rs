@@ -26,8 +26,6 @@ pub struct ListExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub context_query: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
     pub sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     #[allow(missing_docs)] // documentation missing in model
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
@@ -78,10 +76,6 @@ impl  ListExperimentInput  {
         self.created_by.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_query(&self) -> ::std::option::Option<&str> {
-        self.context_query.as_deref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn sort_on(&self) -> ::std::option::Option<&crate::types::ExperimentSortOn> {
         self.sort_on.as_ref()
     }
@@ -112,7 +106,6 @@ pub struct ListExperimentInputBuilder {
     pub(crate) experiment_name: ::std::option::Option<::std::string::String>,
     pub(crate) experiment_ids: ::std::option::Option<::std::string::String>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
-    pub(crate) context_query: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
 }
@@ -263,19 +256,6 @@ impl ListExperimentInputBuilder {
         &self.created_by
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_query(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.context_query = ::std::option::Option::Some(input.into());
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_query(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.context_query = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_context_query(&self) -> &::std::option::Option<::std::string::String> {
-        &self.context_query
-    }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn sort_on(mut self, input: crate::types::ExperimentSortOn) -> Self {
         self.sort_on = ::std::option::Option::Some(input);
         self
@@ -326,8 +306,6 @@ impl ListExperimentInputBuilder {
                 experiment_ids: self.experiment_ids
                 ,
                 created_by: self.created_by
-                ,
-                context_query: self.context_query
                 ,
                 sort_on: self.sort_on
                 ,

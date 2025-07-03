@@ -1287,7 +1287,6 @@ export const se_ListExperimentCommand = async(
     [_en]: [,input[_en]!],
     [_ei]: [,input[_ei]!],
     [_cb]: [,input[_cb]!],
-    [_co]: [,input[_cq]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
   });
@@ -4853,8 +4852,6 @@ const de_CommandError = async(
   const _c = "count";
   const _cb = "created_by";
   const _ci = "context_id";
-  const _co = "context";
-  const _cq = "context_query";
   const _ct = "config_tags";
   const _ei = "experiment_ids";
   const _en = "experiment_name";

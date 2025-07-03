@@ -1548,7 +1548,6 @@ export interface ListExperimentInput {
   experiment_name?: string | undefined;
   experiment_ids?: string | undefined;
   created_by?: string | undefined;
-  context_query?: string | undefined;
   sort_on?: ExperimentSortOn | undefined;
   sort_by?: SortBy | undefined;
 }

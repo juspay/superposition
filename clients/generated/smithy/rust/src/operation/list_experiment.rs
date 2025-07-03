@@ -180,19 +180,14 @@ fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mu
             query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_9));
         }
     }
-    if let ::std::option::Option::Some(inner_10) = &_input.context_query {
+    if let ::std::option::Option::Some(inner_10) = &_input.sort_on {
          {
-            query.push_kv("context", &::aws_smithy_http::query::fmt_string(inner_10));
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_10));
         }
     }
-    if let ::std::option::Option::Some(inner_11) = &_input.sort_on {
+    if let ::std::option::Option::Some(inner_11) = &_input.sort_by {
          {
-            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_11));
-        }
-    }
-    if let ::std::option::Option::Some(inner_12) = &_input.sort_by {
-         {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_12));
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_11));
         }
     }
     ::std::result::Result::Ok(())

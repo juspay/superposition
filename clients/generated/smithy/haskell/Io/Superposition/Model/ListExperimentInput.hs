@@ -10,7 +10,6 @@ module Io.Superposition.Model.ListExperimentInput (
     setExperimentName,
     setExperimentIds,
     setCreatedBy,
-    setContextQuery,
     setSortOn,
     setSortBy,
     build,
@@ -27,7 +26,6 @@ module Io.Superposition.Model.ListExperimentInput (
     experiment_name,
     experiment_ids,
     created_by,
-    context_query,
     sort_on,
     sort_by
 ) where
@@ -59,7 +57,6 @@ data ListExperimentInput = ListExperimentInput {
     experiment_name :: Data.Maybe.Maybe Data.Text.Text,
     experiment_ids :: Data.Maybe.Maybe Data.Text.Text,
     created_by :: Data.Maybe.Maybe Data.Text.Text,
-    context_query :: Data.Maybe.Maybe Data.Text.Text,
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
@@ -81,7 +78,6 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "experiment_name" Data.Aeson..= experiment_name a,
         "experiment_ids" Data.Aeson..= experiment_ids a,
         "created_by" Data.Aeson..= created_by a,
-        "context_query" Data.Aeson..= context_query a,
         "sort_on" Data.Aeson..= sort_on a,
         "sort_by" Data.Aeson..= sort_by a
         ]
@@ -101,7 +97,6 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "experiment_name")
         Control.Applicative.<*> (v Data.Aeson..: "experiment_ids")
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
-        Control.Applicative.<*> (v Data.Aeson..: "context_query")
         Control.Applicative.<*> (v Data.Aeson..: "sort_on")
         Control.Applicative.<*> (v Data.Aeson..: "sort_by")
     
@@ -120,7 +115,6 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     experiment_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     experiment_idsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    context_queryBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
@@ -140,7 +134,6 @@ defaultBuilderState = ListExperimentInputBuilderState {
     experiment_nameBuilderState = Data.Maybe.Nothing,
     experiment_idsBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
-    context_queryBuilderState = Data.Maybe.Nothing,
     sort_onBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing
 }
@@ -210,10 +203,6 @@ setCreatedBy :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentInputBuilder ()
 setCreatedBy value =
    ListExperimentInputBuilder (\s -> (s { created_byBuilderState = value }, ()))
 
-setContextQuery :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentInputBuilder ()
-setContextQuery value =
-   ListExperimentInputBuilder (\s -> (s { context_queryBuilderState = value }, ()))
-
 setSortOn :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn -> ListExperimentInputBuilder ()
 setSortOn value =
    ListExperimentInputBuilder (\s -> (s { sort_onBuilderState = value }, ()))
@@ -236,7 +225,6 @@ build builder = do
     experiment_name' <- Data.Either.Right (experiment_nameBuilderState st)
     experiment_ids' <- Data.Either.Right (experiment_idsBuilderState st)
     created_by' <- Data.Either.Right (created_byBuilderState st)
-    context_query' <- Data.Either.Right (context_queryBuilderState st)
     sort_on' <- Data.Either.Right (sort_onBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     Data.Either.Right (ListExperimentInput { 
@@ -251,7 +239,6 @@ build builder = do
         experiment_name = experiment_name',
         experiment_ids = experiment_ids',
         created_by = created_by',
-        context_query = context_query',
         sort_on = sort_on',
         sort_by = sort_by'
     })

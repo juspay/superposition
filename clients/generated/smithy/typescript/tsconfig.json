@@ -7,10 +7,7 @@
     "removeComments": true,
     "resolveJsonModule": true,
     "rootDir": "src",
-    "useUnknownInCatchVariables": false,
-    "esModuleInterop": true,
+    "useUnknownInCatchVariables": false
   },
-  "exclude": [
-    "test/"
-  ]
+  "exclude": ["test/"]
 }

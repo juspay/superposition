@@ -30,6 +30,7 @@ public final class Experiments implements ApiResource {
         Map.entry("name", PreludeSchemas.STRING),
         Map.entry("context", SharedSchemas.CONDITION),
         Map.entry("started_at", SharedSchemas.DATE_TIME),
+        Map.entry("experiment_group_id", PreludeSchemas.STRING),
         Map.entry("id", PreludeSchemas.STRING),
         Map.entry("metrics", PreludeSchemas.DOCUMENT),
         Map.entry("last_modified", SharedSchemas.DATE_TIME),
@@ -83,3 +84,4 @@ public final class Experiments implements ApiResource {
         return $OPERATIONS;
     }
 }
+
