@@ -1,12 +1,16 @@
-import { SuperpositionOptions, ConfigOptions, ConfigData, PollingStrategy } from './types'; // ExperimentationOptions seems unused
+import { SuperpositionOptions, ConfigOptions, ConfigData, PollingStrategy, ExperimentationArgs } from './types'; // ExperimentationOptions seems unused
 import { NativeResolver } from './native-resolver';
 import { SuperpositionClient, GetConfigCommand, GetConfigCommandInput } from '@io.juspay/superposition-sdk';
+import { ExperimentationClient, Experiment } from './experimentation-client';
+import { ExperimentationOptions } from './types';
 
 export class ConfigurationClient {
     private config: SuperpositionOptions;
     private resolver: NativeResolver;
     private options: ConfigOptions;
     private currentConfigData: ConfigData | null = null;
+    private experimentationClient?: ExperimentationClient;
+    private experimentationOptions?: ExperimentationOptions;
 
     private defaults: ConfigData | null = null;
     private smithyClient: SuperpositionClient;
@@ -14,7 +18,8 @@ export class ConfigurationClient {
     constructor(
         config: SuperpositionOptions,
         resolver: NativeResolver,
-        options: ConfigOptions = {}
+        options: ConfigOptions = {},
+        experimentationOptions?: ExperimentationOptions
     ) {
         this.config = config;
         this.resolver = resolver;
@@ -34,6 +39,11 @@ export class ConfigurationClient {
 
             }, strategy.interval);
 
+            if (experimentationOptions) {
+                this.experimentationOptions = experimentationOptions;
+                this.experimentationClient = new ExperimentationClient(config, experimentationOptions);
+            }
+
         }
 
         this.smithyClient = new SuperpositionClient({
@@ -42,19 +52,38 @@ export class ConfigurationClient {
         });
     }
 
-    async eval(queryData: Record<string, any>, filterPrefixes?: string[]): Promise<any>;
-    async eval<T>(queryData: Record<string, any>, filterPrefixes?: string[]): Promise<T>;
-    async eval(queryData: Record<string, any>, filterPrefixes?: string[]): Promise<any> {
+    async initialize(): Promise<void> {
+        // Initialize experimentation client if present
+        if (this.experimentationClient) {
+            await this.experimentationClient.initialize();
+        }
+    }
+
+    async eval(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<any>;
+    async eval<T>(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<T>;
+    async eval(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<any> {
         try {
 
             const configData = await this.fetchConfigData();
+
+            let experimentationArgs: ExperimentationArgs | undefined;
+
+            if (this.experimentationClient && targetingKey) {
+                const experiments = await this.experimentationClient.getExperiments();
+                experimentationArgs = {
+                    experiments,
+                    targeting_key: targetingKey
+                };
+            }
+
             const result = this.resolver.resolveConfig(
                 configData.default_configs || {},
                 configData.contexts || [],
                 configData.overrides || {},
                 queryData,
                 'merge',
-                filterPrefixes
+                filterPrefixes,
+                experimentationArgs
             );
             return result;
 
@@ -101,6 +130,74 @@ export class ConfigurationClient {
             console.error('SuperpositionClient GetConfigCommand failed:', error);
             const errorMessage = error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to fetch configuration: ${errorMessage}`);
+        }
+    }
+
+    async getAllConfigValue(
+        defaultValue: Record<string, any>,
+        context: Record<string, any>,
+        targetingKey?: string
+    ): Promise<Record<string, any>> {
+        try {
+            const configData = await this.fetchConfigData();
+
+            // Prepare query data with experiment variants if applicable
+            let queryData = { ...context };
+
+            if (this.experimentationClient && targetingKey) {
+                const experiments = await this.experimentationClient.getExperiments();
+                const toss = this.experimentationOptions?.defaultToss ||
+                    (parseInt(targetingKey) || Math.floor(Math.random() * 100)) % 100;
+
+                const variantIds = await this.getApplicableVariants(experiments, queryData, toss);
+                if (variantIds.length > 0) {
+                    queryData.variantIds = variantIds;
+                }
+            }
+
+            const result = this.resolver.resolveConfig(
+                configData.default_configs || {},
+                configData.contexts || [],
+                configData.overrides || {},
+                queryData,
+                'merge'
+            );
+
+            return result;
+        } catch (error) {
+            if (this.defaults) {
+                return this.resolver.resolveConfig(
+                    this.defaults.default_configs || {},
+                    this.defaults.contexts || [],
+                    this.defaults.overrides || {},
+                    context,
+                    'merge'
+                );
+            }
+            throw error;
+        }
+    }
+
+    // Add method to get applicable variants
+    private async getApplicableVariants(
+        experiments: Experiment[],
+        queryData: Record<string, any>,
+        toss: number,
+        filterPrefixes?: string[]
+    ): Promise<string[]> {
+        // This would use the native resolver's getApplicableVariants method
+        return this.resolver.getApplicableVariants(
+            experiments,
+            queryData,
+            toss,
+            filterPrefixes || []
+        );
+    }
+
+    // Add method to close and cleanup
+    async close(): Promise<void> {
+        if (this.experimentationClient) {
+            await this.experimentationClient.close();
         }
     }
 }

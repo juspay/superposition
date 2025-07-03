@@ -2,7 +2,7 @@ export * from './types';
 
 // Export main classes
 export { ConfigurationClient } from './configuration-client';
-export { ExperimentationClient } from './experiment-client';
+export { ExperimentationClient } from './experimentation-client';
 export { NativeResolver } from './native-resolver';
 export {
     SuperpositionProvider,
