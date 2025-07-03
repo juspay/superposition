@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_derives-v0.3.0 - 2025-07-03
+#### Features
+- Rust Version Bump + Uniffi + Java OpenFeature SDK (#553) - (1aba4b4) - ShreyBana
+
+- - -
+
 ## superposition_derives-v0.2.1 - 2025-04-29
 #### Bug Fixes
 - Empty check for keys of struct - (8d3b709) - ayush.jain@juspay.in

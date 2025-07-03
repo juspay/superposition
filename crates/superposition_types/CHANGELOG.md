@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.23.0 - 2025-07-03
+#### Bug Fixes
+- Show experiment filters - (a6a0e7e) - ayush.jain@juspay.in
+- Make forms look consistent - (024478d) - ayush.jain@juspay.in
+- Default Config page UX issues - (939505e) - ayush.jain@juspay.in
+- experiment client fetch fix (#555) - (cb08467) - PRATIK MISHRA
+- added validation for and wrapper over context json logic - (a48cc71) - Shubhranshu Sanjeev
+#### Features
+- added experiment openfeature support with uniffi (#561) - (dfad18c) - PRATIK MISHRA
+- added a CRUD for experiment groups (#540) - (6eedef2) - Datron
+- Rust Version Bump + Uniffi + Java OpenFeature SDK (#553) - (1aba4b4) - ShreyBana
+- experiment group integration (#526) - (73d0950) - Ankit Kumar Mahato
+- Workspace setting for allowing experiment self approval (#552) - (472f03e) - Ayush Jain
+
+- - -
+
 ## superposition_types-v0.22.0 - 2025-06-23
 #### Bug Fixes
 - corrected decode for post in resolve config (#545) - (892092e) - George James

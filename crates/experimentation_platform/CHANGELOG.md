@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.35.0 - 2025-07-03
+#### Bug Fixes
+- Show experiment filters - (a6a0e7e) - ayush.jain@juspay.in
+- added validation for and wrapper over context json logic - (a48cc71) - Shubhranshu Sanjeev
+#### Features
+- added a CRUD for experiment groups (#540) - (6eedef2) - Datron
+- experiment group integration (#526) - (73d0950) - Ankit Kumar Mahato
+- Workspace setting for allowing experiment self approval (#552) - (472f03e) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.34.0 - 2025-06-23
 #### Bug Fixes
 - List exp behaviour for list all (#528) - (24d287d) - Ayush Jain

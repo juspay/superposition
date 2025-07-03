@@ -2,6 +2,34 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.32.0 - 2025-07-03
+#### Bug Fixes
+- Show filters in all pages - (8ba1619) - ayush.jain@juspay.in
+- Show experiment filters - (a6a0e7e) - ayush.jain@juspay.in
+- Table consistency across pages - (05993cb) - ayush.jain@juspay.in
+- Table header UI - (6831986) - ayush.jain@juspay.in
+- Make forms look consistent - (024478d) - ayush.jain@juspay.in
+- Change is operator to == in strict mode - (d09baf5) - ayush.jain@juspay.in
+- Experiment filter status colour - (f68c92b) - ayush.jain@juspay.in
+- Navigation via anchor - (eec8019) - ayush.jain@juspay.in
+- Frontend formatting - (92a5835) - ayush.jain@juspay.in
+- Sidenav height issue - (4a53ccb) - ayush.jain@juspay.in
+- Remove font-mono - (c1c720d) - ayush.jain@juspay.in
+- Experiment page pagination reset - (0563a43) - ayush.jain@juspay.in
+- Override page infinite reload - (270b8ad) - ayush.jain@juspay.in
+- Default Config page UX issues - (939505e) - ayush.jain@juspay.in
+- Resolve page load (#556) - (f76d0ff) - Ayush Jain
+#### Features
+- Add input option in pagination - (7c0496a) - ayush.jain@juspay.in
+- added a CRUD for experiment groups (#540) - (6eedef2) - Datron
+- Rust Version Bump + Uniffi + Java OpenFeature SDK (#553) - (1aba4b4) - ShreyBana
+- experiment group integration (#526) - (73d0950) - Ankit Kumar Mahato
+- Workspace setting for allowing experiment self approval (#552) - (472f03e) - Ayush Jain
+#### Miscellaneous Chores
+- introduce docusaurus - (ff9b76d) - Kartik
+
+- - -
+
 ## frontend-v0.31.0 - 2025-06-23
 #### Bug Fixes
 - Show context filters (#531) - (a0ad626) - Ayush Jain

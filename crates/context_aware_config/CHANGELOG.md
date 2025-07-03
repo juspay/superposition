@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.54.0 - 2025-07-03
+#### Bug Fixes
+- added validation for and wrapper over context json logic - (a48cc71) - Shubhranshu Sanjeev
+#### Features
+- Rust Version Bump + Uniffi + Java OpenFeature SDK (#553) - (1aba4b4) - ShreyBana
+
+- - -
+
 ## context_aware_config-v0.53.0 - 2025-06-23
 #### Bug Fixes
 - latest support in config params (#530) - (e280515) - PRATIK MISHRA

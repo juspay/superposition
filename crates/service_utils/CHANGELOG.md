@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.29.0 - 2025-07-03
+#### Features
+- Rust Version Bump + Uniffi + Java OpenFeature SDK (#553) - (1aba4b4) - ShreyBana
+#### Miscellaneous Chores
+- Rename auth to auth_n (#542) - (fbf4e1a) - Ayush Jain
+- Remove dead code (#536) - (621b516) - Ayush Jain
+
+- - -
+
 ## service_utils-v0.28.1 - 2025-05-12
 #### Bug Fixes
 - custom headers parsing for webhook (#506) - (04133a2) - Ankit Kumar Mahato

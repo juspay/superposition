@@ -2,6 +2,48 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.77.0 - 2025-07-03
+### Package updates
+- frontend bumped to frontend-v0.32.0
+- service_utils bumped to service_utils-v0.29.0
+- superposition_derives bumped to superposition_derives-v0.3.0
+- experimentation_client bumped to experimentation_client-v0.13.1
+- superposition_types bumped to superposition_types-v0.23.0
+- experimentation_platform bumped to experimentation_platform-v0.35.0
+- context_aware_config bumped to context_aware_config-v0.54.0
+### Global changes
+#### Bug Fixes
+- update systems in nix CI action (#550) - (d3deff6) - Datron
+- added validation for and wrapper over context json logic - (a48cc71) - Shubhranshu Sanjeev
+- experiment client fetch fix (#555) - (cb08467) - PRATIK MISHRA
+- smithy model types (#554) - (6ef6d1e) - Datron
+- python update - (20a2622) - Pratik Mishra
+- Default Config page UX issues - (939505e) - ayush.jain@juspay.in
+- Frontend formatting - (92a5835) - ayush.jain@juspay.in
+- Change is operator to == in strict mode - (d09baf5) - ayush.jain@juspay.in
+- Show experiment filters - (a6a0e7e) - ayush.jain@juspay.in
+#### Features
+- Workspace setting for allowing experiment self approval (#552) - (472f03e) - Ayush Jain
+- openfeature python client (#546) - (bc4dba3) - PRATIK MISHRA
+- experiment group integration (#526) - (73d0950) - Ankit Kumar Mahato
+- Typescript OpenFeature + crate/core (#522) - (6a7f893) - sauraww
+- Rust Version Bump + Uniffi + Java OpenFeature SDK (#553) - (1aba4b4) - ShreyBana
+- added a CRUD for experiment groups (#540) - (6eedef2) - Datron
+- added experiment openfeature support with uniffi (#561) - (dfad18c) - PRATIK MISHRA
+- Experimentation FFI. - (d94f79a) - Shrey Bana
+- python openfeature exp support - (d9b3d3d) - Pratik Mishra
+- add exp support - (b5b7edb) - Pratik Mishra
+#### Miscellaneous Chores
+- **(deps)** bump self_cell from 1.0.1 to 1.0.4 - (0c3b29c) - dependabot[bot]
+- **(deps)** bump mio from 0.8.6 to 0.8.11 - (a3afe8f) - dependabot[bot]
+- Update Smithy for metrics changes - (4b3204b) - ayush.jain@juspay.in
+- introduce docusaurus - (ff9b76d) - Kartik
+- update docker build - (78888a5) - Kartik
+- build and release core binaries - (6a79905) - Kartik
+- update macos-13 builds for x86 - (3a83502) - Kartik
+
+- - -
+
 ## v0.76.0 - 2025-06-23
 ### Package updates
 - frontend bumped to frontend-v0.31.0

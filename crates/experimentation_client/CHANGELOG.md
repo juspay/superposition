@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.13.1 - 2025-07-03
+#### Bug Fixes
+- Show filters in all pages - (8ba1619) - ayush.jain@juspay.in
+- experiment client fetch fix (#555) - (cb08467) - PRATIK MISHRA
+
+- - -
+
 ## experimentation_client-v0.13.0 - 2025-04-17
 #### Features
 - Add types for experiment apis in superposition_types - (219a2eb) - Ayush Jain
