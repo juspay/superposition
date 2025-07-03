@@ -9,7 +9,7 @@ import {
     FunctionTypes,
     ResourceNotFound,
     PublishCommand,
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, afterAll, test, expect } from "bun:test";
 

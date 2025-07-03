@@ -9,6 +9,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@io.juspay/superposition-sdk": "../../generated/smithy/typescript"
+    "superposition-sdk": "file:../../javascript/sdk"
   }
 }

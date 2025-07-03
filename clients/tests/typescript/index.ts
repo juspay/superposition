@@ -4,7 +4,7 @@ import {
     ListOrganisationCommand,
     ListWorkspaceCommand,
     WorkspaceStatus,
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { ENV, superpositionClient } from "./env";
 
 const TEST_ORG_NAME = "testorg";

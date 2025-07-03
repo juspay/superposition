@@ -2,7 +2,6 @@ use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
 use superposition_types::{Config, Context, Overrides};
 
-// Merge strategy for configuration resolution
 #[derive(Clone, Debug, PartialEq, strum_macros::Display, Default, uniffi::Enum)]
 #[strum(serialize_all = "snake_case")]
 pub enum MergeStrategy {

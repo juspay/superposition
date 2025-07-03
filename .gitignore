@@ -2,6 +2,12 @@
 node_modules/
 dist/
 
+# Javascript build artifacts
+clients/javascript/sdk/dist-*/
+clients/javascript/sdk/*.tsbuildinfo
+clients/javascript/*/dist-*/
+clients/javascript/*/*.tsbuildinfo
+
 # Log files
 *.log
 locust/venv

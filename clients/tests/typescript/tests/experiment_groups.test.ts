@@ -28,7 +28,7 @@ import {
     type DefaultConfigFull,
     WorkspaceStatus,
     UpdateWorkspaceCommand,
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { superpositionClient, ENV } from "../env";
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
 import { nanoid } from "nanoid";
@@ -54,27 +54,27 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-        {
-            name: "os",
-            schema: { type: "string", enum: ["ios", "android", "web"] },
-            description: "OS dimension from experiments.test",
-        },
-        {
-            name: "clientId",
-            schema: { type: "string" },
-            description: "Client ID from experiments.test",
-        },
-        {
-            name: "app_version",
-            schema: { type: "string" },
-            description: "App version for superset context",
-        },
-        {
-            name: "device_specific_id",
-            schema: { type: "string" },
-            description: "Dimension for invalid context conflict",
-        },
-    ];
+            {
+                name: "os",
+                schema: { type: "string", enum: ["ios", "android", "web"] },
+                description: "OS dimension from experiments.test",
+            },
+            {
+                name: "clientId",
+                schema: { type: "string" },
+                description: "Client ID from experiments.test",
+            },
+            {
+                name: "app_version",
+                schema: { type: "string" },
+                description: "App version for superset context",
+            },
+            {
+                name: "device_specific_id",
+                schema: { type: "string" },
+                description: "Dimension for invalid context conflict",
+            },
+        ];
 
     // Define default configs based on experiments.test.ts
     const defaultConfigsToEnsure: {
@@ -83,19 +83,19 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-        {
-            key: "pmTestKey1",
-            value: "default_group_val_1",
-            schema: { type: "string" },
-            description: "Default for pmTestKey1 (group tests)",
-        },
-        {
-            key: "pmTestKey2",
-            value: "default_group_val_2",
-            schema: { type: "string" },
-            description: "Default for pmTestKey2 (group tests)",
-        },
-    ];
+            {
+                key: "pmTestKey1",
+                value: "default_group_val_1",
+                schema: { type: "string" },
+                description: "Default for pmTestKey1 (group tests)",
+            },
+            {
+                key: "pmTestKey2",
+                value: "default_group_val_2",
+                schema: { type: "string" },
+                description: "Default for pmTestKey2 (group tests)",
+            },
+        ];
 
     // Contexts using the ensured dimensions
     const groupContext = {
@@ -466,7 +466,7 @@ describe("Experiment Groups API Integration Tests", () => {
         // Remove expValid2Id
         test("should successfully remove members from a group", async () => {
             expect(expGroupId).toBeString();
-            
+
             const removeInput: RemoveMembersFromGroupCommandInput = {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
@@ -617,7 +617,7 @@ describe("Experiment Groups API Integration Tests", () => {
         test("should successfully update description", async () => {
             expect(expGroupId).toBeString();
             const newDescription = "Updated experiment group description";
-            
+
             const input: UpdateExperimentGroupCommandInput = {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
@@ -649,7 +649,7 @@ describe("Experiment Groups API Integration Tests", () => {
         });
 
     });
-    
+
     describe("AddMembersToGroupCommand", () => {
         test("should successfully add members to a group", async () => {
             expect(expGroupId).toBeString();
@@ -669,7 +669,7 @@ describe("Experiment Groups API Integration Tests", () => {
         // Remove the expValid2Id
         test("should successfully remove members from a group", async () => {
             expect(expGroupId).toBeString();
-            
+
             const removeInput: RemoveMembersFromGroupCommandInput = {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
@@ -682,7 +682,7 @@ describe("Experiment Groups API Integration Tests", () => {
             );
             expect(response.member_experiment_ids).not.toContain(expValid2Id);
         });
-        
+
         test("should fail to add an invalid member experiment", async () => {
             expect(expGroupId).toBeString();
             const input: AddMembersToGroupCommandInput = {
@@ -718,11 +718,11 @@ describe("Experiment Groups API Integration Tests", () => {
             );
         });
     });
-    
+
     describe("RemoveMembersFromGroupCommand", () => {
         test("should successfully remove members from a group", async () => {
             expect(expGroupId).toBeString();
-            
+
             // First ensure we have a member to remove
             const addInput: AddMembersToGroupCommandInput = {
                 workspace_id: ENV.workspace_id,
@@ -732,7 +732,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Adding member before removal test",
             };
             await superpositionClient.send(new AddMembersToGroupCommand(addInput));
-            
+
             // Now remove the member
             const removeInput: RemoveMembersFromGroupCommandInput = {
                 workspace_id: ENV.workspace_id,
