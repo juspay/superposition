@@ -137,8 +137,8 @@ pub async fn fetch_experiments(
     filters: &ExperimentListFilters,
     pagination: &PaginationParams,
     dimension_params: &DimensionQuery<QueryMap>,
-    tenant: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
