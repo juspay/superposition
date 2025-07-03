@@ -84,12 +84,6 @@ serListExperimentQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("created_by", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        context_queryQuery = Io.Superposition.Model.ListExperimentInput.context_query input
-                    Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
-                    Data.Functor.<&> Data.List.map (\x -> toQueryItem ("context", x))
-                    Data.Function.& Data.Maybe.maybe [] (id)
-        
         sort_onQuery = Io.Superposition.Model.ListExperimentInput.sort_on input
                     Data.Functor.<&> (\x -> [x])
                     Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
@@ -114,7 +108,7 @@ serListExperimentQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("status", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        m = staticParams ++ all'Query ++ experiment_nameQuery ++ from_dateQuery ++ countQuery ++ experiment_idsQuery ++ sort_byQuery ++ created_byQuery ++ context_queryQuery ++ sort_onQuery ++ to_dateQuery ++ pageQuery ++ statusQuery
+        m = staticParams ++ all'Query ++ experiment_nameQuery ++ from_dateQuery ++ countQuery ++ experiment_idsQuery ++ sort_byQuery ++ created_byQuery ++ sort_onQuery ++ to_dateQuery ++ pageQuery ++ statusQuery
         in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
     
     where

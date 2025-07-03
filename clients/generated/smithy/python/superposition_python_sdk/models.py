@@ -8815,7 +8815,6 @@ class ListExperimentInput:
     experiment_name: str | None = None
     experiment_ids: str | None = None
     created_by: str | None = None
-    context_query: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
 
@@ -8869,12 +8868,9 @@ class ListExperimentInput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
 
                 case 11:
-                    kwargs["context_query"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["context_query"])
-
-                case 12:
                     kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_on"])
 
-                case 13:
+                case 12:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_by"])
 
                 case _:

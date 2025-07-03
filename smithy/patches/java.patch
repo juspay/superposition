@@ -1,0 +1,312 @@
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java
+index f06fe61c..b7600b53 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java
+@@ -15,17 +15,18 @@ public final class Context implements ApiResource {
+     private static final Context $INSTANCE = new Context();
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
+         "org_id", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("change_reason", PreludeSchemas.STRING,
+-        "override_id", PreludeSchemas.STRING,
+-        "weight", SharedSchemas.WEIGHT,
+-        "description", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "id", PreludeSchemas.STRING,
+-        "override", SharedSchemas.OVERRIDES,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "value", SharedSchemas.CONDITION,
+-        "created_by", PreludeSchemas.STRING,
+-        "last_modified_at", SharedSchemas.DATE_TIME);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("override_id", PreludeSchemas.STRING),
++        Map.entry("weight", SharedSchemas.WEIGHT),
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("id", PreludeSchemas.STRING),
++        Map.entry("override", SharedSchemas.OVERRIDES),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("value", SharedSchemas.CONDITION),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
+ 
+     private static final List<Schema> $OPERATIONS = List.of(MoveContext.$SCHEMA,
+         UpdateOverride.$SCHEMA,
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
+index 518d71c9..68775fc5 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
+@@ -16,19 +16,20 @@ public final class Dimension implements ApiResource {
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
+         "org_id", PreludeSchemas.STRING,
+         "dimension", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("schema", PreludeSchemas.DOCUMENT,
+-        "description", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "created_by", PreludeSchemas.STRING,
+-        "dependencies", SharedSchemas.DEPENDENCIES,
+-        "dependency_graph", SharedSchemas.OBJECT,
+-        "last_modified_at", SharedSchemas.DATE_TIME,
+-        "autocomplete_function_name", PreludeSchemas.STRING,
+-        "change_reason", PreludeSchemas.STRING,
+-        "function_name", PreludeSchemas.STRING,
+-        "dependents", SharedSchemas.DEPENDENTS,
+-        "position", PreludeSchemas.INTEGER);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("schema", PreludeSchemas.DOCUMENT),
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("dependencies", SharedSchemas.DEPENDENCIES),
++        Map.entry("dependency_graph", SharedSchemas.OBJECT),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
++        Map.entry("autocomplete_function_name", PreludeSchemas.STRING),
++        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("function_name", PreludeSchemas.STRING),
++        Map.entry("dependents", SharedSchemas.DEPENDENTS),
++        Map.entry("position", PreludeSchemas.INTEGER)); 
+ 
+     private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
+         CreateDimension.$SCHEMA);
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
+index c48a3222..9906745e 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
+@@ -18,18 +18,19 @@ public final class ExperimentGroup implements ApiResource {
+     private static final ExperimentGroup $INSTANCE = new ExperimentGroup();
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
+         "org_id", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("change_reason", PreludeSchemas.STRING,
+-        "context_hash", PreludeSchemas.STRING,
+-        "traffic_percentage", PreludeSchemas.INTEGER,
+-        "name", PreludeSchemas.STRING,
+-        "context", SharedSchemas.CONDITION,
+-        "description", PreludeSchemas.STRING,
+-        "member_experiment_ids", SharedSchemas.STRING_LIST,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "id", PreludeSchemas.STRING,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "created_by", PreludeSchemas.STRING,
+-        "last_modified_at", SharedSchemas.DATE_TIME);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("context_hash", PreludeSchemas.STRING),
++        Map.entry("traffic_percentage", PreludeSchemas.INTEGER),
++        Map.entry("name", PreludeSchemas.STRING),
++        Map.entry("context", SharedSchemas.CONDITION),
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("id", PreludeSchemas.STRING),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
+ 
+     private static final List<Schema> $OPERATIONS = List.of(ListExperimentGroups.$SCHEMA,
+         CreateExperimentGroup.$SCHEMA,
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
+index 9f34fb70..ea610f2e 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
+@@ -15,26 +15,27 @@ public final class Experiments implements ApiResource {
+     private static final Experiments $INSTANCE = new Experiments();
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
+         "org_id", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("chosen_variant", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "description", PreludeSchemas.STRING,
+-        "variants", SharedSchemas.LIST_VARIANT,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "override_keys", SharedSchemas.LIST_OVERRIDE_KEYS,
+-        "created_by", PreludeSchemas.STRING,
+-        "experiment_type", ExperimentType.$SCHEMA,
+-        "change_reason", PreludeSchemas.STRING,
+-        "metrics_url", PreludeSchemas.STRING,
+-        "traffic_percentage", PreludeSchemas.INTEGER,
+-        "name", PreludeSchemas.STRING,
+-        "context", SharedSchemas.CONDITION,
+-        "started_at", SharedSchemas.DATE_TIME,
+-        "experiment_group_id", PreludeSchemas.STRING,
+-        "id", PreludeSchemas.STRING,
+-        "metrics", PreludeSchemas.DOCUMENT,
+-        "last_modified", SharedSchemas.DATE_TIME,
+-        "started_by", PreludeSchemas.STRING,
+-        "status", ExperimentStatusType.$SCHEMA);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("chosen_variant", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("variants", SharedSchemas.LIST_VARIANT),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("override_keys", SharedSchemas.LIST_OVERRIDE_KEYS),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("experiment_type", ExperimentType.$SCHEMA),
++        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("metrics_url", PreludeSchemas.STRING),
++        Map.entry("traffic_percentage", PreludeSchemas.INTEGER),
++        Map.entry("name", PreludeSchemas.STRING),
++        Map.entry("context", SharedSchemas.CONDITION),
++        Map.entry("started_at", SharedSchemas.DATE_TIME),
++        Map.entry("experiment_group_id", PreludeSchemas.STRING),
++        Map.entry("id", PreludeSchemas.STRING),
++        Map.entry("metrics", PreludeSchemas.DOCUMENT),
++        Map.entry("last_modified", SharedSchemas.DATE_TIME),
++        Map.entry("started_by", PreludeSchemas.STRING),
++        Map.entry("status", ExperimentStatusType.$SCHEMA));
+ 
+     private static final List<Schema> $OPERATIONS = List.of(ListExperiment.$SCHEMA,
+         CreateExperiment.$SCHEMA,
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
+index 6c2128c0..532fa9e6 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
+@@ -16,19 +16,20 @@ public final class Function implements ApiResource {
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
+         "org_id", PreludeSchemas.STRING,
+         "function_name", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("published_runtime_version", PreludeSchemas.STRING,
+-        "description", PreludeSchemas.STRING,
+-        "function_type", FunctionTypes.$SCHEMA,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "last_modified_at", SharedSchemas.DATE_TIME,
+-        "published_by", PreludeSchemas.STRING,
+-        "change_reason", PreludeSchemas.STRING,
+-        "draft_edited_by", PreludeSchemas.STRING,
+-        "draft_edited_at", SharedSchemas.DATE_TIME,
+-        "draft_code", PreludeSchemas.STRING,
+-        "draft_runtime_version", PreludeSchemas.STRING,
+-        "published_at", SharedSchemas.DATE_TIME,
+-        "published_code", PreludeSchemas.STRING);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("published_runtime_version", PreludeSchemas.STRING),
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("function_type", FunctionTypes.$SCHEMA),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
++        Map.entry("published_by", PreludeSchemas.STRING),
++        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("draft_edited_by", PreludeSchemas.STRING),
++        Map.entry("draft_edited_at", SharedSchemas.DATE_TIME),
++        Map.entry("draft_code", PreludeSchemas.STRING),
++        Map.entry("draft_runtime_version", PreludeSchemas.STRING),
++        Map.entry("published_at", SharedSchemas.DATE_TIME),
++        Map.entry("published_code", PreludeSchemas.STRING));
+ 
+     private static final List<Schema> $OPERATIONS = List.of(CreateFunction.$SCHEMA,
+         Test.$SCHEMA,
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Organisation.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Organisation.java
+index 6f9b8291..d799d52f 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Organisation.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Organisation.java
+@@ -13,17 +13,18 @@ public final class Organisation implements ApiResource {
+     public static final ShapeId $ID = ShapeId.from("io.superposition#Organisation");
+     private static final Organisation $INSTANCE = new Organisation();
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("id", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("country_code", PreludeSchemas.STRING,
+-        "contact_phone", PreludeSchemas.STRING,
+-        "updated_at", SharedSchemas.DATE_TIME,
+-        "name", PreludeSchemas.STRING,
+-        "updated_by", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "created_by", PreludeSchemas.STRING,
+-        "sector", PreludeSchemas.STRING,
+-        "admin_email", PreludeSchemas.STRING,
+-        "contact_email", PreludeSchemas.STRING,
+-        "status", OrgStatus.$SCHEMA);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("country_code", PreludeSchemas.STRING),
++        Map.entry("contact_phone", PreludeSchemas.STRING),
++        Map.entry("updated_at", SharedSchemas.DATE_TIME),
++        Map.entry("name", PreludeSchemas.STRING),
++        Map.entry("updated_by", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("sector", PreludeSchemas.STRING),
++        Map.entry("admin_email", PreludeSchemas.STRING),
++        Map.entry("contact_email", PreludeSchemas.STRING),
++        Map.entry("status", OrgStatus.$SCHEMA));
+ 
+     private static final Schema $SCHEMA = Schema.createResource($ID);
+ 
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java
+index 9277c0c6..dc58b0d2 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java
+@@ -16,20 +16,21 @@ public final class Webhook implements ApiResource {
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
+         "org_id", PreludeSchemas.STRING,
+         "name", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("method", HttpMethod.$SCHEMA,
+-        "max_retries", PreludeSchemas.INTEGER,
+-        "description", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "version", Version.$SCHEMA,
+-        "created_by", PreludeSchemas.STRING,
+-        "enabled", PreludeSchemas.BOOLEAN,
+-        "url", PreludeSchemas.STRING,
+-        "last_modified_at", SharedSchemas.DATE_TIME,
+-        "change_reason", PreludeSchemas.STRING,
+-        "last_triggered_at", SharedSchemas.DATE_TIME,
+-        "events", SharedSchemas.EVENTS,
+-        "custom_headers", SharedSchemas.OBJECT);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("method", HttpMethod.$SCHEMA),
++        Map.entry("max_retries", PreludeSchemas.INTEGER),
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("version", Version.$SCHEMA),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("enabled", PreludeSchemas.BOOLEAN),
++        Map.entry("url", PreludeSchemas.STRING),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
++        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("last_triggered_at", SharedSchemas.DATE_TIME),
++        Map.entry("events", SharedSchemas.EVENTS),
++        Map.entry("custom_headers", SharedSchemas.OBJECT));
+ 
+     private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA,
+         GetWebhook.$SCHEMA);
+diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
+index b8972981..99508fcb 100644
+--- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
++++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
+@@ -15,20 +15,21 @@ public final class Workspace implements ApiResource {
+     private static final Workspace $INSTANCE = new Workspace();
+     private static final Map<String, Schema> $IDENTIFIERS = Map.of("org_id", PreludeSchemas.STRING,
+         "workspace_name", PreludeSchemas.STRING);
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("workspace_admin_email", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "organisation_name", PreludeSchemas.STRING,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "created_by", PreludeSchemas.STRING,
+-        "config_version", PreludeSchemas.STRING,
+-        "mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS,
+-        "workspace_status", WorkspaceStatus.$SCHEMA,
+-        "last_modified_at", SharedSchemas.DATE_TIME,
+-        "organisation_id", PreludeSchemas.STRING,
+-        "allow_experiment_self_approval", PreludeSchemas.BOOLEAN,
+-        "workspace_schema_name", PreludeSchemas.STRING,
+-        "strict_mode", PreludeSchemas.BOOLEAN,
+-        "metrics", PreludeSchemas.DOCUMENT);
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("workspace_admin_email", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("organisation_name", PreludeSchemas.STRING),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("config_version", PreludeSchemas.STRING),
++        Map.entry("mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS),
++        Map.entry("workspace_status", WorkspaceStatus.$SCHEMA),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
++        Map.entry("organisation_id", PreludeSchemas.STRING),
++        Map.entry("allow_experiment_self_approval", PreludeSchemas.BOOLEAN),
++        Map.entry("workspace_schema_name", PreludeSchemas.STRING),
++        Map.entry("strict_mode", PreludeSchemas.BOOLEAN),
++        Map.entry("metrics", PreludeSchemas.DOCUMENT));
+ 
+     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA);
+     private static final Schema $SCHEMA = Schema.createResource($ID);

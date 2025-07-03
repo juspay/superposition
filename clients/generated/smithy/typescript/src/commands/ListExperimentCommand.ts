@@ -55,7 +55,6 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  *   experiment_name: "STRING_VALUE",
  *   experiment_ids: "STRING_VALUE",
  *   created_by: "STRING_VALUE",
- *   context_query: "STRING_VALUE",
  *   sort_on: "last_modified_at" || "created_at",
  *   sort_by: "desc" || "asc",
  * };

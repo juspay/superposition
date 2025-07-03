@@ -250,20 +250,6 @@ impl ListExperimentFluentBuilder {
                     self.inner.get_created_by()
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_query(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.context_query(input.into());
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_query(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_context_query(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_context_query(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_context_query()
-                }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn sort_on(mut self, input: crate::types::ExperimentSortOn) -> Self {
                     self.inner = self.inner.sort_on(input);
                     self

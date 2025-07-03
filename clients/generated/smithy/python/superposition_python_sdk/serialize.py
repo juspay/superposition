@@ -1437,8 +1437,6 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         query_params.append(("experiment_ids", input.experiment_ids))
     if input.created_by is not None:
         query_params.append(("created_by", input.created_by))
-    if input.context_query is not None:
-        query_params.append(("context", input.context_query))
     if input.sort_on is not None:
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:

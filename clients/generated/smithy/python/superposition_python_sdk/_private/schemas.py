@@ -8762,19 +8762,9 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "context_query": {
-            "target": STRING,
-            "index": 11,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context"),
-
-            ],
-        },
-
         "sort_on": {
             "target": EXPERIMENT_SORT_ON,
-            "index": 12,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -8784,7 +8774,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 13,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
