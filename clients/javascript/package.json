@@ -1,0 +1,30 @@
+{
+    "name": "superposition-client",
+    "version": "0.0.1",
+    "description": "Superposition Javascript SDK and OpenFeature Provider",
+    "private": true,
+    "workspaces": [
+        "bindings",
+        "sdk",
+        "open-feature-provider"
+    ],
+    "files": [
+        "."
+    ],
+    "scripts": {
+        "build": "npm run build --workspaces",
+        "clean": "npm run clean --workspaces",
+        "test": "npm run test --workspaces --if-present",
+        "install-all": "npm install --workspaces && npm run build"
+    },
+    "dependencies": {
+        "rimraf": "^5.0.0",
+        "typescript": "~5.2.2"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0"
+    }
+}
