@@ -1,6 +1,6 @@
-package io.superposition.openfeature;
+package io.juspay.superposition.openfeature;
 
-import io.superposition.openfeature.options.RefreshStrategy;
+import io.juspay.superposition.openfeature.options.RefreshStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

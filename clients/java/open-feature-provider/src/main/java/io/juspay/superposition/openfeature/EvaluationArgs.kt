@@ -1,4 +1,4 @@
-package io.superposition.openfeature
+package io.juspay.superposition.openfeature
 
 import com.google.gson.Gson
 import dev.openfeature.sdk.EvaluationContext
