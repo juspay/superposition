@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    `maven-publish`
     kotlin("jvm") version "1.9.10"
     id("io.freefair.lombok") version "8.6"
 }
@@ -15,7 +16,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":ffi"))
+    implementation(project(":bindings"))
     implementation(project(":sdk"))
     implementation("software.amazon.smithy.java:client-http:0.0.1")
     implementation("software.amazon.smithy.java:client-core:0.0.1")
@@ -40,5 +41,20 @@ tasks.test {
         showCauses = true
         showStackTraces = true
         showStandardStreams = true
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "${rootProject.group}.openfeature"
+            artifactId = "superposition-provider"
+            from(components["java"])
+        }
+    }
+    repositories {
+        maven {
+            url = uri(extra["maven-repo"]!!)
+        }
     }
 }

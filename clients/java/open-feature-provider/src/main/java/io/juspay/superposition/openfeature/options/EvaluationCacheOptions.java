@@ -1,4 +1,4 @@
-package io.superposition.openfeature.options;
+package io.juspay.superposition.openfeature.options;
 
 public class EvaluationCacheOptions {
     int ttl;

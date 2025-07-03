@@ -5,4 +5,4 @@ plugins {
 rootProject.name = "superposition-java-clients"
 include("open-feature-provider")
 include("sdk")
-include("ffi")
+include("bindings")
