@@ -67,85 +67,78 @@ pub fn function_list() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
-            <Suspense fallback=move || view! { <Skeleton /> }>
-                <div class="pb-4">
-
-                    {move || {
-                        let value = combined_resource
-                            .get()
-                            .unwrap_or(CombinedResource {
-                                functions: PaginatedResponse::default(),
-                            });
-                        let total_items = value.functions.total_items.to_string();
-                        view! {
-                            <Stat heading="Functions" icon="ri-code-box-fill" number=total_items />
-                        }
-                    }}
-
-                </div>
-                <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
+        <div class="p-8 flex flex-col gap-4">
+            <Suspense fallback=move || {
+                view! { <Skeleton /> }
+            }>
+                {move || {
+                    let value = combined_resource
+                        .get()
+                        .unwrap_or(CombinedResource {
+                            functions: PaginatedResponse::default(),
+                        });
+                    let total_items = value.functions.total_items.to_string();
+                    view! {
                         <div class="flex justify-between">
-                            <h2 class="card-title">"Functions"</h2>
+                            <Stat heading="Functions" icon="ri-code-box-fill" number=total_items />
                             <A
                                 href="create".to_string()
-                                class="btn-purple font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 btn-link"
+                                class="btn-purple self-end h-fit px-5 py-2.5 flex gap-2 font-medium text-sm text-center rounded-lg"
                             >
-                                <button>Create Function <i class="ri-edit-2-line ml-2"></i></button>
+                                Create Function
+                                <i class="ri-edit-2-line"></i>
                             </A>
                         </div>
-                        <div>
-
-                            {move || {
-                                let value = combined_resource.get();
-                                let pagination_params = pagination_params_rws.get();
-                                match value {
-                                    Some(v) => {
-                                        let data = v
-                                            .functions
-                                            .data
-                                            .iter()
-                                            .map(|ele| {
-                                                let mut ele_map = json!(ele)
-                                                    .as_object()
-                                                    .unwrap()
-                                                    .to_owned();
-                                                ele_map
-                                                    .insert(
-                                                        "published_at".to_string(),
-                                                        match ele.published_at {
-                                                            Some(val) => json!(val.format("%v %T").to_string()),
-                                                            None => json!("null".to_string()),
-                                                        },
-                                                    );
-                                                ele_map
-                                            })
-                                            .collect::<Vec<Map<String, Value>>>()
-                                            .to_owned();
-                                        let total_pages = v.functions.total_pages;
-                                        let pagination_props = TablePaginationProps {
-                                            enabled: true,
-                                            count: pagination_params.count.unwrap_or_default(),
-                                            current_page: pagination_params.page.unwrap_or_default(),
-                                            total_pages,
-                                            on_page_change: handle_page_change,
-                                        };
-                                        view! {
-                                            <Table
-                                                rows=data
-                                                key_column="id".to_string()
-                                                columns=table_columns.get()
-                                                pagination=pagination_props
-                                            />
-                                        }
-                                            .into_view()
+                    }
+                }} <div class="card rounded-xl w-full bg-base-100 shadow">
+                    <div class="card-body">
+                        {move || {
+                            let value = combined_resource.get();
+                            let pagination_params = pagination_params_rws.get();
+                            match value {
+                                Some(v) => {
+                                    let data = v
+                                        .functions
+                                        .data
+                                        .iter()
+                                        .map(|ele| {
+                                            let mut ele_map = json!(ele)
+                                                .as_object()
+                                                .unwrap()
+                                                .to_owned();
+                                            ele_map
+                                                .insert(
+                                                    "published_at".to_string(),
+                                                    match ele.published_at {
+                                                        Some(val) => json!(val.format("%v %T").to_string()),
+                                                        None => json!("null".to_string()),
+                                                    },
+                                                );
+                                            ele_map
+                                        })
+                                        .collect::<Vec<Map<String, Value>>>()
+                                        .to_owned();
+                                    let total_pages = v.functions.total_pages;
+                                    let pagination_props = TablePaginationProps {
+                                        enabled: true,
+                                        count: pagination_params.count.unwrap_or_default(),
+                                        current_page: pagination_params.page.unwrap_or_default(),
+                                        total_pages,
+                                        on_page_change: handle_page_change,
+                                    };
+                                    view! {
+                                        <Table
+                                            rows=data
+                                            key_column="id".to_string()
+                                            columns=table_columns.get()
+                                            pagination=pagination_props
+                                        />
                                     }
-                                    None => view! { Loading.... }.into_view(),
+                                        .into_view()
                                 }
-                            }}
-
-                        </div>
+                                None => view! { Loading.... }.into_view(),
+                            }
+                        }}
                     </div>
                 </div>
             </Suspense>

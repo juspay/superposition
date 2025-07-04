@@ -36,7 +36,7 @@ pub fn drawer_btn(
 ) -> impl IntoView {
     let open_drawer_id = drawer_id.clone();
     let style = match style {
-        DrawerButtonStyle::Fill => "btn-purple drawer-button mr-2 mb-2 px-5 py-2.5 font-medium rounded-lg text-sm text-center",
+        DrawerButtonStyle::Fill => "btn-purple drawer-button px-5 py-2.5 font-medium rounded-lg text-sm text-center",
         DrawerButtonStyle::Outline => "btn btn-purple-outline w-[8rem] cursor-pointer",
     }.to_string();
 
@@ -57,10 +57,10 @@ pub fn drawer_btn(
 
 #[component]
 pub fn drawer<NF>(
-    id: String,
+    #[prop(into)] id: String,
     children: Children,
     #[prop(into, default = String::new())] header: String,
-    #[prop(default = "w-[60vw]")] drawer_width: &'static str,
+    #[prop(default = "max-w-[610px] min-w-[560px] w-[35vw]")] width_class: &'static str,
     handle_close: NF,
 ) -> impl IntoView
 where
@@ -77,7 +77,7 @@ where
             <div class="drawer-side drawer-zindex w-full">
                 <label for=id.clone() class="drawer-overlay" on:click=close_drawer.clone()></label>
                 <div class=format!(
-                    "h-full {drawer_width} flex flex-col bg-base-100 overflow-x-hidden",
+                    "h-full {width_class} flex flex-col bg-base-100 overflow-x-hidden",
                 )>
                     <div class="px-4 py-4 flex justify-between items-center">
                         <h3 class="text-lg font-bold">{header}</h3>

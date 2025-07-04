@@ -1,7 +1,6 @@
 mod filter;
 mod types;
-
-use std::collections::HashSet;
+pub mod utils;
 
 use filter::{DefaultConfigFilterWidget, FilterSummary};
 use leptos::*;
@@ -13,6 +12,7 @@ use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
 };
 use types::PageParams;
+use utils::{get_bread_crums, modify_rows, BreadCrums};
 
 use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::{
@@ -33,8 +33,8 @@ use crate::components::{
 };
 use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{BreadCrums, OrganisationId, Tenant};
-use crate::utils::{unwrap_option_or_default_with_error, use_url_base};
+use crate::types::{OrganisationId, Tenant};
+use crate::utils::use_url_base;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -73,8 +73,12 @@ pub fn default_config() -> impl IntoView {
         }
     });
     let drawer_type = RwSignal::new(DrawerType::None);
-    let bread_crums =
-        Signal::derive(move || get_bread_crums(page_params_rws.get().prefix));
+    let bread_crums = Signal::derive(move || {
+        get_bread_crums(
+            page_params_rws.with(|p| p.prefix.clone()),
+            "Default Config".to_string(),
+        )
+    });
 
     use_param_updater(move || {
         box_params!(
@@ -210,9 +214,8 @@ pub fn default_config() -> impl IntoView {
         };
 
         let expand = move |key_name: &str, row: &Map<String, Value>| {
-            let key_name = key_name.to_string();
-            let label = key_name.clone();
-            let is_folder = key_name.contains('.');
+            let label = key_name.to_string();
+            let is_folder = key_name.ends_with('.');
             let description = row
                 .get("description")
                 .and_then(|v| v.as_str())
@@ -225,13 +228,12 @@ pub fn default_config() -> impl IntoView {
                 .unwrap_or("")
                 .to_string();
 
-            if is_folder && grouped {
+            if is_folder {
                 let prefix = page_params_rws.with(|p| {
                     p.prefix
                         .as_ref()
-                        .map_or_else(|| key_name.clone(), |p| format!("{p}{key_name}"))
+                        .map_or_else(|| label.clone(), |p| format!("{p}{label}"))
                 });
-
                 view! {
                     <A
                         class="cursor-pointer text-blue-500 underline underline-offset-2"
@@ -243,7 +245,7 @@ pub fn default_config() -> impl IntoView {
                 .into_view()
             } else {
                 view! {
-                    <span class="mr-2">{key_name}</span>
+                    <span class="mr-2">{label}</span>
                     <InfoDescription description=description change_reason=change_reason />
                 }
                 .into_view()
@@ -282,65 +284,10 @@ pub fn default_config() -> impl IntoView {
     };
 
     view! {
-        <div class="p-8">
+        <div class="p-8 flex flex-col gap-4">
             <Suspense fallback=move || {
                 view! { <Skeleton /> }
             }>
-                {move || {
-                    let prefix = page_params_rws.with(|p| p.prefix.clone());
-                    match drawer_type.get() {
-                        DrawerType::Edit(selected_config_data) => {
-                            view! {
-                                <Drawer
-                                    id="default_config_drawer".to_string()
-                                    header="Edit Key"
-                                    handle_close=handle_close
-                                >
-                                    <DefaultConfigForm
-                                        edit=true
-                                        config_key=selected_config_data.key
-                                        config_value=selected_config_data.value
-                                        type_schema=selected_config_data.schema
-                                        description=selected_config_data.description
-                                        validation_function_name=selected_config_data
-                                            .validation_function_name
-                                        autocomplete_function_name=selected_config_data
-                                            .autocomplete_function_name
-                                        prefix
-                                        handle_submit=move || {
-                                            default_config_resource.refetch();
-                                            handle_close();
-                                        }
-                                    />
-
-                                </Drawer>
-                            }
-                        }
-                        DrawerType::Create => {
-                            view! {
-                                <Drawer
-                                    id="default_config_drawer".to_string()
-                                    header="Create New Key"
-                                    handle_close=handle_close
-                                >
-                                    <DefaultConfigForm
-                                        prefix
-                                        handle_submit=move || {
-                                            filters_rws.set(DefaultConfigFilters::default());
-                                            if !page_params_rws.with(|p| p.grouped) {
-                                                pagination_params_rws.set(PaginationParams::default());
-                                            }
-                                            default_config_resource.refetch();
-                                            handle_close();
-                                        }
-                                    />
-
-                                </Drawer>
-                            }
-                        }
-                        DrawerType::None => ().into_view(),
-                    }
-                }}
                 {move || {
                     let default_config = default_config_resource.get().unwrap_or_default();
                     let table_rows = default_config
@@ -367,6 +314,7 @@ pub fn default_config() -> impl IntoView {
                             filtered_rows.clone(),
                             page_params.prefix,
                             cols,
+                            "key",
                         );
                     }
                     let total_default_config_keys = default_config.total_items.to_string();
@@ -384,59 +332,62 @@ pub fn default_config() -> impl IntoView {
                         on_page_change: handle_page_change,
                     };
                     view! {
-                        <div class="pb-4">
+                        <div class="flex justify-between">
                             <Stat
                                 heading="Config Keys"
                                 icon="ri-tools-line"
                                 number=total_default_config_keys
                             />
+                            <div class="flex items-end gap-4">
+                                <label
+                                    on:click=move |_| {
+                                        batch(|| {
+                                            page_params_rws
+                                                .update(|params| {
+                                                    params.grouped = !params.grouped;
+                                                    params.prefix = None;
+                                                });
+                                            let grouped = page_params_rws.with(|p| p.grouped);
+                                            if !grouped {
+                                                pagination_params_rws.set(PaginationParams::default());
+                                            }
+                                        });
+                                    }
+                                    class="label gap-4 cursor-pointer"
+                                >
+                                    <span class="label-text min-w-max">Group Configs</span>
+                                    <input
+                                        type="checkbox"
+                                        class="toggle toggle-primary"
+                                        checked=page_params_rws.with(|p| p.grouped)
+                                    />
+                                </label>
+                                <DefaultConfigFilterWidget
+                                    filters_rws
+                                    pagination_params_rws
+                                    prefix=page_params_rws.with(|p| p.prefix.clone())
+                                />
+                                <DrawerBtn
+                                    drawer_id="default_config_drawer"
+                                    class="flex gap-2"
+                                    on_click=move |_| {
+                                        drawer_type.set(DrawerType::Create);
+                                        open_drawer("default_config_drawer");
+                                    }
+                                >
+                                    Create Key
+                                    <i class="ri-edit-2-line" />
+                                </DrawerBtn>
+                            </div>
                         </div>
+                        <FilterSummary filters_rws />
                         <div class="card rounded-lg w-full bg-base-100 shadow">
                             <div class="card-body">
-                                <div class="flex justify-between">
-                                    <div class="flex items-center gap-4">
-                                        <BreadCrums bread_crums=bread_crums.get() redirect_url />
-                                        <DefaultConfigFilterWidget
-                                            filters_rws
-                                            pagination_params_rws
-                                            prefix=page_params_rws.with(|p| p.prefix.clone())
-                                        />
-                                    </div>
-                                    <div class="flex">
-                                        <label
-                                            on:click=move |_| {
-                                                page_params_rws
-                                                    .update(|params| {
-                                                        params.grouped = !params.grouped;
-                                                        params.prefix = None;
-                                                    });
-                                                let grouped = page_params_rws.with(|p| p.grouped);
-                                                if !grouped {
-                                                    pagination_params_rws.set(PaginationParams::default());
-                                                }
-                                            }
-                                            class="cursor-pointer label mr-10"
-                                        >
-                                            <span class="label-text mr-4">Group Configs</span>
-                                            <input
-                                                type="checkbox"
-                                                class="toggle toggle-primary"
-                                                checked=page_params_rws.with(|p| p.grouped)
-                                            />
-                                        </label>
-                                        <DrawerBtn
-                                            drawer_id="default_config_drawer"
-                                            on_click=move |_| {
-                                                drawer_type.set(DrawerType::Create);
-                                                open_drawer("default_config_drawer");
-                                            }
-                                        >
-                                            Create Key
-                                            <i class="ri-edit-2-line ml-2"></i>
-                                        </DrawerBtn>
-                                    </div>
-                                </div>
-                                <FilterSummary filters_rws />
+                                <BreadCrums
+                                    bread_crums=bread_crums.get()
+                                    redirect_url
+                                    show_root=false
+                                />
                                 <Table
                                     rows=filtered_rows
                                     key_column="id".to_string()
@@ -445,6 +396,61 @@ pub fn default_config() -> impl IntoView {
                                 />
                             </div>
                         </div>
+                    }
+                }}
+                {move || {
+                    let prefix = page_params_rws.with(|p| p.prefix.clone());
+                    match drawer_type.get() {
+                        DrawerType::Edit(selected_config_data) => {
+                            view! {
+                                <Drawer
+                                    id="default_config_drawer"
+                                    header="Edit Key"
+                                    handle_close=handle_close
+                                >
+                                    <DefaultConfigForm
+                                        edit=true
+                                        config_key=selected_config_data.key
+                                        config_value=selected_config_data.value
+                                        type_schema=selected_config_data.schema
+                                        description=selected_config_data.description
+                                        validation_function_name=selected_config_data
+                                            .validation_function_name
+                                        autocomplete_function_name=selected_config_data
+                                            .autocomplete_function_name
+                                        prefix
+                                        handle_submit=move || {
+                                            default_config_resource.refetch();
+                                            handle_close();
+                                        }
+                                    />
+
+                                </Drawer>
+                            }
+                        }
+                        DrawerType::Create => {
+                            view! {
+                                <Drawer
+                                    id="default_config_drawer"
+                                    header="Create New Key"
+                                    handle_close=handle_close
+                                >
+                                    <DefaultConfigForm
+                                        prefix
+                                        handle_submit=move || {
+                                            filters_rws.set(DefaultConfigFilters::default());
+                                            if !page_params_rws.with(|p| p.grouped) {
+                                                pagination_params_rws.set(PaginationParams::default());
+                                            }
+                                            default_config_resource.refetch();
+                                            handle_close();
+                                        }
+                                    />
+
+                                </Drawer>
+                            }
+                        }
+                        DrawerType::None => ().into_view(),
                     }
                 }}
                 <DeleteModal
@@ -457,144 +463,4 @@ pub fn default_config() -> impl IntoView {
             </Suspense>
         </div>
     }
-}
-
-#[component]
-pub fn bread_crums(
-    bread_crums: Vec<BreadCrums>,
-    #[prop(into)] redirect_url: Callback<Option<String>, String>,
-) -> impl IntoView {
-    view! {
-        <div class="flex justify-between items-center gap-2">
-            {bread_crums
-                .iter()
-                .map(|ele| {
-                    view! {
-                        <h2 class="first:card-title flex gap-2 after:content-['>'] after:font-normal after:text-base after:last:hidden">
-                            {if ele.is_link {
-                                let href = redirect_url.call(ele.value.clone());
-                                let label = ele.key.clone();
-                                view! {
-                                    <A class="text-blue-500 underline underline-offset-2" href>
-                                        {label}
-                                    </A>
-                                }
-                                    .into_view()
-                            } else {
-                                view! { <span>{ele.key.clone()}</span> }.into_view()
-                            }}
-                        </h2>
-                    }
-                })
-                .collect_view()}
-        </div>
-    }
-}
-
-pub fn get_bread_crums(key_prefix: Option<String>) -> Vec<BreadCrums> {
-    let mut default_bread_crums = vec![BreadCrums {
-        key: "Default Config".to_string(),
-        value: None,
-        is_link: true,
-    }];
-
-    let mut bread_crums = match key_prefix {
-        Some(prefix) => {
-            let prefix_arr = prefix
-                .trim_matches('.')
-                .split('.')
-                .map(str::to_string)
-                .collect::<Vec<String>>();
-            prefix_arr
-                .into_iter()
-                .fold(String::new(), |mut prefix, ele| {
-                    prefix.push_str(&ele);
-                    prefix.push('.');
-                    default_bread_crums.push(BreadCrums {
-                        key: ele.clone(),
-                        value: Some(prefix.clone()),
-                        is_link: true,
-                    });
-                    prefix
-                });
-            default_bread_crums
-        }
-        None => default_bread_crums,
-    };
-    if let Some(last_crumb) = bread_crums.last_mut() {
-        last_crumb.is_link = false;
-    }
-    bread_crums
-}
-
-pub fn modify_rows(
-    filtered_rows: Vec<Map<String, Value>>,
-    key_prefix: Option<String>,
-    cols: Vec<String>,
-) -> Vec<Map<String, Value>> {
-    let mut groups: HashSet<String> = HashSet::new();
-    let mut grouped_rows: Vec<Map<String, Value>> = filtered_rows
-        .into_iter()
-        .filter_map(|mut ele| {
-            let key = ele
-                .get("key")
-                .and_then(|v| v.as_str())
-                .map(String::from)
-                .unwrap_or_default();
-
-            let key_arr = match &key_prefix {
-                Some(prefix) => key
-                    .splitn(2, prefix)
-                    .map(String::from)
-                    .collect::<Vec<String>>(),
-                None => vec!["".to_string(), key],
-            };
-            // key_arr.get(1) retrieves the remaining part of the key, after removing the prefix.
-            if let Some(filtered_key) = key_arr.get(1) {
-                let new_key = filtered_key
-                    .split('.')
-                    .map(String::from)
-                    .collect::<Vec<String>>();
-                let key = new_key.first().map(String::from).unwrap_or_default();
-                if new_key.len() == 1 {
-                    // key
-                    ele.insert("key".to_string(), json!(key));
-                } else {
-                    // folder
-                    let folder = key + ".";
-                    if !groups.contains(&folder) {
-                        cols.iter().for_each(|col| {
-                            ele.insert(
-                                col.to_string(),
-                                Value::String(if *col == "key" {
-                                    folder.clone()
-                                } else {
-                                    "-".to_string()
-                                }),
-                            );
-                        });
-                        groups.insert(folder);
-                    } else {
-                        return None;
-                    }
-                }
-                Some(ele)
-            } else {
-                None
-            }
-        })
-        .collect();
-    grouped_rows.sort_by(|a, b| {
-        let key_a =
-            unwrap_option_or_default_with_error(a.get("key").and_then(Value::as_str), "");
-        let key_b =
-            unwrap_option_or_default_with_error(b.get("key").and_then(Value::as_str), "");
-
-        match (key_a.contains('.'), key_b.contains('.')) {
-            (true, false) => std::cmp::Ordering::Less,
-            (false, true) => std::cmp::Ordering::Greater,
-            _ => std::cmp::Ordering::Equal,
-        }
-    });
-    grouped_rows
 }

@@ -108,9 +108,8 @@ pub(super) fn default_config_filter_widget(
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>
         <Drawer
-            id="default_config_filter_drawer".to_string()
+            id="default_config_filter_drawer"
             header="Default Config Filters"
-            drawer_width="w-[50vw]"
             handle_close=move || close_drawer("default_config_filter_drawer")
         >
             <div class="flex flex-col gap-5">

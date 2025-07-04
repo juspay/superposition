@@ -137,8 +137,8 @@ pub async fn fetch_experiments(
     filters: &ExperimentListFilters,
     pagination: &PaginationParams,
     dimension_params: &DimensionQuery<QueryMap>,
-    tenant: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -510,11 +510,11 @@ pub async fn delete_webhooks(
 }
 
 pub async fn resolve_config(
-    tenant: &str,
     context: &str,
-    org_id: &str,
     show_reasoning: bool,
     context_id: Option<&String>,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<Map<String, Value>, String> {
     let client = reqwest::Client::new();
     let host = use_host_server();

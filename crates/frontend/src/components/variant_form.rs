@@ -527,11 +527,11 @@ where
             match context_data {
                 Ok((context_id, overrides)) => {
                     let resolved_config = resolve_config(
-                        &tenant,
                         &context.as_query_string(),
-                        &org_id,
                         false,
                         Some(&context_id),
+                        &tenant,
+                        &org_id,
                     )
                     .await
                     .unwrap_or_default();

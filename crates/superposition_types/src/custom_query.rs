@@ -75,7 +75,7 @@ pub trait CustomQuery: Sized {
 }
 
 /// Provides struct to extract those query params from the request which are `wrapped` in `dimension[param_name]`
-#[derive(Debug, Clone, PartialEq, Deref)]
+#[derive(Debug, Clone, PartialEq, Deref, DerefMut)]
 pub struct DimensionQuery<T: DeserializeOwned>(pub T);
 
 impl<T> CustomQuery for DimensionQuery<T>
@@ -212,7 +212,7 @@ impl Display for DimensionQuery<QueryMap> {
 
 impl From<Map<String, Value>> for DimensionQuery<QueryMap> {
     fn from(value: Map<String, Value>) -> Self {
-        Self(QueryMap(value))
+        Self(QueryMap::from(value))
     }
 }
 
