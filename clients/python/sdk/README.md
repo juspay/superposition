@@ -1,3 +1,3 @@
 ## Superposition Client
 
-superposition_python_sdk client
+superposition_sdk client

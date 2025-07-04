@@ -1,3 +1,0 @@
-smithy_core
-superposition_python_sdk
-superposition_bindings

@@ -6,7 +6,7 @@ from smithy_http.aio import HTTPResponse as _HTTPResponse
 from smithy_http.aio.interfaces import HTTPRequest, HTTPResponse
 from smithy_http.interfaces import HTTPClientConfiguration, HTTPRequestConfiguration
 
-from superposition_python_sdk.models import ServiceError
+from superposition_sdk.models import ServiceError
 
 
 class TestHttpServiceError(ServiceError):

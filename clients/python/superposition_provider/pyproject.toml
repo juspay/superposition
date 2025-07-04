@@ -12,8 +12,7 @@ keywords = ["openfeature", "superposition_provider"]
 license = {text = "Apache-2.0"}
 
 dependencies = [
-    "smithy_core",
-    "superposition_python_sdk",
+    "superposition_sdk",
     "superposition_bindings"
 ]
 

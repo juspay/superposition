@@ -2,12 +2,12 @@
 
 
 [project]
-name = "superposition_python_sdk"
+name = "superposition_sdk"
 version = "0.0.1"
-description = "superposition_python_sdk client"
+description = "superposition_sdk client"
 readme = "README.md"
 requires-python = ">=3.12"
-keywords = ["smithy", "superposition_python_sdk"]
+keywords = ["smithy", "superposition_sdk"]
 license = {text = "Apache-2.0"}
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
