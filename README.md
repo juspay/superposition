@@ -27,16 +27,15 @@ docker run -d -p 8081:9090 -p 8080:8080 datron1/superposition-demo-app:latest
 Once you run this command, you'll find the demo app at `localhost:8081` and Superposition at `localhost:8080`. Play around to understand Superposition better, then dive into the documentation below!
 
 ## Detailed documentation
-1. [Context-Aware-Configuration](docs/context-aware-config.md)
-2. [Experimentation](docs/experimentation.md)
-3. [Metrics](docs/metrics.md)
-4. [Client Context-Aware-Configuration](docs/client-context-aware-configuration.md)
-4. [Client Experimentation](docs/client-experimentation.md)
-5. [Local setup](docs/setup.md)
+1. [Context-Aware-Configuration](docs/docs/basic-concepts/context-aware-config.md)
+2. [Experimentation](docs/docs/basic-concepts/experimentation.md)
+3. [Client Context-Aware-Configuration](docs/docs/clients/legacy/client_context_aware_configuration.md)
+4. [Client Experimentation](docs/docs/clients/legacy/client_experimentation.md)
+5. [Local setup](docs/docs/setup.md)
 6. [Context-Aware-Configuration API Ref - Postman Collection](postman/cac.postman_collection.json)
 7. [Experimentation API Ref - Postman Collection](postman/experimentation-platform.postman_collection.json)
-8. [TOML formatted Context-Aware-Configuration example](docs/cac-toml.md)
-9. [Hitchiker's Guide to Create a New Client](docs/creating-client.md)
+8. [TOML formatted Context-Aware-Configuration example](docs/docs/experimental/cac-toml.md)
+9. [Hitchiker's Guide to Create a New Client](docs/docs/clients/legacy/creating_client.md)
 
 ## Key highlights
 * **Admin UI** - Out of the box administration (and tools) UI for configurations and experiments
