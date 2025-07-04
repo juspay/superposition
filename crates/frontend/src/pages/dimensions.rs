@@ -5,14 +5,13 @@ use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
 use crate::api::{delete_dimension, fetch_dimensions};
 use crate::components::description_icon::InfoDescription;
-use crate::components::dimension_form::DimensionForm;
+use crate::components::dimension_form::{ChangeLogSummary, ChangeType, DimensionForm};
 use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::{
     default_column_formatter, ColumnSortable, Expandable,
 };
 use crate::components::{
-    delete_modal::DeleteModal,
     stat::Stat,
     table::{
         types::{Column, TablePaginationProps},
@@ -21,6 +20,7 @@ use crate::components::{
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
+
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
     pub dimension: String,
@@ -38,7 +38,6 @@ pub struct RowData {
 pub fn dimensions() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
@@ -56,13 +55,19 @@ pub fn dimensions() -> impl IntoView {
     );
 
     let confirm_delete = Callback::new(move |_| {
-        if let Some(id) = delete_id_rs.get().clone() {
+        if let Some(id) = delete_id_rs.get_untracked() {
             spawn_local(async move {
-                let result = delete_dimension(id, workspace.get().0, org.get().0).await;
+                let result = delete_dimension(
+                    id,
+                    workspace.get_untracked().0,
+                    org.get_untracked().0,
+                )
+                .await;
 
                 match result {
                     Ok(_) => {
                         logging::log!("Dimension deleted successfully");
+                        delete_id_ws.set(None);
                         dimensions_resource.refetch();
                     }
                     Err(e) => {
@@ -71,8 +76,6 @@ pub fn dimensions() -> impl IntoView {
                 }
             });
         }
-        delete_id_ws.set(None);
-        delete_modal_visible_ws.set(false);
     });
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
@@ -137,10 +140,8 @@ pub fn dimensions() -> impl IntoView {
                 }
                 .into_view()
             } else {
-                let handle_dimension_delete = move |_| {
-                    delete_id_ws.set(Some(dimension_name.clone()));
-                    delete_modal_visible_ws.set(true);
-                };
+                let handle_dimension_delete =
+                    move |_| delete_id_ws.set(Some(dimension_name.clone()));
                 view! {
                     <div class="join">
                         <span class="cursor-pointer" on:click=edit_click_handler>
@@ -229,7 +230,7 @@ pub fn dimensions() -> impl IntoView {
                                     autocomplete_function_name=selected_dimension_data
                                         .autocomplete_function_name
                                     dimensions
-                                    handle_submit=move || {
+                                    handle_submit=move |_| {
                                         dimensions_resource.refetch();
                                         selected_dimension.set(None);
                                         close_drawer("dimension_drawer");
@@ -247,7 +248,7 @@ pub fn dimensions() -> impl IntoView {
                             >
                                 <DimensionForm
                                     dimensions
-                                    handle_submit=move || {
+                                    handle_submit=move |_| {
                                         dimensions_resource.refetch();
                                         close_drawer("dimension_drawer");
                                     }
@@ -302,13 +303,20 @@ pub fn dimensions() -> impl IntoView {
                         </div>
                     }
                 }}
-                <DeleteModal
-                    modal_visible=delete_modal_visible_rs
-                    confirm_delete=confirm_delete
-                    set_modal_visible=delete_modal_visible_ws
-                    header_text="Are you sure you want to delete this dimension? Action is irreversible."
-                        .to_string()
-                />
+                {move || {
+                    if let Some(dimension_name) = delete_id_rs.get() {
+                        view! {
+                            <ChangeLogSummary
+                                dimension_name
+                                change_type=ChangeType::Delete
+                                on_close=move |_| delete_id_ws.set(None)
+                                on_confirm=confirm_delete
+                            />
+                        }
+                    } else {
+                        ().into_view()
+                    }
+                }}
             </Suspense>
         </div>
     }

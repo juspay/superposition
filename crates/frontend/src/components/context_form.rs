@@ -1,6 +1,8 @@
-pub mod utils;
-
 use std::collections::{HashMap, HashSet};
+
+use leptos::*;
+use serde_json::Value;
+use superposition_types::database::types::DimensionWithMandatory;
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
@@ -12,9 +14,6 @@ use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
 };
-use leptos::*;
-use serde_json::Value;
-use superposition_types::database::types::DimensionWithMandatory;
 
 #[component]
 pub fn condition_input(

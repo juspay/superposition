@@ -2,6 +2,7 @@ pub mod alert;
 pub mod badge;
 pub mod button;
 pub mod change_form;
+pub mod change_summary;
 pub mod condition_pills;
 pub mod context_card;
 pub mod context_form;

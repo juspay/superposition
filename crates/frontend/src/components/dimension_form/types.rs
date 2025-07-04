@@ -17,9 +17,9 @@ pub struct DimensionCreateReq {
 pub struct DimensionUpdateReq {
     pub position: Option<u32>,
     pub schema: Option<Value>,
-    pub dependencies: Vec<String>,
-    pub function_name: Option<String>,
-    pub autocomplete_function_name: Option<String>,
-    pub description: String,
+    pub dependencies: Option<Vec<String>>,
+    pub function_name: Option<Option<String>>,
+    pub autocomplete_function_name: Option<Option<String>>,
+    pub description: Option<String>,
     pub change_reason: String,
 }

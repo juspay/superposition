@@ -17,8 +17,7 @@ use types::PageParams;
 use crate::api::{delete_default_config, fetch_default_config};
 use crate::components::{
     alert::AlertType,
-    default_config_form::DefaultConfigForm,
-    delete_modal::DeleteModal,
+    default_config_form::{ChangeLogSummary, ChangeType, DefaultConfigForm},
     description_icon::InfoDescription,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
@@ -57,7 +56,6 @@ pub enum DrawerType {
 pub fn default_config() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let (delete_modal_visible_rs, delete_modal_visible_ws) = create_signal(false);
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<DefaultConfigFilters>::extract_non_empty(&query_string).into_inner()
@@ -100,11 +98,11 @@ pub fn default_config() -> impl IntoView {
         },
     );
 
-    let confirm_delete = Callback::new(move |_| {
-        let tenant = workspace.get().0;
-        let org = org.get().0;
+    let confirm_delete = move |_| {
+        let tenant = workspace.get_untracked().0;
+        let org = org.get_untracked().0;
         let prefix = page_params_rws.with(|p| p.prefix.clone().unwrap_or_default());
-        if let Some(key_name) = delete_key_rs.get() {
+        if let Some(key_name) = delete_key_rs.get_untracked() {
             spawn_local({
                 async move {
                     let api_response = delete_default_config(
@@ -120,6 +118,7 @@ pub fn default_config() -> impl IntoView {
                                 AlertType::Success,
                                 5000,
                             );
+                            delete_key_ws.set(None);
                             default_config_resource.refetch();
                         }
                         Err(err) => enqueue_alert(err, AlertType::Error, 5000),
@@ -127,9 +126,7 @@ pub fn default_config() -> impl IntoView {
                 }
             });
         }
-        delete_key_ws.set(None);
-        delete_modal_visible_ws.set(false);
-    });
+    };
 
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
@@ -187,10 +184,7 @@ pub fn default_config() -> impl IntoView {
                 open_drawer("default_config_drawer");
             };
 
-            let handle_delete = move |_| {
-                delete_key_ws.set(Some(key_name.get_value()));
-                delete_modal_visible_ws.set(true);
-            };
+            let handle_delete = move |_| delete_key_ws.set(Some(key_name.get_value()));
 
             if is_folder && grouped {
                 view! { <span>{"-"}</span> }.into_view()
@@ -307,12 +301,11 @@ pub fn default_config() -> impl IntoView {
                                         autocomplete_function_name=selected_config_data
                                             .autocomplete_function_name
                                         prefix
-                                        handle_submit=move || {
+                                        handle_submit=move |_| {
                                             default_config_resource.refetch();
                                             handle_close();
                                         }
                                     />
-
                                 </Drawer>
                             }
                         }
@@ -325,7 +318,7 @@ pub fn default_config() -> impl IntoView {
                                 >
                                     <DefaultConfigForm
                                         prefix
-                                        handle_submit=move || {
+                                        handle_submit=move |_| {
                                             filters_rws.set(DefaultConfigFilters::default());
                                             if !page_params_rws.with(|p| p.grouped) {
                                                 pagination_params_rws.set(PaginationParams::default());
@@ -447,14 +440,21 @@ pub fn default_config() -> impl IntoView {
                         </div>
                     }
                 }}
-                <DeleteModal
-                    modal_visible=delete_modal_visible_rs
-                    confirm_delete=confirm_delete
-                    set_modal_visible=delete_modal_visible_ws
-                    header_text="Are you sure you want to delete this config? Action is irreversible."
-                        .to_string()
-                />
             </Suspense>
+            {move || {
+                if let Some(delete_key) = delete_key_rs.get() {
+                    view! {
+                        <ChangeLogSummary
+                            key_name=delete_key
+                            change_type=ChangeType::Delete
+                            on_close=move |_| delete_key_ws.set(None)
+                            on_confirm=confirm_delete
+                        />
+                    }
+                } else {
+                    ().into_view()
+                }
+            }}
         </div>
     }
 }
