@@ -3,16 +3,17 @@ use std::{collections::HashSet, fmt::Display, str::FromStr};
 use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use superposition_types::{custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams}, IsEmpty as IsEmptyTrait};
+use superposition_types::{
+    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
+    IsEmpty,
+};
 
-use crate::{
-    components::{
-        badge::{GrayPill, ListPills},
-        button::Button,
-        drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
-        form::label::Label,
-        input::DateInput,
-    },
+use crate::components::{
+    badge::{GrayPill, ListPills},
+    button::Button,
+    drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+    form::label::Label,
+    input::DateInput,
 };
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -27,7 +28,7 @@ pub struct AuditLogFilters {
 impl Display for AuditLogFilters {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut parts = Vec::new();
-        
+
         if let Some(from_date) = &self.from_date {
             parts.push(format!("from_date={}", from_date.to_rfc3339()));
         }
@@ -43,24 +44,24 @@ impl Display for AuditLogFilters {
         if let Some(action) = &self.action {
             parts.push(format!("action={}", action));
         }
-        
+
         write!(f, "{}", parts.join("&"))
     }
 }
 
-impl IsEmptyTrait for AuditLogFilters {
+impl IsEmpty for AuditLogFilters {
     fn is_empty(&self) -> bool {
-        self.from_date.is_none() 
-            && self.to_date.is_none() 
-            && self.table.is_none() 
-            && self.action.is_none() 
+        self.from_date.is_none()
+            && self.to_date.is_none()
+            && self.table.is_none()
+            && self.action.is_none()
             && self.username.is_none()
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AuditAction {
-    CREATE,
+    INSERT,
     UPDATE,
     DELETE,
 }
@@ -68,7 +69,7 @@ pub enum AuditAction {
 impl Display for AuditAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AuditAction::CREATE => write!(f, "CREATE"),
+            AuditAction::INSERT => write!(f, "INSERT"),
             AuditAction::UPDATE => write!(f, "UPDATE"),
             AuditAction::DELETE => write!(f, "DELETE"),
         }
@@ -80,7 +81,7 @@ impl FromStr for AuditAction {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "CREATE" => Ok(AuditAction::CREATE),
+            "INSERT" => Ok(AuditAction::INSERT),
             "UPDATE" => Ok(AuditAction::UPDATE),
             "DELETE" => Ok(AuditAction::DELETE),
             _ => Err(format!("Unknown audit action: {}", s)),
@@ -89,9 +90,7 @@ impl FromStr for AuditAction {
 }
 
 #[component]
-pub fn filter_summary(
-    filters_rws: RwSignal<AuditLogFilters>,
-) -> impl IntoView {
+pub fn filter_summary(filters_rws: RwSignal<AuditLogFilters>) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
 
     fn filter_index<T: Display + FromStr + Clone>(
@@ -247,23 +246,25 @@ pub fn audit_log_filter_widget(
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
 
-    let action_filter_management =
-        move |checked: bool, filter_action: AuditAction| {
-            filters_buffer_rws.update(|f| {
-                let action_types = f.action.clone().map(|s| s.0).unwrap_or_default();
-                let mut old_action_vector: HashSet<String> =
-                    HashSet::from_iter(action_types);
+    let action_filter_management = move |checked: bool, filter_action: AuditAction| {
+        filters_buffer_rws.update(|f| {
+            let action_types = f.action.clone().map(|s| s.0).unwrap_or_default();
+            let mut old_action_vector: HashSet<String> = HashSet::from_iter(action_types);
 
-                let action_str = filter_action.to_string();
-                if checked {
-                    old_action_vector.insert(action_str);
-                } else {
-                    old_action_vector.remove(&action_str);
-                }
-                let new_action_vector = old_action_vector.into_iter().collect();
-                f.action = Some(CommaSeparatedQParams(new_action_vector))
-            })
-        };
+            let action_str = filter_action.to_string();
+            if checked {
+                old_action_vector.insert(action_str);
+            } else {
+                old_action_vector.remove(&action_str);
+            }
+            let new_action_vector: Vec<String> = old_action_vector.into_iter().collect();
+            f.action = if new_action_vector.is_empty() {
+                None
+            } else {
+                Some(CommaSeparatedQParams(new_action_vector))
+            }
+        })
+    };
 
     view! {
         <DrawerBtn
@@ -328,7 +329,7 @@ pub fn audit_log_filter_widget(
                 <div class="form-control w-full">
                     <Label title="Action" />
                     <div class="flex flex-row flex-wrap justify-start gap-5">
-                        {[AuditAction::CREATE, AuditAction::UPDATE, AuditAction::DELETE].iter()
+                        {[AuditAction::INSERT, AuditAction::UPDATE, AuditAction::DELETE].iter()
                             .map(|action| {
                                 let label = action.to_string();
                                 let input_id = format!("{label}-checkbox");
@@ -427,7 +428,12 @@ pub fn audit_log_filter_widget(
                                 filters_rws.set(filters);
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
-                            close_drawer("audit_log_filter_drawer")
+                            set_timeout(
+                                || {
+                                    close_drawer("audit_log_filter_drawer");
+                                },
+                                std::time::Duration::from_millis(10),
+                            );
                         }
                     />
                     <Button
@@ -438,9 +444,15 @@ pub fn audit_log_filter_widget(
                             event.prevent_default();
                             batch(|| {
                                 filters_rws.set(AuditLogFilters::default());
+                                filters_buffer_rws.set(AuditLogFilters::default());
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
-                            close_drawer("audit_log_filter_drawer")
+                            set_timeout(
+                                || {
+                                    close_drawer("audit_log_filter_drawer");
+                                },
+                                std::time::Duration::from_millis(10),
+                            );
                         }
                     />
                 </div>
@@ -448,3 +460,4 @@ pub fn audit_log_filter_widget(
         </Drawer>
     }
 }
+

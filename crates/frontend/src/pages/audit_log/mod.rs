@@ -69,7 +69,7 @@ fn audit_log_table_columns() -> Vec<Column> {
             move |value: &str, _row: &Map<String, Value>| {
                 let action = value.to_string();
                 let badge_class = match value {
-                    "CREATE" => "badge-success",
+                    "INSERT" => "badge-success",
                     "UPDATE" => "badge-warning",
                     "DELETE" => "badge-error",
                     _ => "badge-info",
