@@ -9,6 +9,9 @@
     "load_exp_tests": "npx newman dir-import postman/experimentation-platform -o postman/experimentation-platform.postman_collection.json",
     "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json"
   },
+  "dependencies": {
+    "@io.juspay/superposition-sdk": "clients/generated/smithy/typescript"
+  },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
     "axios": "^1.8.2",

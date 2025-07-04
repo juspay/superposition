@@ -12,7 +12,9 @@ char* core_get_resolved_config(
     const char* contexts_json,
     const char* overrides_json,
     const char* query_data_json,
-    const char* merge_strategy_str
+    const char* merge_strategy_str,
+    const char* filter_prefixes_json, 
+    const char* experimentation_json
 );
 
 char* core_get_resolved_config_with_reasoning(
@@ -20,21 +22,22 @@ char* core_get_resolved_config_with_reasoning(
     const char* contexts_json,
     const char* overrides_json,
     const char* query_data_json,
-    const char* merge_strategy_str
+    const char* merge_strategy_str, 
+    const char* filter_prefixes_json, 
+    const char* experimentation_json
 );
 
-char* core_evaluate_experiment(
-    const char* experiments_json, 
-    const char* variants_json, 
-    const char* overrides_json, 
-    const char* user_context_json, 
-    int toss, 
+char* core_get_applicable_variants(
+    const char* experiments_json,
+    const char* query_data_json,
+    signed char toss,
     const char* filter_prefixes_json
-); 
+);
 
 void core_free_string(char* s);
 char* core_last_error_message();
 int core_last_error_length();
+int core_test_connection(); 
 
 #ifdef __cplusplus
 }

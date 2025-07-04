@@ -15,7 +15,15 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "strict": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "paths": {
+            "@io.juspay/superposition-typescript-sdk": [
+                "../../generated/smithy/typescript"
+            ],
+            "@io.juspay/superposition-typescript-sdk/*": [
+                "../../generated/smithy/typescript/src/*"
+            ]
+        },
     },
     "include": [
         "src/**/*"
