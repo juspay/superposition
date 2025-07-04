@@ -30,12 +30,21 @@ import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
+import uniffi.superposition_types.Condition
 import uniffi.superposition_types.Context
+import uniffi.superposition_types.FfiConverterTypeCondition
 import uniffi.superposition_types.FfiConverterTypeContext
 import uniffi.superposition_types.FfiConverterTypeOverrides
+import uniffi.superposition_types.FfiConverterTypeVariant
+import uniffi.superposition_types.FfiConverterTypeVariants
 import uniffi.superposition_types.Overrides
+import uniffi.superposition_types.Variant
+import uniffi.superposition_types.Variants
+import uniffi.superposition_types.RustBuffer as RustBufferCondition
 import uniffi.superposition_types.RustBuffer as RustBufferContext
 import uniffi.superposition_types.RustBuffer as RustBufferOverrides
+import uniffi.superposition_types.RustBuffer as RustBufferVariant
+import uniffi.superposition_types.RustBuffer as RustBufferVariants
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -721,6 +730,8 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -739,6 +750,8 @@ internal interface IntegrityCheckingUniffiLib : Library {
     fun uniffi_superposition_core_checksum_func_ffi_eval_config(
 ): Short
 fun uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning(
+): Short
+fun uniffi_superposition_core_checksum_func_ffi_get_applicable_variants(
 ): Short
 fun ffi_superposition_core_uniffi_contract_version(
 ): Int
@@ -786,9 +799,11 @@ internal interface UniffiLib : Library {
     }
 
     // FFI functions
-    fun uniffi_superposition_core_fn_func_ffi_eval_config(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBuffer.ByValue,`filterPrefixes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_superposition_core_fn_func_ffi_eval_config(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBuffer.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBuffer.ByValue,`filterPrefixes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBuffer.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun ffi_superposition_core_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -916,10 +931,13 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 1611.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 16161.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 55416.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 28068.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 29145.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1004,6 +1022,29 @@ object NoPointer
 /**
  * @suppress
  */
+public object FfiConverterUByte: FfiConverter<UByte, Byte> {
+    override fun lift(value: Byte): UByte {
+        return value.toUByte()
+    }
+
+    override fun read(buf: ByteBuffer): UByte {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: UByte): Byte {
+        return value.toByte()
+    }
+
+    override fun allocationSize(value: UByte) = 1UL
+
+    override fun write(value: UByte, buf: ByteBuffer) {
+        buf.put(value.toByte())
+    }
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -1055,6 +1096,78 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
+    }
+}
+
+
+
+data class ExperimentationArgs (
+    var `experiments`: List<FfiExperiment>, 
+    var `targetingKey`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeExperimentationArgs: FfiConverterRustBuffer<ExperimentationArgs> {
+    override fun read(buf: ByteBuffer): ExperimentationArgs {
+        return ExperimentationArgs(
+            FfiConverterSequenceTypeFfiExperiment.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ExperimentationArgs) = (
+            FfiConverterSequenceTypeFfiExperiment.allocationSize(value.`experiments`) +
+            FfiConverterString.allocationSize(value.`targetingKey`)
+    )
+
+    override fun write(value: ExperimentationArgs, buf: ByteBuffer) {
+            FfiConverterSequenceTypeFfiExperiment.write(value.`experiments`, buf)
+            FfiConverterString.write(value.`targetingKey`, buf)
+    }
+}
+
+
+
+data class FfiExperiment (
+    var `id`: kotlin.String, 
+    var `trafficPercentage`: kotlin.UByte, 
+    var `variants`: Variants, 
+    var `context`: Condition
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiExperiment: FfiConverterRustBuffer<FfiExperiment> {
+    override fun read(buf: ByteBuffer): FfiExperiment {
+        return FfiExperiment(
+            FfiConverterString.read(buf),
+            FfiConverterUByte.read(buf),
+            FfiConverterTypeVariants.read(buf),
+            FfiConverterTypeCondition.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiExperiment) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterUByte.allocationSize(value.`trafficPercentage`) +
+            FfiConverterTypeVariants.allocationSize(value.`variants`) +
+            FfiConverterTypeCondition.allocationSize(value.`context`)
+    )
+
+    override fun write(value: FfiExperiment, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterUByte.write(value.`trafficPercentage`, buf)
+            FfiConverterTypeVariants.write(value.`variants`, buf)
+            FfiConverterTypeCondition.write(value.`context`, buf)
     }
 }
 
@@ -1153,6 +1266,38 @@ public object FfiConverterTypeOperationError : FfiConverterRustBuffer<OperationE
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeExperimentationArgs: FfiConverterRustBuffer<ExperimentationArgs?> {
+    override fun read(buf: ByteBuffer): ExperimentationArgs? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeExperimentationArgs.read(buf)
+    }
+
+    override fun allocationSize(value: ExperimentationArgs?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeExperimentationArgs.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ExperimentationArgs?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeExperimentationArgs.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<kotlin.String>?> {
     override fun read(buf: ByteBuffer): List<kotlin.String>? {
         if (buf.get().toInt() == 0) {
@@ -1213,6 +1358,34 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeFfiExperiment: FfiConverterRustBuffer<List<FfiExperiment>> {
+    override fun read(buf: ByteBuffer): List<FfiExperiment> {
+        val len = buf.getInt()
+        return List<FfiExperiment>(len) {
+            FfiConverterTypeFfiExperiment.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<FfiExperiment>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeFfiExperiment.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<FfiExperiment>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeFfiExperiment.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeContext: FfiConverterRustBuffer<List<Context>> {
     override fun read(buf: ByteBuffer): List<Context> {
         val len = buf.getInt()
@@ -1231,6 +1404,34 @@ public object FfiConverterSequenceTypeContext: FfiConverterRustBuffer<List<Conte
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeContext.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeVariant: FfiConverterRustBuffer<List<Variant>> {
+    override fun read(buf: ByteBuffer): List<Variant> {
+        val len = buf.getInt()
+        return List<Variant>(len) {
+            FfiConverterTypeVariant.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Variant>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeVariant.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Variant>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeVariant.write(it, buf)
         }
     }
 }
@@ -1316,21 +1517,37 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
 
 
 
-    @Throws(OperationException::class) fun `ffiEvalConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?): Map<kotlin.String, kotlin.String> {
+
+
+
+
+
+
+    @Throws(OperationException::class) fun `ffiEvalConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `experimentation`: ExperimentationArgs?): Map<kotlin.String, kotlin.String> {
             return FfiConverterMapStringString.lift(
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_eval_config(
-        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),_status)
+        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalTypeExperimentationArgs.lower(`experimentation`),_status)
 }
     )
     }
     
 
-    @Throws(OperationException::class) fun `ffiEvalConfigWithReasoning`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?): Map<kotlin.String, kotlin.String> {
+    @Throws(OperationException::class) fun `ffiEvalConfigWithReasoning`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `experimentation`: ExperimentationArgs?): Map<kotlin.String, kotlin.String> {
             return FfiConverterMapStringString.lift(
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(
-        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),_status)
+        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalTypeExperimentationArgs.lower(`experimentation`),_status)
+}
+    )
+    }
+    
+
+    @Throws(OperationException::class) fun `ffiGetApplicableVariants`(`eargs`: ExperimentationArgs, `queryData`: Map<kotlin.String, kotlin.String>, `prefix`: List<kotlin.String>?): List<kotlin.String> {
+            return FfiConverterSequenceString.lift(
+    uniffiRustCallWithError(OperationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_get_applicable_variants(
+        FfiConverterTypeExperimentationArgs.lower(`eargs`),FfiConverterMapStringString.lower(`queryData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
 }
     )
     }
