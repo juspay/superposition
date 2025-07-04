@@ -206,9 +206,11 @@ smithy-clients: smithy-build
 ## Probably want to use that to publish it ourselves in the future.
 	cp -r $(SMITHY_BUILD_SRC)/java-client-codegen/*\
 				clients/java/sdk/src/main/java
+	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
+				clients/python/sdk
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
-		[[ "$$d" =~ "java" ]] && continue; \
+		[[ "$$d" =~ "java" || "$$d" =~ "python" ]] && continue; \
 		name=$$(basename "$$d" -client-codegen); \
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \

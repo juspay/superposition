@@ -41,7 +41,7 @@
     },
     "python-client-codegen": {
       "service": "io.superposition#Superposition",
-      "module": "superposition_python_sdk",
+      "module": "superposition_sdk",
       "moduleVersion": "0.0.1"
     },
     "java-client-codegen": {
