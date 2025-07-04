@@ -4,6 +4,7 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::hoc::layout::Layout;
+use crate::pages::audit_log::AuditLog;
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
@@ -306,6 +307,18 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     view! {
                                         <Layout>
                                             <Webhooks />
+                                        </Layout>
+                                    }
+                                }
+                            />
+
+                            <Route
+                                ssr=SsrMode::Async
+                                path="/admin/:org_id/:tenant/audit-log"
+                                view=move || {
+                                    view! {
+                                        <Layout>
+                                            <AuditLog />
                                         </Layout>
                                     }
                                 }

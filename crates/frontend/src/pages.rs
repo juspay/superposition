@@ -1,3 +1,4 @@
+pub mod audit_log;
 pub mod compare_overrides;
 pub mod config_version;
 pub mod config_version_list;
