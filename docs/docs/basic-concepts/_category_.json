@@ -1,6 +1,8 @@
 {
   "label": "Basic Concepts",
   "position": 3,
+  "collapsible": true,
+  "collapsed": false,
   "link": {
     "type": "generated-index",
     "description": "Get Introduced to the Ideas behind Superposition."
