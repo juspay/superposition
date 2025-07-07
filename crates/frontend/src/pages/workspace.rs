@@ -7,19 +7,23 @@ use superposition_types::{
     database::models::{Metrics, WorkspaceStatus},
 };
 
+use crate::api::fetch_workspaces;
 use crate::components::{
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{Column, ColumnSortable, Expandable, TablePaginationProps},
+        types::{
+            default_column_formatter, Column, ColumnSortable, Expandable,
+            TablePaginationProps,
+        },
         Table,
     },
     workspace_form::{types::RowData, WorkspaceForm},
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
-use crate::{api::fetch_workspaces, components::table::types::default_column_formatter};
+use crate::utils::use_url_base;
 
 #[component]
 pub fn workspace() -> impl IntoView {
@@ -113,11 +117,12 @@ pub fn workspace() -> impl IntoView {
         let navigate = move |_: &str, row: &Map<String, Value>| {
             let org_id = org_id.get().0;
             let workspace_name = row["workspace_name"].to_string().replace('"', "");
+            let base = use_url_base();
 
             view! {
                 <A
                     class="cursor-pointer text-blue-500"
-                    href=format!("/admin/{org_id}/{workspace_name}/default-config")
+                    href=format!("{base}/admin/{org_id}/{workspace_name}/default-config")
                 >
                     {workspace_name}
                 </A>
