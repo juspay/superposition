@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar, Generic
 from superposition_bindings.superposition_client import FfiExperiment
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions, ExperimentationOptions
-from superposition_python_sdk.client import Superposition, Config, ListExperimentInput
+from superposition_sdk.client import Superposition, Config, ListExperimentInput
 import asyncio
 from datetime import datetime, timedelta
 from superposition_bindings.superposition_types import Variant, VariantType
