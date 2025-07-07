@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.77.1 - 2025-07-07
+### Package updates
+- experimentation_client bumped to experimentation_client-v0.13.2
+### Global changes
+#### Bug Fixes
+- Readme links in md - (1de3e3c) - Kartik
+#### Miscellaneous Chores
+- Update smithy clients - (fe0e4b0) - ayush.jain@juspay.in
+- Add missing audit log for experiment group table - (556df54) - ayush.jain@juspay.in
+#### Refactoring
+- Refactor and restructure python ofc - (f9de8f5) - PRATIK MISHRA
+
+- - -
+
 ## v0.77.0 - 2025-07-03
 ### Package updates
 - frontend bumped to frontend-v0.32.0
