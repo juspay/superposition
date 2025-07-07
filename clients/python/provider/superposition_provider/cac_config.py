@@ -3,7 +3,7 @@ import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
-from superposition_python_sdk.client import Superposition, Config, GetConfigInput
+from superposition_sdk.client import Superposition, Config, GetConfigInput
 import asyncio
 from datetime import datetime, timedelta
 from superposition_bindings.superposition_types import Context

@@ -15,7 +15,7 @@ A Python implementation of the [OpenFeature](https://openfeature.dev/) provider 
 ## Installation
 
 ```bash
-pip install superposition-openfeature-python
+pip install "superposition_provider @ git+https://github.com/juspay/superposition.git@main#subdirectory=clients/python/provider"
 ```
 
 ## Quick Start

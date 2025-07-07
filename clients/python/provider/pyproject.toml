@@ -12,8 +12,8 @@ keywords = ["openfeature", "superposition_provider"]
 license = {text = "Apache-2.0"}
 
 dependencies = [
-    "superposition_sdk",
-    "superposition_bindings"
+    "superposition_sdk @ git+https://github.com/juspay/superposition.git@main#subdirectory=clients/python/sdk",
+    "superposition_bindings @ git+https://github.com/juspay/superposition.git@main#subdirectory=clients/python/bindings"
 ]
 
 [tool.setuptools.packages.find]
