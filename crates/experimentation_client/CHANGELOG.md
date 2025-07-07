@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.13.2 - 2025-07-07
+#### Bug Fixes
+- exp client (#579) - (53a87f6) - PRATIK MISHRA
+
+- - -
+
 ## experimentation_client-v0.13.1 - 2025-07-03
 #### Bug Fixes
 - Show filters in all pages - (8ba1619) - ayush.jain@juspay.in
