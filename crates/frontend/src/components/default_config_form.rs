@@ -121,15 +121,15 @@ pub fn default_config_form(
 
     let on_submit = Callback::new(move |_| {
         req_inprogress_ws.set(true);
-        let f_name = config_key_rs.get_untracked();
+        let key_name = config_key_rs.get_untracked();
         let f_schema = config_schema_rs.get_untracked();
         let f_value = config_value_rs.get_untracked();
 
-        let fun_name = validation_fn_name_rs.get_untracked_untracked();
+        let fun_name = validation_fn_name_rs.get_untracked();
         let autocomplete_fn = autocomplete_fn_name_rs.get_untracked();
 
-        let description = description_rs.get_untracked_untracked();
-        let change_reason = change_reason_rs.get_untracked_untracked();
+        let description = description_rs.get_untracked();
+        let change_reason = change_reason_rs.get_untracked();
 
         let is_edit = edit;
 
@@ -138,8 +138,8 @@ pub fn default_config_form(
                 (true, Some((_, payload))) => update_default_config(
                     key_name,
                     payload,
-                    tenant_rws.get_untracked().0,
-                    org_rws.get_untracked().0,
+                    &workspace.get_untracked(),
+                    &org.get_untracked(),
                 )
                 .await
                 .map(|_| ResponseType::Response),
@@ -161,8 +161,8 @@ pub fn default_config_form(
                     }
                 }
                 _ => create_default_config(
-                    workspace.get_untracked_untracked().0,
-                    org.get_untracked_untracked().0,
+                    workspace.get_untracked().0,
+                    org.get_untracked().0,
                     config_key_rs.get_untracked(),
                     f_value,
                     f_schema,
@@ -467,7 +467,10 @@ pub fn default_config_form(
                             class="self-end h-12 w-48"
                             text="Submit"
                             icon_class="ri-send-plane-line"
-                            on_click=on_submit.clone()
+                            on_click=move |ev| {
+                                ev.prevent_default();
+                                on_submit.call(());
+                            }
                             loading
                         />
                     }
@@ -504,13 +507,13 @@ pub fn change_log_summary(
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
 ) -> impl IntoView {
-    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
-    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let default_config = create_local_resource(
-        move || (key_name.clone(), tenant_rws.get().0, org_rws.get().0),
-        |(key_name, tenant, org)| async move {
-            get_default_config(&key_name, &tenant, &org).await
+        move || (key_name.clone(), workspace.get().0, org.get().0),
+        |(key_name, workspace, org)| async move {
+            get_default_config(&key_name, &workspace, &org).await
         },
     );
 
@@ -520,40 +523,36 @@ pub fn change_log_summary(
     let (title, description, confirm_text) = match change_type.get_value() {
         ChangeType::Update(_) => (
             "Confirm Update",
-            "Are you sure you want to update this context?",
+            "Are you sure you want to update this config?",
             "Yes, Update",
         ),
         ChangeType::Delete => (
             "Confirm Delete",
-            "Are you sure you want to delete this context? Action is irreversible.",
+            "Are you sure you want to delete this config? Action is irreversible.",
             "Yes, Delete",
         ),
     };
 
     view! {
-        <ChangeLogPopup
-            title
-            description
-            confirm_text
-            on_confirm
-            on_close
-            disabled=disabled_rws.read_only()
-        >
+        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
             }>
                 {
                     Effect::new(move |_| {
-                        if let Some(Ok(_)) = default_config.get() {
+                        let default_config = default_config.get();
+                        if let Some(Ok(_)) = default_config {
                             disabled_rws.set(false);
-                        } else if let Some(Err(e)) = default_config.get() {
+                        } else if let Some(Err(e)) = default_config {
                             logging::error!("Error fetching default config: {}", e);
                         }
                     });
                 }
                 {move || match default_config.get() {
                     Some(Ok(default)) => {
-                        let (new_default_value, new_schema, new_values) = match change_type.get_value() {
+                        let (new_default_value, new_schema, new_values) = match change_type
+                            .get_value()
+                        {
                             ChangeType::Update(update_request) => {
                                 let description = update_request
                                     .description
@@ -571,10 +570,16 @@ pub fn change_log_summary(
                                         default.autocomplete_function_name.clone()
                                     });
                                 (
-                                    Some(update_request.value.unwrap_or_else(|| default.value.clone())),
-                                    Some(update_request
-                                        .schema
-                                        .unwrap_or_else(|| default.schema.clone())),
+                                    Some(
+                                        update_request
+                                            .value
+                                            .unwrap_or_else(|| default.value.clone()),
+                                    ),
+                                    Some(
+                                        update_request
+                                            .schema
+                                            .unwrap_or_else(|| default.schema.clone()),
+                                    ),
                                     Map::from_iter(
                                         vec![
                                             Some((

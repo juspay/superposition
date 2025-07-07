@@ -105,7 +105,6 @@ pub async fn fetch_snapshots(
 }
 
 pub async fn delete_context(
-    tenant: String,
     context_id: String,
     org_id: String,
 ) -> Result<(), ServerFnError> {

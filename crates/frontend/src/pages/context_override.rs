@@ -82,6 +82,12 @@ enum FormMode {
     Clone(String),
     Create,
     Experiment(ExperimentType, String),
+    Delete(String),
+}
+
+enum ResponseType {
+    Response,
+    UpdatePrecheck,
 }
 
 #[component]
@@ -533,8 +539,12 @@ pub fn context_override() -> impl IntoView {
 
     let on_delete_confirm = move |context_id| {
         spawn_local(async move {
-            let result =
-                delete_context(workspace.get().0, context_id, org_rws.get().0).await;
+            let result = delete_context(
+                context_id,
+                &workspace.get_untracked(),
+                &org.get_untracked(),
+            )
+            .await;
 
             match result {
                 Ok(_) => {
@@ -850,22 +860,16 @@ fn change_log_summary(
     };
 
     view! {
-        <ChangeLogPopup
-            title
-            description
-            confirm_text
-            on_confirm
-            on_close
-            disabled=disabled_rws.read_only()
-        >
+        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
             }>
                 {
                     Effect::new(move |_| {
-                        if let Some(Ok(_)) = context_data.get() {
+                        let context = context_data.get();
+                        if let Some(Ok(_)) = context {
                             disabled_rws.set(false);
-                        } else if let Some(Err(e)) = context_data.get() {
+                        } else if let Some(Err(e)) = context {
                             logging::error!("Error fetching context: {}", e);
                         }
                     });

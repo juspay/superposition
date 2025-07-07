@@ -55,13 +55,19 @@ pub fn dimensions() -> impl IntoView {
     );
 
     let confirm_delete = Callback::new(move |_| {
-        if let Some(id) = delete_id_rs.get().clone() {
+        if let Some(id) = delete_id_rs.get_untracked() {
             spawn_local(async move {
-                let result = delete_dimension(id, workspace.get().0, org.get().0).await;
+                let result = delete_dimension(
+                    id,
+                    workspace.get_untracked().0,
+                    org.get_untracked().0,
+                )
+                .await;
 
                 match result {
                     Ok(_) => {
                         logging::log!("Dimension deleted successfully");
+                        delete_id_ws.set(None);
                         dimensions_resource.refetch();
                     }
                     Err(e) => {
@@ -70,7 +76,6 @@ pub fn dimensions() -> impl IntoView {
                 }
             });
         }
-        delete_id_ws.set(None);
     });
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
