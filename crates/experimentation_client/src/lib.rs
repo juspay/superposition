@@ -252,8 +252,8 @@ async fn get_experiments(
 ) -> Result<ExperimentStore, String> {
     let list_filters = ExperimentListFilters {
         status: Some(CommaSeparatedQParams(ExperimentStatusType::active_list())),
-        from_date: Some(start_date),
-        to_date: Some(Utc::now()),
+        from_date: None,
+        to_date: None,
         experiment_name: None,
         experiment_ids: None,
         created_by: None,
