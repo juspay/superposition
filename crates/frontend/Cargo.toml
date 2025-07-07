@@ -33,7 +33,7 @@ superposition_types = { path = "../superposition_types", features = [
     "api",
 ], default-features = false }
 url = { workspace = true }
-wasm-bindgen = "=0.2.93"
+wasm-bindgen = "0.2.100"
 web-sys = { version = "0.3.64", features = [
     "Event",
     "Worker",

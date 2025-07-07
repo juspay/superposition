@@ -67,9 +67,6 @@ url = "2.5.0"
 uuid = { version = "1.3.4", features = ["v4", "serde"] }
 uniffi = { version = "0.29.3", features = [ "cli" ] }
 
-[workspace.build-dependencies]
-uniffi = { version = "0.29.3", features = [ "build" ] }
-
 [workspace.lints.clippy]
 mod_module_files = "warn"
 manual_range_contains = "allow"
