@@ -1,32 +1,30 @@
+use std::ops::Deref;
+
 use leptos::*;
-use serde_json::{json, Value};
+use serde_json::{json, Map, Number, Value};
 use superposition_types::{
     api::{
-        experiment_groups::{
-            ExpGroupCreateRequest, ExpGroupMemberRequest, ExpGroupUpdateRequest,
-        },
+        experiment_groups::{ExpGroupMemberRequest, ExpGroupUpdateRequest},
         workspace::WorkspaceResponse,
     },
     database::{
-        models::{
-            experimentation::{ExperimentGroup, TrafficPercentage},
-            ChangeReason, Description,
-        },
+        models::{experimentation::ExperimentGroup, ChangeReason},
         types::DimensionWithMandatory,
     },
-    Condition, Exp,
 };
 use web_sys::MouseEvent;
 
 use crate::{
-    api::experiment_groups::{add_members, create, update},
+    api::experiment_groups::{add_members, create, fetch, try_update_payload, update},
     components::{
         alert::AlertType,
         button::Button,
         change_form::ChangeForm,
+        change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
         context_form::ContextForm,
         form::label::Label,
         input::{Input, InputType},
+        skeleton::{Skeleton, SkeletonVariant},
     },
     logic::Conditions,
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -166,6 +164,11 @@ pub fn add_experiment_to_group_form(
     }
 }
 
+enum ResponseType {
+    UpdatePrecheck,
+    Response,
+}
+
 #[component]
 pub fn experiment_group_form(
     group_id: String,
@@ -175,18 +178,19 @@ pub fn experiment_group_form(
     traffic_percentage: i32,
     dimensions: Vec<DimensionWithMandatory>,
     is_edit: bool,
-    handle_submit: Callback<()>,
+    #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let experiment_group_id_rws = create_rw_signal(group_id);
+    let experiment_group_id = StoredValue::new(group_id);
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
     let group_name_rws = create_rw_signal(group_name);
     let group_description_rws = create_rw_signal(group_description);
     let change_reason_rws = create_rw_signal(String::new());
     let traffic_percentage_rws = create_rw_signal(traffic_percentage);
-    let group_members_rws = create_rw_signal(Vec::new());
+    let group_members_rws = create_rw_signal(Vec::new() as Vec<i64>);
+    let update_request_rws = RwSignal::new(None);
     let loading_rws = create_rw_signal(false);
 
     let fn_environment = create_memo(move |_| {
@@ -197,89 +201,63 @@ pub fn experiment_group_form(
         })
     });
 
-    let on_submit = move |event: MouseEvent| {
+    let on_submit = move |_| {
         loading_rws.set(true);
-        event.prevent_default();
 
-        let tenant = workspace.get().0;
-        let org_id = org.get().0;
-
-        let change_reason =
-            match ChangeReason::try_from(change_reason_rws.get_untracked()) {
-                Ok(reason) => reason,
-                Err(err) => {
-                    logging::error!("{}", err);
-                    enqueue_alert(err, AlertType::Error, 5000);
-                    loading_rws.set(false);
-                    return;
-                }
-            };
-
-        let description =
-            match Description::try_from(group_description_rws.get_untracked()) {
-                Ok(des) => des,
-                Err(err) => {
-                    logging::error!("{}", err);
-                    enqueue_alert(err, AlertType::Error, 5000);
-                    loading_rws.set(false);
-                    return;
-                }
-            };
-
-        let traffic_percentage =
-            match TrafficPercentage::try_from(traffic_percentage_rws.get_untracked()) {
-                Ok(traffic) => traffic,
-                Err(err) => {
-                    logging::error!("{}", err);
-                    enqueue_alert(err, AlertType::Error, 5000);
-                    loading_rws.set(false);
-                    return;
-                }
-            };
+        let name = group_name_rws.get_untracked();
+        let traffic_percentage = traffic_percentage_rws.get_untracked();
+        let change_reason = change_reason_rws.get_untracked();
+        let description = group_description_rws.get_untracked();
+        let workspace = workspace.get_untracked().0;
+        let org_id = org.get_untracked().0;
+        let members = match group_members_rws.get_untracked() {
+            members if members.is_empty() => None,
+            members => Some(members),
+        };
+        let conditions = context_rs.get_untracked();
+        let experiment_group_id = experiment_group_id.get_value();
 
         spawn_local({
             async move {
-                let result = if is_edit {
-                    let group_id = experiment_group_id_rws.get_untracked();
-                    let update_request = ExpGroupUpdateRequest {
-                        change_reason,
-                        description: Some(description),
-                        traffic_percentage: Some(traffic_percentage),
-                    };
-                    update(&group_id, update_request, &tenant, &org_id).await
-                } else {
-                    let members = match group_members_rws.get() {
-                        members if members.is_empty() => None,
-                        members => Some(members),
-                    };
-                    let context = match Exp::<Condition>::try_from(
-                        context_rs.get().as_context_json(),
-                    ) {
-                        Ok(context) => context,
-                        Err(err) => {
-                            logging::error!("Failed to parse context: {}", err);
-                            enqueue_alert(
-                                format!("Failed to parse context: {}", err),
-                                AlertType::Error,
-                                5000,
-                            );
-                            return;
+                let result = match (is_edit, update_request_rws.get_untracked()) {
+                    (true, Some((_, update_payload))) => {
+                        update(&experiment_group_id, update_payload, &workspace, &org_id)
+                            .await
+                            .map(|_| ResponseType::Response)
+                    }
+                    (true, None) => {
+                        let request_payload = try_update_payload(
+                            traffic_percentage,
+                            description,
+                            change_reason,
+                        );
+                        match request_payload {
+                            Ok(payload) => {
+                                update_request_rws
+                                    .set(Some((experiment_group_id, payload)));
+                                Ok(ResponseType::UpdatePrecheck)
+                            }
+                            Err(e) => Err(e),
                         }
-                    };
-                    let create_request = ExpGroupCreateRequest {
-                        name: group_name_rws.get(),
+                    }
+                    _ => create(
+                        name,
                         description,
                         change_reason,
-                        context,
                         traffic_percentage,
-                        member_experiment_ids: members,
-                    };
-                    create(create_request, &tenant, &org_id).await
+                        members,
+                        conditions,
+                        &workspace,
+                        &org_id,
+                    )
+                    .await
+                    .map(|_| ResponseType::Response),
                 };
 
                 loading_rws.set(false);
                 match result {
-                    Ok(_) => {
+                    Ok(ResponseType::UpdatePrecheck) => (),
+                    Ok(ResponseType::Response) => {
                         handle_submit.call(());
                         let success_message = if is_edit {
                             "Experiment Group updated successfully!"
@@ -326,27 +304,25 @@ pub fn experiment_group_form(
                     }
                     resolve_mode=workspace_settings.get_value().strict_mode
                     disabled=is_edit
-                    heading_sub_text=String::from(
-                        "Define rules under which this experiment group would function",
-                    )
+                    heading_sub_text="Define rules under which this experiment group would function"
                     fn_environment
                 />
 
                 <ChangeForm
                     title="Description".to_string()
                     placeholder="Enter a description".to_string()
-                    value=String::from(&group_description_rws.get_untracked())
-                    on_change=Callback::new(move |new_description: String| {
+                    value=group_description_rws.get_untracked()
+                    on_change=move |new_description: String| {
                         group_description_rws.set_untracked(new_description)
-                    })
+                    }
                 />
                 <ChangeForm
                     title="Reason for Change".to_string()
                     placeholder="Enter a reason for this change".to_string()
-                    value=String::from(&change_reason_rws.get_untracked())
-                    on_change=Callback::new(move |new_change_reason| {
+                    value=change_reason_rws.get_untracked()
+                    on_change=move |new_change_reason| {
                         change_reason_rws.set_untracked(new_change_reason)
-                    })
+                    }
                 />
 
                 <div class="form-control w-full">
@@ -424,7 +400,10 @@ pub fn experiment_group_form(
                             class="h-12 w-48"
                             text="Submit"
                             icon_class="ri-send-plane-line"
-                            on_click=on_submit
+                            on_click=move |ev| {
+                                ev.prevent_default();
+                                on_submit(());
+                            }
                             loading
                         />
                     }
@@ -432,5 +411,153 @@ pub fn experiment_group_form(
 
             </div>
         </EditorProvider>
+        {move || match update_request_rws.get() {
+            None => ().into_view(),
+            Some((group_id, update_request)) => {
+                view! {
+                    <ChangeLogSummary
+                        group_id
+                        change_type=ChangeType::Update(update_request)
+                        on_confirm=on_submit
+                        on_close=move |_| update_request_rws.set(None)
+                    />
+                }
+                    .into_view()
+            }
+        }}
+    }
+}
+
+#[derive(Clone)]
+pub enum ChangeType {
+    Delete,
+    Update(ExpGroupUpdateRequest),
+}
+
+#[component]
+pub fn change_log_summary(
+    group_id: String,
+    change_type: ChangeType,
+    #[prop(into)] on_confirm: Callback<()>,
+    #[prop(into)] on_close: Callback<()>,
+) -> impl IntoView {
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+
+    let exp_group = create_local_resource(
+        move || (group_id.clone(), workspace.get().0, org.get().0),
+        |(group_id, workspace, org)| async move { fetch(&group_id, &workspace, &org).await },
+    );
+
+    let disabled_rws = RwSignal::new(true);
+    let change_type = StoredValue::new(change_type);
+
+    let (title, description, confirm_text) = match change_type.get_value() {
+        ChangeType::Update(_) => (
+            "Confirm Update",
+            "Are you sure you want to update this experiment group?",
+            "Yes, Update",
+        ),
+        ChangeType::Delete => (
+            "Confirm Delete",
+            "Are you sure you want to delete this experiment group? Action is irreversible.",
+            "Yes, Delete",
+        ),
+    };
+
+    view! {
+        <ChangeLogPopup
+            title
+            description
+            confirm_text
+            on_confirm
+            on_close
+            disabled=disabled_rws.read_only()
+        >
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
+                {
+                    Effect::new(move |_| {
+                        let exp_group = exp_group.get();
+                        if let Some(Ok(_)) = exp_group {
+                            disabled_rws.set(false);
+                        } else if let Some(Err(e)) = exp_group {
+                            logging::error!("Error fetching experiment group: {}", e);
+                        }
+                    });
+                }
+                {move || match exp_group.get() {
+                    Some(Ok(exp_group)) => {
+                        let (new_context, new_values) = match change_type.get_value() {
+                            ChangeType::Update(update_request) => {
+                                let description = update_request
+                                    .description
+                                    .unwrap_or_else(|| exp_group.description.clone())
+                                    .deref()
+                                    .to_string();
+                                let traffic_percentage = update_request
+                                    .traffic_percentage
+                                    .unwrap_or(exp_group.traffic_percentage);
+                                let val = Map::from_iter(
+                                    vec![
+                                        ("Description".to_string(), Value::String(description)),
+                                        (
+                                            "Traffic Percentage".to_string(),
+                                            Value::Number(Number::from(*traffic_percentage)),
+                                        ),
+                                        (
+                                            "Members".to_string(),
+                                            Value::Array(
+                                                exp_group.member_experiment_ids.iter().map(|id| Value::String(id.to_string())).collect()
+                                            ),
+                                        )
+                                    ],
+                                );
+                                (Some(Value::Object(exp_group.context.clone().into())), val)
+                            }
+                            ChangeType::Delete => (None, Map::new())
+                        };
+
+                        view! {
+                            <ChangeSummary
+                                title="Changes"
+                                key_column="Property"
+                                old_values=Map::from_iter(
+                                    vec![
+                                        (
+                                            "Description".to_string(),
+                                            Value::String(exp_group.description.deref().to_string()),
+                                        ),
+                                        (
+                                            "Traffic Percentage".to_string(),
+                                            Value::Number(Number::from(*exp_group.traffic_percentage)),
+                                        ),
+                                        (
+                                            "Members".to_string(),
+                                            Value::Array(
+                                                exp_group.member_experiment_ids.iter().map(|id| Value::String(id.to_string())).collect()
+                                            ),
+                                        )
+                                    ],
+                                )
+                                new_values
+                            />
+                            <JsonChangeSummary
+                                title="Context changes"
+                                old_values=Some(Value::Object(exp_group.context.into()))
+                                new_values=new_context
+                            />
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching experiment group: {}", e);
+                        view! { <div>Error fetching experiment group</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }}
+            </Suspense>
+        </ChangeLogPopup>
     }
 }

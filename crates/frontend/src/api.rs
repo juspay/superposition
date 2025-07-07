@@ -106,7 +106,8 @@ pub async fn fetch_snapshots(
 
 pub async fn delete_context(
     context_id: String,
-    org_id: String,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<(), ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
@@ -721,6 +722,12 @@ pub async fn get_webhook(
 }
 
 pub mod experiment_groups {
+    use superposition_types::{
+        database::models::experimentation::TrafficPercentage, Condition, Exp,
+    };
+
+    use crate::logic::Conditions;
+
     use super::*;
 
     pub async fn fetch_all(
@@ -770,11 +777,26 @@ pub mod experiment_groups {
             .map_err(ServerFnError::new)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn create(
-        payload: ExpGroupCreateRequest,
+        name: String,
+        description: String,
+        change_reason: String,
+        traffic_percentage: i32,
+        member_experiment_ids: Option<Vec<i64>>,
+        conditions: Conditions,
         tenant: &str,
         org_id: &str,
     ) -> Result<ExperimentGroup, String> {
+        let payload = ExpGroupCreateRequest {
+            name,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+            traffic_percentage: TrafficPercentage::try_from(traffic_percentage)?,
+            member_experiment_ids,
+            context: Exp::<Condition>::try_from(conditions.as_context_json())
+                .map_err(|e| e.to_string())?,
+        };
         let host = use_host_server();
         let url = format!("{host}/experiment-groups");
 
@@ -787,6 +809,18 @@ pub mod experiment_groups {
         .await?;
 
         parse_json_response(response).await
+    }
+
+    pub fn try_update_payload(
+        traffic_percentage: i32,
+        description: String,
+        change_reason: String,
+    ) -> Result<ExpGroupUpdateRequest, String> {
+        Ok(ExpGroupUpdateRequest {
+            traffic_percentage: Some(TrafficPercentage::try_from(traffic_percentage)?),
+            description: Some(Description::try_from(description)?),
+            change_reason: ChangeReason::try_from(change_reason)?,
+        })
     }
 
     pub async fn update(
