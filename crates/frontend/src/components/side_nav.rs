@@ -91,15 +91,14 @@ pub fn workspace_selector(
     let base = use_url_base();
     let route_context = use_route();
     let original_path =
-        StoredValue::new(route_context.original_path().replace(&base, ""));
+        StoredValue::new(format!("{base}{}", route_context.original_path()));
     let resolved_path = StoredValue::new({
         let curr_path = route_context.path();
         app_routes
             .get_untracked()
             .iter()
-            .find_map(|r| curr_path.contains(&r.path).then_some(r.path.clone()))
+            .find_map(|r| curr_path.starts_with(&r.path).then_some(r.path.clone()))
             .unwrap_or(curr_path)
-            .replace(&base, "")
     });
 
     let search_term_rws = RwSignal::new(String::new());
@@ -212,6 +211,7 @@ pub fn side_nav(
         org.get_untracked().as_str(),
         workspace.get_untracked().as_str(),
     ));
+    let base = use_url_base();
 
     create_effect(move |_| {
         let current_path = location.pathname.get();
@@ -230,7 +230,7 @@ pub fn side_nav(
     view! {
         <div class="fixed z-990 inset-y-0 xl:left-0 h-full w-full max-w-xs py-4 pl-4 flex flex-col gap-2 overflow-y-auto bg-white xl:bg-transparent rounded-2xl -translate-x-full xl:translate-x-0 transition-transform duration-200">
             <A
-                href="/admin"
+                href=format!("{base}/admin")
                 class="flex-0 px-8 py-6 text-sm font-semibold text-center text-slate-700 whitespace-nowrap transition-all duration-200"
             >
                 Superposition Platform
