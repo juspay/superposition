@@ -9,7 +9,7 @@ use std::{io::Result, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
-    middleware::Compress,
+    middleware::{Compress, Logger},
     web::{self, get, scope, Data, PathConfig},
     App, HttpResponse, HttpServer,
 };
@@ -106,6 +106,7 @@ async fn main() -> Result<()> {
         let leptos_envs = ui_envs.clone();
         App::new()
             .wrap(Compress::default())
+            .wrap(Logger::default())
             .app_data(app_state.clone())
             .app_data(PathConfig::default().error_handler(|err, _| {
                 actix_web::error::ErrorBadRequest(err)
