@@ -2,12 +2,16 @@ pub mod utils;
 
 use std::ops::Deref;
 
+use chrono::Utc;
 use leptos::{html::Div, *};
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{default_config::DefaultConfigUpdateRequest, functions::ListFunctionFilters},
     custom_query::PaginationParams,
-    database::models::cac::{Function, FunctionType, TypeTemplate},
+    database::models::{
+        cac::{Function, FunctionType, TypeTemplate},
+        ChangeReason, Description,
+    },
 };
 use utils::try_update_payload;
 use wasm_bindgen::JsCast;
@@ -260,17 +264,30 @@ pub fn default_config_form(
                 </div>
                 <Suspense>
                     {move || {
-                        let options = type_template_resource.get().unwrap_or_default();
-                        let config_t = if config_type_rs.get().is_empty() && edit {
+                        let mut options = type_template_resource.get().unwrap_or_default();
+                        options
+                            .push(TypeTemplate {
+                                type_name: "Custom JSON Schema".to_string(),
+                                type_schema: Value::Null,
+                                created_by: "NA".to_string(),
+                                created_at: Utc::now(),
+                                last_modified_at: Utc::now(),
+                                last_modified_by: "NA".to_string(),
+                                description: Description::default(),
+                                change_reason: ChangeReason::default(),
+                            });
+                        let config_type = config_type_rs.get();
+                        let config_t = if config_type.is_empty() && edit {
                             "change current type template".into()
-                        } else if config_type_rs.get().is_empty() && !edit {
+                        } else if config_type.is_empty() && !edit {
                             "Choose a type template".into()
                         } else {
-                            config_type_rs.get()
+                            config_type
                         };
                         let config_type_schema = SchemaType::Single(
                             JsonSchemaType::from(&config_schema_rs.get()),
                         );
+
                         view! {
                             <ChangeForm
                                 title="Description".to_string()
@@ -329,6 +346,7 @@ pub fn default_config_form(
                                     on_change=Callback::new(move |new_config_schema| {
                                         config_schema_ws.set(new_config_schema)
                                     })
+                                    disabled=config_type_rs.get().is_empty() && !edit
                                     r#type=InputType::Monaco(vec![])
                                 />
 
