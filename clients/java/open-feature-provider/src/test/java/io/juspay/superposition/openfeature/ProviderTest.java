@@ -95,7 +95,7 @@ class ProviderTest {
         var ctx = new ImmutableContext(Map.of());
         provider.initialize(ctx);
         var pe = provider.getObjectEvaluation("list", new Value(""), ctx);
-        assertEquals(Value.objectToValue(List.of(Map.of("k1", "v1"))), pe.getValue());
+        assertEquals(Value.objectToValue(List.of("k1", "v1")), pe.getValue());
     }
 
     @Test
