@@ -1,8 +1,8 @@
 import asyncio
 import logging
 
-from openfeature_superposition_provider.provider import SuperpositionProvider
-from openfeature_superposition_provider.types import ExperimentationOptions, SuperpositionProviderOptions, PollingStrategy
+from .superposition_provider.provider import SuperpositionProvider
+from .superposition_provider.types import ExperimentationOptions, SuperpositionProviderOptions, PollingStrategy
 from openfeature import api
 from openfeature.evaluation_context import EvaluationContext
 import sys
@@ -25,7 +25,7 @@ def check_boolean_val(client, ctx):
     assert hasattr(bool_result, 'reason'), "Boolean result should have a reason attribute"
     
     # Assert exact value like Java test expects
-    assert bool_result.value == False, f"Expected boolean value to be True, but got {bool_result.value}"
+    assert bool_result.value == False, f"Expected boolean value to be False, but got {bool_result.value}"
     
     return bool_result
     
@@ -224,6 +224,10 @@ async def test_config():
         )
 
         exp_variant = check_exp_string_val(client, exp_ctx_variant, "variant")
+
+        # await asyncio.sleep(15)
+        # val = client.get_boolean_details("bool", True, ctx)
+        # print(f"Boolean flag 'bool' after 10 seconds: {val.value}")
         #With experiment test
 
         
