@@ -30,10 +30,10 @@ impl Display for AuditLogFilters {
         let mut parts = Vec::new();
 
         if let Some(from_date) = &self.from_date {
-            parts.push(format!("from_date={}", from_date.to_rfc3339()));
+            parts.push(format!("from_date={}", from_date));
         }
         if let Some(to_date) = &self.to_date {
-            parts.push(format!("to_date={}", to_date.to_rfc3339()));
+            parts.push(format!("to_date={}", to_date));
         }
         if let Some(username) = &self.username {
             parts.push(format!("username={}", username));
@@ -428,12 +428,7 @@ pub fn audit_log_filter_widget(
                                 filters_rws.set(filters);
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
-                            set_timeout(
-                                || {
-                                    close_drawer("audit_log_filter_drawer");
-                                },
-                                std::time::Duration::from_millis(10),
-                            );
+                            close_drawer("audit_log_filter_drawer");
                         }
                     />
                     <Button
@@ -447,12 +442,7 @@ pub fn audit_log_filter_widget(
                                 filters_buffer_rws.set(AuditLogFilters::default());
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
-                            set_timeout(
-                                || {
-                                    close_drawer("audit_log_filter_drawer");
-                                },
-                                std::time::Duration::from_millis(10),
-                            );
+                            close_drawer("audit_log_filter_drawer");
                         }
                     />
                 </div>
