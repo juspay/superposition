@@ -16,6 +16,7 @@ pub mod experiment_groups;
 #[cfg(feature = "experimentation")]
 pub mod experiments;
 pub mod functions;
+pub mod type_templates;
 pub mod webhook;
 pub mod workspace;
 
@@ -25,6 +26,15 @@ pub mod workspace;
 pub enum I64Update {
     Add(i64),
     Remove,
+}
+
+impl I64Update {
+    pub fn get_value(&self) -> Option<i64> {
+        match self {
+            I64Update::Add(value) => Some(*value),
+            I64Update::Remove => None,
+        }
+    }
 }
 
 pub fn deserialize_option_i64<'de, D>(

@@ -25,12 +25,10 @@ use crate::{
         fetch_dimensions,
     },
     components::{
-        alert::AlertType,
         condition_pills::Condition as ConditionComponent,
-        delete_modal::DeleteModal,
         description_icon::InfoDescription,
         drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
-        experiment_group_form::ExperimentGroupForm,
+        experiment_group_form::{ChangeLogSummary, ChangeType, ExperimentGroupForm},
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -43,7 +41,6 @@ use crate::{
     },
     logic::Conditions,
     providers::{
-        alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
         editor_provider::EditorProvider,
     },
@@ -67,8 +64,7 @@ pub struct RowData {
 }
 
 fn table_columns(
-    delete_modal_ws: WriteSignal<bool>,
-    delete_group_rws: RwSignal<String>,
+    delete_group_rws: RwSignal<Option<String>>,
     selected_group_rws: RwSignal<Option<RowData>>,
     filters_rws: RwSignal<ExpGroupFilters>,
 ) -> Vec<Column> {
@@ -250,8 +246,7 @@ fn table_columns(
                 };
 
                 let handle_delete = move |_| {
-                    delete_group_rws.set(group.get_value().id);
-                    delete_modal_ws.set(true);
+                    delete_group_rws.set(Some(group.with_value(|g| g.id.clone())))
                 };
 
                 view! {
@@ -289,9 +284,8 @@ pub fn experiment_group_listing() -> impl IntoView {
         box_params!(pagination_params_rws.get(), filters_rws.get())
     });
 
-    let (delete_modal_rs, delete_modal_ws) = create_signal(false);
-    let delete_group_id_rws = create_rw_signal(String::new());
-    let selected_group_rws: RwSignal<Option<RowData>> = create_rw_signal(None);
+    let delete_group_id_rws: RwSignal<Option<String>> = RwSignal::new(None);
+    let selected_group_rws: RwSignal<Option<RowData>> = RwSignal::new(None);
 
     let source = move || {
         (
@@ -323,16 +317,36 @@ pub fn experiment_group_listing() -> impl IntoView {
         },
     );
 
-    let handle_experiment_group_create = Callback::new(move |_| {
+    let handle_experiment_group_create = move |_| {
         filters_rws.set(ExpGroupFilters::default());
         pagination_params_rws.update(|f| f.reset_page());
         experiment_groups_resource.refetch();
         selected_group_rws.set(None);
         close_drawer("create_exp_group_drawer");
-    });
+    };
 
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
+    });
+
+    let confirm_delete = Callback::new(move |_| {
+        if let Some(id) = delete_group_id_rws.get_untracked() {
+            spawn_local(async move {
+                let result =
+                    delete(&id, &workspace.get_untracked(), &org.get_untracked()).await;
+
+                match result {
+                    Ok(_) => {
+                        logging::log!("Experiment Group deleted successfully");
+                        delete_group_id_rws.set(None);
+                        experiment_groups_resource.refetch();
+                    }
+                    Err(e) => {
+                        logging::log!("Error deleting Experiment Group: {:?}", e);
+                    }
+                }
+            });
+        }
     });
 
     view! {
@@ -372,7 +386,6 @@ pub fn experiment_group_listing() -> impl IntoView {
                             let value = experiment_groups_resource.get();
                             let pagination_params = pagination_params_rws.get();
                             let table_columns = table_columns(
-                                delete_modal_ws,
                                 delete_group_id_rws,
                                 selected_group_rws,
                                 filters_rws,
@@ -464,48 +477,20 @@ pub fn experiment_group_listing() -> impl IntoView {
                         </Drawer>
                     }
                 }}
-
-                <DeleteModal
-                    modal_visible=delete_modal_rs
-                    confirm_delete=Callback::new(move |_| {
-                        let group_id = delete_group_id_rws.get();
-                        if group_id.is_empty() {
-                            enqueue_alert(
-                                "No experiment group selected for deletion".to_string(),
-                                AlertType::Error,
-                                5000,
-                            );
-                            return;
+                {move || {
+                    if let Some(group_id) = delete_group_id_rws.get() {
+                        view! {
+                            <ChangeLogSummary
+                                group_id=group_id.clone()
+                                change_type=ChangeType::Delete
+                                on_close=move |_| delete_group_id_rws.set(None)
+                                on_confirm=confirm_delete
+                            />
                         }
-                        spawn_local(async move {
-                            let tenant = workspace.get().0;
-                            let org_id = org.get().0;
-                            if let Err(e) = delete(&group_id, &tenant, &org_id).await {
-                                logging::error!("Failed to delete experiment group: {}", e);
-                                enqueue_alert(
-                                    format!(
-                                        "Failed to delete experiment group {}: {}",
-                                        group_id,
-                                        e,
-                                    ),
-                                    AlertType::Error,
-                                    5000,
-                                );
-                            }
-                        });
-                        enqueue_alert(
-                            "Experiment group deleted successfully".to_string(),
-                            AlertType::Success,
-                            5000,
-                        );
-                        delete_modal_ws.set(false);
-                        experiment_groups_resource.refetch();
-                    })
-                    set_modal_visible=delete_modal_ws
-                    header_text="Are you sure you want to delete this config? Action is irreversible."
-                        .to_string()
-                />
-
+                    } else {
+                        ().into_view()
+                    }
+                }}
             </Suspense>
         </div>
     }

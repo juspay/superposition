@@ -2,7 +2,7 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::Value;
+use serde_json::{Map, Number, Value};
 use superposition_types::{
     api::functions::ListFunctionFilters,
     custom_query::PaginationParams,
@@ -13,20 +13,26 @@ use superposition_types::{
 };
 use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
-use web_sys::MouseEvent;
 
-use crate::types::FunctionsName;
-use crate::{api::fetch_functions, components::button::Button};
+use crate::components::skeleton::SkeletonVariant;
+use crate::{
+    api::fetch_functions,
+    components::{
+        button::Button,
+        change_summary::{ChangeSummary, JsonChangeSummary},
+    },
+};
 use crate::{
     api::fetch_types,
     types::{OrganisationId, Tenant},
 };
-use crate::{components::form::label::Label, providers::alert_provider::enqueue_alert};
-use crate::{components::skeleton::Skeleton, providers::editor_provider::EditorProvider};
 use crate::{
-    components::skeleton::SkeletonVariant,
+    api::get_dimension,
     schema::{JsonSchemaType, SchemaType},
 };
+use crate::{components::change_summary::ChangeLogPopup, types::FunctionsName};
+use crate::{components::form::label::Label, providers::alert_provider::enqueue_alert};
+use crate::{components::skeleton::Skeleton, providers::editor_provider::EditorProvider};
 use crate::{
     components::{
         alert::AlertType,
@@ -37,8 +43,13 @@ use crate::{
     utils::set_function,
 };
 
+enum ResponseType {
+    UpdatePrecheck,
+    Response,
+}
+
 #[component]
-pub fn dimension_form<NF>(
+pub fn dimension_form(
     #[prop(default = false)] edit: bool,
     #[prop(default = 0)] position: u32,
     #[prop(default = String::new())] dimension_name: String,
@@ -49,11 +60,8 @@ pub fn dimension_form<NF>(
     #[prop(default = None)] autocomplete_function_name: Option<String>,
     #[prop(default = String::new())] description: String,
     dimensions: Vec<DimensionWithMandatory>,
-    handle_submit: NF,
-) -> impl IntoView
-where
-    NF: Fn() + 'static + Clone,
-{
+    #[prop(into)] handle_submit: Callback<()>,
+) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
@@ -69,6 +77,8 @@ where
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let update_request_rws = RwSignal::new(None);
+
     let functions_resource: Resource<(String, String), Vec<Function>> =
         create_blocking_resource(
             move || (workspace.get().0, org.get().0),
@@ -122,55 +132,67 @@ where
 
     let (error_message, set_error_message) = create_signal("".to_string());
 
-    let on_submit = move |ev: MouseEvent| {
+    let on_submit = move |_| {
         req_inprogress_ws.set(true);
-        ev.prevent_default();
-        let function_position = position_rs.get();
-        let dimension_name = dimension_name_rs.get();
-        let validation_fn_name = validation_fn_name_rs.get();
-        let autocomplete_fn_name = autocomplete_fn_name_rs.get();
-        let function_schema = dimension_schema_rs.get();
-        let dependencies = dependencies_rs.get();
+        let function_position = position_rs.get_untracked();
+        let dimension_name = dimension_name_rs.get_untracked();
+        let validation_fn_name = validation_fn_name_rs.get_untracked();
+        let autocomplete_fn_name = autocomplete_fn_name_rs.get_untracked();
+        let function_schema = dimension_schema_rs.get_untracked();
+        let dependencies = dependencies_rs.get_untracked();
 
-        let handle_submit_clone = handle_submit.clone();
         spawn_local({
-            let handle_submit = handle_submit_clone;
             async move {
-                let result = if edit {
-                    let update_payload = DimensionUpdateReq {
-                        position: Some(function_position),
-                        schema: Some(function_schema),
-                        dependencies,
-                        function_name: validation_fn_name,
-                        autocomplete_function_name: autocomplete_fn_name,
-                        description: description_rs.get(),
-                        change_reason: change_reason_rs.get(),
-                    };
-                    update_dimension(
-                        workspace.get().0,
+                let result = match (edit, update_request_rws.get_untracked()) {
+                    (true, Some((_, update_payload))) => update_dimension(
+                        workspace.get_untracked().0,
                         dimension_name,
                         update_payload,
-                        org.get().0,
+                        org.get_untracked().0,
                     )
                     .await
-                } else {
-                    let create_payload = DimensionCreateReq {
-                        dimension: dimension_name,
-                        position: function_position,
-                        schema: function_schema,
-                        dependencies,
-                        function_name: validation_fn_name,
-                        autocomplete_function_name: autocomplete_fn_name,
-                        description: description_rs.get(),
-                        change_reason: change_reason_rs.get(),
-                    };
-                    create_dimension(workspace.get().0, create_payload, org.get().0).await
+                    .map(|_| ResponseType::Response),
+                    (true, None) => {
+                        update_request_rws.set(Some((
+                            dimension_name,
+                            DimensionUpdateReq {
+                                position: Some(function_position),
+                                schema: Some(function_schema),
+                                dependencies: Some(dependencies),
+                                function_name: Some(validation_fn_name),
+                                autocomplete_function_name: Some(autocomplete_fn_name),
+                                description: Some(description_rs.get_untracked()),
+                                change_reason: change_reason_rs.get_untracked(),
+                            },
+                        )));
+                        Ok(ResponseType::UpdatePrecheck)
+                    }
+                    _ => {
+                        let create_payload = DimensionCreateReq {
+                            dimension: dimension_name,
+                            position: function_position,
+                            schema: function_schema,
+                            dependencies,
+                            function_name: validation_fn_name,
+                            autocomplete_function_name: autocomplete_fn_name,
+                            description: description_rs.get_untracked(),
+                            change_reason: change_reason_rs.get_untracked(),
+                        };
+                        create_dimension(
+                            workspace.get_untracked().0,
+                            create_payload,
+                            org.get_untracked().0,
+                        )
+                        .await
+                        .map(|_| ResponseType::Response)
+                    }
                 };
 
                 req_inprogress_ws.set(false);
                 match result {
-                    Ok(_) => {
-                        handle_submit();
+                    Ok(ResponseType::UpdatePrecheck) => (),
+                    Ok(ResponseType::Response) => {
+                        handle_submit.call(());
                         let success_message = if edit {
                             "Dimension updated successfully!"
                         } else {
@@ -256,10 +278,10 @@ where
                                     id="type-schema"
                                     class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
                                     schema_type=dimension_type_schema
-                                    value=dimension_schema_rs.get()
-                                    on_change=Callback::new(move |new_type_schema| {
+                                    value=dimension_schema_rs.get_untracked()
+                                    on_change=move |new_type_schema| {
                                         dimension_schema_ws.set(new_type_schema)
-                                    })
+                                    }
                                     r#type=InputType::Monaco(vec![])
                                 />
                             </EditorProvider>
@@ -386,7 +408,6 @@ where
                     }
                 }}
             </Suspense>
-
             {move || {
                 let loading = req_inprogess_rs.get();
                 view! {
@@ -394,7 +415,10 @@ where
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=on_submit.clone()
+                        on_click=move |ev| {
+                            ev.prevent_default();
+                            on_submit(());
+                        }
                         loading
                     />
                 }
@@ -402,5 +426,191 @@ where
 
             <p class="text-red-500">{move || error_message.get()}</p>
         </form>
+        {move || match update_request_rws.get() {
+            None => ().into_view(),
+            Some((dimension_name, update_request)) => {
+                view! {
+                    <ChangeLogSummary
+                        dimension_name
+                        change_type=ChangeType::Update(update_request)
+                        on_confirm=on_submit
+                        on_close=move |_| update_request_rws.set(None)
+                    />
+                }
+                    .into_view()
+            }
+        }}
+    }
+}
+
+#[derive(Clone)]
+pub enum ChangeType {
+    Delete,
+    Update(DimensionUpdateReq),
+}
+
+#[component]
+pub fn change_log_summary(
+    dimension_name: String,
+    change_type: ChangeType,
+    #[prop(into)] on_confirm: Callback<()>,
+    #[prop(into)] on_close: Callback<()>,
+) -> impl IntoView {
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+
+    let dimension = create_local_resource(
+        move || (dimension_name.clone(), workspace.get().0, org.get().0),
+        |(dimension_name, workspace, org)| async move {
+            get_dimension(&dimension_name, &workspace, &org).await
+        },
+    );
+
+    let disabled_rws = RwSignal::new(true);
+    let change_type = StoredValue::new(change_type);
+
+    let (title, description, confirm_text) = match change_type.get_value() {
+        ChangeType::Update(_) => (
+            "Confirm Update",
+            "Are you sure you want to update this dimension?",
+            "Yes, Update",
+        ),
+        ChangeType::Delete => (
+            "Confirm Delete",
+            "Are you sure you want to delete this dimension? Action is irreversible.",
+            "Yes, Delete",
+        ),
+    };
+
+    view! {
+        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
+                {
+                    Effect::new(move |_| {
+                        let dimension = dimension.get();
+                        if let Some(Ok(_)) = dimension {
+                            disabled_rws.set(false);
+                        } else if let Some(Err(e)) = dimension {
+                            logging::error!("Error fetching dimension: {}", e);
+                        }
+                    });
+                }
+                {move || match dimension.get() {
+                    Some(Ok(dim)) => {
+                        let (new_schema, new_values) = match change_type.get_value() {
+                            ChangeType::Update(update_request) => {
+                                let description = update_request
+                                    .description
+                                    .unwrap_or_else(|| dim.description.clone());
+                                let position = update_request
+                                    .position
+                                    .unwrap_or_else(|| *dim.position as u32);
+                                let valdiate_fn = update_request
+                                    .function_name
+                                    .clone()
+                                    .unwrap_or_else(|| dim.function_name.clone());
+                                let autocomplete_fn = update_request
+                                    .autocomplete_function_name
+                                    .clone()
+                                    .unwrap_or_else(|| { dim.autocomplete_function_name.clone() });
+                                (
+                                    Some(
+                                        update_request.schema.unwrap_or_else(|| dim.schema.clone()),
+                                    ),
+                                    Map::from_iter(
+                                        vec![
+                                            Some((
+                                                "Description".to_string(),
+                                                Value::String(description),
+                                            )),
+                                            Some((
+                                                "Position".to_string(),
+                                                Value::Number(position.into()),
+                                            )),
+                                            Some((
+                                                "Dependencies".to_string(),
+                                                Value::Array(
+                                                    update_request
+                                                        .dependencies
+                                                        .unwrap_or_else(|| dim.dependencies.clone())
+                                                        .into_iter()
+                                                        .map(Value::String)
+                                                        .collect(),
+                                                ),
+                                            )),
+                                            valdiate_fn
+                                                .map(|f| (
+                                                    "Validation Function".to_string(),
+                                                    Value::String(f.clone()),
+                                                )),
+                                            autocomplete_fn
+                                                .map(|f| (
+                                                    "Autocomplete Function".to_string(),
+                                                    Value::String(f.clone()),
+                                                )),
+                                        ]
+                                            .into_iter()
+                                            .flatten(),
+                                    ),
+                                )
+                            }
+                            ChangeType::Delete => (None, Map::new()),
+                        };
+                        view! {
+                            <JsonChangeSummary
+                                title="Schema changes"
+                                old_values=Some(dim.schema)
+                                new_values=new_schema
+                            />
+                            <ChangeSummary
+                                title="Other changes"
+                                key_column="Property"
+                                old_values=Map::from_iter(
+                                    vec![
+                                        Some((
+                                            "Description".to_string(),
+                                            Value::String(dim.description),
+                                        )),
+                                        Some((
+                                            "Position".to_string(),
+                                            Value::Number(Number::from(*dim.position)),
+                                        )),
+                                        Some((
+                                            "Dependencies".to_string(),
+                                            Value::Array(
+                                                dim.dependencies.into_iter().map(Value::String).collect(),
+                                            ),
+                                        )),
+                                        dim
+                                            .function_name
+                                            .map(|f| (
+                                                "Validation Function".to_string(),
+                                                Value::String(f.clone()),
+                                            )),
+                                        dim
+                                            .autocomplete_function_name
+                                            .map(|f| (
+                                                "Autocomplete Function".to_string(),
+                                                Value::String(f.clone()),
+                                            )),
+                                    ]
+                                        .into_iter()
+                                        .flatten(),
+                                )
+                                new_values
+                            />
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching dimension: {}", e);
+                        view! { <div>Error fetching dimension</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }}
+            </Suspense>
+        </ChangeLogPopup>
     }
 }

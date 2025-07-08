@@ -147,7 +147,6 @@ pub fn experiment_conclude_form(
                                     (format!("Variant-{idx}"), "btn-success")
                                 }
                             };
-
                             view! {
                                 <button
                                     disabled=disabled

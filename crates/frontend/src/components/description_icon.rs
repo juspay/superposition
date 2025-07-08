@@ -19,8 +19,8 @@ pub fn InfoDescription(
             <rect
                 width="32"
                 height="16"
-                rx="8"
-                ry="8"
+                rx="4"
+                ry="4"
                 fill="currentColor"
                 stroke-width="0"
                 stroke-linecap="round"

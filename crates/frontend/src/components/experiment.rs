@@ -129,6 +129,14 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                         </div>
                     </div>
                 </div>
+                <div class="h-fit w-[300px]">
+                    <div class="stat-title">Experiment Type</div>
+                    <div class="stat-value text-sm">
+                        <span class="badge badge-neutral">
+                            {experiment.with_value(|v| v.experiment_type.to_string())}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     }

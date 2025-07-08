@@ -1,28 +1,63 @@
+use std::ops::Deref;
+
 use leptos::*;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use strum::IntoEnumIterator;
-use superposition_types::database::models::others::{
-    CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent,
+use superposition_types::{
+    api::webhook::UpdateWebhookRequest,
+    database::models::{
+        others::{CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent},
+        ChangeReason, Description, NonEmptyString,
+    },
 };
-use web_sys::MouseEvent;
 
 use crate::{
-    api::{create_webhook, update_webhook},
+    api::{create_webhook, get_webhook, update_webhook},
     components::{
         alert::AlertType,
         button::Button,
         change_form::ChangeForm,
+        change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         form::label::Label,
         input::{Input, InputType, Toggle},
+        skeleton::{Skeleton, SkeletonVariant},
     },
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
     schema::{JsonSchemaType, SchemaType::Single},
     types::{OrganisationId, Tenant},
 };
 
+enum ResponseType {
+    UpdatePrecheck,
+    Response,
+}
+
+#[allow(clippy::too_many_arguments)]
+fn try_update_payload(
+    enabled: bool,
+    url: String,
+    method: HttpMethod,
+    payload_version: PayloadVersion,
+    custom_headers: CustomHeaders,
+    events: Vec<WebhookEvent>,
+    description: String,
+    change_reason: String,
+) -> Result<UpdateWebhookRequest, String> {
+    Ok(UpdateWebhookRequest {
+        enabled: Some(enabled),
+        url: Some(NonEmptyString::try_from(url)?),
+        method: Some(method),
+        payload_version: Some(payload_version),
+        custom_headers: Some(custom_headers),
+        events: Some(events),
+        description: Some(Description::try_from(description)?),
+        change_reason: ChangeReason::try_from(change_reason)?,
+    })
+}
+
 #[component]
-pub fn webhook_form<NF>(
+pub fn webhook_form(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] webhook_name: String,
     #[prop(default = String::new())] description: String,
@@ -32,11 +67,8 @@ pub fn webhook_form<NF>(
     #[prop(default = PayloadVersion::default())] payload_version: PayloadVersion,
     #[prop(default = CustomHeaders::default())] custom_headers: CustomHeaders,
     #[prop(default = Vec::new())] events: Vec<WebhookEvent>,
-    handle_submit: NF,
-) -> impl IntoView
-where
-    NF: Fn() + 'static + Clone,
-{
+    #[prop(into)] handle_submit: Callback<()>,
+) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
@@ -50,6 +82,7 @@ where
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (events_rs, events_ws) = create_signal(events);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    let update_request_rws = RwSignal::new(None);
 
     let handle_select_webhook_event_dropdown_option =
         Callback::new(move |selected_event: WebhookEvent| {
@@ -61,61 +94,70 @@ where
             events_ws.update(|value| value.retain(|d| d != &selected_event));
         });
 
-    let on_submit = move |ev: MouseEvent| {
+    let on_submit = move || {
         req_inprogress_ws.set(true);
-        ev.prevent_default();
 
-        let webhook_name = webhook_name_rs.get();
-        let description = description_rs.get();
-        let enabled = enabled_rs.get();
-        let url = url_rs.get();
-        let method = method_rs.get();
-        let payload_version = payload_version_rs.get();
-        let custom_headers = custom_headers_rs.get();
-        let change_reason = change_reason_rs.get();
-        let events = events_rs.get();
+        let webhook_name = webhook_name_rs.get_untracked();
+        let description = description_rs.get_untracked();
+        let enabled = enabled_rs.get_untracked();
+        let url = url_rs.get_untracked();
+        let method = method_rs.get_untracked();
+        let payload_version = payload_version_rs.get_untracked();
+        let custom_headers = custom_headers_rs.get_untracked();
+        let change_reason = change_reason_rs.get_untracked();
+        let events = events_rs.get_untracked();
+        let workspace = workspace.get_untracked().0;
+        let org_id = org.get_untracked().0;
 
-        let handle_submit_clone = handle_submit.clone();
         spawn_local({
-            let handle_submit = handle_submit_clone;
-
             async move {
-                let result = if edit {
-                    update_webhook(
+                let result = match (edit, update_request_rws.get_untracked()) {
+                    (true, Some((_, update_request))) => {
+                        update_webhook(webhook_name, update_request, workspace, org_id)
+                            .await
+                            .map(|_| ResponseType::Response)
+                    }
+                    (true, None) => {
+                        let request_payload = try_update_payload(
+                            enabled,
+                            url,
+                            method,
+                            payload_version,
+                            custom_headers,
+                            events,
+                            description,
+                            change_reason,
+                        );
+                        match request_payload {
+                            Ok(payload) => {
+                                update_request_rws.set(Some((webhook_name, payload)));
+                                Ok(ResponseType::UpdatePrecheck)
+                            }
+                            Err(e) => Err(e),
+                        }
+                    }
+                    _ => create_webhook(
                         webhook_name,
+                        description,
                         enabled,
                         url,
                         method,
                         payload_version,
                         custom_headers,
                         events,
-                        description,
                         change_reason,
-                        workspace.get().0,
-                        org.get().0,
+                        workspace,
+                        org_id,
                     )
                     .await
-                } else {
-                    create_webhook(
-                        webhook_name,
-                        description,
-                        enabled,
-                        url,
-                        method,
-                        payload_version,
-                        custom_headers,
-                        events,
-                        change_reason,
-                        workspace.get().0,
-                        org.get().0,
-                    )
-                    .await
+                    .map(|_| ResponseType::Response),
                 };
 
                 req_inprogress_ws.set(false);
                 match result {
-                    Ok(_) => {
-                        handle_submit();
+                    Ok(ResponseType::UpdatePrecheck) => (),
+                    Ok(ResponseType::Response) => {
+                        handle_submit.call(());
                         let success_message = if edit {
                             "Webhook updated successfully!"
                         } else {
@@ -151,7 +193,7 @@ where
                     r#type=InputType::Text
                     placeholder="Webhook Name"
                     class="input input-bordered w-full max-w-md"
-                    value=Value::String(webhook_name_rs.get())
+                    value=Value::String(webhook_name_rs.get_untracked())
                     schema_type=Single(JsonSchemaType::String)
                     on_change=Callback::new(move |value: Value| {
                         webhook_name_ws.set(value.to_string().replace('"', ""));
@@ -174,7 +216,7 @@ where
             <div class="w-fit flex items-center gap-2">
                 <Toggle
                     name="Enable Webhook"
-                    value=enabled_rs.get()
+                    value=enabled_rs.get_untracked()
                     on_change=move |_| enabled_ws.update(|v| *v = !*v)
                 />
                 <Label title="Enable Webhook" />
@@ -218,7 +260,7 @@ where
                 <Dropdown
                     dropdown_width="w-100"
                     dropdown_icon="".to_string()
-                    dropdown_text=payload_version_rs.get().to_string()
+                    dropdown_text=payload_version_rs.get_untracked().to_string()
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
                     dropdown_options=payload_version_options
@@ -239,7 +281,7 @@ where
                     dropdown_direction=DropdownDirection::Down
                     dropdown_btn_type=DropdownBtnType::Select
                     dropdown_options=events_options
-                    selected=events_rs.get()
+                    selected=events_rs.get_untracked()
                     multi_select=true
                     on_select=handle_select_webhook_event_dropdown_option
                     on_remove=handle_remove_webhook_event_dropdown_option
@@ -274,12 +316,192 @@ where
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=on_submit.clone()
+                        on_click=move |ev| {
+                            ev.prevent_default();
+                            on_submit();
+                        }
                         loading
                     />
                 }
             }}
 
         </form>
+        {move || match update_request_rws.get() {
+            None => ().into_view(),
+            Some((webhook_name, update_request)) => {
+                view! {
+                    <ChangeLogSummary
+                        webhook_name
+                        change_type=ChangeType::Update(update_request)
+                        on_confirm=move |_| on_submit()
+                        on_close=move |_| update_request_rws.set(None)
+                    />
+                }
+            }
+        }}
+    }
+}
+
+#[derive(Clone)]
+pub enum ChangeType {
+    Delete,
+    Update(UpdateWebhookRequest),
+}
+
+#[component]
+pub fn change_log_summary(
+    webhook_name: String,
+    change_type: ChangeType,
+    #[prop(into)] on_confirm: Callback<()>,
+    #[prop(into)] on_close: Callback<()>,
+) -> impl IntoView {
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+
+    let webhook = create_local_resource(
+        move || (webhook_name.clone(), workspace.get().0, org.get().0),
+        |(webhook_name, workspace, org)| async move {
+            get_webhook(&webhook_name, &workspace, &org).await
+        },
+    );
+
+    let disabled_rws = RwSignal::new(true);
+    let change_type = StoredValue::new(change_type);
+
+    let (title, description, confirm_text) = match change_type.get_value() {
+        ChangeType::Update(_) => (
+            "Confirm Update",
+            "Are you sure you want to update this webhook?",
+            "Yes, Update",
+        ),
+        ChangeType::Delete => (
+            "Confirm Delete",
+            "Are you sure you want to delete this webhook? Action is irreversible.",
+            "Yes, Delete",
+        ),
+    };
+
+    view! {
+        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+            }>
+                {
+                    Effect::new(move |_| {
+                        let webhook = webhook.get();
+                        if let Some(Ok(_)) = webhook {
+                            disabled_rws.set(false);
+                        } else if let Some(Err(e)) = webhook {
+                            logging::error!("Error fetching webhook: {}", e);
+                        }
+                    });
+                }
+                {move || match webhook.get() {
+                    Some(Ok(webhook)) => {
+                        let (new_headers, new_values) = match change_type.get_value() {
+                            ChangeType::Update(update_request) => {
+                                let description = update_request
+                                    .description
+                                    .unwrap_or_else(|| webhook.description.clone())
+                                    .deref()
+                                    .to_string();
+                                let enabled = update_request.enabled.unwrap_or(webhook.enabled);
+                                let url = update_request.url.unwrap_or_else(|| webhook.url.clone());
+                                let method = update_request.method.unwrap_or(webhook.method);
+                                let payload_version = update_request
+                                    .payload_version
+                                    .unwrap_or(webhook.payload_version);
+                                let events = update_request
+                                    .events
+                                    .unwrap_or_else(|| webhook.events.clone());
+                                (
+                                    Some(
+                                        Value::Object(
+                                            update_request
+                                                .custom_headers
+                                                .unwrap_or_else(|| webhook.custom_headers.clone())
+                                                .deref()
+                                                .clone(),
+                                        ),
+                                    ),
+                                    Map::from_iter(
+                                        vec![
+                                            ("Description".to_string(), Value::String(description)),
+                                            ("Enabled".to_string(), Value::Bool(enabled)),
+                                            ("Url".to_string(), Value::String(url.to_string())),
+                                            ("Method".to_string(), Value::String(method.to_string())),
+                                            (
+                                                "Payload Version".to_string(),
+                                                Value::String(payload_version.to_string()),
+                                            ),
+                                            (
+                                                "Events".to_string(),
+                                                Value::Array(
+                                                    events
+                                                        .into_iter()
+                                                        .map(|e| e.to_string())
+                                                        .map(Value::String)
+                                                        .collect(),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                )
+                            }
+                            ChangeType::Delete => (None, Map::new()),
+                        };
+                        view! {
+                            <ChangeSummary
+                                title="Webhook changes"
+                                key_column="Property"
+                                old_values=Map::from_iter(
+                                    vec![
+                                        (
+                                            "Description".to_string(),
+                                            Value::String(webhook.description.deref().to_string()),
+                                        ),
+                                        ("Enabled".to_string(), Value::Bool(webhook.enabled)),
+                                        ("Url".to_string(), Value::String(webhook.url.to_string())),
+                                        (
+                                            "Method".to_string(),
+                                            Value::String(webhook.method.to_string()),
+                                        ),
+                                        (
+                                            "Payload Version".to_string(),
+                                            Value::String(webhook.payload_version.to_string()),
+                                        ),
+                                        (
+                                            "Events".to_string(),
+                                            Value::Array(
+                                                webhook
+                                                    .events
+                                                    .into_iter()
+                                                    .map(|e| e.to_string())
+                                                    .map(Value::String)
+                                                    .collect(),
+                                            ),
+                                        ),
+                                    ],
+                                )
+                                new_values
+                            />
+                            <JsonChangeSummary
+                                title="Custom Header changes"
+                                old_values=Some(
+                                    Value::Object(webhook.custom_headers.deref().clone()),
+                                )
+                                new_values=new_headers
+                            />
+                        }
+                            .into_view()
+                    }
+                    Some(Err(e)) => {
+                        logging::error!("Error fetching webhook: {}", e);
+                        view! { <div>Error fetching webhook</div> }.into_view()
+                    }
+                    None => view! { <div>Loading...</div> }.into_view(),
+                }}
+            </Suspense>
+        </ChangeLogPopup>
     }
 }
