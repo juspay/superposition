@@ -14,6 +14,7 @@ import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -196,8 +197,12 @@ public class DefaultConfigPopulator {
 
     private List<String> extractExistingKeys(ListDefaultConfigsOutput existingConfigs) {
         List<String> keys = new ArrayList<>();
-        // Note: Actual implementation would depend on the structure of ListDefaultConfigsOutput
-        // This is a placeholder that should be updated based on the actual response structure
+        ListIterator<DefaultConfigFull> keysIterator = existingConfigs.data().listIterator();
+
+        while (keysIterator.hasNext()) {
+            keys.add(keysIterator.next().key());
+        }
+
         return keys;
     }
 
