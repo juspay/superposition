@@ -18,18 +18,24 @@ class ProviderTest {
     }
 
     final static Logger log = LoggerFactory.getLogger(ProviderTest.class);
+    final static SuperpositionProviderOptions.ExperimentationOptions eopts = SuperpositionProviderOptions.ExperimentationOptions.builder()
+        .refreshStrategy(RefreshStrategy.Polling.of(1000, 1000))
+        .build();
     final static SuperpositionProviderOptions options = SuperpositionProviderOptions.builder()
         .orgId("localorg")
         .workspaceId("test")
         .endpoint("http://localhost:8080")
         .token("my-token")
-        .refreshStrategy(RefreshStrategy.Polling.of(1000, 1000))
+        .refreshStrategy(RefreshStrategy.Polling.of(1000, 100))
+        .experimentationOptions(eopts)
         .build();
     SuperpositionOpenFeatureProvider provider;
+    FeatureProvider fp;
 
     @BeforeEach
     void setupProvider() {
         provider = new SuperpositionOpenFeatureProvider(options);
+        fp = provider;
     }
 
     @AfterEach
@@ -90,5 +96,13 @@ class ProviderTest {
         provider.initialize(ctx);
         var pe = provider.getObjectEvaluation("list", new Value(""), ctx);
         assertEquals(Value.objectToValue(List.of(Map.of("k1", "v1"))), pe.getValue());
+    }
+
+    @Test
+    void testExperimentation() {
+        var ctx = new ImmutableContext("30", Map.of("d1", new Value(true)));
+        provider.initialize(ctx);
+        var pe = provider.getBooleanEvaluation("bool", true, ctx);
+        assertEquals(false, pe.getValue());
     }
 }

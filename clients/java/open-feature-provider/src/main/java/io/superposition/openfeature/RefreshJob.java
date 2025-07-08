@@ -1,35 +1,40 @@
 package io.superposition.openfeature;
 
 import io.superposition.openfeature.options.RefreshStrategy;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Ref;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 interface RefreshJob<T> {
     Logger logger = LoggerFactory.getLogger(RefreshJob.class);
-    ScheduledExecutorService SCHED = Executors.newScheduledThreadPool(1);
+    ScheduledExecutorService SEXEC = Executors.newScheduledThreadPool(2);
     Optional<T> getOutput();
     void shutdown();
 
+    @Slf4j
     final class Poll<T> implements RefreshJob<T> {
-        private static final Logger logger = LoggerFactory.getLogger(Poll.class);
-        final ScheduledFuture<?> poll;
-        T output;
+        private final RefreshStrategy.Polling config;
+        private final Supplier<CompletableFuture<T>> action;
+        private final CompletableFuture<T> output;
+        private ScheduledFuture<?> poll;
 
         Poll(RefreshStrategy.Polling config, Supplier<CompletableFuture<T>> action) {
-            logger.debug("Starting polling-refresh.");
-            output = RefreshJob.runRefreshWithTimeout(action, config.timeout);
-            poll = SCHED.schedule(
+            this.config = config;
+            this.action = action;
+            this.output = new CompletableFuture<>();
+        }
+
+        void start() {
+            log.debug("Starting polling-refresh.");
+            poll = SEXEC.schedule(
                 () -> {
                     var o = RefreshJob.runRefreshWithTimeout(action, config.timeout);
                     if (o != null) {
-                        output = null;
+                        output.complete(o);
                     }
                 },
                 config.interval,
@@ -39,20 +44,29 @@ interface RefreshJob<T> {
 
         @Override
         public Optional<T> getOutput() {
-            return Optional.ofNullable(output);
+            try {
+                if (poll == null) {
+                    log.warn("Polling hasn't started but the output is being used.");
+                } else if (!poll.isCancelled() && !output.isDone()) {
+                    return Optional.ofNullable(output.get(config.timeout, TimeUnit.MILLISECONDS));
+                }
+            } catch (Exception e) {
+                log.warn("Attempted to await for poll output but an exception occurred: {}", e.toString());
+            }
+            return Optional.ofNullable(output.getNow(null));
         }
 
         @Override
         public void shutdown() {
             if (!poll.isCancelled()) {
-                logger.debug("Shutting down polling-refresh.");
+                log.debug("Shutting down polling-refresh.");
                 poll.cancel(false);
             }
         }
     }
 
+    @Slf4j
     final class OnDemand<T> implements RefreshJob<T> {
-        private static final Logger logger = LoggerFactory.getLogger(OnDemand.class);
         private long lastUpdated = 0;
         private T output = null;
         private final RefreshStrategy.OnDemand config;
@@ -68,17 +82,17 @@ interface RefreshJob<T> {
         public Optional<T> getOutput() {
             if (!stopped) {
                 if (lastUpdated - System.currentTimeMillis() < config.ttl) {
-                    logger.debug("Running refresh as current output is stale.");
+                    log.debug("Running refresh as current output is stale.");
                     var o = RefreshJob.runRefreshWithTimeout(action, config.timeout);
                     if (o != null) {
                         output = o;
                         lastUpdated = System.currentTimeMillis();
                     }
                 } else {
-                    logger.debug("Current output is fresh, no refresh required.");
+                    log.debug("Current output is fresh, no refresh required.");
                 }
             }
-            return Optional.of(output);
+            return Optional.ofNullable(output);
         }
 
         @Override
