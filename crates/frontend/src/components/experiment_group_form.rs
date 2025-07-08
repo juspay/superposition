@@ -509,14 +509,18 @@ pub fn change_log_summary(
                                         (
                                             "Members".to_string(),
                                             Value::Array(
-                                                exp_group.member_experiment_ids.iter().map(|id| Value::String(id.to_string())).collect()
+                                                exp_group
+                                                    .member_experiment_ids
+                                                    .iter()
+                                                    .map(|id| Value::String(id.to_string()))
+                                                    .collect(),
                                             ),
-                                        )
+                                        ),
                                     ],
                                 );
                                 (Some(Value::Object(exp_group.context.clone().into())), val)
                             }
-                            ChangeType::Delete => (None, Map::new())
+                            ChangeType::Delete => (None, Map::new()),
                         };
 
                         view! {
@@ -536,9 +540,13 @@ pub fn change_log_summary(
                                         (
                                             "Members".to_string(),
                                             Value::Array(
-                                                exp_group.member_experiment_ids.iter().map(|id| Value::String(id.to_string())).collect()
+                                                exp_group
+                                                    .member_experiment_ids
+                                                    .iter()
+                                                    .map(|id| Value::String(id.to_string()))
+                                                    .collect(),
                                             ),
-                                        )
+                                        ),
                                     ],
                                 )
                                 new_values
