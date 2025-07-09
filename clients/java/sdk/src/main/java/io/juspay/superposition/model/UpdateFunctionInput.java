@@ -41,7 +41,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("runtime_version", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("function_type", FunctionTypes.$SCHEMA)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -51,7 +50,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_FUNCTION = $SCHEMA.member("function");
     private static final Schema $SCHEMA_RUNTIME_VERSION = $SCHEMA.member("runtime_version");
-    private static final Schema $SCHEMA_FUNCTION_TYPE = $SCHEMA.member("function_type");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -60,7 +58,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
     private final transient String changeReason;
     private final transient String function;
     private final transient String runtimeVersion;
-    private final transient FunctionTypes functionType;
 
     private UpdateFunctionInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -70,7 +67,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
         this.changeReason = builder.changeReason;
         this.function = builder.function;
         this.runtimeVersion = builder.runtimeVersion;
-        this.functionType = builder.functionType;
     }
 
     public String workspaceId() {
@@ -101,10 +97,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
         return runtimeVersion;
     }
 
-    public FunctionTypes functionType() {
-        return functionType;
-    }
-
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -125,13 +117,12 @@ public final class UpdateFunctionInput implements SerializableStruct {
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
                && Objects.equals(this.function, that.function)
-               && Objects.equals(this.runtimeVersion, that.runtimeVersion)
-               && Objects.equals(this.functionType, that.functionType);
+               && Objects.equals(this.runtimeVersion, that.runtimeVersion);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, functionName, description, changeReason, function, runtimeVersion, functionType);
+        return Objects.hash(workspaceId, orgId, functionName, description, changeReason, function, runtimeVersion);
     }
 
     @Override
@@ -150,9 +141,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
         serializer.writeString($SCHEMA_FUNCTION, function);
         serializer.writeString($SCHEMA_RUNTIME_VERSION, runtimeVersion);
-        if (functionType != null) {
-            serializer.writeString($SCHEMA_FUNCTION_TYPE, functionType.value());
-        }
     }
 
     @Override
@@ -166,7 +154,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, runtimeVersion);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, functionType);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -187,7 +174,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
         builder.changeReason(this.changeReason);
         builder.function(this.function);
         builder.runtimeVersion(this.runtimeVersion);
-        builder.functionType(this.functionType);
         return builder;
     }
 
@@ -211,7 +197,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
         private String changeReason;
         private String function;
         private String runtimeVersion;
-        private FunctionTypes functionType;
 
         private Builder() {}
 
@@ -287,14 +272,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
             return this;
         }
 
-        /**
-         * @return this builder.
-         */
-        public Builder functionType(FunctionTypes functionType) {
-            this.functionType = functionType;
-            return this;
-        }
-
         @Override
         public UpdateFunctionInput build() {
             tracker.validate();
@@ -312,7 +289,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
                 case 4 -> runtimeVersion((String) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
                 case 5 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 6 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 7 -> functionType((FunctionTypes) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -365,7 +341,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
                     case 4 -> builder.runtimeVersion(de.readString(member));
                     case 5 -> builder.orgId(de.readString(member));
                     case 6 -> builder.description(de.readString(member));
-                    case 7 -> builder.functionType(FunctionTypes.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

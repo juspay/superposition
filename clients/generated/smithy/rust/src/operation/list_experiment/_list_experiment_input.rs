@@ -24,6 +24,8 @@ pub struct ListExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_ids: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub experiment_group_ids: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
@@ -72,6 +74,10 @@ impl  ListExperimentInput  {
         self.experiment_ids.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_ids(&self) -> ::std::option::Option<&str> {
+        self.experiment_group_ids.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> ::std::option::Option<&str> {
         self.created_by.as_deref()
     }
@@ -105,6 +111,7 @@ pub struct ListExperimentInputBuilder {
     pub(crate) to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) experiment_name: ::std::option::Option<::std::string::String>,
     pub(crate) experiment_ids: ::std::option::Option<::std::string::String>,
+    pub(crate) experiment_group_ids: ::std::option::Option<::std::string::String>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
@@ -243,6 +250,19 @@ impl ListExperimentInputBuilder {
         &self.experiment_ids
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.experiment_group_ids = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_group_ids(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.experiment_group_ids = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_group_ids(&self) -> &::std::option::Option<::std::string::String> {
+        &self.experiment_group_ids
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
@@ -304,6 +324,8 @@ impl ListExperimentInputBuilder {
                 experiment_name: self.experiment_name
                 ,
                 experiment_ids: self.experiment_ids
+                ,
+                experiment_group_ids: self.experiment_group_ids
                 ,
                 created_by: self.created_by
                 ,

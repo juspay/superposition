@@ -8752,19 +8752,9 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "experiment_group_ids": {
-            "target": STRING,
-            "index": 10,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="experiment_group_ids"),
-
-            ],
-        },
-
         "created_by": {
             "target": STRING,
-            "index": 11,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
@@ -8774,7 +8764,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "sort_on": {
             "target": EXPERIMENT_SORT_ON,
-            "index": 12,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -8784,7 +8774,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 13,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -10299,15 +10289,6 @@ PUBLISH_INPUT = Schema.collection(
             ],
         },
 
-        "change_reason": {
-            "target": STRING,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
     }
 )
 
@@ -10439,7 +10420,7 @@ PUBLISH = Schema(
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "PATCH",
+                "method": "PUT",
                 "uri": "/function/{function_name}/publish",
             })),
 
@@ -10618,7 +10599,7 @@ TEST = Schema(
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "POST",
+                "method": "PUT",
                 "uri": "/function/{function_name}/{stage}/test",
             })),
 
@@ -10698,6 +10679,11 @@ UPDATE_FUNCTION_INPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "function_type": {
+            "target": FUNCTION_TYPES,
+            "index": 7,
         },
 
     }

@@ -48,6 +48,8 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpQueryTrait("experiment_name"))
         .putMember("experiment_ids", PreludeSchemas.STRING,
                 new HttpQueryTrait("experiment_ids"))
+        .putMember("experiment_group_ids", PreludeSchemas.STRING,
+                new HttpQueryTrait("experiment_group_ids"))
         .putMember("created_by", PreludeSchemas.STRING,
                 new HttpQueryTrait("created_by"))
         .putMember("sort_on", ExperimentSortOn.$SCHEMA,
@@ -66,6 +68,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_TO_DATE = $SCHEMA.member("to_date");
     private static final Schema $SCHEMA_EXPERIMENT_NAME = $SCHEMA.member("experiment_name");
     private static final Schema $SCHEMA_EXPERIMENT_IDS = $SCHEMA.member("experiment_ids");
+    private static final Schema $SCHEMA_EXPERIMENT_GROUP_IDS = $SCHEMA.member("experiment_group_ids");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
@@ -80,6 +83,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private final transient Instant toDate;
     private final transient String experimentName;
     private final transient String experimentIds;
+    private final transient String experimentGroupIds;
     private final transient String createdBy;
     private final transient ExperimentSortOn sortOn;
     private final transient SortBy sortBy;
@@ -95,6 +99,7 @@ public final class ListExperimentInput implements SerializableStruct {
         this.toDate = builder.toDate;
         this.experimentName = builder.experimentName;
         this.experimentIds = builder.experimentIds;
+        this.experimentGroupIds = builder.experimentGroupIds;
         this.createdBy = builder.createdBy;
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
@@ -140,6 +145,10 @@ public final class ListExperimentInput implements SerializableStruct {
         return experimentIds;
     }
 
+    public String experimentGroupIds() {
+        return experimentGroupIds;
+    }
+
     public String createdBy() {
         return createdBy;
     }
@@ -176,6 +185,7 @@ public final class ListExperimentInput implements SerializableStruct {
                && Objects.equals(this.toDate, that.toDate)
                && Objects.equals(this.experimentName, that.experimentName)
                && Objects.equals(this.experimentIds, that.experimentIds)
+               && Objects.equals(this.experimentGroupIds, that.experimentGroupIds)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy);
@@ -183,7 +193,7 @@ public final class ListExperimentInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, page, count, all, status, fromDate, toDate, experimentName, experimentIds, createdBy, sortOn, sortBy);
+        return Objects.hash(workspaceId, orgId, page, count, all, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy);
     }
 
     @Override
@@ -219,6 +229,9 @@ public final class ListExperimentInput implements SerializableStruct {
         if (experimentIds != null) {
             serializer.writeString($SCHEMA_EXPERIMENT_IDS, experimentIds);
         }
+        if (experimentGroupIds != null) {
+            serializer.writeString($SCHEMA_EXPERIMENT_GROUP_IDS, experimentGroupIds);
+        }
         if (createdBy != null) {
             serializer.writeString($SCHEMA_CREATED_BY, createdBy);
         }
@@ -244,9 +257,10 @@ public final class ListExperimentInput implements SerializableStruct {
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, toDate);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_NAME, member, experimentName);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, experimentIds);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, experimentGroupIds);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -270,6 +284,7 @@ public final class ListExperimentInput implements SerializableStruct {
         builder.toDate(this.toDate);
         builder.experimentName(this.experimentName);
         builder.experimentIds(this.experimentIds);
+        builder.experimentGroupIds(this.experimentGroupIds);
         builder.createdBy(this.createdBy);
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
@@ -299,6 +314,7 @@ public final class ListExperimentInput implements SerializableStruct {
         private Instant toDate;
         private String experimentName;
         private String experimentIds;
+        private String experimentGroupIds;
         private String createdBy;
         private ExperimentSortOn sortOn;
         private SortBy sortBy;
@@ -396,6 +412,14 @@ public final class ListExperimentInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder experimentGroupIds(String experimentGroupIds) {
+            this.experimentGroupIds = experimentGroupIds;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder createdBy(String createdBy) {
             this.createdBy = createdBy;
             return this;
@@ -437,9 +461,10 @@ public final class ListExperimentInput implements SerializableStruct {
                 case 7 -> toDate((Instant) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, value));
                 case 8 -> experimentName((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_NAME, member, value));
                 case 9 -> experimentIds((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, value));
-                case 10 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 11 -> sortOn((ExperimentSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 12 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 10 -> experimentGroupIds((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, value));
+                case 11 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 12 -> sortOn((ExperimentSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
+                case 13 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -483,9 +508,10 @@ public final class ListExperimentInput implements SerializableStruct {
                     case 7 -> builder.toDate(de.readTimestamp(member));
                     case 8 -> builder.experimentName(de.readString(member));
                     case 9 -> builder.experimentIds(de.readString(member));
-                    case 10 -> builder.createdBy(de.readString(member));
-                    case 11 -> builder.sortOn(ExperimentSortOn.builder().deserializeMember(de, member).build());
-                    case 12 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 10 -> builder.experimentGroupIds(de.readString(member));
+                    case 11 -> builder.createdBy(de.readString(member));
+                    case 12 -> builder.sortOn(ExperimentSortOn.builder().deserializeMember(de, member).build());
+                    case 13 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -215,6 +215,8 @@ pub(crate) mod shape_organisation_not_found;
 
 pub(crate) mod shape_pause_experiment_input;
 
+pub(crate) mod shape_publish_input;
+
 pub(crate) mod shape_ramp_experiment_input;
 
 pub(crate) mod shape_remove_members_from_group_input;

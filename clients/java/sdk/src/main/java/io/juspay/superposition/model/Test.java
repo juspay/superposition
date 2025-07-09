@@ -19,7 +19,7 @@ public final class Test implements ApiOperation<TestInput, TestOutput> {
     private static final Test $INSTANCE = new Test();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/function/{function_name}/{stage}/test")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/function/{function_name}/{stage}/test")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

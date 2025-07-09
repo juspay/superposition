@@ -8814,7 +8814,6 @@ class ListExperimentInput:
     to_date: datetime | None = None
     experiment_name: str | None = None
     experiment_ids: str | None = None
-    experiment_group_ids: str | None = None
     created_by: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
@@ -8866,15 +8865,12 @@ class ListExperimentInput:
                     kwargs["experiment_ids"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_ids"])
 
                 case 10:
-                    kwargs["experiment_group_ids"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_group_ids"])
-
-                case 11:
                     kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
 
-                case 12:
+                case 11:
                     kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_on"])
 
-                case 13:
+                case 12:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_by"])
 
                 case _:
@@ -10262,14 +10258,12 @@ class PublishInput:
     workspace_id: str | None = None
     org_id: str = "juspay"
     function_name: str | None = None
-    change_reason: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PUBLISH_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_PUBLISH_INPUT.members["change_reason"], self.change_reason)
+        pass
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10289,9 +10283,6 @@ class PublishInput:
 
                 case 2:
                     kwargs["function_name"] = de.read_string(_SCHEMA_PUBLISH_INPUT.members["function_name"])
-
-                case 3:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_PUBLISH_INPUT.members["change_reason"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -10664,6 +10655,7 @@ class UpdateFunctionInput:
     change_reason: str | None = None
     function: str | None = None
     runtime_version: str | None = None
+    function_type: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_FUNCTION_INPUT, self)
@@ -10680,6 +10672,9 @@ class UpdateFunctionInput:
 
         if self.runtime_version is not None:
             serializer.write_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["runtime_version"], self.runtime_version)
+
+        if self.function_type is not None:
+            serializer.write_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["function_type"], self.function_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10711,6 +10706,9 @@ class UpdateFunctionInput:
 
                 case 6:
                     kwargs["runtime_version"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["runtime_version"])
+
+                case 7:
+                    kwargs["function_type"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["function_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

@@ -34,20 +34,25 @@ public final class PublishInput implements SerializableStruct {
         .putMember("function_name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
+        .putMember("change_reason", PreludeSchemas.STRING,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_FUNCTION_NAME = $SCHEMA.member("function_name");
+    private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
 
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient String functionName;
+    private final transient String changeReason;
 
     private PublishInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.functionName = builder.functionName;
+        this.changeReason = builder.changeReason;
     }
 
     public String workspaceId() {
@@ -60,6 +65,10 @@ public final class PublishInput implements SerializableStruct {
 
     public String functionName() {
         return functionName;
+    }
+
+    public String changeReason() {
+        return changeReason;
     }
 
     @Override
@@ -78,12 +87,13 @@ public final class PublishInput implements SerializableStruct {
         PublishInput that = (PublishInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
-               && Objects.equals(this.functionName, that.functionName);
+               && Objects.equals(this.functionName, that.functionName)
+               && Objects.equals(this.changeReason, that.changeReason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, functionName);
+        return Objects.hash(workspaceId, orgId, functionName, changeReason);
     }
 
     @Override
@@ -96,6 +106,7 @@ public final class PublishInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_FUNCTION_NAME, functionName);
+        serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
     }
 
     @Override
@@ -104,7 +115,8 @@ public final class PublishInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -121,6 +133,7 @@ public final class PublishInput implements SerializableStruct {
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
         builder.functionName(this.functionName);
+        builder.changeReason(this.changeReason);
         return builder;
     }
 
@@ -140,6 +153,7 @@ public final class PublishInput implements SerializableStruct {
         private String workspaceId;
         private String orgId = ORG_ID_DEFAULT;
         private String functionName;
+        private String changeReason;
 
         private Builder() {}
 
@@ -177,6 +191,16 @@ public final class PublishInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder changeReason(String changeReason) {
+            this.changeReason = Objects.requireNonNull(changeReason, "changeReason cannot be null");
+            tracker.setMember($SCHEMA_CHANGE_REASON);
+            return this;
+        }
+
         @Override
         public PublishInput build() {
             tracker.validate();
@@ -189,7 +213,8 @@ public final class PublishInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
-                case 2 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 2 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 3 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -204,6 +229,9 @@ public final class PublishInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_FUNCTION_NAME)) {
                 functionName("");
+            }
+            if (!tracker.checkMember($SCHEMA_CHANGE_REASON)) {
+                changeReason("");
             }
             return this;
         }
@@ -228,7 +256,8 @@ public final class PublishInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.functionName(de.readString(member));
-                    case 2 -> builder.orgId(de.readString(member));
+                    case 2 -> builder.changeReason(de.readString(member));
+                    case 3 -> builder.orgId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

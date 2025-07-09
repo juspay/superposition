@@ -86,7 +86,7 @@ describe("Dimension API", () => {
                 );
             }
         }
-        
+
         if (autocompleteFunctionName) {
             try {
                 const deleteCmd = new DeleteFunctionCommand({
@@ -454,7 +454,7 @@ describe("Dimension API", () => {
             throw e;
         }
     });
-    
+
     test("CreateDimension: should create dimension with autocomplete function", async () => {
         // First create a validation function
         const functionName = `dimension-completor-${Date.now()}`;
@@ -486,6 +486,8 @@ describe("Dimension API", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     function_name: functionResponse.function_name,
+                    change_reason:
+                        "Publishing autocomplete function for dimension test",
                 })
             );
             // Now create a dimension that uses this validation function
@@ -528,7 +530,6 @@ describe("Dimension API", () => {
             throw e;
         }
     });
-
 
     // ==================== DELETE DIMENSION TESTS ====================
 

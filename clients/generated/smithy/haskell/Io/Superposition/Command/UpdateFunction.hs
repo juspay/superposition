@@ -44,8 +44,7 @@ serUpdateFunctionPAYLOAD input =
         "change_reason" Data.Aeson..= Io.Superposition.Model.UpdateFunctionInput.change_reason input,
         "runtime_version" Data.Aeson..= Io.Superposition.Model.UpdateFunctionInput.runtime_version input,
         "function" Data.Aeson..= Io.Superposition.Model.UpdateFunctionInput.function input,
-        "description" Data.Aeson..= Io.Superposition.Model.UpdateFunctionInput.description input,
-        "function_type" Data.Aeson..= Io.Superposition.Model.UpdateFunctionInput.function_type input
+        "description" Data.Aeson..= Io.Superposition.Model.UpdateFunctionInput.description input
         ]
     
 

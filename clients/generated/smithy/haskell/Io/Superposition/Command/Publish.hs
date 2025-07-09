@@ -38,6 +38,13 @@ data PublishError =
     | RequestError Data.Text.Text
 
 
+serPublishPAYLOAD:: Io.Superposition.Model.PublishInput.PublishInput -> Network.HTTP.Client.RequestBody
+serPublishPAYLOAD input =
+    Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
+        "change_reason" Data.Aeson..= Io.Superposition.Model.PublishInput.change_reason input
+        ]
+    
+
 serPublishHEADER :: Io.Superposition.Model.PublishInput.PublishInput -> Network.HTTP.Types.Header.RequestHeaders
 serPublishHEADER input =
     let 
@@ -87,12 +94,13 @@ publish client inputB = do
         
     
     where
-        method = Network.HTTP.Types.Method.methodPut
+        method = Network.HTTP.Types.Method.methodPatch
         token = Data.Text.Encoding.encodeUtf8 $ Io.Superposition.SuperpositionClient.token client
         toRequest input req =
             req {
                 Network.HTTP.Client.path = serPublishLABEL input
                 , Network.HTTP.Client.method = method
+                , Network.HTTP.Client.requestBody = serPublishPAYLOAD input
                 , Network.HTTP.Client.requestHeaders = (serPublishHEADER input) ++ [("Authorization", "Bearer " <> token)]
             }
         

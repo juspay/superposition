@@ -1286,6 +1286,7 @@ export const se_ListExperimentCommand = async(
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
     [_en]: [,input[_en]!],
     [_ei]: [,input[_ei]!],
+    [_egi]: [,input[_egi]!],
     [_cb]: [,input[_cb]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
@@ -1516,13 +1517,17 @@ export const se_PublishCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
     [_xt]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function/{function_name}/publish");
   b.p('function_name', () => input.function_name!, '{function_name}', false)
   let body: any;
-  b.m("PUT")
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+  }));
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -1629,7 +1634,7 @@ export const se_TestCommand = async(
     body = {};
   }
   body = JSON.stringify(body);
-  b.m("PUT")
+  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -1743,7 +1748,6 @@ export const se_UpdateFunctionCommand = async(
     'change_reason': [],
     'description': [],
     'function': [],
-    'function_type': [],
     'runtime_version': [],
   }));
   b.m("PATCH")
@@ -4853,6 +4857,7 @@ const de_CommandError = async(
   const _cb = "created_by";
   const _ci = "context_id";
   const _ct = "config_tags";
+  const _egi = "experiment_group_ids";
   const _ei = "experiment_ids";
   const _en = "experiment_name";
   const _fd = "from_date";

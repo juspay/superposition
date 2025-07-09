@@ -95,7 +95,7 @@ test client inputB = do
         
     
     where
-        method = Network.HTTP.Types.Method.methodPut
+        method = Network.HTTP.Types.Method.methodPost
         token = Data.Text.Encoding.encodeUtf8 $ Io.Superposition.SuperpositionClient.token client
         toRequest input req =
             req {
