@@ -250,6 +250,10 @@ import {
   UpdateWorkspaceCommandOutput,
 } from "./commands/UpdateWorkspaceCommand";
 import {
+  UpdateWorkspaceDatabaseCommandInput,
+  UpdateWorkspaceDatabaseCommandOutput,
+} from "./commands/UpdateWorkspaceDatabaseCommand";
+import {
   WeightRecomputeCommandInput,
   WeightRecomputeCommandOutput,
 } from "./commands/WeightRecomputeCommand";
@@ -380,6 +384,7 @@ export type ServiceInputTypes =
   | UpdateTypeTemplatesCommandInput
   | UpdateWebhookCommandInput
   | UpdateWorkspaceCommandInput
+  | UpdateWorkspaceDatabaseCommandInput
   | WeightRecomputeCommandInput;
 
 /**
@@ -447,6 +452,7 @@ export type ServiceOutputTypes =
   | UpdateTypeTemplatesCommandOutput
   | UpdateWebhookCommandOutput
   | UpdateWorkspaceCommandOutput
+  | UpdateWorkspaceDatabaseCommandOutput
   | WeightRecomputeCommandOutput;
 
 /**

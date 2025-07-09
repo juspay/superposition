@@ -40,8 +40,8 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListContextsCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListContextsCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListContextsCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListContextsCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListContextsInput
  *   workspace_id: "STRING_VALUE", // required

@@ -40,8 +40,8 @@ export interface GetOrganisationCommandOutput extends OrganisationResponse, __Me
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetOrganisationCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetOrganisationCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetOrganisationCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetOrganisationCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetOrganisationInput
  *   id: "STRING_VALUE", // required

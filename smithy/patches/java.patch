@@ -66,7 +66,7 @@ index 518d71c9..68775fc5 100644
 +        Map.entry("change_reason", PreludeSchemas.STRING),
 +        Map.entry("function_name", PreludeSchemas.STRING),
 +        Map.entry("dependents", SharedSchemas.DEPENDENTS),
-+        Map.entry("position", PreludeSchemas.INTEGER)); 
++        Map.entry("position", PreludeSchemas.INTEGER));
  
      private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
          CreateDimension.$SCHEMA);
@@ -270,8 +270,9 @@ index 9277c0c6..dc58b0d2 100644
  
      private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA,
          GetWebhook.$SCHEMA);
+
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
-index b8972981..99508fcb 100644
+index 7c3a2305..636d5c2c 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
 @@ -15,20 +15,21 @@ public final class Workspace implements ApiResource {
@@ -308,5 +309,5 @@ index b8972981..99508fcb 100644
 +        Map.entry("strict_mode", PreludeSchemas.BOOLEAN),
 +        Map.entry("metrics", PreludeSchemas.DOCUMENT));
  
-     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA);
-     private static final Schema $SCHEMA = Schema.createResource($ID);
+     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA,
+         UpdateWorkspaceDatabase.$SCHEMA);

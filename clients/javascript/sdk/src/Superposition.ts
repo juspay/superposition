@@ -309,6 +309,11 @@ import {
   UpdateWorkspaceCommandOutput,
 } from "./commands/UpdateWorkspaceCommand";
 import {
+  UpdateWorkspaceDatabaseCommand,
+  UpdateWorkspaceDatabaseCommandInput,
+  UpdateWorkspaceDatabaseCommandOutput,
+} from "./commands/UpdateWorkspaceDatabaseCommand";
+import {
   WeightRecomputeCommand,
   WeightRecomputeCommandInput,
   WeightRecomputeCommandOutput,
@@ -378,6 +383,7 @@ const commands = {
   UpdateTypeTemplatesCommand,
   UpdateWebhookCommand,
   UpdateWorkspaceCommand,
+  UpdateWorkspaceDatabaseCommand,
   WeightRecomputeCommand,
 }
 
@@ -1418,6 +1424,23 @@ export interface Superposition {
     args: UpdateWorkspaceCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: UpdateWorkspaceCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link UpdateWorkspaceDatabaseCommand}
+   */
+  updateWorkspaceDatabase(
+    args: UpdateWorkspaceDatabaseCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<UpdateWorkspaceDatabaseCommandOutput>;
+  updateWorkspaceDatabase(
+    args: UpdateWorkspaceDatabaseCommandInput,
+    cb: (err: any, data?: UpdateWorkspaceDatabaseCommandOutput) => void
+  ): void;
+  updateWorkspaceDatabase(
+    args: UpdateWorkspaceDatabaseCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: UpdateWorkspaceDatabaseCommandOutput) => void
   ): void;
 
   /**

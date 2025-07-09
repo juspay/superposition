@@ -13,12 +13,12 @@ use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
 use crate::types::OrganisationId;
 use crate::{
-    components::input::{Input, InputType, Toggle},
-    schema::{JsonSchemaType, SchemaType},
+    api::workspaces::{create_workspace, update_workspace},
+    providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
 };
 use crate::{
-    components::workspace_form::utils::{create_workspace, update_workspace},
-    providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
+    components::input::{Input, InputType, Toggle},
+    schema::{JsonSchemaType, SchemaType},
 };
 
 #[component]
@@ -51,56 +51,54 @@ pub fn workspace_form(
         ev.prevent_default();
 
         let is_edit = edit;
-        spawn_local({
-            async move {
-                let result = if is_edit {
-                    update_workspace(
-                        workspace_name_rs.get_untracked(),
-                        org_id.get_untracked().0,
-                        workspace_admin_email_rs.get_untracked(),
-                        config_version_rs.get_untracked(),
-                        workspace_status_rs.get_untracked(),
-                        mandatory_dimensions_rs.get_untracked(),
-                        metrics_rws.get_untracked(),
-                        allow_experiment_self_approval_rs.get_untracked(),
-                    )
-                    .await
-                } else {
-                    let create_payload = CreateWorkspaceRequest {
-                        workspace_admin_email: workspace_admin_email_rs.get_untracked(),
-                        workspace_name: workspace_name_rs.get_untracked(),
-                        workspace_status: Some(workspace_status_rs.get_untracked()),
-                        strict_mode: strict_mode_rs.get_untracked(),
-                        metrics: Some(metrics_rws.get_untracked()),
-                        allow_experiment_self_approval: allow_experiment_self_approval_rs
-                            .get_untracked(),
-                    };
-                    create_workspace(org_id.get_untracked().0, create_payload).await
+        spawn_local(async move {
+            let result = if is_edit {
+                update_workspace(
+                    workspace_name_rs.get_untracked(),
+                    org_id.get_untracked().0,
+                    workspace_admin_email_rs.get_untracked(),
+                    config_version_rs.get_untracked(),
+                    workspace_status_rs.get_untracked(),
+                    mandatory_dimensions_rs.get_untracked(),
+                    metrics_rws.get_untracked(),
+                    allow_experiment_self_approval_rs.get_untracked(),
+                )
+                .await
+            } else {
+                let create_payload = CreateWorkspaceRequest {
+                    workspace_admin_email: workspace_admin_email_rs.get_untracked(),
+                    workspace_name: workspace_name_rs.get_untracked(),
+                    workspace_status: Some(workspace_status_rs.get_untracked()),
+                    strict_mode: strict_mode_rs.get_untracked(),
+                    metrics: Some(metrics_rws.get_untracked()),
+                    allow_experiment_self_approval: allow_experiment_self_approval_rs
+                        .get_untracked(),
                 };
+                create_workspace(org_id.get_untracked().0, create_payload).await
+            };
 
-                req_inprogress_ws.set(false);
-                match result {
-                    Ok(_) => {
-                        handle_submit.call(());
-                        let success_message = if is_edit {
-                            "Workspace updated successfully!"
-                        } else {
-                            "New workspace created successfully!"
-                        };
-                        enqueue_alert(
-                            String::from(success_message),
-                            AlertType::Success,
-                            5000,
-                        );
-                    }
-                    Err(e) => {
-                        logging::error!(
-                            "An error occurred while trying to {} the workspace: {}",
-                            if is_edit { "update" } else { "create" },
-                            e
-                        );
-                        enqueue_alert(e, AlertType::Error, 5000);
-                    }
+            req_inprogress_ws.set(false);
+            match result {
+                Ok(_) => {
+                    handle_submit.call(());
+                    let success_message = if is_edit {
+                        "Workspace updated successfully!"
+                    } else {
+                        "New workspace created successfully!"
+                    };
+                    enqueue_alert(
+                        String::from(success_message),
+                        AlertType::Success,
+                        5000,
+                    );
+                }
+                Err(e) => {
+                    logging::error!(
+                        "An error occurred while trying to {} the workspace: {}",
+                        if is_edit { "update" } else { "create" },
+                        e
+                    );
+                    enqueue_alert(e, AlertType::Error, 5000);
                 }
             }
         });

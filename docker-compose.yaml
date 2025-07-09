@@ -7,6 +7,8 @@ services:
     environment:
       POSTGRES_PASSWORD: "docker"
       POSTGRES_DB: "config"
+    volumes:
+      - ./docker-compose/postgres/data:/var/lib/postgresql/data
     restart: on-failure
 
   localstack:

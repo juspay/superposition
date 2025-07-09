@@ -40,8 +40,8 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetDimensionCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetDimensionCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetDimensionCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetDimensionCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetDimensionInput
  *   workspace_id: "STRING_VALUE", // required

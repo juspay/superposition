@@ -38,18 +38,19 @@ docs = [
     "pydata-sphinx-theme>=0.16.1",
     "sphinx>=8.2.3"
 ]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.version]
-source = "env"
-variable = "VERSION"
 
 [tool.hatch.build]
 exclude = [
   "tests",
 ]
+
+[tool.hatch.version]
+source = "env"
+variable = "VERSION"
 
 [tool.pyright]
 typeCheckingMode = "strict"
