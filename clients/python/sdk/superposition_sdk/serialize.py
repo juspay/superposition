@@ -59,6 +59,7 @@ from .models import (
     ListVersionsInput,
     ListWebhookInput,
     ListWorkspaceInput,
+    MigrateWorkspaceSchemaInput,
     MoveContextInput,
     PauseExperimentInput,
     PublishInput,
@@ -1691,6 +1692,36 @@ async def _serialize_list_workspace(input: ListWorkspaceInput, config: Config) -
             query=query,
         ),
         method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_migrate_workspace_schema(input: MigrateWorkspaceSchemaInput, config: Config) -> HTTPRequest:
+    if not input.workspace_name:
+        raise ServiceError("workspace_name must not be empty.")
+
+    path = "/workspaces/{workspace_name}/db/migrate".format(
+        workspace_name=urlquote(input.workspace_name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
         fields=headers,
         body=body,
     )

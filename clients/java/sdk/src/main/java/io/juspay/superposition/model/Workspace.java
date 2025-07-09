@@ -32,7 +32,8 @@ public final class Workspace implements ApiResource {
         Map.entry("strict_mode", PreludeSchemas.BOOLEAN),
         Map.entry("metrics", PreludeSchemas.DOCUMENT));
 
-    private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA);
+    private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA,
+        MigrateWorkspaceSchema.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**

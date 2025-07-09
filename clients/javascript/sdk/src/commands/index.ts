@@ -43,6 +43,7 @@ export * from "./ListOrganisationCommand";
 export * from "./ListVersionsCommand";
 export * from "./ListWebhookCommand";
 export * from "./ListWorkspaceCommand";
+export * from "./MigrateWorkspaceSchemaCommand";
 export * from "./MoveContextCommand";
 export * from "./PauseExperimentCommand";
 export * from "./PublishCommand";

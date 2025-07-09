@@ -1863,6 +1863,14 @@ export interface WorkspaceListResponse {
 /**
  * @public
  */
+export interface MigrateWorkspaceSchemaRequest {
+  org_id: string | undefined;
+  workspace_name: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface UpdateOrganisationRequest {
   country_code?: string | undefined;
   contact_email?: string | undefined;

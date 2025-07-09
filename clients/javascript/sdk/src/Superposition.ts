@@ -224,6 +224,11 @@ import {
   ListWorkspaceCommandOutput,
 } from "./commands/ListWorkspaceCommand";
 import {
+  MigrateWorkspaceSchemaCommand,
+  MigrateWorkspaceSchemaCommandInput,
+  MigrateWorkspaceSchemaCommandOutput,
+} from "./commands/MigrateWorkspaceSchemaCommand";
+import {
   MoveContextCommand,
   MoveContextCommandInput,
   MoveContextCommandOutput,
@@ -361,6 +366,7 @@ const commands = {
   ListVersionsCommand,
   ListWebhookCommand,
   ListWorkspaceCommand,
+  MigrateWorkspaceSchemaCommand,
   MoveContextCommand,
   PauseExperimentCommand,
   PublishCommand,
@@ -1129,6 +1135,23 @@ export interface Superposition {
     args: ListWorkspaceCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: ListWorkspaceCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link MigrateWorkspaceSchemaCommand}
+   */
+  migrateWorkspaceSchema(
+    args: MigrateWorkspaceSchemaCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<MigrateWorkspaceSchemaCommandOutput>;
+  migrateWorkspaceSchema(
+    args: MigrateWorkspaceSchemaCommandInput,
+    cb: (err: any, data?: MigrateWorkspaceSchemaCommandOutput) => void
+  ): void;
+  migrateWorkspaceSchema(
+    args: MigrateWorkspaceSchemaCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: MigrateWorkspaceSchemaCommandOutput) => void
   ): void;
 
   /**

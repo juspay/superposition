@@ -59,7 +59,7 @@ SET default_table_access_method = heap;
 --
 -- Name: contexts; Type: TABLE; Schema: {replaceme}; Owner: -
 --
-CREATE TABLE {replaceme}.contexts (
+CREATE TABLE IF NOT EXISTS {replaceme}.contexts  (
     id character varying PRIMARY KEY,
     value json NOT NULL,
     override_id character varying NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE {replaceme}.contexts (
 --
 -- Name: default_configs; Type: TABLE; Schema: {replaceme}; Owner: -
 --
-CREATE TABLE {replaceme}.default_configs (
+CREATE TABLE IF NOT EXISTS {replaceme}.default_configs  (
     key character varying PRIMARY KEY,
     value json NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE {replaceme}.default_configs (
 --
 -- Name: dimensions; Type: TABLE; Schema: {replaceme}; Owner: -
 --
-CREATE TABLE {replaceme}.dimensions (
+CREATE TABLE IF NOT EXISTS {replaceme}.dimensions (
     dimension character varying PRIMARY KEY,
     priority integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -119,15 +119,27 @@ CREATE INDEX IF NOT EXISTS event_log_timestamp_index ON ONLY {replaceme}.event_l
 --
 -- Name: contexts contexts_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
-CREATE TRIGGER contexts_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.contexts FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+DO $$ BEGIN
+    CREATE TRIGGER contexts_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.contexts FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 --
 -- Name: default_configs default_configs_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
-CREATE TRIGGER default_configs_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.default_configs FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+DO $$ BEGIN
+    CREATE TRIGGER default_configs_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.default_configs FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 --
 -- Name: dimensions dimensions_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
-CREATE TRIGGER dimensions_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.dimensions FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+DO $$ BEGIN
+    CREATE TRIGGER dimensions_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.dimensions FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 -- Your SQL goes here
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 --
@@ -139,7 +151,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 --
 -- Name: not_null_text; Type: DOMAIN; Schema: {replaceme}; Owner: -
 --
-CREATE DOMAIN {replaceme}.not_null_text AS text NOT NULL;
+DO $$ BEGIN
+    CREATE DOMAIN {replaceme}.not_null_text AS text NOT NULL;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 --
 -- Name: event_logger(); Type: FUNCTION; Schema: {replaceme}; Owner: -
 --
@@ -156,7 +172,7 @@ END $$;
 --
 -- Name: experiments; Type: TABLE; Schema: {replaceme}; Owner: -
 --
-CREATE TABLE {replaceme}.experiments (
+CREATE TABLE IF NOT EXISTS {replaceme}.experiments (
     id bigint PRIMARY KEY,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_by text NOT NULL,
@@ -174,19 +190,23 @@ CREATE TABLE {replaceme}.experiments (
 --
 -- Name: experiment_created_date_index; Type: INDEX; Schema: {replaceme}; Owner: -
 --
-CREATE INDEX experiment_created_date_index ON {replaceme}.experiments USING btree (created_at) INCLUDE (id);
+CREATE INDEX IF NOT EXISTS experiment_created_date_index ON {replaceme}.experiments USING btree (created_at) INCLUDE (id);
 --
 -- Name: experiment_last_modified_index; Type: INDEX; Schema: {replaceme}; Owner: -
 --
-CREATE INDEX experiment_last_modified_index ON {replaceme}.experiments USING btree (last_modified) INCLUDE (id, created_at);
+CREATE INDEX IF NOT EXISTS experiment_last_modified_index ON {replaceme}.experiments USING btree (last_modified) INCLUDE (id, created_at);
 --
 -- Name: experiment_status_index; Type: INDEX; Schema: {replaceme}; Owner: -
 --
-CREATE INDEX experiment_status_index ON {replaceme}.experiments USING btree (status) INCLUDE (created_at, last_modified);
+CREATE INDEX IF NOT EXISTS experiment_status_index ON {replaceme}.experiments USING btree (status) INCLUDE (created_at, last_modified);
 --
 -- Name: experiments experiments_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
-CREATE TRIGGER experiments_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.experiments FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+DO $$ BEGIN
+    CREATE TRIGGER experiments_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.experiments FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 ------------ Parititions for 2025 -----------
 CREATE TABLE IF NOT EXISTS {replaceme}.event_log_y2025m01 PARTITION OF {replaceme}.event_log FOR
@@ -289,7 +309,7 @@ FROM ('2026-12-01') TO ('2027-01-01');
 -- Your SQL goes here
 -- Name: functions; Type: TABLE; Schema: {replaceme}; Owner: -
 --
-CREATE TABLE {replaceme}.functions (
+CREATE TABLE IF NOT EXISTS {replaceme}.functions (
     function_name text PRIMARY KEY,
     published_code text,
     draft_code text NOT NULL,
@@ -304,19 +324,31 @@ CREATE TABLE {replaceme}.functions (
 --
 -- Name: functions functions_audit; Type: TRIGGER; Schema: {replaceme}; Owner: -
 --
-CREATE TRIGGER functions_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.functions FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+DO $$ BEGIN
+    CREATE TRIGGER functions_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.functions FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 -- Your SQL goes here
-ALTER TABLE {replaceme}.dimensions ADD COLUMN function_name text NULL;
+ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS function_name text NULL;
 
-ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-ALTER TABLE {replaceme}.default_configs ADD COLUMN function_name text NULL;
+ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS function_name text NULL;
 
-ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 -- Your SQL goes here
 -- Name: functions; Type: TABLE; Schema: {replaceme}; Owner: -
 --
-CREATE TABLE {replaceme}.config_versions (
+CREATE TABLE IF NOT EXISTS {replaceme}.config_versions (
 id bigint PRIMARY KEY,
 config json NOT NULL,
 config_hash TEXT NOT NULL,
@@ -335,42 +367,61 @@ CREATE TABLE IF NOT EXISTS {replaceme}.type_templates (
 );
 CREATE INDEX IF NOT EXISTS type_templates_index ON {replaceme}.type_templates(type_name);
 CREATE INDEX IF NOT EXISTS type_templates_created_at_index ON {replaceme}.type_templates(created_at);
-CREATE INDEX IF NOT EXISTS type_templates_last_modifed_index ON {replaceme}.type_templates(last_modified);
+
+DO $$ BEGIN
+    IF EXISTS(SELECT *
+        FROM information_schema.columns
+        WHERE table_name='type_templates' and table_schema='{replaceme}' and column_name='last_modified')
+  THEN
+    CREATE INDEX IF NOT EXISTS type_templates_last_modifed_index ON {replaceme}.type_templates(last_modified);
+  END IF;
+END $$;
 -- Your SQL goes here
 
 ALTER TABLE {replaceme}.functions
-add column last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-add column last_modified_by varchar(200) not null default('null');
+ADD COLUMN IF NOT EXISTS last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+ADD COLUMN IF NOT EXISTS last_modified_by varchar(200) not null default('null');
 
 ALTER TABLE {replaceme}.dimensions
-add column last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-add column last_modified_by varchar(200) not null default('null');
+ADD COLUMN IF NOT EXISTS last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+ADD COLUMN IF NOT EXISTS last_modified_by varchar(200) not null default('null');
 
 ALTER TABLE {replaceme}.contexts
-add column last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-add column last_modified_by varchar(200) not null default('null');
+ADD COLUMN IF NOT EXISTS last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+ADD COLUMN IF NOT EXISTS last_modified_by varchar(200) not null default('null');
 
 ALTER TABLE {replaceme}.default_configs
-add column last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-add column last_modified_by varchar(200) not null default('null');
+ADD COLUMN IF NOT EXISTS last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+ADD COLUMN IF NOT EXISTS last_modified_by varchar(200) not null default('null');
+
+DO $$ BEGIN
+    IF EXISTS(SELECT *
+        FROM information_schema.columns
+        WHERE table_name='type_templates' and table_schema='{replaceme}' and column_name='last_modified')
+  THEN
+    ALTER TABLE {replaceme}.type_templates rename column last_modified to last_modified_at;
+  END IF;
+END $$;
 
 ALTER TABLE {replaceme}.type_templates
-rename column last_modified to last_modified_at;
-
-ALTER TABLE {replaceme}.type_templates
-add column last_modified_by varchar(200) not null default('null');
+ADD COLUMN IF NOT EXISTS last_modified_by varchar(200) not null default('null');
 -- Your SQL goes here
 ALTER TABLE {replaceme}.dimensions
-add column position integer DEFAULT 0 NOT NULL;
+ADD COLUMN IF NOT EXISTS position integer DEFAULT 0 NOT NULL;
 ALTER TABLE {replaceme}.contexts
-add column weight numeric(1000, 0) DEFAULT 1 NOT NULL;
+ADD COLUMN IF NOT EXISTS weight numeric(1000, 0) DEFAULT 1 NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_contexts_weight ON {replaceme}.contexts(weight);
 -- Your SQL goes here
 ALTER TABLE {replaceme}.dimensions
 ALTER COLUMN priority SET DEFAULT 1;
 
-ALTER TABLE {replaceme}.dimensions
-ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
+DO $$ BEGIN
+    ALTER TABLE {replaceme}.dimensions
+    ADD CONSTRAINT dimension_unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
+EXCEPTION
+    WHEN duplicate_table THEN
+    WHEN duplicate_object THEN null;
+END $$;
 
 ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
 ALTER TABLE {replaceme}.contexts ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
@@ -384,7 +435,15 @@ ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS change_reason T
 ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
 ALTER TABLE {replaceme}.type_templates ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-ALTER TABLE {replaceme}.functions RENAME COLUMN function_description TO description;
+DO $$ BEGIN
+    IF EXISTS(SELECT *
+        FROM information_schema.columns
+        WHERE table_name='functions' and table_schema='{replaceme}' and column_name='function_description')
+  THEN
+    ALTER TABLE {replaceme}.functions RENAME COLUMN function_description TO description;
+  END IF;
+END $$;
+
 ALTER TABLE {replaceme}.functions ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
 ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
@@ -392,26 +451,33 @@ ALTER TABLE {replaceme}.config_versions ADD COLUMN IF NOT EXISTS description TEX
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS description TEXT NOT NULL;
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL;
 
-INSERT INTO {replaceme}.dimensions (
-        dimension,
-        priority,
-        created_at,
-        created_by,
-        schema,
-        function_name,
-        description,
-        change_reason
-    )
-VALUES (
-        'variantIds',
-        0,
-        CURRENT_TIMESTAMP,
-        'default@superposition.io',
-        '{"type": "string","pattern": ".*"}'::json,
-        null,
-        'variantIds are used by experimentation module to manage and select variations',
-        'initial setup'
-);
+DO $$ BEGIN
+    IF NOT EXISTS(SELECT *
+        FROM {replaceme}.dimensions
+        WHERE dimension = 'variantIds')
+    THEN
+    INSERT INTO {replaceme}.dimensions (
+            dimension,
+            priority,
+            created_at,
+            created_by,
+            schema,
+            function_name,
+            description,
+            change_reason
+        )
+    VALUES (
+            'variantIds',
+            0,
+            CURRENT_TIMESTAMP,
+            'default@superposition.io',
+            '{"type": "string","pattern": ".*"}'::json,
+            null,
+            'variantIds are used by experimentation module to manage and select variations',
+            'initial setup'
+    );
+    END IF;
+END $$;
 
 INSERT INTO {replaceme}.type_templates(type_name, type_schema, created_by, created_at, last_modified_by, last_modified_at, description, change_reason)
 VALUES (
@@ -463,7 +529,7 @@ VALUES (
         NOW(),
         'Pattern type is used to represent a string that matches a specific pattern',
         'initial setup'
-    );
+    ) ON CONFLICT DO NOTHING;
 
 DO $$ BEGIN
     ALTER TYPE public.experiment_status_type ADD VALUE 'DISCARDED';
@@ -480,27 +546,15 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
-    ALTER TABLE {replaceme}.functions ADD COLUMN function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+ALTER TABLE {replaceme}.functions ADD COLUMN IF NOT EXISTS function_type public.FUNCTION_TYPES NOT NULL DEFAULT 'VALIDATION';
 
-DO $$ BEGIN
-    ALTER TABLE {replaceme}.dimensions 
-    ADD COLUMN dependency_graph JSON default '{}'::json NOT NULL,
-    ADD COLUMN dependents TEXT[] default '{}' NOT NULL,
-    ADD COLUMN dependencies TEXT[] default '{}' NOT NULL;
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+ALTER TABLE {replaceme}.dimensions
+ADD COLUMN IF NOT EXISTS dependency_graph JSON default '{}'::json NOT NULL,
+ADD COLUMN IF NOT EXISTS dependents TEXT[] default '{}' NOT NULL,
+ADD COLUMN IF NOT EXISTS dependencies TEXT[] default '{}' NOT NULL;
 
 
-DO $$ BEGIN
-    ALTER TABLE {replaceme}.dimensions ADD COLUMN autocomplete_function_name text NULL;
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS autocomplete_function_name text NULL;
 
 DO $$ BEGIN
     ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
@@ -508,11 +562,7 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
-    ALTER TABLE {replaceme}.default_configs ADD COLUMN autocomplete_function_name text NULL;
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS autocomplete_function_name text NULL;
 
 DO $$ BEGIN
     ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
@@ -618,12 +668,14 @@ ADD COLUMN IF NOT EXISTS group_type public.group_type DEFAULT 'USER_CREATED';
 
 ALTER TABLE {replaceme}.functions
 ADD COLUMN IF NOT EXISTS created_at TIMESTAMP,
-ADD COLUMN IF NOT EXISTS created_by TEXT NOT NULL DEFAULT('NOT AVAILABLE');
+ADD COLUMN IF NOT EXISTS created_by TEXT NOT NULL DEFAULT 'NOT AVAILABLE';
 
+-- drop the constraint so validations work, this for backfill
 ALTER TABLE {replaceme}.functions ALTER COLUMN created_by DROP DEFAULT;
 
 UPDATE {replaceme}.functions SET created_at = last_modified_at WHERE created_at IS NULL;
 
+-- set constraints on created_at after backfill is done
 ALTER TABLE {replaceme}.functions
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
 ALTER COLUMN created_at SET NOT NULL;

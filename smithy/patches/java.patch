@@ -274,11 +274,11 @@ index 9277c0c6..dc58b0d2 100644
  
      private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA,
          GetWebhook.$SCHEMA);
-diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
-index b8972981..99508fcb 100644
---- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
-+++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
-@@ -15,20 +15,21 @@ public final class Workspace implements ApiResource {
+diff --git b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
+index 7b0f248f..180d386e 100644
+--- b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
++++ a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
+@@ -15,24 +15,25 @@ public final class Workspace implements ApiResource {
      private static final Workspace $INSTANCE = new Workspace();
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("org_id", PreludeSchemas.STRING,
          "workspace_name", PreludeSchemas.STRING);
@@ -314,5 +314,8 @@ index b8972981..99508fcb 100644
 +        Map.entry("strict_mode", PreludeSchemas.BOOLEAN),
 +        Map.entry("metrics", PreludeSchemas.DOCUMENT));
  
-     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA);
+     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA,
+        MigrateWorkspaceSchema.$SCHEMA);
      private static final Schema $SCHEMA = Schema.createResource($ID);
+
+

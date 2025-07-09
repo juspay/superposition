@@ -64,6 +64,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(update_workspace)
         .service(list_workspaces)
         .service(get_workspace)
+        .service(migrate_workspace_schema)
 }
 
 #[get("/{workspace_name}")]
@@ -257,4 +258,24 @@ fn validate_workspace_name(workspace_name: &String) -> superposition::Result<()>
         }
         _ => Ok(()),
     }
+}
+
+#[post("/{workspace_name}/db/migrate")]
+async fn migrate_workspace_schema(
+    workspace_name: Path<String>,
+    db_conn: DbConnection,
+    org_id: OrganisationId,
+) -> superposition::Result<Json<WorkspaceResponse>> {
+    let workspace_name = workspace_name.into_inner();
+    let DbConnection(mut conn) = db_conn;
+
+    let workspace: Workspace = workspaces::dsl::workspaces
+        .filter(workspaces::organisation_id.eq(&org_id.0))
+        .filter(workspaces::workspace_name.eq(workspace_name))
+        .get_result(&mut conn)?;
+
+    setup_workspace_schema(&mut conn, &workspace.workspace_schema_name)?;
+
+    let response = WorkspaceResponse::from(workspace);
+    Ok(Json(response))
 }

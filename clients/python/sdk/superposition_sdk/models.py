@@ -167,6 +167,9 @@ from ._private.schemas import (
     LIST_WORKSPACE as _SCHEMA_LIST_WORKSPACE,
     LIST_WORKSPACE_INPUT as _SCHEMA_LIST_WORKSPACE_INPUT,
     LIST_WORKSPACE_OUTPUT as _SCHEMA_LIST_WORKSPACE_OUTPUT,
+    MIGRATE_WORKSPACE_SCHEMA as _SCHEMA_MIGRATE_WORKSPACE_SCHEMA,
+    MIGRATE_WORKSPACE_SCHEMA_INPUT as _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT,
+    MIGRATE_WORKSPACE_SCHEMA_OUTPUT as _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT,
     MOVE_CONTEXT as _SCHEMA_MOVE_CONTEXT,
     MOVE_CONTEXT_INPUT as _SCHEMA_MOVE_CONTEXT_INPUT,
     MOVE_CONTEXT_OUTPUT as _SCHEMA_MOVE_CONTEXT_OUTPUT,
@@ -2983,8 +2986,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5946,8 +5949,8 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6168,8 +6171,8 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6439,8 +6442,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6714,8 +6717,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -12206,6 +12209,178 @@ LIST_WORKSPACE = APIOperation(
         schema = _SCHEMA_LIST_WORKSPACE,
         input_schema = _SCHEMA_LIST_WORKSPACE_INPUT,
         output_schema = _SCHEMA_LIST_WORKSPACE_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class MigrateWorkspaceSchemaInput:
+
+    org_id: str = "juspay"
+    workspace_name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT.members["org_id"])
+
+                case 1:
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT.members["workspace_name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class MigrateWorkspaceSchemaOutput:
+
+    workspace_name: str
+
+    organisation_id: str
+
+    organisation_name: str
+
+    workspace_schema_name: str
+
+    workspace_status: str
+
+    workspace_admin_email: str
+
+    created_by: str
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    created_at: datetime
+
+    strict_mode: bool
+
+    allow_experiment_self_approval: bool
+
+    auto_populate_control: bool
+
+    config_version: str | None = None
+    mandatory_dimensions: list[str] | None = None
+    metrics: Document | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_name"], self.workspace_name)
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["organisation_id"], self.organisation_id)
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["organisation_name"], self.organisation_name)
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_schema_name"], self.workspace_schema_name)
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_status"], self.workspace_status)
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_admin_email"], self.workspace_admin_email)
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["config_version"], self.config_version)
+
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_timestamp(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["created_at"], self.created_at)
+        if self.mandatory_dimensions is not None:
+            _serialize_list_mandatory_dimensions(serializer, _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
+
+        serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["strict_mode"], self.strict_mode)
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["metrics"], self.metrics)
+
+        serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
+        serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_name"])
+
+                case 1:
+                    kwargs["organisation_id"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["organisation_id"])
+
+                case 2:
+                    kwargs["organisation_name"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["organisation_name"])
+
+                case 3:
+                    kwargs["workspace_schema_name"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_schema_name"])
+
+                case 4:
+                    kwargs["workspace_status"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_status"])
+
+                case 5:
+                    kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_admin_email"])
+
+                case 6:
+                    kwargs["config_version"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["config_version"])
+
+                case 7:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["created_by"])
+
+                case 8:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["last_modified_by"])
+
+                case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["last_modified_at"])
+
+                case 10:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["created_at"])
+
+                case 11:
+                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["mandatory_dimensions"])
+
+                case 12:
+                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["strict_mode"])
+
+                case 13:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["metrics"])
+
+                case 14:
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["allow_experiment_self_approval"])
+
+                case 15:
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT, consumer=_consumer)
+        return kwargs
+
+MIGRATE_WORKSPACE_SCHEMA = APIOperation(
+        input = MigrateWorkspaceSchemaInput,
+        output = MigrateWorkspaceSchemaOutput,
+        schema = _SCHEMA_MIGRATE_WORKSPACE_SCHEMA,
+        input_schema = _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT,
+        output_schema = _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),

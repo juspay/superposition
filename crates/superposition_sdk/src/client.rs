@@ -219,6 +219,8 @@ mod list_webhook;
 
 mod list_workspace;
 
+mod migrate_workspace_schema;
+
 mod move_context;
 
 mod pause_experiment;
