@@ -82,6 +82,7 @@ from .models import (
     UpdateOverridesExperimentOutput,
     UpdateTypeTemplatesOutput,
     UpdateWebhookOutput,
+    UpdateWorkspaceDatabaseOutput,
     UpdateWorkspaceOutput,
     WebhookNotFound,
     WeightRecomputeOutput,
@@ -1707,6 +1708,31 @@ async def _deserialize_error_update_workspace(http_response: HTTPResponse, confi
 
         case "workspacenotfound":
             return await _deserialize_error_workspace_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_update_workspace_database(http_response: HTTPResponse, config: Config) -> UpdateWorkspaceDatabaseOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_update_workspace_database(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = UpdateWorkspaceDatabaseOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return UpdateWorkspaceDatabaseOutput(**kwargs)
+
+async def _deserialize_error_update_workspace_database(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")

@@ -253,5 +253,7 @@ mod update_webhook;
 
 mod update_workspace;
 
+mod update_workspace_database;
+
 mod weight_recompute;
 

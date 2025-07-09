@@ -29,7 +29,7 @@ public final class Dimension implements ApiResource {
         Map.entry("change_reason", PreludeSchemas.STRING),
         Map.entry("function_name", PreludeSchemas.STRING),
         Map.entry("dependents", SharedSchemas.DEPENDENTS),
-        Map.entry("position", PreludeSchemas.INTEGER)); 
+        Map.entry("position", PreludeSchemas.INTEGER));
 
     private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
         CreateDimension.$SCHEMA);
