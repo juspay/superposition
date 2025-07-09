@@ -182,6 +182,9 @@ import io.juspay.superposition.model.UpdateWebhook;
 import io.juspay.superposition.model.UpdateWebhookInput;
 import io.juspay.superposition.model.UpdateWebhookOutput;
 import io.juspay.superposition.model.UpdateWorkspace;
+import io.juspay.superposition.model.UpdateWorkspaceDatabase;
+import io.juspay.superposition.model.UpdateWorkspaceDatabaseInput;
+import io.juspay.superposition.model.UpdateWorkspaceDatabaseOutput;
 import io.juspay.superposition.model.UpdateWorkspaceInput;
 import io.juspay.superposition.model.UpdateWorkspaceOutput;
 import io.juspay.superposition.model.WeightRecompute;
@@ -203,8 +206,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
@@ -760,6 +763,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public UpdateWorkspaceOutput updateWorkspace(UpdateWorkspaceInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, UpdateWorkspace.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public UpdateWorkspaceDatabaseOutput updateWorkspaceDatabase(UpdateWorkspaceDatabaseInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, UpdateWorkspaceDatabase.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

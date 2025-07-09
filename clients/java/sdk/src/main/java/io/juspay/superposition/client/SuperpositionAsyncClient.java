@@ -126,6 +126,8 @@ import io.juspay.superposition.model.UpdateTypeTemplatesInput;
 import io.juspay.superposition.model.UpdateTypeTemplatesOutput;
 import io.juspay.superposition.model.UpdateWebhookInput;
 import io.juspay.superposition.model.UpdateWebhookOutput;
+import io.juspay.superposition.model.UpdateWorkspaceDatabaseInput;
+import io.juspay.superposition.model.UpdateWorkspaceDatabaseOutput;
 import io.juspay.superposition.model.UpdateWorkspaceInput;
 import io.juspay.superposition.model.UpdateWorkspaceOutput;
 import io.juspay.superposition.model.WebhookNotFound;
@@ -328,44 +330,44 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<CreateWorkspaceOutput> createWorkspace(CreateWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input) {
         return deleteContext(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<DeleteDefaultConfigOutput> deleteDefaultConfig(DeleteDefaultConfigInput input) {
         return deleteDefaultConfig(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<DeleteDefaultConfigOutput> deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input) {
         return deleteDimension(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
 
@@ -388,16 +390,16 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<DeleteExperimentGroupOutput> deleteExperimentGroup(DeleteExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws FunctionNotFound
      * @throws InternalServerError
+     * @throws FunctionNotFound
      */
     default CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input) {
         return deleteFunction(input, null);
     }
 
     /**
-     * @throws FunctionNotFound
      * @throws InternalServerError
+     * @throws FunctionNotFound
      */
     CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
 
@@ -612,16 +614,16 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<ListContextsOutput> listContexts(ListContextsInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default CompletableFuture<ListDefaultConfigsOutput> listDefaultConfigs(ListDefaultConfigsInput input) {
         return listDefaultConfigs(input, null);
     }
 
     /**
-     * @throws ResourceNotFound
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     CompletableFuture<ListDefaultConfigsOutput> listDefaultConfigs(ListDefaultConfigsInput input, RequestOverrideConfig overrideConfig);
 
@@ -962,6 +964,18 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<UpdateWorkspaceOutput> updateWorkspace(UpdateWorkspaceInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * @throws InternalServerError
+     */
+    default CompletableFuture<UpdateWorkspaceDatabaseOutput> updateWorkspaceDatabase(UpdateWorkspaceDatabaseInput input) {
+        return updateWorkspaceDatabase(input, null);
+    }
+
+    /**
+     * @throws InternalServerError
+     */
+    CompletableFuture<UpdateWorkspaceDatabaseOutput> updateWorkspaceDatabase(UpdateWorkspaceDatabaseInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * @throws InternalServerError

@@ -13098,6 +13098,197 @@ UPDATE_WORKSPACE = Schema(
 
 )
 
+UPDATE_WORKSPACE_DATABASE_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#UpdateWorkspaceDatabaseInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#UpdateWorkspaceDatabaseRequest"),
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "org_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#default"), value="juspay"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_name": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+    }
+)
+
+UPDATE_WORKSPACE_DATABASE_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#UpdateWorkspaceDatabaseOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#WorkspaceResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "workspace_name": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "organisation_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "organisation_name": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_schema_name": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_status": {
+            "target": WORKSPACE_STATUS,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_admin_email": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "config_version": {
+            "target": STRING,
+            "index": 6,
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "mandatory_dimensions": {
+            "target": LIST_MANDATORY_DIMENSIONS,
+            "index": 11,
+        },
+
+        "strict_mode": {
+            "target": BOOLEAN,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "metrics": {
+            "target": DOCUMENT,
+            "index": 13,
+        },
+
+        "allow_experiment_self_approval": {
+            "target": BOOLEAN,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "auto_populate_control": {
+            "target": BOOLEAN,
+            "index": 15,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+UPDATE_WORKSPACE_DATABASE = Schema(
+    id=ShapeID("io.superposition#UpdateWorkspaceDatabase"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/workspaces/{workspace_name}/db/update",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
 SUPERPOSITION = Schema(
     id=ShapeID("io.superposition#Superposition"),
     shape_type=ShapeType.SERVICE,

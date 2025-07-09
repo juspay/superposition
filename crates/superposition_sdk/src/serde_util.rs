@@ -610,6 +610,23 @@ if builder.auto_populate_control.is_none() { builder.auto_populate_control = Som
                 builder
             }
 
+pub(crate) fn update_workspace_database_output_output_correct_errors(mut builder: crate::operation::update_workspace_database::builders::UpdateWorkspaceDatabaseOutputBuilder) -> crate::operation::update_workspace_database::builders::UpdateWorkspaceDatabaseOutputBuilder {
+                if builder.workspace_name.is_none() { builder.workspace_name = Some(Default::default()) }
+if builder.organisation_id.is_none() { builder.organisation_id = Some(Default::default()) }
+if builder.organisation_name.is_none() { builder.organisation_name = Some(Default::default()) }
+if builder.workspace_schema_name.is_none() { builder.workspace_schema_name = Some(Default::default()) }
+if builder.workspace_status.is_none() { builder.workspace_status = "no value was set".parse::<crate::types::WorkspaceStatus>().ok() }
+if builder.workspace_admin_email.is_none() { builder.workspace_admin_email = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
+if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn bucket_correct_errors(mut builder: crate::types::builders::BucketBuilder) -> crate::types::builders::BucketBuilder {
                 if builder.experiment_id.is_none() { builder.experiment_id = Some(Default::default()) }
 if builder.variant_id.is_none() { builder.variant_id = Some(Default::default()) }

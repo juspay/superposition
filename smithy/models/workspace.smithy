@@ -28,6 +28,7 @@ resource Workspace {
     put: UpdateWorkspace
     operations: [
         CreateWorkspace
+        UpdateWorkspaceDatabase
     ]
 }
 
@@ -80,6 +81,12 @@ structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $allow_experiment_self_approval
 
     $auto_populate_control
+}
+
+structure UpdateWorkspaceDatabaseRequest for Workspace with [CreateWorkspaceMixin] {
+    @httpLabel
+    @required
+    $workspace_name
 }
 
 structure WorkspaceResponse for Workspace {
@@ -170,4 +177,11 @@ operation UpdateWorkspace {
 operation ListWorkspace {
     input := with [PaginationParams, CreateWorkspaceMixin] {}
     output: WorkspaceListResponse
+}
+
+@readonly
+@http(method: "POST", uri: "/workspaces/{workspace_name}/db/update")
+operation UpdateWorkspaceDatabase {
+    input: UpdateWorkspaceDatabaseRequest
+    output: WorkspaceResponse
 }

@@ -60,4 +60,5 @@ export * from "./UpdateOverridesExperimentCommand";
 export * from "./UpdateTypeTemplatesCommand";
 export * from "./UpdateWebhookCommand";
 export * from "./UpdateWorkspaceCommand";
+export * from "./UpdateWorkspaceDatabaseCommand";
 export * from "./WeightRecomputeCommand";
