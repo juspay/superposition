@@ -1,4 +1,4 @@
-package io.superposition.openfeature;
+package io.juspay.superposition.openfeature;
 
 import com.google.gson.JsonSyntaxException;
 import io.juspay.superposition.client.SuperpositionAsyncClient;
@@ -36,7 +36,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     private Optional<EvaluationContext> defaultCtx;
     private final Optional<EvaluationArgs> fallbackArgs;
 
-    SuperpositionOpenFeatureProvider(@NonNull SuperpositionProviderOptions options) {
+    public SuperpositionOpenFeatureProvider(@NonNull SuperpositionProviderOptions options) {
         if (options.fallbackConfig != null) {
             fallbackArgs = Optional.of(new EvaluationArgs(options.fallbackConfig));
         } else {

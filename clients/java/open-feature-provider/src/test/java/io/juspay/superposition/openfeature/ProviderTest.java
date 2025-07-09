@@ -1,7 +1,9 @@
-package io.superposition.openfeature;
+package io.juspay.superposition.openfeature;
 
-import io.superposition.openfeature.options.RefreshStrategy;
+import io.juspay.superposition.client.SuperpositionClient;
+import io.juspay.superposition.openfeature.options.RefreshStrategy;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,20 +19,35 @@ class ProviderTest {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "DEBUG");
     }
 
+    final static String endpoint = "http://localhost:8080";
+    final static String workspace = "test";
+    final static String orgId = "localorg";
+    final static String token = "my-token";
     final static Logger log = LoggerFactory.getLogger(ProviderTest.class);
     final static SuperpositionProviderOptions.ExperimentationOptions eopts = SuperpositionProviderOptions.ExperimentationOptions.builder()
         .refreshStrategy(RefreshStrategy.Polling.of(1000, 1000))
         .build();
     final static SuperpositionProviderOptions options = SuperpositionProviderOptions.builder()
-        .orgId("localorg")
-        .workspaceId("test")
-        .endpoint("http://localhost:8080")
-        .token("my-token")
+        .orgId(orgId)
+        .workspaceId(workspace)
+        .endpoint(endpoint)
+        .token(token)
         .refreshStrategy(RefreshStrategy.Polling.of(1000, 100))
         .experimentationOptions(eopts)
         .build();
     SuperpositionOpenFeatureProvider provider;
     FeatureProvider fp;
+
+    @BeforeAll
+    static void setupData() {
+        DefaultConfigPopulator populator = new DefaultConfigPopulator(endpoint, workspace, orgId, token);
+        try {
+            populator.populateFromProvidedData();
+        } catch (Exception e) {
+            System.err.println("Error during default config population: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     @BeforeEach
     void setupProvider() {
@@ -95,7 +112,7 @@ class ProviderTest {
         var ctx = new ImmutableContext(Map.of());
         provider.initialize(ctx);
         var pe = provider.getObjectEvaluation("list", new Value(""), ctx);
-        assertEquals(Value.objectToValue(List.of(Map.of("k1", "v1"))), pe.getValue());
+        assertEquals(Value.objectToValue(List.of("k1", "v1")), pe.getValue());
     }
 
     @Test
@@ -104,5 +121,14 @@ class ProviderTest {
         provider.initialize(ctx);
         var pe = provider.getBooleanEvaluation("bool", true, ctx);
         assertEquals(false, pe.getValue());
+    }
+
+    @Test
+    void testOpenfeatureClient() {
+        var ctx = new ImmutableContext(Map.of());
+        provider.initialize(ctx);
+        OpenFeatureAPI.getInstance().setProvider(provider);
+        Client client = OpenFeatureAPI.getInstance().getClient();
+        assertEquals(true, client.getBooleanValue("bool", false, ctx));
     }
 }
