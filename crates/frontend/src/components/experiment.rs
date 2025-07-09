@@ -155,21 +155,21 @@ where
 {
     view! {
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_edit() }
         >
             <i class="ri-edit-line" />
             Edit
         </button>
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_discard() }
         >
             <i class="ri-delete-bin-line" />
             Discard
         </button>
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_start() }
         >
             <i class="ri-guide-line" />
@@ -193,7 +193,7 @@ where
 {
     view! {
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_discard() }
         >
 
@@ -201,7 +201,7 @@ where
             Discard
         </button>
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_conclude() }
         >
 
@@ -209,14 +209,14 @@ where
             Conclude
         </button>
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_ramp() }
         >
             <i class="ri-flight-takeoff-line" />
             Ramp
         </button>
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_pause() }
         >
             <i class="ri-pause-line" />
@@ -253,14 +253,14 @@ where
 {
     view! {
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_resume() }
         >
             <i class="ri-play-line" />
             Resume
         </button>
         <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             on:click=move |_| { handle_discard() }
         >
 
@@ -323,15 +323,15 @@ where
     let contexts = experiment
         .with_value(|v| Conditions::from_context_json(&v.context).unwrap_or_default());
     let badge_class = format!(
-        "badge text-white ml-3 mb-1 badge-xl {}",
+        "badge text-white badge-xl {}",
         experiment.with_value(|v| badge_class(v.status))
     );
     let (variant_rows, variant_col) =
         gen_variant_table(&experiment.with_value(|v| v.variants.clone()));
 
     view! {
-        <div class="flex flex-col gap-10 overflow-x-auto p-7 bg-transparent">
-            <h1 class="text-2xl font-extrabold">
+        <div class="p-8 flex flex-col gap-10 overflow-x-auto bg-transparent">
+            <h1 class="flex gap-3 items-center text-2xl font-extrabold">
                 {experiment.with_value(|v| v.name.clone())}
                 <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>
             </h1>

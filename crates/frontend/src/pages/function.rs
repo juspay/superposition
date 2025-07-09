@@ -1,533 +1,312 @@
 pub mod function_create;
 pub mod function_list;
+pub mod publish_form;
 pub mod utils;
 
-use std::time::Duration;
+use std::ops::Deref;
 
+use chrono::{DateTime, Utc};
 use leptos::*;
 use leptos_router::use_params_map;
-use serde::{Deserialize, Serialize};
-use strum::EnumProperty;
-use strum_macros::Display;
-use superposition_types::api::functions::FunctionExecutionRequest;
-use superposition_types::database::models::cac::{Function, FunctionCode, FunctionType};
-use utils::publish_function;
-use web_sys::{HtmlButtonElement, MouseEvent};
+use publish_form::PublishForm;
+use strum::IntoEnumIterator;
+use superposition_types::{
+    api::functions::Stage,
+    database::models::{cac::FunctionType, ChangeReason, Description},
+};
 
-use crate::api::fetch_function;
 use crate::components::{
-    function_form::{FunctionEditor, TestForm},
-    monaco_editor::MonacoEditor,
+    function_form::FunctionEditor,
     skeleton::{Skeleton, SkeletonVariant},
 };
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::get_element_by_id;
+use crate::utils::to_title_case;
+use crate::{api::fetch_function, components::function_form::Mode};
 
-#[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
-enum CodeTab {
-    #[strum(props(id = "draft_code_tab"))]
-    DraftCode,
-    #[strum(props(id = "published_code_tab"))]
-    PublishedCode,
+fn stage_to_action(stage: Stage) -> String {
+    match stage {
+        Stage::Published => "Published".to_string(),
+        Stage::Draft => "Draft Edited".to_string(),
+    }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct CombinedResource {
-    function: Option<Function>,
+#[component]
+fn function_info(
+    function_type: FunctionType,
+    description: Description,
+    change_reason: ChangeReason,
+    last_modified_by: String,
+    last_modified_at: DateTime<Utc>,
+) -> impl IntoView {
+    view! {
+        <div class="card bg-base-100 max-w-screen shadow">
+            <div class="card-body flex flex-row gap-2 flex-wrap">
+                <div class="h-fit w-[250px]">
+                    <div class="stat-title">"Function Type"</div>
+                    <div class="stat-value text-sm">{function_type.to_string()}</div>
+                </div>
+                <div class="h-fit w-[250px]">
+                    <div class="stat-title">"Description"</div>
+                    <div
+                        class="tooltip tooltip-left w-[inherit] text-left"
+                        data-tip=String::from(&description)
+                    >
+                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
+                            {String::from(&description)}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-fit w-[250px]">
+                    <div class="stat-title">"Last Modified by"</div>
+                    <div class="stat-value text-sm">{last_modified_by}</div>
+                </div>
+                <div class="h-fit w-[250px]">
+                    <div class="stat-title">"Last Modified at"</div>
+                    <div class="stat-value text-sm">
+                        {last_modified_at.format("%v %T").to_string()}
+                    </div>
+                </div>
+                <div class="h-fit w-[250px]">
+                    <div class="stat-title">"Change Reason"</div>
+                    <div
+                        class="tooltip tooltip-left w-[inherit] text-left"
+                        data-tip=String::from(&change_reason)
+                    >
+                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
+                            {String::from(&change_reason)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
-// TODO: Just rewrite this file and everything related to functions
+#[component]
+fn function_code_info(
+    #[prop(into)] version: Option<String>,
+    action_time: Option<DateTime<Utc>>,
+    action_by: Option<String>,
+    tab_type: Stage,
+) -> impl IntoView {
+    if version.is_none() {
+        return ().into_view();
+    }
+    let action_type = stage_to_action(tab_type);
+    view! {
+        <div class="card bg-base-100 max-w-screen shadow">
+            <div class="card-body flex flex-row gap-2 flex-wrap">
+                <div class="h-fit w-[250px]">
+                    <div class="stat-title">"Version"</div>
+                    <div class="stat-value text-sm">{version}</div>
+                </div>
+                {action_by
+                    .map(|by| {
+                        view! {
+                            <div class="h-fit w-[250px]">
+                                <div class="stat-title">{format!("{action_type} By")}</div>
+                                <div class="stat-value text-sm">{by}</div>
+                            </div>
+                        }
+                    })}
+                {action_time
+                    .map(|time| {
+                        view! {
+                            <div class="h-fit w-[250px]">
+                                <div class="stat-title">{format!("{action_type} At")}</div>
+                                <div class="stat-value text-sm">
+                                    {time.format("%v %T").to_string()}
+                                </div>
+                            </div>
+                        }
+                    })}
+            </div>
+        </div>
+    }.into_view()
+}
 
 #[component]
 pub fn function_page() -> impl IntoView {
     let function_params = use_params_map();
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let source = move || {
-        let t = workspace.get().0;
-        let org = org.get().0;
-        let function_name = function_params
-            .with(|params| params.get("function_name").cloned().unwrap_or("1".into()));
-        (function_name, t, org)
-    };
+    let function_name = StoredValue::new(function_params.with_untracked(|params| {
+        params.get("function_name").cloned().unwrap_or("1".into())
+    }));
+    let show_publish_popup = RwSignal::new(false);
 
-    let (selected_tab_rs, selected_tab_ws) = create_signal(CodeTab::PublishedCode);
-    let (editor_mode_rs, editor_mode_ws) = create_signal(true);
-    let (test_mode_rs, test_mode_ws) = create_signal(false);
-    let (show_publish_rs, show_publish_ws) = create_signal(false);
-    let (publish_error_rs, publish_error_ws) = create_signal("".to_string());
+    let selected_tab_rws = RwSignal::new(Stage::Published);
+    let mode_rws = RwSignal::new(Mode::Viewer);
 
-    let combined_resource: Resource<(String, String, String), CombinedResource> =
-        create_blocking_resource(source, |(function_name, tenant, org_id)| async move {
+    let function_resource = create_blocking_resource(
+        move || (function_name.get_value(), workspace.get().0, org.get().0),
+        |(function_name, workspace, org_id)| async move {
             let function_result =
-                fetch_function(function_name.to_string(), tenant.to_string(), org_id)
+                fetch_function(function_name.to_string(), workspace.to_string(), org_id)
                     .await;
 
-            CombinedResource {
-                function: function_result.ok(),
-            }
-        });
+            function_result.ok()
+        },
+    );
 
     view! {
-        <Transition fallback=move || {
-            view! {
-                <div class="m-5">
-                    <Skeleton variant=SkeletonVariant::DetailPage />
-                </div>
-            }
-        }>
-            {move || {
-                let resource = match combined_resource.get() {
-                    Some(res) => res,
-                    None => return view! { <h1>Error fetching function</h1> }.into_view(),
-                };
-                let function = resource.function;
-                match function {
-                    Some(function) => {
-                        let (function_rs, _) = create_signal(function);
-                        publish_error_ws.set("".to_string());
-                        match function_rs.get().published_at {
-                            Some(val) => {
-                                show_publish_ws.set(val < function_rs.get().draft_edited_at)
-                            }
-                            None => show_publish_ws.set(true),
-                        }
-                        let publish_click = move |event: MouseEvent| {
-                            event.prevent_default();
-                            logging::log!("Submitting function form");
-                            let tenant = workspace.get().0;
-                            let org = org.get().0;
-                            let f_function_name = function_rs.get().function_name;
-                            spawn_local({
-                                async move {
-                                    let result = publish_function(f_function_name, tenant, org)
-                                        .await;
-                                    match result {
-                                        Ok(_) => {
-                                            publish_error_ws.set("".to_string());
-                                            combined_resource.refetch();
+        <div class="p-8 flex flex-col gap-4">
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
+            }>
+                {move || {
+                    let function = match function_resource.get() {
+                        Some(Some(func)) => func,
+                        _ => return view! { <h1>Error fetching function</h1> }.into_view(),
+                    };
+                    let function_st = StoredValue::new(function.clone());
+                    view! {
+                        <h1 class="text-2xl font-extrabold">{function.function_name.clone()}</h1>
+                        <FunctionInfo
+                            function_type=function.function_type
+                            description=function.description.clone()
+                            change_reason=function.change_reason.clone()
+                            last_modified_by=function.draft_edited_by.clone()
+                            last_modified_at=function.draft_edited_at
+                        />
+                        <div class="flex justify-between">
+                            <div role="tablist" class="tabs tabs-lifted">
+                                {Stage::iter()
+                                    .map(|tab| {
+                                        view! {
+                                            <a
+                                                role="tab"
+                                                class=move || {
+                                                    if selected_tab_rws.get() == tab {
+                                                        "tab tab-active [--tab-border-color:#a651f5] text-center font-bold"
+                                                    } else {
+                                                        "tab text-center font-bold"
+                                                    }
+                                                }
+                                                on:click=move |_| {
+                                                    selected_tab_rws.set(tab);
+                                                    mode_rws.set(Mode::Viewer);
+                                                }
+                                            >
+                                                {to_title_case(&tab.to_string())}
+                                            </a>
                                         }
-                                        Err(e) => {
-                                            publish_error_ws.set(e);
-                                        }
-                                    }
-                                }
-                            });
-                        };
-                        view! {
-                            <div class="flex flex-col overflow-x-auto p-2 bg-transparent">
-
-                                <div class="flex bg-base-100 flex-row gap-3 justify-between flex-wrap shadow m-5">
-                                    <div class="stat w-2/12">
-                                        <div class="stat-title">Name</div>
-                                        <div>{function_rs.get().function_name}</div>
-                                    </div>
-                                    <div class="stat w-2/12">
-                                        <div class="stat-title">Published Runtime Version</div>
-                                        <div>
-                                            {function_rs
-                                                .get()
-                                                .published_runtime_version
-                                                .unwrap_or("null".to_string())}
-                                        </div>
-                                    </div>
-                                    <div class="stat w-2/12">
-                                        <div class="stat-title">Description</div>
-                                        <div>{function_rs.get().description.to_string()}</div>
-                                    </div>
-                                    <div class="stat w-2/12">
-                                        <div class="stat-title">Function Type</div>
-                                        <div>{function_rs.get().function_type.to_string()}</div>
-                                    </div>
-                                    <div class="stat w-2/12">
-                                        <div class="stat-title">Change Reason</div>
-                                        <div>{function_rs.get().change_reason.to_string()}</div>
-                                    </div>
-                                    <div class="stat w-2/12">
-                                        <div class="stat-title">Draft Edited At</div>
-                                        <div>
-
-                                            {format!(
-                                                "{}",
-                                                function_rs.get().draft_edited_at.format("%v %T"),
-                                            )}
-
-                                        </div>
-                                    </div>
-                                    <div class="stat w-2/12">
-                                        <div class="stat-title">Published At</div>
-                                        <div>
-
-                                            {match function_rs.get().published_at {
-                                                Some(val) => val.format("%v %T").to_string(),
-                                                None => "null".to_string(),
-                                            }}
-
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="flex flex-row justify-between">
-                                    <div
-                                        role="tablist"
-                                        class="flex-row tabs m-6 w-30 self-start tabs-lifted tabs-md"
-                                    >
-                                        <a
-                                            role="tab"
-                                            id=CodeTab::PublishedCode
-                                                .get_str("id")
-                                                .expect("ID not defined for Resolve tab")
-                                            class=move || match selected_tab_rs.get() {
-                                                CodeTab::PublishedCode => {
-                                                    "tab tab-active [--tab-border-color:#a651f5] text-center"
-                                                }
-                                                _ => "tab",
-                                            }
-
-                                            on:click=move |_| {
-                                                selected_tab_ws.set(CodeTab::PublishedCode);
-                                                publish_error_ws.set("".to_string());
-                                                set_timeout(
-                                                    || {
-                                                        if let Some(btn) = get_element_by_id::<
-                                                            HtmlButtonElement,
-                                                        >("resolve_btn") {
-                                                            btn.click()
-                                                        }
-                                                    },
-                                                    Duration::new(1, 0),
-                                                );
-                                            }
-                                        >
-
-                                            Published Code
-                                        </a>
-                                        <a
-                                            role="tab"
-                                            id=CodeTab::DraftCode
-                                                .get_str("id")
-                                                .expect("ID not defined for Resolve tab")
-                                            class=move || match selected_tab_rs.get() {
-                                                CodeTab::DraftCode => {
-                                                    "tab tab-active [--tab-border-color:orange] text-center"
-                                                }
-                                                _ => "tab",
-                                            }
-
-                                            on:click=move |_| {
-                                                selected_tab_ws.set(CodeTab::DraftCode);
-                                                publish_error_ws.set("".to_string());
-                                                set_timeout(
-                                                    || {
-                                                        if let Some(btn) = get_element_by_id::<
-                                                            HtmlButtonElement,
-                                                        >("resolve_btn") {
-                                                            btn.click()
-                                                        }
-                                                    },
-                                                    Duration::new(1, 0),
-                                                );
-                                            }
-                                        >
-
-                                            Draft Code
-                                        </a>
-                                    </div>
-                                    <div>
-                                        {move || {
-                                            selected_tab_rs
-                                                .with(|tab| {
-                                                    match tab {
-                                                        CodeTab::PublishedCode => {
-                                                            view! {
-                                                                <div>
-                                                                    <Show when=move || { test_mode_rs.get() }>
-                                                                        <div class="flex flex-row justify-end join m-5">
-                                                                            <button
-                                                                                class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                                                                on:click=move |_| { test_mode_ws.set(false) }
-                                                                            >
-                                                                                <i class="gmdi-cancel-presentation-o"></i>
-                                                                                Cancel
-
-                                                                            </button>
-                                                                        </div>
-
-                                                                    </Show>
-
-                                                                    <Show when=move || { !test_mode_rs.get() }>
-                                                                        <div class="flex flex-row justify-end join m-5">
-
-                                                                            <button
-                                                                                class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                                                                on:click=move |_| { test_mode_ws.set(true) }
-                                                                            >
-                                                                                <i class="fontisto-test-tube-alt"></i>
-                                                                                Test
-                                                                            </button>
-                                                                        </div>
-
-                                                                    </Show>
-                                                                </div>
-                                                            }
-                                                        }
-                                                        CodeTab::DraftCode => {
-                                                            let publish_click_ef = publish_click;
-                                                            view! {
-                                                                <div>
-                                                                    <Show when=move || { test_mode_rs.get() }>
-                                                                        <div class="flex flex-row justify-end join m-5">
-                                                                            <button
-                                                                                class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                                                                on:click=move |_| {
-                                                                                    test_mode_ws.set(false);
-                                                                                }
-                                                                            >
-
-                                                                                <i class="gmdi-cancel-presentation-o"></i>
-                                                                                Cancel
-
-                                                                            </button>
-                                                                        </div>
-                                                                    </Show>
-
-                                                                    <Show when=move || { !editor_mode_rs.get() }>
-                                                                        <div class="flex flex-row justify-end join m-5">
-                                                                            <button
-                                                                                class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                                                                on:click=move |_| {
-                                                                                    editor_mode_ws.set(true);
-                                                                                }
-                                                                            >
-
-                                                                                <i class="gmdi-cancel-presentation-o"></i>
-                                                                                Cancel
-
-                                                                            </button>
-                                                                        </div>
-
-                                                                    </Show>
-                                                                    <div class="flex flex-row justify-end join m-5">
-                                                                        <Show when=move || {
-                                                                            editor_mode_rs.get() && !test_mode_rs.get()
-                                                                                && show_publish_rs.get()
-                                                                        }>
-                                                                            <div class="flex">
-                                                                                <p class="text-red-500">{move || publish_error_rs.get()}</p>
-                                                                            </div>
-                                                                            <button
-                                                                                class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                                                                on:click=publish_click_ef
-                                                                            >
-                                                                                <i class="fontisto-test-tube-alt"></i>
-                                                                                Publish
-                                                                            </button>
-
-                                                                        </Show>
-                                                                        <Show when=move || {
-                                                                            editor_mode_rs.get() && !test_mode_rs.get()
-                                                                        }>
-
-                                                                            <button
-                                                                                class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                                                                on:click=move |_| {
-                                                                                    editor_mode_ws.set(false);
-                                                                                    publish_error_ws.set("".to_string())
-                                                                                }
-                                                                            >
-
-                                                                                <i class="ri-edit-line"></i>
-                                                                                Edit
-
-                                                                            </button>
-
-                                                                            <button
-                                                                                class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lgont-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                                                                on:click=move |_| {
-                                                                                    test_mode_ws.set(true);
-                                                                                    publish_error_ws.set("".to_string())
-                                                                                }
-                                                                            >
-
-                                                                                <i class="fontisto-test-tube-alt"></i>
-                                                                                Test
-                                                                            </button>
-
-                                                                        </Show>
-                                                                    </div>
-                                                                </div>
-                                                            }
-                                                        }
-                                                    }
-                                                })
-                                        }}
-
-                                    </div>
-
-                                </div>
-
-                                {move || {
-                                    let is_edit = editor_mode_rs.get();
-                                    let is_test = test_mode_rs.get();
-                                    let should_show = editor_mode_rs.get() && !test_mode_rs.get();
-                                    selected_tab_rs
-                                        .with(|tab| {
-                                            match tab {
-                                                CodeTab::PublishedCode => {
-                                                    view! {
-                                                        <Suspense fallback=move || {
-                                                            view! { <p>Loading ...</p> }
-                                                        }>
-
-                                                            {
-                                                                let (fun_code_rs, fun_code_ws) = create_signal(
-                                                                    Into::<
-                                                                        String,
-                                                                    >::into(
-                                                                        function_rs
-                                                                            .get()
-                                                                            .published_code
-                                                                            .unwrap_or(
-                                                                                FunctionCode(
-                                                                                    "// Code not published yet, publish function to see it here!"
-                                                                                        .to_string(),
-                                                                                ),
-                                                                            ),
-                                                                    ),
-                                                                );
-                                                                let on_change = move |value| fun_code_ws.set(value);
-                                                                view! {
-                                                                    <Show when=move || { !is_test }>
-                                                                        <MonacoEditor
-                                                                            node_id="pub_editor_fn"
-                                                                            data=fun_code_rs.get_untracked()
-                                                                            on_change=on_change
-                                                                            read_only=is_edit
-                                                                            classes=vec!["min-h-[500px]"]
-                                                                        />
-                                                                    </Show>
-
-                                                                    <Show when=move || { test_mode_rs.get() }>
-                                                                        <div class="flex-row">
-
-                                                                            <TestForm
-                                                                                function_name=function_rs.get().function_name
-                                                                                function_args=match function_rs.get().function_type {
-                                                                                    FunctionType::Validation => {
-                                                                                        FunctionExecutionRequest::validation_default()
-                                                                                    }
-                                                                                    FunctionType::Autocomplete => {
-                                                                                        FunctionExecutionRequest::autocomplete_default()
-                                                                                    }
-                                                                                }
-                                                                                stage="PUBLISHED".to_string()
-                                                                            />
-
-                                                                        </div>
-
-                                                                    </Show>
-                                                                }
-                                                                    .into_view()
-                                                            }
-
-                                                        </Suspense>
-                                                    }
-                                                        .into_view()
-                                                }
-                                                CodeTab::DraftCode => {
-                                                    view! {
-                                                        <Suspense fallback=move || {
-                                                            view! { <p>Loading ...</p> }
-                                                        }>
-
-                                                            {
-                                                                let (fun_code_rs, fun_code_ws) = create_signal(
-                                                                    Into::<String>::into(function_rs.get().draft_code),
-                                                                );
-                                                                let fun_code: String = Into::<
-                                                                    String,
-                                                                >::into(function_rs.get().draft_code);
-                                                                let function_type = function_rs.get().function_type;
-                                                                let on_change = move |value| fun_code_ws.set(value);
-                                                                view! {
-                                                                    <Show when=move || {
-                                                                        !editor_mode_rs.get() && !test_mode_rs.get()
-                                                                    }>
-                                                                        <div class="flex-row">
-                                                                            <FunctionEditor
-                                                                                edit=true
-                                                                                function_name=function_rs.get().function_name
-                                                                                function=fun_code.clone()
-                                                                                function_type
-                                                                                runtime_version=function_rs.get().draft_runtime_version
-                                                                                description=function_rs.get().description
-                                                                                handle_submit=move || {
-                                                                                    combined_resource.refetch();
-                                                                                    editor_mode_ws.set(true)
-                                                                                }
-                                                                            />
-
-                                                                        </div>
-                                                                    </Show>
-
-                                                                    <Show when=move || { should_show }>
-                                                                        <MonacoEditor
-                                                                            node_id="code_editor_fn"
-                                                                            data=fun_code_rs.get_untracked()
-                                                                            on_change=on_change
-                                                                            read_only=is_edit
-                                                                            classes=vec!["min-h-[500px]"]
-                                                                        />
-
-                                                                    </Show>
-
-                                                                    <Show when=move || {
-                                                                        test_mode_rs.get() && editor_mode_rs.get()
-                                                                    }>
-                                                                        <div class="flex">
-                                                                            <div class="flex flex-row justify-between">
-                                                                                <MonacoEditor
-                                                                                    node_id="test_editor_fn"
-                                                                                    data=fun_code_rs.get_untracked()
-                                                                                    on_change=on_change
-                                                                                    read_only=true
-                                                                                    classes=vec!["min-w-[1000px]", "min-h-[500px]", "mr-5"]
-                                                                                />
-                                                                                <TestForm
-                                                                                    function_name=function_rs.get().function_name
-                                                                                    function_args=match function_rs.get().function_type {
-                                                                                        FunctionType::Validation => {
-                                                                                            FunctionExecutionRequest::validation_default()
-                                                                                        }
-                                                                                        FunctionType::Autocomplete => {
-                                                                                            FunctionExecutionRequest::autocomplete_default()
-                                                                                        }
-                                                                                    }
-                                                                                    stage="DRAFT".to_string()
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    </Show>
-                                                                }
-                                                                    .into_view()
-                                                            }
-
-                                                        </Suspense>
-                                                    }
-                                                }
-                                            }
-                                        })
-                                }}
-
+                                    })
+                                    .collect_view()}
                             </div>
-                        }
-                            .into_view()
-                    }
-                    None => view! { <h1>Error fetching function</h1> }.into_view(),
-                }
-            }}
+                            <div class="h-12 flex gap-2">
+                                <div class="flex justify-end join">
+                                    <Show when=move || {
+                                        selected_tab_rws.get() == Stage::Draft
+                                            && mode_rws.get() == Mode::Viewer
+                                            && function
+                                                .published_at
+                                                .is_none_or(|val| val < function.draft_edited_at)
+                                    }>
+                                        <button
+                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                            on:click=move |_| show_publish_popup.set(true)
+                                        >
+                                            <i class="ri-article-line" />
+                                            Publish
+                                        </button>
+                                    </Show>
+                                    <Show when=move || {
+                                        selected_tab_rws.get() == Stage::Draft
+                                            && mode_rws.get() == Mode::Viewer
+                                    }>
+                                        <button
+                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                            on:click=move |_| mode_rws.set(Mode::Editor)
+                                        >
+                                            <i class="ri-edit-line" />
+                                            Edit
+                                        </button>
+                                    </Show>
+                                    <Show when=move || mode_rws.get() == Mode::Viewer>
+                                        <button
+                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                            on:click=move |_| mode_rws.set(Mode::Test)
+                                        >
+                                            <i class="ri-microscope-line" />
+                                            Test
+                                        </button>
+                                    </Show>
+                                </div>
+                            </div>
+                        </div>
+                        {
+                            let selected_tab = selected_tab_rws.get();
+                            let (version, action_time, action_by) = match selected_tab {
+                                Stage::Published => {
+                                    (
+                                        function.published_runtime_version.clone(),
+                                        function.published_at,
+                                        function.published_by.clone(),
+                                    )
+                                }
+                                Stage::Draft => {
+                                    (
+                                        Some(function.draft_runtime_version.clone()),
+                                        Some(function.draft_edited_at),
+                                        Some(function.draft_edited_by.clone()),
+                                    )
+                                }
+                            };
 
-        </Transition>
+                            view! {
+                                <FunctionCodeInfo
+                                    version
+                                    action_time
+                                    action_by
+                                    tab_type=selected_tab
+                                />
+                            }
+                        }
+                        <FunctionEditor
+                            function_name=function_st.with_value(|f| f.function_name.clone())
+                            function=function_st
+                                .with_value(|f| match selected_tab_rws.get() {
+                                    Stage::Published => {
+                                        f.published_code
+                                            .clone()
+                                            .map(String::from)
+                                            .unwrap_or_else(|| {
+                                                "// Code not published yet, publish function to see it here!"
+                                                    .to_string()
+                                            })
+                                    }
+                                    Stage::Draft => String::from(f.draft_code.clone()),
+                                })
+                            function_type=function_st.with_value(|f| f.function_type)
+                            runtime_version=function_st
+                                .with_value(|f| f.draft_runtime_version.clone())
+                            description=function_st
+                                .with_value(|f| f.description.deref().to_string())
+                            handle_submit=move |_| {
+                                function_resource.refetch();
+                                mode_rws.set(Mode::Viewer);
+                            }
+                            mode=mode_rws
+                            selected_tab=selected_tab_rws
+                            on_cancel=move |_| mode_rws.set(Mode::Viewer)
+                        />
+                        <Show when=move || show_publish_popup.get()>
+                            <PublishForm
+                                function_name=function_st.with_value(|f| f.function_name.clone())
+                                handle_submit=move |_| {
+                                    show_publish_popup.set(false);
+                                    function_resource.refetch()
+                                }
+                                handle_close=move |_| show_publish_popup.set(false)
+                            />
+                        </Show>
+                    }
+                        .into_view()
+                }}
+
+            </Suspense>
+        </div>
     }
 }

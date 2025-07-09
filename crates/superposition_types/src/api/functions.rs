@@ -12,7 +12,10 @@ use superposition_derives::IsEmpty;
 use crate::database::schema::functions;
 use crate::{
     custom_query::CommaSeparatedQParams,
-    database::models::cac::{FunctionCode, FunctionType},
+    database::models::{
+        cac::{FunctionCode, FunctionType},
+        ChangeReason, Description,
+    },
     IsEmpty, RegexEnum,
 };
 
@@ -24,10 +27,8 @@ pub struct UpdateFunctionRequest {
     pub draft_code: Option<FunctionCode>,
     #[serde(rename = "runtime_version")]
     pub draft_runtime_version: Option<String>,
-    pub description: Option<String>,
-    pub change_reason: String,
-    #[serde(default = "FunctionType::default")]
-    pub function_type: FunctionType,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -37,8 +38,15 @@ pub struct CreateFunctionRequest {
     #[serde(default = "FunctionType::default")]
     pub function_type: FunctionType,
     pub runtime_version: String,
-    pub description: String,
-    pub change_reason: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
+}
+
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = functions))]
+pub struct FunctionStateChangeRequest {
+    pub change_reason: ChangeReason,
 }
 
 #[derive(Debug, Serialize, Deserialize, AsRef, Deref, DerefMut, Into)]
@@ -60,23 +68,21 @@ impl TryFrom<String> for FunctionName {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FunctionResponse {
-    pub function_name: String,
-    pub function: FunctionCode,
-    pub function_description: String,
-    pub runtime_version: String,
-    pub status: String,
-    pub published_at: String,
-    pub drafted_at: String,
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, strum_macros::Display)]
-#[serde(rename_all = "UPPERCASE")]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+)]
+#[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum Stage {
-    Draft,
     Published,
+    Draft,
 }
 
 #[derive(Deserialize)]

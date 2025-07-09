@@ -114,8 +114,6 @@ structure UpdateFunctionRequest for Function with [WorkspaceMixin] {
     @required
     @notProperty
     runtime_version: String
-
-    $function_type
 }
 
 structure FunctionResponse for Function {
@@ -225,7 +223,7 @@ operation DeleteFunction {
 }
 
 @idempotent
-@http(method: "PUT", uri: "/function/{function_name}/{stage}/test")
+@http(method: "POST", uri: "/function/{function_name}/{stage}/test")
 operation Test {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
@@ -251,12 +249,15 @@ operation Test {
 }
 
 @idempotent
-@http(method: "PUT", uri: "/function/{function_name}/publish")
+@http(method: "PATCH", uri: "/function/{function_name}/publish")
 operation Publish {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
         $function_name
+
+        @required
+        $change_reason
     }
 
     output: FunctionResponse

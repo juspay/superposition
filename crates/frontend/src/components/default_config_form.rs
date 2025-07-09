@@ -268,7 +268,11 @@ pub fn default_config_form(
                         options
                             .push(TypeTemplate {
                                 type_name: "Custom JSON Schema".to_string(),
-                                type_schema: Value::Null,
+                                type_schema: Value::Object(
+                                    Map::from_iter([
+                                        ("type".to_string(), Value::String("object".to_string())),
+                                    ]),
+                                ),
                                 created_by: "NA".to_string(),
                                 created_at: Utc::now(),
                                 last_modified_at: Utc::now(),

@@ -169,7 +169,7 @@ pub struct Function {
     pub function_name: String,
     pub published_code: Option<FunctionCode>,
     pub draft_code: FunctionCode,
-    pub description: String,
+    pub description: Description,
     pub published_runtime_version: Option<String>,
     pub draft_runtime_version: String,
     pub published_at: Option<DateTime<Utc>>,
@@ -178,7 +178,7 @@ pub struct Function {
     pub draft_edited_by: String,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
-    pub change_reason: String,
+    pub change_reason: ChangeReason,
     pub function_type: FunctionType,
 }
 

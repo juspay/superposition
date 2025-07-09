@@ -350,6 +350,10 @@ operation ListExperiment {
         @notProperty
         experiment_ids: String
 
+        @httpQuery("experiment_group_ids")
+        @notProperty
+        experiment_group_ids: String
+
         @httpQuery("created_by")
         @notProperty
         created_by: String

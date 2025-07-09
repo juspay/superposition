@@ -1,11 +1,15 @@
 use superposition_types::{
-    api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
-    database::models::cac::{Function, FunctionType},
+    api::functions::{
+        CreateFunctionRequest, FunctionExecutionRequest, FunctionExecutionResponse,
+        FunctionName, Stage, UpdateFunctionRequest,
+    },
+    database::models::{
+        cac::{Function, FunctionCode, FunctionType},
+        ChangeReason, Description,
+    },
 };
 
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
-
-use super::types::{FunctionCreateRequest, FunctionUpdateRequest};
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_function(
@@ -18,12 +22,12 @@ pub async fn create_function(
     tenant: String,
     org_id: String,
 ) -> Result<Function, String> {
-    let payload = FunctionCreateRequest {
-        function_name,
-        function,
+    let payload = CreateFunctionRequest {
+        function_name: FunctionName::try_from(function_name)?,
+        function: FunctionCode(function),
         runtime_version,
-        description,
-        change_reason,
+        description: Description::try_from(description)?,
+        change_reason: ChangeReason::try_from(change_reason)?,
         function_type,
     };
 
@@ -47,16 +51,14 @@ pub async fn update_function(
     runtime_version: String,
     description: String,
     change_reason: String,
-    function_type: FunctionType,
     tenant: String,
     org_id: String,
 ) -> Result<Function, String> {
-    let payload = FunctionUpdateRequest {
-        function,
-        runtime_version,
-        description,
-        change_reason,
-        function_type,
+    let payload = UpdateFunctionRequest {
+        draft_code: Some(FunctionCode(function)),
+        draft_runtime_version: Some(runtime_version),
+        description: Some(Description::try_from(description)?),
+        change_reason: ChangeReason::try_from(change_reason)?,
     };
 
     let host = get_host();
@@ -74,7 +76,7 @@ pub async fn update_function(
 
 pub async fn test_function(
     function_name: String,
-    stage: String,
+    stage: Stage,
     function_args: &FunctionExecutionRequest,
     tenant: String,
     org_id: String,
@@ -84,7 +86,7 @@ pub async fn test_function(
 
     let response = request(
         url,
-        reqwest::Method::PUT,
+        reqwest::Method::POST,
         Some(function_args),
         construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
