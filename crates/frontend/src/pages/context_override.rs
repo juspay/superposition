@@ -640,6 +640,8 @@ pub fn context_override() -> impl IntoView {
                                             searchable=false
                                         />
                                     </div>
+                                </div>
+                                <div class="flex items-end gap-4">
                                     <DrawerBtn
                                         drawer_id="context_filter_drawer"
                                         style=DrawerButtonStyle::Outline
@@ -648,15 +650,15 @@ pub fn context_override() -> impl IntoView {
                                         "Filters"
                                         <i class="ri-filter-3-line"></i>
                                     </DrawerBtn>
+                                    <DrawerBtn
+                                        class="h-fit flex gap-2"
+                                        drawer_id="context_and_override_drawer"
+                                        on_click=on_create_context_click
+                                    >
+                                        "Create Override"
+                                        <i class="ri-edit-2-line" />
+                                    </DrawerBtn>
                                 </div>
-                                <DrawerBtn
-                                    class="self-end h-fit flex gap-2"
-                                    drawer_id="context_and_override_drawer"
-                                    on_click=on_create_context_click
-                                >
-                                    "Create Override"
-                                    <i class="ri-edit-2-line" />
-                                </DrawerBtn>
                             }
                         }}
                     </div>

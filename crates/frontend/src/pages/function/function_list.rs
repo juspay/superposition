@@ -1,6 +1,5 @@
 use leptos::*;
 
-use leptos_router::A;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
@@ -11,12 +10,12 @@ use superposition_types::{
     PaginatedResponse,
 };
 
-use crate::api::fetch_functions;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
+use crate::{api::fetch_functions, components::button::ButtonAnchor};
 
 use super::utils::function_table_columns;
 
@@ -81,13 +80,11 @@ pub fn function_list() -> impl IntoView {
                     view! {
                         <div class="flex justify-between">
                             <Stat heading="Functions" icon="ri-code-box-fill" number=total_items />
-                            <A
-                                href="create".to_string()
-                                class="btn-purple self-end h-fit px-5 py-2.5 flex gap-2 font-medium text-sm text-center rounded-lg"
-                            >
-                                Create Function
-                                <i class="ri-edit-2-line"></i>
-                            </A>
+                            <ButtonAnchor
+                                href="create"
+                                text="Create Function"
+                                class="self-end h-10"
+                            />
                         </div>
                     }
                 }} <div class="card rounded-xl w-full bg-base-100 shadow">
