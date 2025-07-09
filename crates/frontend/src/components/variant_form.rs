@@ -5,11 +5,12 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
-    database::models::cac::DefaultConfig, database::models::experimentation::VariantType,
+    api::workspace::WorkspaceResponse,
+    database::models::{cac::DefaultConfig, experimentation::VariantType},
 };
 
 use crate::{
-    api::{get_context_from_condition, resolve_config},
+    api::{fetch_workspace, get_context_from_condition, resolve_config},
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         override_form::OverrideForm,
@@ -39,9 +40,16 @@ fn get_init_state(variants: &[(String, VariantFormT)]) -> HashSet<String> {
     get_override_keys_from_variants(variants)
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+struct VariantFormCombinedResource {
+    workspace_settings: WorkspaceResponse,
+    resolved_config: Map<String, Value>,
+}
+
 #[component]
 pub fn variant_form<HC>(
     edit: bool,
+    context: Conditions,
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
@@ -50,6 +58,8 @@ pub fn variant_form<HC>(
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
+    let tenant_rws = use_context::<RwSignal<Tenant>>().unwrap();
+    let org_rws = use_context::<RwSignal<OrganisationId>>().unwrap();
     let init_override_keys = get_init_state(&variants);
     let (f_variants, set_variants) = create_signal(variants);
     let (override_keys, set_override_keys) = create_signal(init_override_keys);
@@ -69,6 +79,47 @@ where
             .filter(|config| !override_keys.get().contains(&config.key))
             .collect::<Vec<DefaultConfig>>()
     });
+
+    let (auto_populate_control_rs, auto_populate_control_ws) = create_signal(false);
+
+    let combined_resource = create_blocking_resource(
+        move || {
+            (
+                context.clone(),
+                tenant_rws.get_untracked().0,
+                org_rws.get_untracked().0,
+            )
+        },
+        |(context, tenant, org_id)| async move {
+            let workspace_settings_res = fetch_workspace(&tenant, &org_id).await;
+            match workspace_settings_res {
+                Ok(workspace_settings) => {
+                    let resolved_config = if workspace_settings.auto_populate_control {
+                        resolve_config(
+                            &tenant,
+                            &context.as_query_string(),
+                            &org_id,
+                            false,
+                            None,
+                        )
+                        .await
+                        .unwrap_or_default()
+                    } else {
+                        Map::new()
+                    };
+
+                    Ok(VariantFormCombinedResource {
+                        workspace_settings,
+                        resolved_config,
+                    })
+                }
+                Err(e) => {
+                    logging::log!("Error fetching workspace settings: {:?}", e);
+                    Err(e)
+                }
+            }
+        },
+    );
 
     let on_key_remove = move |removed_key: String| {
         logging::log!("Removing key {:?}", removed_key);
@@ -161,163 +212,226 @@ where
                 </label>
 
             </div>
-            {move || {
-                f_variants
-                    .get()
-                    .iter()
-                    .cloned()
-                    .enumerate()
-                    .map(move |(idx, (key, variant))| {
-                        let is_control_variant = variant.variant_type == VariantType::CONTROL;
-                        let handle_change = on_override_change(idx);
-                        let variant_type_label = match variant.variant_type {
-                            VariantType::CONTROL => "Control".to_string(),
-                            VariantType::EXPERIMENTAL => format!("Variant {idx}"),
-                        };
-                        let show_remove_btn = key != "control-variant"
-                            && key != "experimental-variant" && !is_control_variant;
-                        let key = StoredValue::new(key);
-                        let overrides = StoredValue::new(variant.overrides);
-                        view! {
-                            <div class="my-2 p-4 rounded bg-gray-50">
-                                <div class="flex items-center justify-between">
-                                    <label class="label label-text font-semibold text-base">
-                                        {variant_type_label}
-                                    </label>
-                                    <Show when=move || {
-                                        is_control_variant && !override_keys.get().is_empty()
-                                    }>
-                                        <Dropdown
-                                            dropdown_btn_type=DropdownBtnType::Link
-                                            dropdown_direction=DropdownDirection::Left
-                                            dropdown_text=String::from("Add Override")
-                                            dropdown_icon=String::from("ri-add-line")
-                                            dropdown_options=unused_config_keys.get()
-                                            on_select=on_key_select
-                                        />
-                                    </Show>
-                                    <Show when=move || show_remove_btn>
-                                        <button
-                                            class="btn btn-sm btn-circle btn-ghost"
-                                            on:click=move |_| {
-                                                set_variants
-                                                    .update(|cvariants| {
-                                                        let position = cvariants
-                                                            .iter()
-                                                            .position(|(k, _)| k.as_str() == key.get_value().as_str());
-                                                        if let Some(idx) = position {
-                                                            cvariants.remove(idx);
-                                                        }
-                                                    })
-                                            }
-                                        >
-                                            <i class="ri-close-line" />
-                                        </button>
-                                    </Show>
-                                </div>
-                                <div class="flex items-center gap-4 my-4">
-                                    <div class="form-control">
-                                        <label class="label">
-                                            <span class="label-text">ID</span>
-                                        </label>
-                                    </div>
-                                    <div class="form-control w-2/5">
-                                        <input
-                                            name="variantId"
-                                            value=move || variant.id.to_string()
-                                            disabled=edit
-                                            type="text"
-                                            placeholder="Type a unique name here"
-                                            class="input input-bordered w-full max-w-xs h-10"
-                                            on:input=move |event| {
-                                                let variant_id = event_target_value(&event);
-                                                set_variants
-                                                    .update(|
-                                                        current_variants: &mut Vec<(String, VariantFormT)>|
-                                                    {
-                                                        let variant_to_be_updated = current_variants.get_mut(idx);
-                                                        match variant_to_be_updated {
-                                                            Some((_, ref mut variant)) => {
-                                                                variant.id = variant_id;
-                                                            }
-                                                            None => {
-                                                                logging::log!(
-                                                                    "variant not found to update with id: {:?}", variant_id
-                                                                )
-                                                            }
-                                                        }
-                                                    });
-                                            }
-                                        />
-
-                                    </div>
-                                </div>
-                                <div class="mt-2">
-                                    <Show when=move || {
-                                        is_control_variant && override_keys.get().is_empty()
-                                    }>
-                                        <div class="my-4 flex flex-col justify-between items-center">
-                                            <Dropdown
-                                                dropdown_btn_type=DropdownBtnType::Link
-                                                dropdown_direction=DropdownDirection::Down
-                                                dropdown_text=String::from("Add Override")
-                                                dropdown_icon=String::from("ri-add-line")
-                                                dropdown_options=unused_config_keys.get()
-                                                on_select=on_key_select
-                                            />
-                                            <span class="label-text text-slate-400 text-sm text-center">
-                                                "Add keys from your config that you want to override in this experiment"
-                                            </span>
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::Block /> }
+            }>
+                {move || {
+                    f_variants
+                        .get()
+                        .iter()
+                        .cloned()
+                        .enumerate()
+                        .map(move |(idx, (key, variant))| {
+                            let is_control_variant = variant.variant_type == VariantType::CONTROL;
+                            let handle_change = on_override_change(idx);
+                            let variant_type_label = match variant.variant_type {
+                                VariantType::CONTROL => "Control".to_string(),
+                                VariantType::EXPERIMENTAL => format!("Variant {idx}"),
+                            };
+                            let show_remove_btn = key != "control-variant"
+                                && key != "experimental-variant" && !is_control_variant;
+                            let key = StoredValue::new(key);
+                            let overrides = StoredValue::new(variant.overrides);
+                            let (workspace_settings, resolved_config) = match combined_resource
+                                .get()
+                            {
+                                None => {
+                                    return view! { <div>Loading...</div> };
+                                }
+                                Some(Err(_)) => {
+                                    return view! {
+                                        <div>
+                                            "An error occured while fetching data for the auto-population."
                                         </div>
-                                    </Show>
-
-                                    <Show when=move || {
-                                        !is_control_variant && override_keys.get().is_empty()
-                                    }>
-                                        <span class="my-4 label-text text-slate-400 text-sm text-center">
-                                            "Keys added in CONTROL will appear here as well for override"
-                                        </span>
-                                    </Show>
-
-                                    <Show when=move || {
-                                        !override_keys.get().is_empty()
-                                    }>
-                                        {move || {
-                                            if is_control_variant {
-                                                view! {
-                                                    <OverrideForm
-                                                        id=key.get_value()
-                                                        overrides=overrides.get_value()
-                                                        default_config=default_config.get_value()
-                                                        handle_change=handle_change
-                                                        show_add_override=false
-                                                        handle_key_remove=on_key_remove
-                                                        fn_environment
-                                                    />
+                                    };
+                                }
+                                Some(Ok(combined_resource)) => {
+                                    (
+                                        combined_resource.workspace_settings,
+                                        combined_resource.resolved_config,
+                                    )
+                                }
+                            };
+                            let resolved_config = StoredValue::new(resolved_config);
+                            view! {
+                                <div class="my-2 p-4 rounded bg-gray-50">
+                                    <div class="flex items-center justify-between">
+                                        <label class="label label-text font-semibold text-base">
+                                            {variant_type_label}
+                                        </label>
+                                        <div class="flex items-center gap-4">
+                                            <Show when=move || {
+                                                workspace_settings.auto_populate_control && edit
+                                                    && is_control_variant
+                                            }>
+                                                <button
+                                                    class="btn btn-sm text-xs btn-purple-link cursor-pointer flex items-center justify-center"
+                                                    on:click=move |_| {
+                                                        auto_populate_control_ws
+                                                            .update(|v| {
+                                                                *v = !*v;
+                                                            });
+                                                    }
+                                                    disabled=move || auto_populate_control_rs.get()
+                                                >
+                                                    <i class="ri-paint-line"></i>
+                                                    Auto Populate
+                                                </button>
+                                            </Show>
+                                            <Show when=move || {
+                                                is_control_variant && !override_keys.get().is_empty()
+                                            }>
+                                                <Dropdown
+                                                    dropdown_btn_type=DropdownBtnType::Link
+                                                    dropdown_direction=DropdownDirection::Left
+                                                    dropdown_text=String::from("Add Override")
+                                                    dropdown_icon=String::from("ri-add-line")
+                                                    dropdown_options=unused_config_keys.get()
+                                                    on_select=on_key_select
+                                                />
+                                            </Show>
+                                        </div>
+                                        <Show when=move || show_remove_btn>
+                                            <button
+                                                class="btn btn-sm btn-circle btn-ghost"
+                                                on:click=move |_| {
+                                                    set_variants
+                                                        .update(|cvariants| {
+                                                            let position = cvariants
+                                                                .iter()
+                                                                .position(|(k, _)| k.as_str() == key.get_value().as_str());
+                                                            if let Some(idx) = position {
+                                                                cvariants.remove(idx);
+                                                            }
+                                                        })
                                                 }
-                                            } else {
-                                                view! {
-                                                    <OverrideForm
-                                                        id=key.get_value()
-                                                        overrides=overrides.get_value()
-                                                        default_config=default_config.get_value()
-                                                        handle_change=handle_change
-                                                        show_add_override=false
-                                                        disable_remove=true
-                                                        fn_environment
-                                                    />
+                                            >
+                                                <i class="ri-close-line" />
+                                            </button>
+                                        </Show>
+                                    </div>
+                                    <div class="flex items-center gap-4 my-4">
+                                        <div class="form-control">
+                                            <label class="label">
+                                                <span class="label-text">ID</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-control w-2/5">
+                                            <input
+                                                name="variantId"
+                                                value=move || variant.id.to_string()
+                                                disabled=edit
+                                                type="text"
+                                                placeholder="Type a unique name here"
+                                                class="input input-bordered w-full max-w-xs h-10"
+                                                on:input=move |event| {
+                                                    let variant_id = event_target_value(&event);
+                                                    set_variants
+                                                        .update(|
+                                                            current_variants: &mut Vec<(String, VariantFormT)>|
+                                                        {
+                                                            let variant_to_be_updated = current_variants.get_mut(idx);
+                                                            match variant_to_be_updated {
+                                                                Some((_, ref mut variant)) => {
+                                                                    variant.id = variant_id;
+                                                                }
+                                                                None => {
+                                                                    logging::log!(
+                                                                        "variant not found to update with id: {:?}", variant_id
+                                                                    )
+                                                                }
+                                                            }
+                                                        });
                                                 }
-                                            }
-                                        }}
+                                            />
 
-                                    </Show>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <Show when=move || {
+                                            is_control_variant && override_keys.get().is_empty()
+                                        }>
+                                            <div class="my-4 flex flex-col justify-between items-center">
+                                                <Dropdown
+                                                    dropdown_btn_type=DropdownBtnType::Link
+                                                    dropdown_direction=DropdownDirection::Down
+                                                    dropdown_text=String::from("Add Override")
+                                                    dropdown_icon=String::from("ri-add-line")
+                                                    dropdown_options=unused_config_keys.get()
+                                                    on_select=on_key_select
+                                                />
+                                                <span class="label-text text-slate-400 text-sm text-center">
+                                                    "Add keys from your config that you want to override in this experiment"
+                                                </span>
+                                            </div>
+                                        </Show>
 
+                                        <Show when=move || {
+                                            !is_control_variant && override_keys.get().is_empty()
+                                        }>
+                                            <span class="my-4 label-text text-slate-400 text-sm text-center">
+                                                "Keys added in CONTROL will appear here as well for override"
+                                            </span>
+                                        </Show>
+
+                                        <Show when=move || {
+                                            !override_keys.get().is_empty()
+                                        }>
+                                            {move || {
+                                                if is_control_variant {
+                                                    let overrides = overrides.get_value();
+                                                    let control_overrides = if workspace_settings
+                                                        .auto_populate_control
+                                                        && (auto_populate_control_rs.get() || !edit)
+                                                    {
+                                                        overrides
+                                                            .iter()
+                                                            .filter_map(|(k, _)| {
+                                                                resolved_config
+                                                                    .get_value()
+                                                                    .get(k.as_str())
+                                                                    .map(|default_value| (k.clone(), default_value.clone()))
+                                                            })
+                                                            .collect::<Vec<_>>()
+                                                    } else {
+                                                        overrides.clone()
+                                                    };
+
+                                                    view! {
+                                                        <OverrideForm
+                                                            id=key.get_value()
+                                                            overrides=control_overrides
+                                                            default_config=default_config.get_value()
+                                                            handle_change=handle_change
+                                                            show_add_override=false
+                                                            handle_key_remove=on_key_remove
+                                                            fn_environment
+                                                            disabled=workspace_settings.auto_populate_control || !edit
+                                                        />
+                                                    }
+                                                } else {
+                                                    view! {
+                                                        <OverrideForm
+                                                            id=key.get_value()
+                                                            overrides=overrides.get_value()
+                                                            default_config=default_config.get_value()
+                                                            handle_change=handle_change
+                                                            show_add_override=false
+                                                            disable_remove=true
+                                                            fn_environment
+                                                        />
+                                                    }
+                                                }
+                                            }}
+                                        </Show>
+
+                                    </div>
                                 </div>
-                            </div>
-                        }
-                    })
-                    .collect_view()
-            }}
+                            }
+                        })
+                        .collect_view()
+                }}
+            </Suspense>
 
             <div>
                 <button
@@ -481,7 +595,7 @@ pub fn delete_variant(
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-struct CombinedResource {
+struct DeleteVariantCombinedResource {
     overrides: Map<String, Value>,
     default_config: Vec<DefaultConfig>,
 }
@@ -548,7 +662,7 @@ where
                         })
                         .collect::<Vec<_>>();
 
-                    Ok(CombinedResource {
+                    Ok(DeleteVariantCombinedResource {
                         overrides,
                         default_config,
                     })

@@ -328,6 +328,7 @@ pub fn experiment_form(
                         view! {
                             <VariantForm
                                 edit=edit_id.get_value().is_some()
+                                context=context_rs.get()
                                 variants
                                 default_config=default_config.get_value()
                                 handle_change=handle_variant_form_change

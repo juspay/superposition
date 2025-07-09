@@ -1388,4 +1388,7 @@ CREATE TRIGGER experiment_groups_audit AFTER INSERT OR DELETE OR UPDATE ON local
 
 CREATE TRIGGER experiment_groups_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.experiment_groups FOR EACH ROW EXECUTE FUNCTION localorg_test.event_logger();
 
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT FALSE;
+
 COMMIT;

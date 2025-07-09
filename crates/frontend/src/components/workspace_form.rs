@@ -7,18 +7,16 @@ use superposition_types::api::workspace::CreateWorkspaceRequest;
 use superposition_types::database::models::{Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;
 
+use crate::api::{create_workspace, update_workspace};
 use crate::components::form::label::Label;
 use crate::components::metrics_form::MetricsForm;
 use crate::components::workspace_form::utils::string_to_vec;
 use crate::components::{alert::AlertType, button::Button};
+use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::types::OrganisationId;
 use crate::{
     components::input::{Input, InputType, Toggle},
     schema::{JsonSchemaType, SchemaType},
-};
-use crate::{
-    components::workspace_form::utils::{create_workspace, update_workspace},
-    providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
 };
 
 #[component]
@@ -32,6 +30,7 @@ pub fn workspace_form(
     #[prop(default = Value::Null)] config_version: Value,
     #[prop(default = Metrics::default())] metrics: Metrics,
     #[prop(default = false)] allow_experiment_self_approval: bool,
+    #[prop(default = false)] auto_populate_control: bool,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
@@ -45,6 +44,8 @@ pub fn workspace_form(
     let (strict_mode_rs, strict_mode_ws) = create_signal(true);
     let metrics_rws = RwSignal::new(metrics);
     let allow_experiment_self_approval_rs = RwSignal::new(allow_experiment_self_approval);
+    let (auto_populate_control_rs, auto_populate_control_ws) =
+        create_signal(auto_populate_control);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -63,6 +64,7 @@ pub fn workspace_form(
                         mandatory_dimensions_rs.get_untracked(),
                         metrics_rws.get_untracked(),
                         allow_experiment_self_approval_rs.get_untracked(),
+                        auto_populate_control_rs.get_untracked(),
                     )
                     .await
                 } else {
@@ -74,6 +76,7 @@ pub fn workspace_form(
                         metrics: Some(metrics_rws.get_untracked()),
                         allow_experiment_self_approval: allow_experiment_self_approval_rs
                             .get_untracked(),
+                        auto_populate_control: auto_populate_control_rs.get_untracked(),
                     };
                     create_workspace(org_id.get_untracked().0, create_payload).await
                 };
@@ -216,6 +219,25 @@ pub fn workspace_form(
                         />
                     </div>
                 </Show>
+
+                <div class="form-control">
+                    <label class="label w-fit flex items-center gap-2">
+                        <span class="label-text">"Auto-populate Control"</span>
+                        <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
+                            <p class="z-[1000] hidden absolute top-full left-1/2 w-[320px] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
+                                "This will automatically populate the control group for experiments with the current values present in the workspace."
+                            </p>
+                            <i class="ri-information-line ri-lg" />
+                        </div>
+                    </label>
+                    <Toggle
+                        name="workspace-auto-populate-control"
+                        value=auto_populate_control_rs.get()
+                        on_change=Callback::new(move |_| {
+                            auto_populate_control_ws.update(|v| *v = !*v);
+                        })
+                    />
+                </div>
 
                 <MetricsForm
                     metrics=metrics_rws.get_untracked()

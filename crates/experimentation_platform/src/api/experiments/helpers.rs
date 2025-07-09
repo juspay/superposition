@@ -41,6 +41,7 @@ use crate::api::experiment_groups::helpers::{add_members, remove_members};
 
 use super::cac_api::{
     construct_header_map, get_context_override, get_partial_resolve_config,
+    get_resolved_config,
 };
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
@@ -748,5 +749,39 @@ pub fn ensure_experiments_exist(
                 .join(", ")
         ));
     }
+    Ok(())
+}
+
+pub async fn validate_control_overrides(
+    control_overrides: &Exp<Overrides>,
+    exp_context: &Condition,
+    workspace_request: &WorkspaceContext,
+    user: &User,
+    state: &Data<AppState>,
+) -> superposition::Result<()> {
+    let context = extract_dimensions(exp_context)?;
+    let resolved_config =
+        get_resolved_config(user, state, &context, workspace_request).await?;
+    let control_variant_overrides = control_overrides.clone().into_inner();
+    control_variant_overrides.into_iter()
+        .try_for_each(|(key, value)| {
+            if let Some(resolved_value) = resolved_config.get(&key) {
+                if resolved_value != &value {
+                    return Err(bad_argument!(
+                        "Inconsistent value for control variant's override key '{}'. Expected: {}, Found: {}, Please update the control variant's overrides.",
+                        key,
+                        resolved_value,
+                        value
+                    ));
+                }
+            } else {
+                return Err(bad_argument!(
+                    "Control variant's override key '{}' not found in resolved config",
+                    key
+                ));
+            }
+            Ok(())
+        })?;
+
     Ok(())
 }

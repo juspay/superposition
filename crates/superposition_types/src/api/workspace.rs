@@ -25,6 +25,7 @@ pub struct WorkspaceResponse {
     pub strict_mode: bool,
     pub metrics: Metrics,
     pub allow_experiment_self_approval: bool,
+    pub auto_populate_control: bool,
 }
 
 impl From<Workspace> for WorkspaceResponse {
@@ -45,6 +46,7 @@ impl From<Workspace> for WorkspaceResponse {
             strict_mode: workspace.strict_mode,
             metrics: workspace.metrics,
             allow_experiment_self_approval: workspace.allow_experiment_self_approval,
+            auto_populate_control: workspace.auto_populate_control,
         }
     }
 }
@@ -58,6 +60,7 @@ pub struct CreateWorkspaceRequest {
     pub strict_mode: bool,
     pub metrics: Option<Metrics>,
     pub allow_experiment_self_approval: bool,
+    pub auto_populate_control: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -71,6 +74,7 @@ pub struct UpdateWorkspaceRequest {
     pub config_version: Option<I64Update>,
     pub metrics: Option<Metrics>,
     pub allow_experiment_self_approval: Option<bool>,
+    pub auto_populate_control: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
