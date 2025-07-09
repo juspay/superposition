@@ -183,6 +183,9 @@ pub mod update_webhook;
 /// Types for the `UpdateWorkspace` operation.
 pub mod update_workspace;
 
+/// Types for the `UpdateWorkspaceDatabase` operation.
+pub mod update_workspace_database;
+
 /// Types for the `WeightRecompute` operation.
 pub mod weight_recompute;
 

@@ -369,25 +369,6 @@ pub async fn fetch_types(
         .map_err(err_handler)
 }
 
-pub async fn fetch_workspaces(
-    filters: &PaginationParams,
-    org_id: &String,
-) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
-    let client = reqwest::Client::new();
-    let host = use_host_server();
-    let url = format!("{}/workspaces?{}", host, filters);
-    let response: PaginatedResponse<WorkspaceResponse> = client
-        .get(url)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    Ok(response)
-}
-
 #[allow(clippy::too_many_arguments)]
 pub async fn create_webhook(
     name: String,
@@ -741,6 +722,88 @@ pub async fn get_webhook(
     .await?;
 
     parse_json_response(response).await
+}
+
+pub mod workspaces {
+    use superposition_types::{
+        api::workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest},
+        database::models::{Metrics, WorkspaceStatus},
+    };
+
+    use super::*;
+
+    pub async fn fetch_workspaces(
+        filters: &PaginationParams,
+        org_id: &String,
+    ) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
+        let client = reqwest::Client::new();
+        let host = use_host_server();
+        let url = format!("{}/workspaces?{}", host, filters);
+        let response: PaginatedResponse<WorkspaceResponse> = client
+            .get(url)
+            .header("x-org-id", org_id)
+            .send()
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?
+            .json()
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
+        Ok(response)
+    }
+
+    pub async fn create_workspace(
+        org_id: String,
+        payload: CreateWorkspaceRequest,
+    ) -> Result<serde_json::Value, String> {
+        let host = use_host_server();
+        let url = format!("{host}/workspaces");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-org-id", org_id.as_str())])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn update_workspace(
+        key: String,
+        org_id: String,
+        workspace_admin_email: String,
+        config_version: Value,
+        workspace_status: WorkspaceStatus,
+        mandatory_dimensions: Vec<String>,
+        metrics: Metrics,
+        allow_experiment_self_approval: bool,
+    ) -> Result<serde_json::Value, String> {
+        let payload = UpdateWorkspaceRequest {
+            workspace_admin_email,
+            config_version: Some(
+                serde_json::from_value(config_version)
+                    .map_err(|e| format!("Invalid config version: {}", e))?,
+            ),
+            workspace_status: Some(workspace_status),
+            mandatory_dimensions: Some(mandatory_dimensions),
+            metrics: Some(metrics),
+            allow_experiment_self_approval: Some(allow_experiment_self_approval),
+        };
+        let host = use_host_server();
+        let url = format!("{host}/workspaces/{key}");
+
+        let response = request(
+            url,
+            reqwest::Method::PUT,
+            Some(payload),
+            construct_request_headers(&[("x-org-id", org_id.as_str())])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
 }
 
 pub mod experiment_groups {

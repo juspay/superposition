@@ -7,7 +7,7 @@ use superposition_types::{
     database::models::{Metrics, WorkspaceStatus},
 };
 
-use crate::api::fetch_workspaces;
+use crate::api::workspaces::fetch_workspaces;
 use crate::components::{
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
