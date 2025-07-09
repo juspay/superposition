@@ -12,11 +12,8 @@ pub fn ser_update_function_input_input(
     if let Some(var_3) = &input.function {
         object.key("function").string(var_3.as_str());
     }
-    if let Some(var_4) = &input.function_type {
-        object.key("function_type").string(var_4.as_str());
-    }
-    if let Some(var_5) = &input.runtime_version {
-        object.key("runtime_version").string(var_5.as_str());
+    if let Some(var_4) = &input.runtime_version {
+        object.key("runtime_version").string(var_4.as_str());
     }
     Ok(())
 }

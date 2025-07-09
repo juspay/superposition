@@ -19,7 +19,7 @@ public final class Publish implements ApiOperation<PublishInput, PublishOutput> 
     private static final Publish $INSTANCE = new Publish();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/function/{function_name}/publish")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/function/{function_name}/publish")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

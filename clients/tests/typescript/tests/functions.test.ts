@@ -138,7 +138,6 @@ describe("Function Operations", () => {
             description: "Updated validate function",
             change_reason: "Test update",
             runtime_version: "1",
-            function_type: FunctionTypes.Validation,
         });
 
         try {
@@ -173,7 +172,6 @@ describe("Function Operations", () => {
             description: "Updated autocomplete function",
             change_reason: "Test update",
             runtime_version: "1",
-            function_type: FunctionTypes.Autocomplete,
         });
 
         try {
@@ -243,6 +241,7 @@ describe("Function Operations", () => {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             function_name: validateFunctionName,
+            change_reason: "Publishing for testing",
         });
 
         try {
@@ -263,6 +262,7 @@ describe("Function Operations", () => {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             function_name: autocompleteFunctionName,
+            change_reason: "Publishing for testing",
         });
 
         try {
@@ -283,6 +283,7 @@ describe("Function Operations", () => {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             function_name: "non-existent-function",
+            change_reason: "Publishing for testing",
         });
 
         try {

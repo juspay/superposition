@@ -6,6 +6,7 @@ impl super::Client {
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::publish::builders::PublishFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::publish::builders::PublishFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::publish::builders::PublishFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::publish::builders::PublishFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`function_name(impl Into<String>)`](crate::operation::publish::builders::PublishFluentBuilder::function_name) / [`set_function_name(Option<String>)`](crate::operation::publish::builders::PublishFluentBuilder::set_function_name):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`change_reason(impl Into<String>)`](crate::operation::publish::builders::PublishFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::publish::builders::PublishFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`PublishOutput`](crate::operation::publish::PublishOutput) with field(s):
     ///   - [`function_name(String)`](crate::operation::publish::PublishOutput::function_name): (undocumented)
     ///   - [`published_code(Option<String>)`](crate::operation::publish::PublishOutput::published_code): (undocumented)

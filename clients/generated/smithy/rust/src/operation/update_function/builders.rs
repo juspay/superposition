@@ -193,19 +193,5 @@ impl UpdateFunctionFluentBuilder {
     pub fn get_runtime_version(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_runtime_version()
                 }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn function_type(mut self, input: crate::types::FunctionTypes) -> Self {
-                    self.inner = self.inner.function_type(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_type(mut self, input: ::std::option::Option<crate::types::FunctionTypes>) -> Self {
-                    self.inner = self.inner.set_function_type(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_type(&self) -> &::std::option::Option<crate::types::FunctionTypes> {
-                    self.inner.get_function_type()
-                }
 }
 

@@ -17,8 +17,6 @@ pub struct UpdateFunctionInput  {
     pub function: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub runtime_version: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub function_type: ::std::option::Option<crate::types::FunctionTypes>,
 }
 impl  UpdateFunctionInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -49,10 +47,6 @@ impl  UpdateFunctionInput  {
     pub fn runtime_version(&self) -> ::std::option::Option<&str> {
         self.runtime_version.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn function_type(&self) -> ::std::option::Option<&crate::types::FunctionTypes> {
-        self.function_type.as_ref()
-    }
 }
 impl UpdateFunctionInput {
     /// Creates a new builder-style object to manufacture [`UpdateFunctionInput`](crate::operation::update_function::UpdateFunctionInput).
@@ -72,7 +66,6 @@ pub struct UpdateFunctionInputBuilder {
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) function: ::std::option::Option<::std::string::String>,
     pub(crate) runtime_version: ::std::option::Option<::std::string::String>,
-    pub(crate) function_type: ::std::option::Option<crate::types::FunctionTypes>,
 }
 impl UpdateFunctionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -172,19 +165,6 @@ impl UpdateFunctionInputBuilder {
     pub fn get_runtime_version(&self) -> &::std::option::Option<::std::string::String> {
         &self.runtime_version
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn function_type(mut self, input: crate::types::FunctionTypes) -> Self {
-        self.function_type = ::std::option::Option::Some(input);
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_type(mut self, input: ::std::option::Option<crate::types::FunctionTypes>) -> Self {
-        self.function_type = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_type(&self) -> &::std::option::Option<crate::types::FunctionTypes> {
-        &self.function_type
-    }
     /// Consumes the builder and constructs a [`UpdateFunctionInput`](crate::operation::update_function::UpdateFunctionInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_function::UpdateFunctionInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -202,8 +182,6 @@ impl UpdateFunctionInputBuilder {
                 function: self.function
                 ,
                 runtime_version: self.runtime_version
-                ,
-                function_type: self.function_type
                 ,
             }
         )

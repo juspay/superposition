@@ -54,6 +54,7 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  *   to_date: new Date("TIMESTAMP"),
  *   experiment_name: "STRING_VALUE",
  *   experiment_ids: "STRING_VALUE",
+ *   experiment_group_ids: "STRING_VALUE",
  *   created_by: "STRING_VALUE",
  *   sort_on: "last_modified_at" || "created_at",
  *   sort_by: "desc" || "asc",

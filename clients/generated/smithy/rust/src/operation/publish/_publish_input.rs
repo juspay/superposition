@@ -9,6 +9,8 @@ pub struct PublishInput  {
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub function_name: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub change_reason: ::std::option::Option<::std::string::String>,
 }
 impl  PublishInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -22,6 +24,10 @@ impl  PublishInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn function_name(&self) -> ::std::option::Option<&str> {
         self.function_name.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn change_reason(&self) -> ::std::option::Option<&str> {
+        self.change_reason.as_deref()
     }
 }
 impl PublishInput {
@@ -38,6 +44,7 @@ pub struct PublishInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) change_reason: ::std::option::Option<::std::string::String>,
 }
 impl PublishInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -82,6 +89,20 @@ impl PublishInputBuilder {
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.change_reason = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.change_reason = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
+        &self.change_reason
+    }
     /// Consumes the builder and constructs a [`PublishInput`](crate::operation::publish::PublishInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::publish::PublishInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -91,6 +112,8 @@ impl PublishInputBuilder {
                 org_id: self.org_id
                 ,
                 function_name: self.function_name
+                ,
+                change_reason: self.change_reason
                 ,
             }
         )

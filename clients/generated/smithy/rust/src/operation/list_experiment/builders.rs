@@ -236,6 +236,20 @@ impl ListExperimentFluentBuilder {
                     self.inner.get_experiment_ids()
                 }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn experiment_group_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.experiment_group_ids(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_experiment_group_ids(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_experiment_group_ids(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_experiment_group_ids(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_experiment_group_ids()
+                }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.created_by(input.into());
                     self

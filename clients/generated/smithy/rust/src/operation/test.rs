@@ -153,7 +153,7 @@ fn update_http_builder(
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_test::ser_test_headers(input, builder)?;
-    ::std::result::Result::Ok(builder.method("PUT").uri(uri))
+    ::std::result::Result::Ok(builder.method("POST").uri(uri))
 }
 let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
 builder = _header_serialization_settings.set_default_header(builder, ::http::header::CONTENT_TYPE, "application/json");

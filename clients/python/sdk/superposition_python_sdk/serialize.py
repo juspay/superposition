@@ -1435,8 +1435,6 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         query_params.append(("experiment_name", input.experiment_name))
     if input.experiment_ids is not None:
         query_params.append(("experiment_ids", input.experiment_ids))
-    if input.experiment_group_ids is not None:
-        query_params.append(("experiment_group_ids", input.experiment_group_ids))
     if input.created_by is not None:
         query_params.append(("created_by", input.created_by))
     if input.sort_on is not None:
@@ -1785,17 +1783,8 @@ async def _serialize_publish(input: PublishInput, config: Config) -> HTTPRequest
     query: str = f''
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
-    content = codec.serialize(input)
-    if not content:
-        content = b"{}"
-    content_length = len(content)
-    body = SeekableAsyncBytesReader(content)
-
     headers = Fields(
         [
-            Field(name="Content-Type", values=["application/json"]),
-            Field(name="Content-Length", values=[str(content_length)]),
 
         ]
     )
@@ -1811,7 +1800,7 @@ async def _serialize_publish(input: PublishInput, config: Config) -> HTTPRequest
             scheme="https",
             query=query,
         ),
-        method="PATCH",
+        method="PUT",
         fields=headers,
         body=body,
     )
@@ -1979,7 +1968,7 @@ async def _serialize_test(input: TestInput, config: Config) -> HTTPRequest:
             scheme="https",
             query=query,
         ),
-        method="POST",
+        method="PUT",
         fields=headers,
         body=body,
     )

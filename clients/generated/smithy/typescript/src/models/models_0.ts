@@ -1547,6 +1547,7 @@ export interface ListExperimentInput {
   to_date?: Date | undefined;
   experiment_name?: string | undefined;
   experiment_ids?: string | undefined;
+  experiment_group_ids?: string | undefined;
   created_by?: string | undefined;
   sort_on?: ExperimentSortOn | undefined;
   sort_by?: SortBy | undefined;
@@ -1641,6 +1642,7 @@ export interface PublishInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   function_name: string | undefined;
+  change_reason: string | undefined;
 }
 
 /**
@@ -1746,7 +1748,6 @@ export interface UpdateFunctionRequest {
   change_reason: string | undefined;
   function: string | undefined;
   runtime_version: string | undefined;
-  function_type?: FunctionTypes | undefined;
 }
 
 /**

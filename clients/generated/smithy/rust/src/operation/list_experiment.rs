@@ -175,19 +175,24 @@ fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mu
             query.push_kv("experiment_ids", &::aws_smithy_http::query::fmt_string(inner_8));
         }
     }
-    if let ::std::option::Option::Some(inner_9) = &_input.created_by {
+    if let ::std::option::Option::Some(inner_9) = &_input.experiment_group_ids {
          {
-            query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_9));
+            query.push_kv("experiment_group_ids", &::aws_smithy_http::query::fmt_string(inner_9));
         }
     }
-    if let ::std::option::Option::Some(inner_10) = &_input.sort_on {
+    if let ::std::option::Option::Some(inner_10) = &_input.created_by {
          {
-            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_10));
+            query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_10));
         }
     }
-    if let ::std::option::Option::Some(inner_11) = &_input.sort_by {
+    if let ::std::option::Option::Some(inner_11) = &_input.sort_on {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_11));
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_11));
+        }
+    }
+    if let ::std::option::Option::Some(inner_12) = &_input.sort_by {
+         {
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_12));
         }
     }
     ::std::result::Result::Ok(())

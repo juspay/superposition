@@ -51,7 +51,6 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  *   change_reason: "STRING_VALUE", // required
  *   function: "STRING_VALUE", // required
  *   runtime_version: "STRING_VALUE", // required
- *   function_type: "VALIDATION" || "AUTOCOMPLETE",
  * };
  * const command = new UpdateFunctionCommand(input);
  * const response = await client.send(command);
