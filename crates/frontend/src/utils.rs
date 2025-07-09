@@ -350,3 +350,46 @@ pub fn autocomplete_fn_generator(
     );
     Some((return_key, callback))
 }
+
+pub fn to_title_case(input: &str) -> String {
+    let mut words = Vec::new();
+    let mut current_word = String::new();
+
+    for (i, c) in input.char_indices() {
+        if c == '_' {
+            if !current_word.is_empty() {
+                words.push(current_word.clone());
+                current_word.clear();
+            }
+        } else if c.is_uppercase()
+            && i != 0
+            && !input.chars().nth(i - 1).unwrap().is_uppercase()
+        {
+            if !current_word.is_empty() {
+                words.push(current_word.clone());
+                current_word.clear();
+            }
+            current_word.push(c);
+        } else {
+            current_word.push(c);
+        }
+    }
+
+    if !current_word.is_empty() {
+        words.push(current_word);
+    }
+
+    words
+        .into_iter()
+        .map(|w| {
+            let mut c = w.chars();
+            match c.next() {
+                Some(f) => {
+                    f.to_uppercase().collect::<String>() + &c.as_str().to_lowercase()
+                }
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<String>>()
+        .join(" ")
+}

@@ -1,6 +1,6 @@
 use actix_web::{
-    delete, get, patch, post, put,
-    web::{self, Json, Path, Query},
+    delete, get, patch, post,
+    web::{Json, Path, Query},
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
@@ -10,11 +10,12 @@ use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     api::functions::{
         CreateFunctionRequest, FunctionExecutionRequest, FunctionName,
-        ListFunctionFilters, Stage, TestParam, UpdateFunctionRequest,
+        FunctionStateChangeRequest, ListFunctionFilters, Stage, TestParam,
+        UpdateFunctionRequest,
     },
     custom_query::PaginationParams,
     database::{
-        models::cac::Function,
+        models::cac::{Function, FunctionType},
         schema::{self, functions::dsl as functions},
     },
     result as superposition, PaginatedResponse, User,
@@ -38,7 +39,7 @@ pub fn endpoints() -> Scope {
 
 #[post("")]
 async fn create(
-    request: web::Json<CreateFunctionRequest>,
+    request: Json<CreateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
@@ -98,8 +99,8 @@ async fn create(
 
 #[patch("/{function_name}")]
 async fn update(
-    params: web::Path<FunctionName>,
-    request: web::Json<UpdateFunctionRequest>,
+    params: Path<FunctionName>,
+    request: Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
@@ -110,7 +111,15 @@ async fn update(
 
     // Function Linter Check
     if let Some(function) = &req.draft_code {
-        compile_fn(&req.function_type.get_js_fn_name(), function)?;
+        let function_type = match req.function_type {
+            Some(ft) => ft,
+            None => functions::functions
+                .select(schema::functions::function_type)
+                .filter(schema::functions::function_name.eq(&f_name))
+                .schema_name(&schema_name)
+                .get_result::<FunctionType>(&mut conn)?,
+        };
+        compile_fn(&function_type.get_js_fn_name(), function)?;
     }
 
     let updated_function = diesel::update(functions::functions)
@@ -131,7 +140,7 @@ async fn update(
 
 #[get("/{function_name}")]
 async fn get(
-    params: web::Path<FunctionName>,
+    params: Path<FunctionName>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<Function>> {
@@ -180,7 +189,7 @@ async fn list_functions(
 
 #[delete("/{function_name}")]
 async fn delete_function(
-    params: web::Path<FunctionName>,
+    params: Path<FunctionName>,
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
@@ -210,10 +219,10 @@ async fn delete_function(
     }
 }
 
-#[put("/{function_name}/{stage}/test")]
+#[post("/{function_name}/{stage}/test")]
 async fn test(
     params: Path<TestParam>,
-    request: web::Json<FunctionExecutionRequest>,
+    request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
@@ -259,9 +268,10 @@ async fn test(
     }
 }
 
-#[put("/{function_name}/publish")]
+#[patch("/{function_name}/publish")]
 async fn publish(
-    params: web::Path<FunctionName>,
+    params: Path<FunctionName>,
+    request: Json<FunctionStateChangeRequest>,
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
@@ -286,6 +296,7 @@ async fn publish(
     let updated_function = diesel::update(functions::functions)
         .filter(functions::function_name.eq(fun_name.clone()))
         .set((
+            request.into_inner(),
             functions::published_code.eq(Some(function.draft_code.clone())),
             functions::published_runtime_version
                 .eq(Some(function.draft_runtime_version.clone())),

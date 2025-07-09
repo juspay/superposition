@@ -1,6 +1,6 @@
 use futures::join;
 use leptos::*;
-use leptos_router::{use_params_map, use_route};
+use leptos_router::{use_params_map, A};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_types::{
@@ -40,6 +40,7 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
     },
     types::{OrganisationId, Tenant},
+    utils::use_url_base,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -61,6 +62,10 @@ fn table_columns(
     strict_mode: bool,
 ) -> Vec<Column> {
     let group_id = StoredValue::new(group_id);
+    let base = use_url_base();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+
     vec![
         Column::new(
             "name".to_string(),
@@ -70,16 +75,11 @@ fn table_columns(
                 let experiment_id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                let route_context = use_route();
-                let mut path = route_context
-                    .path()
-                    .split('/')
-                    .map(str::to_string)
-                    .collect::<Vec<String>>();
-                let range = (path.len() - 2)..;
-                let _ =
-                    path.splice(range, vec!["experiments".to_string(), experiment_id]);
-                let path = path.join("/");
+                let path = format!(
+                    "{base}/admin/{}/{}/experiments/{experiment_id}",
+                    org.get().0,
+                    workspace.get().0
+                );
 
                 let description = row
                     .get("description")
@@ -93,9 +93,9 @@ fn table_columns(
                     .unwrap_or("")
                     .to_string();
                 view! {
-                    <a href=path class="btn-link m-1">
+                    <A href=path class="btn-link m-1">
                         {experiment_name}
-                    </a>
+                    </A>
                     <InfoDescription description=description change_reason=change_reason />
             }.into_view()
             },
@@ -158,12 +158,14 @@ fn experiment_group_info(group: StoredValue<ExperimentGroup>) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body flex flex-row gap-2 flex-wrap">
-                <ConditionComponent
-                    conditions
-                    id="experiment-group-context"
-                    class="h-fit w-[300px]"
-                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
-                />
+                <ConditionCollapseProvider>
+                    <ConditionComponent
+                        conditions
+                        id="experiment-group-context"
+                        class="h-fit w-[300px]"
+                        strict_mode=workspace_settings.with_value(|w| w.strict_mode)
+                    />
+                </ConditionCollapseProvider>
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Group ID</div>
                     <div class="stat-value text-sm">{group.id}</div>
@@ -260,7 +262,7 @@ pub fn experiment_groups() -> impl IntoView {
         });
     });
     view! {
-        <div class="p-8">
+        <div class="p-8 flex flex-col gap-10 overflow-x-auto bg-transparent">
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
             }>
@@ -270,7 +272,8 @@ pub fn experiment_groups() -> impl IntoView {
                             <div>
                                 An error occurred while fetching the experiment group, please try again later.
                             </div>
-                        };
+                        }
+                            .into_view();
                     };
                     let table_columns = table_columns(
                         delete_group_rws,
@@ -286,55 +289,46 @@ pub fn experiment_groups() -> impl IntoView {
                         .to_owned();
                     let pagination_props = TablePaginationProps::default();
                     let resource_group = StoredValue::new(resource.group);
+
                     view! {
-                        <div class="flex flex-col gap-10 overflow-x-auto p-7 bg-transparent">
-                            <ConditionCollapseProvider>
-                                <h1 class="text-2xl font-extrabold">
-                                    {resource_group.get_value().name}
-                                </h1>
-
-                                <ExperimentGroupInfo group=resource_group />
-
-                                <div class="card rounded-xl w-full bg-base-100 shadow">
-                                    <div class="card-body">
-                                        <div class="flex justify-between">
-                                            <h2 class="card-title">"Member Experiments"</h2>
-                                            <DrawerBtn
-                                                drawer_id="add_members_group_drawer"
-                                                class="flex gap-2"
-                                            >
-                                                Add Members
-                                                <i class="ri-add-large-fill" />
-                                            </DrawerBtn>
-                                        </div>
-
-                                        <Table
-                                            rows=data
-                                            key_column="Experiment Name".to_string()
-                                            columns=table_columns
-                                            pagination=pagination_props
-                                        />
-                                    </div>
+                        <h1 class="text-2xl font-extrabold">{resource_group.get_value().name}</h1>
+                        <ExperimentGroupInfo group=resource_group />
+                        <div class="card rounded-xl w-full bg-base-100 shadow">
+                            <div class="card-body">
+                                <div class="flex justify-between">
+                                    <h2 class="card-title">"Member Experiments"</h2>
+                                    <DrawerBtn
+                                        drawer_id="add_members_group_drawer"
+                                        class="flex gap-2"
+                                    >
+                                        Add Members
+                                        <i class="ri-add-large-fill" />
+                                    </DrawerBtn>
                                 </div>
-                                <Drawer
-                                    id="add_members_group_drawer"
-                                    header="Add members to the group"
-                                    handle_close=move || {
-                                        close_drawer("add_members_group_drawer")
-                                    }
-                                >
-                                    <AddExperimentToGroupForm
-                                        experiment_group=resource_group
-                                        handle_submit=Callback::new(move |_| {
-                                            close_drawer("add_members_group_drawer");
-                                            experiment_group_resource.refetch();
-                                        })
-                                    />
-
-                                </Drawer>
-                            </ConditionCollapseProvider>
+                                <Table
+                                    rows=data
+                                    key_column="Experiment Name".to_string()
+                                    columns=table_columns
+                                    pagination=pagination_props
+                                />
+                            </div>
                         </div>
+                        <Drawer
+                            id="add_members_group_drawer"
+                            header="Add members to the group"
+                            handle_close=move || { close_drawer("add_members_group_drawer") }
+                        >
+                            <AddExperimentToGroupForm
+                                experiment_group=resource_group
+                                handle_submit=Callback::new(move |_| {
+                                    close_drawer("add_members_group_drawer");
+                                    experiment_group_resource.refetch();
+                                })
+                            />
+
+                        </Drawer>
                     }
+                        .into_view()
                 }}
                 <DeleteModal
                     modal_visible=delete_modal_rs

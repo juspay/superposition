@@ -6,7 +6,7 @@ use std::{
 use actix_http::header::{self};
 use actix_web::{
     get, patch, post, put, route,
-    web::{self, Data, Json, Query},
+    web::{self, Data, Json, Path, Query},
     Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use chrono::{DateTime, Duration, Utc};
@@ -635,9 +635,9 @@ pub async fn conclude(
 #[patch("/{experiment_id}/discard")]
 async fn discard_handler(
     state: Data<AppState>,
-    path: web::Path<i64>,
+    path: Path<i64>,
     custom_headers: CustomHeaders,
-    req: web::Json<ExperimentStateChangeRequest>,
+    req: Json<ExperimentStateChangeRequest>,
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
     user: User,
@@ -768,11 +768,11 @@ pub async fn discard(
     let updated_experiment = diesel::update(dsl::experiments)
         .filter(dsl::id.eq(experiment_id))
         .set((
+            req,
             dsl::status.eq(ExperimentStatusType::DISCARDED),
             dsl::last_modified.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
             dsl::chosen_variant.eq(None as Option<String>),
-            dsl::change_reason.eq(req.change_reason),
         ))
         .returning(Experiment::as_returning())
         .schema_name(&workspace_request.schema_name)
@@ -1461,8 +1461,8 @@ async fn get_audit_logs(
 #[patch("/{experiment_id}/pause")]
 async fn pause_handler(
     state: Data<AppState>,
-    path: web::Path<i64>,
-    req: web::Json<ExperimentStateChangeRequest>,
+    path: Path<i64>,
+    req: Json<ExperimentStateChangeRequest>,
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
     user: User,
@@ -1534,10 +1534,10 @@ pub async fn pause(
     let updated_experiment = diesel::update(dsl::experiments)
         .filter(dsl::id.eq(experiment_id))
         .set((
+            req,
             dsl::status.eq(ExperimentStatusType::PAUSED),
             dsl::last_modified.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
-            dsl::change_reason.eq(req.change_reason),
         ))
         .returning(Experiment::as_returning())
         .schema_name(&workspace_request.schema_name)
@@ -1549,8 +1549,8 @@ pub async fn pause(
 #[patch("/{experiment_id}/resume")]
 async fn resume_handler(
     state: Data<AppState>,
-    path: web::Path<i64>,
-    req: web::Json<ExperimentStateChangeRequest>,
+    path: Path<i64>,
+    req: Json<ExperimentStateChangeRequest>,
     db_conn: DbConnection,
     workspace_request: WorkspaceContext,
     user: User,
@@ -1622,10 +1622,10 @@ pub async fn resume(
     let updated_experiment = diesel::update(dsl::experiments)
         .filter(dsl::id.eq(experiment_id))
         .set((
+            req,
             dsl::status.eq(ExperimentStatusType::INPROGRESS),
             dsl::last_modified.eq(Utc::now()),
             dsl::last_modified_by.eq(user.get_email()),
-            dsl::change_reason.eq(req.change_reason),
         ))
         .returning(Experiment::as_returning())
         .schema_name(&workspace_request.schema_name)

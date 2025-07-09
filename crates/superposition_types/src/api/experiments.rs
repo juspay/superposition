@@ -2,11 +2,15 @@ use std::{collections::HashMap, fmt::Display};
 
 use chrono::{DateTime, Utc};
 use core::fmt;
+#[cfg(feature = "diesel_derives")]
+use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use strum_macros::Display;
 use superposition_derives::IsEmpty;
 
+#[cfg(feature = "diesel_derives")]
+use crate::database::schema::experiments;
 use crate::{
     api::{deserialize_option_i64, i64_option_formatter},
     custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
@@ -143,6 +147,8 @@ pub struct ConcludeExperimentRequest {
 /********** Experiment Discard Req Types **********/
 
 #[derive(Deserialize, Serialize, Debug)]
+#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = experiments))]
 pub struct ExperimentStateChangeRequest {
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,

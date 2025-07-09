@@ -1,6 +1,9 @@
 use leptos::*;
 use leptos_router::A;
 use reqwest::StatusCode;
+use superposition_types::{
+    api::functions::FunctionStateChangeRequest, database::models::ChangeReason,
+};
 
 use crate::components::table::types::{
     default_column_formatter, Column, ColumnSortable, Expandable,
@@ -36,14 +39,19 @@ pub fn function_table_columns() -> Vec<Column> {
 
 pub async fn publish_function(
     function_name: String,
+    change_reason: String,
     tenant: String,
     org_id: String,
 ) -> Result<String, String> {
+    let payload = FunctionStateChangeRequest {
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
     let client = reqwest::Client::new();
     let host = get_host();
     let url = format!("{host}/function/{function_name}/publish");
     let response = client
-        .put(url)
+        .patch(url)
+        .json(&payload)
         .header("x-tenant", tenant)
         .header("x-org-id", org_id)
         .send()
