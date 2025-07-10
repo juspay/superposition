@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.24.0 - 2025-07-10
+#### Bug Fixes
+- Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in
+- Experiment list group id filter - (588e469) - ayush.jain@juspay.in
+- Improve compare page UI - (dd2a560) - ayush.jain@juspay.in
+#### Features
+- Add change log popup for override, default-config, dimension, type-template, webhook and experiment changes (#532) - (aeb1bf3) - Ayush Jain
+#### Miscellaneous Chores
+- Add missing audit log for experiment group table - (556df54) - ayush.jain@juspay.in
+
+- - -
+
 ## superposition_types-v0.23.0 - 2025-07-03
 #### Bug Fixes
 - Show experiment filters - (a6a0e7e) - ayush.jain@juspay.in

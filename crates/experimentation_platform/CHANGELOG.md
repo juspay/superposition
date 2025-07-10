@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.35.1 - 2025-07-10
+#### Bug Fixes
+- Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in
+- Experiment list group id filter - (588e469) - ayush.jain@juspay.in
+
+- - -
+
 ## experimentation_platform-v0.35.0 - 2025-07-03
 #### Bug Fixes
 - Show experiment filters - (a6a0e7e) - ayush.jain@juspay.in

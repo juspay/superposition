@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.13.3 - 2025-07-10
+#### Bug Fixes
+- Experiment list group id filter - (588e469) - ayush.jain@juspay.in
+
+- - -
+
 ## experimentation_client-v0.13.2 - 2025-07-07
 #### Bug Fixes
 - exp client (#579) - (53a87f6) - PRATIK MISHRA

@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.78.0 - 2025-07-10
+### Package updates
+- experimentation_client bumped to experimentation_client-v0.13.3
+- frontend bumped to frontend-v0.33.0
+- experimentation_platform bumped to experimentation_platform-v0.35.1
+- context_aware_config bumped to context_aware_config-v0.55.0
+- superposition_types bumped to superposition_types-v0.24.0
+### Global changes
+#### Bug Fixes
+- remove warnings from wasm-bindgen-macro (#578) - (de2e5ad) - Datron
+- openfeature git support - (ba3719c) - Pratik Mishra
+- fix openfeature provider readme (#582) - (fc7fb84) - PRATIK MISHRA
+- Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in
+#### Features
+- **(java)** Publishing scripts (#574) - (2c64919) - ShreyBana
+- **(java-openf)** Experimentation support. (#569) - (34e9319) - ShreyBana
+#### Miscellaneous Chores
+- **(logs)** enable access log for each actix request (#584) - (5928cb2) - Natarajan Kannan
+- update documentation (#577) - (4c3c031) - Datron
+- Smithy changes - (b54e468) - ayush.jain@juspay.in
+
+- - -
+
 ## v0.77.1 - 2025-07-07
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.13.2

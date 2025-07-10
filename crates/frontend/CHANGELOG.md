@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.33.0 - 2025-07-10
+#### Bug Fixes
+- Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in
+- Default Config schema custom option - (4d17273) - ayush.jain@juspay.in
+- Experiment list group id filter - (588e469) - ayush.jain@juspay.in
+- Strict Mode use == instead of IS - (aefc504) - ayush.jain@juspay.in
+- Change page layout - (35d6400) - ayush.jain@juspay.in
+- Forn fixes - (b63b288) - ayush.jain@juspay.in
+- Improve compare page UI - (dd2a560) - ayush.jain@juspay.in
+- Redirect url behaviour with prefix (#581) - (b64ea2a) - Ayush Jain
+- remove warnings from wasm-bindgen-macro (#578) - (de2e5ad) - Datron
+#### Features
+- Add change log popup for override, default-config, dimension, type-template, webhook and experiment changes (#532) - (aeb1bf3) - Ayush Jain
+
+- - -
+
 ## frontend-v0.32.0 - 2025-07-03
 #### Bug Fixes
 - Show filters in all pages - (8ba1619) - ayush.jain@juspay.in

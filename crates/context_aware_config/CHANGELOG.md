@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.55.0 - 2025-07-10
+#### Bug Fixes
+- Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in
+#### Features
+- Add change log popup for override, default-config, dimension, type-template, webhook and experiment changes (#532) - (aeb1bf3) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.54.0 - 2025-07-03
 #### Bug Fixes
 - added validation for and wrapper over context json logic - (a48cc71) - Shubhranshu Sanjeev
