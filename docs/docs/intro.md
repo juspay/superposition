@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 title: Introduction
+slug: /
 ---
 
 Superposition is a cloud configuration and experimentation management platform that allows software teams to manage their configuration via a central location, run multi-variate experiments for different configuration values and evaluate results of these experiments and conclude them accordingly.
@@ -13,10 +14,10 @@ The Superposition platform comes with three components:
 
 ## Getting started
 
-The fastest way to setup superposition id to download the `docker-compose.yaml` file in the root of this repository and run the following command:
+The fastest way to setup superposition is to run the following command:
 
 ```
-docker compose up -d
+docker run -p 8080:8080 ghcr.io/juspay/superposition-demo:latest
 ```
 
 Once you run this command, you'll find Superposition at `localhost:8080`. Play around to understand Superposition better, then dive into the documentation!

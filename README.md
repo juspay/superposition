@@ -21,10 +21,10 @@ The Superposition platform comes with three components:
 The fastest way to setup superposition along with a demo-app is to use the following docker command:
 
 ```
-docker run -d -p 8081:9090 -p 8080:8080 datron1/superposition-demo-app:latest
+docker run -p 8080:8080 ghcr.io/juspay/superposition-demo:latest
 ```
 
-Once you run this command, you'll find the demo app at `localhost:8081` and Superposition at `localhost:8080`. Play around to understand Superposition better, then dive into the documentation below!
+Once you run this command, you'll find Superposition at `localhost:8080`. Play around to understand Superposition better, then dive into the documentation below!
 
 ## Detailed documentation
 1. [Context-Aware-Configuration](docs/docs/basic-concepts/context-aware-config.md)

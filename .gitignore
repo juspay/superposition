@@ -55,3 +55,4 @@ clients/generated/smithy/ts
 
 # Intellij
 **/.idea
+docker-compose/postgres/data
