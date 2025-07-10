@@ -1,3 +1,6 @@
+use std::collections::{HashMap, HashSet};
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use actix_http::header;
 use actix_web::web::Data;
 use cac_client::utils::json_to_sorted_string;
@@ -8,21 +11,26 @@ use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
-use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+
+use service_utils::{
+    helpers::extract_dimensions,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
-use std::collections::HashSet;
 use superposition_macros::{bad_argument, unexpected_error};
+use superposition_types::database::models::experimentation::GroupType;
 use superposition_types::{
     api::{experiment_groups::ExpGroupMemberRequest, I64Update},
     database::{
         models::{
-            experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
+            experimentation::{
+                Experiment, ExperimentGroup, ExperimentStatusType, Variant, VariantType,
+            },
             others::{Webhook, WebhookEvent},
             ChangeReason, Workspace,
         },
-        schema::experiments::dsl as experiments,
+        schema::{
+            experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
+        },
         superposition_schema::superposition::workspaces,
     },
     result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
@@ -415,31 +423,128 @@ pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> 
 }
 
 pub fn decide_variant(
-    traffic: u8,
-    applicable_variants: Vec<Variant>,
-    toss: i8,
-) -> Result<Option<Variant>, String> {
-    if toss < 0 {
-        for variant in applicable_variants.iter() {
-            if variant.variant_type == VariantType::EXPERIMENTAL {
-                return Ok(Some(variant.clone()));
-            }
-        }
-    }
-    let variant_count = applicable_variants.len() as u8;
-    let range = (traffic * variant_count) as i32;
-    if (toss as i32) >= range {
+    experiment_group: &ExperimentGroup,
+    toss: usize,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Option<Variant>> {
+    let bucket: Option<String> = experiment_group.buckets
+        .get(toss)
+        .ok_or_else(|| {
+            bad_argument!(
+                "Bucket index out of bounds. Ensure the bucket index is within the range of available buckets."
+            )
+        })?.clone();
+
+    // Extract experiment_id and variant_id, return None if either is missing
+    let variant_id = match &bucket {
+        Some(v_id) => v_id.clone(),
+        _ => return Ok(None),
+    };
+
+    // Extract experiment_id from variant_id
+    let experiment_id = variant_id.split('-')
+        .next()
+        .and_then(|id| id.parse::<i64>().ok())
+        .ok_or_else(|| {
+            bad_argument!(
+                "Invalid variant ID format. Ensure the variant ID is in the correct format."
+            )
+        })?;
+
+    // Get experiment and check if active
+    let experiment = get_experiment(experiment_id, conn, schema_name)?;
+    if !experiment.status.active() {
         return Ok(None);
     }
-    let buckets = (1..=variant_count)
-        .map(|i| (traffic * i) as i8)
-        .collect::<Vec<i8>>();
-    let index = buckets
-        .into_iter()
-        .position(|x| toss < x)
-        .ok_or_else(|| "Unable to fetch variant's index".to_string())?;
 
-    Ok(applicable_variants.get(index).cloned())
+    // Find and return the variant
+    let variant = experiment
+        .variants
+        .iter()
+        .find(|v| v.id == variant_id)
+        .cloned();
+
+    Ok(variant)
+}
+
+pub fn decide_variant_with_variant_ids(
+    experiment_group: &ExperimentGroup,
+    variant_ids: &[String],
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Option<Variant>> {
+    let member_experiment_ids = &experiment_group
+        .member_experiment_ids
+        .iter()
+        .cloned()
+        .collect::<HashSet<i64>>();
+
+    // Parse variant IDs and collect experiment IDs, checking for duplicates
+    let mut req_experiment_ids: HashMap<i64, &str> = HashMap::new();
+    for variant_id in variant_ids {
+        let experiment_id = variant_id
+            .split('-')
+            .next()
+            .and_then(|id| id.parse::<i64>().ok())
+            .ok_or_else(|| {
+                bad_argument!("Invalid variant ID format. Ensure the variant ID is in the correct format.")
+            })?;
+
+        if req_experiment_ids
+            .insert(experiment_id, variant_id)
+            .is_some()
+        {
+            return Err(bad_argument!(
+                "Multiple variants of the same experiment_id provided."
+            ));
+        }
+    }
+
+    // Find common experiment IDs and ensure at most one
+    let common_experiments: Vec<i64> = member_experiment_ids
+        .intersection(&req_experiment_ids.keys().cloned().collect())
+        .cloned()
+        .collect();
+
+    if common_experiments.len() > 1 {
+        return Err(bad_argument!(
+            "Multiple variants of the same experiment group provided."
+        ));
+    }
+
+    // Process the single common experiment if it exists
+    if let Some(&exp_id) = common_experiments.first() {
+        let variant_id = req_experiment_ids[&exp_id];
+        let experiment = get_experiment(exp_id, conn, schema_name)?;
+
+        if experiment.status.active() {
+            experiment
+                .variants
+                .iter()
+                .find(|v| v.id == variant_id)
+                .cloned()
+                .ok_or_else(|| {
+                    bad_argument!(
+                        "Variant ID {} not found in the experiment with ID {}.",
+                        variant_id,
+                        exp_id
+                    )
+                })
+                .map(Some)
+        } else {
+            Ok(None)
+        }
+    } else {
+        Ok(None)
+    }
+}
+
+#[inline]
+pub fn calculate_bucket_index(toss: &str, group_id: &i64) -> usize {
+    let mut hasher = DefaultHasher::new();
+    (toss, group_id).hash(&mut hasher);
+    (hasher.finish() % 100) as usize
 }
 
 pub async fn fetch_cac_config(
@@ -671,6 +776,17 @@ pub fn validate_and_remove_experiment_group_id(
     transaction_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
 ) -> superposition::Result<()> {
+    let experiment_group: ExperimentGroup = experiment_groups::experiment_groups
+        .find(experiment_group_id)
+        .schema_name(schema_name)
+        .get_result::<ExperimentGroup>(transaction_conn)?;
+
+    if experiment_group.group_type == GroupType::SystemGenerated {
+        return Err(bad_argument!(
+            "Cannot remove experiments from a system-generated experiment group"
+        ));
+    }
+
     let member_experiments: Vec<Experiment> = experiments::experiments
         .filter(experiments::id.eq_any(member_experiment_ids))
         .schema_name(schema_name)
@@ -749,4 +865,18 @@ pub fn ensure_experiments_exist(
         ));
     }
     Ok(())
+}
+
+pub fn get_experiment(
+    experiment_id: i64,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Experiment> {
+    use superposition_types::database::schema::experiments::dsl::*;
+    let result: Experiment = experiments
+        .find(experiment_id)
+        .schema_name(schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    Ok(result)
 }

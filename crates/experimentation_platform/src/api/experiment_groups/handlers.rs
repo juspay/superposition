@@ -20,7 +20,9 @@ use superposition_types::{
     },
     custom_query::PaginationParams,
     database::{
-        models::experimentation::{ExperimentGroup, ExperimentGroups},
+        models::experimentation::{
+            Buckets, ExperimentGroup, ExperimentGroups, GroupType,
+        },
         schema::experiment_groups::dsl as experiment_groups,
     },
     result as superposition, PaginatedResponse, SortBy, User,
@@ -75,13 +77,7 @@ async fn create_experiment_group(
     };
 
     validate_context(&state, &exp_context, &workspace_request, &user).await?;
-    validate_experiment_group_constraints(
-        &member_experiments,
-        &[],
-        &exp_context,
-        &mut conn,
-        &workspace_request.schema_name,
-    )?;
+    validate_experiment_group_constraints(&member_experiments, &[], &exp_context)?;
 
     let members = member_experiments
         .iter()
@@ -103,6 +99,8 @@ async fn create_experiment_group(
         context: exp_context,
         traffic_percentage: req.traffic_percentage,
         member_experiment_ids: members.clone(),
+        buckets: Buckets::new(),
+        group_type: GroupType::UserCreated,
     };
 
     let new_experiment_group =
@@ -237,6 +235,9 @@ async fn list_experiment_groups(
         if let Some(last_modified_by) = &filters.last_modified_by {
             builder = builder
                 .filter(experiment_groups::last_modified_by.eq(last_modified_by.clone()));
+        }
+        if let Some(group_type) = &filters.group_type {
+            builder = builder.filter(experiment_groups::group_type.eq(*group_type));
         }
         builder
     };
