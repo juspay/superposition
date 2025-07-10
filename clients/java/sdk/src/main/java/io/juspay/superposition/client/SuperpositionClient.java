@@ -126,6 +126,8 @@ import io.juspay.superposition.model.UpdateTypeTemplatesInput;
 import io.juspay.superposition.model.UpdateTypeTemplatesOutput;
 import io.juspay.superposition.model.UpdateWebhookInput;
 import io.juspay.superposition.model.UpdateWebhookOutput;
+import io.juspay.superposition.model.UpdateWorkspaceDatabaseInput;
+import io.juspay.superposition.model.UpdateWorkspaceDatabaseOutput;
 import io.juspay.superposition.model.UpdateWorkspaceInput;
 import io.juspay.superposition.model.UpdateWorkspaceOutput;
 import io.juspay.superposition.model.WebhookNotFound;
@@ -961,6 +963,18 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     UpdateWorkspaceOutput updateWorkspace(UpdateWorkspaceInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * @throws InternalServerError
+     */
+    default UpdateWorkspaceDatabaseOutput updateWorkspaceDatabase(UpdateWorkspaceDatabaseInput input) {
+        return updateWorkspaceDatabase(input, null);
+    }
+
+    /**
+     * @throws InternalServerError
+     */
+    UpdateWorkspaceDatabaseOutput updateWorkspaceDatabase(UpdateWorkspaceDatabaseInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * @throws InternalServerError

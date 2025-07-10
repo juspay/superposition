@@ -1955,3 +1955,11 @@ export class WorkspaceNotFound extends __BaseException {
     Object.setPrototypeOf(this, WorkspaceNotFound.prototype);
   }
 }
+
+/**
+ * @public
+ */
+export interface UpdateWorkspaceDatabaseRequest {
+  org_id: string | undefined;
+  workspace_name: string | undefined;
+}
