@@ -1,0 +1,474 @@
+name: Create a superposition release
+
+on: workflow_dispatch
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    tag-release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.86.0
+                  targets: wasm32-unknown-unknown
+                  components: rustfmt, clippy
+
+            - name: install cargo-edit to perform set-version
+              uses: baptiste0928/cargo-install@v2.2.0
+              with:
+                  crate: cargo-edit
+                  version: "0.13.6"
+
+            - name: install cocogitto
+              uses: baptiste0928/cargo-install@v2.2.0
+              with:
+                  crate: cocogitto
+                  version: "6.2.0"
+
+            - name: Semver release
+              shell: bash
+              run: |
+                  git config user.email "super_bot@juspay.in"
+                  git config user.name "Superposition Bot"
+                  cog bump --auto --skip-ci-override "[skip ci]"
+
+            - name: Push code to main
+              shell: bash
+              run: |
+                  git push origin main
+                  git push origin --tags
+
+            - name: Set latest tag
+              id: git_tag
+              shell: bash
+              run: |
+                  version=`git tag -l --sort=-creatordate | grep "^v" | head -n 1 | sed 's/^v//'`
+                  echo "VERSION=$version" >> $GITHUB_ENV
+
+    docker-build:
+        needs: tag-release
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            max-parallel: 5
+            matrix:
+                include:
+                    - platform: linux/amd64
+                      tag: linux-amd64
+                      os: ubuntu-latest
+                    - platform: linux/arm64
+                      tag: linux-arm64
+                      os: ubuntu-24.04-arm
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push production image
+              uses: docker/build-push-action@v6
+              with:
+                  push: true
+                  context: .
+                  tags: ghcr.io/${{ github.repository }}:${{ env.VERSION }}-${{ matrix.tag }}
+
+    create-manifest:
+        needs: docker-build
+        permissions:
+            contents: read
+            packages: write
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create manifest for multi-arch image
+              run: |
+                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}:${{ env.VERSION }} \
+                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-arm64
+
+                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}:latest \
+                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-arm64
+
+    docker-demo-build:
+        needs: create-manifest
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            max-parallel: 5
+            matrix:
+                include:
+                    - platform: linux/amd64
+                      tag: linux-amd64
+                      os: ubuntu-latest
+                    - platform: linux/arm64
+                      tag: linux-arm64
+                      os: ubuntu-24.04-arm
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push production image
+              uses: docker/build-push-action@v6
+              with:
+                  push: true
+                  context: .
+                  file: example.Dockerfile
+                  tags: ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-${{ matrix.tag }}
+
+    create-demo-manifest:
+        needs: docker-demo-build
+        permissions:
+            contents: read
+            packages: write
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create manifest for multi-arch image
+              run: |
+                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }} \
+                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-arm64
+
+                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}-demo:latest \
+                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-arm64
+
+    generate-rust-binary:
+        needs: tag-release
+        strategy:
+            max-parallel: 5
+            matrix:
+                platform:
+                    - os: ubuntu-latest
+                      target: x86_64-unknown-linux-gnu
+                      core_bin_name: libsuperposition_core.so
+                      core_zip_name: superposition_core-x86_64-unknown-linux-gnu.zip
+                    - os: macos-13
+                      target: x86_64-apple-darwin
+                      core_bin_name: libsuperposition_core.dylib
+                      core_zip_name: superposition_core-x86_64-apple-darwin.zip
+                    - os: macos-latest
+                      target: aarch64-apple-darwin
+                      core_bin_name: libsuperposition_core.dylib
+                      core_zip_name: superposition_core-aarch64-apple-darwin.zip
+                    - os: windows-latest
+                      target: x86_64-pc-windows-msvc
+                      core_bin_name: superposition_core.dll
+                      core_zip_name: superposition_core-x86_64-pc-windows-msvc.zip
+
+        runs-on: ${{ matrix.platform.os }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.86.0
+                  targets: ${{ matrix.platform.target }}
+                  components: rustfmt, clippy
+
+            - name: Build and package for ${{ matrix.platform.os }}
+              if: matrix.platform.os != 'windows-latest'
+              run: |
+                  cargo build --package core --release --target ${{ matrix.platform.target }}
+                  zip -r ${{ matrix.platform.core_zip_name }} target/${{ matrix.platform.target }}/release/${{ matrix.platform.core_bin_name }} crates/core/src/core.h
+
+            - name: Build and package for ${{ matrix.platform.os }} on windows
+              if: matrix.platform.os == 'windows-latest'
+              run: |
+                  cargo build --package core --release --target ${{ matrix.platform.target }}
+                  Compress-Archive -Path "target\${{ matrix.platform.target }}\release\${{ matrix.platform.core_bin_name }}","crates\core\src\core.h" -DestinationPath ${{ matrix.platform.core_zip_name }}
+
+            # Why multiple upload artifact jobs? Read: https://github.com/actions/upload-artifact/issues/331
+
+            - name: Upload core artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.platform.core_zip_name }}
+                  path: ${{ matrix.platform.core_zip_name }}
+
+    generate-java-packages:
+        needs: generate-rust-binary
+        permissions:
+            contents: read
+            packages: write
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Install JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "17"
+                  distribution: "temurin"
+
+            - name: Download all rust binary artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: rust-binaries
+                  pattern: superposition_core-*
+                  merge-multiple: true
+
+            - name: List downloaded artifacts
+              run: |
+                  echo "Downloaded artifacts:"
+                  find rust-binaries -type f -name "*.zip" | sort
+
+            - name: Extract and organize native libraries
+              run: |
+                  mkdir -p clients/java/bindings/src/main/resources
+                  mkdir temp_extract
+                  # Extract all native libraries
+                  for zip_file in rust-binaries/*.zip; do
+                      echo "Extracting $zip_file"
+                      unzip -o "$zip_file" -d temp_extract/
+
+                      # Find and copy the native library
+                      find temp_extract -name "libsuperposition_core.*" -o -name "superposition_core.dll" | while read lib; do
+                          filename=$(basename "$lib")
+                          extension="${filename##*.}"
+
+                          # Determine platform from the zip file name or path
+                          zip_basename=$(basename "$zip_file" .zip)
+                          target_triple="${zip_basename#superposition_core-}"
+
+                          # Map target triple to JNA platform name
+                          case "$target_triple" in
+                              "x86_64-apple-darwin")
+                                  platform="darwin-x86-64"
+                                  ;;
+                              "aarch64-apple-darwin")
+                                  platform="darwin-aarch64"
+                                  ;;
+                              "x86_64-unknown-linux-gnu")
+                                  platform="linux-x86-64"
+                                  ;;
+                              "x86_64-pc-windows-msvc")
+                                  platform="win32-x86-64"
+                                  ;;
+                              *)
+                                  echo "Unknown target triple: $target_triple"
+                                  continue
+                                  ;;
+                          esac
+
+                          # Create the platform-specific directory
+                          target_dir="clients/java/bindings/src/main/resources/$platform"
+                          mkdir -p "$target_dir"
+
+                          # Copy the file
+                          cp "$lib" "$target_dir/"
+                          echo "Copied $filename (.$extension) to $target_dir/"
+                      done
+
+                      # Clean up temp directory
+                      rm -rf temp_extract
+                  done
+
+                  # List what we have
+                  echo "Native libraries in bindings package:"
+                  ls -lar clients/java/bindings/src/main/resources/
+
+            - name: Build Java packages
+              run: |
+                  cd crates/java
+                  ./gradlew build
+
+            - name: Publish Java packages
+              run: ./gradlew publish
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    generate-python-packages:
+        needs: generate-rust-binary
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v3
+              with:
+                  version: "latest"
+
+            - name: Download all rust binary artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: rust-binaries
+                  pattern: superposition_core-*
+                  merge-multiple: true
+
+            - name: List downloaded artifacts
+              run: |
+                  echo "Downloaded artifacts:"
+                  find rust-binaries -type f -name "*.zip" | sort
+
+            - name: Extract and organize native libraries
+              run: |
+                  mkdir temp_extract
+                  # Extract all native libraries
+                  for zip_file in rust-binaries/*.zip; do
+                      echo "Extracting $zip_file"
+                      unzip -o "$zip_file" -d temp_extract/
+
+                      # Find and copy the native library
+                      find temp_extract -name "libsuperposition_core.*" -o -name "superposition_core.dll" | while read lib; do
+                          cp "$lib" clients/python/bindings/
+                          echo "Copied $(basename $lib)"
+                      done
+
+                      # Clean up temp directory
+                      rm -rf temp_extract
+                  done
+
+                  # List what we have
+                  echo "Native libraries in bindings package:"
+                  ls -la clients/python/bindings/
+
+            - name: Build bindings package
+              run: |
+                  cd clients/python/bindings
+                  uv build --wheel
+                  echo "Built bindings wheel:"
+                  ls -la dist/
+
+            - name: Build SDK package
+              run: |
+                  cd clients/python/sdk
+                  uv build --wheel
+                  echo "Built SDK wheel:"
+                  ls -la dist/
+
+            - name: Build provider package
+              run: |
+                  cd clients/python/provider
+                  # Install dependencies first since provider depends on sdk and bindings
+                  uv pip install --system ../bindings/dist/*.whl ../sdk/dist/*.whl
+                  uv build --wheel
+                  echo "Built provider wheel:"
+                  ls -la dist/
+
+            - name: Collect all wheels
+              run: |
+                  mkdir -p python-wheels
+                  cp clients/python/bindings/dist/*.whl python-wheels/
+                  cp clients/python/sdk/dist/*.whl python-wheels/
+                  cp clients/python/provider/dist/*.whl python-wheels/
+                  echo "All Python wheels:"
+                  ls -la python-wheels/
+
+            - name: Upload Python wheels
+              uses: actions/upload-artifact@v4
+              with:
+                  name: python-wheels
+                  path: python-wheels/*.whl
+
+    # generate-js-pacakages:
+    # release:
+    #     needs: generate-builds
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - name: Checkout repository
+    #           uses: actions/checkout@v4
+    #           with:
+    #               fetch-depth: 0
+
+    #         - name:
+    #               Download all artifacts
+    #               # This step downloads all artifacts uploaded by the 'generate-builds' job.
+    #               # They will be placed into the 'artifacts_dir' directory.
+    #           uses: actions/download-artifact@v4
+    #           with:
+    #               path: artifacts_dir
+
+    #         - name: List downloaded files
+    #           run: ls -R artifacts_dir
+
+    #         - uses: softprops/action-gh-release@v2
+    #           name: Create GitHub Release
+    #           # if: startsWith(github.ref, 'refs/tags/')
+    #           with:
+    #               draft: true
+    #               files: |
+    #                   artifacts_dir/superposition_core-x86_64-unknown-linux-gnu.zip/superposition_core-x86_64-unknown-linux-gnu.zip
+    #                   artifacts_dir/superposition_core-x86_64-apple-darwin.zip/superposition_core-x86_64-apple-darwin.zip
+    #                   artifacts_dir/superposition_core-aarch64-apple-darwin.zip/superposition_core-aarch64-apple-darwin.zip
+    #                   artifacts_dir/superposition_core-x86_64-pc-windows-msvc.zip/superposition_core-x86_64-pc-windows-msvc.zip
