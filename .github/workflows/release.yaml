@@ -11,6 +11,8 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             contents: write
+        outputs:
+            version: ${{ steps.git_tag.outputs.version }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -55,7 +57,7 @@ jobs:
               shell: bash
               run: |
                   version=`git tag -l --sort=-creatordate | grep "^v" | head -n 1 | sed 's/^v//'`
-                  echo "VERSION=$version" >> $GITHUB_ENV
+                  echo "version=$version" >> $GITHUB_OUTPUT
 
     docker-build:
         needs: tag-release
@@ -95,10 +97,10 @@ jobs:
               with:
                   push: true
                   context: .
-                  tags: ghcr.io/${{ github.repository }}:${{ env.VERSION }}-${{ matrix.tag }}
+                  tags: ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-${{ matrix.tag }}
 
     create-manifest:
-        needs: docker-build
+        needs: [tag-release, docker-build]
         permissions:
             contents: read
             packages: write
@@ -119,16 +121,16 @@ jobs:
 
             - name: Create manifest for multi-arch image
               run: |
-                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}:${{ env.VERSION }} \
-                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-amd64 \
-                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-arm64
+                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }} \
+                      ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-arm64
 
                   docker buildx imagetools create --tag ghcr.io/${{ github.repository }}:latest \
-                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-amd64 \
-                      ghcr.io/${{ github.repository }}:${{ env.VERSION }}-linux-arm64
+                      ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-arm64
 
     docker-demo-build:
-        needs: create-manifest
+        needs: [tag-release, create-manifest]
         permissions:
             contents: read
             packages: write
@@ -166,10 +168,10 @@ jobs:
                   push: true
                   context: .
                   file: example.Dockerfile
-                  tags: ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-${{ matrix.tag }}
+                  tags: ghcr.io/${{ github.repository }}-demo:${{ needs.tag-release.outputs.version }}-${{ matrix.tag }}
 
     create-demo-manifest:
-        needs: docker-demo-build
+        needs: [tag-release, docker-demo-build]
         permissions:
             contents: read
             packages: write
@@ -190,13 +192,13 @@ jobs:
 
             - name: Create manifest for multi-arch image
               run: |
-                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }} \
-                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-amd64 \
-                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-arm64
+                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}-demo:${{ needs.tag-release.outputs.version }} \
+                      ghcr.io/${{ github.repository }}-demo:${{ needs.tag-release.outputs.version }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}-demo:${{ needs.tag-release.outputs.version }}-linux-arm64
 
                   docker buildx imagetools create --tag ghcr.io/${{ github.repository }}-demo:latest \
-                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-amd64 \
-                      ghcr.io/${{ github.repository }}-demo:${{ env.VERSION }}-linux-arm64
+                      ghcr.io/${{ github.repository }}-demo:${{ needs.tag-release.outputs.version }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}-demo:${{ needs.tag-release.outputs.version }}-linux-arm64
 
     generate-rust-binary:
         needs: tag-release
@@ -256,11 +258,13 @@ jobs:
                   path: ${{ matrix.platform.core_zip_name }}
 
     generate-java-packages:
-        needs: generate-rust-binary
+        needs: [tag-release, generate-rust-binary]
         permissions:
             contents: read
             packages: write
         runs-on: ubuntu-latest
+        env:
+            VERSION: ${{ needs.tag-release.outputs.version }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -342,17 +346,21 @@ jobs:
 
             - name: Build Java packages
               run: |
-                  cd crates/java
-                  ./gradlew build
+                  cd clients/java
+                  ./gradlew build -x test
 
             - name: Publish Java packages
-              run: ./gradlew publish
+              run: |
+                  cd clients/java
+                  ./gradlew publish
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     generate-python-packages:
-        needs: generate-rust-binary
+        needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest
+        env:
+            VERSION: ${{ needs.tag-release.outputs.version }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -391,7 +399,7 @@ jobs:
 
                       # Find and copy the native library
                       find temp_extract -name "libsuperposition_core.*" -o -name "superposition_core.dll" | while read lib; do
-                          cp "$lib" clients/python/bindings/
+                          cp "$lib" clients/python/bindings/superposition_bindings/
                           echo "Copied $(basename $lib)"
                       done
 
@@ -401,7 +409,7 @@ jobs:
 
                   # List what we have
                   echo "Native libraries in bindings package:"
-                  ls -la clients/python/bindings/
+                  ls -la clients/python/bindings/superposition_bindings/
 
             - name: Build bindings package
               run: |
@@ -416,6 +424,8 @@ jobs:
                   uv build --wheel
                   echo "Built SDK wheel:"
                   ls -la dist/
+              env:
+                  VERSION: ${{ needs.tag-release.outputs.version }}
 
             - name: Build provider package
               run: |
@@ -425,6 +435,8 @@ jobs:
                   uv build --wheel
                   echo "Built provider wheel:"
                   ls -la dist/
+              env:
+                  VERSION: ${{ needs.tag-release.outputs.version }}
 
             - name: Collect all wheels
               run: |
@@ -435,40 +447,55 @@ jobs:
                   echo "All Python wheels:"
                   ls -la python-wheels/
 
-            - name: Upload Python wheels
+            - name: Upload Python SDK
               uses: actions/upload-artifact@v4
               with:
-                  name: python-wheels
-                  path: python-wheels/*.whl
+                  name: superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+                  path: python-wheels/superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+
+            - name: Upload Python Bindings
+              uses: actions/upload-artifact@v4
+              with:
+                  name: superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+                  path: python-wheels/superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+
+            - name: Upload Python OpenFeature Provider
+              uses: actions/upload-artifact@v4
+              with:
+                  name: superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+                  path: python-wheels/superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl
 
     # generate-js-pacakages:
-    # release:
-    #     needs: generate-builds
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - name: Checkout repository
-    #           uses: actions/checkout@v4
-    #           with:
-    #               fetch-depth: 0
+    release:
+        needs: generate-builds
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-    #         - name:
-    #               Download all artifacts
-    #               # This step downloads all artifacts uploaded by the 'generate-builds' job.
-    #               # They will be placed into the 'artifacts_dir' directory.
-    #           uses: actions/download-artifact@v4
-    #           with:
-    #               path: artifacts_dir
+            - name:
+                  Download all artifacts
+                  # This step downloads all artifacts uploaded by the 'generate-builds' job.
+                  # They will be placed into the 'artifacts_dir' directory.
+              uses: actions/download-artifact@v4
+              with:
+                  path: artifacts_dir
 
-    #         - name: List downloaded files
-    #           run: ls -R artifacts_dir
+            - name: List downloaded files
+              run: ls -R artifacts_dir
 
-    #         - uses: softprops/action-gh-release@v2
-    #           name: Create GitHub Release
-    #           # if: startsWith(github.ref, 'refs/tags/')
-    #           with:
-    #               draft: true
-    #               files: |
-    #                   artifacts_dir/superposition_core-x86_64-unknown-linux-gnu.zip/superposition_core-x86_64-unknown-linux-gnu.zip
-    #                   artifacts_dir/superposition_core-x86_64-apple-darwin.zip/superposition_core-x86_64-apple-darwin.zip
-    #                   artifacts_dir/superposition_core-aarch64-apple-darwin.zip/superposition_core-aarch64-apple-darwin.zip
-    #                   artifacts_dir/superposition_core-x86_64-pc-windows-msvc.zip/superposition_core-x86_64-pc-windows-msvc.zip
+            - uses: softprops/action-gh-release@v2
+              name: Create GitHub Release
+              # if: startsWith(github.ref, 'refs/tags/')
+              with:
+                  draft: true
+                  files: |
+                      artifacts_dir/superposition_core-x86_64-unknown-linux-gnu.zip/superposition_core-x86_64-unknown-linux-gnu.zip
+                      artifacts_dir/superposition_core-x86_64-apple-darwin.zip/superposition_core-x86_64-apple-darwin.zip
+                      artifacts_dir/superposition_core-aarch64-apple-darwin.zip/superposition_core-aarch64-apple-darwin.zip
+                      artifacts_dir/superposition_core-x86_64-pc-windows-msvc.zip/superposition_core-x86_64-pc-windows-msvc.zip
+                      artifacts_dir/superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl/superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+                      artifacts_dir/superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl/superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+                      artifacts_dir/superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl/superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl

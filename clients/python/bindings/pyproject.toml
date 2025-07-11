@@ -18,5 +18,3 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "env"
 variable = "VERSION"
-
-[tool.versioningit]
