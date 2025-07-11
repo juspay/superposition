@@ -51,8 +51,6 @@ exclude = [
   "tests",
 ]
 
-[tool.versioningit]
-
 [tool.pyright]
 typeCheckingMode = "strict"
 reportPrivateUsage = false
