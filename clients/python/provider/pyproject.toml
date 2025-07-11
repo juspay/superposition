@@ -24,4 +24,5 @@ build-backend = "hatchling.build"
 source = "env"
 variable = "VERSION"
 
-[tool.versioningit]
+[tool.hatch.metadata]
+allow-direct-references = true
