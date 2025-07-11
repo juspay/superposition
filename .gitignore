@@ -1,12 +1,5 @@
 # Node artifact files
 node_modules/
-dist/
-
-# Javascript build artifacts
-clients/javascript/sdk/dist-*/
-clients/javascript/sdk/*.tsbuildinfo
-clients/javascript/*/dist-*/
-clients/javascript/*/*.tsbuildinfo
 
 # Log files
 *.log
@@ -52,7 +45,6 @@ postman/superposition_env.json
 #smithy
 smithy/output
 .aider*
-clients/generated/smithy/ts
 
 # Emacs
 *~
