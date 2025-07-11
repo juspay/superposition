@@ -3,7 +3,7 @@
 
 [project]
 name = "superposition_sdk"
-version = "0.0.1"
+dynamic = ["version"]
 description = "superposition_sdk client"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -38,15 +38,20 @@ docs = [
     "pydata-sphinx-theme>=0.16.1",
     "sphinx>=8.2.3"
 ]
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "env"
+variable = "VERSION"
 
 [tool.hatch.build]
 exclude = [
   "tests",
 ]
+
+[tool.versioningit]
 
 [tool.pyright]
 typeCheckingMode = "strict"

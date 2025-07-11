@@ -1,21 +1,27 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "superposition_provider"
-version = "0.0.1"
+dynamic = ["version"]
 description = "superposition_provider"
 readme = "README.md"
 requires-python = ">=3.12"
 keywords = ["openfeature", "superposition_provider"]
-license = {text = "Apache-2.0"}
+license = { text = "Apache-2.0" }
 
 dependencies = [
-    "superposition_sdk @ git+https://github.com/juspay/superposition.git@main#subdirectory=clients/python/sdk",
-    "superposition_bindings @ git+https://github.com/juspay/superposition.git@main#subdirectory=clients/python/bindings"
+    "superposition_sdk @ ../sdk",
+    "superposition_bindings @ ../bindings",
 ]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["superposition_provider"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "env"
+variable = "VERSION"
+
+[tool.versioningit]

@@ -1,12 +1,12 @@
-name: Deploy to GitHub Pages
+name: Generate Superposition Documentation
 
-on: workflow_dispatch
-# on:
-#     push:
-#         paths:
-#           - 'docs/**'
-#         branches:
-#             - main
+on:
+    workflow_dispatch:
+    push:
+        paths:
+          - 'docs/**'
+        branches:
+            - main
 
 jobs:
     build:
