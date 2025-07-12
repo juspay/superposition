@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use core::fmt;
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use strum_macros::Display;
 use superposition_derives::IsEmpty;
@@ -159,7 +159,8 @@ pub struct ExperimentStateChangeRequest {
 #[serde(try_from = "HashMap<String,String>")]
 pub struct ApplicableVariantsQuery {
     pub context: Map<String, Value>,
-    pub toss: i8,
+    pub identifier: String,
+    pub variants: Option<Vec<String>>,
 }
 
 impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
@@ -170,24 +171,24 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
             .map(|(key, value)| (key, value.parse().unwrap_or(Value::String(value))))
             .collect::<Map<_, _>>();
 
-        let toss = value
-            .remove("toss")
-            .and_then(|toss| toss.as_i64())
-            .and_then(|toss| {
-                if -1 <= toss && toss <= 100 {
-                    Some(toss as i8)
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| {
-                log::error!("toss should be a an interger between -1 and 100 (included)");
-                String::from("toss should be a an interger between -1 and 100 (included)")
-            })?;
+        let identifier: Value = value
+            .remove("identifier")
+            .ok_or_else(|| "Missing 'identifier' key in the request".to_string())?;
+
+        let variants = value.remove("variants").map(|v| {
+            if let Value::Array(arr) = v {
+                arr.into_iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            } else {
+                vec![]
+            }
+        });
 
         Ok(Self {
-            toss,
+            identifier: identifier.to_string(),
             context: value,
+            variants,
         })
     }
 }
@@ -195,30 +196,17 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApplicableVariantsRequest {
     pub context: Map<String, Value>,
-    #[serde(deserialize_with = "deserialize_toss")]
-    pub toss: i8,
+    pub identifier: String,
+    pub variants: Option<Vec<String>>,
 }
 
 impl From<ApplicableVariantsRequest> for ApplicableVariantsQuery {
     fn from(value: ApplicableVariantsRequest) -> Self {
         Self {
             context: value.context,
-            toss: value.toss,
+            identifier: value.identifier,
+            variants: value.variants,
         }
-    }
-}
-
-fn deserialize_toss<'de, D>(deserializer: D) -> Result<i8, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let toss: i8 = Deserialize::deserialize(deserializer)?;
-    if -1 <= toss && toss <= 100 {
-        Ok(toss)
-    } else {
-        Err(serde::de::Error::custom(
-            "toss should be a an interger between -1 and 100 (included)",
-        ))
     }
 }
 

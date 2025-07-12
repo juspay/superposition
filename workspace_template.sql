@@ -601,3 +601,17 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+ALTER TABLE {replaceme}.experiment_groups ADD COLUMN buckets TEXT[] DEFAULT array_fill(NULL::TEXT, ARRAY[100]) NOT NULL;
+
+DO $$ BEGIN
+    CREATE TYPE public.GROUP_TYPE AS ENUM (
+        'USER_CREATED',
+        'SYSTEM_GENERATED'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE {replaceme}.experiment_groups 
+ADD COLUMN group_type public.GROUP_TYPE DEFAULT 'USER_CREATED';

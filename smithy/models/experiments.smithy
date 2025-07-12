@@ -89,6 +89,10 @@ list ListVariant {
     member: Variant
 }
 
+list VariantIds {
+    member: String
+}
+
 structure ApplicableVariantsOutput {
     @required
     @notProperty
@@ -229,7 +233,10 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
 
     @required
     @notProperty
-    toss: Integer
+    identifier: String
+
+    @notProperty
+    variant_ids: VariantIds
 }
 
 @httpError(404)
