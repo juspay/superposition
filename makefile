@@ -117,7 +117,7 @@ endif
 setup: $(SETUP_DEPS) node-dependencies setup-clients
 
 setup-clients:
-	cd $(SMITHY_CLIENT_DIR)/typescript && npm ci &&\
+	cd  clients/javascript/sdk && npm ci &&\
 		npm run build:cjs &&\
 		npm run build:types &&\
 		npm run build:es
@@ -208,9 +208,11 @@ smithy-clients: smithy-build
 				clients/java/sdk/src/main/java
 	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
 				clients/python/sdk
+	cp -r $(SMITHY_BUILD_SRC)/javascript-client-codegen/*\
+				clients/javascript/sdk 			
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
-		[[ "$$d" =~ "java" || "$$d" =~ "python" ]] && continue; \
+		[[ "$$d" =~ "java" || "$$d" =~ "python" || "$$d" =~ "javascript" ]] && continue; \
 		name=$$(basename "$$d" -client-codegen); \
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \

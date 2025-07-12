@@ -1,4 +1,4 @@
-import { SuperpositionClient } from "@io.juspay/superposition-sdk";
+import { SuperpositionClient } from "superposition-sdk";
 
 export let ENV: any = {
     baseUrl: "http://127.0.0.1:8080",

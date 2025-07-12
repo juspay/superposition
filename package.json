@@ -7,8 +7,12 @@
     "test": "./node_modules/.bin/newman dir-run ./postman/superposition --environment ./postman/starting_env.json --export-environment ./postman/superposition_env.json && ./node_modules/.bin/newman dir-run ./postman/cac --environment ./postman/superposition_env.json && ./node_modules/.bin/newman dir-run --environment ./postman/superposition_env.json ./postman/experimentation-platform ",
     "load_superposition_tests": "npx newman dir-import postman/superposition -o postman/superposition.postman_collection.json",
     "load_exp_tests": "npx newman dir-import postman/experimentation-platform -o postman/experimentation-platform.postman_collection.json",
-    "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json"
+    "load_cac_tests": "npx newman dir-import postman/cac -o postman/cac.postman_collection.json",
+    "postinstall": "cd clients/javascript && npm run install-all"
   },
+  "files": [
+    "clients/javascript/"
+  ],
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
     "axios": "^1.8.2",

@@ -26,7 +26,7 @@ import {
     WorkspaceStatus,
     UpdateWorkspaceCommand,
     SuperpositionClient,
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
 import { nanoid } from "nanoid";
@@ -53,18 +53,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-        {
-            variant_type: VariantType.CONTROL,
-            overrides: {
-                pmTestKey1: "value1-control",
-                pmTestKey2: "value1-control",
+            {
+                variant_type: VariantType.CONTROL,
+                overrides: {
+                    pmTestKey1: "value1-control",
+                    pmTestKey2: "value1-control",
+                },
             },
-        },
-        {
-            variant_type: VariantType.EXPERIMENTAL,
-            overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
-        },
-    ];
+            {
+                variant_type: VariantType.EXPERIMENTAL,
+                overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
+            },
+        ];
 
     const experiment2Context = {
         and: [
@@ -76,18 +76,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-        {
-            variant_type: VariantType.CONTROL,
-            overrides: {
-                pmTestKey3: "value3-control",
-                pmTestKey4: "value3-control",
+            {
+                variant_type: VariantType.CONTROL,
+                overrides: {
+                    pmTestKey3: "value3-control",
+                    pmTestKey4: "value3-control",
+                },
             },
-        },
-        {
-            variant_type: VariantType.EXPERIMENTAL,
-            overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
-        },
-    ];
+            {
+                variant_type: VariantType.EXPERIMENTAL,
+                overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
+            },
+        ];
 
     // Experiment group context (common base for both experiments)
     const experimentGroupContext = {
@@ -190,7 +190,7 @@ describe("Experiments API", () => {
             traffic_percentage: 100,
             member_experiment_ids: [], // Start with empty, will add experiments later
         };
-        
+
         const groupResponse = await superpositionClient.send(
             new CreateExperimentGroupCommand(createGroupInput)
         );
@@ -241,13 +241,13 @@ describe("Experiments API", () => {
                 try {
                     // First remove all members if any
                     console.log(`Cleaning up experiment group: ${experimentGroupId}`);
-                    
+
                     // Remove all members from the group first
                     if (experimentId1 || experimentId2) {
                         const membersToRemove = [];
                         if (experimentId1) membersToRemove.push(experimentId1);
                         if (experimentId2) membersToRemove.push(experimentId2);
-                        
+
                         if (membersToRemove.length > 0) {
                             await superpositionClient.send(
                                 new RemoveMembersFromGroupCommand({
@@ -261,7 +261,7 @@ describe("Experiments API", () => {
                             console.log(`Removed members from experiment group: ${experimentGroupId}`);
                         }
                     }
-                    
+
                     // Now delete the empty group
                     await superpositionClient.send(
                         new DeleteExperimentGroupCommand({
@@ -628,7 +628,7 @@ describe("Experiments API", () => {
             expect(out.variants).toHaveLength(experiment1Variants.length);
             expect(out.status).toBe(ExperimentStatusType.CREATED);
             expect(out.chosen_variant).toBeUndefined();
-            expect(out.experiment_group_id).toBeUndefined(); 
+            expect(out.experiment_group_id).toBeUndefined();
             expect(out.context).toEqual(experiment1Context);
             expect(out.name).toBe("experiment-1-from-test");
 
@@ -927,7 +927,7 @@ describe("Experiments API", () => {
             const foundExp2 = out.data?.some((exp) => exp.id === experimentId2);
             expect(foundExp1).toBe(true);
             expect(foundExp2).toBe(true);
-            
+
             const exp1 = out.data?.find((exp) => exp.id === experimentId1);
             expect(exp1?.experiment_group_id).toBeUndefined();
         } catch (e: any) {

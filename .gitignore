@@ -1,6 +1,5 @@
 # Node artifact files
 node_modules/
-dist/
 
 # Log files
 *.log
@@ -46,7 +45,6 @@ postman/superposition_env.json
 #smithy
 smithy/output
 .aider*
-clients/generated/smithy/ts
 
 # Emacs
 *~

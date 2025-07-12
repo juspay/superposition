@@ -3,7 +3,7 @@ import {
     ListOrganisationCommand,
     GetOrganisationCommand,
     UpdateOrganisationCommand,
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { expect, describe, it, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
 

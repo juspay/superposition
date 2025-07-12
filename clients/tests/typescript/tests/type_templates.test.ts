@@ -3,7 +3,7 @@ import {
     UpdateTypeTemplatesCommand,
     DeleteTypeTemplatesCommand,
     GetTypeTemplatesListCommand,
-} from "@io.juspay/superposition-sdk";
+} from "superposition-sdk";
 import { describe, test, expect, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
 

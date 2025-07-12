@@ -1,0 +1,27 @@
+{
+    "name": "superposition-bindings",
+    "version": "0.0.1",
+    "description": "Native bindings for Superposition configuration resolution",
+    "main": "./dist/native-resolver.js",
+    "types": "./dist/native-resolver.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "clean": "rimraf dist",
+        "prepack": "npm run clean && npm run build"
+    },
+    "dependencies": {
+        "koffi": "^2.11.0"
+    },
+    "devDependencies": {
+        "typescript": "~5.2.2",
+        "rimraf": "^5.0.0",
+        "@types/node": "^20.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "files": [
+        "dist/**/*",
+        "native-lib/**/*"
+    ]
+}

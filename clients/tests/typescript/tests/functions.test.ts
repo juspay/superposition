@@ -5,10 +5,10 @@ import {
     UpdateFunctionCommand,
     DeleteFunctionCommand,
     PublishCommand,
-} from "@io.juspay/superposition-sdk";
+    FunctionTypes
+} from "superposition-sdk";
 import { expect, describe, it, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
-import { FunctionTypes } from "@io.juspay/superposition-sdk";
 
 describe("Function Operations", () => {
     let validateFunctionName: string;
