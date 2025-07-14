@@ -278,7 +278,7 @@ pub fn audit_log_filter_widget(
         <Drawer
             id="audit_log_filter_drawer".to_string()
             header="Audit Log Filters"
-            drawer_width="w-[50vw]"
+            width_class="max-w-[780px] min-w-[560px] w-[45vw]"
             handle_close=move || close_drawer("audit_log_filter_drawer")
         >
             <div class="flex flex-col gap-5">
@@ -450,4 +450,3 @@ pub fn audit_log_filter_widget(
         </Drawer>
     }
 }
-

@@ -25,7 +25,9 @@ use superposition_types::{
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::{
         models::{
-            cac::{ConfigVersion, Context, DefaultConfig, EventLog, Function, TypeTemplate},
+            cac::{
+                ConfigVersion, Context, DefaultConfig, EventLog, Function, TypeTemplate,
+            },
             experimentation::ExperimentGroup,
             others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
             ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus

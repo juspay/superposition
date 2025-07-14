@@ -40,7 +40,7 @@ async fn get_audit_logs(
         builder
             .filter(
                 event_log::timestamp
-                    .ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
+                    .ge(filters.from_date.unwrap_or(now - Duration::days(30))),
             )
             .filter(event_log::timestamp.le(filters.to_date.unwrap_or(now)))
     };
