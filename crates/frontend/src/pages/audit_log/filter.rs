@@ -276,7 +276,7 @@ pub fn audit_log_filter_widget(
             <i class="ri-filter-3-line"></i>
         </DrawerBtn>
         <Drawer
-            id="audit_log_filter_drawer".to_string()
+            id="audit_log_filter_drawer"
             header="Audit Log Filters"
             width_class="max-w-[780px] min-w-[560px] w-[45vw]"
             handle_close=move || close_drawer("audit_log_filter_drawer")
