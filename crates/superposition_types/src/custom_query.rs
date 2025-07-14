@@ -309,6 +309,23 @@ impl<T: Display + FromStr> Display for CommaSeparatedQParams<T> {
     }
 }
 
+impl<T: Display + FromStr> FromStr for CommaSeparatedQParams<T> {
+    type Err = T::Err;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut vec = Vec::new();
+
+        for part in s.split(',') {
+            let trimmed = part.trim();
+            if !trimmed.is_empty() {
+                vec.push(trimmed.parse()?);
+            }
+        }
+
+        Ok(CommaSeparatedQParams(vec))
+    }
+}
+
 impl<'de, T: Display + FromStr> Deserialize<'de> for CommaSeparatedQParams<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
