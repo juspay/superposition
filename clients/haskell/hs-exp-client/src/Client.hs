@@ -51,7 +51,7 @@ foreign import ccall unsafe "expt_start_polling_update"
     c_start_polling_update :: CTenant -> IO ()
 
 foreign import ccall unsafe "expt_get_applicable_variant"
-    c_get_applicable_variants :: Ptr ExpClient -> CString -> CShort -> IO CString
+    c_get_applicable_variants :: Ptr ExpClient -> CString -> CString -> IO CString
 
 foreign import ccall unsafe "expt_get_satisfied_experiments"
     c_get_satisfied_experiments :: Ptr ExpClient -> CString -> CString -> IO CString
@@ -96,10 +96,10 @@ getExpClient tenant = do
         then Left <$> getError
         else Right <$> newForeignPtr c_free_expt_client cacClient
 
-getApplicableVariants :: ForeignPtr ExpClient -> String -> Integer -> IO (Either Error String)
-getApplicableVariants client query toss = do
+getApplicableVariants :: ForeignPtr ExpClient -> String -> String -> IO (Either Error String)
+getApplicableVariants client query identifier = do
     context  <- newCString query
-    variants <- withForeignPtr client (\c -> c_get_applicable_variants c context (fromInteger toss))
+    variants <- withForeignPtr client (\c -> c_get_applicable_variants c context identifier)
     _        <- cleanup [context]
     if variants == nullPtr
         then Left <$> getError

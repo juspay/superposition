@@ -19,7 +19,9 @@ void expt_free_client(struct Arc_Client *ptr);
 
 struct Arc_Client *expt_get_client(const char *tenant);
 
-char *expt_get_applicable_variant(struct Arc_Client *client, const char *c_context, short toss);
+char *expt_get_applicable_variant(struct Arc_Client *client,
+                                  const char *c_context,
+                                  const char *identifier);
 
 char *expt_get_satisfied_experiments(struct Arc_Client *client,
                                      const char *c_context,

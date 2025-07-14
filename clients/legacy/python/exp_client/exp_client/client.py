@@ -28,7 +28,7 @@ class ExperimentationClient:
     rust_lib.expt_get_client.argtypes = [ctypes.c_char_p]
     rust_lib.expt_get_client.restype = ctypes.c_char_p
 
-    rust_lib.expt_get_applicable_variant.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int]
+    rust_lib.expt_get_applicable_variant.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p]
     rust_lib.expt_get_applicable_variant.restype = ctypes.c_char_p
 
     rust_lib.expt_get_satisfied_experiments.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p]
@@ -101,10 +101,10 @@ class ExperimentationClient:
         except:
             raise Exception(self.rust_lib.get_experimentation_last_error_message())
 
-    def get_applicable_variant(self, context: dict, toss: int) -> list[str]:
+    def get_applicable_variant(self, context: dict, identifier: str) -> list[str]:
         try: 
             result = self.rust_lib.expt_get_applicable_variant(
-            self.get_experimentation_client(), str(context).encode(), toss).decode()
+            self.get_experimentation_client(), str(context).encode(), identifier).decode()
             return ast.literal_eval(result)
         except:
             raise Exception(self.rust_lib.get_experimentation_last_error_message())
