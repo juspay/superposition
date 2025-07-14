@@ -242,20 +242,17 @@ export class NativeResolver {
         let extension: string;
 
         // Determine file extension based on platform
-        if (platform === 'win32') {
-            extension = '.dll';
-        } else if (platform === 'darwin') {
-            extension = '.dylib';
+        if (platform === 'win32' && arch === 'x64') {
+            extension = 'x86_64-pc-windows-msvc.dll';
+        } else if (platform === 'darwin' && arch === 'arm64') {
+            extension = 'aarch64-apple-darwin.dylib';
+        } else if (platform === 'darwin' && arch === 'x64') {
+            extension = 'x86_64-apple-darwin.dylib';
         } else {
-            extension = '.so';
+            extension = 'x86_64-unknown-linux-gnu.so';
         }
 
-        // Create platform-specific filename
-        if (platform === 'darwin' || platform === 'linux') {
-            filename = `libsuperposition_core${extension}`;
-        } else {
-            filename = `superposition_core${extension}`;
-        }
+        filename = `libsuperposition_core-${extension}`;
 
         const packageRootPath = path.resolve(__dirname, '..', filename);
         if (this.fileExists(packageRootPath)) {
