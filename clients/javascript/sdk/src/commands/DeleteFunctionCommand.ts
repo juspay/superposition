@@ -40,8 +40,8 @@ export interface DeleteFunctionCommandOutput extends DeleteFunctionOutput, __Met
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, DeleteFunctionCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, DeleteFunctionCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, DeleteFunctionCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, DeleteFunctionCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // DeleteFunctionInput
  *   workspace_id: "STRING_VALUE", // required

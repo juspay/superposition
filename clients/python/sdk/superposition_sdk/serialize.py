@@ -76,6 +76,7 @@ from .models import (
     UpdateOverridesExperimentInput,
     UpdateTypeTemplatesInput,
     UpdateWebhookInput,
+    UpdateWorkspaceDatabaseInput,
     UpdateWorkspaceInput,
     WeightRecomputeInput,
 )
@@ -2385,6 +2386,36 @@ async def _serialize_update_workspace(input: UpdateWorkspaceInput, config: Confi
             query=query,
         ),
         method="PUT",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_update_workspace_database(input: UpdateWorkspaceDatabaseInput, config: Config) -> HTTPRequest:
+    if not input.workspace_name:
+        raise ServiceError("workspace_name must not be empty.")
+
+    path = "/workspaces/{workspace_name}/db/update".format(
+        workspace_name=urlquote(input.workspace_name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
         fields=headers,
         body=body,
     )

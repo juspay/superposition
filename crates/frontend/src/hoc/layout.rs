@@ -1,5 +1,5 @@
 use crate::{
-    api::fetch_workspaces,
+    api::workspaces::fetch_workspaces,
     components::{
         side_nav::SideNav,
         skeleton::{Skeleton, SkeletonVariant},

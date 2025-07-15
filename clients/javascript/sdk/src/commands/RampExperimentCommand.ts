@@ -40,8 +40,8 @@ export interface RampExperimentCommandOutput extends ExperimentResponse, __Metad
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, RampExperimentCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, RampExperimentCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, RampExperimentCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, RampExperimentCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // RampExperimentInput
  *   workspace_id: "STRING_VALUE", // required

@@ -40,8 +40,8 @@ export interface GetExperimentCommandOutput extends ExperimentResponse, __Metada
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetExperimentCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetExperimentCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetExperimentCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetExperimentCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetExperimentInput
  *   workspace_id: "STRING_VALUE", // required
