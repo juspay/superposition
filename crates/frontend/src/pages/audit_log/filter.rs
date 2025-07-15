@@ -424,11 +424,11 @@ pub fn audit_log_filter_widget(
                         on_click=move |event| {
                             event.prevent_default();
                             let filters = filters_buffer_rws.get();
+                            close_drawer("audit_log_filter_drawer");
                             batch(|| {
                                 filters_rws.set(filters);
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
-                            close_drawer("audit_log_filter_drawer");
                         }
                     />
                     <Button
@@ -437,12 +437,12 @@ pub fn audit_log_filter_widget(
                         icon_class="ri-restart-line"
                         on_click=move |event| {
                             event.prevent_default();
+                            close_drawer("audit_log_filter_drawer");
                             batch(|| {
                                 filters_rws.set(AuditLogFilters::default());
                                 filters_buffer_rws.set(AuditLogFilters::default());
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
-                            close_drawer("audit_log_filter_drawer");
                         }
                     />
                 </div>
