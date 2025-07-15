@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.79.1 - 2025-07-15
+### Package updates
+- superposition_core bumped to superposition_core-v0.1.2
+### Global changes
+#### Bug Fixes
+- rename core to superposition_core - (c899522) - Pratik Mishra
+
+- - -
+
 ## v0.78.0 - 2025-07-10
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.13.3
