@@ -62,3 +62,7 @@ clients/generated/smithy/ts
 # Intellij
 **/.idea
 docker-compose/postgres/data
+clients/generated/smithy/typescript/dist-cjs/
+clients/generated/smithy/typescript/dist-es/
+clients/generated/smithy/typescript/dist-types/
+clients/generated/smithy/typescript/tsconfig.*

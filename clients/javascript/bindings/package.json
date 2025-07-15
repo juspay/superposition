@@ -7,7 +7,8 @@
     "scripts": {
         "build": "tsc",
         "clean": "rimraf dist",
-        "prepack": "npm run clean && npm run build"
+        "prepack": "npm run clean && npm run build",
+        "prepublishOnly": "npm --no-git-tag-version version $VERSION"
     },
     "dependencies": {
         "koffi": "^2.11.0"

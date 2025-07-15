@@ -8,7 +8,8 @@
         "build": "tsc",
         "clean": "rimraf dist",
         "prepack": "npm run clean && npm run build",
-        "test": "jest"
+        "test": "jest",
+        "prepublishOnly": "npm --no-git-tag-version version $VERSION"
     },
     "dependencies": {
         "@openfeature/server-sdk": "^1.13.0",

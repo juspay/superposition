@@ -241,13 +241,17 @@ jobs:
               if: matrix.platform.os != 'windows-latest'
               run: |
                   cargo build --package core --release --target ${{ matrix.platform.target }}
-                  zip -r ${{ matrix.platform.core_zip_name }} target/${{ matrix.platform.target }}/release/${{ matrix.platform.core_bin_name }} crates/core/src/core.h
+                  mv target/${{ matrix.platform.target }}/release/${{ matrix.platform.core_bin_name }} ${{ matrix.platform.core_bin_name }}
+                  mv crates/core/src/core.h core.h
+                  zip -r ${{ matrix.platform.core_zip_name }} ${{ matrix.platform.core_bin_name }} core.h
 
             - name: Build and package for ${{ matrix.platform.os }} on windows
               if: matrix.platform.os == 'windows-latest'
               run: |
                   cargo build --package core --release --target ${{ matrix.platform.target }}
-                  Compress-Archive -Path "target\${{ matrix.platform.target }}\release\${{ matrix.platform.core_bin_name }}","crates\core\src\core.h" -DestinationPath ${{ matrix.platform.core_zip_name }}
+                  Move-Item -Path "target\${{ matrix.platform.target }}\release\${{ matrix.platform.core_bin_name }}" -Destination "lib${{ matrix.platform.core_bin_name }}"
+                  Move-Item -Path "crates\core\src\core.h" -Destination "core.h"
+                  Compress-Archive -Path "lib${{ matrix.platform.core_bin_name }}","core.h" -DestinationPath ${{ matrix.platform.core_zip_name }}
 
             # Why multiple upload artifact jobs? Read: https://github.com/actions/upload-artifact/issues/331
 
@@ -287,7 +291,7 @@ jobs:
             - name: List downloaded artifacts
               run: |
                   echo "Downloaded artifacts:"
-                  find rust-binaries -type f -name "*.zip" | sort
+                  ls -lar rust-binaries
 
             - name: Extract and organize native libraries
               run: |
@@ -299,7 +303,7 @@ jobs:
                       unzip -o "$zip_file" -d temp_extract/
 
                       # Find and copy the native library
-                      find temp_extract -name "libsuperposition_core.*" -o -name "superposition_core.dll" | while read lib; do
+                      find temp_extract -name "libsuperposition_core.*" -o -name "superposition_core.*" | while read lib; do
                           filename=$(basename "$lib")
                           extension="${filename##*.}"
 
@@ -332,7 +336,7 @@ jobs:
                           mkdir -p "$target_dir"
 
                           # Copy the file
-                          cp "$lib" "$target_dir/"
+                          cp "$lib" "$target_dir/libsuperposition_core.$extension"
                           echo "Copied $filename (.$extension) to $target_dir/"
                       done
 
@@ -391,16 +395,22 @@ jobs:
 
             - name: Extract and organize native libraries
               run: |
-                  mkdir temp_extract
                   # Extract all native libraries
                   for zip_file in rust-binaries/*.zip; do
                       echo "Extracting $zip_file"
-                      unzip -o "$zip_file" -d temp_extract/
+                      zip_basename=$(basename "$zip_file" .zip)
+                      target_triple="${zip_basename#superposition_core-}"
+                      mkdir -p temp_extract/$target_triple
+                      unzip -o "$zip_file" -d temp_extract/$target_triple/
+
 
                       # Find and copy the native library
-                      find temp_extract -name "libsuperposition_core.*" -o -name "superposition_core.dll" | while read lib; do
-                          cp "$lib" clients/python/bindings/superposition_bindings/
-                          echo "Copied $(basename $lib)"
+                      find temp_extract/$target_triple -name "libsuperposition_core.*" -o -name "superposition_core.*" | while read lib; do
+                          filename=$(basename "$lib")
+                          extension="${filename##*.}"
+                          file="libsuperposition_core-$target_triple.$extension"
+                          cp "$lib" clients/python/bindings/superposition_bindings/$file
+                          echo "Copied $file"
                       done
 
                       # Clean up temp directory
@@ -465,9 +475,95 @@ jobs:
                   name: superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl
                   path: python-wheels/superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl
 
-    # generate-js-pacakages:
+    generate-js-packages:
+        needs: [tag-release, generate-rust-binary]
+        permissions:
+            contents: read
+            packages: write
+        runs-on: ubuntu-latest
+        env:
+            VERSION: ${{ needs.tag-release.outputs.version }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20.0.0"
+                  registry-url: "https://npm.pkg.github.com"
+                  scope: "@juspay"
+
+            - name: Download all rust binary artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: rust-binaries
+                  pattern: superposition_core-*
+                  merge-multiple: true
+
+            - name: List downloaded artifacts
+              run: |
+                  echo "Downloaded artifacts:"
+                  find rust-binaries -type f -name "*.zip" | sort
+
+            - name: Extract and organize native libraries
+              run: |
+                  # Extract all native libraries
+                  for zip_file in rust-binaries/*.zip; do
+                      echo "Extracting $zip_file"
+                      zip_basename=$(basename "$zip_file" .zip)
+                      target_triple="${zip_basename#superposition_core-}"
+                      mkdir -p temp_extract/$target_triple
+                      unzip -o "$zip_file" -d temp_extract/$target_triple/
+
+
+                      # Find and copy the native library
+                      find temp_extract/$target_triple -name "libsuperposition_core.*" -o -name "superposition_core.*" | while read lib; do
+                          filename=$(basename "$lib")
+                          extension="${filename##*.}"
+                          file="libsuperposition_core-$target_triple.$extension"
+                          cp "$lib" clients/javascript/bindings/$file
+                          echo "Copied $file"
+                      done
+
+                      # Clean up temp directory
+                      rm -rf temp_extract
+                  done
+
+                  # List what we have
+                  echo "Native libraries in bindings package:"
+                  ls -la clients/javascript/bindings
+
+            - run: |
+                cd clients/javascript/bindings
+                npm ci
+            - run: |
+                cd clients/javascript/bindings
+                npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            
+            - run: |
+                cd clients/javascript/sdk
+                npm ci
+            - run: |
+                cd clients/javascript/sdk
+                npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  
+            - run: |
+                cd clients/javascript/open-feature-provider
+                npm ci
+            - run: |
+                cd clients/javascript/open-feature-provider
+                npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     release:
-        needs: generate-builds
+        needs: [tag-release, generate-rust-binary, generate-python-packages]
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
