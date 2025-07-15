@@ -182,7 +182,7 @@
               };
             };
           };
-          "core" = {
+          "superposition_core" = {
             imports = [ globalCrateConfig ];
             autoWire = [
               "crate"

@@ -1,7 +1,11 @@
 {
-    "name": "superposition-sdk",
+    "name": "@juspay/superposition-sdk",
     "description": "io.juspay/superposition-typescript-sdk client",
     "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/juspay/superposition.git"
+      },
     "scripts": {
         "build": "npm run build:types && npm run build:cjs && npm run build:es",
         "build:cjs": "tsc -p tsconfig.cjs.json",
