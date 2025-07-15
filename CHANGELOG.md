@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.79.0 - 2025-07-15
+### Package updates
+- superposition_core bumped to superposition_core-v0.1.1
+### Global changes
+#### Bug Fixes
+- propagate version through github output - (35f95d7) - datron
+- restore setup.py and setup JS pipeline (#591) - (8d5c73e) - Datron
+- rename core to superposition_core - (ae0d5aa) - Pratik Mishra
+#### Features
+- release pipeline (#587) - (01484d4) - Datron
+- added typescript experiment client and updated ffi_legacy - (446ce1f) - Saurav Suman
+
+- - -
+
 ## v0.78.0 - 2025-07-10
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.13.3
