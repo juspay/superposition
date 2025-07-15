@@ -208,20 +208,20 @@ jobs:
                 platform:
                     - os: ubuntu-latest
                       target: x86_64-unknown-linux-gnu
-                      core_bin_name: libsuperposition_core.so
-                      core_zip_name: superposition_core-x86_64-unknown-linux-gnu.zip
+                      superposition_core_bin_name: libsuperposition_core.so
+                      superposition_core_zip_name: superposition_core-x86_64-unknown-linux-gnu.zip
                     - os: macos-13
                       target: x86_64-apple-darwin
-                      core_bin_name: libsuperposition_core.dylib
-                      core_zip_name: superposition_core-x86_64-apple-darwin.zip
+                      superposition_core_bin_name: libsuperposition_core.dylib
+                      superposition_core_zip_name: superposition_core-x86_64-apple-darwin.zip
                     - os: macos-latest
                       target: aarch64-apple-darwin
-                      core_bin_name: libsuperposition_core.dylib
-                      core_zip_name: superposition_core-aarch64-apple-darwin.zip
+                      superposition_core_bin_name: libsuperposition_core.dylib
+                      superposition_core_zip_name: superposition_core-aarch64-apple-darwin.zip
                     - os: windows-latest
                       target: x86_64-pc-windows-msvc
-                      core_bin_name: superposition_core.dll
-                      core_zip_name: superposition_core-x86_64-pc-windows-msvc.zip
+                      superposition_core_bin_name: superposition_core.dll
+                      superposition_core_zip_name: superposition_core-x86_64-pc-windows-msvc.zip
 
         runs-on: ${{ matrix.platform.os }}
         steps:
@@ -240,26 +240,26 @@ jobs:
             - name: Build and package for ${{ matrix.platform.os }}
               if: matrix.platform.os != 'windows-latest'
               run: |
-                  cargo build --package core --release --target ${{ matrix.platform.target }}
-                  mv target/${{ matrix.platform.target }}/release/${{ matrix.platform.core_bin_name }} ${{ matrix.platform.core_bin_name }}
-                  mv crates/core/src/core.h core.h
-                  zip -r ${{ matrix.platform.core_zip_name }} ${{ matrix.platform.core_bin_name }} core.h
+                  cargo build --package superposition_core --release --target ${{ matrix.platform.target }}
+                  mv target/${{ matrix.platform.target }}/release/${{ matrix.platform.superposition_core_bin_name }} ${{ matrix.platform.superposition_core_bin_name }}
+                  mv crates/superposition_core/src/core.h core.h
+                  zip -r ${{ matrix.platform.superposition_core_zip_name }} ${{ matrix.platform.superposition_core_bin_name }} core.h
 
             - name: Build and package for ${{ matrix.platform.os }} on windows
               if: matrix.platform.os == 'windows-latest'
               run: |
-                  cargo build --package core --release --target ${{ matrix.platform.target }}
-                  Move-Item -Path "target\${{ matrix.platform.target }}\release\${{ matrix.platform.core_bin_name }}" -Destination "lib${{ matrix.platform.core_bin_name }}"
-                  Move-Item -Path "crates\core\src\core.h" -Destination "core.h"
-                  Compress-Archive -Path "lib${{ matrix.platform.core_bin_name }}","core.h" -DestinationPath ${{ matrix.platform.core_zip_name }}
+                  cargo build --package superposition_core --release --target ${{ matrix.platform.target }}
+                  Move-Item -Path "target\${{ matrix.platform.target }}\release\${{ matrix.platform.superposition_core_bin_name }}" -Destination "lib${{ matrix.platform.superposition_core_bin_name }}"
+                  Move-Item -Path "crates\superposition_core\src\core.h" -Destination "core.h"
+                  Compress-Archive -Path "lib${{ matrix.platform.superposition_core_bin_name }}","core.h" -DestinationPath ${{ matrix.platform.superposition_core_zip_name }}
 
             # Why multiple upload artifact jobs? Read: https://github.com/actions/upload-artifact/issues/331
 
-            - name: Upload core artifacts
+            - name: Upload superposition_core artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: ${{ matrix.platform.core_zip_name }}
-                  path: ${{ matrix.platform.core_zip_name }}
+                  name: ${{ matrix.platform.superposition_core_zip_name }}
+                  path: ${{ matrix.platform.superposition_core_zip_name }}
 
     generate-java-packages:
         needs: [tag-release, generate-rust-binary]
@@ -538,30 +538,16 @@ jobs:
             - run: |
                 cd clients/javascript/bindings
                 npm ci
-            - run: |
-                cd clients/javascript/bindings
-                npm publish
+                npm publish --scope=@juspay --access public
+                cd ../sdk
+                npm ci
+                npm publish --scope=@juspay --access public
+                cd ../open-feature-provider
+                npm ci
+                npm publish --scope=@juspay --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             
-            - run: |
-                cd clients/javascript/sdk
-                npm ci
-            - run: |
-                cd clients/javascript/sdk
-                npm publish
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  
-            - run: |
-                cd clients/javascript/open-feature-provider
-                npm ci
-            - run: |
-                cd clients/javascript/open-feature-provider
-                npm publish
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     release:
         needs: [tag-release, generate-rust-binary, generate-python-packages]
         runs-on: ubuntu-latest

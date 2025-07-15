@@ -1,9 +1,13 @@
 {
-    "name": "superposition-bindings",
+    "name": "@juspay/superposition-bindings",
     "version": "0.0.1",
     "description": "Native bindings for Superposition configuration resolution",
     "main": "./dist/native-resolver.js",
     "types": "./dist/native-resolver.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/juspay/superposition.git"
+      },
     "scripts": {
         "build": "tsc",
         "clean": "rimraf dist",
