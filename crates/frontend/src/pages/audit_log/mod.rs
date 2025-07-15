@@ -151,36 +151,33 @@ pub fn AuditLog() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8">
+        <div class="p-8 flex flex-col gap-4">
             <Suspense fallback=move || view! { <Skeleton /> }>
-                <div class="pb-4">
-                    {move || {
-                        let value = audit_log_resource.get();
-                        let total_items = match value {
-                            Some(v) => v.audit_logs.total_items.to_string(),
-                            _ => "0".to_string(),
-                        };
-                        view! {
+                {move || {
+                    let value = audit_log_resource.get();
+                    let total_items = match value {
+                        Some(v) => v.audit_logs.total_items.to_string(),
+                        _ => "0".to_string(),
+                    };
+                    view! {
+                        <div class="flex justify-between">
                             <Stat
                                 heading="Audit Log Entries"
                                 icon="ri-file-list-3-line"
                                 number=total_items
                             />
-                        }
-                    }}
-                </div>
-                <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
-                        <div class="flex justify-between">
-                            <div class="flex items-center gap-4">
-                                <h2 class="card-title">"Audit Log"</h2>
+                            <div class="flex items-end gap-4">
                                 <AuditLogFilterWidget
                                     pagination_params_rws
                                     filters_rws
                                 />
                             </div>
                         </div>
-                        <FilterSummary filters_rws />
+                    }
+                }}
+                <FilterSummary filters_rws />
+                <div class="card rounded-xl w-full bg-base-100 shadow">
+                    <div class="card-body">
                         {move || {
                             let value = audit_log_resource.get();
                             let pagination_params = pagination_params_rws.get();
