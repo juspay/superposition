@@ -1,23 +1,31 @@
 pub mod function_create;
 pub mod function_list;
 pub mod publish_form;
+pub mod types;
 pub mod utils;
 
 use std::ops::Deref;
 
 use chrono::{DateTime, Utc};
 use leptos::*;
-use leptos_router::use_params_map;
+use leptos_router::{use_params_map, A};
 use publish_form::PublishForm;
 use strum::IntoEnumIterator;
+use superposition_macros::box_params;
 use superposition_types::{
     api::functions::Stage,
+    custom_query::{CustomQuery, Query},
     database::models::{cac::FunctionType, ChangeReason, Description},
 };
+use types::PageParams;
 
 use crate::components::{
+    button::Button,
     function_form::FunctionEditor,
     skeleton::{Skeleton, SkeletonVariant},
+};
+use crate::query_updater::{
+    use_param_updater, use_signal_from_query, use_update_url_query,
 };
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::to_title_case;
@@ -136,8 +144,11 @@ pub fn function_page() -> impl IntoView {
     }));
     let show_publish_popup = RwSignal::new(false);
 
-    let selected_tab_rws = RwSignal::new(Stage::Published);
+    let page_params_rws = use_signal_from_query(move |query_string| {
+        Query::<PageParams>::extract_non_empty(&query_string).into_inner()
+    });
     let mode_rws = RwSignal::new(Mode::Viewer);
+    use_param_updater(move || box_params!(page_params_rws.get()));
 
     let function_resource = create_blocking_resource(
         move || (function_name.get_value(), workspace.get().0, org.get().0),
@@ -174,23 +185,25 @@ pub fn function_page() -> impl IntoView {
                             <div role="tablist" class="tabs tabs-lifted">
                                 {Stage::iter()
                                     .map(|tab| {
-                                        view! {
-                                            <a
-                                                role="tab"
+                                        let get_updated_query = use_update_url_query();
+                                        view!{
+                                            <A
+                                                href=get_updated_query("tab", Some(tab.to_string()))
+                                                attr:role="tab"
                                                 class=move || {
-                                                    if selected_tab_rws.get() == tab {
+                                                    if page_params_rws.with(|p| p.tab == tab) {
                                                         "tab tab-active [--tab-border-color:#a651f5] text-center font-bold"
                                                     } else {
                                                         "tab text-center font-bold"
                                                     }
                                                 }
                                                 on:click=move |_| {
-                                                    selected_tab_rws.set(tab);
+                                                    page_params_rws.update(|p| p.tab = tab);
                                                     mode_rws.set(Mode::Viewer);
                                                 }
                                             >
                                                 {to_title_case(&tab.to_string())}
-                                            </a>
+                                            </A>
                                         }
                                     })
                                     .collect_view()}
@@ -198,46 +211,43 @@ pub fn function_page() -> impl IntoView {
                             <div class="h-12 flex gap-2">
                                 <div class="flex justify-end join">
                                     <Show when=move || {
-                                        selected_tab_rws.get() == Stage::Draft
+                                        page_params_rws.with(|p| p.tab == Stage::Draft)
                                             && mode_rws.get() == Mode::Viewer
                                             && function
                                                 .published_at
                                                 .is_none_or(|val| val < function.draft_edited_at)
                                     }>
-                                        <button
-                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                            on:click=move |_| show_publish_popup.set(true)
-                                        >
-                                            <i class="ri-article-line" />
-                                            Publish
-                                        </button>
+                                        <Button
+                                            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                                            on_click=move |_| show_publish_popup.set(true)
+                                            icon_class="ri-article-line"
+                                            text="Publish"
+                                        />
                                     </Show>
                                     <Show when=move || {
-                                        selected_tab_rws.get() == Stage::Draft
+                                        page_params_rws.with(|p| p.tab == Stage::Draft)
                                             && mode_rws.get() == Mode::Viewer
                                     }>
-                                        <button
-                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                            on:click=move |_| mode_rws.set(Mode::Editor)
-                                        >
-                                            <i class="ri-edit-line" />
-                                            Edit
-                                        </button>
+                                        <Button
+                                            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                                            on_click=move |_| mode_rws.set(Mode::Editor)
+                                            icon_class="ri-edit-line"
+                                            text="Edit"
+                                        />
                                     </Show>
                                     <Show when=move || mode_rws.get() == Mode::Viewer>
-                                        <button
-                                            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                            on:click=move |_| mode_rws.set(Mode::Test)
-                                        >
-                                            <i class="ri-microscope-line" />
-                                            Test
-                                        </button>
+                                        <Button
+                                            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                                            on_click=move |_| mode_rws.set(Mode::Test)
+                                            icon_class="ri-microscope-line"
+                                            text="Test"
+                                        />
                                     </Show>
                                 </div>
                             </div>
                         </div>
                         {
-                            let selected_tab = selected_tab_rws.get();
+                            let selected_tab = page_params_rws.with(|p| p.tab);
                             let (version, action_time, action_by) = match selected_tab {
                                 Stage::Published => {
                                     (
@@ -267,7 +277,7 @@ pub fn function_page() -> impl IntoView {
                         <FunctionEditor
                             function_name=function_st.with_value(|f| f.function_name.clone())
                             function=function_st
-                                .with_value(|f| match selected_tab_rws.get() {
+                                .with_value(|f| match page_params_rws.with(|p| p.tab) {
                                     Stage::Published => {
                                         f.published_code
                                             .clone()
@@ -289,7 +299,7 @@ pub fn function_page() -> impl IntoView {
                                 mode_rws.set(Mode::Viewer);
                             }
                             mode=mode_rws
-                            selected_tab=selected_tab_rws
+                            selected_tab=Signal::derive(move || page_params_rws.with(|p| p.tab))
                             on_cancel=move |_| mode_rws.set(Mode::Viewer)
                         />
                         <Show when=move || show_publish_popup.get()>

@@ -400,7 +400,7 @@ pub fn experiment_group_form(
                             class="h-12 w-48 self-end"
                             text="Submit"
                             icon_class="ri-send-plane-line"
-                            on_click=move |ev| {
+                            on_click=move |ev: MouseEvent| {
                                 ev.prevent_default();
                                 on_submit(());
                             }

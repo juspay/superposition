@@ -1,7 +1,10 @@
 use leptos::*;
 
-use crate::utils::get_element_by_id;
 use web_sys::MouseEvent;
+
+use crate::utils::get_element_by_id;
+
+use super::button::{Button, ButtonStyle};
 
 pub fn open_drawer(id: &str) {
     match get_element_by_id::<web_sys::HtmlInputElement>(id) {
@@ -21,37 +24,29 @@ pub fn close_drawer(id: &str) {
     };
 }
 
-pub enum DrawerButtonStyle {
-    Fill,
-    Outline,
-}
-
 #[component]
 pub fn drawer_btn(
     #[prop(into)] drawer_id: String,
-    children: Children,
+    #[prop(into)] text: String,
+    #[prop(into)] icon_class: String,
     #[prop(into, default = Callback::new(|_| {}))] on_click: Callback<MouseEvent, ()>,
     #[prop(into, default = String::new())] class: String,
-    #[prop(default = DrawerButtonStyle::Fill)] style: DrawerButtonStyle,
+    #[prop(default = ButtonStyle::Fill)] style: ButtonStyle,
 ) -> impl IntoView {
     let open_drawer_id = drawer_id.clone();
-    let style = match style {
-        DrawerButtonStyle::Fill => "btn-purple drawer-button px-5 py-2.5 font-medium rounded-lg text-sm text-center",
-        DrawerButtonStyle::Outline => "btn btn-purple-outline w-[8rem] cursor-pointer",
-    }.to_string();
 
     view! {
-        <button
-            class=format!("{style} {class}")
-            id=format!("{}-btn", drawer_id)
-            on:click=move |e| {
+        <Button
+            style
+            class
+            id=format!("{drawer_id}-btn")
+            on_click=move |e| {
                 open_drawer(&open_drawer_id);
                 on_click.call(e);
             }
-        >
-
-            {children()}
-        </button>
+            text
+            icon_class
+        />
     }
 }
 

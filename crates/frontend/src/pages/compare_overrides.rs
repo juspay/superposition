@@ -31,9 +31,9 @@ use crate::{
         alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
     },
-    query_updater::{use_param_updater, use_signal_from_query},
+    query_updater::{use_param_updater, use_signal_from_query, use_update_url_query},
     types::{OrganisationId, Tenant},
-    utils::{url_or_string, use_url_base},
+    utils::url_or_string,
 };
 
 const DEFAULT_CONFIG_COLUMN: &str = "default_config";
@@ -193,16 +193,8 @@ pub fn compare_overrides() -> impl IntoView {
     });
 
     let redirect_url = move |prefix: Option<String>| -> String {
-        let base = use_url_base();
-        let tenant = workspace.get_untracked().0;
-        let org_id = org.get_untracked().0;
-        let context_vec = context_vec_rws.get_untracked();
-        let mut redirect_url =
-            format!("{base}/admin/{org_id}/{tenant}/compare?{context_vec}");
-        if let Some(prefix) = prefix {
-            redirect_url = format!("{redirect_url}&prefix={prefix}");
-        }
-        redirect_url
+        let get_updated_query = use_update_url_query();
+        get_updated_query("prefix", prefix)
     };
 
     let expand = Callback::new(move |label: String| {
@@ -264,6 +256,7 @@ pub fn compare_overrides() -> impl IntoView {
                                         id="compare"
                                         text="Add Comparision"
                                         class="self-end"
+                                        icon_class="ri-add-line"
                                         on_click=move |_| {
                                             req_inprogress_ws.set(true);
                                             let context = context_rs.get();

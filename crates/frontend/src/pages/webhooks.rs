@@ -257,10 +257,12 @@ pub fn webhooks() -> impl IntoView {
                     <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat heading="Webhooks" icon="ri-webhook-fill" number=total_items />
-                            <DrawerBtn drawer_id="webhook_drawer" class="self-end flex gap-2">
-                                Create Webhook
-                                <i class="ri-edit-2-line" />
-                            </DrawerBtn>
+                            <DrawerBtn
+                                drawer_id="webhook_drawer"
+                                class="self-end"
+                                text="Create Webhook"
+                                icon_class="ri-add-line"
+                            />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
                             <div class="card-body overflow-y-auto overflow-x-visible">

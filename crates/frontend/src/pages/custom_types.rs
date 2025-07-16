@@ -224,10 +224,12 @@ pub fn types_page() -> impl IntoView {
                                 icon="ri-t-box-fill"
                                 number=types.len().to_string()
                             />
-                            <DrawerBtn drawer_id=TYPE_DRAWER_ID class="self-end flex gap-2">
-                                Create Type
-                                <i class="ri-add-fill" />
-                            </DrawerBtn>
+                            <DrawerBtn
+                                drawer_id=TYPE_DRAWER_ID
+                                class="self-end"
+                                text="Create Type"
+                                icon_class="ri-add-line"
+                            />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
                             <div class="card-body overflow-y-auto overflow-x-visible">

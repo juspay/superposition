@@ -5,11 +5,12 @@ use superposition_types::{
     api::experiment_groups::ExpGroupFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
 };
+use web_sys::MouseEvent;
 
 use crate::components::{
     badge::GrayPill,
-    button::Button,
-    drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+    button::{Button, ButtonStyle},
+    drawer::{close_drawer, Drawer, DrawerBtn},
     form::label::Label,
 };
 
@@ -137,11 +138,10 @@ pub(super) fn experiment_group_filter_widget(
         <DrawerBtn
             drawer_id="experiment_group_filter_drawer"
             class="!h-9 !min-h-[32px] !w-fit px-2"
-            style=DrawerButtonStyle::Outline
-        >
-            Filters
-            <i class="ri-filter-3-line"></i>
-        </DrawerBtn>
+            style=ButtonStyle::Outline
+            text="Filters"
+            icon_class="ri-filter-3-line"
+        />
         <Drawer
             id="experiment_group_filter_drawer"
             header="Experiment Group Filters"
@@ -207,7 +207,7 @@ pub(super) fn experiment_group_filter_widget(
                         class="h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |event| {
+                        on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
                             close_drawer("experiment_group_filter_drawer");
@@ -221,7 +221,7 @@ pub(super) fn experiment_group_filter_widget(
                         class="h-12 w-48"
                         text="Reset"
                         icon_class="ri-restart-line"
-                        on_click=move |event| {
+                        on_click=move |event: MouseEvent| {
                             close_drawer("experiment_group_filter_drawer");
                             event.prevent_default();
                             batch(|| {

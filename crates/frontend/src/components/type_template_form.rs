@@ -6,6 +6,7 @@ use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::api::type_templates::TypeTemplateUpdateRequest;
 use utils::try_update_payload;
+use web_sys::MouseEvent;
 
 use crate::api::get_type_template;
 use crate::components::change_summary::{
@@ -175,7 +176,7 @@ pub fn type_template_form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |ev| {
+                        on_click=move |ev: MouseEvent| {
                             ev.prevent_default();
                             on_submit(())
                         }

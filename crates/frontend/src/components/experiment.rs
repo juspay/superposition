@@ -7,9 +7,10 @@ use superposition_types::database::models::experimentation::{
     ExperimentStatusType, Variant, VariantType,
 };
 
-use crate::components::table::types::Column;
-use crate::components::table::Table;
-
+use crate::components::{
+    button::Button,
+    table::{types::Column, Table},
+};
 use crate::logic::Conditions;
 use crate::schema::HtmlDisplay;
 
@@ -154,27 +155,24 @@ where
     HE: Fn() + 'static + Clone,
 {
     view! {
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_edit() }
-        >
-            <i class="ri-edit-line" />
-            Edit
-        </button>
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_discard() }
-        >
-            <i class="ri-delete-bin-line" />
-            Discard
-        </button>
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_start() }
-        >
-            <i class="ri-guide-line" />
-            Start
-        </button>
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+            on_click=move |_| handle_edit()
+            icon_class="ri-edit-line"
+            text="Edit"
+        />
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+            on_click=move |_| handle_discard()
+            icon_class="ri-delete-bin-line"
+            text="Discard"
+        />
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+            on_click=move |_| handle_start()
+            icon_class="ri-guide-line"
+            text="Start"
+        />
     }
 }
 
@@ -192,36 +190,30 @@ where
     HP: Fn() + 'static + Clone,
 {
     view! {
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_discard() }
-        >
-
-            <i class="ri-delete-bin-line" />
-            Discard
-        </button>
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_conclude() }
-        >
-
-            <i class="ri-stop-circle-line" />
-            Conclude
-        </button>
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_ramp() }
-        >
-            <i class="ri-flight-takeoff-line" />
-            Ramp
-        </button>
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_pause() }
-        >
-            <i class="ri-pause-line" />
-            Pause
-        </button>
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg"
+            on_click=move |_| handle_discard()
+            icon_class="ri-delete-bin-line"
+            text="Discard"
+        />
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg"
+            on_click=move |_| handle_conclude()
+            icon_class="ri-stop-circle-line"
+            text="Conclude"
+        />
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg"
+            on_click=move |_| handle_ramp()
+            icon_class="ri-flight-takeoff-line"
+            text="Ramp"
+        />
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg"
+            on_click=move |_| handle_pause()
+            icon_class="ri-pause-line"
+            text="Pause"
+        />
     }
 }
 
@@ -252,21 +244,18 @@ where
     HD: Fn() + 'static + Clone,
 {
     view! {
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_resume() }
-        >
-            <i class="ri-play-line" />
-            Resume
-        </button>
-        <button
-            class="btn join-item text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            on:click=move |_| { handle_discard() }
-        >
-
-            <i class="ri-delete-bin-line" />
-            Discard
-        </button>
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg"
+            on_click=move |_| handle_resume()
+            icon_class="ri-play-line"
+            text="Resume"
+        />
+        <Button
+            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg"
+            on_click=move |_| handle_discard()
+            icon_class="ri-delete-bin-line"
+            text="Discard"
+        />
     }
 }
 

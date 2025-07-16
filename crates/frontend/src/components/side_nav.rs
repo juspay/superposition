@@ -3,6 +3,7 @@ use leptos_router::{use_location, use_route, A};
 use superposition_types::{api::workspace::WorkspaceResponse, PaginatedResponse};
 
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
+use crate::providers::csr_provider::use_client_side_ready;
 use crate::types::{AppRoute, OrganisationId, Tenant};
 use crate::utils::use_url_base;
 
@@ -78,6 +79,7 @@ pub fn workspace_selector(
     #[prop(into)] app_routes: Signal<Vec<AppRoute>>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let client_side_ready = use_client_side_ready();
 
     let base = use_url_base();
     let route_context = use_route();
@@ -106,8 +108,6 @@ pub fn workspace_selector(
     });
 
     let search_term_rws = RwSignal::new(String::new());
-    let csr_rws = RwSignal::new(false);
-    Effect::new(move |_| csr_rws.set(true));
 
     let node_ref = create_node_ref::<html::Input>();
 
@@ -137,7 +137,7 @@ pub fn workspace_selector(
                     tabindex="0"
                     class="dropdown-content menu z-[1000] max-h-96 w-[inherit] p-2 flex-nowrap bg-base-100 rounded-box overflow-y-scroll overflow-x-hidden shadow"
                 >
-                    <Show when=move || csr_rws.get()>
+                    <Show when=move || *client_side_ready.get()>
                         <label class="input input-bordered mb-3 flex items-center gap-2 h-10">
                             <i class="ri-search-line"></i>
                             <input
