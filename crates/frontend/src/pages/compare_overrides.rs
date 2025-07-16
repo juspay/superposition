@@ -229,7 +229,7 @@ pub fn compare_overrides() -> impl IntoView {
     });
 
     view! {
-        <div class="h-screen p-8 flex flex-col gap-8">
+        <div class="h-full flex flex-col gap-8">
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block /> }
             }>
@@ -301,7 +301,7 @@ pub fn compare_overrides() -> impl IntoView {
                 </div>
             </Suspense>
             <Suspense fallback=move || {
-                view! { <Skeleton /> }
+                view! { <Skeleton variant=SkeletonVariant::Block /> }
             }>
                 {move || {
                     let mut filtered_rows = resolved_config_resource.get().unwrap_or_default();
@@ -326,7 +326,7 @@ pub fn compare_overrides() -> impl IntoView {
 
                     view! {
                         <div class="card min-h-[200px] w-full overflow-hidden bg-base-100 rounded-xl shadow">
-                            <div class="card-body overflow-y-auto">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <div class="flex justify-between">
                                     <BreadCrums redirect_url bread_crums=bread_crums.get() />
                                     <label

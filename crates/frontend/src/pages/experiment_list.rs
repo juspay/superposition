@@ -131,10 +131,8 @@ pub fn experiment_list() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="h-full flex flex-col gap-4">
                 {move || {
                     let value = combined_resource.get();
                     let total_items = match value {
@@ -163,8 +161,8 @@ pub fn experiment_list() -> impl IntoView {
                         </div>
                     }
                 }} <FilterSummary filters_rws dimension_params_rws />
-                <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
+                <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                    <div class="card-body overflow-y-auto overflow-x-visible">
                         {move || {
                             let value = combined_resource.get();
                             let pagination_params = pagination_params_rws.get();
@@ -207,6 +205,7 @@ pub fn experiment_list() -> impl IntoView {
                                     view! {
                                         <ConditionCollapseProvider>
                                             <Table
+                                                class="!overflow-y-auto"
                                                 rows=data
                                                 key_column="id".to_string()
                                                 columns=table_columns
@@ -221,39 +220,39 @@ pub fn experiment_list() -> impl IntoView {
                         }}
                     </div>
                 </div>
-                {move || {
-                    let CombinedResource {
-                        dimensions: dim,
-                        default_config: def_conf,
-                        experiments: _,
-                    } = combined_resource.get().unwrap_or_default();
-                    let _ = reset_exp_form.get();
-                    view! {
-                        <Drawer
-                            id="create_exp_drawer"
-                            header="Create New Experiment"
-                            width_class="max-w-[780px] min-w-[680px] w-[45vw]"
-                            handle_close=move || {
-                                close_drawer("create_exp_drawer");
-                                set_exp_form.update(|i| *i += 1);
-                            }
-                        >
+            </div>
+            {move || {
+                let CombinedResource {
+                    dimensions: dim,
+                    default_config: def_conf,
+                    experiments: _,
+                } = combined_resource.get().unwrap_or_default();
+                let _ = reset_exp_form.get();
+                view! {
+                    <Drawer
+                        id="create_exp_drawer"
+                        header="Create New Experiment"
+                        width_class="max-w-[780px] min-w-[680px] w-[45vw]"
+                        handle_close=move || {
+                            close_drawer("create_exp_drawer");
+                            set_exp_form.update(|i| *i += 1);
+                        }
+                    >
 
-                            <EditorProvider>
-                                <ExperimentForm
-                                    context=Conditions::default()
-                                    variants=VariantFormTs::default()
-                                    dimensions=dim.clone()
-                                    default_config=def_conf.clone()
-                                    handle_submit=handle_submit_experiment_form
-                                    metrics=workspace_settings.get_value().metrics
-                                />
-                            </EditorProvider>
-                        </Drawer>
-                    }
-                }}
+                        <EditorProvider>
+                            <ExperimentForm
+                                context=Conditions::default()
+                                variants=VariantFormTs::default()
+                                dimensions=dim.clone()
+                                default_config=def_conf.clone()
+                                handle_submit=handle_submit_experiment_form
+                                metrics=workspace_settings.with_value(|w| w.metrics.clone())
+                            />
+                        </EditorProvider>
+                    </Drawer>
+                }
+            }}
 
-            </Suspense>
-        </div>
+        </Suspense>
     }
 }

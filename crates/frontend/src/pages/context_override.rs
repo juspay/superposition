@@ -192,7 +192,7 @@ fn form(
         <div class="flex flex-col gap-5">
             <ContextForm
                 dimensions=dimensions.get_value()
-                resolve_mode=workspace_settings.get_value().strict_mode
+                resolve_mode=workspace_settings.with_value(|w| w.strict_mode)
                 context=context_rs.get_untracked()
                 on_context_change=move |new_context| context_ws.set(new_context)
                 fn_environment
@@ -358,7 +358,7 @@ fn autofill_experiment_form(
                                         default_config=default_config.get_value()
                                         dimensions=dimensions.get_value()
                                         handle_submit
-                                        metrics=workspace_settings.get_value().metrics
+                                        metrics=workspace_settings.with_value(|w| w.metrics.clone())
                                     />
                                 }
                             }
@@ -372,7 +372,7 @@ fn autofill_experiment_form(
                                         default_config=default_config.get_value()
                                         dimensions=dimensions.get_value()
                                         handle_submit
-                                        metrics=workspace_settings.get_value().metrics
+                                        metrics=workspace_settings.with_value(|w| w.metrics.clone())
                                     />
                                 }
                             }
@@ -590,7 +590,7 @@ pub fn context_override() -> impl IntoView {
 
     view! {
         <Suspense fallback=move || view! { <Skeleton /> }>
-            <div class="relative h-screen p-8 flex flex-col gap-8">
+            <div class="relative h-full flex flex-col gap-8">
                 <div class="flex flex-col gap-6 flex-1 overflow-y-scroll" on:scroll=on_scroll>
                     <div class="flex justify-between">
                         {move || {

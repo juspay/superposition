@@ -151,10 +151,10 @@ pub fn function_page() -> impl IntoView {
     );
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
-            }>
+        <Suspense fallback=move || {
+            view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
+        }>
+            <div class="flex flex-col gap-4">
                 {move || {
                     let function = match function_resource.get() {
                         Some(Some(func)) => func,
@@ -305,8 +305,7 @@ pub fn function_page() -> impl IntoView {
                     }
                         .into_view()
                 }}
-
-            </Suspense>
-        </div>
+            </div>
+        </Suspense>
     }
 }

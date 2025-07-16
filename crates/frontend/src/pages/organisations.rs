@@ -50,42 +50,40 @@ pub fn organisations() -> impl IntoView {
     });
 
     view! {
-        <form class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-                {move || {
-                    let organisations = organisation_resource.get().unwrap_or_default();
-                    let table_rows = organisations
-                        .clone()
-                        .into_iter()
-                        .map(|organisation| {
-                            let mut map = Map::new();
-                            map.insert(
-                                String::from("organisation_id"),
-                                Value::String(organisation),
-                            );
-                            map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                let organisations = organisation_resource.get().unwrap_or_default();
+                let table_rows = organisations
+                    .clone()
+                    .into_iter()
+                    .map(|organisation| {
+                        let mut map = Map::new();
+                        map.insert(String::from("organisation_id"), Value::String(organisation));
+                        map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                view! {
+                    <form class="h-full flex flex-col gap-4">
                         <Stat
                             heading="Oraganisations"
                             icon="ri-building-fill"
                             number=organisations.len().to_string()
                         />
-                        <div class="card rounded-lg w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <Table
+                                    class="!overflow-y-auto"
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
                                 />
                             </div>
                         </div>
-                    }
-                }}
-            </Suspense>
-        </form>
+                    </form>
+                }
+            }}
+        </Suspense>
     }
 }

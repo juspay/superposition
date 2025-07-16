@@ -10,9 +10,7 @@ use crate::{
 };
 use leptos::*;
 use leptos_router::*;
-use superposition_types::{
-    api::workspace::WorkspaceResponse, custom_query::PaginationParams, PaginatedResponse,
-};
+use superposition_types::custom_query::PaginationParams;
 
 pub fn use_tenant() -> Signal<Tenant> {
     let params_map = use_params_map();
@@ -33,79 +31,68 @@ pub fn use_org() -> Signal<OrganisationId> {
 }
 
 #[component]
-fn workspace_provider(
-    workspace_context_not_needed: bool,
-    workspaces: Resource<String, PaginatedResponse<WorkspaceResponse>>,
-    children: ChildrenFn,
-) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
-    let children = StoredValue::new(children);
-
+pub fn common_layout(children: Children) -> impl IntoView {
     view! {
-        <Suspense fallback=move || {
-            view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
-        }>
-            {move || {
-                let workspace = workspace.get().0;
-                let Some(workspace_items) = workspaces.get() else {
-                    logging::log!("No workspaces found");
-                    return view! { <Skeleton variant=SkeletonVariant::DetailPage /> }.into_view();
-                };
-                if workspace_context_not_needed {
-                    logging::log!("No workspace {} found", workspace);
-                    return view! { <div>{children.get_value()()}</div> }.into_view();
-                }
-                let Some(workspace_settings) = workspace_items
-                    .data
-                    .into_iter()
-                    .find(|w| w.workspace_name == workspace) else {
-                    return view! { <Skeleton variant=SkeletonVariant::DetailPage /> }.into_view();
-                };
-                provide_context(StoredValue::new(workspace_settings));
-                view! { <div>{children.get_value()()}</div> }.into_view()
-            }}
-        </Suspense>
+        <main class="relative h-full w-full p-8 overflow-x-hidden transition-all duration-200 ease-soft-in-out">
+            {children()}
+        </main>
+        {move || {
+            let alert_queue = use_context::<ReadSignal<AlertQueue>>();
+            let alerts = match alert_queue {
+                Some(queue) => queue.get().alerts,
+                None => Vec::new(),
+            };
+            view! { <Toast alerts /> }
+        }}
     }
 }
 
 #[component]
-pub fn layout(
-    #[prop(default = true)] show_side_nav: bool,
-    children: ChildrenFn,
-) -> impl IntoView {
+pub fn layout() -> impl IntoView {
     let workspace = use_tenant();
     let org = use_org();
     provide_context(workspace);
     provide_context(org);
-    let workspaces = create_blocking_resource(
+
+    let workspace_resource = create_blocking_resource(
         move || (org.get().0),
         |org_id| async move {
-            let filters = PaginationParams::all_entries();
-            fetch_workspaces(&filters, &org_id)
+            fetch_workspaces(&PaginationParams::all_entries(), &org_id)
                 .await
                 .unwrap_or_default()
         },
     );
-    let children = StoredValue::new(children);
-    view! {
-        <WorkspaceProvider workspace_context_not_needed=!show_side_nav workspaces>
-            <Show when=move || show_side_nav>
-                <SideNav workspace_resource=workspaces />
-            </Show>
-            // params_map=params_map
-            <main class=format!(
-                "ease-soft-in-out {} relative h-full max-h-screen rounded-xl transition-all duration-200 overflow-y-auto",
-                if show_side_nav { "xl:ml-[350px]" } else { "p-10" },
-            )>{children.get_value()()}</main>
 
-            {move || {
-                let alert_queue = use_context::<ReadSignal<AlertQueue>>();
-                let alerts = match alert_queue {
-                    Some(queue) => queue.get().alerts,
-                    None => Vec::new(),
-                };
-                view! { <Toast alerts /> }
-            }}
-        </WorkspaceProvider>
+    view! {
+        <SideNav workspace_resource />
+        <CommonLayout>
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
+            }>
+                {move || {
+                    let workspace = workspace.get().0;
+                    let Some(resource) = workspace_resource.get() else {
+                        logging::log!("No workspaces found");
+                        return view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
+                            .into_view();
+                    };
+                    let Some(workspace_settings) = resource
+                        .data
+                        .iter()
+                        .find(|w| w.workspace_name == workspace) else {
+                        logging::log!("No such workspaces found");
+                        return view! {
+                            <div>
+                                "No such workspace found. Please choose a valid workspace from the dropdown"
+                            </div>
+                        }
+                            .into_view();
+                    };
+                    provide_context(StoredValue::new(workspace_settings.clone()));
+
+                    view! { <Outlet /> }
+                }}
+            </Suspense>
+        </CommonLayout>
     }
 }
