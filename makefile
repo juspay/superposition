@@ -121,7 +121,7 @@ setup-clients:
 		npm run build:cjs &&\
 		npm run build:types &&\
 		npm run build:es
-	cd clients/tests/typescript && bun install
+	cd clients/javascript/sdk/tests/typescript && bun install
 
 clients: smithy-clients setup-clients
 	
@@ -187,7 +187,7 @@ test: setup frontend superposition
 				--connect-timeout 2 \
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
-	cd clients/tests/typescript && bun test
+	cd clients/javascript/sdk/tests/typescript && bun test
 	-@pkill -f target/debug/superposition &
 
 ## npm run test

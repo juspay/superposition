@@ -33,7 +33,7 @@ cac_toml = { path = "crates/cac_toml" }
 cac_client = { path = "crates/cac_client" }
 experimentation_client = { path = "crates/experimentation_client" }
 superposition_types = { path = "crates/superposition_types" }
-js_client = { path = "clients/js" }
+js_client = { path = "clients/javascript-browser" }
 haskell_client = { path = "clients/haskell" }
 superposition_macros = { path = "crates/superposition_macros" }
 superposition_derives = { path = "crates/superposition_derives" }
