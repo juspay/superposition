@@ -64,8 +64,9 @@ pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn DisplayDefault>> + 'st
 }
 
 fn use_query_string() -> Memo<String> {
+    let query_memo = use_query_map();
     Memo::new(move |_| {
-        use_query_map()
+        query_memo
             .try_get()
             .map(|q| q.to_query_string())
             .map(|s| s.strip_prefix('?').map(String::from).unwrap_or(s))
@@ -87,4 +88,18 @@ pub fn use_signal_from_query<T: Clone + PartialEq>(
     });
 
     signal
+}
+
+pub fn use_update_url_query() -> impl Fn(&str, Option<String>) -> String {
+    let query_params = use_query_map();
+
+    move |param: &str, value: Option<String>| {
+        let mut params = query_params.get().clone();
+        if let Some(value) = value {
+            params.insert(param.to_string(), value);
+        } else {
+            params.remove(param);
+        }
+        params.to_query_string()
+    }
 }

@@ -3,7 +3,7 @@ use leptos_meta::*;
 use leptos_router::*;
 use serde_json::json;
 
-use crate::hoc::layout::{use_org, CommonLayout, Layout};
+use crate::hoc::layout::{use_org, CommonLayout, Layout, Providers};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
@@ -19,7 +19,6 @@ use crate::pages::{
     default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
     organisations::Organisations, webhooks::Webhooks, workspace::Workspace,
 };
-use crate::providers::alert_provider::AlertProvider;
 use crate::types::Envs;
 
 #[component]
@@ -93,7 +92,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
         <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
         <Body class="h-screen m-0 flex bg-gray-50 overflow-y-hidden" />
         <Router base=service_prefix>
-            <AlertProvider>
+            <Providers>
                 <Routes base=service_prefix.to_string()>
                     <Route
                         ssr=SsrMode::InOrder
@@ -181,7 +180,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 // }
                 // />
                 </Routes>
-            </AlertProvider>
+            </Providers>
         </Router>
     }
 }

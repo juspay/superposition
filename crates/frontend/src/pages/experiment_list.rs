@@ -153,10 +153,11 @@ pub fn experiment_list() -> impl IntoView {
                                     filters_rws
                                     combined_resource=combined_resource.get().unwrap_or_default()
                                 />
-                                <DrawerBtn drawer_id="create_exp_drawer" class="flex gap-2">
-                                    Create Experiment
-                                    <i class="ri-edit-2-line" />
-                                </DrawerBtn>
+                                <DrawerBtn
+                                    drawer_id="create_exp_drawer"
+                                    text="Create Experiment"
+                                    icon_class="ri-add-line"
+                                />
                             </div>
                         </div>
                     }

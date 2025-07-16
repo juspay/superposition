@@ -40,7 +40,6 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
     },
     types::{OrganisationId, Tenant},
-    utils::use_url_base,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -62,9 +61,6 @@ fn table_columns(
     strict_mode: bool,
 ) -> Vec<Column> {
     let group_id = StoredValue::new(group_id);
-    let base = use_url_base();
-    let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
 
     vec![
         Column::new(
@@ -75,11 +71,6 @@ fn table_columns(
                 let experiment_id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                let path = format!(
-                    "{base}/admin/{}/{}/experiments/{experiment_id}",
-                    org.get().0,
-                    workspace.get().0
-                );
 
                 let description = row
                     .get("description")
@@ -93,7 +84,7 @@ fn table_columns(
                     .unwrap_or("")
                     .to_string();
                 view! {
-                    <A href=path class="btn-link m-1">
+                    <A href=format!("../../experiments/{experiment_id}") class="btn-link m-1">
                         {experiment_name}
                     </A>
                     <InfoDescription description=description change_reason=change_reason />
@@ -299,11 +290,9 @@ pub fn experiment_groups() -> impl IntoView {
                                     <h2 class="card-title">"Member Experiments"</h2>
                                     <DrawerBtn
                                         drawer_id="add_members_group_drawer"
-                                        class="flex gap-2"
-                                    >
-                                        Add Members
-                                        <i class="ri-add-large-fill" />
-                                    </DrawerBtn>
+                                        text="Add Members"
+                                        icon_class="ri-add-large-fill"
+                                    />
                                 </div>
                                 <Table
                                     class="!overflow-y-auto"

@@ -10,6 +10,7 @@ use superposition_types::{
     },
     database::types::DimensionWithMandatory,
 };
+use web_sys::MouseEvent;
 
 use crate::{
     components::{
@@ -346,7 +347,7 @@ pub fn context_filter_drawer(
                         class="h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |event| {
+                        on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             batch(|| {
                                 context_filters_rws.set(filters_buffer_rws.get());
@@ -360,7 +361,7 @@ pub fn context_filter_drawer(
                         class="h-12 w-48"
                         text="Reset"
                         icon_class="ri-restart-line"
-                        on_click=move |event| {
+                        on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             batch(|| {
                                 context_filters_rws.set(ContextListFilters::default());

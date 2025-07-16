@@ -38,12 +38,12 @@ use crate::{
     },
     components::{
         alert::AlertType,
-        button::Button,
+        button::{Button, ButtonStyle},
         change_form::ChangeForm,
         change_summary::{ChangeLogPopup, ChangeSummary},
         context_card::ContextCard,
         context_form::ContextForm,
-        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
         dropdown::{Dropdown, DropdownBtnType},
         experiment_form::{ExperimentForm, ExperimentFormType},
         override_form::OverrideForm,
@@ -644,20 +644,18 @@ pub fn context_override() -> impl IntoView {
                                 <div class="flex items-end gap-4">
                                     <DrawerBtn
                                         drawer_id="context_filter_drawer"
-                                        style=DrawerButtonStyle::Outline
+                                        style=ButtonStyle::Outline
                                         class="!h-9 !min-h-[32px] !w-fit px-2"
-                                    >
-                                        "Filters"
-                                        <i class="ri-filter-3-line"></i>
-                                    </DrawerBtn>
+                                        text="Filters"
+                                        icon_class="ri-filter-3-line"
+                                    />
                                     <DrawerBtn
-                                        class="h-fit flex gap-2"
+                                        class="h-fit"
                                         drawer_id="context_and_override_drawer"
                                         on_click=on_create_context_click
-                                    >
-                                        "Create Override"
-                                        <i class="ri-edit-2-line" />
-                                    </DrawerBtn>
+                                        text="Create Override"
+                                        icon_class="ri-add-line"
+                                    />
                                 </div>
                             }
                         }}

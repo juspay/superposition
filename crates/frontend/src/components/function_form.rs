@@ -20,7 +20,9 @@ use crate::components::{
     monaco_editor::MonacoEditor,
     skeleton::{Skeleton, SkeletonVariant},
 };
-use crate::providers::alert_provider::enqueue_alert;
+use crate::providers::{
+    alert_provider::enqueue_alert, csr_provider::use_client_side_ready,
+};
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
 
@@ -79,6 +81,7 @@ pub fn function_editor(
     #[prop(into, default = Signal::derive(|| Mode::Editor))] mode: Signal<Mode>,
     #[prop(into, default = Signal::derive(|| Stage::Draft))] selected_tab: Signal<Stage>,
 ) -> impl IntoView {
+    let client_side_ready = use_client_side_ready();
     let function_name_rws = RwSignal::new(function_name);
     let function_code_rws = RwSignal::new(function);
     let runtime_version_rws = RwSignal::new(if edit {
@@ -92,13 +95,10 @@ pub fn function_editor(
     let req_inprogress_rws = RwSignal::new(false);
     let function_type_rws = RwSignal::new(function_type);
 
-    let client_side = RwSignal::new(false);
-    Effect::new(move |_| client_side.set(true));
-
     view! {
         <form class="w-full flex flex-col 2.5xl:flex-row gap-5 justify-between">
             <Show
-                when=move || client_side.get()
+                when=move || *client_side_ready.get()
                 fallback=move || {
                     view! { <Skeleton variant=SkeletonVariant::Block style_class="w-full" /> }
                 }
@@ -307,8 +307,8 @@ fn edit_form(
                     <div class="flex justify-end gap-2">
                         <Button
                             class="h-12 w-48"
-                            text="Edit"
-                            icon_class="ri-edit-2-line"
+                            text=if edit { "Edit" } else { "Create" }
+                            icon_class=if edit { "ri-edit-2-line" } else { "ri-add-line" }
                             on_click=on_submit
                             loading
                         />

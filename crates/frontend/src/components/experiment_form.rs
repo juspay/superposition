@@ -22,6 +22,7 @@ use superposition_types::{
     },
 };
 use utils::{create_experiment, try_update_payload, update_experiment};
+use web_sys::MouseEvent;
 
 use crate::api::{experiment_groups, fetch_experiment};
 use crate::components::{
@@ -358,7 +359,7 @@ pub fn experiment_form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |ev| {
+                        on_click=move |ev: MouseEvent| {
                             ev.prevent_default();
                             on_submit();
                         }

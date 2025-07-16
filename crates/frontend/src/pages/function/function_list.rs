@@ -82,6 +82,7 @@ pub fn function_list() -> impl IntoView {
                                 href="create"
                                 text="Create Function"
                                 class="self-end h-10"
+                                icon_class="ri-add-line"
                             />
                         </div>
                     }

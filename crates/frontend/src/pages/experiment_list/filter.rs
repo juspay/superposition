@@ -11,14 +11,15 @@ use superposition_types::{
     },
     database::models::experimentation::ExperimentStatusType,
 };
+use web_sys::MouseEvent;
 
 use crate::{
     components::{
         badge::{GrayPill, ListPills},
-        button::Button,
+        button::{Button, ButtonStyle},
         condition_pills::Condition,
         context_form::ContextForm,
-        drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        drawer::{close_drawer, Drawer, DrawerBtn},
         form::label::Label,
         input::DateInput,
     },
@@ -287,11 +288,10 @@ pub(super) fn experiment_table_filter_widget(
         <DrawerBtn
             drawer_id="experiment_filter_drawer"
             class="!h-9 !min-h-[32px] !w-fit px-2"
-            style=DrawerButtonStyle::Outline
-        >
-            Filters
-            <i class="ri-filter-3-line"></i>
-        </DrawerBtn>
+            style=ButtonStyle::Outline
+            text="Filters"
+            icon_class="ri-filter-3-line"
+        />
         <Drawer
             id="experiment_filter_drawer"
             header="Experiment Filters"
@@ -470,7 +470,7 @@ pub(super) fn experiment_table_filter_widget(
                         class="h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |event| {
+                        on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             let filters = filters_buffer_rws.get();
                             let dimension_params = dimension_buffer_rws.get();
@@ -486,7 +486,7 @@ pub(super) fn experiment_table_filter_widget(
                         class="h-12 w-48"
                         text="Reset"
                         icon_class="ri-restart-line"
-                        on_click=move |event| {
+                        on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             batch(|| {
                                 filters_rws.set(ExperimentListFilters::default());

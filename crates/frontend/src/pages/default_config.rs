@@ -31,9 +31,9 @@ use crate::components::{
     },
 };
 use crate::providers::alert_provider::enqueue_alert;
+use crate::query_updater::use_update_url_query;
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::use_url_base;
 
 #[derive(Clone, Debug, Default)]
 pub struct RowData {
@@ -137,14 +137,8 @@ pub fn default_config() -> impl IntoView {
     });
 
     let redirect_url = move |prefix: Option<String>| -> String {
-        let base = use_url_base();
-        let tenant = workspace.get_untracked().0;
-        let org_id = org.get_untracked().0;
-        let mut redirect_url = format!("{base}/admin/{org_id}/{tenant}/default-config");
-        if let Some(prefix) = prefix {
-            redirect_url = format!("{redirect_url}?prefix={prefix}");
-        }
-        redirect_url
+        let get_updated_query = use_update_url_query();
+        get_updated_query("prefix", prefix)
     };
 
     let table_columns = create_memo(move |_| {
@@ -363,15 +357,13 @@ pub fn default_config() -> impl IntoView {
                                 />
                                 <DrawerBtn
                                     drawer_id="default_config_drawer"
-                                    class="flex gap-2"
                                     on_click=move |_| {
                                         drawer_type.set(DrawerType::Create);
                                         open_drawer("default_config_drawer");
                                     }
-                                >
-                                    Create Key
-                                    <i class="ri-edit-2-line" />
-                                </DrawerBtn>
+                                    text="Create Key"
+                                    icon_class="ri-add-line"
+                                />
                             </div>
                         </div>
                         <FilterSummary filters_rws />

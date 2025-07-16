@@ -23,7 +23,6 @@ use crate::components::{
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
-use crate::utils::use_url_base;
 
 #[component]
 pub fn workspace() -> impl IntoView {
@@ -115,14 +114,12 @@ pub fn workspace() -> impl IntoView {
         };
 
         let navigate = move |_: &str, row: &Map<String, Value>| {
-            let org_id = org_id.get().0;
             let workspace_name = row["workspace_name"].to_string().replace('"', "");
-            let base = use_url_base();
 
             view! {
                 <A
                     class="cursor-pointer text-blue-500"
-                    href=format!("{base}/admin/{org_id}/{workspace_name}/default-config")
+                    href=format!("../{workspace_name}/default-config")
                 >
                     {workspace_name}
                 </A>
@@ -246,10 +243,12 @@ pub fn workspace() -> impl IntoView {
                                 icon="ri-briefcase-fill"
                                 number=total_workspaces
                             />
-                            <DrawerBtn drawer_id="workspace_drawer" class="self-end flex gap-2">
-                                Create Workspace
-                                <i class="ri-edit-2-line" />
-                            </DrawerBtn>
+                            <DrawerBtn
+                                drawer_id="workspace_drawer"
+                                class="self-end"
+                                text="Create Workspace"
+                                icon_class="ri-add-line"
+                            />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
                             <div class="card-body overflow-y-auto overflow-x-visible">

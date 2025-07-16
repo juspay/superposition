@@ -5,7 +5,10 @@ use crate::{
         skeleton::{Skeleton, SkeletonVariant},
         toast::Toast,
     },
-    providers::alert_provider::AlertQueue,
+    providers::{
+        alert_provider::{AlertProvider, AlertQueue},
+        csr_provider::ClientSideReadyProvider,
+    },
     types::{OrganisationId, Tenant},
 };
 use leptos::*;
@@ -94,5 +97,14 @@ pub fn layout() -> impl IntoView {
                 }}
             </Suspense>
         </CommonLayout>
+    }
+}
+
+#[component]
+pub fn providers(children: Children) -> impl IntoView {
+    view! {
+        <ClientSideReadyProvider>
+            <AlertProvider>{children()}</AlertProvider>
+        </ClientSideReadyProvider>
     }
 }

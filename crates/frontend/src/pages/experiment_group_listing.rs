@@ -369,11 +369,9 @@ pub fn experiment_group_listing() -> impl IntoView {
                                 <ExperimentGroupFilterWidget filters_rws pagination_params_rws />
                                 <DrawerBtn
                                     drawer_id="create_exp_group_drawer".to_string()
-                                    class="flex gap-2"
-                                >
-                                    Create Group
-                                    <i class="ri-edit-2-line" />
-                                </DrawerBtn>
+                                    text="Create Group"
+                                    icon_class="ri-add-line"
+                                />
                             </div>
                         </div>
                     }
