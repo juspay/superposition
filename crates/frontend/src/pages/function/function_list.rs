@@ -66,10 +66,8 @@ pub fn function_list() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="h-full flex flex-col gap-4">
                 {move || {
                     let value = combined_resource
                         .get()
@@ -87,8 +85,8 @@ pub fn function_list() -> impl IntoView {
                             />
                         </div>
                     }
-                }} <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
+                }} <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                    <div class="card-body overflow-y-auto overflow-x-visible">
                         {move || {
                             let value = combined_resource.get();
                             let pagination_params = pagination_params_rws.get();
@@ -125,6 +123,7 @@ pub fn function_list() -> impl IntoView {
                                     };
                                     view! {
                                         <Table
+                                            class="!overflow-y-auto"
                                             rows=data
                                             key_column="id".to_string()
                                             columns=table_columns.get()
@@ -138,7 +137,7 @@ pub fn function_list() -> impl IntoView {
                         }}
                     </div>
                 </div>
-            </Suspense>
-        </div>
+            </div>
+        </Suspense>
     }
 }

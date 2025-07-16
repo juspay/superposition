@@ -20,7 +20,7 @@ pub fn create_function_view() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     view! {
-        <div class="p-8 flex flex-col gap-10">
+        <div class="flex flex-col gap-10">
             <h1 class="text-2xl font-extrabold">"Create Function"</h1>
             <FunctionEditor
                 edit=false

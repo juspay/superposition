@@ -2,10 +2,7 @@ use leptos::*;
 use leptos_router::{use_location, use_route, A};
 use superposition_types::{api::workspace::WorkspaceResponse, PaginatedResponse};
 
-use crate::components::{
-    nav_item::NavItem,
-    skeleton::{Skeleton, SkeletonVariant},
-};
+use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::types::{AppRoute, OrganisationId, Tenant};
 use crate::utils::use_url_base;
 
@@ -84,15 +81,28 @@ pub fn workspace_selector(
 
     let base = use_url_base();
     let route_context = use_route();
-    let original_path =
-        StoredValue::new(format!("{base}{}", route_context.original_path()));
-    let resolved_path = StoredValue::new({
-        let curr_path = route_context.path();
-        app_routes
+    let location = use_location();
+    let workspace_path_template = Signal::derive(move || {
+        let curr_path = location.pathname.get();
+        let current_tap_path = app_routes
             .get_untracked()
             .iter()
             .find_map(|r| curr_path.starts_with(&r.path).then_some(r.path.clone()))
-            .unwrap_or(curr_path)
+            .unwrap_or(curr_path.clone());
+
+        let resolved_path = route_context.path();
+        let original_path = format!("{base}{}", route_context.original_path());
+        let redirect_workspace =
+            std::iter::zip(original_path.split('/'), resolved_path.split('/'))
+                .map(|(o_token, r_token)| match o_token {
+                    ":tenant" => ":tenant",
+                    _ => r_token,
+                })
+                .map(String::from)
+                .collect::<Vec<_>>()
+                .join("/");
+
+        current_tap_path.replace(&resolved_path, &redirect_workspace)
     });
 
     let search_term_rws = RwSignal::new(String::new());
@@ -108,7 +118,7 @@ pub fn workspace_selector(
             <div class="dropdown dropdown-downm w-full max-w-xs">
                 <label
                     tabindex="0"
-                    class="select flex items-center shadow-md"
+                    class="hidden xl:flex max-xl:group-hover:flex select items-center shadow-md"
                     on:click:undelegated=move |_| {
                         if let Some(element) = node_ref.get() {
                             let _ = element.focus();
@@ -117,9 +127,15 @@ pub fn workspace_selector(
                 >
                     {move || { workspace.get().0 }}
                 </label>
+                <div
+                    tabindex="0"
+                    class="xl:hidden max-xl:group-hover:hidden select items-center shadow-md"
+                >
+                    <i class="ri-briefcase-line" />
+                </div>
                 <ul
                     tabindex="0"
-                    class="dropdown-content menu z-[1] max-h-96 w-[inherit] p-2 flex-nowrap bg-base-100 rounded-box overflow-y-scroll overflow-x-hidden shadow"
+                    class="dropdown-content menu z-[1000] max-h-96 w-[inherit] p-2 flex-nowrap bg-base-100 rounded-box overflow-y-scroll overflow-x-hidden shadow"
                 >
                     <Show when=move || csr_rws.get()>
                         <label class="input input-bordered mb-3 flex items-center gap-2 h-10">
@@ -150,19 +166,9 @@ pub fn workspace_selector(
                                 workspaces
                                     .into_iter()
                                     .map(move |option| {
-                                        let resolved_path = resolved_path.get_value();
-                                        let original_path = original_path.get_value();
-                                        let redirect_url = std::iter::zip(
-                                                original_path.split('/'),
-                                                resolved_path.split('/'),
-                                            )
-                                            .map(|(o_token, r_token)| match o_token {
-                                                ":tenant" => &option,
-                                                _ => r_token,
-                                            })
-                                            .map(String::from)
-                                            .collect::<Vec<_>>()
-                                            .join("/");
+                                        let redirect_url = workspace_path_template
+                                            .get()
+                                            .replace(":tenant", &option);
                                         let selected = workspace.get_untracked().0 == option;
                                         let disable_class = if selected {
                                             "pointer-events-none cursor-default"
@@ -195,62 +201,106 @@ pub fn workspace_selector(
 }
 
 #[component]
-pub fn side_nav(
-    workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
+pub fn nav_item(
+    is_active: bool,
+    href: String,
+    text: String,
+    icon: String,
 ) -> impl IntoView {
-    let location = use_location();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
-    let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let app_routes_rws = RwSignal::new(create_routes(
-        org.get_untracked().as_str(),
-        workspace.get_untracked().as_str(),
-    ));
-    let base = use_url_base();
-
-    create_effect(move |_| {
-        let current_path = location.pathname.get();
-
-        app_routes_rws.update(|app_routes| {
-            for route in app_routes {
-                if current_path.contains(&route.path) {
-                    route.key = format!("{}-{}", route.path, "active");
-                } else {
-                    route.key = route.path.to_string();
-                }
-            }
-        })
-    });
+    let (anchor_class, icon_wrapper_class, icon_class) = if is_active {
+        (
+            "active",
+            "text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80",
+            "text-white"
+        )
+    } else {
+        ("", "shadow-xl shadow-slate-300 bg-white", "text-purple-800")
+    };
 
     view! {
-        <div class="fixed z-990 inset-y-0 xl:left-0 h-full w-full max-w-xs py-4 pl-4 flex flex-col gap-2 overflow-y-auto bg-white xl:bg-transparent rounded-2xl -translate-x-full xl:translate-x-0 transition-transform duration-200">
+        <A
+            href
+            class=format!(
+                "py-2.5 px-2.5 xl:px-4 max-xl:group-hover:px-4 flex items-center gap-3 whitespace-nowrap {anchor_class}",
+            )
+        >
+            <div class=format!(
+                "w-8 h-8 pt-0.5 flex content-center justify-center rounded-lg {icon_wrapper_class}",
+            )>
+                <i class=format!("{icon} text-lg font-normal {icon_class}") />
+            </div>
+            <span class="max-xl:hidden max-xl:group-hover:block duration-300 opacity-100 pointer-events-none ease-soft">
+                {text}
+            </span>
+        </A>
+    }
+}
+
+#[component]
+pub fn nav_component(
+    is_placeholder: bool,
+    workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
+    app_routes: Signal<Vec<AppRoute>>,
+) -> impl IntoView {
+    let location = use_location();
+    let base = use_url_base();
+    let placeholder_class = if is_placeholder {
+        "xl:hidden"
+    } else {
+        "group max-xl:fixed max-xl:z-[999]"
+    };
+
+    view! {
+        <nav class=format!(
+            "{placeholder_class} h-full max-xl:min-w-fit xl:w-full max-xl:hover:w-full max-w-xs pl-2 xl:pl-4 max-xl:hover:pl-4 py-2 max-xl:pr-2 flex flex-col gap-2 overflow-x-visible bg-gray-50 max-xl:hover:rounded-r-xl max-xl:shadow-lg transition-all duration-500",
+        )>
+            <div class="xl:hidden max-xl:group-hover:hidden self-center py-[14px] flex justify-center items-center cursor-pointer">
+                <i class="ri-menu-line ri-xl h-10 w-fit px-2 flex items-center border-2 border-solid rounded-lg" />
+            </div>
             <A
                 href=format!("{base}/admin")
-                class="flex-0 px-8 py-6 text-sm font-semibold text-center text-slate-700 whitespace-nowrap transition-all duration-200"
+                class="max-xl:hidden max-xl:group-hover:block px-8 py-6 text-sm font-semibold text-center text-slate-700 whitespace-nowrap"
             >
                 Superposition Platform
             </A>
-            <WorkspaceSelector workspace_resource app_routes=app_routes_rws />
-            // <hr class="h-px mt-0 mb-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent"/>
-            <ul class="menu flex-1 h-full flex-nowrap gap-1 overflow-auto">
-                <For
-                    each=move || app_routes_rws.get()
-                    key=|route: &AppRoute| route.key.to_string()
-                    children=move |route: AppRoute| {
-                        let path = route.path.to_string();
-                        let is_active = location.pathname.get().contains(&path);
-                        view! {
-                            <li class="w-full">
-                                <NavItem
-                                    href=route.path.to_string()
-                                    icon=route.icon.to_string()
-                                    text=route.label.to_string()
-                                    is_active=is_active
-                                />
-                            </li>
-                        }
-                    }
-                />
+            <WorkspaceSelector workspace_resource app_routes />
+            <ul class="menu flex-1 h-full w-fit xl:w-full max-xl:group-hover:w-full !py-0 !px-2 flex-nowrap gap-1 overflow-y-auto">
+                {move || {
+                    let pathname = location.pathname.get();
+                    app_routes
+                        .get()
+                        .into_iter()
+                        .map(|route| {
+                            let is_active = pathname.contains(&route.path);
+                            view! {
+                                <li class="w-full">
+                                    <NavItem
+                                        href=route.path.to_string()
+                                        icon=route.icon.to_string()
+                                        text=route.label.to_string()
+                                        is_active
+                                    />
+                                </li>
+                            }
+                        })
+                        .collect_view()
+                }}
             </ul>
-        </div>
+        </nav>
+    }
+}
+
+#[component]
+pub fn side_nav(
+    workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
+) -> impl IntoView {
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let app_routes =
+        Signal::derive(move || create_routes(&org.get().0, &workspace.get().0));
+
+    view! {
+        <NavComponent is_placeholder=true workspace_resource app_routes />
+        <NavComponent is_placeholder=false workspace_resource app_routes />
     }
 }

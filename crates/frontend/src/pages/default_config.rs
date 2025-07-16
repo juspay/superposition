@@ -278,54 +278,54 @@ pub fn default_config() -> impl IntoView {
     };
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-                {move || {
-                    let default_config = default_config_resource.get().unwrap_or_default();
-                    let table_rows = default_config
-                        .data
-                        .into_iter()
-                        .map(|config| {
-                            let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(config.created_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let mut filtered_rows = table_rows;
-                    let page_params = page_params_rws.get();
-                    if page_params.grouped {
-                        let cols = filtered_rows
-                            .first()
-                            .map(|row| row.keys().cloned().collect())
-                            .unwrap_or_default();
-                        filtered_rows = modify_rows(
-                            filtered_rows.clone(),
-                            page_params.prefix,
-                            cols,
-                            "key",
-                        );
-                    }
-                    let total_default_config_keys = default_config.total_items.to_string();
-                    let pagination_params = pagination_params_rws.get();
-                    let (current_page, total_pages) = if page_params.grouped {
-                        (1, 1)
-                    } else {
-                        (pagination_params.page.unwrap_or_default(), default_config.total_pages)
-                    };
-                    let pagination_props = TablePaginationProps {
-                        enabled: true,
-                        count: pagination_params.count.unwrap_or_default(),
-                        current_page,
-                        total_pages,
-                        on_page_change: handle_page_change,
-                    };
-                    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                let default_config = default_config_resource.get().unwrap_or_default();
+                let table_rows = default_config
+                    .data
+                    .into_iter()
+                    .map(|config| {
+                        let mut ele_map = json!(config).as_object().unwrap().to_owned();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(config.created_at.format("%v %T").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let mut filtered_rows = table_rows;
+                let page_params = page_params_rws.get();
+                if page_params.grouped {
+                    let cols = filtered_rows
+                        .first()
+                        .map(|row| row.keys().cloned().collect())
+                        .unwrap_or_default();
+                    filtered_rows = modify_rows(
+                        filtered_rows.clone(),
+                        page_params.prefix,
+                        cols,
+                        "key",
+                    );
+                }
+                let total_default_config_keys = default_config.total_items.to_string();
+                let pagination_params = pagination_params_rws.get();
+                let (current_page, total_pages) = if page_params.grouped {
+                    (1, 1)
+                } else {
+                    (pagination_params.page.unwrap_or_default(), default_config.total_pages)
+                };
+                let pagination_props = TablePaginationProps {
+                    enabled: true,
+                    count: pagination_params.count.unwrap_or_default(),
+                    current_page,
+                    total_pages,
+                    on_page_change: handle_page_change,
+                };
+                view! {
+                    <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat
                                 heading="Config Keys"
@@ -375,14 +375,15 @@ pub fn default_config() -> impl IntoView {
                             </div>
                         </div>
                         <FilterSummary filters_rws />
-                        <div class="card rounded-lg w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card w-full bg-base-100 rounded-lg overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <BreadCrums
                                     bread_crums=bread_crums.get()
                                     redirect_url
                                     show_root=false
                                 />
                                 <Table
+                                    class="!overflow-y-auto"
                                     rows=filtered_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
@@ -390,77 +391,77 @@ pub fn default_config() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                    }
-                }}
-                {move || {
-                    let prefix = page_params_rws.with(|p| p.prefix.clone());
-                    match drawer_type.get() {
-                        DrawerType::Edit(selected_config_data) => {
-                            view! {
-                                <Drawer
-                                    id="default_config_drawer"
-                                    header="Edit Key"
-                                    handle_close=handle_close
-                                >
-                                    <DefaultConfigForm
-                                        edit=true
-                                        config_key=selected_config_data.key
-                                        config_value=selected_config_data.value
-                                        type_schema=selected_config_data.schema
-                                        description=selected_config_data.description
-                                        validation_function_name=selected_config_data
-                                            .validation_function_name
-                                        autocomplete_function_name=selected_config_data
-                                            .autocomplete_function_name
-                                        prefix
-                                        handle_submit=move |_| {
-                                            default_config_resource.refetch();
-                                            handle_close();
-                                        }
-                                    />
-                                </Drawer>
-                            }
-                        }
-                        DrawerType::Create => {
-                            view! {
-                                <Drawer
-                                    id="default_config_drawer"
-                                    header="Create New Key"
-                                    handle_close=handle_close
-                                >
-                                    <DefaultConfigForm
-                                        prefix
-                                        handle_submit=move |_| {
-                                            filters_rws.set(DefaultConfigFilters::default());
-                                            if !page_params_rws.with(|p| p.grouped) {
-                                                pagination_params_rws.set(PaginationParams::default());
-                                            }
-                                            default_config_resource.refetch();
-                                            handle_close();
-                                        }
-                                    />
-
-                                </Drawer>
-                            }
-                        }
-                        DrawerType::None => ().into_view(),
-                    }
-                }}
-            </Suspense>
-            {move || {
-                if let Some(delete_key) = delete_key_rs.get() {
-                    view! {
-                        <ChangeLogSummary
-                            key_name=delete_key
-                            change_type=ChangeType::Delete
-                            on_close=move |_| delete_key_ws.set(None)
-                            on_confirm=confirm_delete
-                        />
-                    }
-                } else {
-                    ().into_view()
+                    </div>
                 }
             }}
-        </div>
+            {move || {
+                let prefix = page_params_rws.with(|p| p.prefix.clone());
+                match drawer_type.get() {
+                    DrawerType::Edit(selected_config_data) => {
+                        view! {
+                            <Drawer
+                                id="default_config_drawer"
+                                header="Edit Key"
+                                handle_close=handle_close
+                            >
+                                <DefaultConfigForm
+                                    edit=true
+                                    config_key=selected_config_data.key
+                                    config_value=selected_config_data.value
+                                    type_schema=selected_config_data.schema
+                                    description=selected_config_data.description
+                                    validation_function_name=selected_config_data
+                                        .validation_function_name
+                                    autocomplete_function_name=selected_config_data
+                                        .autocomplete_function_name
+                                    prefix
+                                    handle_submit=move |_| {
+                                        default_config_resource.refetch();
+                                        handle_close();
+                                    }
+                                />
+                            </Drawer>
+                        }
+                    }
+                    DrawerType::Create => {
+                        view! {
+                            <Drawer
+                                id="default_config_drawer"
+                                header="Create New Key"
+                                handle_close=handle_close
+                            >
+                                <DefaultConfigForm
+                                    prefix
+                                    handle_submit=move |_| {
+                                        filters_rws.set(DefaultConfigFilters::default());
+                                        if !page_params_rws.with(|p| p.grouped) {
+                                            pagination_params_rws.set(PaginationParams::default());
+                                        }
+                                        default_config_resource.refetch();
+                                        handle_close();
+                                    }
+                                />
+
+                            </Drawer>
+                        }
+                    }
+                    DrawerType::None => ().into_view(),
+                }
+            }}
+        </Suspense>
+        {move || {
+            if let Some(delete_key) = delete_key_rs.get() {
+                view! {
+                    <ChangeLogSummary
+                        key_name=delete_key
+                        change_type=ChangeType::Delete
+                        on_close=move |_| delete_key_ws.set(None)
+                        on_confirm=confirm_delete
+                    />
+                }
+            } else {
+                ().into_view()
+            }
+        }}
     }
 }

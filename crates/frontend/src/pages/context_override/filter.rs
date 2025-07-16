@@ -370,7 +370,6 @@ pub fn context_filter_drawer(
                             close_drawer("context_filter_drawer")
                         }
                     />
-
                 </div>
             </div>
         </Drawer>

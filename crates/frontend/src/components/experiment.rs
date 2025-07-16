@@ -330,7 +330,7 @@ where
         gen_variant_table(&experiment.with_value(|v| v.variants.clone()));
 
     view! {
-        <div class="p-8 flex flex-col gap-10 overflow-x-auto bg-transparent">
+        <div class="flex flex-col gap-10 overflow-x-auto bg-transparent">
             <h1 class="flex gap-3 items-center text-2xl font-extrabold">
                 {experiment.with_value(|v| v.name.clone())}
                 <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>

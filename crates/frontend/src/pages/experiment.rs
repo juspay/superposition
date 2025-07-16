@@ -99,11 +99,7 @@ pub fn experiment_page() -> impl IntoView {
 
     view! {
         <Suspense fallback=move || {
-            view! {
-                <div class="m-4">
-                    <Skeleton variant=SkeletonVariant::DetailPage />
-                </div>
-            }
+            view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
                 let resource = match combined_resource.get() {
@@ -224,7 +220,6 @@ pub fn experiment_page() -> impl IntoView {
                     None => view! { <h1>Error fetching experiment</h1> }.into_view(),
                 }
             }}
-
         </Suspense>
     }
 }

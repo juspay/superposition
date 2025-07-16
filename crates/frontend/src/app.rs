@@ -3,7 +3,7 @@ use leptos_meta::*;
 use leptos_router::*;
 use serde_json::json;
 
-use crate::hoc::layout::Layout;
+use crate::hoc::layout::{use_org, CommonLayout, Layout};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
@@ -29,44 +29,44 @@ pub fn app(app_envs: Envs) -> impl IntoView {
     let service_prefix = app_envs.service_prefix;
     provide_context(app_envs.clone());
     view! {
-        <html data-theme="light">
-            {move || {
-                let base = match service_prefix {
-                    "" | "/" => "".to_owned(),
-                    prefix => "/".to_owned() + prefix,
-                };
-                let styles_href = base.to_owned() + "/pkg/style.css";
-                let favicon_href = base.to_owned() + "/assets/favicon.ico";
-                let wasm_href = base.to_owned() + "/pkg/frontend_bg.wasm";
-                let js_href = base.to_owned() + "/pkg/frontend.js";
-                let import_callback = "() => mod.hydrate()";
-                view! {
-                    <Stylesheet id="leptos" href=styles_href />
-                    <Link rel="shortcut icon" type_="image/ico" href=favicon_href />
-                    <Link
-                        href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
-                        rel="stylesheet"
-                    />
-                    <script
-                        type_="text/javascript"
-                        src="https://cdn.jsdelivr.net/npm/@andypf/json-viewer@2.1.5/dist/iife/index.min.js"
-                    ></script>
-                    {move || {
-                        if base.is_empty() {
-                            view! {}.into_view()
-                        } else {
-                            view! {
-                                <link
-                                    rel="preload"
-                                    href=wasm_href.clone()
-                                    as_="fetch"
-                                    type_="application/wasm"
-                                    crossorigin=""
-                                />
-                                <link as_="script" rel="modulepreload" href=js_href.clone() />
-                                <script type_="module">
-                                    {format!(
-                                        r#"
+        <Html {..} attr:data-theme="light" />
+        {move || {
+            let base = match service_prefix {
+                "" | "/" => "".to_owned(),
+                prefix => "/".to_owned() + prefix,
+            };
+            let styles_href = base.to_owned() + "/pkg/style.css";
+            let favicon_href = base.to_owned() + "/assets/favicon.ico";
+
+            view! {
+                <Stylesheet id="leptos" href=styles_href />
+                <Link rel="shortcut icon" type_="image/ico" href=favicon_href />
+                <Link
+                    href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
+                    rel="stylesheet"
+                />
+                <Script
+                    type_="text/javascript"
+                    src="https://cdn.jsdelivr.net/npm/@andypf/json-viewer@2.1.5/dist/iife/index.min.js"
+                />
+                {move || {
+                    if base.is_empty() {
+                        view! {}.into_view()
+                    } else {
+                        let wasm_href = base.to_owned() + "/pkg/frontend_bg.wasm";
+                        let js_href = base.to_owned() + "/pkg/frontend.js";
+                        view! {
+                            <Link
+                                rel="preload"
+                                href=wasm_href.clone()
+                                as_="fetch"
+                                type_="application/wasm"
+                                crossorigin=""
+                            />
+                            <Link as_="script" rel="modulepreload" href=js_href.clone() />
+                            <Script type_="module">
+                                {format!(
+                                    r#"
                                     function idle(c) {{
                                         if ('requestIdleCallback' in window) {{
                                             window.requestIdleCallback(c);
@@ -77,255 +77,111 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                                     idle(() => {{
                                         import('{js_href}')
                                             .then(mod => {{
-                                                mod.default('{wasm_href}').then({import_callback});
+                                                mod.default('{wasm_href}').then(() => mod.hydrate());
                                             }})
                                     }});
                                     "#,
-                                    )}
-
-                                </script>
-                            }
-                                .into_view()
+                                )}
+                            </Script>
                         }
-                    }}
-                }
-            }} // sets the document title
-            <Title text="Welcome to Superposition" />
-            <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
-            <Router base=service_prefix>
-                <body class="m-0 min-h-screen bg-gray-50">
-                    <AlertProvider>
-                        <Routes base=service_prefix.to_string()>
-                            <Route
-                                ssr=SsrMode::InOrder
-                                path="/admin/organisations"
-                                view=move || {
-                                    view! {
-                                        <Layout show_side_nav=false>
-                                            <Organisations />
-                                        </Layout>
-                                    }
-                                }
-                            />
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/dimensions"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <Dimensions />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                            .into_view()
+                    }
+                }}
+            }
+        }}
+        <Title text="Welcome to Superposition" />
+        <script type_="text/javascript">"__APP_ENVS=" {json!(app_envs).to_string()}</script>
+        <Body class="h-screen m-0 flex bg-gray-50 overflow-y-hidden" />
+        <Router base=service_prefix>
+            <AlertProvider>
+                <Routes base=service_prefix.to_string()>
+                    <Route
+                        ssr=SsrMode::InOrder
+                        path="/admin/organisations"
+                        view=move || {
+                            view! {
+                                <CommonLayout>
+                                    <Organisations />
+                                </CommonLayout>
+                            }
+                        }
+                    />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/function"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <FunctionList />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                    <Route
+                        ssr=SsrMode::Async
+                        path="/admin/:org_id/workspaces"
+                        view=move || {
+                            provide_context(use_org());
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/function/create"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <CreateFunctionView />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                            view! {
+                                <CommonLayout>
+                                    <Workspace />
+                                </CommonLayout>
+                            }
+                        }
+                    />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/function/:function_name"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <FunctionPage />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                    <Route ssr=SsrMode::Async path="/admin/:org_id/:tenant" view=Layout>
+                        <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/experiments"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ExperimentList />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="function" view=FunctionList />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/experiments/:id"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ExperimentPage />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="function/create" view=CreateFunctionView />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/experiment-groups"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ExperimentGroupListing />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="function/:function_name"
+                            view=FunctionPage
+                        />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/experiment-groups/:id"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ExperimentGroups />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="experiments" view=ExperimentList />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/default-config"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <DefaultConfig />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="experiments/:id" view=ExperimentPage />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/overrides"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ContextOverride />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="experiment-groups"
+                            view=ExperimentGroupListing
+                        />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/resolve"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <Home />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="experiment-groups/:id"
+                            view=ExperimentGroups
+                        />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/types"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <TypesPage />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="default-config" view=DefaultConfig />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/config/versions"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ConfigVersionList />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="overrides" view=ContextOverride />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/config/versions/:version"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <ConfigVersion />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="resolve" view=Home />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/workspaces"
-                                view=move || {
-                                    view! {
-                                        <Layout show_side_nav=false>
-                                            <Workspace />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="types" view=TypesPage />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/compare"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <CompareOverrides />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route ssr=SsrMode::Async path="config/versions" view=ConfigVersionList />
 
-                            <Route
-                                ssr=SsrMode::Async
-                                path="/admin/:org_id/:tenant/webhooks"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <Webhooks />
-                                        </Layout>
-                                    }
-                                }
-                            />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="config/versions/:version"
+                            view=ConfigVersion
+                        />
 
-                        // <Route
-                        // path="/*any"
-                        // view=move || {
-                        // view! {
-                        // <Layout>
-                        // <NotFound/>
-                        // </Layout>
-                        // }
-                        // }
-                        // />
-                        </Routes>
-                    </AlertProvider>
-                </body>
-            </Router>
+                        <Route ssr=SsrMode::Async path="compare" view=CompareOverrides />
 
-        </html>
+                        <Route ssr=SsrMode::Async path="webhooks" view=Webhooks />
+                    </Route>
+                // <Route
+                // path="/*any"
+                // view=move || {
+                // view! {
+                // <Layout>
+                // <NotFound/>
+                // </Layout>
+                // }
+                // }
+                // />
+                </Routes>
+            </AlertProvider>
+        </Router>
     }
 }
