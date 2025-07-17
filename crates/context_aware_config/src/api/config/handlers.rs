@@ -767,12 +767,7 @@ async fn get_config(
     } else {
         // Assuming smithy.
         is_smithy = true;
-        body.ok_or(bad_argument!(
-            "When using POST, context needs to be provided in the body."
-        ))?
-        .into_inner()
-        .context
-        .into()
+        body.map_or_else(QueryMap::default, |body| body.into_inner().context.into())
     };
     if !context.is_empty() {
         config = config.filter_by_dimensions(&context)
