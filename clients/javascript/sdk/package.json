@@ -1,5 +1,5 @@
 {
-    "name": "@juspay/superposition-sdk",
+    "name": "@kartikjuspay/superposition-sdk",
     "description": "io.juspay/superposition-typescript-sdk client",
     "version": "0.0.1",
     "repository": {

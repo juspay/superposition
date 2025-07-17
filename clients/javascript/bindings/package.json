@@ -1,5 +1,5 @@
 {
-    "name": "@juspay/superposition-bindings",
+    "name": "@kartikjuspay/superposition-bindings",
     "version": "0.0.1",
     "description": "Native bindings for Superposition configuration resolution",
     "main": "./dist/native-resolver.js",
