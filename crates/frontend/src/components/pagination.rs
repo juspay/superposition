@@ -49,7 +49,10 @@ pub fn pagination(
 
     view! {
         <div class=format!("join {class}")>
-            <A class="join-item btn" href=get_updated_query("page", Some(previous_page.to_string()))>
+            <A
+                class="join-item btn"
+                href=get_updated_query("page", Some(previous_page.to_string()))
+            >
                 "«"
             </A>
             <button class="join-item btn">
