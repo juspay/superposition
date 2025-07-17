@@ -118,7 +118,7 @@ pub fn workspace_selector(
             <div class="dropdown dropdown-downm w-full max-w-xs">
                 <label
                     tabindex="0"
-                    class="hidden xl:flex max-xl:group-hover:flex select items-center shadow-md"
+                    class="hidden xl:group-[.collapsed]:hidden xl:flex max-xl:group-hover:flex select items-center shadow-md"
                     on:click:undelegated=move |_| {
                         if let Some(element) = node_ref.get() {
                             let _ = element.focus();
@@ -129,13 +129,13 @@ pub fn workspace_selector(
                 </label>
                 <div
                     tabindex="0"
-                    class="xl:hidden max-xl:group-hover:hidden select items-center shadow-md"
+                    class="xl:hidden xl:group-[.collapsed]:inline-flex max-xl:group-hover:hidden select items-center shadow-md"
                 >
                     <i class="ri-briefcase-line" />
                 </div>
                 <ul
                     tabindex="0"
-                    class="dropdown-content menu z-[1000] max-h-96 w-[inherit] p-2 flex-nowrap bg-base-100 rounded-box overflow-y-scroll overflow-x-hidden shadow"
+                    class="dropdown-content menu z-[1000] max-h-96 max-xl:group-hover:w-[inherit] xl:w-[inherit] xl:group-[.collapsed]:w-[unset] p-2 flex-nowrap bg-base-100 rounded-box overflow-y-scroll overflow-x-hidden shadow"
                 >
                     <Show when=move || *client_side_ready.get()>
                         <label class="input input-bordered mb-3 flex items-center gap-2 h-10">
@@ -221,7 +221,7 @@ pub fn nav_item(
         <A
             href
             class=format!(
-                "py-2.5 px-2.5 xl:px-4 max-xl:group-hover:px-4 flex items-center gap-3 whitespace-nowrap {anchor_class}",
+                "py-2.5 px-2.5 xl:px-4 xl:group-[.collapsed]:px-2.5 max-xl:group-hover:px-4 flex items-center gap-3 whitespace-nowrap {anchor_class}",
             )
         >
             <div class=format!(
@@ -229,7 +229,7 @@ pub fn nav_item(
             )>
                 <i class=format!("{icon} text-lg font-normal {icon_class}") />
             </div>
-            <span class="max-xl:hidden max-xl:group-hover:block duration-300 opacity-100 pointer-events-none ease-soft">
+            <span class="max-xl:hidden xl:group-[.collapsed]:hidden max-xl:group-hover:block duration-300 opacity-100 pointer-events-none ease-soft">
                 {text}
             </span>
         </A>
@@ -242,51 +242,59 @@ pub fn nav_component(
     workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
     app_routes: Signal<Vec<AppRoute>>,
 ) -> impl IntoView {
+    let collapsed_rws = RwSignal::new(false);
     let location = use_location();
     let base = use_url_base();
-    let placeholder_class = if is_placeholder {
-        "xl:hidden"
-    } else {
-        "group max-xl:fixed max-xl:z-[999]"
-    };
 
-    view! {
-        <nav class=format!(
-            "{placeholder_class} h-full max-xl:min-w-fit xl:w-full max-xl:hover:w-full max-w-xs pl-2 xl:pl-4 max-xl:hover:pl-4 py-2 max-xl:pr-2 flex flex-col gap-2 overflow-x-visible bg-gray-50 max-xl:hover:rounded-r-xl max-xl:shadow-lg transition-all duration-500",
-        )>
-            <div class="xl:hidden max-xl:group-hover:hidden self-center py-[14px] flex justify-center items-center cursor-pointer">
-                <i class="ri-menu-line ri-xl h-10 w-fit px-2 flex items-center border-2 border-solid rounded-lg" />
-            </div>
-            <A
-                href=format!("{base}/admin")
-                class="max-xl:hidden max-xl:group-hover:block px-8 py-6 text-sm font-semibold text-center text-slate-700 whitespace-nowrap"
-            >
-                Superposition Platform
-            </A>
-            <WorkspaceSelector workspace_resource app_routes />
-            <ul class="menu flex-1 h-full w-fit xl:w-full max-xl:group-hover:w-full !py-0 !px-2 flex-nowrap gap-1 overflow-y-auto">
-                {move || {
-                    let pathname = location.pathname.get();
-                    app_routes
-                        .get()
-                        .into_iter()
-                        .map(|route| {
-                            let is_active = pathname.contains(&route.path);
-                            view! {
-                                <li class="w-full">
-                                    <NavItem
-                                        href=route.path.to_string()
-                                        icon=route.icon.to_string()
-                                        text=route.label.to_string()
-                                        is_active
-                                    />
-                                </li>
-                            }
-                        })
-                        .collect_view()
-                }}
-            </ul>
-        </nav>
+    move || {
+        let placeholder_class = if is_placeholder {
+            "xl:hidden".to_string()
+        } else {
+            let collapsed = if collapsed_rws.get() { "collapsed" } else { "" };
+            format!("group max-xl:fixed max-xl:z-[999] {collapsed}")
+        };
+
+        view! {
+            <nav class=format!(
+                "{placeholder_class} h-full max-xl:min-w-fit xl:[&.collapsed]:min-w-fit xl:[&.collapsed]:w-[unset] xl:w-full max-xl:hover:w-full max-w-xs pl-2 xl:pl-4 max-xl:hover:pl-4 xl:[&.collapsed]:pl-2 py-2 max-xl:pr-2 xl:[&.collapsed]:pr-2 flex flex-col gap-2 overflow-x-visible bg-gray-50 max-xl:hover:rounded-r-xl max-xl:shadow-lg xl:[&.collapsed]:shadow-lg transition-all duration-500",
+            )>
+                <div class="h-[84px] px-4 py-2 flex items-center justify-center gap-8">
+                    <A
+                        href=format!("{base}/admin")
+                        class="max-xl:hidden max-xl:group-hover:block xl:group-[.collapsed]:hidden text-sm font-semibold text-center text-slate-700 whitespace-nowrap"
+                    >
+                        Superposition Platform
+                    </A>
+                    <i
+                        class="ri-menu-line ri-xl h-10 w-fit px-2 xl:group-[.collapsed]:flex max-xl:group-hover:hidden flex justify-center items-center border-2 border-solid max-xl:border-transparent xl:hover:border-gray-400 rounded-lg cursor-pointer"
+                        on:click=move |_| collapsed_rws.update(|v| *v = !*v)
+                    />
+                </div>
+                <WorkspaceSelector workspace_resource app_routes />
+                <ul class="menu flex-1 h-full w-fit xl:w-full xl:group-[.collapsed]:w-fit max-xl:group-hover:w-full !py-0 !px-2 flex-nowrap gap-1 overflow-y-auto">
+                    {move || {
+                        let pathname = location.pathname.get();
+                        app_routes
+                            .get()
+                            .into_iter()
+                            .map(|route| {
+                                let is_active = pathname.contains(&route.path);
+                                view! {
+                                    <li class="w-full">
+                                        <NavItem
+                                            href=route.path.to_string()
+                                            icon=route.icon.to_string()
+                                            text=route.label.to_string()
+                                            is_active
+                                        />
+                                    </li>
+                                }
+                            })
+                            .collect_view()
+                    }}
+                </ul>
+            </nav>
+        }
     }
 }
 
