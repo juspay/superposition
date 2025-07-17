@@ -186,7 +186,7 @@ pub fn function_page() -> impl IntoView {
                                 {Stage::iter()
                                     .map(|tab| {
                                         let get_updated_query = use_update_url_query();
-                                        view!{
+                                        view! {
                                             <A
                                                 href=get_updated_query("tab", Some(tab.to_string()))
                                                 attr:role="tab"
