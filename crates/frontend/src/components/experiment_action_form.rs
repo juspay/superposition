@@ -2,7 +2,7 @@ use leptos::*;
 use web_sys::MouseEvent;
 
 use crate::{
-    api::{pause_experiment, resume_experiment},
+    api::{discard_experiment, pause_experiment, resume_experiment},
     components::{
         alert::AlertType, button::Button, change_form::ChangeForm,
         experiment_ramp_form::utils::ramp_experiment,
@@ -34,31 +34,39 @@ pub fn experiment_action_form(
     let popup_type = StoredValue::new(popup_type);
     let experiment_id = StoredValue::new(experiment_id);
 
-    let (header, message, action, button_title, button_icon) =
-        match popup_type.get_value() {
-            PopupType::ExperimentPause => (
-                "Pause Experiment",
-                "pause",
-                "paused",
-                "Pause",
-                "ri-pause-fill",
-            ),
-            PopupType::ExperimentResume => (
-                "Resume Experiment",
-                "resume",
-                "resumed",
-                "Resume",
-                "ri-play-mini-fill",
-            ),
-            PopupType::ExperimentStart => (
-                "Start Experiment",
-                "start",
-                "started",
-                "Start",
-                "ri-guide-fill",
-            ),
-            _ => ("", "", "", "", ""),
-        };
+    let (header, message, action, button_title, button_icon) = match popup_type
+        .get_value()
+    {
+        PopupType::ExperimentPause => (
+            "Pause Experiment",
+            "Are you sure you want to pause this experiment?",
+            "paused",
+            "Pause",
+            "ri-pause-fill",
+        ),
+        PopupType::ExperimentResume => (
+            "Resume Experiment",
+            "Are you sure you want to resume this experiment?",
+            "resumed",
+            "Resume",
+            "ri-play-mini-fill",
+        ),
+        PopupType::ExperimentStart => (
+            "Start Experiment",
+            "Are you sure you want to start this experiment?",
+            "started",
+            "Start",
+            "ri-guide-fill",
+        ),
+        PopupType::ExperimentDiscard => (
+            "Discard Experiment",
+            "Safely discard the experiment without affecting any pre-existing overrides",
+            "discarded",
+            "Discard",
+            "ri-delete-bin-line",
+        ),
+        _ => ("", "", "", "", ""),
+    };
 
     let handle_experiment_action = move |event: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -80,6 +88,10 @@ pub fn experiment_action_form(
                     resume_experiment(&experiment_id, change_reason_value, &tenant, &org)
                         .await
                 }
+                PopupType::ExperimentDiscard => {
+                    discard_experiment(&experiment_id, change_reason_value, &tenant, &org)
+                        .await
+                }
                 PopupType::ExperimentStart => {
                     ramp_experiment(
                         &experiment_id,
@@ -90,7 +102,7 @@ pub fn experiment_action_form(
                     )
                     .await
                 }
-                _ => Err("".to_string()),
+                popup => Err(format!("Unsupported Popup Type {popup:?}")),
             };
 
             req_inprogress_ws.set(false);
@@ -118,9 +130,7 @@ pub fn experiment_action_form(
                         <i class="ri-close-line" />
                     </button>
                     <h3 class="font-bold text-lg">{header}</h3>
-                    <p class="py-2">
-                        {format!("Are you sure you want to {message} this experiment?")}
-                    </p>
+                    <p class="py-2">{message}</p>
                     <form class="flex flex-col gap-4">
                         <ChangeForm
                             title="Reason for Change".to_string()

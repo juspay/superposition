@@ -567,6 +567,30 @@ pub async fn resume_experiment(
     parse_json_response(response).await
 }
 
+pub async fn discard_experiment(
+    exp_id: &str,
+    change_reason: String,
+    tenant: &str,
+    org_id: &str,
+) -> Result<ExperimentResponse, String> {
+    let payload = ExperimentStateChangeRequest {
+        change_reason: ChangeReason::try_from(change_reason)?,
+    };
+
+    let host = get_host();
+    let url = format!("{host}/experiments/{exp_id}/discard");
+
+    let response = request(
+        url,
+        reqwest::Method::PATCH,
+        Some(payload),
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
 pub async fn get_context(
     context_id: &str,
     tenant: &str,

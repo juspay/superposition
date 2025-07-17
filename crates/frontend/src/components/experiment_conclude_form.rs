@@ -7,10 +7,8 @@ use superposition_types::{
 use utils::conclude_experiment;
 
 use crate::{
-    components::{
-        alert::AlertType, change_form::ChangeForm,
-        experiment_discard_form::utils::discard_experiment,
-    },
+    api::discard_experiment,
+    components::{alert::AlertType, change_form::ChangeForm},
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Tenant},
 };
@@ -71,9 +69,9 @@ pub fn experiment_conclude_form(
         spawn_local(async move {
             let result = discard_experiment(
                 &experiment.with_value(|e| e.id.clone()),
+                change_reason,
                 &tenant,
                 &org,
-                change_reason,
             )
             .await;
             req_inprogess_rws.set(false);
