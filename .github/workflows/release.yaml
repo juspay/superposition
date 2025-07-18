@@ -540,7 +540,7 @@ jobs:
             AWS_REGION: ${{ vars.AWS_REGION }}
             CODEARTIFACT_DOMAIN: ${{ vars.CODEARTIFACT_DOMAIN }}
             CODEARTIFACT_REPOSITORY: ${{ vars.CODEARTIFACT_REPOSITORY }}
-            NODE_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
