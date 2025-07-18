@@ -574,7 +574,7 @@ jobs:
 
                   # Configure npm to use CodeArtifact
                   npm config set registry $CODEARTIFACT_REPOSITORY_ENDPOINT
-                  npm config set //$CODEARTIFACT_REPOSITORY_ENDPOINT:_authToken=$CODEARTIFACT_AUTH_TOKEN
+                  npm config set //$CODEARTIFACT_REPOSITORY_ENDPOINT:_authToken $CODEARTIFACT_AUTH_TOKEN
 
             - uses: actions/setup-node@v4
               with:
