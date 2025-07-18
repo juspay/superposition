@@ -208,11 +208,11 @@ smithy-clients: smithy-build
 				clients/java/sdk/src/main/java
 	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
 				clients/python/sdk
-	cp -r $(SMITHY_BUILD_SRC)/javascript-client-codegen/*\
+	cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen/*\
 				clients/javascript/sdk 			
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
-		[[ "$$d" =~ "java" || "$$d" =~ "python" || "$$d" =~ "javascript" ]] && continue; \
+		[[ "$$d" =~ "java" || "$$d" =~ "python" || "$$d" =~ "typescript" ]] && continue; \
 		name=$$(basename "$$d" -client-codegen); \
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
