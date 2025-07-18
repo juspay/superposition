@@ -555,6 +555,27 @@ jobs:
                   role-session-name: superposition-release
                   role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
 
+            - name: Configure CodeArtifact for npm
+              run: |
+                  # Get CodeArtifact authorization token
+                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --query authorizationToken --output text)
+
+                  # Get repository endpoint
+                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --repository $CODEARTIFACT_REPOSITORY \
+                      --format npm --query repositoryEndpoint --output text)
+
+                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
+                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
+                  echo "NODE_AUTH_TOKEN=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
+
+                  # Configure npm to use CodeArtifact
+                  npm config set registry $CODEARTIFACT_REPOSITORY_ENDPOINT
+                  npm config set //$CODEARTIFACT_REPOSITORY_ENDPOINT:_authToken=$CODEARTIFACT_AUTH_TOKEN
+
             - uses: actions/setup-node@v4
               with:
                   node-version: "20.0.0"
@@ -598,26 +619,6 @@ jobs:
                   # List what we have
                   echo "Native libraries in bindings package:"
                   ls -la clients/javascript/bindings
-
-            - name: Configure CodeArtifact for npm
-              run: |
-                  # Get CodeArtifact authorization token
-                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --query authorizationToken --output text)
-
-                  # Get repository endpoint
-                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --repository $CODEARTIFACT_REPOSITORY \
-                      --format npm --query repositoryEndpoint --output text)
-
-                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
-                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
-
-                  # Configure npm to use CodeArtifact
-                  npm config set registry $CODEARTIFACT_REPOSITORY_ENDPOINT
-                  npm config set //$CODEARTIFACT_REPOSITORY_ENDPOINT:_authToken $CODEARTIFACT_AUTH_TOKEN
 
             - run: |
                   cd clients/javascript/bindings
