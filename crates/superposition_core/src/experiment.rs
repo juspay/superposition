@@ -24,10 +24,10 @@ where
 
 #[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]
 pub struct FfiExperiment {
-    id: String,
-    traffic_percentage: u8,
-    variants: Variants,
-    context: Condition,
+    pub id: String,
+    pub traffic_percentage: u8,
+    pub variants: Variants,
+    pub context: Condition,
 }
 
 #[derive(Serialize, Deserialize, Debug, uniffi::Record)]
