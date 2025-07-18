@@ -266,7 +266,6 @@ jobs:
         permissions:
             contents: read
             id-token: write
-            packages: write
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
@@ -392,6 +391,9 @@ jobs:
     generate-python-packages:
         needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
             AWS_REGION: ${{ vars.AWS_REGION }}
@@ -526,7 +528,7 @@ jobs:
         needs: [tag-release, generate-rust-binary]
         permissions:
             contents: read
-            packages: write
+            id-token: write
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
