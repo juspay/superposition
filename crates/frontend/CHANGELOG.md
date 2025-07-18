@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.34.0 - 2025-07-18
+#### Bug Fixes
+- docusaurus - (74222bf) - ayush.jain@juspay.in
+#### Features
+- Extend A tag usage, wasm download related changes - (f27efd4) - ayush.jain@juspay.in
+- Side nav collapsible and layout changes - (e87341d) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- Combine discard form with action form - (2fffe80) - ayush.jain@juspay.in
+
+- - -
+
 ## frontend-v0.33.0 - 2025-07-10
 #### Bug Fixes
 - Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in

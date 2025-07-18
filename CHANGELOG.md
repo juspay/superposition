@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.80.0 - 2025-07-18
+### Package updates
+- frontend bumped to frontend-v0.34.0
+### Global changes
+#### Bug Fixes
+- change base URL for docusaurus - (9b0ad54) - datron
+- docusaurus - (74222bf) - ayush.jain@juspay.in
+- smithy target copy path fix to javascript (#600) - (b168174) - Ankit Kumar Mahato
+#### Features
+- Extend A tag usage, wasm download related changes - (f27efd4) - ayush.jain@juspay.in
+- push packages to AWS codeArtifact (#603) - (2f4acd6) - Datron
+#### Miscellaneous Chores
+- move java-legacy under legacy/java (#593) - (943548c) - Natarajan Kannan
+#### Refactoring
+- move tests folder to sdk, rename js client to javascript-browser (#596) - (2e3f37d) - sauraww
+
+- - -
+
 ## v0.79.1 - 2025-07-15
 ### Package updates
 - superposition_core bumped to superposition_core-v0.1.2
