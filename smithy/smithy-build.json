@@ -36,7 +36,7 @@
         "moduleAuthors": ["protocoltest@example.com"]
     },
     "typescript-client-codegen": {
-      "package": "io.juspay/superposition-typescript-sdk",
+      "package": "superposition-sdk",
       "packageVersion": "0.0.1"
     },
     "python-client-codegen": {
