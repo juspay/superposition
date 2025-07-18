@@ -9,6 +9,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "superposition-sdk": "file:../../javascript/sdk"
+    "superposition-sdk": "file:../.."
   }
 }
