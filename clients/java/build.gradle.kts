@@ -13,7 +13,7 @@ allprojects {
         repositories {
             maven {
                 name = "CodeArtifact"
-                url = uri(System.getenv("CODEARTIFACT_REPOSITORY_ENDPOINT") ?: "")
+                url = uri(System.getenv("CODEARTIFACT_REPOSITORY_ENDPOINT") ?: "https://non.existent.site.here")
                 credentials {
                     username = "aws"
                     password = System.getenv("CODEARTIFACT_AUTH_TOKEN")
