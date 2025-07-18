@@ -265,15 +265,27 @@ jobs:
         needs: [tag-release, generate-rust-binary]
         permissions:
             contents: read
+            id-token: write
             packages: write
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
+            AWS_REGION: ${{ vars.AWS_REGION }}
+            CODEARTIFACT_DOMAIN: ${{ vars.CODEARTIFACT_DOMAIN }}
+            CODEARTIFACT_REPOSITORY: ${{ vars.CODEARTIFACT_REPOSITORY }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4.1.0
+              with:
+                  audience: sts.amazonaws.com
+                  aws-region: ${{ env.AWS_REGION }}
+                  role-session-name: superposition-release
+                  role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
 
             - name: Install JDK 17
               uses: actions/setup-java@v4
@@ -348,6 +360,22 @@ jobs:
                   echo "Native libraries in bindings package:"
                   ls -lar clients/java/bindings/src/main/resources/
 
+            - name: Configure CodeArtifact for Gradle
+              run: |
+                  # Get CodeArtifact authorization token
+                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --query authorizationToken --output text)
+
+                  # Get repository endpoint
+                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --repository $CODEARTIFACT_REPOSITORY \
+                      --format maven --query repositoryEndpoint --output text)
+
+                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
+                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
+
             - name: Build Java packages
               run: |
                   cd clients/java
@@ -358,18 +386,30 @@ jobs:
                   cd clients/java
                   ./gradlew publish
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
+                  CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
 
     generate-python-packages:
         needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
+            AWS_REGION: ${{ vars.AWS_REGION }}
+            CODEARTIFACT_DOMAIN: ${{ vars.CODEARTIFACT_DOMAIN }}
+            CODEARTIFACT_REPOSITORY: ${{ vars.CODEARTIFACT_REPOSITORY }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4.1.0
+              with:
+                  audience: sts.amazonaws.com
+                  aws-region: ${{ env.AWS_REGION }}
+                  role-session-name: superposition-release
+                  role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
 
             - name: Set up Python
               uses: actions/setup-python@v5
@@ -457,23 +497,30 @@ jobs:
                   echo "All Python wheels:"
                   ls -la python-wheels/
 
-            - name: Upload Python SDK
-              uses: actions/upload-artifact@v4
-              with:
-                  name: superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl
-                  path: python-wheels/superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+            - name: Configure CodeArtifact for Gradle
+              run: |
+                  # Get CodeArtifact authorization token
+                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --query authorizationToken --output text)
 
-            - name: Upload Python Bindings
-              uses: actions/upload-artifact@v4
-              with:
-                  name: superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl
-                  path: python-wheels/superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+                  # Get repository endpoint
+                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --repository $CODEARTIFACT_REPOSITORY \
+                      --format pypi --query repositoryEndpoint --output text)
 
-            - name: Upload Python OpenFeature Provider
-              uses: actions/upload-artifact@v4
-              with:
-                  name: superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl
-                  path: python-wheels/superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl
+                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
+                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
+
+            - name: Publish Python packages to CodeArtifact
+              run: |
+                  twine upload --repository-url $CODEARTIFACT_REPOSITORY_ENDPOINT \
+                      --username aws --password $CODEARTIFACT_AUTH_TOKEN \
+                      python-wheels/*.whl
+              env:
+                  CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
+                  CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
@@ -483,17 +530,26 @@ jobs:
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
+            AWS_REGION: ${{ vars.AWS_REGION }}
+            CODEARTIFACT_DOMAIN: ${{ vars.CODEARTIFACT_DOMAIN }}
+            CODEARTIFACT_REPOSITORY: ${{ vars.CODEARTIFACT_REPOSITORY }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4.1.0
+              with:
+                  audience: sts.amazonaws.com
+                  aws-region: ${{ env.AWS_REGION }}
+                  role-session-name: superposition-release
+                  role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
+
             - uses: actions/setup-node@v4
               with:
                   node-version: "20.0.0"
-                  registry-url: "https://npm.pkg.github.com"
-                  scope: "@juspay"
 
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
@@ -535,19 +591,39 @@ jobs:
                   echo "Native libraries in bindings package:"
                   ls -la clients/javascript/bindings
 
+            - name: Configure CodeArtifact for npm
+              run: |
+                  # Get CodeArtifact authorization token
+                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --query authorizationToken --output text)
+
+                  # Get repository endpoint
+                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
+                      --domain $CODEARTIFACT_DOMAIN \
+                      --repository $CODEARTIFACT_REPOSITORY \
+                      --format npm --query repositoryEndpoint --output text)
+
+                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
+                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
+
+                  # Configure npm to use CodeArtifact
+                  npm config set registry $CODEARTIFACT_REPOSITORY_ENDPOINT
+                  npm config set //$CODEARTIFACT_REPOSITORY_ENDPOINT:_authToken $CODEARTIFACT_AUTH_TOKEN
+
             - run: |
-                cd clients/javascript/bindings
-                npm ci
-                npm publish --scope=@juspay --access public
-                cd ../sdk
-                npm ci
-                npm publish --scope=@juspay --access public
-                cd ../open-feature-provider
-                npm ci
-                npm publish --scope=@juspay --access public
+                  cd clients/javascript/bindings
+                  npm ci
+                  npm publish --scope=@juspay --access public
+                  cd ../sdk
+                  npm ci
+                  npm publish --scope=@juspay --access public
+                  cd ../open-feature-provider
+                  npm ci
+                  npm publish --scope=@juspay --access public
               env:
-                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            
+                  CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
+
     release:
         needs: [tag-release, generate-rust-binary, generate-python-packages]
         runs-on: ubuntu-latest

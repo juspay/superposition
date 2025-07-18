@@ -6,4 +6,16 @@ allprojects {
         google()
         gradlePluginPortal()
     }
+    publishing {
+        repositories {
+            maven {
+                name = "CodeArtifact"
+                url = uri(System.getenv("CODEARTIFACT_REPOSITORY_ENDPOINT") ?: "")
+                credentials {
+                    username = "aws"
+                    password = System.getenv("CODEARTIFACT_AUTH_TOKEN")
+                }
+            }
+        }
+    }
 }
