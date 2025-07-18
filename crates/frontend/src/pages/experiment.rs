@@ -14,7 +14,6 @@ use crate::{
         experiment::Experiment,
         experiment_action_form::ExperimentActionForm,
         experiment_conclude_form::ExperimentConcludeForm,
-        experiment_discard_form::ExperimentDiscardForm,
         experiment_form::{ExperimentForm, ExperimentFormType},
         modal::{Modal, PortalModal},
         skeleton::{Skeleton, SkeletonVariant},
@@ -40,6 +39,7 @@ pub enum PopupType {
     ExperimentEdit,
     ExperimentPause,
     ExperimentResume,
+    ExperimentDiscard,
     None,
 }
 
@@ -93,17 +93,13 @@ pub fn experiment_page() -> impl IntoView {
     let handle_ramp = move || show_modal("ramp_form_modal");
     let handle_conclude = move || show_modal("conclude_form_modal");
     let handle_edit = move || set_show_popup.set(PopupType::ExperimentEdit);
-    let handle_discard = move || show_modal("experiment_discard_form_modal");
+    let handle_discard = move || set_show_popup.set(PopupType::ExperimentDiscard);
     let handle_pause = move || set_show_popup.set(PopupType::ExperimentPause);
     let handle_resume = move || set_show_popup.set(PopupType::ExperimentResume);
 
     view! {
         <Suspense fallback=move || {
-            view! {
-                <div class="m-4">
-                    <Skeleton variant=SkeletonVariant::DetailPage />
-                </div>
-            }
+            view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
                 let resource = match combined_resource.get() {
@@ -117,7 +113,6 @@ pub fn experiment_page() -> impl IntoView {
                     Some(experiment) => {
                         let experiment_rf = experiment.clone();
                         let experiment_cf = experiment.clone();
-                        let experiment_df = experiment.clone();
                         view! {
                             <Experiment
                                 experiment=experiment.clone()
@@ -129,17 +124,6 @@ pub fn experiment_page() -> impl IntoView {
                                 handle_pause
                                 handle_resume
                             />
-                            <Modal
-                                id="experiment_discard_form_modal".to_string()
-                                handle_close=move || {
-                                    close_modal("experiment_discard_form_modal")
-                                }
-                            >
-                                <ExperimentDiscardForm
-                                    experiment=experiment_df
-                                    handle_submit=move || { combined_resource.refetch() }
-                                />
-                            </Modal>
                             <Modal
                                 id="ramp_form_modal".to_string()
                                 handle_close=move || { close_modal("ramp_form_modal") }
@@ -224,7 +208,6 @@ pub fn experiment_page() -> impl IntoView {
                     None => view! { <h1>Error fetching experiment</h1> }.into_view(),
                 }
             }}
-
         </Suspense>
     }
 }

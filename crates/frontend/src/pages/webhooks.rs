@@ -221,50 +221,53 @@ pub fn webhooks() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-                {move || {
-                    let value = webhooks_resource.get().unwrap_or_default();
-                    let total_items = value.data.len().to_string();
-                    let table_rows = value
-                        .data
-                        .iter()
-                        .map(|ele| {
-                            let mut ele_map = json!(ele).as_object().unwrap().clone();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(ele.created_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                                .insert(
-                                    "last_modified_at".to_string(),
-                                    json!(ele.last_modified_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let pagination_params = pagination_params_rws.get();
-                    let pagination_props = TablePaginationProps {
-                        enabled: true,
-                        count: pagination_params.count.unwrap_or_default(),
-                        current_page: pagination_params.page.unwrap_or_default(),
-                        total_pages: value.total_pages,
-                        on_page_change: handle_page_change,
-                    };
-                    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                let value = webhooks_resource.get().unwrap_or_default();
+                let total_items = value.data.len().to_string();
+                let table_rows = value
+                    .data
+                    .iter()
+                    .map(|ele| {
+                        let mut ele_map = json!(ele).as_object().unwrap().clone();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(ele.created_at.format("%v %T").to_string()),
+                            );
+                        ele_map
+                            .insert(
+                                "last_modified_at".to_string(),
+                                json!(ele.last_modified_at.format("%v %T").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let pagination_params = pagination_params_rws.get();
+                let pagination_props = TablePaginationProps {
+                    enabled: true,
+                    count: pagination_params.count.unwrap_or_default(),
+                    current_page: pagination_params.page.unwrap_or_default(),
+                    total_pages: value.total_pages,
+                    on_page_change: handle_page_change,
+                };
+                view! {
+                    <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat heading="Webhooks" icon="ri-webhook-fill" number=total_items />
-                            <DrawerBtn drawer_id="webhook_drawer" class="self-end flex gap-2">
-                                Create Webhook
-                                <i class="ri-edit-2-line" />
-                            </DrawerBtn>
+                            <DrawerBtn
+                                drawer_id="webhook_drawer"
+                                class="self-end"
+                                text="Create Webhook"
+                                icon_class="ri-add-line"
+                            />
                         </div>
-                        <div class="card rounded-xl w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <Table
+                                    class="!overflow-y-auto"
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
@@ -272,71 +275,67 @@ pub fn webhooks() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                    }
-                }}
-                {move || {
-                    let handle_close = move || {
-                        close_drawer("webhook_drawer");
-                        selected_webhook.set(None);
-                    };
-                    if let Some(selected_webhook_data) = selected_webhook.get() {
-                        view! {
-                            <Drawer
-                                id="webhook_drawer"
-                                header="Edit Webhook"
-                                handle_close=handle_close
-                            >
-                                <WebhookForm
-                                    edit=true
-                                    webhook_name=selected_webhook_data.name
-                                    description=selected_webhook_data.description
-                                    enabled=selected_webhook_data.enabled
-                                    url=selected_webhook_data.url
-                                    method=selected_webhook_data.method
-                                    payload_version=selected_webhook_data.payload_version
-                                    custom_headers=selected_webhook_data.custom_headers
-                                    events=selected_webhook_data.events
-                                    handle_submit=move |_| {
-                                        webhooks_resource.refetch();
-                                        selected_webhook.set(None);
-                                        close_drawer("webhook_drawer");
-                                    }
-                                />
-
-                            </Drawer>
-                        }
-                    } else {
-                        view! {
-                            <Drawer
-                                id="webhook_drawer"
-                                header="Create New Webhook"
-                                handle_close=handle_close
-                            >
-                                <WebhookForm handle_submit=move |_| {
-                                    pagination_params_rws.update(|f| f.reset_page());
+                    </div>
+                }
+            }}
+            {move || {
+                let handle_close = move || {
+                    close_drawer("webhook_drawer");
+                    selected_webhook.set(None);
+                };
+                if let Some(selected_webhook_data) = selected_webhook.get() {
+                    view! {
+                        <Drawer id="webhook_drawer" header="Edit Webhook" handle_close=handle_close>
+                            <WebhookForm
+                                edit=true
+                                webhook_name=selected_webhook_data.name
+                                description=selected_webhook_data.description
+                                enabled=selected_webhook_data.enabled
+                                url=selected_webhook_data.url
+                                method=selected_webhook_data.method
+                                payload_version=selected_webhook_data.payload_version
+                                custom_headers=selected_webhook_data.custom_headers
+                                events=selected_webhook_data.events
+                                handle_submit=move |_| {
                                     webhooks_resource.refetch();
                                     selected_webhook.set(None);
                                     close_drawer("webhook_drawer");
-                                } />
-                            </Drawer>
-                        }
-                    }
-                }}
-                {move || {
-                    if let Some(webhook_name) = delete_id_rs.get() {
-                        view! {
-                            <ChangeLogSummary
-                                webhook_name
-                                change_type=ChangeType::Delete
-                                on_close=move |_| delete_id_ws.set(None)
-                                on_confirm=confirm_delete
+                                }
                             />
-                        }
-                    } else {
-                        ().into_view()
+
+                        </Drawer>
                     }
-                }}
-            </Suspense>
-        </div>
+                } else {
+                    view! {
+                        <Drawer
+                            id="webhook_drawer"
+                            header="Create New Webhook"
+                            handle_close=handle_close
+                        >
+                            <WebhookForm handle_submit=move |_| {
+                                pagination_params_rws.update(|f| f.reset_page());
+                                webhooks_resource.refetch();
+                                selected_webhook.set(None);
+                                close_drawer("webhook_drawer");
+                            } />
+                        </Drawer>
+                    }
+                }
+            }}
+            {move || {
+                if let Some(webhook_name) = delete_id_rs.get() {
+                    view! {
+                        <ChangeLogSummary
+                            webhook_name
+                            change_type=ChangeType::Delete
+                            on_close=move |_| delete_id_ws.set(None)
+                            on_confirm=confirm_delete
+                        />
+                    }
+                } else {
+                    ().into_view()
+                }
+            }}
+        </Suspense>
     }
 }

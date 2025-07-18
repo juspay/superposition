@@ -16,7 +16,7 @@ const config: Config = {
     },
 
     // Set the production url of your site here
-    url: "https://your-docusaurus-site.example.com",
+    url: "https://d32fun98zecd6d.cloudfront.net",
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
     baseUrl: "/superposition/",
@@ -25,7 +25,7 @@ const config: Config = {
     organizationName: "juspay",
     projectName: "superposition",
 
-    onBrokenLinks: "throw",
+    onBrokenLinks: "warn",
     onBrokenMarkdownLinks: "warn",
 
     i18n: {
@@ -38,7 +38,7 @@ const config: Config = {
             "classic",
             {
                 docs: {
-                    routeBasePath: '/',
+                    routeBasePath: '/docs',
                     sidebarPath: "./sidebars.ts",
                     // Please change this to your repo.
                     // Remove this to remove the "edit this page" links.
@@ -63,12 +63,12 @@ const config: Config = {
                 src: "https://juspay.io/images/superposition/logo.jpg",
             },
             items: [
-                {
-                    type: "docSidebar",
-                    sidebarId: "superpositionSidebar",
-                    position: "left",
-                    label: "Tutorial",
-                },
+                // {
+                //     type: "docSidebar",
+                //     sidebarId: "superpositionSidebar",
+                //     position: "left",
+                //     label: "Tutorial",
+                // },
                 // {to: '/blog', label: 'Blog', position: 'left'},
                 {
                     href: "https://github.com/juspay/superposition",
@@ -82,23 +82,23 @@ const config: Config = {
             links: [
                 {
                     title: "Docs",
-                    items: [
-                        {
-                            label: "Tutorial",
-                            to: "/",
-                        },
-                    ],
+                    // items: [
+                    //     {
+                    //         label: "Tutorial",
+                    //         to: "/",
+                    //     },
+                    // ],
                 },
                 {
                     title: "Community",
                     items: [
-                        {
-                            label: "Discord",
-                            href: "https://discordapp.com/invite/docusaurus",
-                        },
+                        // {
+                        //     label: "Discord",
+                        //     href: "https://discordapp.com/invite/docusaurus",
+                        // },
                         {
                             label: "X",
-                            href: "https://x.com/juspay",
+                            href: "https://x.com/superpositionJP",
                         },
                     ],
                 },

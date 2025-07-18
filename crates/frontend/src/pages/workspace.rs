@@ -23,7 +23,6 @@ use crate::components::{
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
-use crate::utils::use_url_base;
 
 #[component]
 pub fn workspace() -> impl IntoView {
@@ -115,14 +114,12 @@ pub fn workspace() -> impl IntoView {
         };
 
         let navigate = move |_: &str, row: &Map<String, Value>| {
-            let org_id = org_id.get().0;
             let workspace_name = row["workspace_name"].to_string().replace('"', "");
-            let base = use_url_base();
 
             view! {
                 <A
                     class="cursor-pointer text-blue-500"
-                    href=format!("{base}/admin/{org_id}/{workspace_name}/default-config")
+                    href=format!("../{workspace_name}/default-config")
                 >
                     {workspace_name}
                 </A>
@@ -153,108 +150,110 @@ pub fn workspace() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-                {move || {
-                    if let Some(selected_workspace_data) = selected_workspace.get() {
-                        let config_version = if selected_workspace_data.config_version == "-" {
-                            Value::Null
-                        } else {
-                            Value::String(selected_workspace_data.config_version.clone())
-                        };
-                        view! {
-                            <Drawer
-                                id="workspace_drawer"
-                                header="Edit Workspace"
-                                handle_close=handle_close
-                            >
-                                <WorkspaceForm
-                                    edit=true
-                                    org_id=org_id
-                                    workspace_admin_email=selected_workspace_data
-                                        .workspace_admin_email
-                                    config_version
-                                    workspace_name=selected_workspace_data.workspace_name
-                                    workspace_status=selected_workspace_data.workspace_status
-                                    mandatory_dimensions=selected_workspace_data
-                                        .mandatory_dimensions
-                                        .unwrap_or_default()
-                                    metrics=selected_workspace_data.metrics
-                                    allow_experiment_self_approval=selected_workspace_data
-                                        .allow_experiment_self_approval
-                                    handle_submit=move |_| {
-                                        workspace_resource.refetch();
-                                        selected_workspace.set(None);
-                                        close_drawer("workspace_drawer");
-                                    }
-                                />
-                            </Drawer>
-                        }
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                if let Some(selected_workspace_data) = selected_workspace.get() {
+                    let config_version = if selected_workspace_data.config_version == "-" {
+                        Value::Null
                     } else {
-                        view! {
-                            <Drawer
-                                id="workspace_drawer"
-                                header="Create Workspace"
-                                handle_close=handle_close
-                            >
-                                <WorkspaceForm
-                                    org_id=org_id
-                                    handle_submit=move |_| {
-                                        pagination_params_rws.update(|f| f.reset_page());
-                                        workspace_resource.refetch();
-                                        selected_workspace.set(None);
-                                        close_drawer("workspace_drawer");
-                                    }
-                                />
-                            </Drawer>
-                        }
-                    }
-                }}
-                {move || {
-                    let workspaces = workspace_resource.get().unwrap_or_default();
-                    let table_rows = workspaces
-                        .data
-                        .into_iter()
-                        .map(|workspace| {
-                            let mut ele_map = json!(workspace).as_object().unwrap().to_owned();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(workspace.created_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let total_workspaces = workspaces.total_items.to_string();
-                    let pagination_params = pagination_params_rws.get();
-                    let (current_page, total_pages) = (
-                        pagination_params.page.unwrap_or_default(),
-                        workspaces.total_pages,
-                    );
-                    let pagination_props = TablePaginationProps {
-                        enabled: true,
-                        count: pagination_params.count.unwrap_or_default(),
-                        current_page,
-                        total_pages,
-                        on_page_change: handle_page_change,
+                        Value::String(selected_workspace_data.config_version.clone())
                     };
                     view! {
+                        <Drawer
+                            id="workspace_drawer"
+                            header="Edit Workspace"
+                            handle_close=handle_close
+                        >
+                            <WorkspaceForm
+                                edit=true
+                                org_id=org_id
+                                workspace_admin_email=selected_workspace_data.workspace_admin_email
+                                config_version
+                                workspace_name=selected_workspace_data.workspace_name
+                                workspace_status=selected_workspace_data.workspace_status
+                                mandatory_dimensions=selected_workspace_data
+                                    .mandatory_dimensions
+                                    .unwrap_or_default()
+                                metrics=selected_workspace_data.metrics
+                                allow_experiment_self_approval=selected_workspace_data
+                                    .allow_experiment_self_approval
+                                handle_submit=move |_| {
+                                    workspace_resource.refetch();
+                                    selected_workspace.set(None);
+                                    close_drawer("workspace_drawer");
+                                }
+                            />
+                        </Drawer>
+                    }
+                } else {
+                    view! {
+                        <Drawer
+                            id="workspace_drawer"
+                            header="Create Workspace"
+                            handle_close=handle_close
+                        >
+                            <WorkspaceForm
+                                org_id=org_id
+                                handle_submit=move |_| {
+                                    pagination_params_rws.update(|f| f.reset_page());
+                                    workspace_resource.refetch();
+                                    selected_workspace.set(None);
+                                    close_drawer("workspace_drawer");
+                                }
+                            />
+                        </Drawer>
+                    }
+                }
+            }}
+            {move || {
+                let workspaces = workspace_resource.get().unwrap_or_default();
+                let table_rows = workspaces
+                    .data
+                    .into_iter()
+                    .map(|workspace| {
+                        let mut ele_map = json!(workspace).as_object().unwrap().to_owned();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(workspace.created_at.format("%v %T").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let total_workspaces = workspaces.total_items.to_string();
+                let pagination_params = pagination_params_rws.get();
+                let (current_page, total_pages) = (
+                    pagination_params.page.unwrap_or_default(),
+                    workspaces.total_pages,
+                );
+                let pagination_props = TablePaginationProps {
+                    enabled: true,
+                    count: pagination_params.count.unwrap_or_default(),
+                    current_page,
+                    total_pages,
+                    on_page_change: handle_page_change,
+                };
+                view! {
+                    <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat
                                 heading="Workspaces"
                                 icon="ri-briefcase-fill"
                                 number=total_workspaces
                             />
-                            <DrawerBtn drawer_id="workspace_drawer" class="self-end flex gap-2">
-                                Create Workspace
-                                <i class="ri-edit-2-line" />
-                            </DrawerBtn>
+                            <DrawerBtn
+                                drawer_id="workspace_drawer"
+                                class="self-end"
+                                text="Create Workspace"
+                                icon_class="ri-add-line"
+                            />
                         </div>
-                        <div class="card rounded-lg w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <Table
+                                    class="!overflow-y-auto"
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
@@ -262,9 +261,9 @@ pub fn workspace() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                    }
-                }}
-            </Suspense>
-        </div>
+                    </div>
+                }
+            }}
+        </Suspense>
     }
 }

@@ -350,10 +350,8 @@ pub fn experiment_group_listing() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="h-full flex flex-col gap-4">
                 {move || {
                     let value = experiment_groups_resource.get();
                     let total_items = value
@@ -371,17 +369,15 @@ pub fn experiment_group_listing() -> impl IntoView {
                                 <ExperimentGroupFilterWidget filters_rws pagination_params_rws />
                                 <DrawerBtn
                                     drawer_id="create_exp_group_drawer".to_string()
-                                    class="flex gap-2"
-                                >
-                                    Create Group
-                                    <i class="ri-edit-2-line" />
-                                </DrawerBtn>
+                                    text="Create Group"
+                                    icon_class="ri-add-line"
+                                />
                             </div>
                         </div>
                     }
                 }} <FilterSummary filters_rws />
-                <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
+                <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                    <div class="card-body overflow-y-auto overflow-x-visible">
                         {move || {
                             let value = experiment_groups_resource.get();
                             let pagination_params = pagination_params_rws.get();
@@ -425,6 +421,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                                     view! {
                                         <ConditionCollapseProvider>
                                             <Table
+                                                class="!overflow-y-auto"
                                                 rows=data
                                                 key_column="name".to_string()
                                                 columns=table_columns
@@ -440,56 +437,56 @@ pub fn experiment_group_listing() -> impl IntoView {
 
                     </div>
                 </div>
-                {move || {
-                    let resource = experiment_groups_resource.get();
-                    let experiment_group = selected_group_rws.get();
-                    let is_edit = experiment_group.is_some();
-                    let header = if is_edit {
-                        "Edit Experiment Group"
-                    } else {
-                        "Create New Experiment Group"
-                    };
-                    let group = experiment_group.unwrap_or_default();
-                    view! {
-                        <Drawer
-                            id="create_exp_group_drawer"
-                            width_class="max-w-[720px] min-w-[560px] w-[45vw]"
-                            header=header
-                            handle_close=move || {
-                                selected_group_rws.set(None);
-                                close_drawer("create_exp_group_drawer")
-                            }
-                        >
-                            <EditorProvider>
-                                <ExperimentGroupForm
-                                    group_id=group.id
-                                    context=group.context
-                                    group_name=group.name
-                                    group_description=group.description
-                                    traffic_percentage=group.traffic_percentage
-                                    handle_submit=handle_experiment_group_create
-                                    dimensions=resource.map(|r| r.dimensions).unwrap_or_default()
-                                    is_edit
-                                />
-                            </EditorProvider>
-                        </Drawer>
-                    }
-                }}
-                {move || {
-                    if let Some(group_id) = delete_group_id_rws.get() {
-                        view! {
-                            <ChangeLogSummary
-                                group_id=group_id.clone()
-                                change_type=ChangeType::Delete
-                                on_close=move |_| delete_group_id_rws.set(None)
-                                on_confirm=confirm_delete
-                            />
+            </div>
+            {move || {
+                let resource = experiment_groups_resource.get();
+                let experiment_group = selected_group_rws.get();
+                let is_edit = experiment_group.is_some();
+                let header = if is_edit {
+                    "Edit Experiment Group"
+                } else {
+                    "Create New Experiment Group"
+                };
+                let group = experiment_group.unwrap_or_default();
+                view! {
+                    <Drawer
+                        id="create_exp_group_drawer"
+                        width_class="max-w-[720px] min-w-[560px] w-[45vw]"
+                        header=header
+                        handle_close=move || {
+                            selected_group_rws.set(None);
+                            close_drawer("create_exp_group_drawer")
                         }
-                    } else {
-                        ().into_view()
+                    >
+                        <EditorProvider>
+                            <ExperimentGroupForm
+                                group_id=group.id
+                                context=group.context
+                                group_name=group.name
+                                group_description=group.description
+                                traffic_percentage=group.traffic_percentage
+                                handle_submit=handle_experiment_group_create
+                                dimensions=resource.map(|r| r.dimensions).unwrap_or_default()
+                                is_edit
+                            />
+                        </EditorProvider>
+                    </Drawer>
+                }
+            }}
+            {move || {
+                if let Some(group_id) = delete_group_id_rws.get() {
+                    view! {
+                        <ChangeLogSummary
+                            group_id=group_id.clone()
+                            change_type=ChangeType::Delete
+                            on_close=move |_| delete_group_id_rws.set(None)
+                            on_confirm=confirm_delete
+                        />
                     }
-                }}
-            </Suspense>
-        </div>
+                } else {
+                    ().into_view()
+                }
+            }}
+        </Suspense>
     }
 }

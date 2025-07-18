@@ -40,7 +40,6 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
     },
     types::{OrganisationId, Tenant},
-    utils::use_url_base,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -62,9 +61,6 @@ fn table_columns(
     strict_mode: bool,
 ) -> Vec<Column> {
     let group_id = StoredValue::new(group_id);
-    let base = use_url_base();
-    let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
 
     vec![
         Column::new(
@@ -75,11 +71,6 @@ fn table_columns(
                 let experiment_id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                let path = format!(
-                    "{base}/admin/{}/{}/experiments/{experiment_id}",
-                    org.get().0,
-                    workspace.get().0
-                );
 
                 let description = row
                     .get("description")
@@ -93,7 +84,7 @@ fn table_columns(
                     .unwrap_or("")
                     .to_string();
                 view! {
-                    <A href=path class="btn-link m-1">
+                    <A href=format!("../../experiments/{experiment_id}") class="btn-link m-1">
                         {experiment_name}
                     </A>
                     <InfoDescription description=description change_reason=change_reason />
@@ -262,50 +253,49 @@ pub fn experiment_groups() -> impl IntoView {
         });
     });
     view! {
-        <div class="p-8 flex flex-col gap-10 overflow-x-auto bg-transparent">
-            <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
-            }>
-                {move || {
-                    let Some(Some(resource)) = experiment_group_resource.get() else {
-                        return view! {
-                            <div>
-                                An error occurred while fetching the experiment group, please try again later.
-                            </div>
-                        }
-                            .into_view();
-                    };
-                    let table_columns = table_columns(
-                        delete_group_rws,
-                        delete_modal_ws,
-                        resource.group.id.to_string(),
-                        workspace_settings.with_value(|w| w.strict_mode),
-                    );
-                    let data = resource
-                        .experiments
-                        .iter()
-                        .map(|ele| json!(ele).as_object().cloned().unwrap_or_default())
-                        .collect::<Vec<Map<String, Value>>>()
-                        .to_owned();
-                    let pagination_props = TablePaginationProps::default();
-                    let resource_group = StoredValue::new(resource.group);
+        <Suspense fallback=move || {
+            view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
+        }>
+            {move || {
+                let Some(Some(resource)) = experiment_group_resource.get() else {
+                    return view! {
+                        <div>
+                            An error occurred while fetching the experiment group, please try again later.
+                        </div>
+                    }
+                        .into_view();
+                };
+                let table_columns = table_columns(
+                    delete_group_rws,
+                    delete_modal_ws,
+                    resource.group.id.to_string(),
+                    workspace_settings.with_value(|w| w.strict_mode),
+                );
+                let data = resource
+                    .experiments
+                    .iter()
+                    .map(|ele| json!(ele).as_object().cloned().unwrap_or_default())
+                    .collect::<Vec<Map<String, Value>>>()
+                    .to_owned();
+                let pagination_props = TablePaginationProps::default();
+                let resource_group = StoredValue::new(resource.group);
 
-                    view! {
+                view! {
+                    <div class="h-full flex flex-col gap-10 overflow-x-auto bg-transparent">
                         <h1 class="text-2xl font-extrabold">{resource_group.get_value().name}</h1>
                         <ExperimentGroupInfo group=resource_group />
-                        <div class="card rounded-xl w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <div class="flex justify-between">
                                     <h2 class="card-title">"Member Experiments"</h2>
                                     <DrawerBtn
                                         drawer_id="add_members_group_drawer"
-                                        class="flex gap-2"
-                                    >
-                                        Add Members
-                                        <i class="ri-add-large-fill" />
-                                    </DrawerBtn>
+                                        text="Add Members"
+                                        icon_class="ri-add-large-fill"
+                                    />
                                 </div>
                                 <Table
+                                    class="!overflow-y-auto"
                                     rows=data
                                     key_column="Experiment Name".to_string()
                                     columns=table_columns
@@ -313,33 +303,33 @@ pub fn experiment_groups() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                        <Drawer
-                            id="add_members_group_drawer"
-                            header="Add members to the group"
-                            handle_close=move || { close_drawer("add_members_group_drawer") }
-                        >
-                            <AddExperimentToGroupForm
-                                experiment_group=resource_group
-                                handle_submit=Callback::new(move |_| {
-                                    close_drawer("add_members_group_drawer");
-                                    experiment_group_resource.refetch();
-                                })
-                            />
+                    </div>
+                    <Drawer
+                        id="add_members_group_drawer"
+                        header="Add members to the group"
+                        handle_close=move || { close_drawer("add_members_group_drawer") }
+                    >
+                        <AddExperimentToGroupForm
+                            experiment_group=resource_group
+                            handle_submit=Callback::new(move |_| {
+                                close_drawer("add_members_group_drawer");
+                                experiment_group_resource.refetch();
+                            })
+                        />
 
-                        </Drawer>
-                    }
-                        .into_view()
-                }}
-                <DeleteModal
-                    modal_visible=delete_modal_rs
-                    with_change_reason=true
-                    confirm_delete
-                    set_modal_visible=delete_modal_ws
-                    header_text="Are you sure you want to delete this member from the group?"
-                        .to_string()
-                />
+                    </Drawer>
+                }
+                    .into_view()
+            }}
+            <DeleteModal
+                modal_visible=delete_modal_rs
+                with_change_reason=true
+                confirm_delete
+                set_modal_visible=delete_modal_ws
+                header_text="Are you sure you want to delete this member from the group?"
+                    .to_string()
+            />
 
-            </Suspense>
-        </div>
+        </Suspense>
     }
 }

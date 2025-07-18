@@ -15,7 +15,6 @@ use crate::components::table::types::{ColumnSortable, Expandable, TablePaginatio
 use crate::components::table::{types::Column, Table};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::use_url_base;
 use crate::{api::fetch_snapshots, components::table::types::default_column_formatter};
 
 #[component]
@@ -28,9 +27,6 @@ pub fn config_version_list() -> impl IntoView {
     });
 
     use_param_updater(move || box_params!(pagination_params_rws.get()));
-
-    let table_columns =
-        create_memo(move |_| snapshot_table_columns(workspace.get().0, org.get().0));
 
     let snapshots_resource: Resource<
         (String, PaginationParams, String),
@@ -49,11 +45,8 @@ pub fn config_version_list() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="h-full flex flex-col gap-4">
                 {move || {
                     let snapshot_res = snapshots_resource.get();
                     let total_items = match snapshot_res {
@@ -67,8 +60,8 @@ pub fn config_version_list() -> impl IntoView {
                             number=total_items
                         />
                     }
-                }} <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
+                }} <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                    <div class="card-body overflow-y-auto overflow-x-visible">
                         {move || {
                             let value = snapshots_resource.get();
                             let pagination_params = pagination_params_rws.get();
@@ -103,9 +96,10 @@ pub fn config_version_list() -> impl IntoView {
                                     };
                                     view! {
                                         <Table
+                                            class="!overflow-y-auto"
                                             rows=resp
                                             key_column="id".to_string()
-                                            columns=table_columns.get()
+                                            columns=snapshot_table_columns()
                                             pagination=pagination_props
                                         />
                                     }
@@ -115,31 +109,22 @@ pub fn config_version_list() -> impl IntoView {
                                 }
                             }
                         }}
-
                     </div>
                 </div>
-            </Suspense>
-        </div>
+            </div>
+        </Suspense>
     }
 }
 
-pub fn snapshot_table_columns(tenant: String, org_id: String) -> Vec<Column> {
+pub fn snapshot_table_columns() -> Vec<Column> {
     vec![
         Column::new(
             "id".to_string(),
             false,
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
-                let base = use_url_base();
-                let href = format!(
-                    "{}/admin/{}/{}/config/versions/{}",
-                    base,
-                    org_id.clone(),
-                    tenant.clone(),
-                    id
-                );
                 view! {
-                    <A href=href class="btn-link">{id}</A>
+                    <A href=id.clone() class="btn-link">{id}</A>
                 }
                 .into_view()
             },

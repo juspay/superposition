@@ -9,7 +9,7 @@ use std::{io::Result, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
-    middleware::{Compress, Logger},
+    middleware::{Compress, Condition, Logger},
     web::{self, get, scope, Data, PathConfig},
     App, HttpResponse, HttpServer,
 };
@@ -105,7 +105,7 @@ async fn main() -> Result<()> {
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
         App::new()
-            .wrap(Compress::default())
+            .wrap(Condition::new(matches!(app_env, AppEnv::PROD | AppEnv::SANDBOX), Compress::default()))
             .wrap(Logger::default())
             .app_data(app_state.clone())
             .app_data(PathConfig::default().error_handler(|err, _| {

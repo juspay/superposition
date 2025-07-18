@@ -10,6 +10,7 @@ use superposition_types::{
         ChangeReason, Description, NonEmptyString,
     },
 };
+use web_sys::MouseEvent;
 
 use crate::{
     api::{create_webhook, get_webhook, update_webhook},
@@ -316,7 +317,7 @@ pub fn webhook_form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |ev| {
+                        on_click=move |ev: MouseEvent| {
                             ev.prevent_default();
                             on_submit();
                         }

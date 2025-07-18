@@ -13,6 +13,7 @@ use superposition_types::{
 };
 use types::{DimensionCreateReq, DimensionUpdateReq};
 use utils::{create_dimension, update_dimension};
+use web_sys::MouseEvent;
 
 use crate::components::skeleton::SkeletonVariant;
 use crate::{
@@ -415,7 +416,7 @@ pub fn dimension_form(
                         class="self-end h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |ev| {
+                        on_click=move |ev: MouseEvent| {
                             ev.prevent_default();
                             on_submit(());
                         }

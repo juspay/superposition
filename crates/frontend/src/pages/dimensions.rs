@@ -202,45 +202,48 @@ pub fn dimensions() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-                {move || {
-                    let value = dimensions_resource.get().unwrap_or_default();
-                    let total_items = value.data.len().to_string();
-                    let table_rows = value
-                        .data
-                        .iter()
-                        .map(|ele| {
-                            let mut ele_map = json!(ele).as_object().unwrap().clone();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(ele.created_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>();
-                    let pagination_params = pagination_params_rws.get();
-                    let pagination_props = TablePaginationProps {
-                        enabled: true,
-                        count: pagination_params.count.unwrap_or_default(),
-                        current_page: pagination_params.page.unwrap_or_default(),
-                        total_pages: value.total_pages,
-                        on_page_change: handle_page_change,
-                    };
-                    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                let value = dimensions_resource.get().unwrap_or_default();
+                let total_items = value.data.len().to_string();
+                let table_rows = value
+                    .data
+                    .iter()
+                    .map(|ele| {
+                        let mut ele_map = json!(ele).as_object().unwrap().clone();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(ele.created_at.format("%v %T").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let pagination_params = pagination_params_rws.get();
+                let pagination_props = TablePaginationProps {
+                    enabled: true,
+                    count: pagination_params.count.unwrap_or_default(),
+                    current_page: pagination_params.page.unwrap_or_default(),
+                    total_pages: value.total_pages,
+                    on_page_change: handle_page_change,
+                };
+                view! {
+                    <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items />
-                            <DrawerBtn drawer_id="dimension_drawer" class="self-end flex gap-2">
-                                Create Dimension
-                                <i class="ri-edit-2-line" />
-                            </DrawerBtn>
+                            <DrawerBtn
+                                drawer_id="dimension_drawer"
+                                class="self-end"
+                                text="Create Dimension"
+                                icon_class="ri-add-line"
+                            />
                         </div>
-                        <div class="card rounded-xl w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <Table
+                                    class="!overflow-y-auto"
                                     rows=table_rows
                                     key_column="id".to_string()
                                     columns=table_columns.get()
@@ -248,74 +251,74 @@ pub fn dimensions() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                    }
-                }}
-                {move || {
-                    let handle_close = move || {
-                        close_drawer("dimension_drawer");
-                        selected_dimension.set(None);
-                    };
-                    let dimensions = dimensions_resource.get().unwrap_or_default().data;
-                    if let Some(selected_dimension_data) = selected_dimension.get() {
-                        view! {
-                            <Drawer
-                                id="dimension_drawer"
-                                header="Edit Dimension"
-                                handle_close=handle_close
-                            >
-                                <DimensionForm
-                                    edit=true
-                                    position=selected_dimension_data.position
-                                    dimension_name=selected_dimension_data.dimension
-                                    dimension_schema=selected_dimension_data.schema
-                                    dependencies=selected_dimension_data.dependencies
-                                    validation_function_name=selected_dimension_data
-                                        .validation_function_name
-                                    autocomplete_function_name=selected_dimension_data
-                                        .autocomplete_function_name
-                                    dimensions
-                                    handle_submit=move |_| {
-                                        dimensions_resource.refetch();
-                                        selected_dimension.set(None);
-                                        close_drawer("dimension_drawer");
-                                    }
-                                />
-
-                            </Drawer>
-                        }
-                    } else {
-                        view! {
-                            <Drawer
-                                id="dimension_drawer"
-                                header="Create New Dimension"
-                                handle_close=handle_close
-                            >
-                                <DimensionForm
-                                    dimensions
-                                    handle_submit=move |_| {
-                                        dimensions_resource.refetch();
-                                        close_drawer("dimension_drawer");
-                                    }
-                                />
-                            </Drawer>
-                        }
-                    }
-                }}
-                {move || {
-                    if let Some(dimension_name) = delete_id_rs.get() {
-                        view! {
-                            <ChangeLogSummary
-                                dimension_name
-                                change_type=ChangeType::Delete
-                                on_close=move |_| delete_id_ws.set(None)
-                                on_confirm=confirm_delete
+                    </div>
+                }
+            }}
+            {move || {
+                let handle_close = move || {
+                    close_drawer("dimension_drawer");
+                    selected_dimension.set(None);
+                };
+                let dimensions = dimensions_resource.get().unwrap_or_default().data;
+                if let Some(selected_dimension_data) = selected_dimension.get() {
+                    view! {
+                        <Drawer
+                            id="dimension_drawer"
+                            header="Edit Dimension"
+                            handle_close=handle_close
+                        >
+                            <DimensionForm
+                                edit=true
+                                position=selected_dimension_data.position
+                                dimension_name=selected_dimension_data.dimension
+                                dimension_schema=selected_dimension_data.schema
+                                dependencies=selected_dimension_data.dependencies
+                                validation_function_name=selected_dimension_data
+                                    .validation_function_name
+                                autocomplete_function_name=selected_dimension_data
+                                    .autocomplete_function_name
+                                dimensions
+                                handle_submit=move |_| {
+                                    dimensions_resource.refetch();
+                                    selected_dimension.set(None);
+                                    close_drawer("dimension_drawer");
+                                }
                             />
-                        }
-                    } else {
-                        ().into_view()
+
+                        </Drawer>
                     }
-                }}
-            </Suspense>
-        </div>
+                } else {
+                    view! {
+                        <Drawer
+                            id="dimension_drawer"
+                            header="Create New Dimension"
+                            handle_close=handle_close
+                        >
+                            <DimensionForm
+                                dimensions
+                                handle_submit=move |_| {
+                                    dimensions_resource.refetch();
+                                    close_drawer("dimension_drawer");
+                                }
+                            />
+                        </Drawer>
+                    }
+                }
+            }}
+            {move || {
+                if let Some(dimension_name) = delete_id_rs.get() {
+                    view! {
+                        <ChangeLogSummary
+                            dimension_name
+                            change_type=ChangeType::Delete
+                            on_close=move |_| delete_id_ws.set(None)
+                            on_confirm=confirm_delete
+                        />
+                    }
+                } else {
+                    ().into_view()
+                }
+            }}
+        </Suspense>
     }
 }

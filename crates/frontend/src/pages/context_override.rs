@@ -38,12 +38,12 @@ use crate::{
     },
     components::{
         alert::AlertType,
-        button::Button,
+        button::{Button, ButtonStyle},
         change_form::ChangeForm,
         change_summary::{ChangeLogPopup, ChangeSummary},
         context_card::ContextCard,
         context_form::ContextForm,
-        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
         dropdown::{Dropdown, DropdownBtnType},
         experiment_form::{ExperimentForm, ExperimentFormType},
         override_form::OverrideForm,
@@ -192,7 +192,7 @@ fn form(
         <div class="flex flex-col gap-5">
             <ContextForm
                 dimensions=dimensions.get_value()
-                resolve_mode=workspace_settings.get_value().strict_mode
+                resolve_mode=workspace_settings.with_value(|w| w.strict_mode)
                 context=context_rs.get_untracked()
                 on_context_change=move |new_context| context_ws.set(new_context)
                 fn_environment
@@ -358,7 +358,7 @@ fn autofill_experiment_form(
                                         default_config=default_config.get_value()
                                         dimensions=dimensions.get_value()
                                         handle_submit
-                                        metrics=workspace_settings.get_value().metrics
+                                        metrics=workspace_settings.with_value(|w| w.metrics.clone())
                                     />
                                 }
                             }
@@ -372,7 +372,7 @@ fn autofill_experiment_form(
                                         default_config=default_config.get_value()
                                         dimensions=dimensions.get_value()
                                         handle_submit
-                                        metrics=workspace_settings.get_value().metrics
+                                        metrics=workspace_settings.with_value(|w| w.metrics.clone())
                                     />
                                 }
                             }
@@ -590,7 +590,7 @@ pub fn context_override() -> impl IntoView {
 
     view! {
         <Suspense fallback=move || view! { <Skeleton /> }>
-            <div class="relative h-screen p-8 flex flex-col gap-8">
+            <div class="relative h-full flex flex-col gap-8">
                 <div class="flex flex-col gap-6 flex-1 overflow-y-scroll" on:scroll=on_scroll>
                     <div class="flex justify-between">
                         {move || {
@@ -644,20 +644,18 @@ pub fn context_override() -> impl IntoView {
                                 <div class="flex items-end gap-4">
                                     <DrawerBtn
                                         drawer_id="context_filter_drawer"
-                                        style=DrawerButtonStyle::Outline
+                                        style=ButtonStyle::Outline
                                         class="!h-9 !min-h-[32px] !w-fit px-2"
-                                    >
-                                        "Filters"
-                                        <i class="ri-filter-3-line"></i>
-                                    </DrawerBtn>
+                                        text="Filters"
+                                        icon_class="ri-filter-3-line"
+                                    />
                                     <DrawerBtn
-                                        class="h-fit flex gap-2"
+                                        class="h-fit"
                                         drawer_id="context_and_override_drawer"
                                         on_click=on_create_context_click
-                                    >
-                                        "Create Override"
-                                        <i class="ri-edit-2-line" />
-                                    </DrawerBtn>
+                                        text="Create Override"
+                                        icon_class="ri-add-line"
+                                    />
                                 </div>
                             }
                         }}

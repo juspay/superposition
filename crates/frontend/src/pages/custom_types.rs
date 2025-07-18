@@ -189,72 +189,75 @@ pub fn types_page() -> impl IntoView {
             }
         }}
 
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || {
-                view! { <Skeleton /> }
-            }>
-                {move || {
-                    let types = types_resource.get().unwrap_or(vec![]);
-                    let data = types
-                        .iter()
-                        .map(|ele| {
-                            let mut ele_map = unwrap_option_or_default_with_error(
-                                    json!(ele).as_object(),
-                                    &Map::new(),
-                                )
-                                .to_owned();
-                            ele_map
-                                .insert(
-                                    "created_at".to_string(),
-                                    json!(ele.created_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                                .insert(
-                                    "last_modified_at".to_string(),
-                                    json!(ele.last_modified_at.format("%v %T").to_string()),
-                                );
-                            ele_map
-                        })
-                        .collect::<Vec<Map<String, Value>>>()
-                        .to_owned();
-                    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                let types = types_resource.get().unwrap_or(vec![]);
+                let data = types
+                    .iter()
+                    .map(|ele| {
+                        let mut ele_map = unwrap_option_or_default_with_error(
+                                json!(ele).as_object(),
+                                &Map::new(),
+                            )
+                            .to_owned();
+                        ele_map
+                            .insert(
+                                "created_at".to_string(),
+                                json!(ele.created_at.format("%v %T").to_string()),
+                            );
+                        ele_map
+                            .insert(
+                                "last_modified_at".to_string(),
+                                json!(ele.last_modified_at.format("%v %T").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>()
+                    .to_owned();
+                view! {
+                    <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat
                                 heading="Type Templates"
                                 icon="ri-t-box-fill"
                                 number=types.len().to_string()
                             />
-                            <DrawerBtn drawer_id=TYPE_DRAWER_ID class="self-end flex gap-2">
-                                Create Type
-                                <i class="ri-add-fill" />
-                            </DrawerBtn>
+                            <DrawerBtn
+                                drawer_id=TYPE_DRAWER_ID
+                                class="self-end"
+                                text="Create Type"
+                                icon_class="ri-add-line"
+                            />
                         </div>
-                        <div class="card rounded-xl w-full bg-base-100 shadow">
-                            <div class="card-body">
+                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
                                 <Table
+                                    class="!overflow-y-auto"
                                     rows=data
                                     key_column="id".to_string()
                                     columns=table_columns.get()
                                 />
                             </div>
                         </div>
+                    </div>
+                }
+            }}
+            {move || {
+                if let Some(type_name) = delete_type_rs.get() {
+                    view! {
+                        <ChangeLogSummary
+                            type_name
+                            change_type=ChangeType::Delete
+                            on_close=move |_| delete_type_ws.set(None)
+                            on_confirm=confirm_delete
+                        />
                     }
-                }}
-                {move || {
-                    if let Some(type_name) = delete_type_rs.get() {
-                        view! {
-                            <ChangeLogSummary
-                                type_name
-                                change_type=ChangeType::Delete
-                                on_close=move |_| delete_type_ws.set(None)
-                                on_confirm=confirm_delete
-                            />
-                        }
-                    } else {
-                        ().into_view()
-                    }
-                }}
-            </Suspense>
-        </div>
+                } else {
+                    ().into_view()
+                }
+            }}
+        </Suspense>
     }
 }

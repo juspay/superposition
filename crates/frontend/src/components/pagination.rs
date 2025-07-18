@@ -1,6 +1,9 @@
 use std::cmp::max;
 
 use leptos::*;
+use leptos_router::A;
+
+use crate::query_updater::use_update_url_query;
 
 #[component]
 pub fn pagination(
@@ -9,6 +12,8 @@ pub fn pagination(
     total_pages: i64,
     #[prop(into)] on_change: Callback<i64>,
 ) -> impl IntoView {
+    let get_updated_query = use_update_url_query();
+
     let current_page = max(1, current_page);
     let total_pages = max(1, total_pages);
 
@@ -44,9 +49,12 @@ pub fn pagination(
 
     view! {
         <div class=format!("join {class}")>
-            <button class="join-item btn" on:click=move |_| on_change.call(previous_page)>
+            <A
+                class="join-item btn"
+                href=get_updated_query("page", Some(previous_page.to_string()))
+            >
                 "«"
-            </button>
+            </A>
             <button class="join-item btn">
                 {format!("Page {} / {}", current_page, total_pages)}
             </button>
@@ -76,9 +84,9 @@ pub fn pagination(
                     <i class="ri-corner-down-left-line text-gray-400" />
                 </div>
             </div>
-            <button class="join-item btn" on:click=move |_| on_change.call(next_page)>
+            <A class="join-item btn" href=get_updated_query("page", Some(next_page.to_string()))>
                 "»"
-            </button>
+            </A>
         </div>
     }
 }
