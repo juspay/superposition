@@ -20,7 +20,7 @@ public class ExperimentationClient {
 
         void expt_start_polling_update(String tenant);
 
-        Pointer expt_get_applicable_variant(Pointer clientPtr, String context, short toss);
+        Pointer expt_get_applicable_variant(Pointer clientPtr, String context, String identifier);
 
         Pointer expt_get_satisfied_experiments(Pointer clientPtr, String context, String filter_prefix);
 
@@ -57,8 +57,8 @@ public class ExperimentationClient {
         rustLib.expt_start_polling_update(tenant);
     }
 
-    public String getApplicableVariants (Pointer clientPtr, String context, short toss) throws IOException {
-        Pointer result = rustLib.expt_get_applicable_variant(clientPtr, context, toss);
+    public String getApplicableVariants (Pointer clientPtr, String context, String identifier) throws IOException {
+        Pointer result = rustLib.expt_get_applicable_variant(clientPtr, context, identifier);
         if (result == null) {
             String errorMessage = rustLib.expt_last_error_message();
             throw new IOException("Failed to get applicable variants for the experiment: " + errorMessage);
