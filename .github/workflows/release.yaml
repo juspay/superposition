@@ -631,6 +631,7 @@ jobs:
                   npm ci
                   npm publish --scope=@juspay --access public
               env:
+                  CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
                   CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
 
     release:
@@ -663,6 +664,3 @@ jobs:
                       artifacts_dir/superposition_core-x86_64-apple-darwin.zip/superposition_core-x86_64-apple-darwin.zip
                       artifacts_dir/superposition_core-aarch64-apple-darwin.zip/superposition_core-aarch64-apple-darwin.zip
                       artifacts_dir/superposition_core-x86_64-pc-windows-msvc.zip/superposition_core-x86_64-pc-windows-msvc.zip
-                      artifacts_dir/superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl/superposition_bindings-${{needs.tag-release.outputs.version}}-py3-none-any.whl
-                      artifacts_dir/superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl/superposition_sdk-${{needs.tag-release.outputs.version}}-py3-none-any.whl
-                      artifacts_dir/superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl/superposition_provider-${{needs.tag-release.outputs.version}}-py3-none-any.whl
