@@ -4,13 +4,11 @@ use leptos::*;
 use serde_json::{json, Map, Number, Value};
 use superposition_types::{
     api::{
+        dimension::DimensionResponse,
         experiment_groups::{ExpGroupMemberRequest, ExpGroupUpdateRequest},
         workspace::WorkspaceResponse,
     },
-    database::{
-        models::{experimentation::ExperimentGroup, ChangeReason},
-        types::DimensionWithMandatory,
-    },
+    database::models::{experimentation::ExperimentGroup, ChangeReason},
 };
 use web_sys::MouseEvent;
 
@@ -176,7 +174,7 @@ pub fn experiment_group_form(
     group_name: String,
     group_description: String,
     traffic_percentage: i32,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     is_edit: bool,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {

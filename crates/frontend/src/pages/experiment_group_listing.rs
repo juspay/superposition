@@ -10,11 +10,12 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
     api::{
+        dimension::DimensionResponse,
         experiment_groups::{ExpGroupFilters, SortOn},
         workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, PaginationParams, Query},
-    database::{models::experimentation::ExperimentGroup, types::DimensionWithMandatory},
+    database::models::experimentation::ExperimentGroup,
     PaginatedResponse,
 };
 use web_sys::MouseEvent;
@@ -51,7 +52,7 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone, Default)]
 struct CombinedResource {
     experiment_groups: PaginatedResponse<ExperimentGroup>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
 }
 
 #[derive(Clone, Debug, Default)]

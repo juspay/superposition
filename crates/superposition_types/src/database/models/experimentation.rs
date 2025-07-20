@@ -236,9 +236,11 @@ impl Overridden<Exp<Overrides>> for Variant {
     }
 }
 type VariantOverrides = Exp<Overrides>;
-impl From<Overrides> for Exp<Overrides> {
-    fn from(value: Overrides) -> Self {
-        Exp(value)
+impl TryFrom<Overrides> for Exp<Overrides> {
+    type Error = std::io::Error;
+    fn try_from(value: Overrides) -> Result<Self, Self::Error> {
+        Exp::<Overrides>::try_from(Into::<serde_json::Map<String, Value>>::into(value))
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
     }
 }
 impl From<Exp<Overrides>> for Overrides {

@@ -3,9 +3,12 @@ use leptos::*;
 use leptos_router::use_params_map;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    api::{default_config::DefaultConfigFilters, experiments::ExperimentResponse},
+    api::{
+        default_config::DefaultConfigFilters, dimension::DimensionResponse,
+        experiments::ExperimentResponse,
+    },
     custom_query::PaginationParams,
-    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
+    database::models::cac::DefaultConfig,
 };
 
 use crate::{
@@ -29,7 +32,7 @@ use crate::components::experiment_ramp_form::ExperimentRampForm;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct CombinedResource {
     experiment: Option<ExperimentResponse>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     default_config: Vec<DefaultConfig>,
 }
 

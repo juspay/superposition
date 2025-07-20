@@ -81,8 +81,8 @@ pub struct Dimension {
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub position: Position,
-    pub description: String,
-    pub change_reason: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
     pub dependency_graph: DependencyGraph,
     pub dependents: Vec<String>,
     pub dependencies: Vec<String>,
@@ -257,6 +257,12 @@ impl TryFrom<i32> for Position {
         } else {
             Ok(Self(value))
         }
+    }
+}
+
+impl From<u32> for Position {
+    fn from(value: u32) -> Self {
+        Self(value as i32)
     }
 }
 

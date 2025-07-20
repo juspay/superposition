@@ -3,13 +3,11 @@ use leptos::{ReadSignal, WriteSignal};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
-    database::{
-        models::{
-            cac::{DefaultConfig, TypeTemplate},
-            experimentation::{Variant, VariantType},
-            others::{HttpMethod, PayloadVersion, WebhookEvent},
-        },
-        types::DimensionWithMandatory,
+    api::dimension::DimensionResponse,
+    database::models::{
+        cac::{DefaultConfig, TypeTemplate},
+        experimentation::{Variant, VariantType},
+        others::{HttpMethod, PayloadVersion, WebhookEvent},
     },
     Exp, Overrides,
 };
@@ -121,7 +119,7 @@ impl Default for VariantFormTs {
 
 /*************************** Context-Override types ********************************/
 
-impl DropdownOption for DimensionWithMandatory {
+impl DropdownOption for DimensionResponse {
     fn key(&self) -> String {
         self.dimension.clone()
     }

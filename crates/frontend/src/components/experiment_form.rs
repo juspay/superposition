@@ -7,18 +7,16 @@ use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
     api::{
+        dimension::DimensionResponse,
         experiment_groups::ExpGroupFilters,
         experiments::{ExperimentResponse, OverrideKeysUpdateRequest},
         workspace::WorkspaceResponse,
     },
     custom_query::PaginationParams,
-    database::{
-        models::{
-            cac::DefaultConfig,
-            experimentation::{ExperimentGroup, ExperimentType},
-            Metrics,
-        },
-        types::DimensionWithMandatory,
+    database::models::{
+        cac::DefaultConfig,
+        experimentation::{ExperimentGroup, ExperimentType},
+        Metrics,
     },
 };
 use utils::{create_experiment, try_update_payload, update_experiment};
@@ -87,7 +85,7 @@ pub fn experiment_form(
     experiment_form_type: ExperimentFormType,
     #[prop(into)] handle_submit: Callback<String, ()>,
     default_config: Vec<DefaultConfig>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     #[prop(default = String::new())] description: String,
     metrics: Metrics,
     #[prop(default = None)] experiment_group_id: Option<String>,

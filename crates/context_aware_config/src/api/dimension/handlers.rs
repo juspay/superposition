@@ -10,6 +10,9 @@ use diesel::{
 use service_utils::service::types::{AppState, DbConnection, SchemaName};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
+    api::dimension::{
+        CreateRequest, DeleteRequest, DimensionName, DimensionResponse, UpdateRequest,
+    },
     custom_query::PaginationParams,
     database::{
         models::{
@@ -17,26 +20,19 @@ use superposition_types::{
             Workspace,
         },
         schema::dimensions::{self, dsl::*},
-        types::DimensionWithMandatory,
     },
     result as superposition, PaginatedResponse, User,
 };
 
 use crate::{
-    api::dimension::{
-        types::CreateReq,
-        utils::{
-            get_dimension_usage_context_ids, validate_and_update_dimension_hierarchy,
-            validate_dimension_deletability, validate_dimension_position,
-        },
+    api::dimension::utils::{
+        get_dimension_usage_context_ids, validate_and_update_dimension_hierarchy,
+        validate_dimension_deletability, validate_dimension_position,
     },
     helpers::{get_workspace, validate_jsonschema},
 };
 
-use super::{
-    types::{DeleteReq, DimensionName, UpdateReq},
-    utils::validate_and_initialize_dimension_hierarchy,
-};
+use super::utils::validate_and_initialize_dimension_hierarchy;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -50,7 +46,7 @@ pub fn endpoints() -> Scope {
 #[post("")]
 async fn create(
     state: Data<AppState>,
-    req: web::Json<CreateReq>,
+    req: web::Json<CreateRequest>,
     user: User,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -126,10 +122,8 @@ async fn create(
                     .mandatory_dimensions
                     .unwrap_or_default()
                     .contains(&inserted_dimension.dimension);
-                Ok(HttpResponse::Created().json(DimensionWithMandatory::new(
-                    inserted_dimension,
-                    is_mandatory,
-                )))
+                Ok(HttpResponse::Created()
+                    .json(DimensionResponse::new(inserted_dimension, is_mandatory)))
             }
             Err(diesel::result::Error::DatabaseError(
                 diesel::result::DatabaseErrorKind::ForeignKeyViolation,
@@ -156,7 +150,7 @@ async fn get(
     db_conn: DbConnection,
     req: Path<String>,
     schema_name: SchemaName,
-) -> superposition::Result<Json<DimensionWithMandatory>> {
+) -> superposition::Result<Json<DimensionResponse>> {
     let DbConnection(mut conn) = db_conn;
 
     let result: Dimension = dimensions::dsl::dimensions
@@ -170,14 +164,14 @@ async fn get(
         .unwrap_or_default()
         .contains(&result.dimension);
 
-    Ok(Json(DimensionWithMandatory::new(result, is_mandatory)))
+    Ok(Json(DimensionResponse::new(result, is_mandatory)))
 }
 
 #[put("/{name}")]
 async fn update(
     path: Path<DimensionName>,
     state: Data<AppState>,
-    req: web::Json<UpdateReq>,
+    req: web::Json<UpdateRequest>,
     user: User,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -284,7 +278,7 @@ async fn update(
         .unwrap_or_default()
         .contains(&result.dimension);
 
-    Ok(HttpResponse::Ok().json(DimensionWithMandatory::new(result, is_mandatory)))
+    Ok(HttpResponse::Ok().json(DimensionResponse::new(result, is_mandatory)))
 }
 
 #[get("")]
@@ -292,7 +286,7 @@ async fn list(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
     schema_name: SchemaName,
-) -> superposition::Result<Json<PaginatedResponse<DimensionWithMandatory>>> {
+) -> superposition::Result<Json<PaginatedResponse<DimensionResponse>>> {
     let DbConnection(mut conn) = db_conn;
 
     let (total_pages, total_items, result) = match filters.all {
@@ -328,11 +322,11 @@ async fn list(
     let mandatory_dimensions =
         workspace_settings.mandatory_dimensions.unwrap_or_default();
 
-    let dimensions_with_mandatory: Vec<DimensionWithMandatory> = result
+    let dimensions_with_mandatory: Vec<DimensionResponse> = result
         .into_iter()
         .map(|ele| {
             let is_mandatory = mandatory_dimensions.contains(&ele.dimension);
-            DimensionWithMandatory::new(ele, is_mandatory)
+            DimensionResponse::new(ele, is_mandatory)
         })
         .collect();
 
@@ -345,7 +339,7 @@ async fn list(
 
 #[delete("/{name}")]
 async fn delete_dimension(
-    path: Path<DeleteReq>,
+    path: Path<DeleteRequest>,
     user: User,
     db_conn: DbConnection,
     schema_name: SchemaName,

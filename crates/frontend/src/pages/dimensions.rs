@@ -277,6 +277,7 @@ pub fn dimensions() -> impl IntoView {
                                     .validation_function_name
                                 autocomplete_function_name=selected_dimension_data
                                     .autocomplete_function_name
+                                description=selected_dimension_data.description
                                 dimensions
                                 handle_submit=move |_| {
                                     dimensions_resource.refetch();

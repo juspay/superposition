@@ -1382,7 +1382,6 @@ dependencies = [
  "cac_client",
  "cfg-if",
  "chrono",
- "derive_more",
  "diesel",
  "fred",
  "itertools 0.10.5",

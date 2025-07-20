@@ -1,18 +1,18 @@
-pub mod types;
 pub mod utils;
+
+use std::ops::Deref;
 
 use leptos::*;
 use serde_json::{Map, Number, Value};
 use superposition_types::{
-    api::functions::ListFunctionFilters,
-    custom_query::PaginationParams,
-    database::{
-        models::cac::{Function, FunctionType, TypeTemplate},
-        types::DimensionWithMandatory,
+    api::{
+        dimension::{DimensionResponse, UpdateRequest},
+        functions::ListFunctionFilters,
     },
+    custom_query::PaginationParams,
+    database::models::cac::{Function, FunctionType, TypeTemplate},
 };
-use types::{DimensionCreateReq, DimensionUpdateReq};
-use utils::{create_dimension, update_dimension};
+use utils::{create_dimension, try_update_payload, update_dimension};
 use web_sys::MouseEvent;
 
 use crate::components::skeleton::SkeletonVariant;
@@ -60,7 +60,7 @@ pub fn dimension_form(
     #[prop(default = None)] validation_function_name: Option<String>,
     #[prop(default = None)] autocomplete_function_name: Option<String>,
     #[prop(default = String::new())] description: String,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
@@ -154,39 +154,37 @@ pub fn dimension_form(
                     .await
                     .map(|_| ResponseType::Response),
                     (true, None) => {
-                        update_request_rws.set(Some((
-                            dimension_name,
-                            DimensionUpdateReq {
-                                position: Some(function_position),
-                                schema: Some(function_schema),
-                                dependencies: Some(dependencies),
-                                function_name: Some(validation_fn_name),
-                                autocomplete_function_name: Some(autocomplete_fn_name),
-                                description: Some(description_rs.get_untracked()),
-                                change_reason: change_reason_rs.get_untracked(),
-                            },
-                        )));
-                        Ok(ResponseType::UpdatePrecheck)
-                    }
-                    _ => {
-                        let create_payload = DimensionCreateReq {
-                            dimension: dimension_name,
-                            position: function_position,
-                            schema: function_schema,
+                        let request_payload = try_update_payload(
+                            function_position,
+                            function_schema,
                             dependencies,
-                            function_name: validation_fn_name,
-                            autocomplete_function_name: autocomplete_fn_name,
-                            description: description_rs.get_untracked(),
-                            change_reason: change_reason_rs.get_untracked(),
-                        };
-                        create_dimension(
-                            workspace.get_untracked().0,
-                            create_payload,
-                            org.get_untracked().0,
-                        )
-                        .await
-                        .map(|_| ResponseType::Response)
+                            validation_fn_name,
+                            autocomplete_fn_name,
+                            description_rs.get_untracked(),
+                            change_reason_rs.get_untracked(),
+                        );
+                        match request_payload {
+                            Ok(payload) => {
+                                update_request_rws.set(Some((dimension_name, payload)));
+                                Ok(ResponseType::UpdatePrecheck)
+                            }
+                            Err(e) => Err(e),
+                        }
                     }
+                    _ => create_dimension(
+                        dimension_name,
+                        function_position,
+                        function_schema,
+                        dependencies,
+                        validation_fn_name,
+                        autocomplete_fn_name,
+                        description_rs.get_untracked(),
+                        change_reason_rs.get_untracked(),
+                        workspace.get_untracked().0,
+                        org.get_untracked().0,
+                    )
+                    .await
+                    .map(|_| ResponseType::Response),
                 };
 
                 req_inprogress_ws.set(false);
@@ -447,7 +445,7 @@ pub fn dimension_form(
 #[derive(Clone)]
 pub enum ChangeType {
     Delete,
-    Update(DimensionUpdateReq),
+    Update(UpdateRequest),
 }
 
 #[component]
@@ -505,9 +503,7 @@ pub fn change_log_summary(
                                 let description = update_request
                                     .description
                                     .unwrap_or_else(|| dim.description.clone());
-                                let position = update_request
-                                    .position
-                                    .unwrap_or_else(|| *dim.position as u32);
+                                let position = update_request.position.unwrap_or(dim.position);
                                 let valdiate_fn = update_request
                                     .function_name
                                     .clone()
@@ -524,11 +520,11 @@ pub fn change_log_summary(
                                         vec![
                                             Some((
                                                 "Description".to_string(),
-                                                Value::String(description),
+                                                Value::String(description.deref().to_string()),
                                             )),
                                             Some((
                                                 "Position".to_string(),
-                                                Value::Number(position.into()),
+                                                Value::Number((*position).into()),
                                             )),
                                             Some((
                                                 "Dependencies".to_string(),
@@ -572,7 +568,7 @@ pub fn change_log_summary(
                                     vec![
                                         Some((
                                             "Description".to_string(),
-                                            Value::String(dim.description),
+                                            Value::String(dim.description.deref().to_string()),
                                         )),
                                         Some((
                                             "Position".to_string(),

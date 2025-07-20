@@ -11,6 +11,7 @@ use serde_json::Value;
 pub mod config;
 pub mod context;
 pub mod default_config;
+pub mod dimension;
 #[cfg(feature = "experimentation")]
 pub mod experiment_groups;
 #[cfg(feature = "experimentation")]
