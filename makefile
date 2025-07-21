@@ -6,7 +6,7 @@ TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 FMT_FLAGS := --all
-LINT_FLAGS := --all-targets
+LINT_FLAGS := --workspace --all-targets --exclude superposition-rust-sdk --exclude superposition_provider
 CARGO_FLAGS := --color always --no-default-features
 WASM_PACK_MODE ?= --dev
 HAS_DOCKER := $(shell command -v docker > /dev/null; echo $$?)
@@ -224,9 +224,11 @@ smithy-clients: smithy-build
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
 
+# Note: Run make from the repository root for correct path exclusions!
 fmt:
-	cargo fmt $(FMT_FLAGS)
-
+	find crates clients \
+		-path "clients/generated/smithy/rust" -prune -o \
+		-name "*.rs" -print0 | xargs -0 rustfmt
 lint:
 	cargo clippy $(LINT_FLAGS)
 
