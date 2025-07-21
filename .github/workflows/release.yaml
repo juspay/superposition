@@ -570,7 +570,7 @@ jobs:
 
                   echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
                   echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
-                  echo "NODE_AUTH_TOKEN=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
+                  echo "NODE_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
 
                   # Configure npm to use CodeArtifact
                   npm config set registry $CODEARTIFACT_REPOSITORY_ENDPOINT
