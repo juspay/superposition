@@ -71,6 +71,7 @@
               openapi-generator-cli
               jdk21_headless
               gradle_jdk17
+              uv
               # go client
               # go
             ];

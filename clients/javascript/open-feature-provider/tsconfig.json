@@ -15,7 +15,14 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "paths": {
+            "superposition-sdk": ["../sdk/dist-types"],
+            "superposition-sdk/*": ["../sdk/dist-types/*"],
+            "superposition-bindings": ["../bindings/dist"],
+            "superposition-bindings/*": ["../bindings/dist/*"]
+        },
+        "baseUrl": "."
     },
     "include": [
         "*.ts"
