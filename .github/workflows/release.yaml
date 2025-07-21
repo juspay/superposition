@@ -504,30 +504,13 @@ jobs:
                   echo "All Python wheels:"
                   ls -la python-wheels/
 
-            - name: Configure CodeArtifact for Gradle
+            - name: Configure CodeArtifact for twine
               run: |
-                  # Get CodeArtifact authorization token
-                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --query authorizationToken --output text)
-
-                  # Get repository endpoint
-                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --repository $CODEARTIFACT_REPOSITORY \
-                      --format pypi --query repositoryEndpoint --output text)
-
-                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
-                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
+                  aws codeartifact login --tool twine --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY
 
             - name: Publish Python packages to CodeArtifact
               run: |
-                  twine upload --repository-url $CODEARTIFACT_REPOSITORY_ENDPOINT \
-                      --username aws --password $CODEARTIFACT_AUTH_TOKEN \
-                      python-wheels/*.whl
-              env:
-                  CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
-                  CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
+                  twine upload python-wheels/*.whl
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
@@ -555,29 +538,13 @@ jobs:
                   role-session-name: superposition-release
                   role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
 
-            - name: Configure CodeArtifact for npm
-              run: |
-                  # Get CodeArtifact authorization token
-                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --query authorizationToken --output text)
-
-                  # Get repository endpoint
-                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --repository $CODEARTIFACT_REPOSITORY \
-                      --format npm --query repositoryEndpoint --output text)
-
-                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
-                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
-
-                  # Configure npm to use CodeArtifact
-                  npm config set registry=$CODEARTIFACT_REPOSITORY_ENDPOINT
-                  npm config set //$CODEARTIFACT_REPOSITORY_ENDPOINT:_authToken=$CODEARTIFACT_AUTH_TOKEN
-
             - uses: actions/setup-node@v4
               with:
                   node-version: "20.0.0"
+            
+            - name: Configure CodeArtifact for npm
+              run: |
+                  aws codeartifact login --tool npm --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY
 
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
@@ -594,6 +561,7 @@ jobs:
             - name: Extract and organize native libraries
               run: |
                   # Extract all native libraries
+                  mkdir -p clients/javascript/bindings/native-lib
                   for zip_file in rust-binaries/*.zip; do
                       echo "Extracting $zip_file"
                       zip_basename=$(basename "$zip_file" .zip)
@@ -607,7 +575,7 @@ jobs:
                           filename=$(basename "$lib")
                           extension="${filename##*.}"
                           file="libsuperposition_core-$target_triple.$extension"
-                          cp "$lib" clients/javascript/bindings/$file
+                          cp "$lib" clients/javascript/bindings/native-lib/$file
                           echo "Copied $file"
                       done
 
@@ -617,7 +585,7 @@ jobs:
 
                   # List what we have
                   echo "Native libraries in bindings package:"
-                  ls -la clients/javascript/bindings
+                  ls -la clients/javascript/bindings/native-lib
 
             - run: |
                   cd clients/javascript/bindings

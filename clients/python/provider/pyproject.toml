@@ -8,13 +8,10 @@ keywords = ["openfeature", "superposition_provider"]
 license = { text = "Apache-2.0" }
 
 dependencies = [
-    "superposition_sdk @ ../sdk",
-    "superposition_bindings @ ../bindings",
+    "smithy_core==0.0.1",
+    "smithy_http[aiohttp]==0.0.1",
+    "smithy_json==0.0.1",
 ]
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["superposition_provider"]
 
 [build-system]
 requires = ["hatchling"]
@@ -23,6 +20,19 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "env"
 variable = "VERSION"
+
+[tool.hatch.build.targets.wheel]
+# Include the local dependencies directly in the wheel
+force-include = { "../sdk" = "superposition_sdk", "../bindings" = "superposition_bindings" }
+
+packages = ["superposition_provider"]
+
+[tool.hatch.build]
+# Exclude test files and other unnecessary files
+exclude = ["tests/", "**/__pycache__/", "**/*.pyc", "**/*.pyo"]
+
+# Include package data (like binary files from bindings)
+artifacts = ["superposition_bindings/.*superposition_core.*"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
