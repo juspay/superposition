@@ -1,11 +1,7 @@
 {
-    "name": "@juspay/superposition-sdk",
-    "description": "io.juspay/superposition-typescript-sdk client",
+    "name": "superposition-sdk",
+    "description": "superposition-sdk client",
     "version": "0.0.1",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/juspay/superposition.git"
-      },
     "scripts": {
         "build": "npm run build:types && npm run build:cjs && npm run build:es",
         "build:cjs": "tsc -p tsconfig.cjs.json",
@@ -13,8 +9,7 @@
         "build:types": "tsc -p tsconfig.types.json",
         "build:types:downlevel": "downlevel-dts dist-types dist-types/ts3.4",
         "clean": "rimraf ./dist-* && rimraf *.tsbuildinfo",
-        "prepack": "npm run clean && npm run build",
-        "prepublishOnly": "npm --no-git-tag-version version $VERSION"
+        "prepack": "npm run clean && npm run build"
     },
     "main": "./dist-cjs/index.js",
     "types": "./dist-types/index.d.ts",

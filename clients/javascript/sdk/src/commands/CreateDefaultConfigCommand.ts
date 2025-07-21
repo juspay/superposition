@@ -40,8 +40,8 @@ export interface CreateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, CreateDefaultConfigCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, CreateDefaultConfigCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, CreateDefaultConfigCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, CreateDefaultConfigCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // CreateDefaultConfigInput
  *   key: "STRING_VALUE", // required

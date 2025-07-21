@@ -5,7 +5,7 @@ import {
     ListWorkspaceCommand,
     WorkspaceStatus,
 } from "superposition-sdk";
-import { ENV, superpositionClient } from "./env";
+import { ENV, superpositionClient } from "./env.ts";
 
 const TEST_ORG_NAME = "testorg";
 const TEST_WORKSPACE = "testworkspace";

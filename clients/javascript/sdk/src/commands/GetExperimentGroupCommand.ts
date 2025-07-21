@@ -39,8 +39,8 @@ export interface GetExperimentGroupCommandOutput extends ExperimentGroupResponse
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetExperimentGroupCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetExperimentGroupCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetExperimentGroupCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetExperimentGroupCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetExperimentGroupInput
  *   workspace_id: "STRING_VALUE", // required

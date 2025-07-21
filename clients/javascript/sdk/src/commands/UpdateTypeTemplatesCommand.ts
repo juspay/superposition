@@ -40,8 +40,8 @@ export interface UpdateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, UpdateTypeTemplatesCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, UpdateTypeTemplatesCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, UpdateTypeTemplatesCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, UpdateTypeTemplatesCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // UpdateTypeTemplatesRequest
  *   workspace_id: "STRING_VALUE", // required

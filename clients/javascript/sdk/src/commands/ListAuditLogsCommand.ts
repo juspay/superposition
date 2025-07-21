@@ -40,8 +40,8 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListAuditLogsCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListAuditLogsCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListAuditLogsCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListAuditLogsCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListAuditLogsInput
  *   workspace_id: "STRING_VALUE", // required

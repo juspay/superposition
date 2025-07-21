@@ -40,8 +40,8 @@ export interface GetConfigFastCommandOutput extends GetConfigFastOutput, __Metad
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetConfigFastCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetConfigFastCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetConfigFastCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetConfigFastCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetConfigFastInput
  *   workspace_id: "STRING_VALUE", // required

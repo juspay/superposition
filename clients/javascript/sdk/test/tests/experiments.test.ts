@@ -53,18 +53,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-            {
-                variant_type: VariantType.CONTROL,
-                overrides: {
-                    pmTestKey1: "value1-control",
-                    pmTestKey2: "value1-control",
-                },
+        {
+            variant_type: VariantType.CONTROL,
+            overrides: {
+                pmTestKey1: "value1-control",
+                pmTestKey2: "value1-control",
             },
-            {
-                variant_type: VariantType.EXPERIMENTAL,
-                overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
-            },
-        ];
+        },
+        {
+            variant_type: VariantType.EXPERIMENTAL,
+            overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
+        },
+    ];
 
     const experiment2Context = {
         and: [
@@ -76,18 +76,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-            {
-                variant_type: VariantType.CONTROL,
-                overrides: {
-                    pmTestKey3: "value3-control",
-                    pmTestKey4: "value3-control",
-                },
+        {
+            variant_type: VariantType.CONTROL,
+            overrides: {
+                pmTestKey3: "value3-control",
+                pmTestKey4: "value3-control",
             },
-            {
-                variant_type: VariantType.EXPERIMENTAL,
-                overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
-            },
-        ];
+        },
+        {
+            variant_type: VariantType.EXPERIMENTAL,
+            overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
+        },
+    ];
 
     // Experiment group context (common base for both experiments)
     const experimentGroupContext = {
@@ -240,7 +240,9 @@ describe("Experiments API", () => {
             if (experimentGroupId) {
                 try {
                     // First remove all members if any
-                    console.log(`Cleaning up experiment group: ${experimentGroupId}`);
+                    console.log(
+                        `Cleaning up experiment group: ${experimentGroupId}`
+                    );
 
                     // Remove all members from the group first
                     if (experimentId1 || experimentId2) {
@@ -255,10 +257,13 @@ describe("Experiments API", () => {
                                     org_id: ENV.org_id,
                                     id: experimentGroupId,
                                     member_experiment_ids: membersToRemove,
-                                    change_reason: "Cleanup - removing members before deleting group",
+                                    change_reason:
+                                        "Cleanup - removing members before deleting group",
                                 })
                             );
-                            console.log(`Removed members from experiment group: ${experimentGroupId}`);
+                            console.log(
+                                `Removed members from experiment group: ${experimentGroupId}`
+                            );
                         }
                     }
 
@@ -270,7 +275,9 @@ describe("Experiments API", () => {
                             id: experimentGroupId,
                         })
                     );
-                    console.log(`Deleted experiment group: ${experimentGroupId}`);
+                    console.log(
+                        `Deleted experiment group: ${experimentGroupId}`
+                    );
                 } catch (error: any) {
                     if (error.name !== "ResourceNotFound") {
                         console.error(
@@ -631,7 +638,6 @@ describe("Experiments API", () => {
             expect(out.experiment_group_id).toBeUndefined();
             expect(out.context).toEqual(experiment1Context);
             expect(out.name).toBe("experiment-1-from-test");
-
         } catch (e: any) {
             console.error(
                 "Error in test '3.1 Update Experiment 1 Overrides':",

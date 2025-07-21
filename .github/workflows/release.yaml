@@ -510,7 +510,7 @@ jobs:
 
             - name: Publish Python packages to CodeArtifact
               run: |
-                  twine upload python-wheels/*.whl
+                  twine upload --repository codeartifact python-wheels/*.whl
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]

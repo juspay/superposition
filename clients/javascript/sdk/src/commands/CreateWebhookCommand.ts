@@ -40,8 +40,8 @@ export interface CreateWebhookCommandOutput extends WebhookResponse, __MetadataB
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, CreateWebhookCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, CreateWebhookCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, CreateWebhookCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, CreateWebhookCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // CreateWebhookInput
  *   workspace_id: "STRING_VALUE", // required
