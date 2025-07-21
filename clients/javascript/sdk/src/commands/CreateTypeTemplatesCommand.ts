@@ -40,8 +40,8 @@ export interface CreateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, CreateTypeTemplatesCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, CreateTypeTemplatesCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, CreateTypeTemplatesCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, CreateTypeTemplatesCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // CreateTypeTemplatesRequest
  *   workspace_id: "STRING_VALUE", // required

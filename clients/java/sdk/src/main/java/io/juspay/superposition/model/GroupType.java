@@ -16,8 +16,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 public final class GroupType implements SerializableShape {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GroupType");
-    public static final GroupType USER_CREATED = new GroupType(Type.USER_CREATED, "UserCreated");
-    public static final GroupType SYSTEM_GENERATED = new GroupType(Type.SYSTEM_GENERATED, "SystemGenerated");
+    public static final GroupType USER_CREATED = new GroupType(Type.USER_CREATED, "USER_CREATED");
+    public static final GroupType SYSTEM_GENERATED = new GroupType(Type.SYSTEM_GENERATED, "SYSTEM_GENERATED");
     private static final List<GroupType> $TYPES = List.of(USER_CREATED, SYSTEM_GENERATED);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
@@ -89,8 +89,8 @@ public final class GroupType implements SerializableShape {
      */
     public static GroupType from(String value) {
         return switch (value) {
-            case "UserCreated" -> USER_CREATED;
-            case "SystemGenerated" -> SYSTEM_GENERATED;
+            case "USER_CREATED" -> USER_CREATED;
+            case "SYSTEM_GENERATED" -> SYSTEM_GENERATED;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
     }
@@ -140,8 +140,8 @@ public final class GroupType implements SerializableShape {
         @Override
         public GroupType build() {
             return switch (value) {
-                case "UserCreated" -> USER_CREATED;
-                case "SystemGenerated" -> SYSTEM_GENERATED;
+                case "USER_CREATED" -> USER_CREATED;
+                case "SYSTEM_GENERATED" -> SYSTEM_GENERATED;
                 default -> new GroupType(Type.$UNKNOWN, value);
             };
         }

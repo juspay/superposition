@@ -2,7 +2,6 @@ import {
     GetConfigCommand,
     ListVersionsCommand,
     UpdateWorkspaceCommand,
-
 } from "superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect } from "bun:test";
@@ -41,7 +40,9 @@ describe("Config API - GetConfig and GetConfigFast", () => {
         expect(resp_c.workspace_name).toBe(ENV.workspace_id);
         expect(resp_c.workspace_admin_email).toBe("admin@example.com");
         expect(resp_c.config_version).toBeDefined();
-        expect(resp_c.config_version?.toString()).toBe(configVersionId?.toString());
+        expect(resp_c.config_version?.toString()).toBe(
+            configVersionId?.toString()
+        );
 
         //getConfigandCheck
         const input_1 = {
@@ -75,11 +76,9 @@ describe("Config API - GetConfig and GetConfigFast", () => {
         const cmd_2 = new UpdateWorkspaceCommand(input_2);
         const resp = await superpositionClient.send(cmd_2);
 
-
         expect(resp).toBeDefined();
         expect(resp.workspace_name).toBe(ENV.workspace_id);
         expect(resp.config_version).toBeUndefined();
-
     });
 
     // Enable when testing w/ redis.
@@ -101,8 +100,6 @@ describe("Config API - GetConfig and GetConfigFast", () => {
 
 describe("Config API - ListVersions", () => {
     test("should list all configuration versions", async () => {
-
-
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
@@ -117,9 +114,5 @@ describe("Config API - ListVersions", () => {
             console.error(e["$response"]);
             throw e;
         }
-
-
-
     });
 });
-

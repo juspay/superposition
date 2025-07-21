@@ -40,8 +40,8 @@ export interface GetWebhookCommandOutput extends WebhookResponse, __MetadataBear
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetWebhookCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetWebhookCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetWebhookCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetWebhookCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetWebhookInput
  *   workspace_id: "STRING_VALUE", // required

@@ -29,7 +29,7 @@ import {
     WorkspaceStatus,
     UpdateWorkspaceCommand,
 } from "superposition-sdk";
-import { superpositionClient, ENV } from "../env";
+import { superpositionClient, ENV } from "../env.ts";
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
 import { nanoid } from "nanoid";
 
@@ -54,27 +54,27 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-            {
-                name: "os",
-                schema: { type: "string", enum: ["ios", "android", "web"] },
-                description: "OS dimension from experiments.test",
-            },
-            {
-                name: "clientId",
-                schema: { type: "string" },
-                description: "Client ID from experiments.test",
-            },
-            {
-                name: "app_version",
-                schema: { type: "string" },
-                description: "App version for superset context",
-            },
-            {
-                name: "device_specific_id",
-                schema: { type: "string" },
-                description: "Dimension for invalid context conflict",
-            },
-        ];
+        {
+            name: "os",
+            schema: { type: "string", enum: ["ios", "android", "web"] },
+            description: "OS dimension from experiments.test",
+        },
+        {
+            name: "clientId",
+            schema: { type: "string" },
+            description: "Client ID from experiments.test",
+        },
+        {
+            name: "app_version",
+            schema: { type: "string" },
+            description: "App version for superset context",
+        },
+        {
+            name: "device_specific_id",
+            schema: { type: "string" },
+            description: "Dimension for invalid context conflict",
+        },
+    ];
 
     // Define default configs based on experiments.test.ts
     const defaultConfigsToEnsure: {
@@ -83,19 +83,19 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-            {
-                key: "pmTestKey1",
-                value: "default_group_val_1",
-                schema: { type: "string" },
-                description: "Default for pmTestKey1 (group tests)",
-            },
-            {
-                key: "pmTestKey2",
-                value: "default_group_val_2",
-                schema: { type: "string" },
-                description: "Default for pmTestKey2 (group tests)",
-            },
-        ];
+        {
+            key: "pmTestKey1",
+            value: "default_group_val_1",
+            schema: { type: "string" },
+            description: "Default for pmTestKey1 (group tests)",
+        },
+        {
+            key: "pmTestKey2",
+            value: "default_group_val_2",
+            schema: { type: "string" },
+            description: "Default for pmTestKey2 (group tests)",
+        },
+    ];
 
     // Contexts using the ensured dimensions
     const groupContext = {
@@ -140,20 +140,20 @@ describe("Experiment Groups API Integration Tests", () => {
         name: string,
         schema: any,
         description: string,
-        existingDimensions: DimensionExt[],
+        existingDimensions: DimensionExt[]
     ): Promise<void> {
         const existing = existingDimensions.find((d) => d.dimension === name);
         if (!existing) {
             let position = 1;
             const takenPositions = new Set(
-                existingDimensions.map((d) => d.position),
+                existingDimensions.map((d) => d.position)
             );
             while (takenPositions.has(position)) {
                 position++;
             }
 
             console.log(
-                `Dimension ${name} not found, creating with position ${position}...`,
+                `Dimension ${name} not found, creating with position ${position}...`
             );
             await superpositionClient.send(
                 new CreateDimensionCommand({
@@ -164,7 +164,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     schema: schema,
                     description: description,
                     change_reason: "Test setup for experiment groups",
-                }),
+                })
             );
             createdDimensionNames.push(name);
             console.log(`Dimension ${name} created.`);
@@ -183,7 +183,7 @@ describe("Experiment Groups API Integration Tests", () => {
         value: any,
         schema: any,
         description: string,
-        existingConfigs: DefaultConfigFull[],
+        existingConfigs: DefaultConfigFull[]
     ): Promise<void> {
         const existing = existingConfigs.find((c) => c.key === key);
         if (!existing) {
@@ -197,7 +197,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     schema: schema,
                     description: description,
                     change_reason: "Test setup for experiment groups",
-                }),
+                })
             );
             createdDefaultConfigKeys.push(key);
             console.log(`Default config ${key} created.`);
@@ -234,14 +234,14 @@ describe("Experiment Groups API Integration Tests", () => {
 
     beforeAll(async () => {
         console.log(
-            "Ensuring dimensions and default configs exist for Experiment Group tests...",
+            "Ensuring dimensions and default configs exist for Experiment Group tests..."
         );
         const listDimResponse = await superpositionClient.send(
             new ListDimensionsCommand({
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 count: 200,
-            }),
+            })
         );
         const existingDimensions = listDimResponse.data || [];
 
@@ -252,7 +252,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 dim.name,
                 dim.schema,
                 dim.description,
-                existingDimensions,
+                existingDimensions
             );
         }
 
@@ -261,7 +261,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 count: 200,
-            }),
+            })
         );
         const existingConfigs = listConfigResponse.data || [];
 
@@ -271,7 +271,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 cfg.value,
                 cfg.schema,
                 cfg.description,
-                existingConfigs,
+                existingConfigs
             );
         }
         console.log("Finished dimension and default config setup.");
@@ -289,7 +289,7 @@ describe("Experiment Groups API Integration Tests", () => {
             change_reason: "Test setup",
         };
         const exp1Response = await superpositionClient.send(
-            new CreateExperimentCommand(createExp1Input),
+            new CreateExperimentCommand(createExp1Input)
         );
         expValid1Id = exp1Response.id!;
         createdExperimentIds.push(expValid1Id);
@@ -306,7 +306,7 @@ describe("Experiment Groups API Integration Tests", () => {
             change_reason: "Test setup",
         };
         const exp2Response = await superpositionClient.send(
-            new CreateExperimentCommand(createExp2Input),
+            new CreateExperimentCommand(createExp2Input)
         );
         expValid2Id = exp2Response.id!;
         createdExperimentIds.push(expValid2Id);
@@ -324,7 +324,7 @@ describe("Experiment Groups API Integration Tests", () => {
             change_reason: "Test setup",
         };
         const exp3Response = await superpositionClient.send(
-            new CreateExperimentCommand(createExp3Input),
+            new CreateExperimentCommand(createExp3Input)
         );
         expInvalidInProgressId = exp3Response.id!;
         createdExperimentIds.push(expInvalidInProgressId);
@@ -335,10 +335,10 @@ describe("Experiment Groups API Integration Tests", () => {
                 id: expInvalidInProgressId,
                 traffic_percentage: 50,
                 change_reason: "Move to in-progress for test",
-            }),
+            })
         );
         console.log(
-            `Created and ramped expInvalidInProgressId: ${expInvalidInProgressId}`,
+            `Created and ramped expInvalidInProgressId: ${expInvalidInProgressId}`
         );
 
         const expInvalidCtxName = uniqueName("exp-invalid-ctx");
@@ -352,7 +352,7 @@ describe("Experiment Groups API Integration Tests", () => {
             change_reason: "Test setup",
         };
         const exp4Response = await superpositionClient.send(
-            new CreateExperimentCommand(createExp4Input),
+            new CreateExperimentCommand(createExp4Input)
         );
         expInvalidContextId = exp4Response.id!;
         createdExperimentIds.push(expInvalidContextId);
@@ -370,7 +370,7 @@ describe("Experiment Groups API Integration Tests", () => {
                         org_id: ENV.org_id,
                         id,
                         change_reason: "Test cleanup",
-                    }),
+                    })
                 );
                 console.log(`Discarded experiment: ${id}`);
             } catch (error: any) {
@@ -380,7 +380,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 ) {
                     console.error(
                         `Failed to discard experiment ${id} during cleanup:`,
-                        error.message,
+                        error.message
                     );
                 }
             }
@@ -393,14 +393,14 @@ describe("Experiment Groups API Integration Tests", () => {
                         workspace_id: ENV.workspace_id,
                         org_id: ENV.org_id,
                         dimension: dimName,
-                    }),
+                    })
                 );
                 console.log(`Cleaned up dimension: ${dimName}`);
             } catch (error: any) {
                 if (error.name !== "ResourceNotFound") {
                     console.error(
                         `Failed to clean up dimension ${dimName}:`,
-                        error.message,
+                        error.message
                     );
                 }
             }
@@ -412,14 +412,14 @@ describe("Experiment Groups API Integration Tests", () => {
                         workspace_id: ENV.workspace_id,
                         org_id: ENV.org_id,
                         key: configKey,
-                    }),
+                    })
                 );
                 console.log(`Cleaned up default config: ${configKey}`);
             } catch (error: any) {
                 if (error.name !== "ResourceNotFound") {
                     console.error(
                         `Failed to clean up default config ${configKey}:`,
-                        error.message,
+                        error.message
                     );
                 }
             }
@@ -448,13 +448,13 @@ describe("Experiment Groups API Integration Tests", () => {
             };
             try {
                 const response = await superpositionClient.send(
-                    new CreateExperimentGroupCommand(input),
+                    new CreateExperimentGroupCommand(input)
                 );
                 console.log("Response on create", response);
                 expGroupId = response.id!;
                 expect(response.name).toBe(groupName);
                 expect(response.member_experiment_ids).toEqual(
-                    expect.arrayContaining([expValid2Id]),
+                    expect.arrayContaining([expValid2Id])
                 );
                 expect(response.traffic_percentage).toBe(100);
             } catch (error) {
@@ -475,7 +475,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Removing members",
             };
             const response = await superpositionClient.send(
-                new RemoveMembersFromGroupCommand(removeInput),
+                new RemoveMembersFromGroupCommand(removeInput)
             );
             expect(response.member_experiment_ids).not.toContain(expValid2Id);
         });
@@ -489,7 +489,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [],
             };
             const response = await superpositionClient.send(
-                new CreateExperimentGroupCommand(input),
+                new CreateExperimentGroupCommand(input)
             );
             expGroupId = response.id!;
             expect(response.name).toBe(groupName);
@@ -505,10 +505,10 @@ describe("Experiment Groups API Integration Tests", () => {
             };
             expect(
                 superpositionClient.send(
-                    new CreateExperimentGroupCommand(input),
-                ),
+                    new CreateExperimentGroupCommand(input)
+                )
             ).rejects.toThrow(
-                `The following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`,
+                `The following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`
             );
         });
 
@@ -521,10 +521,10 @@ describe("Experiment Groups API Integration Tests", () => {
             };
             expect(
                 superpositionClient.send(
-                    new CreateExperimentGroupCommand(input),
-                ),
+                    new CreateExperimentGroupCommand(input)
+                )
             ).rejects.toThrow(
-                /Experiment with id .* does not fit in with the experiment group. The contexts do not match./,
+                /Experiment with id .* does not fit in with the experiment group. The contexts do not match./
             );
         });
 
@@ -536,8 +536,8 @@ describe("Experiment Groups API Integration Tests", () => {
             delete input.name;
             expect(
                 superpositionClient.send(
-                    new CreateExperimentGroupCommand(input),
-                ),
+                    new CreateExperimentGroupCommand(input)
+                )
             ).rejects.toThrow();
         });
 
@@ -551,10 +551,10 @@ describe("Experiment Groups API Integration Tests", () => {
             };
             expect(
                 superpositionClient.send(
-                    new CreateExperimentGroupCommand(input),
-                ),
+                    new CreateExperimentGroupCommand(input)
+                )
             ).rejects.toThrow(
-                'JSON Parse error: Unexpected identifier "Json"\n  Deserialization error: to see the raw response, inspect the hidden field {error}.$response on this object.',
+                'JSON Parse error: Unexpected identifier "Json"\n  Deserialization error: to see the raw response, inspect the hidden field {error}.$response on this object.'
             );
         });
     });
@@ -567,7 +567,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     id: expGroupId!,
-                }),
+                })
             );
             expect(response.name).toBeString();
         });
@@ -579,10 +579,10 @@ describe("Experiment Groups API Integration Tests", () => {
                         workspace_id: ENV.workspace_id,
                         org_id: ENV.org_id,
                         id: "123",
-                    }),
-                ),
+                    })
+                )
             ).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters",
+                "No records found. Please refine or correct your search parameters"
             );
         });
     });
@@ -595,7 +595,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     id: expGroupId!,
-                }),
+                })
             );
 
             const input: UpdateExperimentGroupCommandInput = {
@@ -606,11 +606,11 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Updating traffic percentage",
             };
             const response = await superpositionClient.send(
-                new UpdateExperimentGroupCommand(input),
+                new UpdateExperimentGroupCommand(input)
             );
             expect(response.traffic_percentage).toBe(75);
             expect(response.member_experiment_ids).toEqual(
-                currentGroup.member_experiment_ids || [],
+                currentGroup.member_experiment_ids || []
             );
         });
 
@@ -626,7 +626,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Updating description",
             };
             const response = await superpositionClient.send(
-                new UpdateExperimentGroupCommand(input),
+                new UpdateExperimentGroupCommand(input)
             );
             expect(response.description).toBe(newDescription);
         });
@@ -641,13 +641,12 @@ describe("Experiment Groups API Integration Tests", () => {
             };
             expect(
                 superpositionClient.send(
-                    new UpdateExperimentGroupCommand(input),
-                ),
+                    new UpdateExperimentGroupCommand(input)
+                )
             ).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters",
+                "No records found. Please refine or correct your search parameters"
             );
         });
-
     });
 
     describe("AddMembersToGroupCommand", () => {
@@ -661,7 +660,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Adding members",
             };
             const response = await superpositionClient.send(
-                new AddMembersToGroupCommand(input),
+                new AddMembersToGroupCommand(input)
             );
             expect(response.member_experiment_ids).toContain(expValid2Id);
         });
@@ -678,7 +677,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Removing members",
             };
             const response = await superpositionClient.send(
-                new RemoveMembersFromGroupCommand(removeInput),
+                new RemoveMembersFromGroupCommand(removeInput)
             );
             expect(response.member_experiment_ids).not.toContain(expValid2Id);
         });
@@ -693,11 +692,9 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Attempting to add invalid member",
             };
             expect(
-                superpositionClient.send(
-                    new AddMembersToGroupCommand(input),
-                ),
+                superpositionClient.send(new AddMembersToGroupCommand(input))
             ).rejects.toThrow(
-                `The following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`,
+                `The following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`
             );
         });
 
@@ -710,11 +707,9 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Adding to non-existent group",
             };
             expect(
-                superpositionClient.send(
-                    new AddMembersToGroupCommand(input),
-                ),
+                superpositionClient.send(new AddMembersToGroupCommand(input))
             ).rejects.toThrow(
-                "Please provide at least one experiment ID to add to the group",
+                "Please provide at least one experiment ID to add to the group"
             );
         });
     });
@@ -731,7 +726,9 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [expValid2Id],
                 change_reason: "Adding member before removal test",
             };
-            await superpositionClient.send(new AddMembersToGroupCommand(addInput));
+            await superpositionClient.send(
+                new AddMembersToGroupCommand(addInput)
+            );
 
             // Now remove the member
             const removeInput: RemoveMembersFromGroupCommandInput = {
@@ -742,7 +739,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Removing members",
             };
             const response = await superpositionClient.send(
-                new RemoveMembersFromGroupCommand(removeInput),
+                new RemoveMembersFromGroupCommand(removeInput)
             );
             expect(response.member_experiment_ids).not.toContain(expValid2Id);
         });
@@ -756,7 +753,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     id: expGroupId!,
-                }),
+                })
             );
 
             // Try to remove a member that doesn't exist in the group
@@ -770,8 +767,8 @@ describe("Experiment Groups API Integration Tests", () => {
             };
             expect(
                 superpositionClient.send(
-                    new RemoveMembersFromGroupCommand(removeInput),
-                ),
+                    new RemoveMembersFromGroupCommand(removeInput)
+                )
             ).rejects.toThrow(
                 `The following experiment IDs are not present in the database: ${nonExistentId}`
             );
@@ -787,8 +784,8 @@ describe("Experiment Groups API Integration Tests", () => {
             };
             expect(
                 superpositionClient.send(
-                    new RemoveMembersFromGroupCommand(input),
-                ),
+                    new RemoveMembersFromGroupCommand(input)
+                )
             ).rejects.toThrow(
                 `The following experiment IDs are not present in the database: 999`
             );
@@ -803,7 +800,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     id: expGroupId!,
-                }),
+                })
             );
 
             const response = await superpositionClient.send(
@@ -811,13 +808,11 @@ describe("Experiment Groups API Integration Tests", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     name: groupDetails.name!,
-                }),
+                })
             );
             expect(response.data).toBeArray();
             expect(response.data!.length).toBeGreaterThanOrEqual(1);
-            const found = response.data!.find(
-                (g) => g.id === expGroupId,
-            );
+            const found = response.data!.find((g) => g.id === expGroupId);
             expect(found).toBeDefined();
             expect(found!.name).toBe(groupDetails.name!);
         });
@@ -828,7 +823,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
                     all: true,
-                }),
+                })
             );
             expect(response.data).toBeArray();
         });
@@ -841,7 +836,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     sort_on: ExperimentGroupSortOn.CreatedAt,
                     sort_by: SortBy.Desc,
                     count: 5,
-                }),
+                })
             );
             expect(response.data).toBeArray();
             if (response.data!.length > 1) {
@@ -868,7 +863,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [expValid1Id],
             };
             const response = await superpositionClient.send(
-                new CreateExperimentGroupCommand(createInput),
+                new CreateExperimentGroupCommand(createInput)
             );
             tempGroupId = response.id!;
         });
@@ -880,10 +875,10 @@ describe("Experiment Groups API Integration Tests", () => {
                         workspace_id: ENV.workspace_id,
                         org_id: ENV.org_id,
                         id: tempGroupId,
-                    }),
-                ),
+                    })
+                )
             ).rejects.toThrow(
-                /Cannot delete experiment group .* since it has members/,
+                /Cannot delete experiment group .* since it has members/
             );
         });
 
@@ -894,10 +889,10 @@ describe("Experiment Groups API Integration Tests", () => {
                         workspace_id: ENV.workspace_id,
                         org_id: ENV.org_id,
                         id: "22",
-                    }),
-                ),
+                    })
+                )
             ).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters",
+                "No records found. Please refine or correct your search parameters"
             );
         });
     });

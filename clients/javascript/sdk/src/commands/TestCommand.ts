@@ -40,8 +40,8 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, TestCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, TestCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, TestCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, TestCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // TestInput
  *   workspace_id: "STRING_VALUE", // required

@@ -40,8 +40,8 @@ export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __Met
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListWorkspaceCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListWorkspaceCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListWorkspaceCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListWorkspaceCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListWorkspaceInput
  *   count: Number("int"),

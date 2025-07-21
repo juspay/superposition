@@ -40,8 +40,8 @@ export interface ListWebhookCommandOutput extends WebhookListResponse, __Metadat
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListWebhookCommand } from "io.juspay/superposition-typescript-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListWebhookCommand } = require("io.juspay/superposition-typescript-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListWebhookCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListWebhookCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListWebhookInput
  *   count: Number("int"),
