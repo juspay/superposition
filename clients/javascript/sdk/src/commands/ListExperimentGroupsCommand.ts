@@ -53,6 +53,7 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsR
  *   sort_on: "name" || "created_at" || "last_modified_at",
  *   sort_by: "desc" || "asc",
  *   all: true || false,
+ *   group_type: "USER_CREATED" || "SYSTEM_GENERATED",
  * };
  * const command = new ListExperimentGroupsCommand(input);
  * const response = await client.send(command);
@@ -77,6 +78,13 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsR
  * //       created_by: "STRING_VALUE", // required
  * //       last_modified_at: new Date("TIMESTAMP"), // required
  * //       last_modified_by: "STRING_VALUE", // required
+ * //       buckets: [ // Buckets // required
+ * //         { // Bucket
+ * //           experiment_id: "STRING_VALUE", // required
+ * //           variant_id: "STRING_VALUE", // required
+ * //         },
+ * //       ],
+ * //       group_type: "USER_CREATED" || "SYSTEM_GENERATED", // required
  * //     },
  * //   ],
  * // };

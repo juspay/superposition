@@ -84,13 +84,19 @@ serListExperimentGroupsQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("sort_by", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
+        group_typeQuery = Io.Superposition.Model.ListExperimentGroupsInput.group_type input
+                    Data.Functor.<&> (\x -> [x])
+                    Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
+                    Data.Functor.<&> Data.List.map (\x -> toQueryItem ("group_type", x))
+                    Data.Function.& Data.Maybe.maybe [] (id)
+        
         created_byQuery = Io.Superposition.Model.ListExperimentGroupsInput.created_by input
                     Data.Functor.<&> (\x -> [x])
                     Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("created_by", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        m = staticParams ++ all'Query ++ sort_onQuery ++ countQuery ++ nameQuery ++ pageQuery ++ last_modified_byQuery ++ sort_byQuery ++ created_byQuery
+        m = staticParams ++ all'Query ++ sort_onQuery ++ countQuery ++ nameQuery ++ pageQuery ++ last_modified_byQuery ++ sort_byQuery ++ group_typeQuery ++ created_byQuery
         in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
     
     where

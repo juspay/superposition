@@ -10,7 +10,7 @@ pub struct ApplicableVariantsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub toss: ::std::option::Option<i32>,
+    pub identifier: ::std::option::Option<::std::string::String>,
 }
 impl  ApplicableVariantsInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -26,8 +26,8 @@ impl  ApplicableVariantsInput  {
         self.context.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn toss(&self) -> ::std::option::Option<i32> {
-        self.toss
+    pub fn identifier(&self) -> ::std::option::Option<&str> {
+        self.identifier.as_deref()
     }
 }
 impl ApplicableVariantsInput {
@@ -44,7 +44,7 @@ pub struct ApplicableVariantsInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) toss: ::std::option::Option<i32>,
+    pub(crate) identifier: ::std::option::Option<::std::string::String>,
 }
 impl ApplicableVariantsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -95,17 +95,17 @@ impl ApplicableVariantsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn toss(mut self, input: i32) -> Self {
-        self.toss = ::std::option::Option::Some(input);
+    pub fn identifier(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.identifier = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_toss(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.toss = input; self
+    pub fn set_identifier(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.identifier = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_toss(&self) -> &::std::option::Option<i32> {
-        &self.toss
+    pub fn get_identifier(&self) -> &::std::option::Option<::std::string::String> {
+        &self.identifier
     }
     /// Consumes the builder and constructs a [`ApplicableVariantsInput`](crate::operation::applicable_variants::ApplicableVariantsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::applicable_variants::ApplicableVariantsInput, ::aws_smithy_types::error::operation::BuildError> {
@@ -117,7 +117,7 @@ impl ApplicableVariantsInputBuilder {
                 ,
                 context: self.context
                 ,
-                toss: self.toss
+                identifier: self.identifier
                 ,
             }
         )

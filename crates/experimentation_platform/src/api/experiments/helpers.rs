@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use actix_http::header;
 use actix_web::web::Data;
 use cac_client::utils::json_to_sorted_string;
@@ -8,12 +10,13 @@ use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
-use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+
+use service_utils::{
+    helpers::extract_dimensions,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
-use std::collections::HashSet;
 use superposition_macros::{bad_argument, unexpected_error};
+use superposition_types::database::models::experimentation::GroupType;
 use superposition_types::{
     api::{experiment_groups::ExpGroupMemberRequest, I64Update},
     database::{
@@ -37,7 +40,10 @@ pub fn get_workspace(
         .get_result::<Workspace>(db_conn)?;
     Ok(workspace)
 }
-use crate::api::experiment_groups::helpers::{add_members, remove_members};
+use crate::api::experiment_groups::helpers::{
+    add_members, create_system_generated_experiment_group, fetch_experiment_group,
+    remove_members,
+};
 
 use super::cac_api::{
     construct_header_map, get_context_override, get_partial_resolve_config,
@@ -414,34 +420,6 @@ pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> 
     overrides.keys().map(String::from).collect()
 }
 
-pub fn decide_variant(
-    traffic: u8,
-    applicable_variants: Vec<Variant>,
-    toss: i8,
-) -> Result<Option<Variant>, String> {
-    if toss < 0 {
-        for variant in applicable_variants.iter() {
-            if variant.variant_type == VariantType::EXPERIMENTAL {
-                return Ok(Some(variant.clone()));
-            }
-        }
-    }
-    let variant_count = applicable_variants.len() as u8;
-    let range = (traffic * variant_count) as i32;
-    if (toss as i32) >= range {
-        return Ok(None);
-    }
-    let buckets = (1..=variant_count)
-        .map(|i| (traffic * i) as i8)
-        .collect::<Vec<i8>>();
-    let index = buckets
-        .into_iter()
-        .position(|x| toss < x)
-        .ok_or_else(|| "Unable to fetch variant's index".to_string())?;
-
-    Ok(applicable_variants.get(index).cloned())
-}
-
 pub async fn fetch_cac_config(
     state: &Data<AppState>,
     workspace_request: &WorkspaceContext,
@@ -538,10 +516,11 @@ pub fn handle_experiment_group_membership(
     experiment: &Experiment,
     new_group_id: &Option<I64Update>,
     current_group_id: &Option<i64>,
+    state: &Data<AppState>,
     transaction_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     schema_name: &SchemaName,
     user: &User,
-) -> superposition::Result<Option<i64>> {
+) -> superposition::Result<I64Update> {
     let experiment_id = experiment.id;
 
     fn create_member_request(
@@ -553,10 +532,7 @@ pub fn handle_experiment_group_membership(
                 "{} experiment {} to/from the group, while updating the experiment.",
                 action, experiment_id
             ))
-            .map_err(|err| {
-                log::error!("Failed to convert change reason: {}", err);
-                unexpected_error!("Failed to convert change reason")
-            })?,
+            .map_err(|e| unexpected_error!(e))?,
             member_experiment_ids: vec![experiment_id],
         })
     }
@@ -572,7 +548,7 @@ pub fn handle_experiment_group_membership(
                 schema_name,
                 user,
             )?;
-            Ok(Some(*experiment_group_id))
+            Ok(I64Update::Add(*experiment_group_id))
         }
 
         // Case 2: Moving to a different group
@@ -597,7 +573,7 @@ pub fn handle_experiment_group_membership(
                 schema_name,
                 user,
             )?;
-            Ok(Some(*experiment_group_id))
+            Ok(I64Update::Add(*experiment_group_id))
         }
 
         // Case 3: Removing from group (explicitly set to None)
@@ -609,10 +585,28 @@ pub fn handle_experiment_group_membership(
                 schema_name,
                 user,
             )?;
-            Ok(None)
+
+            // Make a new group if Inprogress or Paused
+            if experiment.status == ExperimentStatusType::INPROGRESS
+                || experiment.status == ExperimentStatusType::PAUSED
+            {
+                let new_experiment_group = create_system_generated_experiment_group(
+                    experiment,
+                    &experiment.traffic_percentage,
+                    state,
+                    transaction_conn,
+                    schema_name,
+                    user,
+                )?;
+                Ok(I64Update::Add(new_experiment_group.id))
+            } else {
+                Ok(I64Update::Remove)
+            }
         }
         // Case 4: All other cases (no change needed)
-        _ => Ok(*current_group_id),
+        _ => Ok(current_group_id
+            .map(I64Update::Add)
+            .unwrap_or(I64Update::Remove)),
     }
 }
 
@@ -642,10 +636,7 @@ pub fn validate_and_add_experiment_group_id(
             "Adding experiment {} to group {}",
             experiment_id, new_experiment_group_id
         ))
-        .map_err(|err| {
-            log::error!("Failed to convert change reason: {}", err);
-            unexpected_error!("Failed to convert change reason")
-        })?;
+        .map_err(|e| unexpected_error!(e))?;
 
         // Update experiment
         diesel::update(experiments::experiments.find(experiment_id))
@@ -668,13 +659,23 @@ pub fn validate_and_remove_experiment_group_id(
     member_experiment_ids: &[i64],
     experiment_group_id: &i64,
     schema_name: &SchemaName,
-    transaction_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    state: &Data<AppState>,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
 ) -> superposition::Result<()> {
+    let experiment_group =
+        fetch_experiment_group(experiment_group_id, conn, schema_name)?;
+
+    if experiment_group.group_type == GroupType::SystemGenerated {
+        return Err(bad_argument!(
+            "Cannot remove experiments from a system-generated experiment group"
+        ));
+    }
+
     let member_experiments: Vec<Experiment> = experiments::experiments
         .filter(experiments::id.eq_any(member_experiment_ids))
         .schema_name(schema_name)
-        .get_results::<Experiment>(transaction_conn)?;
+        .get_results::<Experiment>(conn)?;
 
     ensure_experiments_exist(
         &HashSet::from_iter(member_experiment_ids.to_owned()),
@@ -684,44 +685,57 @@ pub fn validate_and_remove_experiment_group_id(
     let now = Utc::now();
 
     for experiment in member_experiments {
-        let experiment_id = experiment.id;
-        match experiment.experiment_group_id {
+        let new_experiment_group_id = match experiment.experiment_group_id {
             None => {
                 return Err(bad_argument!(
                     "Experiment with id {} is not part of any experiment group",
-                    experiment_id
+                    experiment.id
                 ));
             }
             Some(existing_group_id) if existing_group_id != *experiment_group_id => {
                 return Err(bad_argument!(
                     "Experiment with id {} is part of a different experiment group: {}. Cannot remove from group {}",
-                    experiment_id,
+                    experiment.id,
                     existing_group_id,
                     experiment_group_id
                 ));
             }
-            _ => {}
-        }
+            _ => {
+                // Make a new group if Inprogress or Paused
+                if experiment.status == ExperimentStatusType::INPROGRESS
+                    || experiment.status == ExperimentStatusType::PAUSED
+                {
+                    let new_experiment_group = create_system_generated_experiment_group(
+                        &experiment,
+                        &experiment.traffic_percentage,
+                        state,
+                        conn,
+                        schema_name,
+                        user,
+                    )?;
+                    I64Update::Add(new_experiment_group.id)
+                } else {
+                    I64Update::Remove
+                }
+            }
+        };
 
         let change_reason = ChangeReason::try_from(format!(
             "Removing experiment {} from group {}",
-            experiment_id, experiment_group_id
+            experiment.id, experiment_group_id
         ))
-        .map_err(|err| {
-            log::error!("Failed to convert change reason: {}", err);
-            unexpected_error!("Failed to convert change reason")
-        })?;
+        .map_err(|e| unexpected_error!(e))?;
 
-        diesel::update(experiments::experiments.find(experiment_id))
+        diesel::update(experiments::experiments.find(experiment.id))
             .set((
-                experiments::experiment_group_id.eq(I64Update::Remove),
+                experiments::experiment_group_id.eq(new_experiment_group_id),
                 experiments::last_modified_by.eq(&user.get_email()),
                 experiments::last_modified.eq(now),
                 experiments::change_reason.eq(change_reason),
             ))
             .returning(Experiment::as_returning())
             .schema_name(schema_name)
-            .execute(transaction_conn)?;
+            .execute(conn)?;
     }
 
     Ok(())
@@ -749,4 +763,18 @@ pub fn ensure_experiments_exist(
         ));
     }
     Ok(())
+}
+
+pub fn fetch_experiment(
+    experiment_id: &i64,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Experiment> {
+    use superposition_types::database::schema::experiments::dsl::*;
+    let result: Experiment = experiments
+        .find(experiment_id)
+        .schema_name(schema_name)
+        .get_result::<Experiment>(conn)?;
+
+    Ok(result)
 }

@@ -107,14 +107,14 @@ func (ec *ExperimentationClient) GetFilteredSatisfiedExperiments(context map[str
 	return C.GoString(resp)
 }
 
-func (ec *ExperimentationClient) GetApplicableVariant(context map[string]string, toss int) string {
+func (ec *ExperimentationClient) GetApplicableVariant(context map[string]string, identifier string) string {
 	clientPtr := ec.GetClient()
 	strContext, err := json.Marshal(context)
 	if err != nil {
 		fmt.Println("Failed to covert json to string")
 		return ""
 	}
-	resp := C.expt_get_applicable_variant(clientPtr, C.CString(string(strContext)), C.short(toss))
+	resp := C.expt_get_applicable_variant(clientPtr, C.CString(string(strContext)), C.CString(identifier))
 	if resp == nil {
 		return ec.GetLastErrorMessage()
 	}

@@ -66,6 +66,13 @@ export interface DeleteExperimentGroupCommandOutput extends ExperimentGroupRespo
  * //   created_by: "STRING_VALUE", // required
  * //   last_modified_at: new Date("TIMESTAMP"), // required
  * //   last_modified_by: "STRING_VALUE", // required
+ * //   buckets: [ // Buckets // required
+ * //     { // Bucket
+ * //       experiment_id: "STRING_VALUE", // required
+ * //       variant_id: "STRING_VALUE", // required
+ * //     },
+ * //   ],
+ * //   group_type: "USER_CREATED" || "SYSTEM_GENERATED", // required
  * // };
  *
  * ```

@@ -19,6 +19,7 @@ import {
     VariantType,
     SortBy,
     ExperimentGroupSortOn,
+    GroupType,
     type CreateExperimentGroupCommandInput,
     type UpdateExperimentGroupCommandInput,
     type AddMembersToGroupCommandInput,
@@ -457,6 +458,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     expect.arrayContaining([expValid2Id])
                 );
                 expect(response.traffic_percentage).toBe(100);
+                expect(response.group_type).toBe(GroupType.USER_CREATED);
             } catch (error) {
                 console.error("Error creating experiment group:", error);
                 throw error;
@@ -494,6 +496,7 @@ describe("Experiment Groups API Integration Tests", () => {
             expGroupId = response.id!;
             expect(response.name).toBe(groupName);
             expect(response.member_experiment_ids).toEqual([]);
+            expect(response.group_type).toBe(GroupType.USER_CREATED);
         });
 
         test("should fail to create with an in-progress experiment member", async () => {
@@ -612,6 +615,7 @@ describe("Experiment Groups API Integration Tests", () => {
             expect(response.member_experiment_ids).toEqual(
                 currentGroup.member_experiment_ids || []
             );
+            expect(response.group_type).toBe(GroupType.USER_CREATED);
         });
 
         test("should successfully update description", async () => {
@@ -787,7 +791,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     new RemoveMembersFromGroupCommand(input)
                 )
             ).rejects.toThrow(
-                `The following experiment IDs are not present in the database: 999`
+                "No records found. Please refine or correct your search parameters"
             );
         });
     });

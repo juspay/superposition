@@ -13,8 +13,8 @@ pub fn ser_applicable_variants_input_input(
         }
         object_2.finish();
     }
-    if let Some(var_5) = &input.toss {
-        object.key("toss").number(#[allow(clippy::useless_conversion)]::aws_smithy_types::Number::NegInt((*var_5).into()));
+    if let Some(var_5) = &input.identifier {
+        object.key("identifier").string(var_5.as_str());
     }
     Ok(())
 }

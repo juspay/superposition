@@ -1388,4 +1388,17 @@ CREATE TRIGGER experiment_groups_audit AFTER INSERT OR DELETE OR UPDATE ON local
 
 CREATE TRIGGER experiment_groups_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.experiment_groups FOR EACH ROW EXECUTE FUNCTION localorg_test.event_logger();
 
+CREATE TYPE public.GROUP_TYPE AS ENUM (
+    'USER_CREATED',
+    'SYSTEM_GENERATED'
+);
+
+ALTER TABLE localorg_dev.experiment_groups ADD COLUMN buckets JSON[] DEFAULT array_fill(NULL::JSON, ARRAY[100]) NOT NULL CHECK (cardinality(buckets) = 100);
+
+ALTER TABLE localorg_dev.experiment_groups ADD COLUMN group_type public.GROUP_TYPE DEFAULT 'USER_CREATED';
+
+ALTER TABLE localorg_test.experiment_groups ADD COLUMN buckets JSON[] DEFAULT array_fill(NULL::JSON, ARRAY[100]) NOT NULL CHECK (cardinality(buckets) = 100);
+
+ALTER TABLE localorg_test.experiment_groups ADD COLUMN group_type public.GROUP_TYPE DEFAULT 'USER_CREATED';
+
 COMMIT;

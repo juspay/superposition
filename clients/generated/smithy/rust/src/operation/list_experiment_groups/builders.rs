@@ -236,5 +236,19 @@ impl ListExperimentGroupsFluentBuilder {
     pub fn get_all(&self) -> &::std::option::Option<bool> {
                     self.inner.get_all()
                 }
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
+                    self.inner = self.inner.group_type(input);
+                    self
+                }
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub fn set_group_type(mut self, input: ::std::option::Option<crate::types::GroupType>) -> Self {
+                    self.inner = self.inner.set_group_type(input);
+                    self
+                }
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub fn get_group_type(&self) -> &::std::option::Option<crate::types::GroupType> {
+                    self.inner.get_group_type()
+                }
 }
 

@@ -159,34 +159,26 @@ pub struct ExperimentStateChangeRequest {
 #[serde(try_from = "HashMap<String,String>")]
 pub struct ApplicableVariantsQuery {
     pub context: Map<String, Value>,
-    pub toss: i8,
+    pub identifier: String,
 }
 
 impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
     type Error = String;
-    fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {
-        let mut value = value
+    fn try_from(mut value: HashMap<String, String>) -> Result<Self, Self::Error> {
+        let identifier = match value.remove("identifier") {
+            Some(v) => v,
+            None => value
+                .get("toss")
+                .ok_or_else(|| "'identifier' must be provided".to_string())?
+                .to_string(),
+        };
+        let value = value
             .into_iter()
             .map(|(key, value)| (key, value.parse().unwrap_or(Value::String(value))))
             .collect::<Map<_, _>>();
 
-        let toss = value
-            .remove("toss")
-            .and_then(|toss| toss.as_i64())
-            .and_then(|toss| {
-                if -1 <= toss && toss <= 100 {
-                    Some(toss as i8)
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| {
-                log::error!("toss should be a an interger between -1 and 100 (included)");
-                String::from("toss should be a an interger between -1 and 100 (included)")
-            })?;
-
         Ok(Self {
-            toss,
+            identifier,
             context: value,
         })
     }
@@ -195,30 +187,27 @@ impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApplicableVariantsRequest {
     pub context: Map<String, Value>,
-    #[serde(deserialize_with = "deserialize_toss")]
-    pub toss: i8,
+    #[serde(alias = "toss", deserialize_with = "deserialize_identifier")]
+    pub identifier: String,
 }
 
 impl From<ApplicableVariantsRequest> for ApplicableVariantsQuery {
     fn from(value: ApplicableVariantsRequest) -> Self {
         Self {
             context: value.context,
-            toss: value.toss,
+            identifier: value.identifier,
         }
     }
 }
 
-fn deserialize_toss<'de, D>(deserializer: D) -> Result<i8, D::Error>
+fn deserialize_identifier<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let toss: i8 = Deserialize::deserialize(deserializer)?;
-    if -1 <= toss && toss <= 100 {
-        Ok(toss)
-    } else {
-        Err(serde::de::Error::custom(
-            "toss should be a an interger between -1 and 100 (included)",
-        ))
+    match Value::deserialize(deserializer)? {
+        Value::Number(toss) => Ok(toss.to_string()),
+        Value::String(identifier) => Ok(identifier),
+        _ => Err(serde::de::Error::custom("identifier must be a string")),
     }
 }
 
