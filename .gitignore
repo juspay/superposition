@@ -66,3 +66,5 @@ clients/generated/smithy/typescript/dist-cjs/
 clients/generated/smithy/typescript/dist-es/
 clients/generated/smithy/typescript/dist-types/
 clients/generated/smithy/typescript/tsconfig.*
+
+.npmrc

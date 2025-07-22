@@ -6,6 +6,7 @@ import copy from 'rollup-plugin-copy';
 
 const external = [
     '@openfeature/server-sdk',
+    'koffi',
     'fs', 
     'path', 
     'crypto', 
@@ -26,12 +27,14 @@ export default {
             file: 'dist/index.js',
             format: 'cjs',
             sourcemap: true,
-            exports: 'auto'
+            exports: 'named',
+            inlineDynamicImports: true
         },
         {
             file: 'dist/index.esm.js',
             format: 'es',
-            sourcemap: true
+            sourcemap: true,
+            inlineDynamicImports: true
         }
     ],
     external,
@@ -45,8 +48,8 @@ export default {
         nodeResolve({
             preferBuiltins: true
         }),
-        commonjs(),
         json(),
+        commonjs(),
         typescript({
             tsconfig: './tsconfig.json'
         })

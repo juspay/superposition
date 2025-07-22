@@ -22,7 +22,7 @@ import {
     ConfigData,
     ExperimentationOptions,
 } from './types';
-import { NativeResolver } from 'superposition-bindings';
+import { NativeResolver } from '@juspay/superposition-bindings';
 
 export interface SuperpositionProviderOptions {
     endpoint: string;
@@ -234,5 +234,3 @@ export class SuperpositionProvider implements Provider {
     getStatus(): ProviderStatus { return this.status; }
     getConfigurationClient(): ConfigurationClient { return this.client; }
 }
-
-export { SuperpositionOptions };
