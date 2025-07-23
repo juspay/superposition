@@ -3,7 +3,9 @@ use std::cmp::max;
 use leptos::*;
 use leptos_router::A;
 
-use crate::query_updater::use_update_url_query;
+use crate::{
+    providers::csr_provider::use_client_side_ready, query_updater::use_update_url_query,
+};
 
 #[component]
 pub fn pagination(
@@ -12,6 +14,7 @@ pub fn pagination(
     total_pages: i64,
     #[prop(into)] on_change: Callback<i64>,
 ) -> impl IntoView {
+    let client_side_ready = use_client_side_ready();
     let get_updated_query = use_update_url_query();
 
     let current_page = max(1, current_page);
@@ -66,6 +69,7 @@ pub fn pagination(
                     )
                 }>
                     <input
+                        disabled=move || !*client_side_ready.get()
                         type="number"
                         min="1"
                         max=total_pages

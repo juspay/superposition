@@ -67,8 +67,8 @@ pub async fn update_type(
 }
 
 pub async fn delete_type(
-    tenant: String,
     type_name: String,
+    tenant: String,
     org_id: String,
 ) -> Result<Value, String> {
     let host = get_host();

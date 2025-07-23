@@ -48,11 +48,10 @@ pub fn config_version_list() -> impl IntoView {
         <Suspense fallback=move || view! { <Skeleton /> }>
             <div class="h-full flex flex-col gap-4">
                 {move || {
-                    let snapshot_res = snapshots_resource.get();
-                    let total_items = match snapshot_res {
-                        Some(snapshot_resp) => snapshot_resp.total_items.to_string(),
-                        _ => "0".to_string(),
-                    };
+                    let total_items = snapshots_resource
+                        .with(|c| c.as_ref().map(|r| r.total_items))
+                        .unwrap_or_default()
+                        .to_string();
                     view! {
                         <Stat
                             heading="Config Versions"
@@ -69,7 +68,7 @@ pub fn config_version_list() -> impl IntoView {
                                 Some(snapshot_resp) => {
                                     let page = pagination_params.page.unwrap_or(1);
                                     let count = pagination_params.count.unwrap_or(10);
-                                    let total_pages = snapshot_resp.clone().total_pages;
+                                    let total_pages = snapshot_resp.total_pages;
                                     let resp = snapshot_resp
                                         .data
                                         .into_iter()

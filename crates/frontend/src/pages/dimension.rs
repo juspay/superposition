@@ -26,6 +26,7 @@ fn tree_node(
     name: String,
     data: DependencyGraph,
     #[prop(default = vec![])] parents_last: Vec<bool>,
+    #[prop(default = false)] root: bool,
 ) -> impl IntoView {
     let mut prefix = String::new();
     for (i, is_last) in parents_last.iter().enumerate() {
@@ -41,9 +42,19 @@ fn tree_node(
     view! {
         <div class="whitespace-pre">
             <span class="text-gray-500 font-mono">{prefix}</span>
-            <A href=format!("../{name}") class="underline text-blue-600 hover:text-blue-800">
-                {name}
-            </A>
+            {if root {
+                view! { <span class="font-medium">{name}</span> }.into_view()
+            } else {
+                view! {
+                    <A
+                        href=format!("../{name}")
+                        class="underline text-blue-600 hover:text-blue-800"
+                    >
+                        {name}
+                    </A>
+                }
+                    .into_view()
+            }}
         </div>
         {children
             .iter()
@@ -215,10 +226,9 @@ pub fn dimension_page() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (dimension_name.get(), workspace.get().0, org.get().0),
         |(dimension_name, workspace, org_id)| async move {
-            let function_result =
-                get_dimension(&dimension_name, &workspace, &org_id).await;
-
-            function_result.ok()
+            get_dimension(&dimension_name, &workspace, &org_id)
+                .await
+                .ok()
         },
     );
 
@@ -264,7 +274,7 @@ pub fn dimension_page() -> impl IntoView {
             {move || {
                 let dimension = match dimension_resource.get() {
                     Some(Some(dim)) => dim,
-                    _ => return view! { <h1>Error fetching dimension</h1> }.into_view(),
+                    _ => return view! { <h1>"Error fetching dimension"</h1> }.into_view(),
                 };
                 let dimension_st = StoredValue::new(dimension.clone());
                 view! {
@@ -306,6 +316,7 @@ pub fn dimension_page() -> impl IntoView {
                                             <TreeNode
                                                 name=dimension.dimension.clone()
                                                 data=dimension.dependency_graph.clone()
+                                                root=true
                                             />
                                         </div>
                                     </div>
