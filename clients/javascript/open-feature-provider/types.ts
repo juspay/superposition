@@ -33,7 +33,7 @@ export type RefreshStrategy = PollingStrategy | OnDemandStrategy;
 export interface ExperimentationOptions {
     refreshStrategy: RefreshStrategy;
     evaluationCache?: EvaluationCacheOptions;
-    defaultToss?: number;
+    defaultIdentifier?: string;
 }
 
 export interface ConfigOptions {
