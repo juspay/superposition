@@ -229,7 +229,7 @@ pub fn webhooks() -> impl IntoView {
         }>
             {move || {
                 let value = webhooks_resource.get().unwrap_or_default();
-                let total_items = value.data.len().to_string();
+                let total_items = value.total_items.to_string();
                 let table_rows = value
                     .data
                     .iter()
