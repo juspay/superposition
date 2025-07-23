@@ -66,8 +66,10 @@ impl CacConfig {
                             Some(ConversionUtils::convert_value_to_config(fallback)?);
                         info!("Using fallback config due to initial fetch failure");
                     }
+                } else {
+                    error!("Failed to fetch initial config: {}", e);
+                    return Err(e);
                 }
-                error!("Failed to fetch initial config: {}", e);
             }
         }
 
@@ -167,7 +169,7 @@ impl CacConfig {
     }
 
     async fn get_config_static(options: &SuperpositionOptions) -> Result<Config> {
-        use superposition_rust_sdk::{Client, Config as SdkConfig};
+        use superposition_sdk::{Client, Config as SdkConfig};
 
         info!("Fetching config from Superposition service using SDK");
 
@@ -403,7 +405,7 @@ impl ExperimentationConfig {
     async fn get_experiments_static(
         options: &SuperpositionOptions,
     ) -> Result<Option<Experiments>> {
-        use superposition_rust_sdk::{
+        use superposition_sdk::{
             types::ExperimentStatusType, Client, Config as SdkConfig,
         };
 

@@ -5442,22 +5442,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "superposition-rust-sdk"
-version = "0.0.1"
-dependencies = [
- "aws-smithy-async",
- "aws-smithy-http 0.62.2",
- "aws-smithy-json 0.61.4",
- "aws-smithy-runtime",
- "aws-smithy-runtime-api",
- "aws-smithy-types",
- "bytes",
- "fastrand 2.3.0",
- "http 0.2.9",
- "tracing",
-]
-
-[[package]]
 name = "superposition_core"
 version = "0.1.2"
 dependencies = [
@@ -5507,12 +5491,28 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "superposition-rust-sdk",
  "superposition_core",
+ "superposition_sdk",
  "superposition_types",
  "thiserror 1.0.58",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "superposition_sdk"
+version = "0.0.1"
+dependencies = [
+ "aws-smithy-async",
+ "aws-smithy-http 0.62.2",
+ "aws-smithy-json 0.61.4",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "bytes",
+ "fastrand 2.3.0",
+ "http 0.2.9",
+ "tracing",
 ]
 
 [[package]]

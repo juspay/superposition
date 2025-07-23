@@ -85,10 +85,6 @@ impl SuperpositionProvider {
         let (mut context, targeting_key) =
             self.get_context_from_evaluation_context(evaluation_context);
         let variant_ids = if let Some(exp_config) = &self.exp_config {
-            log::info!(
-                "Evaluating config with context: {:?}, targeting_key: {:?}, variant_ids: {:?}",
-                5.clone(), 5.clone(), 5
-            );
             exp_config
                 .get_applicable_variants(
                     &context,

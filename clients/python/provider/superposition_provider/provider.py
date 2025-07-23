@@ -62,13 +62,12 @@ class SuperpositionProvider(AbstractProvider):
                     )
                 )
                 await self.client.create_config()
-            except asyncio.TimeoutError:
-                raise RuntimeError("Provider initialization timed out")
+            except Exception as e:
+                self.status = ProviderStatus.ERROR
 
             self.status = ProviderStatus.READY
         except Exception as e:
             self.status = ProviderStatus.ERROR
-            raise
     def _do_initialize(self, context: Optional[EvaluationContext]):
         self.cached_config = self.client.eval(context or EvaluationContext({}))
     

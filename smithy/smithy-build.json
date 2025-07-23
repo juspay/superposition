@@ -30,7 +30,7 @@
           ,"enableNewSmithyRuntime": "orchestrator"
         },
         "service": "io.superposition#Superposition",
-        "module": "superposition-rust-sdk",
+        "module": "superposition_sdk",
         "moduleVersion": "0.0.1",
         "moduleDescription": "test",
         "moduleAuthors": ["protocoltest@example.com"]

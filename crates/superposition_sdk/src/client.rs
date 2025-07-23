@@ -32,10 +32,10 @@
 /// Below is a minimal example of how to create a client:
 /// 
 /// ```rust,no_run
-/// let config = superposition_rust_sdk::Config::builder()
+/// let config = superposition_sdk::Config::builder()
 ///     .endpoint_url("http://localhost:1234")
 ///     .build();
-/// let client = superposition_rust_sdk::Client::from_conf(config);
+/// let client = superposition_sdk::Client::from_conf(config);
 /// ```
 /// 
 /// _Note:_ Client construction is expensive due to connection thread pool initialization, and should be done
@@ -139,8 +139,8 @@ mod create_workspace;
 /// operation call. For example, this can be used to add an additional HTTP header:
 /// 
 /// ```ignore
-/// # async fn wrapper() -> ::std::result::Result<(), superposition_rust_sdk::Error> {
-/// # let client: superposition_rust_sdk::Client = unimplemented!();
+/// # async fn wrapper() -> ::std::result::Result<(), superposition_sdk::Error> {
+/// # let client: superposition_sdk::Client = unimplemented!();
 /// use ::http::header::{HeaderName, HeaderValue};
 /// 
 /// let result = client.add_members_to_group()

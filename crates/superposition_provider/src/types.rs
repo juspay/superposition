@@ -182,6 +182,7 @@ pub struct SuperpositionProviderOptions {
 }
 
 impl SuperpositionProviderOptions {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         endpoint: String,
         token: String,

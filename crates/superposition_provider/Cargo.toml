@@ -4,15 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { workspace = true }
+serde_json = { workspace = true }
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 async-trait = "0.1"
-log = "0.4"
-reqwest = { version = "0.11", features = ["json"] }
-chrono = { version = "0.4", features = ["serde"] }
-uuid = { version = "1.0", features = ["v4"] }
+log = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
 aws-smithy-types = { version = "1.3.0" }
 superposition_core = { path = "../superposition_core" }
 
@@ -20,7 +20,7 @@ superposition_core = { path = "../superposition_core" }
 open-feature = "0.2.5"
 
 # Generated Smithy Rust SDK for Superposition
-superposition-rust-sdk = { path = "../../clients/generated/smithy/rust", features = ["behavior-version-latest"] }
+superposition_sdk = { path = "../superposition_sdk", features = ["behavior-version-latest"] }
 
 # Superposition types for proper type conversion
 superposition_types = { path = "../superposition_types" }

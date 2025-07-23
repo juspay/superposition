@@ -12,7 +12,7 @@ pub struct ConversionUtils;
 
 impl ConversionUtils {
     pub fn convert_get_config_response(
-        response: &superposition_rust_sdk::operation::get_config::GetConfigOutput,
+        response: &superposition_sdk::operation::get_config::GetConfigOutput,
     ) -> Result<Config> {
         debug!("Converting get_config response to superposition_types::Config");
 
@@ -247,7 +247,7 @@ impl ConversionUtils {
     }
     /// Convert list_experiment SDK response to structured experiment data
     pub fn convert_experiments_response(
-        response: &superposition_rust_sdk::operation::list_experiment::ListExperimentOutput,
+        response: &superposition_sdk::operation::list_experiment::ListExperimentOutput,
     ) -> Result<Experiments> {
         debug!("Converting experiments response");
 
@@ -266,10 +266,10 @@ impl ConversionUtils {
             let mut variants: Variants = Variants::new(vec![]);
             for variant in exp.variants() {
                 let variant_type = match variant.variant_type() {
-                    superposition_rust_sdk::types::VariantType::Control => {
+                    superposition_sdk::types::VariantType::Control => {
                         VariantType::CONTROL
                     }
-                    superposition_rust_sdk::types::VariantType::Experimental => {
+                    superposition_sdk::types::VariantType::Experimental => {
                         VariantType::EXPERIMENTAL
                     }
                     _ => {
