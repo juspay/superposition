@@ -1,2 +1,0 @@
-[test]
-preload = ["./index.ts"]

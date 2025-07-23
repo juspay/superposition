@@ -1,0 +1,5 @@
+[install]
+lockfile = "./bun.lockb"
+
+[test]
+preload = ["./index.ts"]

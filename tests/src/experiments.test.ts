@@ -55,18 +55,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-        {
-            variant_type: VariantType.CONTROL,
-            overrides: {
-                pmTestKey1: "value1-control",
-                pmTestKey2: "value1-control",
+            {
+                variant_type: VariantType.CONTROL,
+                overrides: {
+                    pmTestKey1: "value1-control",
+                    pmTestKey2: "value1-control",
+                },
             },
-        },
-        {
-            variant_type: VariantType.EXPERIMENTAL,
-            overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
-        },
-    ];
+            {
+                variant_type: VariantType.EXPERIMENTAL,
+                overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
+            },
+        ];
 
     const experiment2Context = {
         and: [
@@ -78,18 +78,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-        {
-            variant_type: VariantType.CONTROL,
-            overrides: {
-                pmTestKey3: "value3-control",
-                pmTestKey4: "value3-control",
+            {
+                variant_type: VariantType.CONTROL,
+                overrides: {
+                    pmTestKey3: "value3-control",
+                    pmTestKey4: "value3-control",
+                },
             },
-        },
-        {
-            variant_type: VariantType.EXPERIMENTAL,
-            overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
-        },
-    ];
+            {
+                variant_type: VariantType.EXPERIMENTAL,
+                overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
+            },
+        ];
 
     // Experiment group context (common base for both experiments)
     const experimentGroupContext = {
