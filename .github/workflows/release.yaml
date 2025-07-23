@@ -39,14 +39,6 @@ jobs:
                   crate: cocogitto
                   version: "6.2.0"
             
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: "20.0.0"
-                
-            - name: reset npm
-              run: |
-                  npm config delete registry
-
             - name: Semver release
               shell: bash
               run: |
@@ -521,7 +513,7 @@ jobs:
                   twine upload --repository codeartifact python-wheels/*.whl
 
     generate-js-packages:
-        needs: [tag-release, generate-rust-binary, create-demo-manifest]
+        needs: [tag-release, generate-rust-binary]
         permissions:
             contents: read
             id-token: write
@@ -605,7 +597,7 @@ jobs:
                   CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
 
     release:
-        needs: [tag-release, generate-rust-binary, generate-python-packages]
+        needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository

@@ -460,7 +460,6 @@ def _uniffi_load_indirect():
 
     libname = f"libsuperposition_core-{triple}"
     libpath = os.path.join(folder, libname)
-
     if not os.path.exists(libpath):
         raise FileNotFoundError(f"❌ Required binary not found: {libpath}")
 
