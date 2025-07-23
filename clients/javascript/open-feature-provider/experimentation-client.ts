@@ -9,6 +9,8 @@ export interface Variant {
     overrides: Record<string, string>;
 }
 
+export type GroupType = 'USER_CREATED' | 'SYSTEM_GENERATED';
+
 export interface Experiment {
     id: string;
     context: Record<string, string>;
@@ -164,12 +166,6 @@ export class ExperimentationClient {
             const experimentGroups: ExperimentGroup[] = [];
 
             for (const exp_group of response.data) {
-                // Skip experiment groups without required fields
-                if (!exp_group.id) {
-                    console.warn('Skipping experiment group without ID');
-                    continue;
-                }
-
                 experimentGroups.push({
                     id: exp_group.id,
                     context: this.normalizeToStringRecord(exp_group.context),
