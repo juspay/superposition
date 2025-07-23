@@ -16,7 +16,7 @@ import {
     WeightRecomputeCommand,
     WorkspaceStatus,
     UpdateDimensionCommand,
-} from "superposition-sdk";
+} from "@juspay/superposition-sdk";
 import { ENV, superpositionClient } from "../env.ts";
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
 

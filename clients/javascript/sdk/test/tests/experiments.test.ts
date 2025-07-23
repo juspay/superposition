@@ -26,7 +26,7 @@ import {
     WorkspaceStatus,
     UpdateWorkspaceCommand,
     SuperpositionClient,
-} from "superposition-sdk";
+} from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
 import { nanoid } from "nanoid";

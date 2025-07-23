@@ -9,6 +9,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "superposition-sdk": "file:../.."
+    "@juspay/superposition-sdk": "file:../.."
   }
 }
