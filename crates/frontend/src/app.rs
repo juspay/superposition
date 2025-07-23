@@ -17,8 +17,9 @@ use crate::pages::function::{
 };
 use crate::pages::{
     context_override::ContextOverride, custom_types::TypesPage,
-    default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
-    organisations::Organisations, webhooks::Webhooks, workspace::Workspace,
+    default_config::DefaultConfig, default_config_list::DefaultConfigList,
+    experiment::ExperimentPage, home::Home, organisations::Organisations,
+    webhooks::Webhooks, workspace::Workspace,
 };
 use crate::types::Envs;
 
@@ -151,7 +152,12 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                             view=ExperimentGroups
                         />
 
-                        <Route ssr=SsrMode::Async path="default-config" view=DefaultConfig />
+                        <Route ssr=SsrMode::Async path="default-config" view=DefaultConfigList />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="default-config/:config_key"
+                            view=DefaultConfig
+                        />
 
                         <Route ssr=SsrMode::Async path="overrides" view=ContextOverride />
 

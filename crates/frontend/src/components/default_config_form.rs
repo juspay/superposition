@@ -3,7 +3,9 @@ pub mod utils;
 use std::ops::Deref;
 
 use chrono::Utc;
+use futures::join;
 use leptos::{html::Div, *};
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{default_config::DefaultConfigUpdateRequest, functions::ListFunctionFilters},
@@ -44,6 +46,12 @@ use self::utils::{create_default_config, update_default_config};
 enum ResponseType {
     UpdatePrecheck,
     Response,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct CombinedResource {
+    functions: Vec<Function>,
+    type_templates: Vec<TypeTemplate>,
 }
 
 #[component]
@@ -88,30 +96,26 @@ pub fn default_config_form(
             .map_err(|err| format!("Failed to get enum variants: {}", err))
     });
 
-    let validation_functions_resource: Resource<(String, String), Vec<Function>> =
-        create_blocking_resource(
-            move || (workspace.get().0, org.get().0),
-            |(current_tenant, org)| async move {
-                let fn_filters = ListFunctionFilters {
-                    function_type: None,
-                };
-                fetch_functions(
-                    &PaginationParams::all_entries(),
-                    &fn_filters,
-                    current_tenant,
-                    org,
-                )
-                .await
-                .map_or_else(|_| vec![], |data| data.data)
-            },
-        );
-
-    let type_template_resource = create_blocking_resource(
+    let combined_resources = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
-        |(current_tenant, org)| async move {
-            fetch_types(&PaginationParams::all_entries(), current_tenant, org)
-                .await
-                .map_or_else(|_| vec![], |response| response.data)
+        |(tenant, org_id)| async move {
+            let all_entries = PaginationParams::all_entries();
+            let list_filters = ListFunctionFilters::default();
+            let functions_future = fetch_functions(
+                &all_entries,
+                &list_filters,
+                tenant.clone(),
+                org_id.clone(),
+            );
+
+            let types_future = fetch_types(&all_entries, tenant.clone(), org_id.clone());
+
+            let (functions_result, types_result) = join!(functions_future, types_future);
+
+            CombinedResource {
+                functions: functions_result.map(|d| d.data).unwrap_or_default(),
+                type_templates: types_result.map(|d| d.data).unwrap_or_default(),
+            }
         },
     );
 
@@ -265,7 +269,9 @@ pub fn default_config_form(
                 </div>
                 <Suspense>
                     {move || {
-                        let mut options = type_template_resource.get().unwrap_or_default();
+                        let mut options = combined_resources
+                            .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
+                            .unwrap_or_default();
                         options
                             .push(TypeTemplate {
                                 type_name: "Custom JSON Schema".to_string(),
@@ -429,7 +435,9 @@ pub fn default_config_form(
 
                 <Suspense>
                     {move || {
-                        let mut functions = validation_functions_resource.get().unwrap_or_default();
+                        let mut functions = combined_resources
+                            .with(|c| c.as_ref().map(|c| c.functions.clone()))
+                            .unwrap_or_default();
                         let mut validation_function_names: Vec<FunctionsName> = vec![
                             "None".to_string(),
                         ];

@@ -4,6 +4,7 @@ pub mod config_version_list;
 pub mod context_override;
 pub mod custom_types;
 pub mod default_config;
+pub mod default_config_list;
 pub mod dimension;
 pub mod dimensions;
 pub mod experiment;
