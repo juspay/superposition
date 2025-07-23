@@ -496,7 +496,7 @@ jobs:
               run: |
                   cd clients/python/provider
                   # Install dependencies first since provider depends on sdk and bindings
-                  uv pip install --system ../bindings/dist/*.whl ../sdk/dist/*.whl
+                  # uv pip install --system ../bindings/dist/*.whl ../sdk/dist/*.whl
                   uv build --wheel
                   echo "Built provider wheel:"
                   ls -la dist/
