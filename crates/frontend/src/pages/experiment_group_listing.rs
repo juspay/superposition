@@ -111,7 +111,7 @@ fn table_columns(
                 let change_reason = get_row_string_fn(row, "change_reason");
                 view! {
                     <div>
-                        <A href=group_id.to_string() class="btn-link">
+                        <A href=group_id.to_string() class="text-blue-500 underline underline-offset-2">
                             {group_name}
                         </A>
                         <div class="text-gray-500">

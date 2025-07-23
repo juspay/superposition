@@ -208,7 +208,7 @@ pub fn compare_overrides() -> impl IntoView {
             });
             view! {
                 <A
-                    class="cursor-pointer text-blue-500 underline underline-offset-2"
+                    class="text-blue-500 underline underline-offset-2"
                     href=redirect_url(Some(prefix))
                 >
                     {label}

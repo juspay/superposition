@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use chrono::Utc;
 use diesel::{query_dsl::methods::SchemaNameDsl, ExpressionMethods, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema};
-use serde_json::Value;
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
@@ -146,12 +145,10 @@ pub fn validate_and_initialize_dimension_hierarchy(
     if !dependent_dimensions.is_empty() {
         dependency_map.insert(
             dimension_name.to_string(),
-            Value::Array(
-                dependent_dimensions
-                    .iter()
-                    .map(|d| Value::String(d.clone()))
-                    .collect(),
-            ),
+            dependent_dimensions
+                .iter()
+                .map(String::from)
+                .collect::<Vec<_>>(),
         );
     }
 
@@ -395,12 +392,10 @@ fn build_dependency_graph_and_update_dependencies(
     // Add the dependencies to the new dependency graph
     new_dependency_graph.insert(
         dimension_name.to_string(),
-        Value::Array(
-            dependent_dimensions
-                .iter()
-                .map(|s| Value::String(s.to_string()))
-                .collect(),
-        ),
+        dependent_dimensions
+            .iter()
+            .map(String::from)
+            .collect::<Vec<_>>(),
     );
 
     Ok(new_dependency_graph)

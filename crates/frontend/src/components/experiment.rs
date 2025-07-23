@@ -36,7 +36,7 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Description</div>
                     <div
-                        class="tooltip tooltip-left w-[inherit] text-left"
+                        class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=experiment.with_value(|v| String::from(&v.description))
                     >
                         <div class="stat-value text-sm text-ellipsis overflow-hidden">
@@ -69,7 +69,7 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                             <div class="h-fit w-[300px]">
                                 <div class="stat-title">Experiment group</div>
                                 <div
-                                    class="tooltip tooltip-left w-[inherit] text-left"
+                                    class="tooltip tooltip-bottom w-[inherit] text-left"
                                     data-tip=&experiment_group_id
                                 >
                                     <div class="stat-value text-sm text-ellipsis overflow-hidden">
@@ -122,7 +122,7 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Change Reason</div>
                     <div
-                        class="tooltip tooltip-left w-[inherit] text-left"
+                        class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=experiment.with_value(|v| String::from(&v.change_reason))
                     >
                         <div class="stat-value text-sm text-ellipsis overflow-hidden">
