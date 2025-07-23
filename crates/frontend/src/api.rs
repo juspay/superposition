@@ -7,6 +7,7 @@ use superposition_types::{
     api::{
         context::ContextListFilters,
         default_config::DefaultConfigFilters,
+        dimension::DimensionResponse,
         experiment_groups::{
             ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
             ExpGroupUpdateRequest,
@@ -21,14 +22,11 @@ use superposition_types::{
         workspace::WorkspaceResponse,
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap},
-    database::{
-        models::{
-            cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
-            experimentation::ExperimentGroup,
-            others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-            ChangeReason, Description, NonEmptyString,
-        },
-        types::DimensionWithMandatory,
+    database::models::{
+        cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
+        experimentation::ExperimentGroup,
+        others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
+        ChangeReason, Description, NonEmptyString,
     },
     Config, PaginatedResponse,
 };
@@ -38,12 +36,12 @@ pub async fn fetch_dimensions(
     filters: &PaginationParams,
     tenant: String,
     org_id: String,
-) -> Result<PaginatedResponse<DimensionWithMandatory>, ServerFnError> {
+) -> Result<PaginatedResponse<DimensionResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
 
     let url = format!("{}/dimension?{}", host, filters);
-    let response: PaginatedResponse<DimensionWithMandatory> = client
+    let response: PaginatedResponse<DimensionResponse> = client
         .get(url)
         .header("x-tenant", &tenant)
         .header("x-org-id", org_id)
@@ -692,7 +690,7 @@ pub async fn get_dimension(
     name: &str,
     tenant: &str,
     org_id: &str,
-) -> Result<DimensionWithMandatory, String> {
+) -> Result<DimensionResponse, String> {
     let host = use_host_server();
     let url = format!("{host}/dimension/{name}");
 

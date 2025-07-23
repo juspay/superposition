@@ -3,12 +3,14 @@ use std::ops::Deref;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::{context::ContextListFilters, workspace::WorkspaceResponse},
+    api::{
+        context::ContextListFilters, dimension::DimensionResponse,
+        workspace::WorkspaceResponse,
+    },
     custom_query::{
         CommaSeparatedStringQParams, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,
     },
-    database::types::DimensionWithMandatory,
 };
 use web_sys::MouseEvent;
 
@@ -213,7 +215,7 @@ pub fn context_filter_drawer(
     pagination_params_rws: RwSignal<PaginationParams>,
     context_filters_rws: RwSignal<ContextListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(context_filters_rws.get_untracked());
     let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());

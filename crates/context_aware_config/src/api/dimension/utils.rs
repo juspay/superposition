@@ -1,21 +1,24 @@
-use super::types::DimensionName;
-use crate::helpers::DimensionData;
+use std::collections::HashMap;
+
 use chrono::Utc;
-use diesel::ExpressionMethods;
-use diesel::{query_dsl::methods::SchemaNameDsl, RunQueryDsl};
+use diesel::{query_dsl::methods::SchemaNameDsl, ExpressionMethods, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
 use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
-use std::collections::HashMap;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
-use superposition_types::database::models::cac::DependencyGraph;
 use superposition_types::{
+    api::dimension::DimensionName,
     database::{
-        models::cac::{Context, Dimension, Position},
+        models::{
+            cac::{Context, DependencyGraph, Dimension, Position},
+            ChangeReason,
+        },
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
     result as superposition, Cac, Condition, DBConnection,
 };
+
+use crate::helpers::DimensionData;
 
 pub fn get_dimension_data(
     conn: &mut DBConnection,
@@ -510,9 +513,11 @@ fn update_dimensions_in_db(
     schema_name: &SchemaName,
     conn: &mut DBConnection,
 ) -> superposition::Result<()> {
+    let reason =
+        ChangeReason::try_from(reason.to_string()).map_err(|e| unexpected_error!(e))?;
     for (dimension_name, (dimension_data, is_updated)) in dimensions_map.iter_mut() {
         if *is_updated {
-            dimension_data.change_reason = reason.to_string();
+            dimension_data.change_reason = reason.clone();
             dimension_data.last_modified_by = user_email.to_string();
             dimension_data.last_modified_at = Utc::now();
             diesel::update(dimensions)

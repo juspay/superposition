@@ -2,8 +2,8 @@ use std::collections::{HashMap, HashSet};
 
 use leptos::*;
 use serde_json::Value;
-use superposition_types::{
-    api::workspace::WorkspaceResponse, database::types::DimensionWithMandatory,
+use superposition_types::api::{
+    dimension::DimensionResponse, workspace::WorkspaceResponse,
 };
 
 use crate::components::form::label::Label;
@@ -208,7 +208,7 @@ pub fn condition_input(
 pub fn context_form<NF>(
     handle_change: NF,
     context: Conditions,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     fn_environment: Memo<Value>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
@@ -223,7 +223,7 @@ where
         dimensions
             .iter()
             .map(|v| (v.dimension.clone(), v.clone()))
-            .collect::<HashMap<String, DimensionWithMandatory>>(),
+            .collect::<HashMap<String, DimensionResponse>>(),
     );
 
     let dimensions = StoredValue::new(dimensions);
@@ -237,7 +237,7 @@ where
     );
 
     let insert_dimension =
-        move |context: &mut Conditions, dimension: &DimensionWithMandatory| {
+        move |context: &mut Conditions, dimension: &DimensionResponse| {
             if !context.includes(&dimension.dimension) {
                 context.push(Condition::new_with_default_expression(
                     dimension.dimension.clone(),
@@ -317,7 +317,7 @@ where
     });
 
     let on_select_dimension =
-        Callback::new(move |selected_dimension: DimensionWithMandatory| {
+        Callback::new(move |selected_dimension: DimensionResponse| {
             let mut context = context_rs.get();
             if !resolve_mode {
                 insert_dimension(&mut context, &selected_dimension);
@@ -519,7 +519,7 @@ where
                                     .filter(|dimension| {
                                         !used_dimensions.get().contains(&dimension.dimension)
                                     })
-                                    .collect::<Vec<DimensionWithMandatory>>();
+                                    .collect::<Vec<DimensionResponse>>();
                                 view! {
                                     <Dropdown
                                         dropdown_icon="ri-add-line".to_string()

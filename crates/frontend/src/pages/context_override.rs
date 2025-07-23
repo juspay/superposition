@@ -15,15 +15,13 @@ use superposition_types::{
     api::{
         context::{ContextListFilters, SortOn, UpdateRequest},
         default_config::DefaultConfigFilters,
+        dimension::DimensionResponse,
         workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
-    database::{
-        models::{
-            cac::{Context, DefaultConfig},
-            experimentation::ExperimentType,
-        },
-        types::DimensionWithMandatory,
+    database::models::{
+        cac::{Context, DefaultConfig},
+        experimentation::ExperimentType,
     },
     PaginatedResponse, SortBy,
 };
@@ -72,7 +70,7 @@ pub struct Data {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct PageResource {
     contexts: PaginatedResponse<Context>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     default_config: Vec<DefaultConfig>,
 }
 
@@ -94,7 +92,7 @@ enum ResponseType {
 fn form(
     context: Conditions,
     overrides: Vec<(String, Value)>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     #[prop(optional)] edit_id: Option<String>,
     default_config: Vec<DefaultConfig>,
     #[prop(into)] handle_submit: Callback<bool, ()>,
@@ -274,7 +272,7 @@ fn use_context_data(
 fn autofill_form(
     context_id: String,
     #[prop(into)] handle_submit: Callback<bool, ()>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     default_config: Vec<DefaultConfig>,
     #[prop(default = false)] edit: bool,
 ) -> impl IntoView {
@@ -331,7 +329,7 @@ fn autofill_form(
 fn autofill_experiment_form(
     context_id: String,
     #[prop(into)] handle_submit: Callback<String, ()>,
-    dimensions: Vec<DimensionWithMandatory>,
+    dimensions: Vec<DimensionResponse>,
     default_config: Vec<DefaultConfig>,
     experiment_type: ExperimentType,
 ) -> impl IntoView {

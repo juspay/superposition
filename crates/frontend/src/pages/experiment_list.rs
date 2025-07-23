@@ -10,11 +10,12 @@ use superposition_macros::box_params;
 use superposition_types::{
     api::{
         default_config::DefaultConfigFilters,
+        dimension::DimensionResponse,
         experiments::{ExperimentListFilters, ExperimentResponse},
         workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
-    database::{models::cac::DefaultConfig, types::DimensionWithMandatory},
+    database::models::cac::DefaultConfig,
     PaginatedResponse,
 };
 use utils::experiment_table_columns;
@@ -40,7 +41,7 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone, Default)]
 struct CombinedResource {
     pub(self) experiments: PaginatedResponse<ExperimentResponse>,
-    pub(self) dimensions: Vec<DimensionWithMandatory>,
+    pub(self) dimensions: Vec<DimensionResponse>,
     pub(self) default_config: Vec<DefaultConfig>,
 }
 
