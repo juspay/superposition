@@ -47,6 +47,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 new HttpQueryTrait("sort_by"))
         .putMember("all", PreludeSchemas.BOOLEAN,
                 new HttpQueryTrait("all"))
+        .putMember("group_type", GroupType.$SCHEMA,
+                new HttpQueryTrait("group_type"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -59,6 +61,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
+    private static final Schema $SCHEMA_GROUP_TYPE = $SCHEMA.member("group_type");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -70,6 +73,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     private final transient ExperimentGroupSortOn sortOn;
     private final transient SortBy sortBy;
     private final transient Boolean all;
+    private final transient GroupType groupType;
 
     private ListExperimentGroupsInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -82,6 +86,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
         this.all = builder.all;
+        this.groupType = builder.groupType;
     }
 
     public String workspaceId() {
@@ -142,6 +147,13 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         return all;
     }
 
+    /**
+     * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+     */
+    public GroupType groupType() {
+        return groupType;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -165,12 +177,13 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy)
-               && Objects.equals(this.all, that.all);
+               && Objects.equals(this.all, that.all)
+               && Objects.equals(this.groupType, that.groupType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, page, count, name, createdBy, lastModifiedBy, sortOn, sortBy, all);
+        return Objects.hash(workspaceId, orgId, page, count, name, createdBy, lastModifiedBy, sortOn, sortBy, all, groupType);
     }
 
     @Override
@@ -206,6 +219,9 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         if (all != null) {
             serializer.writeBoolean($SCHEMA_ALL, all);
         }
+        if (groupType != null) {
+            serializer.writeString($SCHEMA_GROUP_TYPE, groupType.value());
+        }
     }
 
     @Override
@@ -222,6 +238,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, groupType);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -245,6 +262,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
         builder.all(this.all);
+        builder.groupType(this.groupType);
         return builder;
     }
 
@@ -271,6 +289,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         private ExperimentGroupSortOn sortOn;
         private SortBy sortBy;
         private Boolean all;
+        private GroupType groupType;
 
         private Builder() {}
 
@@ -374,6 +393,16 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+         *
+         * @return this builder.
+         */
+        public Builder groupType(GroupType groupType) {
+            this.groupType = groupType;
+            return this;
+        }
+
         @Override
         public ListExperimentGroupsInput build() {
             tracker.validate();
@@ -394,6 +423,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 case 7 -> sortOn((ExperimentGroupSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 case 8 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 case 9 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 10 -> groupType((GroupType) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -437,6 +467,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                     case 7 -> builder.sortOn(ExperimentGroupSortOn.builder().deserializeMember(de, member).build());
                     case 8 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     case 9 -> builder.all(de.readBoolean(member));
+                    case 10 -> builder.groupType(GroupType.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

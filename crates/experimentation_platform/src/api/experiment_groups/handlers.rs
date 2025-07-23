@@ -3,6 +3,7 @@ use actix_web::{
     web::{self, Data, Json, Query},
     Scope,
 };
+use chrono::Utc;
 use diesel::{
     Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
     TextExpressionMethods,
@@ -12,7 +13,7 @@ use service_utils::{
     helpers::generate_snowflake_id,
     service::types::{AppState, DbConnection, SchemaName, WorkspaceContext},
 };
-use superposition_macros::bad_argument;
+use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::experiment_groups::{
         ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
@@ -20,15 +21,24 @@ use superposition_types::{
     },
     custom_query::PaginationParams,
     database::{
-        models::experimentation::{ExperimentGroup, ExperimentGroups},
-        schema::experiment_groups::dsl as experiment_groups,
+        models::{
+            experimentation::{
+                Buckets, Experiment, ExperimentGroup, ExperimentGroups,
+                ExperimentStatusType, GroupType,
+            },
+            ChangeReason,
+        },
+        schema::{
+            experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
+        },
     },
     result as superposition, PaginatedResponse, SortBy, User,
 };
 
 use crate::api::{
     experiment_groups::helpers::{
-        add_members, fetch_and_validate_members, remove_members,
+        add_members, create_system_generated_experiment_group,
+        fetch_and_validate_members, fetch_experiment_group, remove_members,
         validate_experiment_group_constraints,
     },
     experiments::{
@@ -49,6 +59,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(delete_experiment_group)
         .service(add_members_to_group)
         .service(remove_members_to_group)
+        .service(backfill_experiment_groups)
 }
 
 #[post("")]
@@ -75,13 +86,7 @@ async fn create_experiment_group(
     };
 
     validate_context(&state, &exp_context, &workspace_request, &user).await?;
-    validate_experiment_group_constraints(
-        &member_experiments,
-        &[],
-        &exp_context,
-        &mut conn,
-        &workspace_request.schema_name,
-    )?;
+    validate_experiment_group_constraints(&member_experiments, &[], &exp_context)?;
 
     let members = member_experiments
         .iter()
@@ -103,6 +108,8 @@ async fn create_experiment_group(
         context: exp_context,
         traffic_percentage: req.traffic_percentage,
         member_experiment_ids: members.clone(),
+        buckets: Buckets::default(),
+        group_type: GroupType::UserCreated,
     };
 
     let new_experiment_group =
@@ -133,9 +140,17 @@ async fn update_experiment_group(
     schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
-    let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
+    let experiment_group = fetch_experiment_group(&id, &mut conn, &schema_name)?;
+    if experiment_group.group_type == GroupType::SystemGenerated {
+        return Err(bad_argument!(
+            "Cannot update system generated experiment group with id {}",
+            id
+        ));
+    }
+
+    let req = req.into_inner();
     let updated_group = diesel::update(experiment_groups::experiment_groups)
         .filter(experiment_groups::id.eq(&id))
         .set((
@@ -192,6 +207,7 @@ async fn add_members_to_group(
 async fn remove_members_to_group(
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupMemberRequest>,
+    state: Data<AppState>,
     db_conn: DbConnection,
     schema_name: SchemaName,
     user: User,
@@ -206,6 +222,7 @@ async fn remove_members_to_group(
                 &req.member_experiment_ids,
                 &id,
                 &schema_name,
+                &state,
                 transaction_conn,
                 &user,
             )?;
@@ -237,6 +254,10 @@ async fn list_experiment_groups(
         if let Some(last_modified_by) = &filters.last_modified_by {
             builder = builder
                 .filter(experiment_groups::last_modified_by.eq(last_modified_by.clone()));
+        }
+        if let Some(group_type) = &filters.group_type {
+            builder = builder
+                .filter(experiment_groups::group_type.eq_any(group_type.0.clone()));
         }
         builder
     };
@@ -318,4 +339,60 @@ async fn delete_experiment_group(
             .execute(conn)?;
         Ok(Json(marked_group))
     })
+}
+
+// Remove this after backfilling experiment groups
+#[post("/backfill")]
+async fn backfill_experiment_groups(
+    state: Data<AppState>,
+    db_conn: DbConnection,
+    schema_name: SchemaName,
+    user: User,
+) -> superposition::Result<Json<Vec<ExperimentGroup>>> {
+    log::info!("Backfilling experiment groups");
+    let DbConnection(mut conn) = db_conn;
+    let experiment_groups =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let mut results = vec![];
+
+            let experiments: Vec<Experiment> = experiments::experiments
+                .filter(experiments::status.eq_any(&[
+                    ExperimentStatusType::INPROGRESS,
+                    ExperimentStatusType::PAUSED,
+                ]))
+                .filter(experiments::experiment_group_id.is_null())
+                .schema_name(&schema_name)
+                .load::<Experiment>(transaction_conn)?;
+
+            for experiment in experiments {
+                let experiment_group = create_system_generated_experiment_group(
+                    &experiment,
+                    &experiment.traffic_percentage,
+                    &state,
+                    transaction_conn,
+                    &schema_name,
+                    &user,
+                )?;
+
+                diesel::update(experiments::experiments.find(experiment.id))
+                    .set((
+                        experiments::change_reason.eq(ChangeReason::try_from(format!(
+                            "Experiment {} backfilled to group {}",
+                            experiment.name, experiment_group.id
+                        ))
+                        .map_err(|e| unexpected_error!(e))?),
+                        experiments::last_modified.eq(Utc::now()),
+                        experiments::last_modified_by.eq(user.get_email()),
+                        experiments::experiment_group_id.eq(experiment_group.id),
+                    ))
+                    .returning(Experiment::as_returning())
+                    .schema_name(&schema_name)
+                    .execute(transaction_conn)?;
+
+                results.push(experiment_group);
+            }
+            Ok(results)
+        })?;
+
+    Ok(Json(experiment_groups))
 }

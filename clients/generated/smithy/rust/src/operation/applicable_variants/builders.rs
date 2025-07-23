@@ -143,18 +143,18 @@ impl ApplicableVariantsFluentBuilder {
                     self.inner.get_context()
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn toss(mut self, input: i32) -> Self {
-                    self.inner = self.inner.toss(input);
+    pub fn identifier(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.identifier(input.into());
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_toss(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_toss(input);
+    pub fn set_identifier(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_identifier(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_toss(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_toss()
+    pub fn get_identifier(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_identifier()
                 }
 }
 

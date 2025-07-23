@@ -20,8 +20,8 @@ pub(crate) fn de_bucket<'a, I>(tokens: &mut ::std::iter::Peekable<I>) -> ::std::
                                     ).transpose()?
                                 );
                             }
-                            "variant" => {
-                                builder = builder.set_variant(
+                            "variant_id" => {
+                                builder = builder.set_variant_id(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
                                             u.into_owned()
@@ -35,7 +35,7 @@ pub(crate) fn de_bucket<'a, I>(tokens: &mut ::std::iter::Peekable<I>) -> ::std::
                     other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
                 }
             }
-            Ok(Some(builder.build()))
+            Ok(Some(crate::serde_util::bucket_correct_errors(builder).build().map_err(|err|::aws_smithy_json::deserialize::error::DeserializeError::custom_source("Response was invalid", err))?))
         }
         _ => {
             Err(::aws_smithy_json::deserialize::error::DeserializeError::custom("expected start object or null"))

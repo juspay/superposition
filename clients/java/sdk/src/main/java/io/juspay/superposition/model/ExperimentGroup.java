@@ -19,18 +19,20 @@ public final class ExperimentGroup implements ApiResource {
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
         "org_id", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
+        Map.entry("buckets", SharedSchemas.BUCKETS),
+        Map.entry("description", PreludeSchemas.STRING),
+        Map.entry("created_at", SharedSchemas.DATE_TIME),
+        Map.entry("last_modified_by", PreludeSchemas.STRING),
+        Map.entry("group_type", GroupType.$SCHEMA),
+        Map.entry("created_by", PreludeSchemas.STRING),
+        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
         Map.entry("change_reason", PreludeSchemas.STRING),
         Map.entry("context_hash", PreludeSchemas.STRING),
         Map.entry("traffic_percentage", PreludeSchemas.INTEGER),
         Map.entry("name", PreludeSchemas.STRING),
         Map.entry("context", SharedSchemas.CONDITION),
-        Map.entry("description", PreludeSchemas.STRING),
         Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST),
-        Map.entry("created_at", SharedSchemas.DATE_TIME),
-        Map.entry("id", PreludeSchemas.STRING),
-        Map.entry("last_modified_by", PreludeSchemas.STRING),
-        Map.entry("created_by", PreludeSchemas.STRING),
-        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
+        Map.entry("id", PreludeSchemas.STRING));
 
     private static final List<Schema> $OPERATIONS = List.of(ListExperimentGroups.$SCHEMA,
         CreateExperimentGroup.$SCHEMA,

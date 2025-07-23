@@ -16,6 +16,10 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "http_method"))]
     pub struct HttpMethod;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "group_type"))]
+    pub struct GroupType;
 }
 
 diesel::table! {
@@ -720,6 +724,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::GroupType;
+
     experiment_groups (id) {
         id -> Int8,
         context_hash -> Text,
@@ -733,6 +740,8 @@ diesel::table! {
         created_by -> Text,
         last_modified_at -> Timestamptz,
         last_modified_by -> Text,
+        buckets -> Array<Nullable<Json>>,
+        group_type -> GroupType
     }
 }
 

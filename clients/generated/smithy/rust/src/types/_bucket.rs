@@ -4,18 +4,18 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct Bucket  {
     #[allow(missing_docs)] // documentation missing in model
-    pub experiment_id: ::std::option::Option<::std::string::String>,
+    pub experiment_id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub variant: ::std::option::Option<::std::string::String>,
+    pub variant_id: ::std::string::String,
 }
 impl  Bucket  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn experiment_id(&self) -> ::std::option::Option<&str> {
-        self.experiment_id.as_deref()
+    pub fn experiment_id(&self) -> &str {
+        use std::ops::Deref; self.experiment_id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn variant(&self) -> ::std::option::Option<&str> {
-        self.variant.as_deref()
+    pub fn variant_id(&self) -> &str {
+        use std::ops::Deref; self.variant_id.deref()
     }
 }
 impl Bucket {
@@ -30,10 +30,11 @@ impl Bucket {
 #[non_exhaustive]
 pub struct BucketBuilder {
     pub(crate) experiment_id: ::std::option::Option<::std::string::String>,
-    pub(crate) variant: ::std::option::Option<::std::string::String>,
+    pub(crate) variant_id: ::std::option::Option<::std::string::String>,
 }
 impl BucketBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn experiment_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.experiment_id = ::std::option::Option::Some(input.into());
         self
@@ -47,26 +48,38 @@ impl BucketBuilder {
         &self.experiment_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn variant(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.variant = ::std::option::Option::Some(input.into());
+    /// This field is required.
+    pub fn variant_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.variant_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_variant(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.variant = input; self
+    pub fn set_variant_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.variant_id = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_variant(&self) -> &::std::option::Option<::std::string::String> {
-        &self.variant
+    pub fn get_variant_id(&self) -> &::std::option::Option<::std::string::String> {
+        &self.variant_id
     }
     /// Consumes the builder and constructs a [`Bucket`](crate::types::Bucket).
-    pub fn build(self) -> crate::types::Bucket {
-        crate::types::Bucket {
-            experiment_id: self.experiment_id
-            ,
-            variant: self.variant
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`experiment_id`](crate::types::builders::BucketBuilder::experiment_id)
+    /// - [`variant_id`](crate::types::builders::BucketBuilder::variant_id)
+    pub fn build(self) -> ::std::result::Result<crate::types::Bucket, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::types::Bucket {
+                experiment_id: self.experiment_id
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("experiment_id", "experiment_id was not specified but it is required when building Bucket")
+                    )?
+                ,
+                variant_id: self.variant_id
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("variant_id", "variant_id was not specified but it is required when building Bucket")
+                    )?
+                ,
+            }
+        )
     }
 }
 

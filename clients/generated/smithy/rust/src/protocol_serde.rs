@@ -251,6 +251,8 @@ pub(crate) mod shape_workspace_not_found;
 
 pub(crate) mod shape_audit_log_list;
 
+pub(crate) mod shape_buckets;
+
 pub(crate) mod shape_bulk_operation_out;
 
 pub(crate) mod shape_bulk_operation_req;
@@ -316,6 +318,8 @@ pub(crate) mod shape_workspace_list;
 pub(crate) mod shape_audit_log_full;
 
 pub(crate) mod shape_autocomplete_function_request;
+
+pub(crate) mod shape_bucket;
 
 pub(crate) mod shape_context_action;
 
