@@ -1,6 +1,6 @@
-use std::fmt::Display;
 #[cfg(feature = "diesel_derives")]
 use std::str;
+use std::{collections::HashMap, fmt::Display};
 
 #[cfg(feature = "diesel_derives")]
 use base64::prelude::*;
@@ -17,7 +17,7 @@ use diesel::{
     AsChangeset, Insertable, QueryId, Queryable, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
 
@@ -359,7 +359,7 @@ where
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
-pub struct DependencyGraph(Map<String, Value>);
+pub struct DependencyGraph(HashMap<String, Vec<String>>);
 
 impl DependencyGraph {
     pub fn new() -> Self {
@@ -370,20 +370,18 @@ impl DependencyGraph {
         self.0.is_empty()
     }
 
-    pub fn insert<K, V>(&mut self, key: K, value: V) -> Option<Value>
+    pub fn insert<K, V>(&mut self, key: K, value: V) -> Option<Vec<String>>
     where
         K: Into<String>,
-        V: Into<Value>,
+        V: Into<Vec<String>>,
     {
         self.0.insert(key.into(), value.into())
     }
 
     pub fn insert_dependents(&mut self, dependent_dimension: &Dimension) {
         if dependent_dimension.dependency_graph.is_empty() {
-            self.0.insert(
-                dependent_dimension.dimension.to_string(),
-                Value::Array(vec![]),
-            );
+            self.0
+                .insert(dependent_dimension.dimension.to_string(), vec![]);
         } else {
             dependent_dimension
                 .dependency_graph

@@ -18,7 +18,7 @@ pub fn function_table_columns() -> Vec<Column> {
             |value: &str, _| {
                 let function_name = value.to_string();
                 view! {
-                    <A href=function_name.clone() class="btn-link">
+                    <A href=function_name.clone() class="text-blue-500 underline underline-offset-2">
                         {function_name}
                     </A>
                 }

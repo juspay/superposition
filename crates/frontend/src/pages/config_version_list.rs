@@ -124,7 +124,7 @@ pub fn snapshot_table_columns() -> Vec<Column> {
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
                 view! {
-                    <A href=id.clone() class="btn-link">{id}</A>
+                    <A href=id.clone() class="text-blue-500 underline underline-offset-2">{id}</A>
                 }
                 .into_view()
             },

@@ -1,12 +1,13 @@
 use leptos::*;
+use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
-use crate::api::{delete_dimension, fetch_dimensions};
-use crate::components::description_icon::InfoDescription;
-use crate::components::dimension_form::{ChangeLogSummary, ChangeType, DimensionForm};
-use crate::components::drawer::{close_drawer, open_drawer, Drawer, DrawerBtn};
+use crate::api::fetch_dimensions;
+use crate::components::button::Button;
+use crate::components::dimension_form::DimensionForm;
+use crate::components::drawer::PortalDrawer;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::{
     default_column_formatter, ColumnSortable, Expandable,
@@ -21,25 +22,17 @@ use crate::components::{
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
 
-#[derive(Clone, Debug, Default)]
-pub struct RowData {
-    pub dimension: String,
-    pub position: u32,
-    pub schema: Value,
-    pub validation_function_name: Option<String>,
-    pub autocomplete_function_name: Option<String>,
-    pub mandatory: bool,
-    pub dependencies: Vec<String>,
-    pub description: String,
-    pub change_reason: String,
+#[derive(Clone)]
+enum Action {
+    Create,
+    None,
 }
 
 #[component]
 pub fn dimensions() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
-    let delete_inprogress_rws = RwSignal::new(false);
+    let action_rws = RwSignal::new(Action::None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -55,127 +48,18 @@ pub fn dimensions() -> impl IntoView {
         },
     );
 
-    let confirm_delete = Callback::new(move |_| {
-        if let Some(id) = delete_id_rs.get_untracked() {
-            delete_inprogress_rws.set(true);
-            spawn_local(async move {
-                let result = delete_dimension(
-                    id,
-                    workspace.get_untracked().0,
-                    org.get_untracked().0,
-                )
-                .await;
-                delete_inprogress_rws.set(false);
-                match result {
-                    Ok(_) => {
-                        logging::log!("Dimension deleted successfully");
-                        delete_id_ws.set(None);
-                        dimensions_resource.refetch();
-                    }
-                    Err(e) => {
-                        logging::log!("Error deleting Dimension: {:?}", e);
-                    }
-                }
-            });
-        }
-    });
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
     });
 
-    let selected_dimension = create_rw_signal::<Option<RowData>>(None);
-
     let table_columns = create_memo(move |_| {
-        let action_col_formatter = move |_: &str, row: &Map<String, Value>| {
-            logging::log!("Dimension row: {:?}", row);
-            let row_dimension = row["dimension"].to_string().replace('"', "");
-            let row_position_str = row["position"].to_string().replace('"', "");
-            let row_position = row_position_str.parse::<u32>().unwrap_or(0_u32);
-            let row_description = row["description"].to_string().replace('"', "");
-            let row_change_reason = row["change_reason"].to_string().replace('"', "");
-
-            let schema = row["schema"].clone().to_string();
-            let schema = serde_json::from_str::<Value>(&schema).unwrap_or(Value::Null);
-
-            // keeping the function_name field the same for backwards compatibility
-            let validation_function_name = row
-                .get("function_name")
-                .and_then(|v| v.as_str().map(String::from));
-            let autocomplete_function_name = row
-                .get("autocomplete_function_name")
-                .and_then(|v| v.as_str().map(String::from));
-            let mandatory = row["mandatory"].as_bool().unwrap_or(false);
-
-            let dependencies = row["dependencies"]
-                .as_array()
-                .unwrap_or(&vec![])
-                .iter()
-                .filter_map(|dep| dep.as_str().map(String::from))
-                .collect::<Vec<String>>();
-
-            let dimension_name = row_dimension.clone();
-
-            let edit_click_handler = move |_| {
-                let row_data = RowData {
-                    dimension: row_dimension.clone(),
-                    position: row_position,
-                    schema: schema.clone(),
-                    validation_function_name: validation_function_name.clone(),
-                    autocomplete_function_name: autocomplete_function_name.clone(),
-                    description: row_description.clone(),
-                    change_reason: row_change_reason.clone(),
-                    mandatory,
-                    dependencies: dependencies.clone(),
-                };
-                logging::log!("{:?}", row_data);
-                selected_dimension.set(Some(row_data));
-                open_drawer("dimension_drawer");
-            };
-
-            if dimension_name.clone() == *"variantIds" {
-                view! {
-                    <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
-                            <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
-                    </div>
-                }
-                .into_view()
-            } else {
-                let handle_dimension_delete =
-                    move |_| delete_id_ws.set(Some(dimension_name.clone()));
-                view! {
-                    <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
-                            <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
-                        <span class="cursor-pointer text-red-500" on:click=handle_dimension_delete>
-                            <i class="ri-delete-bin-5-line ri-xl text-red-500"></i>
-                        </span>
-                    </div>
-                }
-                .into_view()
-            }
-        };
-
-        let expand = move |dimension_name: &str, row: &Map<String, Value>| {
+        let expand = move |dimension_name: &str, _row: &Map<String, Value>| {
             let dimension_name = dimension_name.to_string();
 
-            let description = row
-                .get("description")
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
-
-            let change_reason = row
-                .get("change_reason")
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
-
             view! {
-                <span class="mr-2">{dimension_name}</span>
-                <InfoDescription description=description change_reason=change_reason />
+                <A href=dimension_name.clone() class="text-blue-500 underline underline-offset-2">
+                    {dimension_name}
+                </A>
             }
             .into_view()
         };
@@ -189,17 +73,8 @@ pub fn dimensions() -> impl IntoView {
                 default_column_formatter,
             ),
             Column::default("position".to_string()),
-            Column::default("schema".to_string()),
-            Column::default("mandatory".to_string()),
-            Column::default("function_name".to_string()),
-            Column::default("dependencies".to_string()),
-            Column::default("autocomplete_function_name".to_string()),
-            Column::default("created_by".to_string()),
             Column::default("created_at".to_string()),
-            Column::default_with_cell_formatter(
-                "actions".to_string(),
-                action_col_formatter,
-            ),
+            Column::default("last_modified_at".to_string()),
         ]
     });
 
@@ -221,6 +96,11 @@ pub fn dimensions() -> impl IntoView {
                                 json!(ele.created_at.format("%v %T").to_string()),
                             );
                         ele_map
+                            .insert(
+                                "last_modified_at".to_string(),
+                                json!(ele.last_modified_at.format("%v %T").to_string()),
+                            );
+                        ele_map
                     })
                     .collect::<Vec<Map<String, Value>>>();
                 let pagination_params = pagination_params_rws.get();
@@ -235,11 +115,11 @@ pub fn dimensions() -> impl IntoView {
                     <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat heading="Dimensions" icon="ri-ruler-2-fill" number=total_items />
-                            <DrawerBtn
-                                drawer_id="dimension_drawer"
+                            <Button
                                 class="self-end"
                                 text="Create Dimension"
                                 icon_class="ri-add-line"
+                                on_click=move |_| action_rws.set(Action::Create)
                             />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
@@ -247,7 +127,7 @@ pub fn dimensions() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=table_rows
-                                    key_column="id".to_string()
+                                    key_column="dimension".to_string()
                                     columns=table_columns.get()
                                     pagination=pagination_props
                                 />
@@ -256,72 +136,26 @@ pub fn dimensions() -> impl IntoView {
                     </div>
                 }
             }}
-            {move || {
-                let handle_close = move || {
-                    close_drawer("dimension_drawer");
-                    selected_dimension.set(None);
-                };
-                let dimensions = dimensions_resource.get().unwrap_or_default().data;
-                if let Some(selected_dimension_data) = selected_dimension.get() {
+            {move || match action_rws.get() {
+                Action::Create => {
                     view! {
-                        <Drawer
-                            id="dimension_drawer"
-                            header="Edit Dimension"
-                            handle_close=handle_close
+                        <PortalDrawer
+                            title="Create New Dimension"
+                            handle_close=move |_| action_rws.set(Action::None)
                         >
                             <DimensionForm
-                                edit=true
-                                position=selected_dimension_data.position
-                                dimension_name=selected_dimension_data.dimension
-                                dimension_schema=selected_dimension_data.schema
-                                dependencies=selected_dimension_data.dependencies
-                                validation_function_name=selected_dimension_data
-                                    .validation_function_name
-                                autocomplete_function_name=selected_dimension_data
-                                    .autocomplete_function_name
-                                description=selected_dimension_data.description
-                                dimensions
+                                dimensions=dimensions_resource.get().unwrap_or_default().data
                                 handle_submit=move |_| {
+                                    pagination_params_rws.set(PaginationParams::default());
                                     dimensions_resource.refetch();
-                                    selected_dimension.set(None);
-                                    close_drawer("dimension_drawer");
+                                    action_rws.set(Action::None);
                                 }
                             />
-
-                        </Drawer>
+                        </PortalDrawer>
                     }
-                } else {
-                    view! {
-                        <Drawer
-                            id="dimension_drawer"
-                            header="Create New Dimension"
-                            handle_close=handle_close
-                        >
-                            <DimensionForm
-                                dimensions
-                                handle_submit=move |_| {
-                                    dimensions_resource.refetch();
-                                    close_drawer("dimension_drawer");
-                                }
-                            />
-                        </Drawer>
-                    }
+                        .into_view()
                 }
-            }}
-            {move || {
-                if let Some(dimension_name) = delete_id_rs.get() {
-                    view! {
-                        <ChangeLogSummary
-                            dimension_name
-                            change_type=ChangeType::Delete
-                            on_close=move |_| delete_id_ws.set(None)
-                            on_confirm=confirm_delete
-                            inprogress=delete_inprogress_rws
-                        />
-                    }
-                } else {
-                    ().into_view()
-                }
+                Action::None => view! {}.into_view(),
             }}
         </Suspense>
     }

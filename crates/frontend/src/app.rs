@@ -7,6 +7,7 @@ use crate::hoc::layout::{use_org, CommonLayout, Layout, Providers};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
+use crate::pages::dimension::DimensionPage;
 use crate::pages::dimensions::Dimensions;
 use crate::pages::experiment_group_listing::ExperimentGroupListing;
 use crate::pages::experiment_groups::ExperimentGroups;
@@ -122,11 +123,14 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                     <Route ssr=SsrMode::Async path="/admin/:org_id/:tenant" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="dimensions/:dimension_name"
+                            view=DimensionPage
+                        />
 
                         <Route ssr=SsrMode::Async path="function" view=FunctionList />
-
                         <Route ssr=SsrMode::Async path="function/create" view=CreateFunctionView />
-
                         <Route
                             ssr=SsrMode::Async
                             path="function/:function_name"
@@ -134,7 +138,6 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         />
 
                         <Route ssr=SsrMode::Async path="experiments" view=ExperimentList />
-
                         <Route ssr=SsrMode::Async path="experiments/:id" view=ExperimentPage />
 
                         <Route
@@ -142,7 +145,6 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                             path="experiment-groups"
                             view=ExperimentGroupListing
                         />
-
                         <Route
                             ssr=SsrMode::Async
                             path="experiment-groups/:id"
