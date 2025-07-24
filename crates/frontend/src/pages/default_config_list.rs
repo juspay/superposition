@@ -270,9 +270,7 @@ pub fn default_config_list() -> impl IntoView {
                                 prefix=page_params_rws.with(|p| p.prefix.clone())
                                 handle_submit=move |_| {
                                     filters_rws.set(DefaultConfigFilters::default());
-                                    if !page_params_rws.with(|p| p.grouped) {
-                                        pagination_params_rws.set(PaginationParams::default());
-                                    }
+                                    pagination_params_rws.update(|f| f.reset_page());
                                     default_config_resource.refetch();
                                     action_rws.set(Action::None);
                                 }
