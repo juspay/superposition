@@ -248,7 +248,7 @@ pub fn nav_component(
 
     move || {
         let placeholder_class = if is_placeholder {
-            "xl:hidden".to_string()
+            "max-xl:opacity-0 xl:hidden".to_string()
         } else {
             let collapsed = if collapsed_rws.get() { "collapsed" } else { "" };
             format!("group max-xl:fixed max-xl:z-[999] {collapsed}")
@@ -256,7 +256,7 @@ pub fn nav_component(
 
         view! {
             <nav class=format!(
-                "{placeholder_class} h-full max-xl:min-w-fit xl:[&.collapsed]:min-w-fit xl:[&.collapsed]:w-[unset] xl:w-full max-xl:hover:w-full max-w-xs pl-2 xl:pl-4 max-xl:hover:pl-4 xl:[&.collapsed]:pl-2 py-2 max-xl:pr-2 xl:[&.collapsed]:pr-2 flex flex-col gap-2 overflow-x-visible bg-gray-50 max-xl:hover:rounded-r-xl max-xl:shadow-lg xl:[&.collapsed]:shadow-lg transition-all duration-500",
+                "{placeholder_class} h-full max-xl:min-w-fit xl:[&.collapsed]:min-w-fit xl:[&.collapsed]:w-[unset] xl:w-full max-xl:hover:w-full max-w-xs pl-2 xl:pl-4 max-xl:hover:pl-4 xl:[&.collapsed]:pl-2 py-2 max-xl:pr-2 xl:[&.collapsed]:pr-2 flex flex-col gap-2 overflow-x-visible bg-gray-50 max-xl:hover:rounded-r-xl max-xl:[&.group]:shadow-lg xl:[&.collapsed]:shadow-lg transition-all duration-500",
             )>
                 <div class="h-[84px] px-4 py-2 flex items-center justify-center gap-8">
                     <A

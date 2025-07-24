@@ -38,7 +38,7 @@ pub fn portal_modal(
 ) -> impl IntoView {
     view! {
         <Portal>
-            <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="fixed inset-0 bg-black bg-opacity-50 z-[1500] flex items-center justify-center">
                 <dialog class=format!(
                     "modal-box transform-none relative box-content p-6 flex flex-col gap-4 bg-white rounded-lg shadow-lg {class}",
                 )>

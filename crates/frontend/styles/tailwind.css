@@ -30,14 +30,6 @@
     text-decoration:underline;
 }
 
-.drawer-zindex {
-    z-index: 9999999;
-}
-
-.toast-zindex {
-    z-index: 99999999;
-}
-
 .btn-purple-outline {
     @apply text-purple-500;
     @apply dark:text-purple-800;

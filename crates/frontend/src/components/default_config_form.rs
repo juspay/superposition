@@ -136,19 +136,19 @@ pub fn default_config_form(
 
         let description = description_rs.get_untracked();
         let change_reason = change_reason_rs.get_untracked();
+        let workspace = workspace.get_untracked();
+        let org = org.get_untracked();
 
         let is_edit = edit;
 
         spawn_local(async move {
             let result = match (is_edit, update_request_rws.get_untracked()) {
-                (true, Some((_, payload))) => update_default_config(
-                    key_name,
-                    payload,
-                    &workspace.get_untracked(),
-                    &org.get_untracked(),
-                )
-                .await
-                .map(|_| ResponseType::Response),
+                (true, Some((_, payload))) => {
+                    let future =
+                        update_default_config(key_name, payload, &workspace, &org);
+                    update_request_rws.set(None);
+                    future.await.map(|_| ResponseType::Response)
+                }
                 (true, None) => {
                     let request_payload = try_update_payload(
                         f_value,
@@ -167,8 +167,8 @@ pub fn default_config_form(
                     }
                 }
                 _ => create_default_config(
-                    workspace.get_untracked().0,
-                    org.get_untracked().0,
+                    workspace.0,
+                    org.0,
                     config_key_rs.get_untracked(),
                     f_value,
                     f_schema,
@@ -532,6 +532,7 @@ pub fn change_log_summary(
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
+    #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -560,7 +561,15 @@ pub fn change_log_summary(
     };
 
     view! {
-        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
+        <ChangeLogPopup
+            title
+            description
+            confirm_text
+            on_confirm
+            on_close
+            disabled=disabled_rws
+            inprogress
+        >
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
             }>

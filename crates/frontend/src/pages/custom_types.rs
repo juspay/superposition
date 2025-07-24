@@ -35,6 +35,7 @@ const TYPE_DRAWER_ID: &str = "type_template_drawer";
 pub fn types_page() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let delete_inprogress_rws = RwSignal::new(false);
     let types_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
         |(t, org_id)| async move {
@@ -54,10 +55,12 @@ pub fn types_page() -> impl IntoView {
 
     let confirm_delete = move |_| {
         if let Some(type_name) = delete_type_rs.get().clone() {
+            delete_inprogress_rws.set(true);
             spawn_local(async move {
                 let tenant = workspace.get().0;
                 let org = org.get().0;
                 let api_response = delete_type(tenant, type_name, org).await;
+                delete_inprogress_rws.set(false);
                 match api_response {
                     Ok(_) => {
                         enqueue_alert(
@@ -252,6 +255,7 @@ pub fn types_page() -> impl IntoView {
                             change_type=ChangeType::Delete
                             on_close=move |_| delete_type_ws.set(None)
                             on_confirm=confirm_delete
+                            inprogress=delete_inprogress_rws
                         />
                     }
                 } else {

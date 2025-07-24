@@ -69,7 +69,7 @@ where
         <div class="h-0 w-0 drawer drawer-end">
             <input id=id.clone() type="checkbox" class="drawer-toggle" />
 
-            <div class="drawer-side drawer-zindex w-full">
+            <div class="drawer-side z-[9999999] w-full">
                 <label for=id.clone() class="drawer-overlay" on:click=close_drawer.clone()></label>
                 <div class=format!(
                     "h-full {width_class} flex flex-col bg-base-100 overflow-x-hidden",

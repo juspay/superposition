@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use leptos::*;
 use serde_json::{Map, Value};
 
-use crate::components::table::Table;
+use crate::components::{button::Button, table::Table};
 
 use super::{
     form::label::Label,
@@ -207,27 +207,33 @@ pub fn change_log_popup(
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] disabled: Signal<bool>,
+    #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
     children: ChildrenFn,
 ) -> impl IntoView {
     let style = "font-medium rounded-lg text-sm text-center text-white px-5 py-2.5 hover:opacity-75";
+    let confirm_text = StoredValue::new(confirm_text);
 
     view! {
         <Portal>
-            <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-[99999999]">
+            <div class="z-[999999999] fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
                 <dialog class="modal" open=true>
                     <div class="modal-box max-h-[80%] !max-w-[90%] !w-fit p-6 flex flex-col gap-4 overflow-hidden bg-white rounded-lg shadow-xl border-2 border-lightgray">
                         <h4 class="flex-0 text-2xl font-semibold text-gray-800">{title.clone()}</h4>
                         <p class="flex-0 text-sm text-gray-600">{description.clone()}</p>
                         <div class="flex-1 flex flex-col gap-8 overflow-auto">{children()}</div>
                         <div class="flex-0 flex justify-end gap-4">
+                            {move || {
+                                view! {
+                                    <Button
+                                        loading=disabled.get() || inprogress.get()
+                                        on_click=move |_| on_confirm.call(())
+                                        text=confirm_text.get_value()
+                                        icon_class=""
+                                    />
+                                }
+                            }}
                             <button
-                                disabled=disabled
-                                class=format!("btn bg-purple-500 {style} hover:bg-purple-500")
-                                on:click=move |_| on_confirm.call(())
-                            >
-                                {confirm_text.clone()}
-                            </button>
-                            <button
+                                disabled=inprogress.get()
                                 class=format!("btn bg-gray-400 {style} hover:bg-gray-300")
                                 on:click=move |_| on_close.call(())
                             >
