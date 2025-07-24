@@ -174,9 +174,10 @@ pub fn experiment_form(
                 };
                 let result = match (edit_id.clone(), update_request_rws.get_untracked()) {
                     (Some(ref experiment_id), Some((_, payload))) => {
-                        update_experiment(experiment_id, payload, tenant, org)
-                            .await
-                            .map(ResponseType::Response)
+                        let future =
+                            update_experiment(experiment_id, payload, tenant, org);
+                        update_request_rws.set(None);
+                        future.await.map(ResponseType::Response)
                     }
                     (Some(experiment_id), None) => {
                         let request_payload = try_update_payload(

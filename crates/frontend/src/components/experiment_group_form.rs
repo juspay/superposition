@@ -219,9 +219,14 @@ pub fn experiment_group_form(
             async move {
                 let result = match (is_edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => {
-                        update(&experiment_group_id, update_payload, &workspace, &org_id)
-                            .await
-                            .map(|_| ResponseType::Response)
+                        let future = update(
+                            &experiment_group_id,
+                            update_payload,
+                            &workspace,
+                            &org_id,
+                        );
+                        update_request_rws.set(None);
+                        future.await.map(|_| ResponseType::Response)
                     }
                     (true, None) => {
                         let request_payload = try_update_payload(
@@ -438,6 +443,7 @@ pub fn change_log_summary(
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
+    #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -470,7 +476,8 @@ pub fn change_log_summary(
             confirm_text
             on_confirm
             on_close
-            disabled=disabled_rws.read_only()
+            disabled=disabled_rws
+            inprogress
         >
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }

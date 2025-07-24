@@ -273,6 +273,7 @@ fn table_columns(
 pub fn experiment_group_listing() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let delete_inprogress_rws = RwSignal::new(false);
 
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<ExpGroupFilters>::extract_non_empty(&query_string).into_inner()
@@ -332,10 +333,11 @@ pub fn experiment_group_listing() -> impl IntoView {
 
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_group_id_rws.get_untracked() {
+            delete_inprogress_rws.set(true);
             spawn_local(async move {
                 let result =
                     delete(&id, &workspace.get_untracked(), &org.get_untracked()).await;
-
+                delete_inprogress_rws.set(false);
                 match result {
                     Ok(_) => {
                         logging::log!("Experiment Group deleted successfully");
@@ -482,6 +484,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                             change_type=ChangeType::Delete
                             on_close=move |_| delete_group_id_rws.set(None)
                             on_confirm=confirm_delete
+                            inprogress=delete_inprogress_rws
                         />
                     }
                 } else {

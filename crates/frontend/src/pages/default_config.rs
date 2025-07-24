@@ -57,6 +57,7 @@ pub fn default_config() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (delete_key_rs, delete_key_ws) = create_signal::<Option<String>>(None);
+    let delete_inprogress_rws = RwSignal::new(false);
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<DefaultConfigFilters>::extract_non_empty(&query_string).into_inner()
     });
@@ -107,6 +108,7 @@ pub fn default_config() -> impl IntoView {
         let org = org.get_untracked().0;
         let prefix = page_params_rws.with(|p| p.prefix.clone().unwrap_or_default());
         if let Some(key_name) = delete_key_rs.get_untracked() {
+            delete_inprogress_rws.set(true);
             spawn_local({
                 async move {
                     let api_response = delete_default_config(
@@ -115,6 +117,7 @@ pub fn default_config() -> impl IntoView {
                         org,
                     )
                     .await;
+                    delete_inprogress_rws.set(false);
                     match api_response {
                         Ok(_) => {
                             enqueue_alert(
@@ -449,6 +452,7 @@ pub fn default_config() -> impl IntoView {
                         change_type=ChangeType::Delete
                         on_close=move |_| delete_key_ws.set(None)
                         on_confirm=confirm_delete
+                        inprogress=delete_inprogress_rws
                     />
                 }
             } else {

@@ -125,13 +125,15 @@ fn form(
         spawn_local(async move {
             let f_overrides = overrides_rs.get_untracked();
             let result = match (edit_id.get_value(), update_request_rws.get_untracked()) {
-                (Some(_), Some((_, payload))) => update_context(
-                    payload,
-                    workspace.get_untracked().0,
-                    org.get_untracked().0,
-                )
-                .await
-                .map(|_| ResponseType::Response),
+                (Some(_), Some((_, payload))) => {
+                    let future = update_context(
+                        payload,
+                        workspace.get_untracked().0,
+                        org.get_untracked().0,
+                    );
+                    update_request_rws.set(None);
+                    future.await.map(|_| ResponseType::Response)
+                }
                 (Some(context_id), None) => {
                     let request_payload = try_update_context_payload(
                         context_id.clone(),
@@ -393,6 +395,7 @@ pub fn context_override() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
+    let delete_inprogress_rws = RwSignal::new(false);
     let scrolled_to_top_rws = RwSignal::new(false);
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
@@ -536,6 +539,7 @@ pub fn context_override() -> impl IntoView {
     };
 
     let on_delete_confirm = move |context_id| {
+        delete_inprogress_rws.set(true);
         spawn_local(async move {
             let result = delete_context(
                 context_id,
@@ -543,7 +547,7 @@ pub fn context_override() -> impl IntoView {
                 &org.get_untracked(),
             )
             .await;
-
+            delete_inprogress_rws.set(false);
             match result {
                 Ok(_) => {
                     set_form_mode.set(None);
@@ -733,6 +737,7 @@ pub fn context_override() -> impl IntoView {
                             change_type=ChangeType::Delete
                             on_confirm=move |_| on_delete_confirm(context_id.clone())
                             on_close=move |_| set_form_mode.set(None)
+                            inprogress=delete_inprogress_rws
                         />
                     }
                         .into_view();
@@ -839,6 +844,7 @@ fn change_log_summary(
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
+    #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
     let context_data = use_context_data(context_id.clone());
 
@@ -859,7 +865,15 @@ fn change_log_summary(
     };
 
     view! {
-        <ChangeLogPopup title description confirm_text on_confirm on_close disabled=disabled_rws>
+        <ChangeLogPopup
+            title
+            description
+            confirm_text
+            on_confirm
+            on_close
+            disabled=disabled_rws
+            inprogress
+        >
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
             }>

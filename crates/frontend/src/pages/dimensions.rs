@@ -39,6 +39,7 @@ pub fn dimensions() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (delete_id_rs, delete_id_ws) = create_signal::<Option<String>>(None);
+    let delete_inprogress_rws = RwSignal::new(false);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -56,6 +57,7 @@ pub fn dimensions() -> impl IntoView {
 
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id_rs.get_untracked() {
+            delete_inprogress_rws.set(true);
             spawn_local(async move {
                 let result = delete_dimension(
                     id,
@@ -63,7 +65,7 @@ pub fn dimensions() -> impl IntoView {
                     org.get_untracked().0,
                 )
                 .await;
-
+                delete_inprogress_rws.set(false);
                 match result {
                     Ok(_) => {
                         logging::log!("Dimension deleted successfully");
@@ -314,6 +316,7 @@ pub fn dimensions() -> impl IntoView {
                             change_type=ChangeType::Delete
                             on_close=move |_| delete_id_ws.set(None)
                             on_confirm=confirm_delete
+                            inprogress=delete_inprogress_rws
                         />
                     }
                 } else {

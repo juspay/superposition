@@ -47,6 +47,7 @@ pub fn webhooks() -> impl IntoView {
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
+    let delete_inprogress_rws = RwSignal::new(false);
 
     use_param_updater(move || box_params!(pagination_params_rws.get()));
 
@@ -61,12 +62,15 @@ pub fn webhooks() -> impl IntoView {
 
     let confirm_delete = Callback::new(move |_| {
         if let Some(id) = delete_id_rs.get().clone() {
+            delete_inprogress_rws.set(true);
             spawn_local(async move {
                 let result = delete_webhooks(id, workspace.get().0, org.get().0).await;
 
+                delete_inprogress_rws.set(false);
                 match result {
                     Ok(_) => {
                         logging::log!("Webhook deleted successfully");
+                        delete_id_ws.set(None);
                         webhooks_resource.refetch();
                     }
                     Err(e) => {
@@ -75,7 +79,6 @@ pub fn webhooks() -> impl IntoView {
                 }
             });
         }
-        delete_id_ws.set(None);
     });
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
@@ -330,6 +333,7 @@ pub fn webhooks() -> impl IntoView {
                             change_type=ChangeType::Delete
                             on_close=move |_| delete_id_ws.set(None)
                             on_confirm=confirm_delete
+                            inprogress=delete_inprogress_rws
                         />
                     }
                 } else {
