@@ -147,7 +147,7 @@ pub fn types_page() -> impl IntoView {
                             handle_close=move |_| action_rws.set(Action::None)
                         >
                             <TypeTemplateForm handle_submit=move |_| {
-                                pagination_params_rws.set(PaginationParams::default());
+                                pagination_params_rws.update(|f| f.reset_page());
                                 types_resource.refetch();
                                 action_rws.set(Action::None);
                             } />

@@ -19,7 +19,7 @@ use crate::pages::{
     context_override::ContextOverride, default_config::DefaultConfig,
     default_config_list::DefaultConfigList, experiment::ExperimentPage, home::Home,
     organisations::Organisations, type_template::TypePage, type_templates::TypesPage,
-    webhooks::Webhooks, workspace::Workspace,
+    webhook::Webhook, webhooks::Webhooks, workspace::Workspace,
 };
 use crate::types::Envs;
 
@@ -177,6 +177,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         <Route ssr=SsrMode::Async path="compare" view=CompareOverrides />
 
                         <Route ssr=SsrMode::Async path="webhooks" view=Webhooks />
+                        <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
                     </Route>
                 // <Route
                 // path="/*any"

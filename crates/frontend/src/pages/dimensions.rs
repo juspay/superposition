@@ -144,7 +144,7 @@ pub fn dimensions() -> impl IntoView {
                             <DimensionForm
                                 dimensions=dimensions_resource.get().unwrap_or_default().data
                                 handle_submit=move |_| {
-                                    pagination_params_rws.set(PaginationParams::default());
+                                    pagination_params_rws.update(|f| f.reset_page());
                                     dimensions_resource.refetch();
                                     action_rws.set(Action::None);
                                 }

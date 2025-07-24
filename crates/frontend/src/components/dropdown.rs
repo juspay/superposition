@@ -97,7 +97,7 @@ where
                     ref_=dropdown_node_ref
                     tabindex="0"
                     class=format!(
-                        "{dropdown_width} dropdown-content z-[1] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden",
+                        "{dropdown_width} dropdown-content z-[50] menu flex-nowrap p-2 shadow bg-base-100 rounded-box max-h-96 overflow-y-scroll overflow-x-hidden",
                     )
                 >
 
