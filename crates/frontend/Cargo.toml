@@ -1,6 +1,6 @@
 [package]
 name = "frontend"
-version = "0.34.0"
+version = "0.34.1"
 edition = "2021"
 include = ["src/**/*", "src-js/**/*"]
 

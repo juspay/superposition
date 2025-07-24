@@ -2,6 +2,31 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.80.1 - 2025-07-24
+### Package updates
+- superposition_types bumped to superposition_types-v0.24.1
+- frontend bumped to frontend-v0.34.1
+- context_aware_config bumped to context_aware_config-v0.55.1
+### Global changes
+#### Bug Fixes
+- code artifact pushes for js (#607) - (9ffccea) - Datron
+- support complete bundling of python and JS packages - (be77640) - datron
+- Dimension api types unification (#609) - (65e64a6) - Ayush Jain
+#### Build system
+- fix gradle/python/npm publish (#604) - (4a37e59) - Natarajan Kannan
+- fix npm issue (#605) - (edefdbd) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(deps)** bump on-headers and compression in /docs (#599) - (fb3b530) - dependabot[bot]
+- update packages in code-artifact - (b87b524) - datron
+- fix npm push - (3f99a23) - datron
+#### Refactoring
+- removed older test folder (#606) - (a6aa6a3) - sauraww
+- remove duplicate python sdk (#615) - (6fb6bc0) - Natarajan Kannan
+#### Tests
+- Make tests great again (#610) - (6ed1b2b) - Ayush Jain
+
+- - -
+
 ## v0.80.0 - 2025-07-18
 ### Package updates
 - frontend bumped to frontend-v0.34.0

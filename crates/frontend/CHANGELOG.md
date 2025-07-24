@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.34.1 - 2025-07-24
+#### Bug Fixes
+- Change log related UX issues (#620) - (d888894) - Ayush Jain
+- Dimension api types unification (#609) - (65e64a6) - Ayush Jain
+
+- - -
+
 ## frontend-v0.34.0 - 2025-07-18
 #### Bug Fixes
 - docusaurus - (74222bf) - ayush.jain@juspay.in

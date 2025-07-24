@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.24.1 - 2025-07-24
+#### Bug Fixes
+- Dimension api types unification (#609) - (65e64a6) - Ayush Jain
+
+- - -
+
 ## superposition_types-v0.24.0 - 2025-07-10
 #### Bug Fixes
 - Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.55.1 - 2025-07-24
+#### Bug Fixes
+- Dimension api types unification (#609) - (65e64a6) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump form-data in /crates/context_aware_config - (727ee3f) - dependabot[bot]
+
+- - -
+
 ## context_aware_config-v0.55.0 - 2025-07-10
 #### Bug Fixes
 - Revive Function Page UI - (6e77ed5) - ayush.jain@juspay.in
