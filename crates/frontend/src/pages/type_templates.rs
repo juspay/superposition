@@ -130,7 +130,7 @@ pub fn types_page() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=data
-                                    key_column="id".to_string()
+                                    key_column="type_name"
                                     columns=table_columns.get_value()
                                     pagination=pagination_props
                                 />

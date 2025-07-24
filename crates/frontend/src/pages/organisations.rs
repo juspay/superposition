@@ -21,13 +21,10 @@ pub fn organisations() -> impl IntoView {
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );
 
-    let table_columns = create_memo(move |_| {
+    let table_columns = StoredValue::new({
         let host = host.clone();
-        let navigate = move |_: &str, row: &Map<String, Value>| {
-            let organisation_id = row["organisation_id"]
-                .as_str()
-                .unwrap_or_default()
-                .to_string();
+        let navigate = move |value: &str, _row: &Map<String, Value>| {
+            let organisation_id = value.to_string();
             view! {
                 <button
                     formaction=format!("{host}/organisations/switch/{organisation_id}")
@@ -76,8 +73,8 @@ pub fn organisations() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=table_rows
-                                    key_column="id".to_string()
-                                    columns=table_columns.get()
+                                    key_column="organisation_id"
+                                    columns=table_columns.get_value()
                                 />
                             </div>
                         </div>

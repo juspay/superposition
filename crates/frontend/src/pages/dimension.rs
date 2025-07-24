@@ -7,6 +7,7 @@ use superposition_types::{
 };
 
 use crate::api::{delete_dimension, get_dimension};
+use crate::components::badge::Badge;
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -40,21 +41,34 @@ fn tree_node(
     let children = data.get(&name).cloned().unwrap_or_default();
 
     view! {
-        <div class="whitespace-pre">
-            <span class="text-gray-500 font-mono">{prefix}</span>
-            {if root {
-                view! { <span class="font-medium">{name}</span> }.into_view()
-            } else {
-                view! {
-                    <A
-                        href=format!("../{name}")
-                        class="underline text-blue-600 hover:text-blue-800"
-                    >
-                        {name}
-                    </A>
-                }
-                    .into_view()
-            }}
+        <div class="flex whitespace-pre">
+            <div class="text-gray-500 font-mono">{prefix}</div>
+            <div class="w-full flex flex-row gap-2 items-center">
+                {if root {
+                    view! {
+                        <div class="flex gap-2 font-medium">
+                            {name} <span class="stat-title">"(current)"</span>
+                        </div>
+                    }
+                        .into_view()
+                } else {
+                    view! {
+                        <A
+                            href=format!("../{name}")
+                            class="underline text-blue-600 hover:text-blue-800 text-ellipsis overflow-hidden"
+                        >
+                            {name}
+                        </A>
+                    }
+                        .into_view()
+                }}
+                {if children.is_empty() {
+                    ().into_view()
+                } else {
+                    view! { <div class="stat-title w-full max-w-fit">"depends on:"</div> }
+                        .into_view()
+                }}
+            </div>
         </div>
         {children
             .iter()
@@ -279,11 +293,13 @@ pub fn dimension_page() -> impl IntoView {
                 let dimension_st = StoredValue::new(dimension.clone());
                 view! {
                     <div class="flex flex-col gap-4">
-                        <div class="flex justify-between items-center">
-                            <h1 class="text-2xl font-extrabold">{dimension.dimension.clone()}</h1>
+                        <div class="flex justify-between items-center gap-2">
+                            <h1 class="text-2xl font-extrabold text-ellipsis overflow-hidden">
+                                {dimension.dimension.clone()}
+                            </h1>
                             {if dimension.dimension != "variantIds" {
                                 view! {
-                                    <div class="flex flex-row join">
+                                    <div class="w-full max-w-fit flex flex-row join">
                                         <Button
                                             force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
                                             on_click=move |_| action_rws.set(Action::Edit)
@@ -305,19 +321,56 @@ pub fn dimension_page() -> impl IntoView {
                         </div>
                         <DimensionDescription dimension=dimension.clone() />
                         <DimensionInfo dimension=dimension.clone() />
-                        {if dimension.dependencies.is_empty() {
+                        {if dimension.dependency_graph.is_empty() && dimension.dependents.is_empty()
+                        {
                             ().into_view()
                         } else {
                             view! {
                                 <div class="card bg-base-100 max-w-screen shadow">
                                     <div class="card-body">
-                                        <h2 class="card-title">"Dependency Graph"</h2>
-                                        <div class="w-[inherit] pl-5 whitespace-pre overflow-x-auto">
-                                            <TreeNode
-                                                name=dimension.dimension.clone()
-                                                data=dimension.dependency_graph.clone()
-                                                root=true
-                                            />
+                                        <h2 class="card-title">"Dependency Data"</h2>
+                                        <div class="flex flex-col gap-4">
+                                            {if dimension.dependencies.is_empty() {
+                                                ().into_view()
+                                            } else {
+                                                view! {
+                                                    <div class="flex flex-row gap-6 flex-wrap">
+                                                        <div class="h-fit flex flex-col gap-1 overflow-x-scroll">
+                                                            <div class="stat-title">
+                                                                "Dimensions on which this dimension depends on"
+                                                            </div>
+                                                            <div class="w-[inherit] pl-5 whitespace-pre overflow-x-auto">
+                                                                <TreeNode
+                                                                    name=dimension.dimension.clone()
+                                                                    data=dimension.dependency_graph.clone()
+                                                                    root=true
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                    .into_view()
+                                            }}
+                                            {if dimension.dependents.is_empty() {
+                                                ().into_view()
+                                            } else {
+                                                view! {
+                                                    <div class="flex flex-row gap-6 flex-wrap">
+                                                        <div class="h-fit flex flex-col gap-1">
+                                                            <div class="stat-title">
+                                                                "Dimensions dependent on this dimension"
+                                                            </div>
+                                                            <Badge
+                                                                href_fn=|d| format!("../{d}")
+                                                                options=Signal::derive(move || {
+                                                                    dimension.dependents.clone()
+                                                                })
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                }
+                                                    .into_view()
+                                            }}
                                         </div>
                                     </div>
                                 </div>

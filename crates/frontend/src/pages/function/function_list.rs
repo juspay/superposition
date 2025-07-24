@@ -39,7 +39,7 @@ pub fn function_list() -> impl IntoView {
     use_param_updater(move || {
         box_params![pagination_params_rws.get(), filters_rws.get()]
     });
-    let table_columns = create_memo(move |_| function_table_columns());
+    let table_columns = StoredValue::new(function_table_columns());
 
     let combined_resource = create_blocking_resource(
         move || {
@@ -106,8 +106,8 @@ pub fn function_list() -> impl IntoView {
                                                 .insert(
                                                     "published_at".to_string(),
                                                     match ele.published_at {
-                                                        Some(val) => json!(val.format("%v %T").to_string()),
-                                                        None => json!("null".to_string()),
+                                                        Some(val) => Value::String(val.format("%v %T").to_string()),
+                                                        None => Value::String("null".to_string()),
                                                     },
                                                 );
                                             ele_map
@@ -126,8 +126,8 @@ pub fn function_list() -> impl IntoView {
                                         <Table
                                             class="!overflow-y-auto"
                                             rows=data
-                                            key_column="id".to_string()
-                                            columns=table_columns.get()
+                                            key_column="function_name"
+                                            columns=table_columns.get_value()
                                             pagination=pagination_props
                                         />
                                     }
