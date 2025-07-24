@@ -222,11 +222,7 @@ pub fn context_card(
                     class="xl:w-[400px] h-fit"
                     strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                 />
-                <Table
-                    rows=override_table_rows
-                    key_column="KEY".to_string()
-                    columns=table_columns
-                />
+                <Table rows=override_table_rows key_column="KEY" columns=table_columns />
             </div>
         </div>
     }

@@ -425,7 +425,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                                             <Table
                                                 class="!overflow-y-auto"
                                                 rows=data
-                                                key_column="name".to_string()
+                                                key_column="id"
                                                 columns=table_columns
                                                 pagination=pagination_props
                                             />

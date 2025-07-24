@@ -97,7 +97,7 @@ pub fn config_version_list() -> impl IntoView {
                                         <Table
                                             class="!overflow-y-auto"
                                             rows=resp
-                                            key_column="id".to_string()
+                                            key_column="id"
                                             columns=snapshot_table_columns()
                                             pagination=pagination_props
                                         />

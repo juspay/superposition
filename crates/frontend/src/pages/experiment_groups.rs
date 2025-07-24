@@ -283,7 +283,7 @@ pub fn experiment_groups() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=data
-                                    key_column="Experiment Name".to_string()
+                                    key_column="id"
                                     columns=table_columns
                                     pagination=pagination_props
                                 />

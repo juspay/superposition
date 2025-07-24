@@ -160,16 +160,15 @@ where
                 </ul>
             </div>
             <Badge
-                deletable=true
                 options=selected_rs
-                handle_remove=Callback::new(move |option: T| {
+                handle_remove=move |option: T| {
                     let selected_option = option.clone();
                     selected_ws
                         .update(|selected| {
                             selected.retain(|x| x.key() != selected_option.key());
                         });
                     on_remove.call(selected_option);
-                })
+                }
             />
         </div>
     }

@@ -109,7 +109,7 @@ fn webhook_info(webhook: Webhook) -> impl IntoView {
                         </div>
                     </div>
                     <div class="flex flex-row gap-6 flex-wrap">
-                        <div class="h-fit w-[250px] flex gap-4">
+                        <div class="h-fit flex items-center gap-4">
                             <div class="stat-title">"Events"</div>
                             <Badge options=Signal::derive(move || webhook.events.clone()) />
                         </div>

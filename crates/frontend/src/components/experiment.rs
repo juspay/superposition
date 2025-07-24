@@ -453,11 +453,7 @@ where
             <div class="card bg-base-100 max-w-screen shadow">
                 <div class="card-body">
                     <h2 class="card-title">"Variants"</h2>
-                    <Table
-                        rows=variant_rows
-                        key_column="overrides".to_string()
-                        columns=variant_col
-                    />
+                    <Table rows=variant_rows key_column="overrides" columns=variant_col />
                 </div>
             </div>
         </div>

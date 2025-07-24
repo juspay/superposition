@@ -125,7 +125,7 @@ pub fn dimensions() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=table_rows
-                                    key_column="dimension".to_string()
+                                    key_column="dimension"
                                     columns=table_columns.get_value()
                                     pagination=pagination_props
                                 />

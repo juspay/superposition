@@ -250,7 +250,7 @@ pub fn default_config_list() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=filtered_rows
-                                    key_column="id".to_string()
+                                    key_column="key"
                                     columns=table_columns.get()
                                     pagination=pagination_props
                                 />

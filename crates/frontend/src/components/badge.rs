@@ -1,39 +1,49 @@
 use std::fmt::Display;
 
 use leptos::*;
+use leptos_router::A;
 
 use super::dropdown::utils::DropdownOption;
 
 #[component]
 pub fn badge<T>(
     #[prop(into)] options: Signal<Vec<T>>,
-    #[prop(default=Callback::new(|_| {}))] handle_remove: Callback<T, ()>,
-    #[prop(default = false)] deletable: bool,
+    #[prop(into, optional)] handle_remove: Option<Callback<T, ()>>,
+    #[prop(into, default = String::new())] class: String,
+    #[prop(into, optional)] href_fn: Option<Callback<T, String>>,
 ) -> impl IntoView
 where
     T: DropdownOption + Clone + 'static,
 {
-    let deletable = StoredValue::new(deletable);
-
     view! {
         <Show when=move || { !options.get().is_empty() }>
-            <div class="flex flex-wrap gap-2 break-words w-[inherit]">
+            <div class=format!("flex flex-wrap gap-2 break-words w-[inherit] {}", class)>
                 <For
                     each=move || { options.get() }
                     key=move |option| { option.key() }
                     children=move |option| {
-                        let option = StoredValue::new(option.clone());
-                        let label = option.with_value(|o| o.label());
+                        let label = option.label();
                         view! {
                             <div class="flex justify-between badge badge-primary badge-outline">
-                                {label.to_string()} <Show when=move || { deletable.get_value() }>
-                                    <button
-                                        class="btn btn-xs btn-circle btn-ghost"
-                                        on:click=move |_| { handle_remove.call(option.get_value()) }
-                                    >
-                                        <i class="ri-close-line"></i>
-                                    </button>
-                                </Show>
+                                {if let Some(href_fn) = href_fn {
+                                    view! { <A href=href_fn.call(option.clone())>{label}</A> }
+                                        .into_view()
+                                } else {
+                                    view! { {label} }.into_view()
+                                }}
+                                {if let Some(on_remove) = handle_remove {
+                                    view! {
+                                        <button
+                                            class="btn btn-xs btn-circle btn-ghost"
+                                            on:click=move |_| on_remove.call(option.clone())
+                                        >
+                                            <i class="ri-close-line"></i>
+                                        </button>
+                                    }
+                                        .into_view()
+                                } else {
+                                    ().into_view()
+                                }}
                             </div>
                         }
                     }

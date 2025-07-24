@@ -28,10 +28,8 @@ pub fn function_table_columns() -> Vec<Column> {
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::default("description".to_string()),
         Column::default("function_type".to_string()),
         Column::default("published_runtime_version".to_string()),
-        Column::default("draft_runtime_version".to_string()),
         Column::default("published_at".to_string()),
         Column::default("published_by".to_string()),
     ]
