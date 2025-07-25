@@ -40,8 +40,8 @@ export interface UpdateOverridesExperimentCommandOutput extends ExperimentRespon
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, UpdateOverridesExperimentCommand } from "superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, UpdateOverridesExperimentCommand } = require("superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, UpdateOverridesExperimentCommand } from "@juspay/superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, UpdateOverridesExperimentCommand } = require("@juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // UpdateOverrideRequest
  *   workspace_id: "STRING_VALUE", // required

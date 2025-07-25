@@ -40,8 +40,8 @@ export interface DeleteContextCommandOutput extends DeleteContextOutput, __Metad
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, DeleteContextCommand } from "superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, DeleteContextCommand } = require("superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, DeleteContextCommand } from "@juspay/superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, DeleteContextCommand } = require("@juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // DeleteContextInput
  *   workspace_id: "STRING_VALUE", // required

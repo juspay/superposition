@@ -40,8 +40,8 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListDimensionsCommand } from "superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListDimensionsCommand } = require("superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListDimensionsCommand } from "@juspay/superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListDimensionsCommand } = require("@juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListDimensionsInput
  *   count: Number("int"),

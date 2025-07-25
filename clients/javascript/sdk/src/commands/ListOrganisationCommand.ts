@@ -40,8 +40,8 @@ export interface ListOrganisationCommandOutput extends ListOrganisationOutput, _
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListOrganisationCommand } from "superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListOrganisationCommand } = require("superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListOrganisationCommand } from "@juspay/superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListOrganisationCommand } = require("@juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListOrganisationInput
  *   count: Number("int"),
