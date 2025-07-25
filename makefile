@@ -5,9 +5,19 @@ DOCKER_DNS ?= localhost
 TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
-FMT_FLAGS := --all
-LINT_FLAGS := --all-targets
 CARGO_FLAGS := --color always --no-default-features
+EXCLUDE_PACKAGES := superposition_core cac_toml experimentation_client_integration_example superposition_sdk
+FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
+LINT_FLAGS := --workspace --all-targets $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
+
+# Get all workspace members and filter out excluded ones
+WORKSPACE_MEMBERS := $(shell cargo metadata --format-version 1 --no-deps | \
+	jq -r '.workspace_members[]' | \
+    awk -F '#' '{print $$1;}' | awk -F '/' '{print $$NF;}' | \
+    grep -v -E '$(FMT_EXCLUDE_PACKAGES_REGEX)')
+
+# Create the package flags for cargo fmt
+FMT_PACKAGE_FLAGS := $(addprefix -p ,$(WORKSPACE_MEMBERS))
 WASM_PACK_MODE ?= --dev
 HAS_DOCKER := $(shell command -v docker > /dev/null; echo $$?)
 HAS_PODMAN := $(shell command -v podman > /dev/null; echo $$?)
@@ -209,10 +219,12 @@ smithy-clients: smithy-build
 	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
 				clients/python/sdk
 	cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen/*\
-				clients/javascript/sdk 			
+				clients/javascript/sdk 	
+	cp -r $(SMITHY_BUILD_SRC)/rust-client-codegen/*\
+				crates/superposition_sdk		
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
-		[[ "$$d" =~ "java" || "$$d" =~ "python" || "$$d" =~ "typescript" ]] && continue; \
+		[[ "$$d" =~ "java" || "$$d" =~ "python" || "$$d" =~ "typescript" || "$$d" =~ "rust" ]] && continue; \
 		name=$$(basename "$$d" -client-codegen); \
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
@@ -224,11 +236,8 @@ smithy-clients: smithy-build
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
 
-fmt:
-	cargo fmt $(FMT_FLAGS)
+# Note: Run make from the repository root for correct path exclusions!
 
-lint:
-	cargo clippy $(LINT_FLAGS)
 
 lint-fix: LINT_FLAGS += --fix --allow-dirty --allow-staged
 lint-fix: lint
@@ -237,6 +246,16 @@ check: FMT_FLAGS += --check
 check: LEPTOS_FMT_FLAGS += --check
 check: LINT_FLAGS += -- -Dwarnings
 check: fmt lint
+
+
+# Target to run cargo fmt on filtered packages
+fmt:
+	@echo "Running cargo fmt on packages: $(WORKSPACE_MEMBERS)"
+	cargo fmt $(FMT_PACKAGE_FLAGS)
+
+lint:
+	cargo clippy $(LINT_FLAGS)
+
 
 commit: check
 	git commit $(COMMIT_FLAGS)

@@ -126,6 +126,9 @@ class CacConfig:
 
         latest_config = await self._get_config(self.superposition_options)
         if latest_config is None and self.cached_config is None:
+            if not self.fallback_config:
+                logger.error("No config found and no fallback config provided.")
+                raise ValueError("No configuration available and no fallback config provided.")
             logger.warning("No config found, using fallback config.")
             self.cached_config = self.fallback_config
         elif latest_config is not None:

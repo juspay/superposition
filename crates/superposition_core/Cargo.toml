@@ -32,7 +32,7 @@ uniffi = { workspace = true }
 workspace = true
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["lib", "cdylib"]
 name = "superposition_core"
 
 [[bin]]

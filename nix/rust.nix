@@ -126,6 +126,34 @@
               };
             };
           };
+          "superposition_provider" = {
+            imports = [ globalCrateConfig ];
+            autoWire = [
+              "crate"
+              "clippy"
+              # ## "doc"
+            ];
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
           "experimentation_platform" = {
             imports = [ globalCrateConfig ];
             autoWire = [
@@ -189,6 +217,34 @@
               "clippy"
               ## "doc"
             ]; # Used by Haskell client
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    apple_sdk.frameworks.Security
+                    apple_sdk.frameworks.SystemConfiguration
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
+          "superposition_sdk" = {
+            imports = [ globalCrateConfig ];
+            autoWire = [
+              "crate"
+              "clippy"
+              ## "doc"
+            ];
             crane = {
               args = {
                 buildInputs =
