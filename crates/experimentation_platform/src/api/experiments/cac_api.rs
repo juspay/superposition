@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
 use actix_web::web::Data;
 use reqwest::{Response, StatusCode};
@@ -7,15 +9,12 @@ use service_utils::{
     helpers::extract_dimensions,
     service::types::{AppState, OrganisationId, WorkspaceContext, WorkspaceId},
 };
-use std::str::FromStr;
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
-    api::context::ContextValidationRequest,
-    database::models::cac::Context as ContextResp, result as superposition, Cac,
-    Condition, User,
+    api::context::{ContextBulkResponse, ContextValidationRequest},
+    database::models::cac::Context as ContextResp,
+    result as superposition, Cac, Condition, User,
 };
-
-use super::types::ContextBulkResponse;
 
 pub fn construct_header_map(
     workspace_id: &WorkspaceId,

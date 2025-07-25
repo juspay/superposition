@@ -1,11 +1,12 @@
 use std::fmt::{self, Display};
 
+use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use superposition_derives::IsEmpty;
 
 use crate::{
     custom_query::CommaSeparatedStringQParams,
-    database::models::{ChangeReason, Description},
+    database::models::{cac::Context, ChangeReason, Description},
     Cac, Condition, IsEmpty, Overrides, SortBy,
 };
 
@@ -91,7 +92,7 @@ pub enum Identifier {
     Id(String),
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct UpdateRequest {
     pub context: Identifier,
     #[serde(rename = "override")]
@@ -100,8 +101,58 @@ pub struct UpdateRequest {
     pub change_reason: ChangeReason,
 }
 
-#[cfg_attr(test, derive(Debug, PartialEq))]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ContextValidationRequest {
     pub context: Cac<Condition>,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct PutRequest {
+    pub context: Cac<Condition>,
+    pub r#override: Cac<Overrides>,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct MoveRequest {
+    pub context: Cac<Condition>,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum ContextAction {
+    Put(PutRequest),
+    Replace(UpdateRequest),
+    Delete(String),
+    Move((String, MoveRequest)),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum ContextBulkResponse {
+    Put(Context),
+    Replace(Context),
+    Delete(String),
+    Move(Context),
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct WeightRecomputeResponse {
+    pub id: String,
+    pub condition: Condition,
+    pub old_weight: BigDecimal,
+    pub new_weight: BigDecimal,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct BulkOperation {
+    pub operations: Vec<ContextAction>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct BulkOperationResponse {
+    pub output: Vec<ContextBulkResponse>,
 }

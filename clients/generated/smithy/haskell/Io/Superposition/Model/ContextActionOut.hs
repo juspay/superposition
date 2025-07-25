@@ -8,15 +8,14 @@ import qualified Data.Functor
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.ContextMoveOut
-import qualified Io.Superposition.Model.ContextPutOut
+import qualified Io.Superposition.Model.ContextResponse
 
 -- Union implementation for ContextActionOut
 data ContextActionOut =
-    Put (Io.Superposition.Model.ContextPutOut.ContextPutOut)
-    | Replace (Io.Superposition.Model.ContextPutOut.ContextPutOut)
+    Put (Io.Superposition.Model.ContextResponse.ContextResponse)
+    | Replace (Io.Superposition.Model.ContextResponse.ContextResponse)
     | Delete (Data.Text.Text)
-    | Move (Io.Superposition.Model.ContextMoveOut.ContextMoveOut)
+    | Move (Io.Superposition.Model.ContextResponse.ContextResponse)
     deriving (
     GHC.Generics.Generic,
     GHC.Show.Show,

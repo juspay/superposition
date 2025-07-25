@@ -11,9 +11,15 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, unexpected_error, validation_error};
 use superposition_types::{
-    api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
+    api::{
+        context::PutRequest,
+        functions::{FunctionExecutionRequest, FunctionExecutionResponse},
+    },
     database::{
-        models::cac::{Context, DependencyGraph, FunctionCode, FunctionType},
+        models::{
+            cac::{Context, DependencyGraph, FunctionCode, FunctionType},
+            Description,
+        },
         schema::{contexts, default_configs::dsl, dimensions},
     },
     result as superposition, Cac, Condition, DBConnection, Overrides, User,
@@ -22,21 +28,15 @@ use superposition_types::{
 use crate::helpers::DimensionData;
 use crate::validation_functions::execute_fn;
 use crate::{
-    api::functions::helpers::get_published_functions_by_names, helpers::get_workspace,
-};
-use crate::{
-    api::{
-        context::types::FunctionsInfo,
-        dimension::{get_dimension_data, get_dimension_data_map},
-    },
+    api::dimension::{get_dimension_data, get_dimension_data_map},
     helpers::calculate_context_weight,
 };
-
-use super::{
-    types::PutResp,
-    validations::{validate_dimensions, validate_override_with_default_configs},
-    PutReq,
+use crate::{
+    api::functions::helpers::get_published_functions_by_names, helpers::get_workspace,
 };
+
+use super::types::FunctionsInfo;
+use super::validations::{validate_dimensions, validate_override_with_default_configs};
 
 pub fn hash(val: &Value) -> String {
     let sorted_str: String = json_to_sorted_string(val);
@@ -282,34 +282,24 @@ pub fn query_description(
     context: Value,
     transaction_conn: &mut diesel::PgConnection,
     schema_name: &SchemaName,
-) -> Result<String, superposition::AppError> {
+) -> Result<Description, superposition::AppError> {
     use superposition_types::database::schema::contexts::dsl::{
         contexts as contexts_table, id as context_id,
     };
 
     let context_id_value = hash(&context);
 
-    // Perform the database query
     let existing_context = contexts_table
         .filter(context_id.eq(context_id_value))
         .schema_name(schema_name)
-        .first::<Context>(transaction_conn);
+        .first::<Context>(transaction_conn)?;
 
-    match existing_context {
-        Ok(ctx) => Ok(ctx.description), // If the context is found, return the description
-        Err(diesel::result::Error::NotFound) => Err(superposition::AppError::NotFound(
-            "Description not found in the existing context".to_string(),
-        )),
-        Err(e) => {
-            log::error!("Database error while fetching context: {:?}", e);
-            Err(superposition::AppError::DbError(e)) // Use the `DbError` variant for other Diesel-related errors
-        }
-    }
+    Ok(existing_context.description)
 }
 
 pub fn create_ctx_from_put_req(
-    req: PutReq,
-    req_description: String,
+    req: PutRequest,
+    req_description: Description,
     conn: &mut DBConnection,
     user: &User,
     schema_name: &SchemaName,
@@ -350,7 +340,7 @@ fn db_update_override(
     ctx: Context,
     user: &User,
     schema_name: &SchemaName,
-) -> superposition::Result<PutResp> {
+) -> superposition::Result<Context> {
     use contexts::dsl;
     let update_resp = diesel::update(dsl::contexts)
         .filter(dsl::id.eq(ctx.id.clone()))
@@ -365,7 +355,7 @@ fn db_update_override(
         .returning(Context::as_returning())
         .schema_name(schema_name)
         .get_result::<Context>(conn)?;
-    Ok(update_resp.into())
+    Ok(update_resp)
 }
 
 pub fn replace_override_of_existing_ctx(
@@ -373,7 +363,7 @@ pub fn replace_override_of_existing_ctx(
     ctx: Context,
     user: &User,
     schema_name: &SchemaName,
-) -> superposition::Result<PutResp> {
+) -> superposition::Result<Context> {
     let new_override = ctx.override_;
     let new_override_id = hash(&Value::Object(new_override.clone().into()));
     let new_ctx = Context {
@@ -389,7 +379,7 @@ pub fn update_override_of_existing_ctx(
     ctx: Context,
     user: &User,
     schema_name: &SchemaName,
-) -> superposition::Result<PutResp> {
+) -> superposition::Result<Context> {
     use contexts::dsl;
     let mut new_override: Value = dsl::contexts
         .filter(dsl::id.eq(ctx.id.clone()))

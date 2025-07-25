@@ -20,7 +20,7 @@ import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
-public final class GetContextFromConditionOutput implements SerializableStruct {
+public final class ContextResponse implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ContextResponse");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
@@ -62,7 +62,7 @@ public final class GetContextFromConditionOutput implements SerializableStruct {
     private final transient Instant lastModifiedAt;
     private final transient String lastModifiedBy;
 
-    private GetContextFromConditionOutput(Builder builder) {
+    private ContextResponse(Builder builder) {
         this.id = builder.id;
         this.value = builder.value == null ? null : Collections.unmodifiableMap(builder.value);
         this.override = builder.override == null ? null : Collections.unmodifiableMap(builder.override);
@@ -147,7 +147,7 @@ public final class GetContextFromConditionOutput implements SerializableStruct {
         if (other == null || getClass() != other.getClass()) {
             return false;
         }
-        GetContextFromConditionOutput that = (GetContextFromConditionOutput) other;
+        ContextResponse that = (ContextResponse) other;
         return Objects.equals(this.id, that.id)
                && Objects.equals(this.value, that.value)
                && Objects.equals(this.override, that.override)
@@ -230,7 +230,7 @@ public final class GetContextFromConditionOutput implements SerializableStruct {
      *
      * <p><strong>Note:</strong> This method performs only a shallow copy of the original properties.
      *
-     * @return a builder for {@link GetContextFromConditionOutput}.
+     * @return a builder for {@link ContextResponse}.
      */
     public Builder toBuilder() {
         var builder = new Builder();
@@ -256,9 +256,9 @@ public final class GetContextFromConditionOutput implements SerializableStruct {
     }
 
     /**
-     * Builder for {@link GetContextFromConditionOutput}.
+     * Builder for {@link ContextResponse}.
      */
-    public static final class Builder implements ShapeBuilder<GetContextFromConditionOutput> {
+    public static final class Builder implements ShapeBuilder<ContextResponse> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String id;
         private Map<String, Document> value;
@@ -370,9 +370,9 @@ public final class GetContextFromConditionOutput implements SerializableStruct {
         }
 
         @Override
-        public GetContextFromConditionOutput build() {
+        public ContextResponse build() {
             tracker.validate();
-            return new GetContextFromConditionOutput(this);
+            return new ContextResponse(this);
         }
 
         @Override
@@ -395,7 +395,7 @@ public final class GetContextFromConditionOutput implements SerializableStruct {
         }
 
         @Override
-        public ShapeBuilder<GetContextFromConditionOutput> errorCorrection() {
+        public ShapeBuilder<ContextResponse> errorCorrection() {
             if (tracker.allSet()) {
                 return this;
             }

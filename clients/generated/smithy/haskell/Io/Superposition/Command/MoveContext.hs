@@ -15,9 +15,11 @@ import qualified Data.Either
 import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.List
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified Data.Time
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.MoveContextInput
 import qualified Io.Superposition.Model.MoveContextOutput
@@ -116,36 +118,78 @@ deserializeResponse response = do
                 Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
         
     
-    change_reasonDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "change_reason") responseObject
+    change_reasonDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "change_reason") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    override_idDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "override_id") responseObject
+    override_idDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "override_id") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    weightDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "weight") responseObject
+    weightDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "weight") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    descriptionDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "description") responseObject
+    descriptionDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "description") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    context_idDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "context_id") responseObject
+    created_atDocumentE :: Data.Maybe.Maybe Data.Time.UTCTime <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "created_at") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    id'DocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "id") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    overrideDocumentE :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "override") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    last_modified_byDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "last_modified_by") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    valueDocumentE :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "value") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    created_byDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "created_by") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    last_modified_atDocumentE :: Data.Maybe.Maybe Data.Time.UTCTime <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "last_modified_at") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -156,7 +200,13 @@ deserializeResponse response = do
         Io.Superposition.Model.MoveContextOutput.setOverrideId override_idDocumentE
         Io.Superposition.Model.MoveContextOutput.setWeight weightDocumentE
         Io.Superposition.Model.MoveContextOutput.setDescription descriptionDocumentE
-        Io.Superposition.Model.MoveContextOutput.setContextId context_idDocumentE
+        Io.Superposition.Model.MoveContextOutput.setCreatedAt created_atDocumentE
+        Io.Superposition.Model.MoveContextOutput.setId' id'DocumentE
+        Io.Superposition.Model.MoveContextOutput.setOverride overrideDocumentE
+        Io.Superposition.Model.MoveContextOutput.setLastModifiedBy last_modified_byDocumentE
+        Io.Superposition.Model.MoveContextOutput.setValue valueDocumentE
+        Io.Superposition.Model.MoveContextOutput.setCreatedBy created_byDocumentE
+        Io.Superposition.Model.MoveContextOutput.setLastModifiedAt last_modified_atDocumentE
     
     where
         headers = Network.HTTP.Client.responseHeaders response

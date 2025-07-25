@@ -5,7 +5,7 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  ContextActionResponse,
+  ContextResponse,
   MoveContextInput,
 } from "../models/models_0";
 import {
@@ -32,7 +32,7 @@ export interface MoveContextCommandInput extends MoveContextInput {}
  *
  * The output of {@link MoveContextCommand}.
  */
-export interface MoveContextCommandOutput extends ContextActionResponse, __MetadataBearer {}
+export interface MoveContextCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
  * @public
@@ -55,12 +55,22 @@ export interface MoveContextCommandOutput extends ContextActionResponse, __Metad
  * };
  * const command = new MoveContextCommand(input);
  * const response = await client.send(command);
- * // { // ContextActionResponse
- * //   context_id: "STRING_VALUE", // required
- * //   override_id: "STRING_VALUE", // required
- * //   weight: "STRING_VALUE", // required
- * //   description: "STRING_VALUE", // required
- * //   change_reason: "STRING_VALUE", // required
+ * // { // ContextResponse
+ * //   id: "STRING_VALUE", // required
+ * //   value: { // Condition
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
+ * //   override: { // Overrides
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
+ * //   override_id: "STRING_VALUE",
+ * //   weight: "STRING_VALUE",
+ * //   description: "STRING_VALUE",
+ * //   change_reason: "STRING_VALUE",
+ * //   created_at: new Date("TIMESTAMP"),
+ * //   created_by: "STRING_VALUE",
+ * //   last_modified_at: new Date("TIMESTAMP"),
+ * //   last_modified_by: "STRING_VALUE",
  * // };
  *
  * ```
@@ -98,7 +108,7 @@ export class MoveContextCommand extends $Command.classBuilder<MoveContextCommand
 declare protected static __types: {
   api: {
       input: MoveContextInput;
-      output: ContextActionResponse;
+      output: ContextResponse;
   };
   sdk: {
       input: MoveContextCommandInput;

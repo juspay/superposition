@@ -1,4 +1,4 @@
-module Io.Superposition.Model.MoveContextOutput (
+module Io.Superposition.Model.ContextResponse (
     setId',
     setValue,
     setOverride,
@@ -11,8 +11,8 @@ module Io.Superposition.Model.MoveContextOutput (
     setLastModifiedAt,
     setLastModifiedBy,
     build,
-    MoveContextOutputBuilder,
-    MoveContextOutput,
+    ContextResponseBuilder,
+    ContextResponse,
     id',
     value,
     override,
@@ -38,7 +38,7 @@ import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
 
-data MoveContextOutput = MoveContextOutput {
+data ContextResponse = ContextResponse {
     id' :: Data.Text.Text,
     value :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     override :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
@@ -56,7 +56,7 @@ data MoveContextOutput = MoveContextOutput {
   GHC.Generics.Generic
   )
 
-instance Data.Aeson.ToJSON MoveContextOutput where
+instance Data.Aeson.ToJSON ContextResponse where
     toJSON a = Data.Aeson.object [
         "id" Data.Aeson..= id' a,
         "value" Data.Aeson..= value a,
@@ -73,8 +73,8 @@ instance Data.Aeson.ToJSON MoveContextOutput where
     
 
 
-instance Data.Aeson.FromJSON MoveContextOutput where
-    parseJSON = Data.Aeson.withObject "MoveContextOutput" $ \v -> MoveContextOutput
+instance Data.Aeson.FromJSON ContextResponse where
+    parseJSON = Data.Aeson.withObject "ContextResponse" $ \v -> ContextResponse
         Data.Functor.<$> (v Data.Aeson..: "id")
         Control.Applicative.<*> (v Data.Aeson..: "value")
         Control.Applicative.<*> (v Data.Aeson..: "override")
@@ -90,7 +90,7 @@ instance Data.Aeson.FromJSON MoveContextOutput where
 
 
 
-data MoveContextOutputBuilderState = MoveContextOutputBuilderState {
+data ContextResponseBuilderState = ContextResponseBuilderState {
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
     valueBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     overrideBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
@@ -106,8 +106,8 @@ data MoveContextOutputBuilderState = MoveContextOutputBuilderState {
   GHC.Generics.Generic
   )
 
-defaultBuilderState :: MoveContextOutputBuilderState
-defaultBuilderState = MoveContextOutputBuilderState {
+defaultBuilderState :: ContextResponseBuilderState
+defaultBuilderState = ContextResponseBuilderState {
     id'BuilderState = Data.Maybe.Nothing,
     valueBuilderState = Data.Maybe.Nothing,
     overrideBuilderState = Data.Maybe.Nothing,
@@ -121,75 +121,75 @@ defaultBuilderState = MoveContextOutputBuilderState {
     last_modified_byBuilderState = Data.Maybe.Nothing
 }
 
-newtype MoveContextOutputBuilder a = MoveContextOutputBuilder {
-    runMoveContextOutputBuilder :: MoveContextOutputBuilderState -> (MoveContextOutputBuilderState, a)
+newtype ContextResponseBuilder a = ContextResponseBuilder {
+    runContextResponseBuilder :: ContextResponseBuilderState -> (ContextResponseBuilderState, a)
 }
 
-instance Data.Functor.Functor MoveContextOutputBuilder where
-    fmap f (MoveContextOutputBuilder g) =
-        MoveContextOutputBuilder (\s -> let (s', a) = g s in (s', f a))
+instance Data.Functor.Functor ContextResponseBuilder where
+    fmap f (ContextResponseBuilder g) =
+        ContextResponseBuilder (\s -> let (s', a) = g s in (s', f a))
 
-instance Control.Applicative.Applicative MoveContextOutputBuilder where
-    pure a = MoveContextOutputBuilder (\s -> (s, a))
-    (MoveContextOutputBuilder f) <*> (MoveContextOutputBuilder g) = MoveContextOutputBuilder (\s ->
+instance Control.Applicative.Applicative ContextResponseBuilder where
+    pure a = ContextResponseBuilder (\s -> (s, a))
+    (ContextResponseBuilder f) <*> (ContextResponseBuilder g) = ContextResponseBuilder (\s ->
         let (s', h) = f s
             (s'', a) = g s'
         in (s'', h a))
 
-instance Control.Monad.Monad MoveContextOutputBuilder where
-    (MoveContextOutputBuilder f) >>= g = MoveContextOutputBuilder (\s ->
+instance Control.Monad.Monad ContextResponseBuilder where
+    (ContextResponseBuilder f) >>= g = ContextResponseBuilder (\s ->
         let (s', a) = f s
-            (MoveContextOutputBuilder h) = g a
+            (ContextResponseBuilder h) = g a
         in h s')
 
-setId' :: Data.Text.Text -> MoveContextOutputBuilder ()
+setId' :: Data.Text.Text -> ContextResponseBuilder ()
 setId' value =
-   MoveContextOutputBuilder (\s -> (s { id'BuilderState = Data.Maybe.Just value }, ()))
+   ContextResponseBuilder (\s -> (s { id'BuilderState = Data.Maybe.Just value }, ()))
 
-setValue :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> MoveContextOutputBuilder ()
+setValue :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ContextResponseBuilder ()
 setValue value =
-   MoveContextOutputBuilder (\s -> (s { valueBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { valueBuilderState = value }, ()))
 
-setOverride :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> MoveContextOutputBuilder ()
+setOverride :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ContextResponseBuilder ()
 setOverride value =
-   MoveContextOutputBuilder (\s -> (s { overrideBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { overrideBuilderState = value }, ()))
 
-setOverrideId :: Data.Maybe.Maybe Data.Text.Text -> MoveContextOutputBuilder ()
+setOverrideId :: Data.Maybe.Maybe Data.Text.Text -> ContextResponseBuilder ()
 setOverrideId value =
-   MoveContextOutputBuilder (\s -> (s { override_idBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { override_idBuilderState = value }, ()))
 
-setWeight :: Data.Maybe.Maybe Data.Text.Text -> MoveContextOutputBuilder ()
+setWeight :: Data.Maybe.Maybe Data.Text.Text -> ContextResponseBuilder ()
 setWeight value =
-   MoveContextOutputBuilder (\s -> (s { weightBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { weightBuilderState = value }, ()))
 
-setDescription :: Data.Maybe.Maybe Data.Text.Text -> MoveContextOutputBuilder ()
+setDescription :: Data.Maybe.Maybe Data.Text.Text -> ContextResponseBuilder ()
 setDescription value =
-   MoveContextOutputBuilder (\s -> (s { descriptionBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { descriptionBuilderState = value }, ()))
 
-setChangeReason :: Data.Maybe.Maybe Data.Text.Text -> MoveContextOutputBuilder ()
+setChangeReason :: Data.Maybe.Maybe Data.Text.Text -> ContextResponseBuilder ()
 setChangeReason value =
-   MoveContextOutputBuilder (\s -> (s { change_reasonBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { change_reasonBuilderState = value }, ()))
 
-setCreatedAt :: Data.Maybe.Maybe Data.Time.UTCTime -> MoveContextOutputBuilder ()
+setCreatedAt :: Data.Maybe.Maybe Data.Time.UTCTime -> ContextResponseBuilder ()
 setCreatedAt value =
-   MoveContextOutputBuilder (\s -> (s { created_atBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { created_atBuilderState = value }, ()))
 
-setCreatedBy :: Data.Maybe.Maybe Data.Text.Text -> MoveContextOutputBuilder ()
+setCreatedBy :: Data.Maybe.Maybe Data.Text.Text -> ContextResponseBuilder ()
 setCreatedBy value =
-   MoveContextOutputBuilder (\s -> (s { created_byBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { created_byBuilderState = value }, ()))
 
-setLastModifiedAt :: Data.Maybe.Maybe Data.Time.UTCTime -> MoveContextOutputBuilder ()
+setLastModifiedAt :: Data.Maybe.Maybe Data.Time.UTCTime -> ContextResponseBuilder ()
 setLastModifiedAt value =
-   MoveContextOutputBuilder (\s -> (s { last_modified_atBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { last_modified_atBuilderState = value }, ()))
 
-setLastModifiedBy :: Data.Maybe.Maybe Data.Text.Text -> MoveContextOutputBuilder ()
+setLastModifiedBy :: Data.Maybe.Maybe Data.Text.Text -> ContextResponseBuilder ()
 setLastModifiedBy value =
-   MoveContextOutputBuilder (\s -> (s { last_modified_byBuilderState = value }, ()))
+   ContextResponseBuilder (\s -> (s { last_modified_byBuilderState = value }, ()))
 
-build :: MoveContextOutputBuilder () -> Data.Either.Either Data.Text.Text MoveContextOutput
+build :: ContextResponseBuilder () -> Data.Either.Either Data.Text.Text ContextResponse
 build builder = do
-    let (st, _) = runMoveContextOutputBuilder builder defaultBuilderState
-    id'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.MoveContextOutput.MoveContextOutput.id' is a required property.") Data.Either.Right (id'BuilderState st)
+    let (st, _) = runContextResponseBuilder builder defaultBuilderState
+    id'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ContextResponse.ContextResponse.id' is a required property.") Data.Either.Right (id'BuilderState st)
     value' <- Data.Either.Right (valueBuilderState st)
     override' <- Data.Either.Right (overrideBuilderState st)
     override_id' <- Data.Either.Right (override_idBuilderState st)
@@ -200,7 +200,7 @@ build builder = do
     created_by' <- Data.Either.Right (created_byBuilderState st)
     last_modified_at' <- Data.Either.Right (last_modified_atBuilderState st)
     last_modified_by' <- Data.Either.Right (last_modified_byBuilderState st)
-    Data.Either.Right (MoveContextOutput { 
+    Data.Either.Right (ContextResponse { 
         id' = id'',
         value = value',
         override = override',
