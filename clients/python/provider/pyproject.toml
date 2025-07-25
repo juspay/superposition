@@ -23,7 +23,7 @@ variable = "VERSION"
 
 [tool.hatch.build.targets.wheel]
 # Include the local dependencies directly in the wheel
-force-include = { "../sdk" = "superposition_sdk", "../bindings" = "superposition_bindings" }
+force-include = { "../sdk/superposition_sdk" = "superposition_sdk", "../bindings/superposition_bindings" = "superposition_bindings" }
 
 packages = ["superposition_provider"]
 

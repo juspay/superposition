@@ -443,28 +443,28 @@ def _uniffi_future_callback_t(return_type):
 
 def _uniffi_load_indirect():
     """
-    This is how we find and load the dynamic library provided by the component.
-    For now we just look it up by name.
+    Load the correct prebuilt dynamic library based on the current platform and architecture.
     """
-    if sys.platform == "darwin":
-        libname = "lib{}.dylib"
-    elif sys.platform.startswith("win"):
-        # As of python3.8, ctypes does not seem to search $PATH when loading DLLs.
-        # We could use `os.add_dll_directory` to configure the search path, but
-        # it doesn't feel right to mess with application-wide settings. Let's
-        # assume that the `.dll` is next to the `.py` file and load by full path.
-        libname = os.path.join(
-            os.path.dirname(__file__),
-            "{}.dll",
-        )
-    else:
-        # Anything else must be an ELF platform - Linux, *BSD, Solaris/illumos
-        libname = "lib{}.so"
+    folder = os.path.dirname(__file__)
 
-    libname = libname.format("superposition_core")
-    path = os.path.join(os.path.dirname(__file__), libname)
-    lib = ctypes.cdll.LoadLibrary(path)
-    return lib
+    triple_map = {
+        ("darwin", "arm64"): "aarch64-apple-darwin.dylib",
+        ("darwin", "x86_64"): "x86_64-apple-darwin.dylib",
+        ("linux", "x86_64"): "x86_64-unknown-linux-gnu.so",
+        ("win32", "x86_64"): "x86_64-pc-windows-msvc.dll",
+    }
+
+    triple = triple_map.get((sys.platform, platform.machine()))
+    if not triple:
+        raise RuntimeError(f"❌ Unsupported platform: {sys.platform} / {platform.machine()}")
+
+    libname = f"libsuperposition_core-{triple}"
+    libpath = os.path.join(folder, libname)
+    if not os.path.exists(libpath):
+        raise FileNotFoundError(f"❌ Required binary not found: {libpath}")
+
+    return ctypes.cdll.LoadLibrary(libpath)
+
 
 def _uniffi_check_contract_api_version(lib):
     # Get the bindings contract version from our ComponentInterface

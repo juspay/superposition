@@ -1,6 +1,6 @@
 import { SuperpositionOptions, ConfigOptions, ConfigData, PollingStrategy, ExperimentationArgs } from './types';
-import { NativeResolver } from 'superposition-bindings';
-import { SuperpositionClient, GetConfigCommand, GetConfigCommandInput } from 'superposition-sdk';
+import { NativeResolver } from '@juspay/superposition-bindings';
+import { SuperpositionClient, GetConfigCommand, GetConfigCommandInput } from '@juspay/superposition-sdk';
 import { ExperimentationClient, Experiment } from './experimentation-client';
 import { ExperimentationOptions } from './types';
 

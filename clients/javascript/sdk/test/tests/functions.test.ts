@@ -6,7 +6,7 @@ import {
     DeleteFunctionCommand,
     PublishCommand,
     FunctionTypes,
-} from "superposition-sdk";
+} from "@juspay/superposition-sdk";
 import { expect, describe, it, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
 

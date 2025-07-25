@@ -1,5 +1,8 @@
-import * as path from 'path';
-import * as os from 'os';
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import koffi from 'koffi';
+import { fileURLToPath } from 'url';
 
 export class NativeResolver {
     private lib: any;
@@ -7,7 +10,6 @@ export class NativeResolver {
 
     constructor(libPath?: string) {
         try {
-            const koffi = require('koffi');
             this.lib = koffi.load(libPath || this.getDefaultLibPath());
 
             // Define the core resolution functions with CORRECT 7 parameters each
@@ -253,30 +255,38 @@ export class NativeResolver {
         }
 
         filename = `libsuperposition_core-${extension}`;
+        
+        const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-        const packageRootPath = path.resolve(__dirname, '..', filename);
+        const packageRootPath = path.resolve(dirname, '..', filename);
         if (this.fileExists(packageRootPath)) {
             console.log(`Using native library from package root: ${packageRootPath}`);
             return packageRootPath;
         }
 
         // 1. First try to load from package's native-lib directory (GitHub artifacts)
-        const packageNativeLibPath = path.resolve(__dirname, '..', 'native-lib', filename);
+        const packageNativeLibPath = path.resolve(dirname, 'native-lib', filename);
         if (this.fileExists(packageNativeLibPath)) {
             console.log(`Using native library from package: ${packageNativeLibPath}`);
             return packageNativeLibPath;
         }
+        
+        const packageNative2LibPath = path.resolve(dirname, '..', 'native-lib', filename);
+        if (this.fileExists(packageNative2LibPath)) {
+            console.log(`Using native library from package: ${packageNative2LibPath}`);
+            return packageNative2LibPath;
+        }
 
         // 2. Try platform-specific subdirectory in native-lib
         const platformDir = `${platform}-${arch}`;
-        const platformSpecificPath = path.resolve(__dirname, '..', 'native-lib', platformDir, filename);
+        const platformSpecificPath = path.resolve(dirname, '..', 'native-lib', platformDir, filename);
         if (this.fileExists(platformSpecificPath)) {
             console.log(`Using platform-specific native library: ${platformSpecificPath}`);
             return platformSpecificPath;
         }
 
         // 3. Fall back to local build (relative to repository root)
-        const localBuildPath = path.resolve(__dirname, '..', '..', '..', '..', 'target', 'release', filename);
+        const localBuildPath = path.resolve(dirname, '..', '..', '..', '..', 'target', 'release', filename);
         if (this.fileExists(localBuildPath)) {
             console.log(`Using local build: ${localBuildPath}`);
             return localBuildPath;
@@ -289,9 +299,9 @@ export class NativeResolver {
 
     private fileExists(filePath: string): boolean {
         try {
-            const fs = require('fs');
             return fs.existsSync(filePath);
         } catch {
+            console.trace(`Binary not found for path ${filePath}`)
             return false;
         }
     }

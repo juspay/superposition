@@ -3,7 +3,7 @@
 
 [project]
 name = "superposition_sdk"
-version = "0.0.1"
+dynamic = ["version"]
 description = "superposition_sdk client"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -47,6 +47,10 @@ build-backend = "hatchling.build"
 exclude = [
   "tests",
 ]
+
+[tool.hatch.version]
+source = "env"
+variable = "VERSION"
 
 [tool.pyright]
 typeCheckingMode = "strict"

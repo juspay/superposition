@@ -38,7 +38,7 @@ jobs:
               with:
                   crate: cocogitto
                   version: "6.2.0"
-
+            
             - name: Semver release
               shell: bash
               run: |
@@ -46,11 +46,11 @@ jobs:
                   git config user.name "Superposition Bot"
                   cog bump --auto --skip-ci-override "[skip ci]"
 
-            - name: Push code to main
-              shell: bash
-              run: |
-                  git push origin main
-                  git push origin --tags
+            # - name: Push code to main
+            #   shell: bash
+            #   run: |
+            #       git push origin main
+            #       git push origin --tags
 
             - name: Set latest tag
               id: git_tag
@@ -488,7 +488,7 @@ jobs:
               run: |
                   cd clients/python/provider
                   # Install dependencies first since provider depends on sdk and bindings
-                  uv pip install --system ../bindings/dist/*.whl ../sdk/dist/*.whl
+                  # uv pip install --system ../bindings/dist/*.whl ../sdk/dist/*.whl
                   uv build --wheel
                   echo "Built provider wheel:"
                   ls -la dist/
@@ -588,22 +588,16 @@ jobs:
                   ls -la clients/javascript/bindings/native-lib
 
             - run: |
-                  cd clients/javascript/bindings
-                  npm ci
-                  npm publish --scope=@juspay --access public
-                  cd ../sdk
-                  npm ci
-                  npm publish --scope=@juspay --access public
-                  cd ../open-feature-provider
-                  npm ci
-                  npm publish --scope=@juspay --access public
+                cd clients/javascript
+                npm ci
+                npm publish --access public --scope @juspay --workspace bindings --workspace sdk --workspace open-feature-provider
               env:
                   CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
                   CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
 
     release:
-        needs: [tag-release, generate-rust-binary, generate-python-packages]
+        needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository

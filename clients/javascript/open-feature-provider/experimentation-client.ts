@@ -1,4 +1,4 @@
-import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput } from 'superposition-sdk';
+import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput } from '@juspay/superposition-sdk';
 import { SuperpositionOptions, ExperimentationOptions, PollingStrategy, OnDemandStrategy } from './types';
 
 export interface Variant {

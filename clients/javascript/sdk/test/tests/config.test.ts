@@ -2,7 +2,7 @@ import {
     GetConfigCommand,
     ListVersionsCommand,
     UpdateWorkspaceCommand,
-} from "superposition-sdk";
+} from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect } from "bun:test";
 
