@@ -40,8 +40,8 @@ export interface GetTypeTemplatesListCommandOutput extends GetTypeTemplatesListO
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetTypeTemplatesListCommand } from "superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetTypeTemplatesListCommand } = require("superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetTypeTemplatesListCommand } from "@juspay/superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetTypeTemplatesListCommand } = require("@juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetTypeTemplatesListInput
  *   count: Number("int"),

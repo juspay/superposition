@@ -40,8 +40,8 @@ export interface GetResolvedConfigCommandOutput extends GetResolvedConfigOutput,
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetResolvedConfigCommand } from "superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetResolvedConfigCommand } = require("superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetResolvedConfigCommand } from "@juspay/superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetResolvedConfigCommand } = require("@juspay/superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetResolvedConfigInput
  *   workspace_id: "STRING_VALUE", // required

@@ -3,7 +3,7 @@ index a7763ceb..ed540f0a 100644
 --- a/clients/javascript/sdk/package.json
 +++ b/clients/javascript/sdk/package.json
 @@ -3,13 +3,13 @@
-     "description": "superposition-sdk client",
+     "description": "@juspay/superposition-sdk client",
      "version": "0.0.1",
      "scripts": {
 -        "build": "concurrently 'yarn:build:cjs' 'yarn:build:es' 'yarn:build:types'",
