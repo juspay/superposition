@@ -144,6 +144,19 @@ impl TryFrom<String> for Description {
     }
 }
 
+impl From<ChangeReason> for Description {
+    fn from(value: ChangeReason) -> Self {
+        Self(value.0)
+    }
+}
+
+impl FromIterator<ChangeReason> for Description {
+    fn from_iter<T: IntoIterator<Item = ChangeReason>>(iter: T) -> Self {
+        let reasons: Vec<String> = iter.into_iter().map(|r| r.0).collect();
+        Self(reasons.join(","))
+    }
+}
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
 )]

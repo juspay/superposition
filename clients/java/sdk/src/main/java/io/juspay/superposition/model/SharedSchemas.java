@@ -80,7 +80,7 @@ final class SharedSchemas {
         .build();
 
     static final Schema LIST_CONTEXT_OUT = Schema.listBuilder(ShapeId.from("io.superposition#ListContextOut"))
-        .putMember("member", ContextFull.$SCHEMA)
+        .putMember("member", ContextResponse.$SCHEMA)
         .build();
 
     static final Schema WEIGHT_RECOMPUTE_RESPONSES = Schema.listBuilder(ShapeId.from("io.superposition#WeightRecomputeResponses"))

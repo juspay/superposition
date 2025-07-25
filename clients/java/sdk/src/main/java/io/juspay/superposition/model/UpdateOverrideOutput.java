@@ -21,7 +21,7 @@ import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
 public final class UpdateOverrideOutput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#ContextFull");
+    public static final ShapeId $ID = ShapeId.from("io.superposition#ContextResponse");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("id", PreludeSchemas.STRING,

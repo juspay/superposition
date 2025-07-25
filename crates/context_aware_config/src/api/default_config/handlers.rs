@@ -24,7 +24,10 @@ use superposition_types::{
     },
     custom_query::PaginationParams,
     database::{
-        models::cac::{self as models, Context, DefaultConfig},
+        models::{
+            cac::{self as models, Context, DefaultConfig},
+            Description,
+        },
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
     result as superposition, DBConnection, PaginatedResponse, User,
@@ -133,7 +136,7 @@ async fn create_default_config(
             let version_id = add_config_version(
                 &state,
                 tags,
-                (*change_reason).clone(),
+                change_reason.into(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -248,7 +251,7 @@ async fn update_default_config(
             let version_id = add_config_version(
                 &state,
                 tags.clone(),
-                (*change_reason).clone(),
+                change_reason.into(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -400,8 +403,6 @@ async fn delete(
                     .schema_name(&schema_name)
                     .execute(transaction_conn)?;
 
-                let change_reason = format!("Context Deleted by {}", user.get_email());
-
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
                         .schema_name(&schema_name)
@@ -411,10 +412,15 @@ async fn delete(
                         Err(not_found!("default config key `{}` doesn't exists", key))
                     }
                     Ok(_) => {
+                        let config_version_desc = Description::try_from(format!(
+                            "Context Deleted by {}",
+                            user.get_email()
+                        ))
+                        .map_err(|e| unexpected_error!(e))?;
                         version_id = add_config_version(
                             &state,
                             tags,
-                            change_reason,
+                            config_version_desc,
                             transaction_conn,
                             &schema_name,
                         )?;

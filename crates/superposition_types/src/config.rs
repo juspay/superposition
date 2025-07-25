@@ -88,6 +88,34 @@ impl IntoIterator for Overrides {
 impl_try_from_map!(Cac, Overrides, Overrides::validate_data);
 impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
 
+impl From<Cac<Overrides>> for Exp<Overrides> {
+    fn from(cac: Cac<Overrides>) -> Self {
+        Self(cac.into_inner())
+    }
+}
+
+impl From<Exp<Overrides>> for Cac<Overrides> {
+    fn from(exp: Exp<Overrides>) -> Self {
+        Self(exp.into_inner())
+    }
+}
+
+impl TryFrom<Overrides> for Exp<Overrides> {
+    type Error = std::io::Error;
+    fn try_from(value: Overrides) -> Result<Self, Self::Error> {
+        Exp::<Overrides>::try_from(Into::<serde_json::Map<String, Value>>::into(value))
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    }
+}
+impl From<Exp<Overrides>> for Overrides {
+    fn from(value: Exp<Overrides>) -> Self {
+        value.into_inner()
+    }
+}
+
+type VariantOverrides = Exp<Overrides>;
+uniffi::custom_type!(VariantOverrides, Overrides);
+
 #[derive(Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -184,6 +212,38 @@ impl Condition {
 
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
 impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
+
+impl From<Cac<Condition>> for Exp<Condition> {
+    fn from(cac: Cac<Condition>) -> Self {
+        Self(cac.into_inner())
+    }
+}
+
+impl TryFrom<Exp<Condition>> for Cac<Condition> {
+    type Error = String;
+
+    fn try_from(exp: Exp<Condition>) -> Result<Self, Self::Error> {
+        Self::try_from(exp.into_inner().0)
+    }
+}
+
+impl TryFrom<Condition> for Exp<Condition> {
+    type Error = String;
+
+    fn try_from(value: Condition) -> Result<Self, Self::Error> {
+        let map: Map<String, Value> = value.into();
+        Self::try_from(map)
+    }
+}
+
+impl TryFrom<Condition> for Cac<Condition> {
+    type Error = String;
+
+    fn try_from(value: Condition) -> Result<Self, Self::Error> {
+        let map: Map<String, Value> = value.into();
+        Self::try_from(map)
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]
 #[cfg_attr(test, derive(PartialEq))]

@@ -8,7 +8,7 @@ pub struct ListContextsOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub total_items: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::option::Option<::std::vec::Vec::<crate::types::ContextFull>>,
+    pub data: ::std::option::Option<::std::vec::Vec::<crate::types::ContextResponse>>,
 }
 impl  ListContextsOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -22,7 +22,7 @@ impl  ListContextsOutput  {
     #[allow(missing_docs)] // documentation missing in model
     /// 
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.data.is_none()`.
-    pub fn data(&self) -> &[crate::types::ContextFull] {
+    pub fn data(&self) -> &[crate::types::ContextResponse] {
         self.data.as_deref()
         .unwrap_or_default()
     }
@@ -40,7 +40,7 @@ impl ListContextsOutput {
 pub struct ListContextsOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ContextFull>>,
+    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ContextResponse>>,
 }
 impl ListContextsOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -73,18 +73,18 @@ impl ListContextsOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_data`](Self::set_data).
     ///
-    pub fn data(mut self, input: crate::types::ContextFull) -> Self {
+    pub fn data(mut self, input: crate::types::ContextResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
                         v.push(input);
                         self.data = ::std::option::Option::Some(v);
                         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ContextFull>>) -> Self {
+    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ContextResponse>>) -> Self {
         self.data = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ContextFull>> {
+    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ContextResponse>> {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListContextsOutput`](crate::operation::list_contexts::ListContextsOutput).

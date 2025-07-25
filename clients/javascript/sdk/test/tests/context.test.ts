@@ -402,12 +402,12 @@ describe("Context API Integration Tests", () => {
             }
 
             // Track created context
-            trackContext(response.context_id);
+            trackContext(response.id);
 
             expect(response.$metadata.httpStatusCode).toBe(200);
-            expect(response.context_id).toBeDefined();
+            expect(response.id).toBeDefined();
 
-            contextId = response.context_id || "";
+            contextId = response.id || "";
 
             const getCmd = new GetContextCommand({
                 workspace_id: testWorkspaceId,
@@ -512,7 +512,7 @@ describe("Context API Integration Tests", () => {
             }
 
             // Track created context
-            trackContext(response.context_id);
+            trackContext(response.id);
 
             expect(response.$metadata.httpStatusCode).toBe(200);
             // Weight should be 2^1 + 2^2 = 2 + 4 = 6 (for clientId and moveSource)
@@ -751,7 +751,7 @@ describe("Context API Integration Tests", () => {
             });
 
             const createResp = await client.send(createCmd);
-            const contextId = createResp.context_id;
+            const contextId = createResp.id;
 
             // Track created context
             trackContext(contextId);
@@ -820,7 +820,7 @@ describe("Context API Integration Tests", () => {
             });
 
             const createResp = await client.send(createCmd);
-            const contextId = createResp.context_id;
+            const contextId = createResp.id;
 
             // Track created context
             trackContext(contextId);
@@ -906,9 +906,9 @@ describe("Context API Integration Tests", () => {
             const createResp = await client.send(createCmd);
 
             // Track created context
-            trackContext(createResp.context_id);
+            trackContext(createResp.id);
 
-            const sourceId = createResp.context_id;
+            const sourceId = createResp.id;
 
             const moveInput = {
                 workspace_id: testWorkspaceId,
@@ -935,16 +935,16 @@ describe("Context API Integration Tests", () => {
             const moveResp = await client.send(moveCmd);
 
             // Track moved context (target ID)
-            trackContext(moveResp.context_id);
+            trackContext(moveResp.id);
 
             expect(moveResp.$metadata.httpStatusCode).toBe(200);
-            expect(moveResp.context_id).not.toBe(sourceId);
+            expect(moveResp.id).not.toBe(sourceId);
 
             // fetch the moved context to verify the context and override
             const getCmd = new GetContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                id: moveResp.context_id,
+                id: moveResp.id,
             });
             const movedContext = await client.send(getCmd);
             expect(movedContext.value).toEqual(moveInput.context);
@@ -982,9 +982,9 @@ describe("Context API Integration Tests", () => {
             const firstResp = await client.send(createFirstCmd);
 
             // Track created context
-            trackContext(firstResp.context_id);
+            trackContext(firstResp.id);
 
-            const sourceId = firstResp.context_id;
+            const sourceId = firstResp.id;
 
             // Create second context with overlapping and different overrides
             const createSecondCmd = new CreateContextCommand({
@@ -1011,9 +1011,9 @@ describe("Context API Integration Tests", () => {
             const secondResp = await client.send(createSecondCmd);
 
             // Track created context
-            trackContext(secondResp.context_id);
+            trackContext(secondResp.id);
 
-            const targetId = secondResp.context_id;
+            const targetId = secondResp.id;
 
             // Now attempt to move first context to location of second context
             const moveCmd = new MoveContextCommand({
@@ -1051,7 +1051,7 @@ describe("Context API Integration Tests", () => {
             const getCmd1 = new GetContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                id: moveResp.context_id,
+                id: moveResp.id,
             });
 
             const mergedContext = await client.send(getCmd1);
@@ -1177,11 +1177,11 @@ describe("Context API Integration Tests", () => {
             // Track created contexts from bulk operations
             if (response.bulk_operation_output?.output) {
                 for (const output of response.bulk_operation_output.output) {
-                    if (output.PUT?.context_id) {
-                        trackContext(output.PUT.context_id);
+                    if (output.PUT?.id) {
+                        trackContext(output.PUT.id);
                     }
-                    if (output.MOVE?.context_id) {
-                        trackContext(output.MOVE.context_id);
+                    if (output.MOVE?.id) {
+                        trackContext(output.MOVE.id);
                     }
                 }
             }
@@ -1189,18 +1189,18 @@ describe("Context API Integration Tests", () => {
             // Verify first operation
             const firstOp = response.bulk_operation_output?.output?.[0];
             expect(firstOp?.PUT).toBeDefined();
-            expect(firstOp?.PUT?.context_id).toBeDefined();
+            expect(firstOp?.PUT?.id).toBeDefined();
 
             // Verify second operation
             const secondOp = response.bulk_operation_output?.output?.[1];
             expect(secondOp?.PUT).toBeDefined();
-            expect(secondOp?.PUT?.context_id).toBeDefined();
+            expect(secondOp?.PUT?.id).toBeDefined();
 
             // fetch both the context and assert the context and override
             const getFirstCmd = new GetContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                id: firstOp?.PUT?.context_id || "",
+                id: firstOp?.PUT?.id || "",
             });
             const firstContext = await client.send(getFirstCmd);
             expect(firstContext.value).toEqual({
@@ -1222,7 +1222,7 @@ describe("Context API Integration Tests", () => {
             const getSecondCmd = new GetContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                id: secondOp?.PUT?.context_id || "",
+                id: secondOp?.PUT?.id || "",
             });
             const secondContext = await client.send(getSecondCmd);
             expect(secondContext.value).toEqual({

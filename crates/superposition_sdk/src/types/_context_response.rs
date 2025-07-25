@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct MoveContextOutput  {
+pub struct ContextResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -26,7 +26,7 @@ pub struct MoveContextOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::option::Option<::std::string::String>,
 }
-impl  MoveContextOutput  {
+impl  ContextResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
         use std::ops::Deref; self.id.deref()
@@ -72,17 +72,17 @@ impl  MoveContextOutput  {
         self.last_modified_by.as_deref()
     }
 }
-impl MoveContextOutput {
-    /// Creates a new builder-style object to manufacture [`MoveContextOutput`](crate::operation::move_context::MoveContextOutput).
-    pub fn builder() -> crate::operation::move_context::builders::MoveContextOutputBuilder {
-        crate::operation::move_context::builders::MoveContextOutputBuilder::default()
+impl ContextResponse {
+    /// Creates a new builder-style object to manufacture [`ContextResponse`](crate::types::ContextResponse).
+    pub fn builder() -> crate::types::builders::ContextResponseBuilder {
+        crate::types::builders::ContextResponseBuilder::default()
     }
 }
 
-/// A builder for [`MoveContextOutput`](crate::operation::move_context::MoveContextOutput).
+/// A builder for [`ContextResponse`](crate::types::ContextResponse).
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
-pub struct MoveContextOutputBuilder {
+pub struct ContextResponseBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
     pub(crate) value: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
@@ -95,7 +95,7 @@ pub struct MoveContextOutputBuilder {
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
 }
-impl MoveContextOutputBuilder {
+impl ContextResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -250,15 +250,15 @@ impl MoveContextOutputBuilder {
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.last_modified_by
     }
-    /// Consumes the builder and constructs a [`MoveContextOutput`](crate::operation::move_context::MoveContextOutput).
+    /// Consumes the builder and constructs a [`ContextResponse`](crate::types::ContextResponse).
     /// This method will fail if any of the following fields are not set:
-    /// - [`id`](crate::operation::move_context::builders::MoveContextOutputBuilder::id)
-    pub fn build(self) -> ::std::result::Result<crate::operation::move_context::MoveContextOutput, ::aws_smithy_types::error::operation::BuildError> {
+    /// - [`id`](crate::types::builders::ContextResponseBuilder::id)
+    pub fn build(self) -> ::std::result::Result<crate::types::ContextResponse, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
-            crate::operation::move_context::MoveContextOutput {
+            crate::types::ContextResponse {
                 id: self.id
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("id", "id was not specified but it is required when building MoveContextOutput")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("id", "id was not specified but it is required when building ContextResponse")
                     )?
                 ,
                 value: self.value

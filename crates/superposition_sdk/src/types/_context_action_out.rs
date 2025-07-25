@@ -6,11 +6,11 @@ pub enum ContextActionOut {
     #[allow(missing_docs)] // documentation missing in model
     Delete(::std::string::String),
     #[allow(missing_docs)] // documentation missing in model
-    Move(crate::types::ContextMoveOut),
+    Move(crate::types::ContextResponse),
     #[allow(missing_docs)] // documentation missing in model
-    Put(crate::types::ContextPutOut),
+    Put(crate::types::ContextResponse),
     #[allow(missing_docs)] // documentation missing in model
-    Replace(crate::types::ContextPutOut),
+    Replace(crate::types::ContextResponse),
     /// The `Unknown` variant represents cases where new union variant was received. Consider upgrading the SDK to the latest available version.
     /// An unknown enum variant
     ///
@@ -31,27 +31,27 @@ impl ContextActionOut {
     pub fn is_delete(&self) -> bool {
         self.as_delete().is_ok()
     }
-    /// Tries to convert the enum instance into [`Move`](crate::types::ContextActionOut::Move), extracting the inner [`ContextMoveOut`](crate::types::ContextMoveOut).
+    /// Tries to convert the enum instance into [`Move`](crate::types::ContextActionOut::Move), extracting the inner [`ContextResponse`](crate::types::ContextResponse).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_move(&self) -> ::std::result::Result<&crate::types::ContextMoveOut, &Self> {
+    pub fn as_move(&self) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
         if let ContextActionOut::Move(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
     /// Returns true if this is a [`Move`](crate::types::ContextActionOut::Move).
     pub fn is_move(&self) -> bool {
         self.as_move().is_ok()
     }
-    /// Tries to convert the enum instance into [`Put`](crate::types::ContextActionOut::Put), extracting the inner [`ContextPutOut`](crate::types::ContextPutOut).
+    /// Tries to convert the enum instance into [`Put`](crate::types::ContextActionOut::Put), extracting the inner [`ContextResponse`](crate::types::ContextResponse).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_put(&self) -> ::std::result::Result<&crate::types::ContextPutOut, &Self> {
+    pub fn as_put(&self) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
         if let ContextActionOut::Put(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
     /// Returns true if this is a [`Put`](crate::types::ContextActionOut::Put).
     pub fn is_put(&self) -> bool {
         self.as_put().is_ok()
     }
-    /// Tries to convert the enum instance into [`Replace`](crate::types::ContextActionOut::Replace), extracting the inner [`ContextPutOut`](crate::types::ContextPutOut).
+    /// Tries to convert the enum instance into [`Replace`](crate::types::ContextActionOut::Replace), extracting the inner [`ContextResponse`](crate::types::ContextResponse).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_replace(&self) -> ::std::result::Result<&crate::types::ContextPutOut, &Self> {
+    pub fn as_replace(&self) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
         if let ContextActionOut::Replace(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
     /// Returns true if this is a [`Replace`](crate::types::ContextActionOut::Replace).
