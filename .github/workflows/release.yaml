@@ -46,11 +46,11 @@ jobs:
                   git config user.name "Superposition Bot"
                   cog bump --auto --skip-ci-override "[skip ci]"
 
-            # - name: Push code to main
-            #   shell: bash
-            #   run: |
-            #       git push origin main
-            #       git push origin --tags
+            - name: Push code to main
+              shell: bash
+              run: |
+                  git push origin main
+                  git push origin --tags
 
             - name: Set latest tag
               id: git_tag
