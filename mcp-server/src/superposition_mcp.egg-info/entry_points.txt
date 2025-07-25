@@ -1,0 +1,5 @@
+[console_scripts]
+superposition-mcp = superposition_mcp.cli:main
+
+[mcp.servers]
+superposition = superposition_mcp.server:SuperpositionMCPServer

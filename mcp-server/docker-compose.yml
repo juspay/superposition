@@ -1,0 +1,182 @@
+version: '3.8'
+
+services:
+  # Main Superposition MCP Server
+  superposition-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: superposition-mcp
+    restart: unless-stopped
+    environment:
+      # Required configuration - set these in .env file
+      - SUPERPOSITION_API_URL=${SUPERPOSITION_API_URL}
+      - SUPERPOSITION_API_TOKEN=${SUPERPOSITION_API_TOKEN}
+      
+      # Optional configuration with defaults
+      - SUPERPOSITION_DEFAULT_WORKSPACE=${SUPERPOSITION_DEFAULT_WORKSPACE:-production}
+      - SUPERPOSITION_DEFAULT_ORG=${SUPERPOSITION_DEFAULT_ORG:-juspay}
+      - SUPERPOSITION_DEBUG=${SUPERPOSITION_DEBUG:-false}
+      - SUPERPOSITION_LOG_LEVEL=${SUPERPOSITION_LOG_LEVEL:-INFO}
+      - SUPERPOSITION_TIMEOUT=${SUPERPOSITION_TIMEOUT:-60}
+      - SUPERPOSITION_CACHE_TTL=${SUPERPOSITION_CACHE_TTL:-300}
+      - SUPERPOSITION_MAX_CONNECTIONS=${SUPERPOSITION_MAX_CONNECTIONS:-20}
+      
+      # Redis configuration (if using redis service)
+      - SUPERPOSITION_REDIS_URL=redis://redis:6379/0
+    volumes:
+      # Persistent storage for logs and cache
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+      - ./config:/app/config
+    ports:
+      # Expose port if running HTTP server mode
+      - "${MCP_PORT:-8000}:8000"
+    depends_on:
+      - redis
+    networks:
+      - superposition-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio; from superposition_mcp.health import health_check; asyncio.run(health_check())"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Development version with debugging enabled
+  superposition-mcp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: superposition-mcp-dev
+    restart: "no"
+    environment:
+      - SUPERPOSITION_API_URL=${SUPERPOSITION_API_URL}
+      - SUPERPOSITION_API_TOKEN=${SUPERPOSITION_API_TOKEN}
+      - SUPERPOSITION_DEFAULT_WORKSPACE=${SUPERPOSITION_DEFAULT_WORKSPACE:-dev}
+      - SUPERPOSITION_DEFAULT_ORG=${SUPERPOSITION_DEFAULT_ORG:-juspay}
+      - SUPERPOSITION_DEBUG=true
+      - SUPERPOSITION_LOG_LEVEL=DEBUG
+      - SUPERPOSITION_TIMEOUT=30
+      - SUPERPOSITION_CACHE_TTL=60
+      - SUPERPOSITION_REDIS_URL=redis://redis:6379/1
+    volumes:
+      # Mount source code for development
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+      - ./config:/app/config
+    ports:
+      - "${MCP_DEV_PORT:-8001}:8000"
+    depends_on:
+      - redis
+    networks:
+      - superposition-network
+    profiles:
+      - dev
+    command: ["python", "-m", "superposition_mcp.main", "--debug", "--reload"]
+
+  # Redis for caching (optional but recommended)
+  redis:
+    image: redis:7-alpine
+    container_name: superposition-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - superposition-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Prometheus for metrics (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: superposition-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - superposition-network
+    profiles:
+      - monitoring
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: superposition-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - superposition-network
+    profiles:
+      - monitoring
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: superposition-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    depends_on:
+      - superposition-mcp
+    networks:
+      - superposition-network
+    profiles:
+      - proxy
+
+volumes:
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  superposition-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "superposition": {
+      "command": "python",
+      "args": ["/path/to/superposition/mcp-server/src/superposition_mcp/main.py"],
+      "env": {
+        "SUPERPOSITION_API_URL": "https://your-superposition-instance.com",
+        "SUPERPOSITION_API_TOKEN": "your-bearer-token",
+        "SUPERPOSITION_DEFAULT_WORKSPACE": "production",
+        "SUPERPOSITION_DEFAULT_ORG": "your-organization",
+        "SUPERPOSITION_DEBUG": "false",
+        "SUPERPOSITION_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

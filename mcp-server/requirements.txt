@@ -1,0 +1,63 @@
+# Superposition MCP Server Requirements
+# 
+# Core MCP dependencies
+mcp>=1.0.0
+pydantic>=2.0.0
+
+# HTTP client and networking
+httpx>=0.25.0
+httpx[http2]>=0.25.0
+
+# Configuration and environment
+python-dotenv>=1.0.0
+
+# Logging and structured data
+structlog>=22.0.0
+
+# CLI and command line tools
+click>=8.0.0
+
+# Rate limiting and throttling
+asyncio-throttle>=1.0.0
+
+# Caching
+cachetools>=5.0.0
+
+# Retry and resilience
+tenacity>=8.0.0
+
+# Performance (Unix only)
+uvloop>=0.17.0; sys_platform != 'win32'
+
+# JSON handling (faster than stdlib)
+orjson>=3.8.0
+
+# Async utilities
+aiofiles>=23.0.0
+
+# Type checking support
+typing-extensions>=4.0.0; python_version < '3.11'
+
+# Development dependencies (optional)
+# Uncomment for development installations
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# pytest-mock>=3.10.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# isort>=5.12.0
+# flake8>=6.0.0
+# mypy>=1.0.0
+# pre-commit>=3.0.0
+# watchfiles>=0.20.0
+
+# Optional metrics dependencies
+# prometheus-client>=0.16.0
+# statsd>=3.3.0
+
+# Optional Redis dependencies
+# redis>=4.5.0
+# hiredis>=2.2.0
+
+# Optional monitoring dependencies
+# sentry-sdk>=1.30.0

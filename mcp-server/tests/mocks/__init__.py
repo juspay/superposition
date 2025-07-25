@@ -1,0 +1,1 @@
+# Mock utilities for MCP server testing

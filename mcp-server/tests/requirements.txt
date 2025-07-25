@@ -1,0 +1,38 @@
+# Test dependencies for Superposition MCP Server
+
+# Core testing framework
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.10.0
+pytest-cov>=4.0.0
+pytest-timeout>=2.1.0
+
+# Async testing utilities
+asynctest>=0.13.0
+
+# Mock and testing utilities
+responses>=0.23.0
+httpx>=0.24.0
+aioresponses>=0.7.4
+
+# MCP testing dependencies (when available)
+# mcp-testing>=0.1.0
+
+# Development utilities
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.0.0
+
+# Superposition SDK (assumed to be available)
+# superposition-sdk>=0.1.0
+
+# Pydantic for validation
+pydantic>=2.0.0
+
+# JSON Schema validation
+jsonschema>=4.0.0
+
+# Additional utilities
+freezegun>=1.2.0  # For time-based testing
+faker>=18.0.0     # For generating test data

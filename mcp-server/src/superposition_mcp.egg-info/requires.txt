@@ -1,0 +1,36 @@
+mcp>=1.0.0
+pydantic>=2.0.0
+httpx>=0.25.0
+python-dotenv>=1.0.0
+structlog>=22.0.0
+click>=8.0.0
+asyncio-throttle>=1.0.0
+cachetools>=5.0.0
+tenacity>=8.0.0
+superposition_sdk@ file:///Users/natarajankannan/src/superposition/clients/python/sdk/
+
+[:sys_platform != "win32"]
+uvloop>=0.17.0
+
+[dev]
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.10.0
+pytest-cov>=4.0.0
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.0.0
+pre-commit>=3.0.0
+watchfiles>=0.20.0
+
+[metrics]
+prometheus-client>=0.16.0
+statsd>=3.3.0
+
+[redis]
+redis>=4.5.0
+hiredis>=2.2.0
+
+[sentry]
+sentry-sdk>=1.30.0

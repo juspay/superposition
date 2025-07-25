@@ -1,0 +1,208 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "superposition-mcp"
+version = "1.0.0"
+description = "Model Context Protocol server for Superposition configuration management and experimentation platform"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Superposition Team", email = "dev@superposition.io"}
+]
+maintainers = [
+    {name = "Superposition Team", email = "dev@superposition.io"}
+]
+keywords = ["mcp", "model-context-protocol", "configuration", "experimentation", "a-b-testing", "ai-assistant"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Configuration",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "httpx>=0.25.0",
+    "python-dotenv>=1.0.0",
+    "structlog>=22.0.0",
+    "click>=8.0.0",
+    "asyncio-throttle>=1.0.0",
+    "cachetools>=5.0.0",
+    "tenacity>=8.0.0",
+    "superposition_sdk @ file:///Users/natarajankannan/src/superposition/clients/python/sdk/",
+    "uvloop>=0.17.0; sys_platform != 'win32'",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+    "watchfiles>=0.20.0",
+]
+metrics = [
+    "prometheus-client>=0.16.0",
+    "statsd>=3.3.0",
+]
+redis = [
+    "redis>=4.5.0",
+    "hiredis>=2.2.0",
+]
+sentry = [
+    "sentry-sdk>=1.30.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/juspay/superposition"
+Documentation = "https://docs.superposition.io/mcp-server"
+Repository = "https://github.com/juspay/superposition"
+"Bug Tracker" = "https://github.com/juspay/superposition/issues"
+Changelog = "https://github.com/juspay/superposition/blob/main/mcp-server/CHANGELOG.md"
+
+[project.scripts]
+superposition-mcp = "superposition_mcp.cli:main"
+
+[project.entry-points."mcp.servers"]
+superposition = "superposition_mcp.server:SuperpositionMCPServer"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["superposition_mcp*"]
+
+[tool.setuptools.package-data]
+superposition_mcp = ["*.json", "*.yaml", "*.yml", "schemas/*.json"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["superposition_mcp"]
+known_third_party = ["mcp", "pydantic", "httpx", "structlog", "click"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "uvloop",
+    "tenacity",
+    "cachetools",
+    "asyncio_throttle",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=superposition_mcp",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503", "E501"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".mypy_cache",
+    ".pytest_cache",
+]
+
+[tool.pre-commit]
+repos = [
+    { repo = "https://github.com/psf/black", rev = "23.7.0", hooks = [ {id = "black"} ] },
+    { repo = "https://github.com/pycqa/isort", rev = "5.12.0", hooks = [ {id = "isort"} ] },
+    { repo = "https://github.com/pycqa/flake8", rev = "6.0.0", hooks = [ {id = "flake8"} ] },
+    { repo = "https://github.com/pre-commit/mirrors-mypy", rev = "v1.5.1", hooks = [ {id = "mypy", additional_dependencies = ["types-all"]} ] }
+]
