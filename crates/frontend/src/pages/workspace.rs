@@ -104,21 +104,18 @@ pub fn workspace() -> impl IntoView {
                 open_drawer("workspace_drawer");
             };
             view! {
-                <div class="join">
-                    <span class="cursor-pointer" on:click=edit_click_handler>
-                        <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                    </span>
-                </div>
+                <span class="cursor-pointer" on:click=edit_click_handler>
+                    <i class="ri-pencil-line ri-xl text-blue-500"></i>
+                </span>
             }
             .into_view()
         };
 
-        let navigate = move |_: &str, row: &Map<String, Value>| {
-            let workspace_name = row["workspace_name"].to_string().replace('"', "");
-
+        let navigate = move |value: &str, _row: &Map<String, Value>| {
+            let workspace_name = value.to_string();
             view! {
                 <A
-                    class="cursor-pointer text-blue-500"
+                    class="text-blue-500 underline underline-offset-2"
                     href=format!("../{workspace_name}/default-config")
                 >
                     {workspace_name}
@@ -255,7 +252,7 @@ pub fn workspace() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=table_rows
-                                    key_column="id".to_string()
+                                    key_column="workspace_name"
                                     columns=table_columns.get()
                                     pagination=pagination_props
                                 />

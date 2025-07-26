@@ -19,9 +19,10 @@ use superposition_types::{
 };
 use types::PageParams;
 
+use crate::api::fetch_function;
 use crate::components::{
     button::Button,
-    function_form::FunctionEditor,
+    function_form::{FunctionEditor, Mode},
     skeleton::{Skeleton, SkeletonVariant},
 };
 use crate::query_updater::{
@@ -29,7 +30,6 @@ use crate::query_updater::{
 };
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::to_title_case;
-use crate::{api::fetch_function, components::function_form::Mode};
 
 fn stage_to_action(stage: Stage) -> String {
     match stage {
@@ -56,7 +56,7 @@ fn function_info(
                 <div class="h-fit w-[250px]">
                     <div class="stat-title">"Description"</div>
                     <div
-                        class="tooltip tooltip-left w-[inherit] text-left"
+                        class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=String::from(&description)
                     >
                         <div class="stat-value text-sm text-ellipsis overflow-hidden">
@@ -78,7 +78,7 @@ fn function_info(
                 <div class="h-fit w-[250px]">
                     <div class="stat-title">"Change Reason"</div>
                     <div
-                        class="tooltip tooltip-left w-[inherit] text-left"
+                        class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=String::from(&change_reason)
                     >
                         <div class="stat-value text-sm text-ellipsis overflow-hidden">
@@ -136,12 +136,13 @@ fn function_code_info(
 
 #[component]
 pub fn function_page() -> impl IntoView {
-    let function_params = use_params_map();
+    let path_params = use_params_map();
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let function_name = StoredValue::new(function_params.with_untracked(|params| {
-        params.get("function_name").cloned().unwrap_or("1".into())
-    }));
+    let function_name = Memo::new(move |_| {
+        path_params
+            .with(|params| params.get("function_name").cloned().unwrap_or("1".into()))
+    });
     let show_publish_popup = RwSignal::new(false);
 
     let page_params_rws = use_signal_from_query(move |query_string| {
@@ -151,11 +152,9 @@ pub fn function_page() -> impl IntoView {
     use_param_updater(move || box_params!(page_params_rws.get()));
 
     let function_resource = create_blocking_resource(
-        move || (function_name.get_value(), workspace.get().0, org.get().0),
+        move || (function_name.get(), workspace.get().0, org.get().0),
         |(function_name, workspace, org_id)| async move {
-            let function_result =
-                fetch_function(function_name.to_string(), workspace.to_string(), org_id)
-                    .await;
+            let function_result = fetch_function(function_name, workspace, org_id).await;
 
             function_result.ok()
         },

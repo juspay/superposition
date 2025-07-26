@@ -18,7 +18,7 @@ pub fn function_table_columns() -> Vec<Column> {
             |value: &str, _| {
                 let function_name = value.to_string();
                 view! {
-                    <A href=function_name.clone() class="btn-link">
+                    <A href=function_name.clone() class="text-blue-500 underline underline-offset-2">
                         {function_name}
                     </A>
                 }
@@ -28,10 +28,8 @@ pub fn function_table_columns() -> Vec<Column> {
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::default("description".to_string()),
         Column::default("function_type".to_string()),
         Column::default("published_runtime_version".to_string()),
-        Column::default("draft_runtime_version".to_string()),
         Column::default("published_at".to_string()),
         Column::default("published_by".to_string()),
     ]

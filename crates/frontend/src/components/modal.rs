@@ -31,7 +31,7 @@ where
 
 #[component]
 pub fn portal_modal(
-    #[prop(default = "w-full max-w-md".to_string())] class: String,
+    #[prop(into, default = "w-full max-w-md".to_string())] class: String,
     #[prop(into, default = String::new())] heading: String,
     #[prop(into)] handle_close: Callback<(), ()>,
     children: ChildrenFn,

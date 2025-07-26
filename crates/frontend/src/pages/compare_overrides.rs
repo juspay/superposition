@@ -26,7 +26,7 @@ use crate::{
         },
     },
     logic::Conditions,
-    pages::default_config::utils::{get_bread_crums, modify_rows, BreadCrums},
+    pages::default_config_list::utils::{get_bread_crums, modify_rows, BreadCrums},
     providers::{
         alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
@@ -208,7 +208,7 @@ pub fn compare_overrides() -> impl IntoView {
             });
             view! {
                 <A
-                    class="cursor-pointer text-blue-500 underline underline-offset-2"
+                    class="text-blue-500 underline underline-offset-2"
                     href=redirect_url(Some(prefix))
                 >
                     {label}

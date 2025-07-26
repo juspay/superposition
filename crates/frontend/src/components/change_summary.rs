@@ -100,7 +100,7 @@ pub fn change_summary(
             {if rows.is_empty() {
                 view! { <NoChange /> }
             } else {
-                view! { <Table rows key_column="Config Key".to_string() columns /> }
+                view! { <Table rows key_column columns /> }
             }}
         </div>
     }
