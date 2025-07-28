@@ -47,6 +47,7 @@ use crate::api::experiment_groups::helpers::{
 
 use super::cac_api::{
     construct_header_map, get_context_override, get_partial_resolve_config,
+    get_resolved_config,
 };
 
 pub fn check_variant_types(variants: &Vec<Variant>) -> superposition::Result<()> {
@@ -777,4 +778,46 @@ pub fn fetch_experiment(
         .get_result::<Experiment>(conn)?;
 
     Ok(result)
+}
+
+pub async fn validate_control_overrides(
+    control_overrides: &Exp<Overrides>,
+    exp_context: &Condition,
+    workspace_request: &WorkspaceContext,
+    user: &User,
+    state: &Data<AppState>,
+) -> superposition::Result<()> {
+    let context = extract_dimensions(exp_context)?;
+    let resolved_config =
+        get_resolved_config(user, state, &context, workspace_request).await?;
+    let control_variant_overrides = control_overrides.clone().into_inner();
+    let mismatched_overrides: Map<_, _> = control_variant_overrides
+        .into_iter()
+        .map(|(key, value)| {
+            let resolved_value = resolved_config.get(&key).ok_or_else(|| {
+                bad_argument!(
+                    "Control variant's override key '{}' not found in resolved config",
+                    key
+                )
+            })?;
+
+            if resolved_value != &value {
+                Ok(Some((key.clone(), resolved_value.clone())))
+            } else {
+                Ok(None)
+            }
+        })
+        .collect::<superposition::Result<Vec<_>>>()?
+        .into_iter()
+        .flatten()
+        .collect();
+
+    if !mismatched_overrides.is_empty() {
+        return Err(bad_argument!(
+        "Outdated control variant overrides: {}. Please update the control variant's overrides.",
+        serde_json::to_string(&mismatched_overrides).unwrap_or_default()
+    ));
+    }
+
+    Ok(())
 }

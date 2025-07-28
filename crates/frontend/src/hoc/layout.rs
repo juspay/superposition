@@ -1,5 +1,5 @@
 use crate::{
-    api::fetch_workspaces,
+    api::workspaces,
     components::{
         side_nav::SideNav,
         skeleton::{Skeleton, SkeletonVariant},
@@ -60,7 +60,7 @@ pub fn layout() -> impl IntoView {
     let workspace_resource = create_blocking_resource(
         move || (org.get().0),
         |org_id| async move {
-            fetch_workspaces(&PaginationParams::all_entries(), &org_id)
+            workspaces::fetch_all(&PaginationParams::all_entries(), &org_id)
                 .await
                 .unwrap_or_default()
         },
