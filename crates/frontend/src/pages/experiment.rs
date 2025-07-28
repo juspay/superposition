@@ -142,7 +142,7 @@ pub fn experiment_page() -> impl IntoView {
                                 PopupType::ExperimentEdit => {
                                     view! {
                                         <PortalModal
-                                            class="w-full max-w-5xl".to_string()
+                                            class="w-full max-w-5xl"
                                             handle_close=move |_| set_show_popup.set(PopupType::None)
                                         >
                                             {

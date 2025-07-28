@@ -7,6 +7,7 @@ use crate::hoc::layout::{use_org, CommonLayout, Layout, Providers};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
+use crate::pages::dimension::DimensionPage;
 use crate::pages::dimensions::Dimensions;
 use crate::pages::experiment_group_listing::ExperimentGroupListing;
 use crate::pages::experiment_groups::ExperimentGroups;
@@ -15,9 +16,10 @@ use crate::pages::function::{
     function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
 };
 use crate::pages::{
-    context_override::ContextOverride, custom_types::TypesPage,
-    default_config::DefaultConfig, experiment::ExperimentPage, home::Home,
-    organisations::Organisations, webhooks::Webhooks, workspace::Workspace,
+    context_override::ContextOverride, default_config::DefaultConfig,
+    default_config_list::DefaultConfigList, experiment::ExperimentPage, home::Home,
+    organisations::Organisations, type_template::TypePage, type_templates::TypesPage,
+    webhook::Webhook, webhooks::Webhooks, workspace::Workspace,
 };
 use crate::types::Envs;
 
@@ -122,11 +124,14 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                     <Route ssr=SsrMode::Async path="/admin/:org_id/:tenant" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="dimensions/:dimension_name"
+                            view=DimensionPage
+                        />
 
                         <Route ssr=SsrMode::Async path="function" view=FunctionList />
-
                         <Route ssr=SsrMode::Async path="function/create" view=CreateFunctionView />
-
                         <Route
                             ssr=SsrMode::Async
                             path="function/:function_name"
@@ -134,7 +139,6 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         />
 
                         <Route ssr=SsrMode::Async path="experiments" view=ExperimentList />
-
                         <Route ssr=SsrMode::Async path="experiments/:id" view=ExperimentPage />
 
                         <Route
@@ -142,20 +146,25 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                             path="experiment-groups"
                             view=ExperimentGroupListing
                         />
-
                         <Route
                             ssr=SsrMode::Async
                             path="experiment-groups/:id"
                             view=ExperimentGroups
                         />
 
-                        <Route ssr=SsrMode::Async path="default-config" view=DefaultConfig />
+                        <Route ssr=SsrMode::Async path="default-config" view=DefaultConfigList />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="default-config/:config_key"
+                            view=DefaultConfig
+                        />
 
                         <Route ssr=SsrMode::Async path="overrides" view=ContextOverride />
 
                         <Route ssr=SsrMode::Async path="resolve" view=Home />
 
                         <Route ssr=SsrMode::Async path="types" view=TypesPage />
+                        <Route ssr=SsrMode::Async path="types/:type_name" view=TypePage />
 
                         <Route ssr=SsrMode::Async path="config/versions" view=ConfigVersionList />
 
@@ -168,6 +177,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         <Route ssr=SsrMode::Async path="compare" view=CompareOverrides />
 
                         <Route ssr=SsrMode::Async path="webhooks" view=Webhooks />
+                        <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
                     </Route>
                 // <Route
                 // path="/*any"

@@ -22,7 +22,6 @@ use crate::{
         alert::AlertType,
         condition_pills::Condition as ConditionComponent,
         delete_modal::DeleteModal,
-        description_icon::InfoDescription,
         drawer::{close_drawer, Drawer, DrawerBtn},
         experiment_group_form::AddExperimentToGroupForm,
         skeleton::{Skeleton, SkeletonVariant},
@@ -72,29 +71,16 @@ fn table_columns(
                     value.as_str().unwrap_or("").to_string()
                 });
 
-                let description = row
-                    .get("description")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string();
-
-                let change_reason = row
-                    .get("change_reason")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string();
                 view! {
-                    <A href=format!("../../experiments/{experiment_id}") class="btn-link m-1">
+                    <A href=format!("../../experiments/{experiment_id}") class="text-blue-500 underline underline-offset-2">
                         {experiment_name}
                     </A>
-                    <InfoDescription description=description change_reason=change_reason />
-            }.into_view()
+                }
+                .into_view()
             },
             ColumnSortable::No,
             Expandable::Disabled,
-            move |_| {
-                view! { <span class="font-medium text-sm text-black">Experiment Name</span> }.into_view()
-            },
+            move |_| default_column_formatter("Experiment Name"),
         ),
         Column::default("traffic_percentage".to_string()),
         Column::new(
@@ -297,7 +283,7 @@ pub fn experiment_groups() -> impl IntoView {
                                 <Table
                                     class="!overflow-y-auto"
                                     rows=data
-                                    key_column="Experiment Name".to_string()
+                                    key_column="id"
                                     columns=table_columns
                                     pagination=pagination_props
                                 />

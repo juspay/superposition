@@ -1,5 +1,4 @@
 use leptos::*;
-
 use web_sys::MouseEvent;
 
 use crate::utils::get_element_by_id;
@@ -85,5 +84,39 @@ where
                 </div>
             </div>
         </div>
+    }
+}
+
+#[component]
+pub fn portal_drawer(
+    children: ChildrenFn,
+    #[prop(into)] title: String,
+    #[prop(default = "max-w-[610px] min-w-[560px] w-[35vw]")] width_class: &'static str,
+    #[prop(into)] handle_close: Callback<()>,
+) -> impl IntoView {
+    view! {
+        <Portal>
+            <div class="h-0 w-0 z-[1500] drawer drawer-end">
+                <input type="checkbox" class="drawer-toggle" checked=true />
+                <div class="drawer-side z-[9999999] w-full">
+                    <label class="drawer-overlay" on:click=move |_| { handle_close.call(()) } />
+                    <div class=format!(
+                        "h-full {width_class} flex flex-col bg-base-100 overflow-x-hidden",
+                    )>
+                        <div class="px-4 py-4 flex justify-between items-center">
+                            <h3 class="text-lg font-bold">{title.clone()}</h3>
+                            <button
+                                class="btn btn-sm btn-circle btn-ghost"
+                                on:click=move |_| { handle_close.call(()) }
+                            >
+                                <i class="ri-close-line" />
+                            </button>
+                        </div>
+                        <div class="divider m-0" />
+                        <div class="p-4 relative overflow-y-scroll flex-1">{children()}</div>
+                    </div>
+                </div>
+            </div>
+        </Portal>
     }
 }

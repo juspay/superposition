@@ -135,11 +135,10 @@ pub fn experiment_list() -> impl IntoView {
         <Suspense fallback=move || view! { <Skeleton /> }>
             <div class="h-full flex flex-col gap-4">
                 {move || {
-                    let value = combined_resource.get();
-                    let total_items = match value {
-                        Some(v) => v.experiments.total_items.to_string(),
-                        _ => "0".to_string(),
-                    };
+                    let total_items = combined_resource
+                        .with(|c| c.as_ref().map(|r| r.experiments.total_items))
+                        .unwrap_or_default()
+                        .to_string();
                     view! {
                         <div class="flex justify-between">
                             <Stat
@@ -209,7 +208,7 @@ pub fn experiment_list() -> impl IntoView {
                                             <Table
                                                 class="!overflow-y-auto"
                                                 rows=data
-                                                key_column="id".to_string()
+                                                key_column="id"
                                                 columns=table_columns
                                                 pagination=pagination_props
                                             />

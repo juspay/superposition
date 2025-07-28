@@ -54,7 +54,7 @@ pub fn experiment_table_columns(
                 };
                 view! {
                         <div>
-                            <A href=experiment_id.to_string() class="btn-link">
+                            <A href=experiment_id.to_string() class="text-blue-500 underline underline-offset-2">
                                 {experiment_name}
                             </A>
                             <div class="text-gray-500">

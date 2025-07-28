@@ -103,15 +103,12 @@ pub fn modify_rows(
                 .map(String::from)
                 .unwrap_or_default();
 
-            let key_arr = match &key_prefix {
-                Some(prefix) => key
-                    .splitn(2, prefix)
-                    .map(String::from)
-                    .collect::<Vec<String>>(),
-                None => vec!["".to_string(), key],
-            };
-            // key_arr.get(1) retrieves the remaining part of the key, after removing the prefix.
-            if let Some(filtered_key) = key_arr.get(1) {
+            let subkey = key_prefix.as_ref().map_or_else(
+                || Some(key.clone()),
+                |p| key.strip_prefix(p).map(String::from),
+            );
+
+            if let Some(filtered_key) = subkey {
                 let new_key = filtered_key
                     .split('.')
                     .map(String::from)

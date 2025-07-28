@@ -4,23 +4,22 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
-use crate::api::fetch_dimensions;
-use crate::components::button::Button;
-use crate::components::dimension_form::DimensionForm;
-use crate::components::drawer::PortalDrawer;
-use crate::components::skeleton::Skeleton;
-use crate::components::table::types::{
-    default_column_formatter, ColumnSortable, Expandable,
-};
+use crate::api::fetch_types;
+use crate::components::table::types::TablePaginationProps;
 use crate::components::{
+    button::Button,
+    drawer::PortalDrawer,
+    skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{Column, TablePaginationProps},
+        types::{default_column_formatter, Column, ColumnSortable, Expandable},
         Table,
     },
+    type_template_form::TypeTemplateForm,
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
+use crate::utils::unwrap_option_or_default_with_error;
 
 #[derive(Clone)]
 enum Action {
@@ -29,7 +28,7 @@ enum Action {
 }
 
 #[component]
-pub fn dimensions() -> impl IntoView {
+pub fn types_page() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let action_rws = RwSignal::new(Action::None);
@@ -39,28 +38,24 @@ pub fn dimensions() -> impl IntoView {
 
     use_param_updater(move || box_params!(pagination_params_rws.get()));
 
-    let dimensions_resource = create_blocking_resource(
-        move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
-        |(current_tenant, pagination_params, org_id)| async move {
-            fetch_dimensions(&pagination_params, current_tenant, org_id)
+    let types_resource = create_blocking_resource(
+        move || (workspace.get().0, org.get().0, pagination_params_rws.get()),
+        |(t, org_id, pagination_params)| async move {
+            fetch_types(&pagination_params, t, org_id)
                 .await
                 .unwrap_or_default()
         },
     );
 
-    let handle_page_change = Callback::new(move |page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(page));
-    });
-
     let table_columns = StoredValue::new(vec![
         Column::new(
-            "dimension".to_string(),
+            "type_name".to_string(),
             false,
-            move |dimension_name: &str, _row: &Map<String, Value>| {
-                let dimension_name = dimension_name.to_string();
+            move |type_name: &str, _row: &Map<String, Value>| {
+                let type_name = type_name.to_string();
                 view! {
-                    <A href=dimension_name.clone() class="text-blue-500 underline underline-offset-2">
-                        {dimension_name}
+                    <A href=type_name.clone() class="text-blue-500 underline underline-offset-2">
+                        {type_name}
                     </A>
                 }
             },
@@ -68,22 +63,30 @@ pub fn dimensions() -> impl IntoView {
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::default("position".to_string()),
+        Column::default("created_by".to_string()),
         Column::default("created_at".to_string()),
         Column::default("last_modified_at".to_string()),
     ]);
+
+    let handle_page_change = Callback::new(move |page: i64| {
+        pagination_params_rws.update(|f| f.page = Some(page));
+    });
 
     view! {
         <Suspense fallback=move || {
             view! { <Skeleton /> }
         }>
             {move || {
-                let value = dimensions_resource.get().unwrap_or_default();
-                let table_rows = value
+                let types = types_resource.get().unwrap_or_default();
+                let data = types
                     .data
                     .iter()
                     .map(|ele| {
-                        let mut ele_map = json!(ele).as_object().unwrap().clone();
+                        let mut ele_map = unwrap_option_or_default_with_error(
+                                json!(ele).as_object(),
+                                &Map::new(),
+                            )
+                            .to_owned();
                         ele_map
                             .insert(
                                 "created_at".to_string(),
@@ -96,26 +99,28 @@ pub fn dimensions() -> impl IntoView {
                             );
                         ele_map
                     })
-                    .collect::<Vec<Map<String, Value>>>();
+                    .collect::<Vec<Map<String, Value>>>()
+                    .to_owned();
                 let pagination_params = pagination_params_rws.get();
                 let pagination_props = TablePaginationProps {
                     enabled: true,
                     count: pagination_params.count.unwrap_or_default(),
                     current_page: pagination_params.page.unwrap_or_default(),
-                    total_pages: value.total_pages,
+                    total_pages: types.total_pages,
                     on_page_change: handle_page_change,
                 };
+
                 view! {
                     <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat
-                                heading="Dimensions"
-                                icon="ri-ruler-2-fill"
-                                number=value.total_items.to_string()
+                                heading="Type Templates"
+                                icon="ri-t-box-fill"
+                                number=types.total_items.to_string()
                             />
                             <Button
                                 class="self-end"
-                                text="Create Dimension"
+                                text="Create Type"
                                 icon_class="ri-add-line"
                                 on_click=move |_| action_rws.set(Action::Create)
                             />
@@ -124,8 +129,8 @@ pub fn dimensions() -> impl IntoView {
                             <div class="card-body overflow-y-auto overflow-x-visible">
                                 <Table
                                     class="!overflow-y-auto"
-                                    rows=table_rows
-                                    key_column="dimension"
+                                    rows=data
+                                    key_column="type_name"
                                     columns=table_columns.get_value()
                                     pagination=pagination_props
                                 />
@@ -138,17 +143,14 @@ pub fn dimensions() -> impl IntoView {
                 Action::Create => {
                     view! {
                         <PortalDrawer
-                            title="Create New Dimension"
+                            title="Create New Type Template"
                             handle_close=move |_| action_rws.set(Action::None)
                         >
-                            <DimensionForm
-                                dimensions=dimensions_resource.get().unwrap_or_default().data
-                                handle_submit=move |_| {
-                                    pagination_params_rws.update(|f| f.reset_page());
-                                    dimensions_resource.refetch();
-                                    action_rws.set(Action::None);
-                                }
-                            />
+                            <TypeTemplateForm handle_submit=move |_| {
+                                pagination_params_rws.update(|f| f.reset_page());
+                                types_resource.refetch();
+                                action_rws.set(Action::None);
+                            } />
                         </PortalDrawer>
                     }
                         .into_view()

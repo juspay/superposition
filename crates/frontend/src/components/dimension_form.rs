@@ -2,7 +2,9 @@ pub mod utils;
 
 use std::ops::Deref;
 
+use futures::join;
 use leptos::*;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
 use superposition_types::{
     api::{
@@ -15,38 +17,33 @@ use superposition_types::{
 use utils::{create_dimension, try_update_payload, update_dimension};
 use web_sys::MouseEvent;
 
-use crate::components::skeleton::SkeletonVariant;
-use crate::{
-    api::fetch_functions,
-    components::{
-        button::Button,
-        change_summary::{ChangeSummary, JsonChangeSummary},
-    },
+use crate::api::{fetch_dimensions, fetch_functions, fetch_types, get_dimension};
+use crate::components::{
+    alert::AlertType,
+    button::Button,
+    change_form::ChangeForm,
+    change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
+    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+    form::label::Label,
+    input::{Input, InputType},
+    skeleton::{Skeleton, SkeletonVariant},
 };
-use crate::{
-    api::fetch_types,
-    types::{OrganisationId, Tenant},
-};
-use crate::{
-    api::get_dimension,
-    schema::{JsonSchemaType, SchemaType},
-};
-use crate::{components::change_summary::ChangeLogPopup, types::FunctionsName};
-use crate::{components::form::label::Label, providers::alert_provider::enqueue_alert};
-use crate::{components::skeleton::Skeleton, providers::editor_provider::EditorProvider};
-use crate::{
-    components::{
-        alert::AlertType,
-        change_form::ChangeForm,
-        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        input::{Input, InputType},
-    },
-    utils::set_function,
-};
+use crate::providers::alert_provider::enqueue_alert;
+use crate::providers::editor_provider::EditorProvider;
+use crate::schema::{JsonSchemaType, SchemaType};
+use crate::types::{FunctionsName, OrganisationId, Tenant};
+use crate::utils::set_function;
 
 enum ResponseType {
     UpdatePrecheck,
     Response,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct CombinedResource {
+    dimensions: Vec<DimensionResponse>,
+    functions: Vec<Function>,
+    type_templates: Vec<TypeTemplate>,
 }
 
 #[component]
@@ -60,7 +57,7 @@ pub fn dimension_form(
     #[prop(default = None)] validation_function_name: Option<String>,
     #[prop(default = None)] autocomplete_function_name: Option<String>,
     #[prop(default = String::new())] description: String,
-    dimensions: Vec<DimensionResponse>,
+    #[prop(optional)] dimensions: Option<Vec<DimensionResponse>>,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
@@ -80,30 +77,42 @@ pub fn dimension_form(
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let update_request_rws = RwSignal::new(None);
 
-    let functions_resource: Resource<(String, String), Vec<Function>> =
-        create_blocking_resource(
-            move || (workspace.get().0, org.get().0),
-            |(current_tenant, org)| async move {
-                let fn_filters = ListFunctionFilters {
-                    function_type: None,
-                };
-                fetch_functions(
-                    &PaginationParams::all_entries(),
-                    &fn_filters,
-                    current_tenant,
-                    org,
-                )
-                .await
-                .map_or_else(|_| vec![], |list| list.data)
-            },
-        );
+    let combined_resources = create_blocking_resource(
+        move || (dimensions.clone(), workspace.get().0, org.get().0),
+        |(dimensions, tenant, org_id)| async move {
+            let dimensions_future = async {
+                match dimensions {
+                    None => fetch_dimensions(
+                        &PaginationParams::all_entries(),
+                        tenant.clone(),
+                        org_id.clone(),
+                    )
+                    .await
+                    .map(|d| d.data)
+                    .unwrap_or_default(),
+                    Some(data) => data,
+                }
+            };
 
-    let type_template_resource = create_blocking_resource(
-        move || (workspace.get().0, org.get().0),
-        |(current_tenant, org)| async move {
-            fetch_types(&PaginationParams::all_entries(), current_tenant, org)
-                .await
-                .map_or_else(|_| vec![], |response| response.data)
+            let all_entries = PaginationParams::all_entries();
+            let list_filters = ListFunctionFilters::default();
+            let functions_future = fetch_functions(
+                &all_entries,
+                &list_filters,
+                tenant.clone(),
+                org_id.clone(),
+            );
+
+            let types_future = fetch_types(&all_entries, tenant.clone(), org_id.clone());
+
+            let (dimensions_result, functions_result, types_result) =
+                join!(dimensions_future, functions_future, types_future);
+
+            CombinedResource {
+                dimensions: dimensions_result,
+                functions: functions_result.map(|d| d.data).unwrap_or_default(),
+                type_templates: types_result.map(|d| d.data).unwrap_or_default(),
+            }
         },
     );
 
@@ -216,217 +225,230 @@ pub fn dimension_form(
         });
     };
     view! {
-        <form class="form-control w-full space-y-4 bg-white text-gray-700">
-            <div class="form-control">
-                <Label title="Dimension" />
-                <input
-                    disabled=edit
-                    type="text"
-                    placeholder="Dimension"
-                    class="input input-bordered w-full max-w-md"
-                    value=move || dimension_name_rs.get()
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        dimension_name_ws.set(value);
-                    }
-                />
-            </div>
-
-            <ChangeForm
-                title="Description".to_string()
-                placeholder="Enter a description".to_string()
-                value=description_rs.get_untracked()
-                on_change=move |new_description| { description_ws.set(new_description) }
-            />
-            <ChangeForm
-                title="Reason for Change".to_string()
-                placeholder="Enter a reason for this change".to_string()
-                value=change_reason_rs.get_untracked()
-                on_change=move |new_change_reason| { change_reason_ws.set(new_change_reason) }
-            />
-
-            <Suspense>
-                {move || {
-                    let options = type_template_resource.get().unwrap_or(vec![]);
-                    let dimension_t = if dimension_type_rs.get().is_empty() && edit {
-                        "change current type template".into()
-                    } else if dimension_type_rs.get().is_empty() && !edit {
-                        "choose a type template".into()
-                    } else {
-                        dimension_type_rs.get()
-                    };
-                    let dimension_type_schema = SchemaType::Single(
-                        JsonSchemaType::from(&dimension_schema_rs.get()),
-                    );
-                    view! {
-                        <div class="form-control">
-                            <Label title="Set Schema" />
-                            <Dropdown
-                                dropdown_width="w-100"
-                                dropdown_icon="".to_string()
-                                dropdown_text=dimension_t
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_options=options
-                                on_select=Callback::new(move |selected_item: TypeTemplate| {
-                                    logging::log!("selected item {:?}", selected_item);
-                                    dimension_type_ws.set(selected_item.type_name);
-                                    dimension_schema_ws.set(selected_item.type_schema);
-                                })
-                            />
-                            <EditorProvider>
-                                <Input
-                                    id="type-schema"
-                                    class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                    schema_type=dimension_type_schema
-                                    value=dimension_schema_rs.get_untracked()
-                                    on_change=move |new_type_schema| {
-                                        dimension_schema_ws.set(new_type_schema)
-                                    }
-                                    r#type=InputType::Monaco(vec![])
-                                />
-                            </EditorProvider>
-                        </div>
-                    }
-                }}
-            </Suspense>
-
-            {move || {
-                view! {
-                    <div class="form-control">
-                        <Label title="Position" />
-                        <input
-                            type="Number"
-                            min=0
-                            placeholder="Position"
-                            class="input input-bordered w-full max-w-md"
-                            value=position_rs.get()
-                            on:keypress=move |ev| {
-                                let char_code = ev.char_code();
-                                if char_code != 0 && char_code != 8 && char_code != 13
-                                    && !(char_code >= 48 && char_code <= 57)
-                                {
-                                    ev.prevent_default();
-                                }
-                            }
-
-                            on:change=move |ev| {
-                                logging::log!("{:?}", event_target_value(& ev).parse::< u32 > ());
-                                match event_target_value(&ev).parse::<u32>() {
-                                    Ok(i_prio) => position_ws.set(i_prio),
-                                    Err(e) => {
-                                        position_ws.set(0);
-                                        logging::log!("{e}");
-                                    }
-                                };
-                            }
-                        />
-
-                    </div>
-                }
-            }}
-
-            {move || {
-                let dropdown_options = dimensions
-                    .iter()
-                    .map(|d| d.dimension.clone())
-                    .filter(|d| { d != &dimension_name_rs.get() })
-                    .collect::<Vec<_>>();
-                view! {
-                    <div class="form-control">
-                        <Label title="Dependencies" />
-                        <Dropdown
-                            dropdown_text="Add Dependencies".to_string()
-                            dropdown_direction=DropdownDirection::Down
-                            dropdown_btn_type=DropdownBtnType::Select
-                            dropdown_options
-                            selected=dependencies_rs.get()
-                            multi_select=true
-                            on_select=handle_select_dependencies_dropdown_option
-                            on_remove=handle_remove_dependencies_dropdown_option
-                        />
-                    </div>
-                }
-            }}
-
-            <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }
-            }>
-                {move || {
-                    let mut functions = functions_resource.get().unwrap_or_default();
-                    let mut validation_function_names: Vec<FunctionsName> = vec![
-                        "None".to_string(),
-                    ];
-                    let mut autocomplete_function_names: Vec<FunctionsName> = vec![
-                        "None".to_string(),
-                    ];
-                    functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                    functions
-                        .iter()
-                        .for_each(|ele| {
-                            if ele.function_type == FunctionType::Validation {
-                                validation_function_names.push(ele.function_name.clone());
-                            } else {
-                                autocomplete_function_names.push(ele.function_name.clone());
-                            }
-                        });
-                    view! {
-                        <div class="form-control">
-                            <Label
-                                title="Validation Function"
-                                description="Function to add validation logic to your dimension"
-                            />
-                            <Dropdown
-                                dropdown_width="w-100"
-                                dropdown_icon="".to_string()
-                                dropdown_text=validation_fn_name_rs
-                                    .get()
-                                    .map_or("Add Function".to_string(), |v| v.to_string())
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_options=validation_function_names
-                                on_select=handle_validation_fn_select
-                            />
-                        </div>
-
-                        <div class="form-control">
-                            <Label
-                                title="AutoComplete Function"
-                                description="Function to add auto complete suggestion to your dimension"
-                            />
-                            <Dropdown
-                                dropdown_width="w-100"
-                                dropdown_icon="".to_string()
-                                dropdown_text=autocomplete_fn_name_rs
-                                    .get()
-                                    .map_or("Add Function".to_string(), |v| v.to_string())
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_options=autocomplete_function_names
-                                on_select=handle_autocomplete_fn_select
-                            />
-                        </div>
-                    }
-                }}
-            </Suspense>
-            {move || {
-                let loading = req_inprogess_rs.get();
-                view! {
-                    <Button
-                        class="self-end h-12 w-48"
-                        text="Submit"
-                        icon_class="ri-send-plane-line"
-                        on_click=move |ev: MouseEvent| {
-                            ev.prevent_default();
-                            on_submit(());
+        <Suspense fallback=move || view! { <Skeleton variant=SkeletonVariant::Block /> }>
+            <form class="form-control w-full flex flex-col gap-5 bg-white text-gray-700">
+                <div class="form-control">
+                    <Label title="Dimension" />
+                    <input
+                        disabled=edit
+                        type="text"
+                        placeholder="Dimension"
+                        class="input input-bordered w-full max-w-md"
+                        value=move || dimension_name_rs.get()
+                        on:change=move |ev| {
+                            let value = event_target_value(&ev);
+                            dimension_name_ws.set(value);
                         }
-                        loading
                     />
-                }
-            }}
+                </div>
 
-            <p class="text-red-500">{move || error_message.get()}</p>
-        </form>
+                <ChangeForm
+                    title="Description".to_string()
+                    placeholder="Enter a description".to_string()
+                    value=description_rs.get_untracked()
+                    on_change=move |new_description| { description_ws.set(new_description) }
+                />
+                <ChangeForm
+                    title="Reason for Change".to_string()
+                    placeholder="Enter a reason for this change".to_string()
+                    value=change_reason_rs.get_untracked()
+                    on_change=move |new_change_reason| { change_reason_ws.set(new_change_reason) }
+                />
+
+                <Suspense>
+                    {move || {
+                        let options = combined_resources
+                            .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
+                            .unwrap_or_default();
+                        let dimension_t = if dimension_type_rs.get().is_empty() && edit {
+                            "change current type template".into()
+                        } else if dimension_type_rs.get().is_empty() && !edit {
+                            "choose a type template".into()
+                        } else {
+                            dimension_type_rs.get()
+                        };
+                        let dimension_type_schema = SchemaType::Single(
+                            JsonSchemaType::from(&dimension_schema_rs.get()),
+                        );
+                        view! {
+                            <div class="form-control">
+                                <Label title="Set Schema" />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=dimension_t
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=options
+                                    on_select=Callback::new(move |selected_item: TypeTemplate| {
+                                        logging::log!("selected item {:?}", selected_item);
+                                        dimension_type_ws.set(selected_item.type_name);
+                                        dimension_schema_ws.set(selected_item.type_schema);
+                                    })
+                                />
+                                <EditorProvider>
+                                    <Input
+                                        id="type-schema"
+                                        class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                        schema_type=dimension_type_schema
+                                        value=dimension_schema_rs.get_untracked()
+                                        on_change=move |new_type_schema| {
+                                            dimension_schema_ws.set(new_type_schema)
+                                        }
+                                        r#type=InputType::Monaco(vec![])
+                                    />
+                                </EditorProvider>
+                            </div>
+                        }
+                    }}
+                </Suspense>
+
+                {move || {
+                    view! {
+                        <div class="form-control">
+                            <Label title="Position" />
+                            <input
+                                type="Number"
+                                min=0
+                                placeholder="Position"
+                                class="input input-bordered w-full max-w-md"
+                                value=position_rs.get()
+                                on:keypress=move |ev| {
+                                    let char_code = ev.char_code();
+                                    if char_code != 0 && char_code != 8 && char_code != 13
+                                        && !(char_code >= 48 && char_code <= 57)
+                                    {
+                                        ev.prevent_default();
+                                    }
+                                }
+
+                                on:change=move |ev| {
+                                    logging::log!(
+                                        "{:?}", event_target_value(& ev).parse::< u32 > ()
+                                    );
+                                    match event_target_value(&ev).parse::<u32>() {
+                                        Ok(i_prio) => position_ws.set(i_prio),
+                                        Err(e) => {
+                                            position_ws.set(0);
+                                            logging::log!("{e}");
+                                        }
+                                    };
+                                }
+                            />
+
+                        </div>
+                    }
+                }}
+                <Suspense>
+                    {move || {
+                        let dimension_name = dimension_name_rs.get();
+                        let dropdown_options = combined_resources
+                            .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
+                            .unwrap_or_default()
+                            .iter()
+                            .filter_map(|d| {
+                                (d.dimension != dimension_name).then_some(d.dimension.clone())
+                            })
+                            .collect::<Vec<_>>();
+                        view! {
+                            <div class="form-control">
+                                <Label title="Dependencies" />
+                                <Dropdown
+                                    dropdown_text="Add Dependencies".to_string()
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options
+                                    selected=dependencies_rs.get()
+                                    multi_select=true
+                                    on_select=handle_select_dependencies_dropdown_option
+                                    on_remove=handle_remove_dependencies_dropdown_option
+                                />
+                            </div>
+                        }
+                    }}
+                </Suspense>
+
+                <Suspense fallback=move || {
+                    view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }
+                }>
+                    {move || {
+                        let mut functions = combined_resources
+                            .with(|c| c.as_ref().map(|c| c.functions.clone()))
+                            .unwrap_or_default();
+                        let mut validation_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
+                        let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                            "None".to_string(),
+                        ];
+                        functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
+                        functions
+                            .iter()
+                            .for_each(|ele| {
+                                if ele.function_type == FunctionType::Validation {
+                                    validation_function_names.push(ele.function_name.clone());
+                                } else {
+                                    autocomplete_function_names.push(ele.function_name.clone());
+                                }
+                            });
+                        view! {
+                            <div class="form-control">
+                                <Label
+                                    title="Validation Function"
+                                    description="Function to add validation logic to your dimension"
+                                />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=validation_fn_name_rs
+                                        .get()
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=validation_function_names
+                                    on_select=handle_validation_fn_select
+                                />
+                            </div>
+
+                            <div class="form-control">
+                                <Label
+                                    title="AutoComplete Function"
+                                    description="Function to add auto complete suggestion to your dimension"
+                                />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=autocomplete_fn_name_rs
+                                        .get()
+                                        .map_or("Add Function".to_string(), |v| v.to_string())
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=autocomplete_function_names
+                                    on_select=handle_autocomplete_fn_select
+                                />
+                            </div>
+                        }
+                    }}
+                </Suspense>
+                {move || {
+                    let loading = req_inprogess_rs.get();
+                    view! {
+                        <Button
+                            class="self-end h-12 w-48"
+                            text="Submit"
+                            icon_class="ri-send-plane-line"
+                            on_click=move |ev: MouseEvent| {
+                                ev.prevent_default();
+                                on_submit(());
+                            }
+                            loading
+                        />
+                    }
+                }}
+
+                <p class="text-red-500">{move || error_message.get()}</p>
+            </form>
+        </Suspense>
         {move || match update_request_rws.get() {
             None => ().into_view(),
             Some((dimension_name, update_request)) => {
