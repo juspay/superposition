@@ -95,6 +95,7 @@ from .deserialize import (
     _deserialize_update_type_templates,
     _deserialize_update_webhook,
     _deserialize_update_workspace,
+    _deserialize_update_workspace_database,
     _deserialize_weight_recompute,
 )
 from .models import (
@@ -262,6 +263,7 @@ from .models import (
     UPDATE_TYPE_TEMPLATES,
     UPDATE_WEBHOOK,
     UPDATE_WORKSPACE,
+    UPDATE_WORKSPACE_DATABASE,
     UpdateDefaultConfigInput,
     UpdateDefaultConfigOutput,
     UpdateDimensionInput,
@@ -280,6 +282,8 @@ from .models import (
     UpdateTypeTemplatesOutput,
     UpdateWebhookInput,
     UpdateWebhookOutput,
+    UpdateWorkspaceDatabaseInput,
+    UpdateWorkspaceDatabaseOutput,
     UpdateWorkspaceInput,
     UpdateWorkspaceOutput,
     WEIGHT_RECOMPUTE,
@@ -348,6 +352,7 @@ from .serialize import (
     _serialize_update_type_templates,
     _serialize_update_webhook,
     _serialize_update_workspace,
+    _serialize_update_workspace_database,
     _serialize_weight_recompute,
 )
 
@@ -1962,6 +1967,32 @@ class Superposition:
             deserialize=_deserialize_update_workspace,
             config=self._config,
             operation=UPDATE_WORKSPACE,
+        )
+
+    async def update_workspace_database(self, input: UpdateWorkspaceDatabaseInput, plugins: list[Plugin] | None = None) -> UpdateWorkspaceDatabaseOutput:
+        """
+        Invokes the UpdateWorkspaceDatabase operation.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_update_workspace_database,
+            deserialize=_deserialize_update_workspace_database,
+            config=self._config,
+            operation=UPDATE_WORKSPACE_DATABASE,
         )
 
     async def weight_recompute(self, input: WeightRecomputeInput, plugins: list[Plugin] | None = None) -> WeightRecomputeOutput:

@@ -155,6 +155,8 @@ pub(crate) mod shape_update_webhook;
 
 pub(crate) mod shape_update_workspace;
 
+pub(crate) mod shape_update_workspace_database;
+
 pub(crate) mod shape_weight_recompute;
 
 pub(crate) fn or_empty_doc(data: &[u8]) -> &[u8] {
