@@ -13,10 +13,10 @@ LINT_FLAGS := --workspace --all-targets $(addprefix --exclude ,$(EXCLUDE_PACKAGE
 # Get all workspace members and filter out excluded ones
 #
 define get_workspace_members
-cargo metadata --format-version 1 --no-deps | \
-jq -r '.workspace_members[]' | \
-awk -F '#' '{print $$1;}' | awk -F '/' '{print $$NF;}' | \
-grep -v -E '$(FMT_EXCLUDE_PACKAGES_REGEX)'
+	cargo metadata --format-version 1 --no-deps | \
+	jq -r '.workspace_members[]' | \
+	awk -F '#' '{print $$1;}' | awk -F '/' '{print $$NF;}' | \
+	grep -v -E '$(FMT_EXCLUDE_PACKAGES_REGEX)'
 endef
 
 WORKSPACE_MEMBERS := $(shell $(get_workspace_members))
