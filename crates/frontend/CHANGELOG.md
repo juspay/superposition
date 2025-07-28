@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.35.0 - 2025-07-28
+#### Features
+- Standalone page for dimensions, default-configs, type-templates, webhooks (#614) - (f2f7d1a) - Ayush Jain
+
+- - -
+
 ## frontend-v0.34.1 - 2025-07-24
 #### Bug Fixes
 - Change log related UX issues (#620) - (d888894) - Ayush Jain

@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.81.0 - 2025-07-28
+### Package updates
+- superposition_types bumped to superposition_types-v0.25.0
+- frontend bumped to frontend-v0.35.0
+- context_aware_config bumped to context_aware_config-v0.56.0
+- superposition_core bumped to superposition_core-v0.2.0
+### Global changes
+#### Bug Fixes
+- JS builds to include sdk and bindings (#612) - (3d0d458) - Datron
+- add juspay scope for typescript sdk package (#621) - (a2bd8e7) - sauraww
+- updated js patch file (#622) - (677cfdf) - sauraww
+- uncomment tag push in release.yaml - (c79370b) - datron
+#### Build system
+- use make functions instead of inline commands for wider compat… (#625) - (bb5e30b) - Natarajan Kannan
+#### Features
+- rust open-feature implementation (#597) - (e34dc64) - PRATIK MISHRA
+#### Miscellaneous Chores
+- **(deps-dev)** bump axios from 1.10.0 to 1.11.0 (#618) - (219d99a) - dependabot[bot]
+
+- - -
+
 ## v0.80.1 - 2025-07-24
 ### Package updates
 - superposition_types bumped to superposition_types-v0.24.1

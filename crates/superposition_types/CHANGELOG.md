@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.25.0 - 2025-07-28
+#### Features
+- Standalone page for dimensions, default-configs, type-templates, webhooks (#614) - (f2f7d1a) - Ayush Jain
+
+- - -
+
 ## superposition_types-v0.24.1 - 2025-07-24
 #### Bug Fixes
 - Dimension api types unification (#609) - (65e64a6) - Ayush Jain
