@@ -11,10 +11,15 @@ FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g"
 LINT_FLAGS := --workspace --all-targets $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
 
 # Get all workspace members and filter out excluded ones
-WORKSPACE_MEMBERS := $(shell cargo metadata --format-version 1 --no-deps | \
-	jq -r '.workspace_members[]' | \
-    awk -F '#' '{print $$1;}' | awk -F '/' '{print $$NF;}' | \
-    grep -v -E '$(FMT_EXCLUDE_PACKAGES_REGEX)')
+#
+define get_workspace_members
+cargo metadata --format-version 1 --no-deps | \
+jq -r '.workspace_members[]' | \
+awk -F '#' '{print $$1;}' | awk -F '/' '{print $$NF;}' | \
+grep -v -E '$(FMT_EXCLUDE_PACKAGES_REGEX)'
+endef
+
+WORKSPACE_MEMBERS := $(shell $(get_workspace_members))
 
 # Create the package flags for cargo fmt
 FMT_PACKAGE_FLAGS := $(addprefix -p ,$(WORKSPACE_MEMBERS))
@@ -134,7 +139,7 @@ setup-clients:
 	cd clients/javascript/sdk/test && bun install
 
 clients: smithy-clients setup-clients
-	
+
 kill:
 	-@pkill -f target/debug/superposition &
 
@@ -219,9 +224,9 @@ smithy-clients: smithy-build
 	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
 				clients/python/sdk
 	cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen/*\
-				clients/javascript/sdk 	
+				clients/javascript/sdk
 	cp -r $(SMITHY_BUILD_SRC)/rust-client-codegen/*\
-				crates/superposition_sdk		
+				crates/superposition_sdk
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
 		[[ "$$d" =~ "java" || "$$d" =~ "python" || "$$d" =~ "typescript" || "$$d" =~ "rust" ]] && continue; \
@@ -231,7 +236,7 @@ smithy-clients: smithy-build
 	done
 	git apply smithy/patches/*.patch
 
-	
+
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
