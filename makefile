@@ -6,7 +6,7 @@ TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 CARGO_FLAGS := --color always --no-default-features
-EXCLUDE_PACKAGES := superposition_core cac_toml experimentation_client_integration_example superposition_sdk
+EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
 
