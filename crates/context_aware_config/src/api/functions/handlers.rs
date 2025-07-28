@@ -49,21 +49,24 @@ async fn create(
 
     compile_fn(&req.function_type.get_js_fn_name(), &req.function)?;
 
+    let now = Utc::now();
     let function = Function {
         function_name: req.function_name.into(),
         draft_code: (req.function),
         draft_runtime_version: req.runtime_version,
         draft_edited_by: user.get_email(),
-        draft_edited_at: Utc::now(),
+        draft_edited_at: now,
         published_code: None,
         published_at: None,
         published_by: None,
         published_runtime_version: None,
         description: req.description,
-        last_modified_at: Utc::now(),
+        last_modified_at: now,
         last_modified_by: user.get_email(),
         change_reason: req.change_reason,
         function_type: req.function_type,
+        created_at: now,
+        created_by: user.get_email(),
     };
 
     let insert: Result<Function, diesel::result::Error> =

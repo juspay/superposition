@@ -683,6 +683,8 @@ diesel::table! {
         last_modified_by -> Varchar,
         change_reason -> Text,
         function_type -> FunctionTypes,
+        created_by -> Text,
+        created_at -> Timestamptz,
     }
 }
 

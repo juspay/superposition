@@ -1401,4 +1401,28 @@ ALTER TABLE localorg_test.experiment_groups ADD COLUMN IF NOT EXISTS buckets JSO
 
 ALTER TABLE localorg_test.experiment_groups ADD COLUMN IF NOT EXISTS group_type public.group_type DEFAULT 'USER_CREATED';
 
+ALTER TABLE localorg_dev.functions
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS created_by TEXT NOT NULL DEFAULT('NOT AVAILABLE');
+
+ALTER TABLE localorg_dev.functions ALTER COLUMN created_by DROP DEFAULT;
+
+UPDATE localorg_dev.functions SET created_at = last_modified_at WHERE created_at IS NULL;
+
+ALTER TABLE localorg_dev.functions
+ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN created_at SET NOT NULL;
+
+ALTER TABLE localorg_test.functions
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS created_by TEXT NOT NULL DEFAULT('NOT AVAILABLE');
+
+ALTER TABLE localorg_test.functions ALTER COLUMN created_by DROP DEFAULT;
+
+UPDATE localorg_test.functions SET created_at = last_modified_at WHERE created_at IS NULL;
+
+ALTER TABLE localorg_test.functions
+ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN created_at SET NOT NULL;
+
 COMMIT;

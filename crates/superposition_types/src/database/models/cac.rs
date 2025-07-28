@@ -180,6 +180,8 @@ pub struct Function {
     pub last_modified_by: String,
     pub change_reason: ChangeReason,
     pub function_type: FunctionType,
+    pub created_by: String,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
