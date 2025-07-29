@@ -1,8 +1,12 @@
 [package]
 name = "superposition_core"
-version = "0.2.0"
+version.workspace = true
 edition = "2021"
 description = "Core native library for Superposition FFI bindings"
+license-file = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+readme = "README.md"
 
 [dependencies]
 actix-web = { workspace = true }
@@ -17,7 +21,7 @@ reqwest = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-superposition_types = { path = "../superposition_types", features = ["experimentation", "api"] }
+superposition_types = { workspace = true, features = ["experimentation", "api"] }
 tokio = { version = "1.29.1", features = ["full"] }
 serde = { workspace = true }
 uniffi = { workspace = true }
