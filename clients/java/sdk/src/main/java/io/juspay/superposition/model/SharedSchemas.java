@@ -5,6 +5,7 @@ import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.LengthTrait;
+import software.amazon.smithy.model.traits.SparseTrait;
 import software.amazon.smithy.model.traits.TimestampFormatTrait;
 
 /**
@@ -14,6 +15,11 @@ final class SharedSchemas {
 
     static final Schema STRING_LIST = Schema.listBuilder(ShapeId.from("io.superposition#StringList"))
         .putMember("member", PreludeSchemas.STRING)
+        .build();
+
+    static final Schema BUCKETS = Schema.listBuilder(ShapeId.from("io.superposition#Buckets"),
+            new SparseTrait())
+        .putMember("member", Bucket.$SCHEMA)
         .build();
 
     static final Schema CONDITION = Schema.mapBuilder(ShapeId.from("io.superposition#Condition"))

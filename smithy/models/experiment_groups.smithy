@@ -17,6 +17,23 @@ enum ExperimentGroupSortOn {
 @error("client")
 structure ExperimentGroupNotFound {}
 
+enum GroupType {
+    USER_CREATED
+    SYSTEM_GENERATED
+}
+
+structure Bucket {
+    @required
+    experiment_id: String
+
+    @required
+    variant_id: String
+}
+
+@sparse
+list Buckets {
+    member: Bucket
+}
 
 @documentation("Represents a group of experiments that can be managed together.")
 resource ExperimentGroup {
@@ -37,6 +54,8 @@ resource ExperimentGroup {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
+        buckets: Buckets,
+        group_type: GroupType,
     }
     operations: [
         ListExperimentGroups,
@@ -87,6 +106,12 @@ structure ExperimentGroupResponse for ExperimentGroup {
 
     @required
     $last_modified_by
+
+    @required
+    $buckets
+
+    @required
+    $group_type
 }
 
 @documentation("Input structure for creating a new experiment group.")
@@ -262,6 +287,10 @@ operation ListExperimentGroups {
         @documentation("If true, returns all experiment groups, ignoring pagination parameters page and count.")
         @notProperty
         all: Boolean
+
+        @httpQuery("group_type")
+        @documentation("Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).")
+        group_type: GroupType
     }
     output: ListExperimentGroupsResponse
 }

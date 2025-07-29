@@ -175,6 +175,11 @@ fn uri_query(_input: &crate::operation::list_experiment_groups::ListExperimentGr
             query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_8).encode());
         }
     }
+    if let ::std::option::Option::Some(inner_9) = &_input.group_type {
+         {
+            query.push_kv("group_type", &::aws_smithy_http::query::fmt_string(inner_9));
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

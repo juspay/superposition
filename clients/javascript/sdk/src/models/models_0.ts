@@ -4,6 +4,27 @@ import { ExceptionOptionType as __ExceptionOptionType } from "@smithy/smithy-cli
 import { DocumentType as __DocumentType } from "@smithy/types";
 
 /**
+ * @public
+ */
+export interface Bucket {
+  experiment_id: string | undefined;
+  variant_id: string | undefined;
+}
+
+/**
+ * @public
+ * @enum
+ */
+export const GroupType = {
+  SYSTEM_GENERATED: "SYSTEM_GENERATED",
+  USER_CREATED: "USER_CREATED",
+} as const
+/**
+ * @public
+ */
+export type GroupType = typeof GroupType[keyof typeof GroupType]
+
+/**
  * Standard response structure for an experiment group.
  * @public
  */
@@ -20,6 +41,8 @@ export interface ExperimentGroupResponse {
   created_by: string | undefined;
   last_modified_at: Date | undefined;
   last_modified_by: string | undefined;
+  buckets: (Bucket)[] | undefined;
+  group_type: GroupType | undefined;
 }
 
 /**
@@ -88,7 +111,7 @@ export interface ApplicableVariantsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   context: Record<string, __DocumentType> | undefined;
-  toss: number | undefined;
+  identifier: string | undefined;
 }
 
 /**
@@ -1459,6 +1482,12 @@ export interface ListExperimentGroupsInput {
    * @public
    */
   all?: boolean | undefined;
+
+  /**
+   * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+   * @public
+   */
+  group_type?: GroupType | undefined;
 }
 
 /**

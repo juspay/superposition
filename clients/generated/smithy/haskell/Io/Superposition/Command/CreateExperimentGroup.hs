@@ -20,8 +20,10 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified Io.Superposition.Model.Bucket
 import qualified Io.Superposition.Model.CreateExperimentGroupInput
 import qualified Io.Superposition.Model.CreateExperimentGroupOutput
+import qualified Io.Superposition.Model.GroupType
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
@@ -115,6 +117,55 @@ deserializeResponse response = do
                 Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
         
     
+    bucketsDocumentE :: [] Io.Superposition.Model.Bucket.Bucket <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "buckets") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    descriptionDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "description") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    created_atDocumentE :: Data.Time.UTCTime <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "created_at") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    last_modified_byDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "last_modified_by") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    group_typeDocumentE :: Io.Superposition.Model.GroupType.GroupType <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "group_type") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    created_byDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "created_by") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    last_modified_atDocumentE :: Data.Time.UTCTime <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "last_modified_at") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     change_reasonDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "change_reason") responseObject
         Data.Function.& \case
@@ -150,22 +201,8 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
-    descriptionDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "description") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
     member_experiment_idsDocumentE :: [] Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "member_experiment_ids") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
-    created_atDocumentE :: Data.Time.UTCTime <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "created_at") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -178,40 +215,21 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
-    last_modified_byDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "last_modified_by") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
-    created_byDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "created_by") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
-    last_modified_atDocumentE :: Data.Time.UTCTime <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "last_modified_at") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
     Io.Superposition.Model.CreateExperimentGroupOutput.build $ do
+        Io.Superposition.Model.CreateExperimentGroupOutput.setBuckets bucketsDocumentE
+        Io.Superposition.Model.CreateExperimentGroupOutput.setDescription descriptionDocumentE
+        Io.Superposition.Model.CreateExperimentGroupOutput.setCreatedAt created_atDocumentE
+        Io.Superposition.Model.CreateExperimentGroupOutput.setLastModifiedBy last_modified_byDocumentE
+        Io.Superposition.Model.CreateExperimentGroupOutput.setGroupType group_typeDocumentE
+        Io.Superposition.Model.CreateExperimentGroupOutput.setCreatedBy created_byDocumentE
+        Io.Superposition.Model.CreateExperimentGroupOutput.setLastModifiedAt last_modified_atDocumentE
         Io.Superposition.Model.CreateExperimentGroupOutput.setChangeReason change_reasonDocumentE
         Io.Superposition.Model.CreateExperimentGroupOutput.setContextHash context_hashDocumentE
         Io.Superposition.Model.CreateExperimentGroupOutput.setTrafficPercentage traffic_percentageDocumentE
         Io.Superposition.Model.CreateExperimentGroupOutput.setName nameDocumentE
         Io.Superposition.Model.CreateExperimentGroupOutput.setContext contextDocumentE
-        Io.Superposition.Model.CreateExperimentGroupOutput.setDescription descriptionDocumentE
         Io.Superposition.Model.CreateExperimentGroupOutput.setMemberExperimentIds member_experiment_idsDocumentE
-        Io.Superposition.Model.CreateExperimentGroupOutput.setCreatedAt created_atDocumentE
         Io.Superposition.Model.CreateExperimentGroupOutput.setId' id'DocumentE
-        Io.Superposition.Model.CreateExperimentGroupOutput.setLastModifiedBy last_modified_byDocumentE
-        Io.Superposition.Model.CreateExperimentGroupOutput.setCreatedBy created_byDocumentE
-        Io.Superposition.Model.CreateExperimentGroupOutput.setLastModifiedAt last_modified_atDocumentE
     
     where
         headers = Network.HTTP.Client.responseHeaders response

@@ -55,6 +55,10 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("last_modified_by", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("buckets", SharedSchemas.BUCKETS,
+                new RequiredTrait())
+        .putMember("group_type", GroupType.$SCHEMA,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
@@ -69,6 +73,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_AT = $SCHEMA.member("last_modified_at");
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
+    private static final Schema $SCHEMA_BUCKETS = $SCHEMA.member("buckets");
+    private static final Schema $SCHEMA_GROUP_TYPE = $SCHEMA.member("group_type");
 
     private final transient String id;
     private final transient String contextHash;
@@ -82,6 +88,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
     private final transient String createdBy;
     private final transient Instant lastModifiedAt;
     private final transient String lastModifiedBy;
+    private final transient List<Bucket> buckets;
+    private final transient GroupType groupType;
 
     private DeleteExperimentGroupOutput(Builder builder) {
         this.id = builder.id;
@@ -96,6 +104,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
         this.createdBy = builder.createdBy;
         this.lastModifiedAt = builder.lastModifiedAt;
         this.lastModifiedBy = builder.lastModifiedBy;
+        this.buckets = Collections.unmodifiableList(builder.buckets);
+        this.groupType = builder.groupType;
     }
 
     public String id() {
@@ -154,6 +164,18 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
         return lastModifiedBy;
     }
 
+    public List<Bucket> buckets() {
+        return buckets;
+    }
+
+    public boolean hasBuckets() {
+        return true;
+    }
+
+    public GroupType groupType() {
+        return groupType;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -179,12 +201,14 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
                && Objects.equals(this.createdAt, that.createdAt)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedAt, that.lastModifiedAt)
-               && Objects.equals(this.lastModifiedBy, that.lastModifiedBy);
+               && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
+               && Objects.equals(this.buckets, that.buckets)
+               && Objects.equals(this.groupType, that.groupType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, contextHash, name, description, changeReason, context, trafficPercentage, memberExperimentIds, createdAt, createdBy, lastModifiedAt, lastModifiedBy);
+        return Objects.hash(id, contextHash, name, description, changeReason, context, trafficPercentage, memberExperimentIds, createdAt, createdBy, lastModifiedAt, lastModifiedBy, buckets, groupType);
     }
 
     @Override
@@ -206,6 +230,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED_AT, lastModifiedAt);
         serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
+        serializer.writeList($SCHEMA_BUCKETS, buckets, buckets.size(), SharedSerde.BucketsSerializer.INSTANCE);
+        serializer.writeString($SCHEMA_GROUP_TYPE, groupType.value());
     }
 
     @Override
@@ -224,6 +250,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, lastModifiedAt);
             case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_BUCKETS, member, buckets);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, groupType);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -249,6 +277,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
         builder.createdBy(this.createdBy);
         builder.lastModifiedAt(this.lastModifiedAt);
         builder.lastModifiedBy(this.lastModifiedBy);
+        builder.buckets(this.buckets);
+        builder.groupType(this.groupType);
         return builder;
     }
 
@@ -276,6 +306,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
         private String createdBy;
         private Instant lastModifiedAt;
         private String lastModifiedBy;
+        private List<Bucket> buckets;
+        private GroupType groupType;
 
         private Builder() {}
 
@@ -404,6 +436,26 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder buckets(List<Bucket> buckets) {
+            this.buckets = Objects.requireNonNull(buckets, "buckets cannot be null");
+            tracker.setMember($SCHEMA_BUCKETS);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder groupType(GroupType groupType) {
+            this.groupType = Objects.requireNonNull(groupType, "groupType cannot be null");
+            tracker.setMember($SCHEMA_GROUP_TYPE);
+            return this;
+        }
+
         @Override
         public DeleteExperimentGroupOutput build() {
             tracker.validate();
@@ -426,6 +478,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
                 case 9 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
                 case 10 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
                 case 11 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 12 -> buckets((List<Bucket>) SchemaUtils.validateSameMember($SCHEMA_BUCKETS, member, value));
+                case 13 -> groupType((GroupType) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -471,6 +525,12 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_LAST_MODIFIED_BY)) {
                 lastModifiedBy("");
             }
+            if (!tracker.checkMember($SCHEMA_BUCKETS)) {
+                buckets(Collections.emptyList());
+            }
+            if (!tracker.checkMember($SCHEMA_GROUP_TYPE)) {
+                groupType(GroupType.unknown(""));
+            }
             return this;
         }
 
@@ -504,6 +564,8 @@ public final class DeleteExperimentGroupOutput implements SerializableStruct {
                     case 9 -> builder.createdBy(de.readString(member));
                     case 10 -> builder.lastModifiedAt(de.readTimestamp(member));
                     case 11 -> builder.lastModifiedBy(de.readString(member));
+                    case 12 -> builder.buckets(SharedSerde.deserializeBuckets(member, de));
+                    case 13 -> builder.groupType(GroupType.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -22,6 +22,8 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::created_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::last_modified_at): (undocumented)
     ///   - [`last_modified_by(String)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::last_modified_by): (undocumented)
+    ///   - [`buckets(Vec::<Option<Bucket>>)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::buckets): (undocumented)
+    ///   - [`group_type(GroupType)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::group_type): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateExperimentGroupError>`](crate::operation::update_experiment_group::UpdateExperimentGroupError)
     pub fn update_experiment_group(&self) -> crate::operation::update_experiment_group::builders::UpdateExperimentGroupFluentBuilder {
                                 crate::operation::update_experiment_group::builders::UpdateExperimentGroupFluentBuilder::new(self.handle.clone())

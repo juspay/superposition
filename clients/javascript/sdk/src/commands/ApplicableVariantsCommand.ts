@@ -49,7 +49,7 @@ export interface ApplicableVariantsCommandOutput extends ApplicableVariantsOutpu
  *   context: { // Condition // required
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
- *   toss: Number("int"), // required
+ *   identifier: "STRING_VALUE", // required
  * };
  * const command = new ApplicableVariantsCommand(input);
  * const response = await client.send(command);

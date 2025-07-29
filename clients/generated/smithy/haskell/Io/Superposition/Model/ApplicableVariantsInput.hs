@@ -2,14 +2,14 @@ module Io.Superposition.Model.ApplicableVariantsInput (
     setWorkspaceId,
     setOrgId,
     setContext,
-    setToss,
+    setIdentifier,
     build,
     ApplicableVariantsInputBuilder,
     ApplicableVariantsInput,
     workspace_id,
     org_id,
     context,
-    toss
+    identifier
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -27,7 +27,7 @@ data ApplicableVariantsInput = ApplicableVariantsInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
     context :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
-    toss :: Integer
+    identifier :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -39,7 +39,7 @@ instance Data.Aeson.ToJSON ApplicableVariantsInput where
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
         "context" Data.Aeson..= context a,
-        "toss" Data.Aeson..= toss a
+        "identifier" Data.Aeson..= identifier a
         ]
     
 
@@ -49,7 +49,7 @@ instance Data.Aeson.FromJSON ApplicableVariantsInput where
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "context")
-        Control.Applicative.<*> (v Data.Aeson..: "toss")
+        Control.Applicative.<*> (v Data.Aeson..: "identifier")
     
 
 
@@ -58,7 +58,7 @@ data ApplicableVariantsInputBuilderState = ApplicableVariantsInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    tossBuilderState :: Data.Maybe.Maybe Integer
+    identifierBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -68,7 +68,7 @@ defaultBuilderState = ApplicableVariantsInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing,
-    tossBuilderState = Data.Maybe.Nothing
+    identifierBuilderState = Data.Maybe.Nothing
 }
 
 newtype ApplicableVariantsInputBuilder a = ApplicableVariantsInputBuilder {
@@ -104,9 +104,9 @@ setContext :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> ApplicableVariants
 setContext value =
    ApplicableVariantsInputBuilder (\s -> (s { contextBuilderState = Data.Maybe.Just value }, ()))
 
-setToss :: Integer -> ApplicableVariantsInputBuilder ()
-setToss value =
-   ApplicableVariantsInputBuilder (\s -> (s { tossBuilderState = Data.Maybe.Just value }, ()))
+setIdentifier :: Data.Text.Text -> ApplicableVariantsInputBuilder ()
+setIdentifier value =
+   ApplicableVariantsInputBuilder (\s -> (s { identifierBuilderState = Data.Maybe.Just value }, ()))
 
 build :: ApplicableVariantsInputBuilder () -> Data.Either.Either Data.Text.Text ApplicableVariantsInput
 build builder = do
@@ -114,12 +114,12 @@ build builder = do
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     context' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.context is a required property.") Data.Either.Right (contextBuilderState st)
-    toss' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.toss is a required property.") Data.Either.Right (tossBuilderState st)
+    identifier' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.identifier is a required property.") Data.Either.Right (identifierBuilderState st)
     Data.Either.Right (ApplicableVariantsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         context = context',
-        toss = toss'
+        identifier = identifier'
     })
 
 

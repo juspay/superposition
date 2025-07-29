@@ -229,7 +229,7 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
 
     @required
     @notProperty
-    toss: Integer
+    identifier: String
 }
 
 @httpError(404)

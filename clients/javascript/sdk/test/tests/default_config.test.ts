@@ -302,6 +302,7 @@ describe("Default Config API Integration Tests", () => {
             };
 
             const cmd = new CreateDefaultConfigCommand(input);
+            createdConfigs.push("test-key-3");
             let response = await superpositionClient.send(cmd);
             expect(response).toBeDefined();
             expect(response.autocomplete_function_name).toBe("auto_fn");

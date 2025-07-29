@@ -35,25 +35,25 @@ public final class ApplicableVariantsInput implements SerializableStruct {
                 new HttpHeaderTrait("x-org-id"))
         .putMember("context", SharedSchemas.CONDITION,
                 new RequiredTrait())
-        .putMember("toss", PreludeSchemas.INTEGER,
+        .putMember("identifier", PreludeSchemas.STRING,
                 new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
-    private static final Schema $SCHEMA_TOSS = $SCHEMA.member("toss");
+    private static final Schema $SCHEMA_IDENTIFIER = $SCHEMA.member("identifier");
 
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient Map<String, Document> context;
-    private final transient int toss;
+    private final transient String identifier;
 
     private ApplicableVariantsInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.context = Collections.unmodifiableMap(builder.context);
-        this.toss = builder.toss;
+        this.identifier = builder.identifier;
     }
 
     public String workspaceId() {
@@ -72,8 +72,8 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         return true;
     }
 
-    public int toss() {
-        return toss;
+    public String identifier() {
+        return identifier;
     }
 
     @Override
@@ -93,12 +93,12 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.context, that.context)
-               && this.toss == that.toss;
+               && Objects.equals(this.identifier, that.identifier);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, context, toss);
+        return Objects.hash(workspaceId, orgId, context, identifier);
     }
 
     @Override
@@ -111,7 +111,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ConditionSerializer.INSTANCE);
-        serializer.writeInteger($SCHEMA_TOSS, toss);
+        serializer.writeString($SCHEMA_IDENTIFIER, identifier);
     }
 
     @Override
@@ -120,7 +120,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_TOSS, member, toss);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, identifier);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
@@ -138,7 +138,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
         builder.context(this.context);
-        builder.toss(this.toss);
+        builder.identifier(this.identifier);
         return builder;
     }
 
@@ -158,7 +158,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         private String workspaceId;
         private String orgId = ORG_ID_DEFAULT;
         private Map<String, Document> context;
-        private int toss;
+        private String identifier;
 
         private Builder() {}
 
@@ -200,9 +200,9 @@ public final class ApplicableVariantsInput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder toss(int toss) {
-            this.toss = toss;
-            tracker.setMember($SCHEMA_TOSS);
+        public Builder identifier(String identifier) {
+            this.identifier = Objects.requireNonNull(identifier, "identifier cannot be null");
+            tracker.setMember($SCHEMA_IDENTIFIER);
             return this;
         }
 
@@ -218,7 +218,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-                case 2 -> toss((int) SchemaUtils.validateSameMember($SCHEMA_TOSS, member, value));
+                case 2 -> identifier((String) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, value));
                 case 3 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
@@ -235,8 +235,8 @@ public final class ApplicableVariantsInput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_CONTEXT)) {
                 context(Collections.emptyMap());
             }
-            if (!tracker.checkMember($SCHEMA_TOSS)) {
-                tracker.setMember($SCHEMA_TOSS);
+            if (!tracker.checkMember($SCHEMA_IDENTIFIER)) {
+                identifier("");
             }
             return this;
         }
@@ -261,7 +261,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.context(SharedSerde.deserializeCondition(member, de));
-                    case 2 -> builder.toss(de.readInteger(member));
+                    case 2 -> builder.identifier(de.readString(member));
                     case 3 -> builder.orgId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }

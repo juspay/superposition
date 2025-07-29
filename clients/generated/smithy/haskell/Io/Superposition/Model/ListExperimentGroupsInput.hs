@@ -9,6 +9,7 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
     setSortOn,
     setSortBy,
     setAll',
+    setGroupType,
     build,
     ListExperimentGroupsInputBuilder,
     ListExperimentGroupsInput,
@@ -21,7 +22,8 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
     last_modified_by,
     sort_on,
     sort_by,
-    all'
+    all',
+    group_type
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -35,6 +37,7 @@ import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Io.Superposition.Model.ExperimentGroupSortOn
+import qualified Io.Superposition.Model.GroupType
 import qualified Io.Superposition.Model.SortBy
 
 data ListExperimentGroupsInput = ListExperimentGroupsInput {
@@ -47,7 +50,8 @@ data ListExperimentGroupsInput = ListExperimentGroupsInput {
     last_modified_by :: Data.Maybe.Maybe Data.Text.Text,
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentGroupSortOn.ExperimentGroupSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    all' :: Data.Maybe.Maybe Bool
+    all' :: Data.Maybe.Maybe Bool,
+    group_type :: Data.Maybe.Maybe Io.Superposition.Model.GroupType.GroupType
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -65,7 +69,8 @@ instance Data.Aeson.ToJSON ListExperimentGroupsInput where
         "last_modified_by" Data.Aeson..= last_modified_by a,
         "sort_on" Data.Aeson..= sort_on a,
         "sort_by" Data.Aeson..= sort_by a,
-        "all" Data.Aeson..= all' a
+        "all" Data.Aeson..= all' a,
+        "group_type" Data.Aeson..= group_type a
         ]
     
 
@@ -82,6 +87,7 @@ instance Data.Aeson.FromJSON ListExperimentGroupsInput where
         Control.Applicative.<*> (v Data.Aeson..: "sort_on")
         Control.Applicative.<*> (v Data.Aeson..: "sort_by")
         Control.Applicative.<*> (v Data.Aeson..: "all")
+        Control.Applicative.<*> (v Data.Aeson..: "group_type")
     
 
 
@@ -96,7 +102,8 @@ data ListExperimentGroupsInputBuilderState = ListExperimentGroupsInputBuilderSta
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentGroupSortOn.ExperimentGroupSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    all'BuilderState :: Data.Maybe.Maybe Bool
+    all'BuilderState :: Data.Maybe.Maybe Bool,
+    group_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.GroupType.GroupType
 } deriving (
   GHC.Generics.Generic
   )
@@ -112,7 +119,8 @@ defaultBuilderState = ListExperimentGroupsInputBuilderState {
     last_modified_byBuilderState = Data.Maybe.Nothing,
     sort_onBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing,
-    all'BuilderState = Data.Maybe.Nothing
+    all'BuilderState = Data.Maybe.Nothing,
+    group_typeBuilderState = Data.Maybe.Nothing
 }
 
 newtype ListExperimentGroupsInputBuilder a = ListExperimentGroupsInputBuilder {
@@ -176,6 +184,10 @@ setAll' :: Data.Maybe.Maybe Bool -> ListExperimentGroupsInputBuilder ()
 setAll' value =
    ListExperimentGroupsInputBuilder (\s -> (s { all'BuilderState = value }, ()))
 
+setGroupType :: Data.Maybe.Maybe Io.Superposition.Model.GroupType.GroupType -> ListExperimentGroupsInputBuilder ()
+setGroupType value =
+   ListExperimentGroupsInputBuilder (\s -> (s { group_typeBuilderState = value }, ()))
+
 build :: ListExperimentGroupsInputBuilder () -> Data.Either.Either Data.Text.Text ListExperimentGroupsInput
 build builder = do
     let (st, _) = runListExperimentGroupsInputBuilder builder defaultBuilderState
@@ -189,6 +201,7 @@ build builder = do
     sort_on' <- Data.Either.Right (sort_onBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     all'' <- Data.Either.Right (all'BuilderState st)
+    group_type' <- Data.Either.Right (group_typeBuilderState st)
     Data.Either.Right (ListExperimentGroupsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -199,7 +212,8 @@ build builder = do
         last_modified_by = last_modified_by',
         sort_on = sort_on',
         sort_by = sort_by',
-        all' = all''
+        all' = all'',
+        group_type = group_type'
     })
 
 

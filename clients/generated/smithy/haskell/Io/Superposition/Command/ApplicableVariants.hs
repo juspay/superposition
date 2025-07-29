@@ -38,8 +38,8 @@ data ApplicableVariantsError =
 serApplicableVariantsPAYLOAD:: Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput -> Network.HTTP.Client.RequestBody
 serApplicableVariantsPAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
-        "context" Data.Aeson..= Io.Superposition.Model.ApplicableVariantsInput.context input,
-        "toss" Data.Aeson..= Io.Superposition.Model.ApplicableVariantsInput.toss input
+        "identifier" Data.Aeson..= Io.Superposition.Model.ApplicableVariantsInput.identifier input,
+        "context" Data.Aeson..= Io.Superposition.Model.ApplicableVariantsInput.context input
         ]
     
 
