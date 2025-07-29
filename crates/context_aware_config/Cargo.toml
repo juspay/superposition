@@ -1,6 +1,6 @@
 [package]
 name = "context_aware_config"
-version = "0.56.1"
+version.workspace = true
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -24,9 +24,9 @@ log = { workspace = true }
 num-bigint = "0.4"
 serde = { workspace = true }
 serde_json = { workspace = true }
-service_utils = { path = "../service_utils" }
-superposition_macros = { path = "../superposition_macros" }
-superposition_types = { path = "../superposition_types", features = [
+service_utils = { workspace = true }
+superposition_macros = { workspace = true }
+superposition_types = { workspace = true, features = [
     "api",
     "result",
     "diesel_derives",

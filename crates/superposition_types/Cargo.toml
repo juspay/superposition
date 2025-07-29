@@ -1,7 +1,12 @@
 [package]
 name = "superposition_types"
-version = "0.26.1"
+version.workspace = true
 edition = "2021"
+license-file = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+readme = "README.md"
+description = "Types, type aliases and diesel ORM definitions for superposition"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -25,7 +30,7 @@ serde_json = { workspace = true }
 serde_urlencoded = { version = "0.7.1" }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-superposition_derives = { path = "../superposition_derives" }
+superposition_derives = { workspace = true }
 thiserror = { version = "1.0.57", optional = true }
 uuid = { workspace = true }
 uniffi = { workspace = true }

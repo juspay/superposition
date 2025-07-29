@@ -31,9 +31,10 @@
         },
         "service": "io.superposition#Superposition",
         "module": "superposition_sdk",
-        "moduleVersion": "0.0.1",
-        "moduleDescription": "test",
-        "moduleAuthors": ["protocoltest@example.com"]
+        "moduleVersion": "0.1.0",
+        "moduleDescription": "Rust SDK to work with Superposition",
+        "moduleAuthors": ["superposition@juspay.in"],
+        "moduleRepository": "https://github.com/juspay/superposition"
     },
     "typescript-client-codegen": {
       "package": "@juspay/superposition-sdk",
