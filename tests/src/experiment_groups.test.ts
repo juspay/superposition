@@ -55,27 +55,27 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-        {
-            name: "os",
-            schema: { type: "string", enum: ["ios", "android", "web"] },
-            description: "OS dimension from experiments.test",
-        },
-        {
-            name: "clientId",
-            schema: { type: "string" },
-            description: "Client ID from experiments.test",
-        },
-        {
-            name: "app_version",
-            schema: { type: "string" },
-            description: "App version for superset context",
-        },
-        {
-            name: "device_specific_id",
-            schema: { type: "string" },
-            description: "Dimension for invalid context conflict",
-        },
-    ];
+            {
+                name: "os",
+                schema: { type: "string", enum: ["ios", "android", "web"] },
+                description: "OS dimension from experiments.test",
+            },
+            {
+                name: "clientId",
+                schema: { type: "string" },
+                description: "Client ID from experiments.test",
+            },
+            {
+                name: "app_version",
+                schema: { type: "string" },
+                description: "App version for superset context",
+            },
+            {
+                name: "device_specific_id",
+                schema: { type: "string" },
+                description: "Dimension for invalid context conflict",
+            },
+        ];
 
     // Define default configs based on experiments.test.ts
     const defaultConfigsToEnsure: {
@@ -84,19 +84,19 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-        {
-            key: "pmTestKey1",
-            value: "default_group_val_1",
-            schema: { type: "string" },
-            description: "Default for pmTestKey1 (group tests)",
-        },
-        {
-            key: "pmTestKey2",
-            value: "default_group_val_2",
-            schema: { type: "string" },
-            description: "Default for pmTestKey2 (group tests)",
-        },
-    ];
+            {
+                key: "pmTestKey1",
+                value: "default_group_val_1",
+                schema: { type: "string" },
+                description: "Default for pmTestKey1 (group tests)",
+            },
+            {
+                key: "pmTestKey2",
+                value: "default_group_val_2",
+                schema: { type: "string" },
+                description: "Default for pmTestKey2 (group tests)",
+            },
+        ];
 
     // Contexts using the ensured dimensions
     const groupContext = {
