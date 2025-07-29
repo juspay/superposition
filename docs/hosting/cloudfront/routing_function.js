@@ -8,6 +8,7 @@ function handler(event) {
   var newUri = uri;
   var newUrl;
 
+
   // Example: Redirect www.example.com to example.com
     if (uri.startsWith(prefix + '/superposition/docs')) {
         newUri = uri.substring(prefix.length); // Remove prefix
@@ -24,8 +25,7 @@ function handler(event) {
         return response;
     }
 
-  newUri = newUri.replace(/^(\/open-source)?(\/superposition\/docs\/.*)$/, '$2');
-
+  // implies all urls are now /superposition/docs - just add the trailing slash if missing
   if (!newUri.endsWith('/')) {
       newUri += '/';
   }
