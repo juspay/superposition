@@ -7,10 +7,7 @@ monorepo_version_separator = "-"
 
 pre_bump_hooks = []
 
-pre_package_bump_hooks = [
-  "echo 'upgrading {{package}}' to {{version}}",
-  "cargo set-version --package {{package}} {{version}}",
-]
+pre_package_bump_hooks = []
 
 post_package_bump_hooks = []
 
@@ -29,12 +26,14 @@ context_aware_config = { path = "crates/context_aware_config" }
 experimentation_platform = { path = "crates/experimentation_platform" }
 service_utils = { path = "crates/service_utils" }
 frontend = { path = "crates/frontend" }
-cac_toml = { path = "crates/cac_toml" }
-cac_client = { path = "crates/cac_client" }
-experimentation_client = { path = "crates/experimentation_client" }
+cac_toml = { path = "crates/cac_toml", public_api = false }
+cac_client = { path = "crates/cac_client", public_api = false }
+experimentation_client = { path = "crates/experimentation_client", public_api = false }
 superposition_types = { path = "crates/superposition_types" }
-js_client = { path = "clients/javascript-browser" }
-haskell_client = { path = "clients/haskell" }
+js_client = { path = "clients/javascript-browser", public_api = false }
+haskell_client = { path = "clients/haskell", public_api = false }
 superposition_macros = { path = "crates/superposition_macros" }
 superposition_derives = { path = "crates/superposition_derives" }
 superposition_core = { path = "crates/superposition_core" }
+superposition_provider = { path = "crates/superposition_provider" }
+superposition_sdk = { path = "crates/superposition_sdk" }
