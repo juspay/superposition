@@ -11,6 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             contents: write
+            id-token: write
         outputs:
             version: ${{ steps.git_tag.outputs.version }}
         steps:
@@ -19,7 +20,7 @@ jobs:
               with:
                   fetch-depth: 0
                   token: ${{ secrets.SUPERPOSITION_TOKEN }}
-
+            
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
@@ -38,7 +39,7 @@ jobs:
               with:
                   crate: cocogitto
                   version: "6.2.0"
-            
+
             - name: Semver release
               shell: bash
               run: |
@@ -46,24 +47,38 @@ jobs:
                   git config user.name "Superposition Bot"
                   cog bump --auto --skip-ci-override "[skip ci]"
 
-            - name: Push code to main
-              shell: bash
-              run: |
-                  git push origin main
-                  git push origin --tags
-
             - name: Set latest tag
               id: git_tag
               shell: bash
               run: |
                   version=`git tag -l --sort=-creatordate | grep "^v" | head -n 1 | sed 's/^v//'`
                   echo "version=$version" >> $GITHUB_OUTPUT
+            
+            - name: Set the tag version to all crates
+              run: |
+                  cargo set-version --workspace ${{ steps.git_tag.outputs.version }}
+                  cargo upgrade --package superposition_types@${{ steps.git_tag.outputs.version }}
+                  cargo upgrade --package superposition_derives@${{ steps.git_tag.outputs.version }}
+                  cargo upgrade --package superposition_macros@${{ steps.git_tag.outputs.version }}
+                  cargo upgrade --package superposition_core@${{ steps.git_tag.outputs.version }}
+                  cargo upgrade --package superposition_provider@${{ steps.git_tag.outputs.version }}
+                  cargo upgrade --package superposition_sdk@${{ steps.git_tag.outputs.version }}
+                  cargo upgrade --package service_utils@${{ steps.git_tag.outputs.version }}
+                  git add .
+                  git commit --amend --no-edit
+            
+            - name: Push code to main
+              shell: bash
+              run: |
+                  git push origin main
+                  git push origin --tags
 
     docker-build:
         needs: tag-release
         permissions:
             contents: read
             packages: write
+        if: github.ref == 'refs/heads/main'
         strategy:
             max-parallel: 5
             matrix:
@@ -104,6 +119,7 @@ jobs:
         permissions:
             contents: read
             packages: write
+        if: github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
@@ -134,6 +150,7 @@ jobs:
         permissions:
             contents: read
             packages: write
+        if: github.ref == 'refs/heads/main'
         strategy:
             max-parallel: 5
             matrix:
@@ -175,6 +192,7 @@ jobs:
         permissions:
             contents: read
             packages: write
+        if: github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
@@ -202,6 +220,7 @@ jobs:
 
     generate-rust-binary:
         needs: tag-release
+        if: github.ref == 'refs/heads/main'
         strategy:
             max-parallel: 5
             matrix:
@@ -266,6 +285,7 @@ jobs:
         permissions:
             contents: read
             id-token: write
+        if: github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
@@ -390,6 +410,7 @@ jobs:
 
     generate-python-packages:
         needs: [tag-release, generate-rust-binary]
+        if: github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -514,6 +535,7 @@ jobs:
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
+        if: github.ref == 'refs/heads/main'
         permissions:
             contents: read
             id-token: write
@@ -541,7 +563,7 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: "20.0.0"
-            
+
             - name: Configure CodeArtifact for npm
               run: |
                   aws codeartifact login --tool npm --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY
@@ -588,17 +610,51 @@ jobs:
                   ls -la clients/javascript/bindings/native-lib
 
             - run: |
-                cd clients/javascript
-                npm ci
-                npm publish --access public --scope @juspay --workspace bindings --workspace sdk --workspace open-feature-provider
+                  cd clients/javascript
+                  npm ci
+                  npm publish --access public --scope @juspay --workspace bindings --workspace sdk --workspace open-feature-provider
               env:
                   CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
                   CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
 
+    generate-rust-packages:
+        needs: tag-release
+        permissions:
+            contents: read
+            id-token: write
+        runs-on: ubuntu-latest
+        env:
+            VERSION: ${{ needs.tag-release.outputs.version }}
+        steps:
+            
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.86.0
+                  targets: wasm32-unknown-unknown
+                  components: rustfmt, clippy, cargo
+
+            - name: Build and package superposition
+              run: |
+                  cargo login ${{ secrets.CRATES_IO_TOKEN }}
+                  cargo publish --package superposition_derives 
+                  cargo publish --package superposition_sdk
+                  cargo publish --package superposition_types
+                  cargo publish --package superposition_core
+                  cargo publish --package superposition_provider
+            
+            
+
     release:
         needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
