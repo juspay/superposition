@@ -28,6 +28,10 @@ pub struct UpdateExperimentGroupOutput  {
     pub last_modified_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
+    #[allow(missing_docs)] // documentation missing in model
+    pub buckets: ::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub group_type: crate::types::GroupType,
 }
 impl  UpdateExperimentGroupOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -78,6 +82,14 @@ impl  UpdateExperimentGroupOutput  {
     pub fn last_modified_by(&self) -> &str {
         use std::ops::Deref; self.last_modified_by.deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn buckets(&self) -> &[::std::option::Option<crate::types::Bucket>] {
+        use std::ops::Deref; self.buckets.deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn group_type(&self) -> &crate::types::GroupType {
+        &self.group_type
+    }
 }
 impl UpdateExperimentGroupOutput {
     /// Creates a new builder-style object to manufacture [`UpdateExperimentGroupOutput`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput).
@@ -102,6 +114,8 @@ pub struct UpdateExperimentGroupOutputBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
+    pub(crate) buckets: ::std::option::Option<::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>>,
+    pub(crate) group_type: ::std::option::Option<crate::types::GroupType>,
 }
 impl UpdateExperimentGroupOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -280,6 +294,38 @@ impl UpdateExperimentGroupOutputBuilder {
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.last_modified_by
     }
+    /// Appends an item to `buckets`.
+    ///
+    /// To override the contents of this collection use [`set_buckets`](Self::set_buckets).
+    ///
+    pub fn buckets(mut self, input: ::std::option::Option<crate::types::Bucket>) -> Self {
+        let mut v = self.buckets.unwrap_or_default();
+                        v.push(input);
+                        self.buckets = ::std::option::Option::Some(v);
+                        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_buckets(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>>) -> Self {
+        self.buckets = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_buckets(&self) -> &::std::option::Option<::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>> {
+        &self.buckets
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
+        self.group_type = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_group_type(mut self, input: ::std::option::Option<crate::types::GroupType>) -> Self {
+        self.group_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_group_type(&self) -> &::std::option::Option<crate::types::GroupType> {
+        &self.group_type
+    }
     /// Consumes the builder and constructs a [`UpdateExperimentGroupOutput`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::id)
@@ -294,6 +340,8 @@ impl UpdateExperimentGroupOutputBuilder {
     /// - [`created_by`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::created_by)
     /// - [`last_modified_at`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::last_modified_at)
     /// - [`last_modified_by`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::last_modified_by)
+    /// - [`buckets`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::buckets)
+    /// - [`group_type`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::group_type)
     pub fn build(self) -> ::std::result::Result<crate::operation::update_experiment_group::UpdateExperimentGroupOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::update_experiment_group::UpdateExperimentGroupOutput {
@@ -355,6 +403,16 @@ impl UpdateExperimentGroupOutputBuilder {
                 last_modified_by: self.last_modified_by
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_by", "last_modified_by was not specified but it is required when building UpdateExperimentGroupOutput")
+                    )?
+                ,
+                buckets: self.buckets
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("buckets", "buckets was not specified but it is required when building UpdateExperimentGroupOutput")
+                    )?
+                ,
+                group_type: self.group_type
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("group_type", "group_type was not specified but it is required when building UpdateExperimentGroupOutput")
                     )?
                 ,
             }

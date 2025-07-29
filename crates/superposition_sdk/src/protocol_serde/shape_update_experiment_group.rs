@@ -105,6 +105,11 @@ pub(crate) fn de_update_experiment_group(value: &[u8], mut builder: crate::opera
             Some(::aws_smithy_json::deserialize::Token::EndObject { .. }) => break,
                                     Some(::aws_smithy_json::deserialize::Token::ObjectKey { key, .. }) => {
                 match key.to_unescaped()?.as_ref() {
+                    "buckets" => {
+                        builder = builder.set_buckets(
+                            crate::protocol_serde::shape_buckets::de_buckets(tokens)?
+                        );
+                    }
                     "change_reason" => {
                         builder = builder.set_change_reason(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -147,6 +152,15 @@ pub(crate) fn de_update_experiment_group(value: &[u8], mut builder: crate::opera
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
                                     u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "group_type" => {
+                        builder = builder.set_group_type(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    crate::types::GroupType::from(u.as_ref())
                                 )
                             ).transpose()?
                         );

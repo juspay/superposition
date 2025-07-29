@@ -987,6 +987,41 @@ final class SharedSerde {
         }
     }
 
+    static final class BucketsSerializer implements BiConsumer<List<Bucket>, ShapeSerializer> {
+        static final BucketsSerializer INSTANCE = new BucketsSerializer();
+
+        @Override
+        public void accept(List<Bucket> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                if (value == null) {
+                    serializer.writeNull(SharedSchemas.BUCKETS.listMember());
+                    continue;
+                }
+                serializer.writeStruct(SharedSchemas.BUCKETS.listMember(), value);
+            }
+        }
+    }
+
+    static List<Bucket> deserializeBuckets(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<Bucket> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, Buckets$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class Buckets$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<Bucket>> {
+        static final Buckets$MemberDeserializer INSTANCE = new Buckets$MemberDeserializer();
+
+        @Override
+        public void accept(List<Bucket> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+                state.add(deserializer.readNull());
+                return;
+            }
+            state.add(Bucket.builder().deserializeMember(deserializer, SharedSchemas.BUCKETS.listMember()).build());
+        }
+    }
+
     static final class StringListSerializer implements BiConsumer<List<String>, ShapeSerializer> {
         static final StringListSerializer INSTANCE = new StringListSerializer();
 

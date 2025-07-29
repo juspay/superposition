@@ -21,6 +21,8 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::created_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::last_modified_at): (undocumented)
     ///   - [`last_modified_by(String)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::last_modified_by): (undocumented)
+    ///   - [`buckets(Vec::<Option<Bucket>>)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::buckets): (undocumented)
+    ///   - [`group_type(GroupType)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::group_type): (undocumented)
                             /// - On failure, responds with [`SdkError<AddMembersToGroupError>`](crate::operation::add_members_to_group::AddMembersToGroupError)
     pub fn add_members_to_group(&self) -> crate::operation::add_members_to_group::builders::AddMembersToGroupFluentBuilder {
                                 crate::operation::add_members_to_group::builders::AddMembersToGroupFluentBuilder::new(self.handle.clone())

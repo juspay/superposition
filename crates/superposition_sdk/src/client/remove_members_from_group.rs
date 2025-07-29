@@ -21,6 +21,8 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::created_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::last_modified_at): (undocumented)
     ///   - [`last_modified_by(String)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::last_modified_by): (undocumented)
+    ///   - [`buckets(Vec::<Option<Bucket>>)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::buckets): (undocumented)
+    ///   - [`group_type(GroupType)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::group_type): (undocumented)
                             /// - On failure, responds with [`SdkError<RemoveMembersFromGroupError>`](crate::operation::remove_members_from_group::RemoveMembersFromGroupError)
     pub fn remove_members_from_group(&self) -> crate::operation::remove_members_from_group::builders::RemoveMembersFromGroupFluentBuilder {
                                 crate::operation::remove_members_from_group::builders::RemoveMembersFromGroupFluentBuilder::new(self.handle.clone())

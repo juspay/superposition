@@ -1,9 +1,11 @@
-use std::{fmt::Display, str::FromStr};
+use std::{collections::HashSet, fmt::Display, str::FromStr};
+use strum::IntoEnumIterator;
 
 use leptos::*;
 use superposition_types::{
     api::experiment_groups::ExpGroupFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
+    database::models::experimentation::GroupType,
 };
 use web_sys::MouseEvent;
 
@@ -134,6 +136,22 @@ pub(super) fn experiment_group_filter_widget(
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
 
+    let group_type_management = move |checked: bool, group_type: GroupType| {
+        filters_buffer_rws.update(|f| {
+            let group_types = f.group_type.clone().map(|s| s.0).unwrap_or_default();
+            let mut old_group_vector: HashSet<GroupType> =
+                HashSet::from_iter(group_types);
+
+            if checked {
+                old_group_vector.insert(group_type);
+            } else {
+                old_group_vector.remove(&group_type);
+            }
+            let new_group_vector = old_group_vector.into_iter().collect();
+            f.group_type = Some(CommaSeparatedQParams(new_group_vector))
+        })
+    };
+
     view! {
         <DrawerBtn
             drawer_id="experiment_group_filter_drawer"
@@ -201,6 +219,42 @@ pub(super) fn experiment_group_filter_widget(
                                 .update(|filter| filter.last_modified_by = last_modified_by);
                         }
                     />
+                </div>
+                <div class="form-control w-full">
+                    <Label title="Group Type" />
+                    <div class="flex flex-row flex-wrap justify-start gap-5">
+                        {GroupType::iter()
+                            .map(|status| {
+                                let label = status.to_string();
+                                let input_id = format!("{label}-checkbox");
+
+                                view! {
+                                    <div>
+                                        <input
+                                            type="checkbox"
+                                            id=&input_id
+                                            class="peer hidden"
+                                            checked=move || {
+                                                filters_buffer_rws
+                                                    .with(|f| f.group_type.clone())
+                                                    .is_some_and(|s| s.iter().any(|item| *item == status))
+                                            }
+                                            on:change=move |event| {
+                                                let checked = event_target_checked(&event);
+                                                group_type_management(checked, status)
+                                            }
+                                        />
+                                        <label
+                                            for=&input_id
+                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:border-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out peer-checked:shadow-purple-500 peer-checked:shadow-md shadow-inner shadow-slate-500"
+                                        >
+                                            {label}
+                                        </label>
+                                    </div>
+                                }
+                            })
+                            .collect_view()}
+                    </div>
                 </div>
                 <div class="flex justify-end gap-2">
                     <Button

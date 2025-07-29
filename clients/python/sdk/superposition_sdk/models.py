@@ -22,6 +22,7 @@ from ._private.schemas import (
     APPLICABLE_VARIANTS_OUTPUT as _SCHEMA_APPLICABLE_VARIANTS_OUTPUT,
     AUDIT_LOG_FULL as _SCHEMA_AUDIT_LOG_FULL,
     AUTOCOMPLETE_FUNCTION_REQUEST as _SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST,
+    BUCKET as _SCHEMA_BUCKET,
     BULK_OPERATION as _SCHEMA_BULK_OPERATION,
     BULK_OPERATION_INPUT as _SCHEMA_BULK_OPERATION_INPUT,
     BULK_OPERATION_OUT as _SCHEMA_BULK_OPERATION_OUT,
@@ -341,6 +342,63 @@ class AddMembersToGroupInput:
         deserializer.read_struct(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT, consumer=_consumer)
         return kwargs
 
+@dataclass(kw_only=True)
+class Bucket:
+
+    experiment_id: str
+
+    variant_id: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_BUCKET, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_BUCKET.members["experiment_id"], self.experiment_id)
+        serializer.write_string(_SCHEMA_BUCKET.members["variant_id"], self.variant_id)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["experiment_id"] = de.read_string(_SCHEMA_BUCKET.members["experiment_id"])
+
+                case 1:
+                    kwargs["variant_id"] = de.read_string(_SCHEMA_BUCKET.members["variant_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_BUCKET, consumer=_consumer)
+        return kwargs
+
+def _serialize_buckets(serializer: ShapeSerializer, schema: Schema, value: list[Bucket | None]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            if e is None:
+                ls.write_null(member_schema)
+            else:
+                ls.write_struct(member_schema, e)
+
+def _deserialize_buckets(deserializer: ShapeDeserializer, schema: Schema) -> list[Bucket | None]:
+    result: list[Bucket | None] = []
+    member_schema = schema.members["member"]
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+            result.append(None)
+        else:
+            result.append(Bucket.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
 def _serialize_condition(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
@@ -358,6 +416,10 @@ def _deserialize_condition(deserializer: ShapeDeserializer, schema: Schema) -> d
             result[k] = d.read_document(value_schema)
     deserializer.read_map(schema, _read_value)
     return result
+
+class GroupType(StrEnum):
+    USER_CREATED = "USER_CREATED"
+    SYSTEM_GENERATED = "SYSTEM_GENERATED"
 
 @dataclass(kw_only=True)
 class AddMembersToGroupOutput:
@@ -390,6 +452,10 @@ class AddMembersToGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket | None]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT, self)
 
@@ -406,6 +472,8 @@ class AddMembersToGroupOutput:
         serializer.write_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -452,6 +520,12 @@ class AddMembersToGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -545,7 +619,7 @@ class ApplicableVariantsInput:
     workspace_id: str | None = None
     org_id: str = "juspay"
     context: dict[str, Document] | None = None
-    toss: int | None = None
+    identifier: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_APPLICABLE_VARIANTS_INPUT, self)
@@ -554,8 +628,8 @@ class ApplicableVariantsInput:
         if self.context is not None:
             _serialize_condition(serializer, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["context"], self.context)
 
-        if self.toss is not None:
-            serializer.write_integer(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["toss"], self.toss)
+        if self.identifier is not None:
+            serializer.write_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["identifier"], self.identifier)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -577,7 +651,7 @@ class ApplicableVariantsInput:
                     kwargs["context"] = _deserialize_condition(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["context"])
 
                 case 3:
-                    kwargs["toss"] = de.read_integer(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["toss"])
+                    kwargs["identifier"] = de.read_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["identifier"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2883,8 +2957,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -4705,6 +4779,10 @@ class CreateExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket | None]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -4721,6 +4799,8 @@ class CreateExperimentGroupOutput:
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4767,6 +4847,12 @@ class CreateExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5875,8 +5961,8 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6097,8 +6183,8 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6368,8 +6454,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6445,6 +6531,10 @@ class DeleteExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket | None]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -6461,6 +6551,8 @@ class DeleteExperimentGroupOutput:
         serializer.write_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6507,6 +6599,12 @@ class DeleteExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -6631,8 +6729,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -7697,6 +7795,10 @@ class GetExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket | None]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -7713,6 +7815,8 @@ class GetExperimentGroupOutput:
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7759,6 +7863,12 @@ class GetExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7822,6 +7932,9 @@ class ListExperimentGroupsInput:
          If true, returns all experiment groups, ignoring pagination parameters page and
          count.
 
+    :param group_type:
+         Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+
     """
 
     workspace_id: str | None = None
@@ -7834,6 +7947,7 @@ class ListExperimentGroupsInput:
     sort_on: str | None = None
     sort_by: str | None = None
     all: bool | None = None
+    group_type: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT, self)
@@ -7881,6 +7995,9 @@ class ListExperimentGroupsInput:
                 case 9:
                     kwargs["all"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["all"])
 
+                case 10:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -7918,6 +8035,10 @@ class ExperimentGroupResponse:
 
     last_modified_by: str
 
+    buckets: list[Bucket | None]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_EXPERIMENT_GROUP_RESPONSE, self)
 
@@ -7934,6 +8055,8 @@ class ExperimentGroupResponse:
         serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7980,6 +8103,12 @@ class ExperimentGroupResponse:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8159,6 +8288,10 @@ class RemoveMembersFromGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket | None]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT, self)
 
@@ -8175,6 +8308,8 @@ class RemoveMembersFromGroupOutput:
         serializer.write_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8221,6 +8356,12 @@ class RemoveMembersFromGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8344,6 +8485,10 @@ class UpdateExperimentGroupOutput:
 
     last_modified_by: str
 
+    buckets: list[Bucket | None]
+
+    group_type: str
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT, self)
 
@@ -8360,6 +8505,8 @@ class UpdateExperimentGroupOutput:
         serializer.write_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"], self.group_type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8406,6 +8553,12 @@ class UpdateExperimentGroupOutput:
 
                 case 11:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_OUTPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

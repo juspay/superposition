@@ -26,6 +26,8 @@ import {
     WorkspaceStatus,
     UpdateWorkspaceCommand,
     SuperpositionClient,
+    GetExperimentGroupCommand,
+    DiscardExperimentCommand,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
@@ -213,7 +215,7 @@ describe("Experiments API", () => {
             const experiments = experimentsOut.data || [];
             for (const experiment of experiments) {
                 if (experiment.name && experiment.name.includes("-from-test")) {
-                    if (experiment.status !== ExperimentStatusType.CONCLUDED) {
+                    if (experiment.status !== ExperimentStatusType.CONCLUDED && experiment.status !== ExperimentStatusType.DISCARDED) {
                         const controlVariant = experiment.variants?.find(
                             (v) => v.variant_type === VariantType.CONTROL
                         );
@@ -570,8 +572,6 @@ describe("Experiments API", () => {
         }
     });
 
-    // write a test for updating experiment 1 overrides and updating the experiment group as null
-
     test("3.1 Update Experiment 1 Overrides", async () => {
         try {
             if (!experimentId1 || !experiment1Variants) {
@@ -665,7 +665,8 @@ describe("Experiments API", () => {
             expect(out.id).toBe(experimentId1);
             expect(out.traffic_percentage).toBe(rampPercentage);
             expect(out.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(out.experiment_group_id).toBeUndefined();
+            expect(out.experiment_group_id).toBeDefined();
+            experimentGroupId = out.experiment_group_id;
 
             const getCmd = new GetExperimentCommand({
                 workspace_id: ENV.workspace_id,
@@ -675,7 +676,7 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(updatedExp.experiment_group_id).toBeUndefined();
+            expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
         } catch (e: any) {
             console.error(
                 "Error in test '3. Ramp Experiment 1':",
@@ -726,6 +727,32 @@ describe("Experiments API", () => {
             expect(updatedExp.status).toBe(ExperimentStatusType.CONCLUDED);
             expect(updatedExp.chosen_variant).toBe(winnerVariantId);
             expect(updatedExp.experiment_group_id).toBeUndefined();
+
+            // Verify that the undependent experiment group is now deleted
+            if (experimentGroupId) {
+                try {
+                    console.log("Checking if experiment group is deleted...");
+                    expect(
+                        superpositionClient.send(
+                            new GetExperimentGroupCommand({
+                                workspace_id: ENV.workspace_id,
+                                org_id: ENV.org_id,
+                                id: experimentGroupId,
+                            }),
+                        ),
+                    ).rejects.toThrow(
+                        "No records found. Please refine or correct your search parameters",
+                    );
+                } catch (error: any) {
+                    if (error.name !== "ResourceNotFound") {
+                        console.error(
+                            "Unexpected error when checking experiment group:",
+                            error.message
+                        );
+                        throw error;
+                    }
+                }
+            }
         } catch (e: any) {
             console.error(
                 "Error in test '4. Conclude Experiment 1':",
@@ -761,6 +788,7 @@ describe("Experiments API", () => {
             expect(out.id).toBeString();
             expect(out.name).toBe("experiment-2-from-test");
             expect(out.status).toBe(ExperimentStatusType.CREATED);
+            expect(out.experiment_group_id).toBeUndefined();
             const allInitialOverrideKeys2 = new Set<string>();
             experiment2InitialVariants.forEach((v) =>
                 Object.keys(v.overrides).forEach((k) =>
@@ -883,6 +911,7 @@ describe("Experiments API", () => {
             expect(out.chosen_variant).toBeUndefined();
             expect(out.context).toEqual(experiment2Context);
             expect(out.name).toBe("experiment-2-from-test");
+            expect(out.experiment_group_id).toBeUndefined();
 
             for (const updatedVariantRequest of updatedVariants) {
                 const returnedVariant = out.variants?.find(
@@ -920,7 +949,107 @@ describe("Experiments API", () => {
         }
     });
 
-    test("7. List Experiments (Basic)", async () => {
+    test("7. Ramp Experiment 2", async () => {
+        try {
+            if (!experimentId2) {
+                throw new Error("Experiment 2 ID not set, cannot ramp.");
+            }
+            const rampPercentage = 46;
+            const cmd = new RampExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId2,
+                traffic_percentage: rampPercentage,
+                change_reason: "Testing ramp functionality",
+            });
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBe(experimentId2);
+            expect(out.traffic_percentage).toBe(rampPercentage);
+            expect(out.status).toBe(ExperimentStatusType.INPROGRESS);
+            expect(out.experiment_group_id).toBeDefined();
+            experimentGroupId = out.experiment_group_id;
+
+            const getCmd = new GetExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId2,
+            });
+            const updatedExp = await superpositionClient.send(getCmd);
+            expect(updatedExp.traffic_percentage).toBe(rampPercentage);
+            expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
+            expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
+        } catch (e: any) {
+            console.error(
+                "Error in test '7. Ramp Experiment 2':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    test("8. Discard Experiment 2", async () => {
+        try {
+            if (!experimentId2) {
+                throw new Error("Experiment 2 ID not set, cannot discard.");
+            }
+            const cmd = new DiscardExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId2,
+                change_reason: "Testing discard functionality",
+            });
+            const out: ExperimentResponse = await superpositionClient.send(cmd);
+            expect(out).toBeDefined();
+            expect(out.id).toBe(experimentId2);
+            expect(out.status).toBe(ExperimentStatusType.DISCARDED);
+            expect(out.experiment_group_id).toBeUndefined();
+            experimentGroupId = out.experiment_group_id;
+
+            const getCmd = new GetExperimentCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                id: experimentId2,
+            });
+            const updatedExp = await superpositionClient.send(getCmd);
+            expect(updatedExp.status).toBe(ExperimentStatusType.DISCARDED);
+            expect(updatedExp.experiment_group_id).toBeUndefined();
+        } catch (e: any) {
+            console.error(
+                "Error in test '8. Discard Experiment 2':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+
+        // Verify that the experiment group is now deleted
+        if (experimentGroupId) {
+            try {
+                console.log("Checking if experiment group is deleted...");
+                expect(
+                    superpositionClient.send(
+                        new GetExperimentGroupCommand({
+                            workspace_id: ENV.workspace_id,
+                            org_id: ENV.org_id,
+                            id: experimentGroupId,
+                        }),
+                    ),
+                ).rejects.toThrow(
+                    "No records found. Please refine or correct your search parameters",
+                );
+            } catch (error: any) {
+                if (error.name !== "ResourceNotFound") {
+                    console.error(
+                        "Unexpected error when checking experiment group:",
+                        error.message
+                    );
+                    throw error;
+                }
+            }
+        }
+    })
+
+    test("9. List Experiments (Basic)", async () => {
         try {
             const cmd = new ListExperimentCommand({
                 workspace_id: ENV.workspace_id,
@@ -935,10 +1064,12 @@ describe("Experiments API", () => {
             expect(foundExp2).toBe(true);
 
             const exp1 = out.data?.find((exp) => exp.id === experimentId1);
+            const exp2 = out.data?.find((exp) => exp.id === experimentId2);
             expect(exp1?.experiment_group_id).toBeUndefined();
+            expect(exp2?.experiment_group_id).toBeUndefined();
         } catch (e: any) {
             console.error(
-                "Error in test '7. List Experiments (Basic)':",
+                "Error in test '9. List Experiments (Basic)':",
                 e?.$response || e.message
             );
             throw e;

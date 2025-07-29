@@ -1490,6 +1490,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         query_params.append(("sort_by", input.sort_by))
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
+    if input.group_type is not None:
+        query_params.append(("group_type", input.group_type))
 
     query = join_query_params(params=query_params, prefix=query)
 

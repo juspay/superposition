@@ -23,6 +23,8 @@ pub struct ListExperimentGroupsInput  {
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
     /// If true, returns all experiment groups, ignoring pagination parameters page and count.
     pub all: ::std::option::Option<bool>,
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub group_type: ::std::option::Option<crate::types::GroupType>,
 }
 impl  ListExperimentGroupsInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -65,6 +67,10 @@ impl  ListExperimentGroupsInput  {
     pub fn all(&self) -> ::std::option::Option<bool> {
         self.all
     }
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub fn group_type(&self) -> ::std::option::Option<&crate::types::GroupType> {
+        self.group_type.as_ref()
+    }
 }
 impl ListExperimentGroupsInput {
     /// Creates a new builder-style object to manufacture [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).
@@ -87,6 +93,7 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentGroupSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) all: ::std::option::Option<bool>,
+    pub(crate) group_type: ::std::option::Option<crate::types::GroupType>,
 }
 impl ListExperimentGroupsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -221,6 +228,19 @@ impl ListExperimentGroupsInputBuilder {
     pub fn get_all(&self) -> &::std::option::Option<bool> {
         &self.all
     }
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
+        self.group_type = ::std::option::Option::Some(input);
+        self
+    }
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub fn set_group_type(mut self, input: ::std::option::Option<crate::types::GroupType>) -> Self {
+        self.group_type = input; self
+    }
+    /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
+    pub fn get_group_type(&self) -> &::std::option::Option<crate::types::GroupType> {
+        &self.group_type
+    }
     /// Consumes the builder and constructs a [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment_groups::ListExperimentGroupsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -244,6 +264,8 @@ impl ListExperimentGroupsInputBuilder {
                 sort_by: self.sort_by
                 ,
                 all: self.all
+                ,
+                group_type: self.group_type
                 ,
             }
         )

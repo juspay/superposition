@@ -71,38 +71,42 @@ index 518d71c9..68775fc5 100644
      private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
          CreateDimension.$SCHEMA);
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
-index c48a3222..9906745e 100644
+index e6582ad6..10fa9d94 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
-@@ -18,18 +18,19 @@ public final class ExperimentGroup implements ApiResource {
+@@ -18,20 +18,21 @@ public final class ExperimentGroup implements ApiResource {
      private static final ExperimentGroup $INSTANCE = new ExperimentGroup();
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
          "org_id", PreludeSchemas.STRING);
--    private static final Map<String, Schema> $PROPERTIES = Map.of("change_reason", PreludeSchemas.STRING,
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("buckets", SharedSchemas.BUCKETS,
+-        "description", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "group_type", GroupType.$SCHEMA,
+-        "created_by", PreludeSchemas.STRING,
+-        "last_modified_at", SharedSchemas.DATE_TIME,
+-        "change_reason", PreludeSchemas.STRING,
 -        "context_hash", PreludeSchemas.STRING,
 -        "traffic_percentage", PreludeSchemas.INTEGER,
 -        "name", PreludeSchemas.STRING,
 -        "context", SharedSchemas.CONDITION,
--        "description", PreludeSchemas.STRING,
 -        "member_experiment_ids", SharedSchemas.STRING_LIST,
--        "created_at", SharedSchemas.DATE_TIME,
--        "id", PreludeSchemas.STRING,
--        "last_modified_by", PreludeSchemas.STRING,
--        "created_by", PreludeSchemas.STRING,
--        "last_modified_at", SharedSchemas.DATE_TIME);
+-        "id", PreludeSchemas.STRING);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
++        Map.entry("buckets", SharedSchemas.BUCKETS),
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("group_type", GroupType.$SCHEMA),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
 +        Map.entry("change_reason", PreludeSchemas.STRING),
 +        Map.entry("context_hash", PreludeSchemas.STRING),
 +        Map.entry("traffic_percentage", PreludeSchemas.INTEGER),
 +        Map.entry("name", PreludeSchemas.STRING),
 +        Map.entry("context", SharedSchemas.CONDITION),
-+        Map.entry("description", PreludeSchemas.STRING),
 +        Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST),
-+        Map.entry("created_at", SharedSchemas.DATE_TIME),
-+        Map.entry("id", PreludeSchemas.STRING),
-+        Map.entry("last_modified_by", PreludeSchemas.STRING),
-+        Map.entry("created_by", PreludeSchemas.STRING),
-+        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
++        Map.entry("id", PreludeSchemas.STRING));
  
      private static final List<Schema> $OPERATIONS = List.of(ListExperimentGroups.$SCHEMA,
          CreateExperimentGroup.$SCHEMA,

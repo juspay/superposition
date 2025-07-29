@@ -181,6 +181,7 @@ fn table_columns(
                 .into_view()
             },
         ),
+        Column::default("group_type".to_string()),
         Column::default_with_sort(
             "last_modified_at".to_string(),
             ColumnSortable::Yes {

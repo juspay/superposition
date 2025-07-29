@@ -601,3 +601,17 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+ALTER TABLE {replaceme}.experiment_groups ADD COLUMN buckets JSON[] DEFAULT array_fill(NULL::JSON, ARRAY[100]) NOT NULL CHECK (cardinality(buckets) = 100);
+
+DO $$ BEGIN
+    CREATE TYPE public.GROUP_TYPE AS ENUM (
+        'USER_CREATED',
+        'SYSTEM_GENERATED'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE {replaceme}.experiment_groups 
+ADD COLUMN group_type public.GROUP_TYPE DEFAULT 'USER_CREATED';

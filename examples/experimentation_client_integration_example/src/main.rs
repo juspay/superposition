@@ -31,18 +31,18 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-#[get("/variants/{client_id}/{platform}/{toss}")]
+#[get("/variants/{client_id}/{platform}/{identifier}")]
 async fn get_variants(
     state: Data<exp::Client>,
-    path: Path<(String, String, i8)>,
+    path: Path<(String, String, String)>,
 ) -> HttpResponse {
-    let (client_id, platform, toss) = path.into_inner();
+    let (client_id, platform, identifier) = path.into_inner();
     println!("client state on the server = {:?}", state);
     let contexts = json!({
         "clientId": client_id,
         "os": platform
     });
-    let variant = state.get_applicable_variant(&contexts, toss).await;
+    let variant = state.get_applicable_variant(&contexts, &identifier).await;
     println!("variant value: {:?}", variant);
     HttpResponse::Ok().body("check your console")
 }

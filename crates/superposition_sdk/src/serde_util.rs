@@ -12,6 +12,8 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
+if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
                 builder
             }
 
@@ -107,6 +109,8 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
+if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
                 builder
             }
 
@@ -194,6 +198,8 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
+if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
                 builder
             }
 
@@ -284,6 +290,8 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
+if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
                 builder
             }
 
@@ -437,6 +445,8 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
+if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
                 builder
             }
 
@@ -507,6 +517,8 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
+if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
                 builder
             }
 
@@ -604,6 +616,12 @@ if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_s
                 builder
             }
 
+pub(crate) fn bucket_correct_errors(mut builder: crate::types::builders::BucketBuilder) -> crate::types::builders::BucketBuilder {
+                if builder.experiment_id.is_none() { builder.experiment_id = Some(Default::default()) }
+if builder.variant_id.is_none() { builder.variant_id = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn context_full_correct_errors(mut builder: crate::types::builders::ContextFullBuilder) -> crate::types::builders::ContextFullBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
                 builder
@@ -651,6 +669,8 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
+if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
                 builder
             }
 

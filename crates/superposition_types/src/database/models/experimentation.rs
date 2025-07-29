@@ -2,11 +2,11 @@ use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
-    deserialize::{FromSql, FromSqlRow},
+    deserialize::{self, FromSql, FromSqlRow},
     expression::AsExpression,
-    pg::Pg,
-    serialize::ToSql,
-    sql_types::{Integer, Json},
+    pg::{Pg, PgValue},
+    serialize::{self, Output, ToSql},
+    sql_types::{Array, Integer, Json, Nullable},
     Insertable, QueryId, Queryable, QueryableByName, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
@@ -166,12 +166,16 @@ impl ToSql<Integer, Pg> for TrafficPercentage {
 impl TryFrom<i32> for TrafficPercentage {
     type Error = String;
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if value < 0 || value > 100 {
-            return Err(String::from(
-                "Traffic percent cannot be lower than 0 and greater than 100",
-            ));
-        }
+        Self::validate(value)?;
         Ok(Self(value as u8))
+    }
+}
+
+impl TryFrom<u8> for TrafficPercentage {
+    type Error = String;
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        Self::validate(value)?;
+        Ok(Self(value))
     }
 }
 
@@ -179,10 +183,9 @@ impl TryFrom<String> for TrafficPercentage {
     type Error = String;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.parse::<i32>() {
-            Ok(percent) => TrafficPercentage::try_from(percent),
+            Ok(percent) => Self::try_from(percent),
             Err(err) => Err(format!(
-                "Traffic percent could not be parsed. reason: {}",
-                err,
+                "Traffic percent could not be parsed. reason: {err}"
             )),
         }
     }
@@ -204,6 +207,20 @@ impl TrafficPercentage {
     pub fn compare_old(&self, old: &Self) -> Result<(), String> {
         if self.0 != 0 && self.0 == old.0 {
             return Err("The traffic percentage is same as provided")?;
+        }
+        Ok(())
+    }
+
+    fn validate<T: TryInto<u8>>(val: T) -> Result<(), String> {
+        let value: u8 = val.try_into().map_err(|_| {
+            "Traffic percentage must be a number between 0 and 100 (both inclusive)"
+                .to_string()
+        })?;
+        if value > 100 {
+            return Err(
+                "Traffic percentage must be a number between 0 and 100 (both inclusive)"
+                    .to_string(),
+            );
         }
         Ok(())
     }
@@ -316,6 +333,36 @@ pub struct EventLog {
     pub query: String,
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Eq,
+    Hash,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+    uniffi::Enum,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::schema::sql_types::GroupType"
+)]
+pub enum GroupType {
+    UserCreated,
+    SystemGenerated,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -338,6 +385,8 @@ pub struct ExperimentGroup {
     pub created_by: String,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
+    pub buckets: Buckets,
+    pub group_type: GroupType,
 }
 
 pub type ExperimentGroups = Vec<ExperimentGroup>;
@@ -413,4 +462,74 @@ where
         })
         .collect::<Result<Vec<i64>, D::Error>>()?;
     Ok(Some(numbers))
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct Bucket {
+    pub variant_id: String,
+    pub experiment_id: String,
+}
+
+#[derive(Deserialize, Debug, Clone, PartialEq, Deref, DerefMut)]
+#[serde(try_from = "Vec<Option<Bucket>>")]
+#[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Array<Nullable<Json>>))]
+pub struct Buckets([Option<Bucket>; 100]);
+
+impl Default for Buckets {
+    fn default() -> Self {
+        Self(std::array::from_fn(|_| None))
+    }
+}
+
+impl From<[Option<Bucket>; 100]> for Buckets {
+    fn from(value: [Option<Bucket>; 100]) -> Self {
+        Self(value)
+    }
+}
+
+impl Serialize for Buckets {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.to_vec().serialize(serializer)
+    }
+}
+
+impl TryFrom<Vec<Option<Bucket>>> for Buckets {
+    type Error = String;
+
+    fn try_from(value: Vec<Option<Bucket>>) -> Result<Self, Self::Error> {
+        let size = value.len();
+        value
+            .try_into()
+            .map(Self)
+            .map_err(|_| format!("Buckets must contain exactly 100 elements, got {size}"))
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl FromSql<Array<Nullable<Json>>, Pg> for Buckets {
+    fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
+        let string_array: Vec<Option<Bucket>> =
+            FromSql::<Array<Nullable<Json>>, Pg>::from_sql(bytes)?;
+        Self::try_from(string_array)
+            .map_err(|e: String| Box::<dyn std::error::Error + Send + Sync>::from(e))
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl ToSql<Array<Nullable<Json>>, Pg> for Buckets {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
+        <Vec<Option<Bucket>> as ToSql<Array<Nullable<Json>>, Pg>>::to_sql(
+            &self.0.to_vec(),
+            &mut out.reborrow(),
+        )
+    }
 }

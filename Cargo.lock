@@ -2233,7 +2233,7 @@ dependencies = [
  "cac_client",
  "chrono",
  "diesel",
- "jsonlogic",
+ "experimentation_client",
  "log",
  "reqwest",
  "serde",

@@ -1,11 +1,11 @@
 module Io.Superposition.Model.Bucket (
     setExperimentId,
-    setVariant,
+    setVariantId,
     build,
     BucketBuilder,
     Bucket,
     experiment_id,
-    variant
+    variant_id
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -19,8 +19,8 @@ import qualified GHC.Generics
 import qualified GHC.Show
 
 data Bucket = Bucket {
-    experiment_id :: Data.Maybe.Maybe Data.Text.Text,
-    variant :: Data.Maybe.Maybe Data.Text.Text
+    experiment_id :: Data.Text.Text,
+    variant_id :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -30,7 +30,7 @@ data Bucket = Bucket {
 instance Data.Aeson.ToJSON Bucket where
     toJSON a = Data.Aeson.object [
         "experiment_id" Data.Aeson..= experiment_id a,
-        "variant" Data.Aeson..= variant a
+        "variant_id" Data.Aeson..= variant_id a
         ]
     
 
@@ -38,14 +38,14 @@ instance Data.Aeson.ToJSON Bucket where
 instance Data.Aeson.FromJSON Bucket where
     parseJSON = Data.Aeson.withObject "Bucket" $ \v -> Bucket
         Data.Functor.<$> (v Data.Aeson..: "experiment_id")
-        Control.Applicative.<*> (v Data.Aeson..: "variant")
+        Control.Applicative.<*> (v Data.Aeson..: "variant_id")
     
 
 
 
 data BucketBuilderState = BucketBuilderState {
     experiment_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    variantBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    variant_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -53,7 +53,7 @@ data BucketBuilderState = BucketBuilderState {
 defaultBuilderState :: BucketBuilderState
 defaultBuilderState = BucketBuilderState {
     experiment_idBuilderState = Data.Maybe.Nothing,
-    variantBuilderState = Data.Maybe.Nothing
+    variant_idBuilderState = Data.Maybe.Nothing
 }
 
 newtype BucketBuilder a = BucketBuilder {
@@ -77,22 +77,22 @@ instance Control.Monad.Monad BucketBuilder where
             (BucketBuilder h) = g a
         in h s')
 
-setExperimentId :: Data.Maybe.Maybe Data.Text.Text -> BucketBuilder ()
+setExperimentId :: Data.Text.Text -> BucketBuilder ()
 setExperimentId value =
-   BucketBuilder (\s -> (s { experiment_idBuilderState = value }, ()))
+   BucketBuilder (\s -> (s { experiment_idBuilderState = Data.Maybe.Just value }, ()))
 
-setVariant :: Data.Maybe.Maybe Data.Text.Text -> BucketBuilder ()
-setVariant value =
-   BucketBuilder (\s -> (s { variantBuilderState = value }, ()))
+setVariantId :: Data.Text.Text -> BucketBuilder ()
+setVariantId value =
+   BucketBuilder (\s -> (s { variant_idBuilderState = Data.Maybe.Just value }, ()))
 
 build :: BucketBuilder () -> Data.Either.Either Data.Text.Text Bucket
 build builder = do
     let (st, _) = runBucketBuilder builder defaultBuilderState
-    experiment_id' <- Data.Either.Right (experiment_idBuilderState st)
-    variant' <- Data.Either.Right (variantBuilderState st)
+    experiment_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.Bucket.Bucket.experiment_id is a required property.") Data.Either.Right (experiment_idBuilderState st)
+    variant_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.Bucket.Bucket.variant_id is a required property.") Data.Either.Right (variant_idBuilderState st)
     Data.Either.Right (Bucket { 
         experiment_id = experiment_id',
-        variant = variant'
+        variant_id = variant_id'
     })
 
 

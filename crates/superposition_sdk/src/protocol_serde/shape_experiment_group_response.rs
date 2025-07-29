@@ -101,6 +101,20 @@ pub(crate) fn de_experiment_group_response<'a, I>(tokens: &mut ::std::iter::Peek
                                     ).transpose()?
                                 );
                             }
+                            "buckets" => {
+                                builder = builder.set_buckets(
+                                    crate::protocol_serde::shape_buckets::de_buckets(tokens)?
+                                );
+                            }
+                            "group_type" => {
+                                builder = builder.set_group_type(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            crate::types::GroupType::from(u.as_ref())
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                         }
                     }
