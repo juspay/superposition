@@ -23,7 +23,7 @@ export class NativeResolver {
             this.lib.core_last_error_message = this.lib.func('char* core_last_error_message()');
             this.lib.core_last_error_length = this.lib.func('int core_last_error_length()');
             this.lib.core_get_applicable_variants = this.lib.func(
-                'char* core_get_applicable_variants(const char*, const char*, int8, const char*)'
+                'char* core_get_applicable_variants(const char*, const char*, const char*, const char*)'
             );
             this.lib.core_test_connection = this.lib.func('int core_test_connection()');
 
@@ -179,7 +179,7 @@ export class NativeResolver {
     getApplicableVariants(
         experiments: any[],
         userContext: Record<string, any>,
-        toss: number,
+        identifier: string,
         filterPrefixes: string[] = []
     ): string[] {
         if (!this.isAvailable) {
@@ -200,13 +200,13 @@ export class NativeResolver {
         console.log('🔧 Calling FFI getApplicableVariants with parameters:');
         console.log('  experiments:', experiments);
         console.log('  userContext:', userContext);
-        console.log('  toss:', toss);
+        console.log('  identifier:', identifier);
         console.log('  filterPrefixes:', filterPrefixes);
 
         const result = this.lib.core_get_applicable_variants(
             experimentsJson,
             userContextJson,
-            toss,
+            identifier,
             filterPrefixesJson
         );
 

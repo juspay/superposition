@@ -1,4 +1,4 @@
-import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput } from '@juspay/superposition-sdk';
+import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput, ListExperimentGroupsCommandInput, ListExperimentGroupsCommand, GroupType } from '@juspay/superposition-sdk';
 import { SuperpositionOptions, ExperimentationOptions, PollingStrategy, OnDemandStrategy } from './types';
 
 export interface Variant {
@@ -16,10 +16,19 @@ export interface Experiment {
     traffic_percentage: number;
 }
 
+export interface ExperimentGroup {
+    id: string;
+    context: Record<string, string>;
+    member_experiment_ids: string[];
+    traffic_percentage: number;
+    group_type: GroupType;
+}
+
 export class ExperimentationClient {
     private smithyClient: SuperpositionClient;
     private options: ExperimentationOptions;
     private cachedExperiments: Experiment[] | null = null;
+    private cachedExperimentGroups: ExperimentGroup[] | null = null;
     private lastUpdated: Date | null = null;
     private evaluationCache: Map<string, any> = new Map();
     private pollingInterval?: NodeJS.Timeout;
@@ -38,10 +47,12 @@ export class ExperimentationClient {
     async initialize(): Promise<void> {
         // Fetch initial experiments
         const experiments = await this.fetchExperiments();
-        if (experiments) {
+        const experimentgroups = await this.fetchExperimentGroups();
+        if (experiments && experimentgroups) {
             this.cachedExperiments = experiments;
+            this.cachedExperimentGroups = experimentgroups;
             this.lastUpdated = new Date();
-            console.log('Experiments fetched successfully.');
+            console.log('Experiments and Experiment Groups fetched successfully.');
         }
 
         // Set up refresh strategy
@@ -55,10 +66,12 @@ export class ExperimentationClient {
         this.pollingInterval = setInterval(async () => {
             try {
                 const experiments = await this.fetchExperiments();
-                if (experiments) {
+                const experimentGroups = await this.fetchExperimentGroups();
+                if (experiments && experimentGroups) {
                     this.cachedExperiments = experiments;
+                    this.cachedExperimentGroups = experimentGroups;
                     this.lastUpdated = new Date();
-                    console.log('Experiments refreshed successfully.');
+                    console.log('Experiments and Experiment Groups refreshed successfully.');
                 }
             } catch (error) {
                 console.error('Polling error:', error);
@@ -132,6 +145,47 @@ export class ExperimentationClient {
         }
     }
 
+    private async fetchExperimentGroups(): Promise<ExperimentGroup[] | null> {
+        try {
+            const commandInput: ListExperimentGroupsCommandInput = {
+                workspace_id: this.superpositionOptions.workspace_id,
+                org_id: this.superpositionOptions.org_id,
+                all: true
+            };
+
+            const command = new ListExperimentGroupsCommand(commandInput);
+            const response = await this.smithyClient.send(command);
+
+            if (!response.data) {
+                return null;
+            }
+
+            // Convert response to internal format with proper type checking
+            const experimentGroups: ExperimentGroup[] = [];
+
+            for (const exp_group of response.data) {
+                // Skip experiment groups without required fields
+                if (!exp_group.id) {
+                    console.warn('Skipping experiment group without ID');
+                    continue;
+                }
+
+                experimentGroups.push({
+                    id: exp_group.id,
+                    context: this.normalizeToStringRecord(exp_group.context),
+                    traffic_percentage: exp_group.traffic_percentage || 100,
+                    member_experiment_ids: exp_group.member_experiment_ids || [],
+                    group_type: exp_group.group_type as GroupType || GroupType.USER_CREATED
+                });
+            }
+
+            return experimentGroups;
+        } catch (error) {
+            console.error('Error fetching experiment groups from Superposition:', error);
+            return null;
+        }
+    }
+
     /**
      * Normalize any value to a Record<string, string> format
      * This ensures compatibility with the expected interface
@@ -188,6 +242,34 @@ export class ExperimentationClient {
         }
 
         return this.cachedExperiments || [];
+    }
+
+    async getExperimentGroups(): Promise<ExperimentGroup[]> {
+        if (this.options.refreshStrategy && 'ttl' in this.options.refreshStrategy) {
+            const strategy = this.options.refreshStrategy as OnDemandStrategy;
+            const now = new Date();
+            const shouldRefresh = !this.lastUpdated ||
+                (now.getTime() - this.lastUpdated.getTime()) > strategy.ttl * 1000;
+
+            if (shouldRefresh) {
+                try {
+                    console.log('TTL expired. Fetching experiment groups on-demand.');
+                    const experimentGroups = await this.fetchExperimentGroups();
+                    if (experimentGroups) {
+                        this.cachedExperimentGroups = experimentGroups;
+                        this.lastUpdated = new Date();
+                    }
+                } catch (error) {
+                    console.warn('On-demand fetch failed:', error);
+                    if (!strategy.use_stale_on_error || !this.cachedExperimentGroups) {
+                        throw error;
+                    }
+                    console.log('Using stale experiment groups due to error.');
+                }
+            }
+        }
+
+        return this.cachedExperimentGroups || [];
     }
 
     generateCacheKey(queryData: Record<string, any>): string {

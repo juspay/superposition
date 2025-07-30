@@ -146,10 +146,10 @@ export class ConfigurationClient {
 
             if (this.experimentationClient && targetingKey) {
                 const experiments = await this.experimentationClient.getExperiments();
-                const toss = this.experimentationOptions?.defaultToss ||
-                    (parseInt(targetingKey) || Math.floor(Math.random() * 100)) % 100;
+                const identifier = this.experimentationOptions?.defaultIdentifier ||
+                    (targetingKey ? targetingKey : 'default');
 
-                const variantIds = await this.getApplicableVariants(experiments, queryData, toss);
+                const variantIds = await this.getApplicableVariants(experiments, queryData, identifier);
                 if (variantIds.length > 0) {
                     queryData.variantIds = variantIds;
                 }
@@ -182,14 +182,14 @@ export class ConfigurationClient {
     private async getApplicableVariants(
         experiments: Experiment[],
         queryData: Record<string, any>,
-        toss: number,
+        identifier: string,
         filterPrefixes?: string[]
     ): Promise<string[]> {
         // This would use the native resolver's getApplicableVariants method
         return this.resolver.getApplicableVariants(
             experiments,
             queryData,
-            toss,
+            identifier,
             filterPrefixes || []
         );
     }
