@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.4.0 - 2025-07-30
+#### Features
+- experiment bucketing - (274afdf) - Ankit.Mahato
+
+- - -
+
 ## haskell_client-v0.3.0 - 2025-04-17
 #### Features
 - auto desearlizing resolved config - (3a58af5) - Shubhranshu Sanjeev

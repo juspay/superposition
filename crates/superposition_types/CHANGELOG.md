@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.26.0 - 2025-07-30
+#### Bug Fixes
+- bucketing queries (#628) - (a475cdf) - Ankit Kumar Mahato
+#### Features
+- experiment bucketing - (274afdf) - Ankit.Mahato
+
+- - -
+
 ## superposition_types-v0.25.0 - 2025-07-28
 #### Features
 - Standalone page for dimensions, default-configs, type-templates, webhooks (#614) - (f2f7d1a) - Ayush Jain

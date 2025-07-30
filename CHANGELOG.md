@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.82.0 - 2025-07-30
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.36.0
+- superposition_types bumped to superposition_types-v0.26.0
+- frontend bumped to frontend-v0.36.0
+- haskell_client bumped to haskell_client-v0.4.0
+- experimentation_client bumped to experimentation_client-v0.14.0
+### Global changes
+#### Bug Fixes
+- moved tests to root folder (#617) - (0355ea1) - sauraww
+- provider changes for identifier (#616) - (e45b378) - Ankit Kumar Mahato
+- bucketing queries (#628) - (a475cdf) - Ankit Kumar Mahato
+#### Documentation
+- capturing cloudfront settings for documentation website - (49ee4a4) - Natarajan Kannan
+#### Features
+- experiment bucketing - (274afdf) - Ankit.Mahato
+#### Miscellaneous Chores
+- fix makefile formatting for readability - (d4eb872) - Natarajan Kannan
+- remove superfluous regex strip - (59ca566) - Natarajan Kannan
+
+- - -
+
 ## v0.81.0 - 2025-07-28
 ### Package updates
 - superposition_types bumped to superposition_types-v0.25.0
