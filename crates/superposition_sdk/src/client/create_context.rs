@@ -11,11 +11,17 @@ impl super::Client {
     ///   - [`description(impl Into<String>)`](crate::operation::create_context::builders::CreateContextFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::create_context::builders::CreateContextFluentBuilder::set_description):<br>required: **false**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::create_context::builders::CreateContextFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::create_context::builders::CreateContextFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`CreateContextOutput`](crate::operation::create_context::CreateContextOutput) with field(s):
-    ///   - [`context_id(String)`](crate::operation::create_context::CreateContextOutput::context_id): (undocumented)
-    ///   - [`override_id(String)`](crate::operation::create_context::CreateContextOutput::override_id): (undocumented)
-    ///   - [`weight(String)`](crate::operation::create_context::CreateContextOutput::weight): (undocumented)
-    ///   - [`description(String)`](crate::operation::create_context::CreateContextOutput::description): (undocumented)
-    ///   - [`change_reason(String)`](crate::operation::create_context::CreateContextOutput::change_reason): (undocumented)
+    ///   - [`id(String)`](crate::operation::create_context::CreateContextOutput::id): (undocumented)
+    ///   - [`value(Option<HashMap::<String, Document>>)`](crate::operation::create_context::CreateContextOutput::value): (undocumented)
+    ///   - [`r#override(Option<HashMap::<String, Document>>)`](crate::operation::create_context::CreateContextOutput::override): (undocumented)
+    ///   - [`override_id(Option<String>)`](crate::operation::create_context::CreateContextOutput::override_id): (undocumented)
+    ///   - [`weight(Option<String>)`](crate::operation::create_context::CreateContextOutput::weight): (undocumented)
+    ///   - [`description(Option<String>)`](crate::operation::create_context::CreateContextOutput::description): (undocumented)
+    ///   - [`change_reason(Option<String>)`](crate::operation::create_context::CreateContextOutput::change_reason): (undocumented)
+    ///   - [`created_at(Option<DateTime>)`](crate::operation::create_context::CreateContextOutput::created_at): (undocumented)
+    ///   - [`created_by(Option<String>)`](crate::operation::create_context::CreateContextOutput::created_by): (undocumented)
+    ///   - [`last_modified_at(Option<DateTime>)`](crate::operation::create_context::CreateContextOutput::last_modified_at): (undocumented)
+    ///   - [`last_modified_by(Option<String>)`](crate::operation::create_context::CreateContextOutput::last_modified_by): (undocumented)
                             /// - On failure, responds with [`SdkError<CreateContextError>`](crate::operation::create_context::CreateContextError)
     pub fn create_context(&self) -> crate::operation::create_context::builders::CreateContextFluentBuilder {
                                 crate::operation::create_context::builders::CreateContextFluentBuilder::new(self.handle.clone())

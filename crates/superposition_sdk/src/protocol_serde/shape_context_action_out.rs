@@ -24,13 +24,13 @@ pub(crate) fn de_context_action_out<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                         variant = match key.as_ref() {
                             "PUT" => {
                                 Some(crate::types::ContextActionOut::Put(
-                                    crate::protocol_serde::shape_context_put_out::de_context_put_out(tokens)?
+                                    crate::protocol_serde::shape_context_response::de_context_response(tokens)?
                                     .ok_or_else(|| ::aws_smithy_json::deserialize::error::DeserializeError::custom("value for 'PUT' cannot be null"))?
                                 ))
                             }
                             "REPLACE" => {
                                 Some(crate::types::ContextActionOut::Replace(
-                                    crate::protocol_serde::shape_context_put_out::de_context_put_out(tokens)?
+                                    crate::protocol_serde::shape_context_response::de_context_response(tokens)?
                                     .ok_or_else(|| ::aws_smithy_json::deserialize::error::DeserializeError::custom("value for 'REPLACE' cannot be null"))?
                                 ))
                             }
@@ -46,7 +46,7 @@ pub(crate) fn de_context_action_out<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                             }
                             "MOVE" => {
                                 Some(crate::types::ContextActionOut::Move(
-                                    crate::protocol_serde::shape_context_move_out::de_context_move_out(tokens)?
+                                    crate::protocol_serde::shape_context_response::de_context_response(tokens)?
                                     .ok_or_else(|| ::aws_smithy_json::deserialize::error::DeserializeError::custom("value for 'MOVE' cannot be null"))?
                                 ))
                             }

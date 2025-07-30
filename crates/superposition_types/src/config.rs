@@ -88,6 +88,34 @@ impl IntoIterator for Overrides {
 impl_try_from_map!(Cac, Overrides, Overrides::validate_data);
 impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
 
+impl From<Cac<Overrides>> for Exp<Overrides> {
+    fn from(cac: Cac<Overrides>) -> Self {
+        Self(cac.into_inner())
+    }
+}
+
+impl From<Exp<Overrides>> for Cac<Overrides> {
+    fn from(exp: Exp<Overrides>) -> Self {
+        Self(exp.into_inner())
+    }
+}
+
+impl TryFrom<Overrides> for Exp<Overrides> {
+    type Error = std::io::Error;
+    fn try_from(value: Overrides) -> Result<Self, Self::Error> {
+        Exp::<Overrides>::try_from(Into::<serde_json::Map<String, Value>>::into(value))
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    }
+}
+impl From<Exp<Overrides>> for Overrides {
+    fn from(value: Exp<Overrides>) -> Self {
+        value.into_inner()
+    }
+}
+
+type VariantOverrides = Exp<Overrides>;
+uniffi::custom_type!(VariantOverrides, Overrides);
+
 #[derive(Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -185,6 +213,38 @@ impl Condition {
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);
 impl_try_from_map!(Exp, Condition, Condition::validate_data_for_exp);
 
+impl From<Cac<Condition>> for Exp<Condition> {
+    fn from(cac: Cac<Condition>) -> Self {
+        Self(cac.into_inner())
+    }
+}
+
+impl TryFrom<Exp<Condition>> for Cac<Condition> {
+    type Error = String;
+
+    fn try_from(exp: Exp<Condition>) -> Result<Self, Self::Error> {
+        Self::try_from(exp.into_inner().0)
+    }
+}
+
+impl TryFrom<Condition> for Exp<Condition> {
+    type Error = String;
+
+    fn try_from(value: Condition) -> Result<Self, Self::Error> {
+        let map: Map<String, Value> = value.into();
+        Self::try_from(map)
+    }
+}
+
+impl TryFrom<Condition> for Cac<Condition> {
+    type Error = String;
+
+    fn try_from(value: Condition) -> Result<Self, Self::Error> {
+        let map: Map<String, Value> = value.into();
+        Self::try_from(map)
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct Context {
@@ -192,7 +252,7 @@ pub struct Context {
     pub condition: Condition,
     pub priority: i32,
     pub weight: i32,
-    pub override_with_keys: Vec<String>,
+    pub override_with_keys: OverrideWithKeys,
 }
 
 impl Contextual for Context {
@@ -200,6 +260,42 @@ impl Contextual for Context {
         self.condition.clone()
     }
 }
+
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug, Deref, DerefMut)]
+#[serde(try_from = "Vec<String>")]
+pub struct OverrideWithKeys([String; 1]);
+
+impl OverrideWithKeys {
+    pub fn new(key: String) -> Self {
+        Self([key])
+    }
+
+    pub fn get_key(&self) -> &String {
+        &self.0[0]
+    }
+}
+
+impl TryFrom<Vec<String>> for OverrideWithKeys {
+    type Error = std::io::Error;
+
+    fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
+        let size = value.len();
+        value.try_into().map(Self).map_err(|_| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("OverrideWithKeys must contain exactly 1 element, got {size}"),
+            )
+        })
+    }
+}
+
+impl From<OverrideWithKeys> for Vec<String> {
+    fn from(value: OverrideWithKeys) -> Self {
+        value.0.to_vec()
+    }
+}
+
+uniffi::custom_type!(OverrideWithKeys, Vec<String>);
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -218,7 +314,7 @@ impl Config {
         let filtered_overrides: HashMap<String, Overrides> = filtered_context
             .iter()
             .flat_map(|ele| {
-                let override_with_key = &ele.override_with_keys[0];
+                let override_with_key = ele.override_with_keys.get_key();
                 self.overrides
                     .get(override_with_key)
                     .map(|value| (override_with_key.to_string(), value.clone()))
@@ -260,7 +356,7 @@ impl Config {
             .contexts
             .iter()
             .filter(|context| {
-                filtered_overrides.contains_key(&context.override_with_keys[0])
+                filtered_overrides.contains_key(context.override_with_keys.get_key())
             })
             .cloned()
             .collect();

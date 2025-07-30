@@ -41,7 +41,7 @@ resource Context {
     ]
 }
 
-structure ContextFull for Context {
+structure ContextResponse for Context {
     @required
     $id
 
@@ -66,25 +66,6 @@ structure ContextFull for Context {
     $last_modified_by
 }
 
-structure ContextActionResponse for Context {
-    @required
-    @notProperty
-    context_id: String
-
-    @required
-    @notProperty
-    override_id: String
-
-    @required
-    $weight
-
-    @required
-    $description
-
-    @required
-    $change_reason
-}
-
 @idempotent
 @http(method: "PUT", uri: "/context")
 operation CreateContext {
@@ -107,7 +88,7 @@ operation CreateContext {
         $change_reason
     }
 
-    output: ContextActionResponse
+    output: ContextResponse
 }
 
 @http(method: "GET", uri: "/context/{id}")
@@ -118,7 +99,7 @@ operation GetContext {
         $id
     }
 
-    output: ContextFull
+    output: ContextResponse
 
     errors: [
         ResourceNotFound
@@ -142,7 +123,7 @@ operation MoveContext {
         $change_reason
     }
 
-    output: ContextActionResponse
+    output: ContextResponse
 
     errors: [
         ResourceNotFound
@@ -182,7 +163,7 @@ operation UpdateOverride {
         request: UpdateContextOverrideRequest
     }
 
-    output: ContextFull
+    output: ContextResponse
 
     errors: [
         ResourceNotFound
@@ -197,7 +178,7 @@ operation GetContextFromCondition {
         context: Document
     }
 
-    output: ContextFull
+    output: ContextResponse
 
     errors: [
         ResourceNotFound
@@ -211,7 +192,7 @@ enum ContextFilterSortOn {
 }
 
 list ListContextOut {
-    member: ContextFull
+    member: ContextResponse
 }
 
 @readonly
@@ -348,24 +329,11 @@ structure BulkOperationReq {
     operations: BulkOperationList
 }
 
-@mixin
-structure ContextPutOutMixin for Context {
-    context_id: String
-    override_id: String
-    weight: Weight
-    description: String
-    change_reason: String
-}
-
-structure ContextPutOut with [ContextPutOutMixin] {}
-
-structure ContextMoveOut with [ContextPutOutMixin] {}
-
 union ContextActionOut for Context {
-    PUT: ContextPutOut
-    REPLACE: ContextPutOut
+    PUT: ContextResponse
+    REPLACE: ContextResponse
     DELETE: String
-    MOVE: ContextMoveOut
+    MOVE: ContextResponse
 }
 
 list BulkOperationOutList {

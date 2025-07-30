@@ -252,13 +252,15 @@ import {
   AuditLogFull,
   AutocompleteFunctionRequest,
   Bucket,
+  BulkOperationOut,
   BulkOperationReq,
   ContextAction,
-  ContextFull,
+  ContextActionOut,
   ContextIdentifier,
   ContextMove,
   ContextPartial,
   ContextPut,
+  ContextResponse,
   DefaultConfigFull,
   DimensionExt,
   ExperimentGroupResponse,
@@ -284,6 +286,7 @@ import {
   WorkspaceResponse,
 } from "../models/models_0";
 import {
+  awsExpectUnion as __expectUnion,
   loadRestJsonErrorCode,
   parseJsonBody as parseBody,
   parseJsonErrorBody as parseErrorBody,
@@ -2022,7 +2025,7 @@ export const de_BulkOperationCommand = async(
     $metadata: deserializeMetadata(output),
   });
   const data: Record<string, any> | undefined = __expectObject(await parseBody(output.body, context));
-  contents.bulk_operation_output = _json(data);
+  contents.bulk_operation_output = de_BulkOperationOut(data, context);
   return contents;
 }
 
@@ -2082,9 +2085,15 @@ export const de_CreateContextCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'change_reason': __expectString,
-    'context_id': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
     'description': __expectString,
+    'id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'override': _ => de_Overrides(_, context),
     'override_id': __expectString,
+    'value': _ => de_Condition(_, context),
     'weight': __expectString,
   });
   Object.assign(contents, doc);
@@ -3199,9 +3208,15 @@ export const de_MoveContextCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'change_reason': __expectString,
-    'context_id': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
     'description': __expectString,
+    'id': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'override': _ => de_Overrides(_, context),
     'override_id': __expectString,
+    'value': _ => de_Condition(_, context),
     'weight': __expectString,
   });
   Object.assign(contents, doc);
@@ -4285,9 +4300,30 @@ const de_CommandError = async(
     return retVal;
   }
 
-  // de_BulkOperationOut omitted.
+  /**
+   * deserializeAws_restJson1BulkOperationOut
+   */
+  const de_BulkOperationOut = (
+    output: any,
+    context: __SerdeContext
+  ): BulkOperationOut => {
+    return take(output, {
+      'output': (_: any) => de_BulkOperationOutList(_, context),
+    }) as any;
+  }
 
-  // de_BulkOperationOutList omitted.
+  /**
+   * deserializeAws_restJson1BulkOperationOutList
+   */
+  const de_BulkOperationOutList = (
+    output: any,
+    context: __SerdeContext
+  ): (ContextActionOut)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_ContextActionOut(__expectUnion(entry), context);
+    });
+    return retVal;
+  }
 
   /**
    * deserializeAws_restJson1Condition
@@ -4305,28 +4341,32 @@ const de_CommandError = async(
 
     }, {} as Record<string, __DocumentType>);}
 
-  // de_ContextActionOut omitted.
-
   /**
-   * deserializeAws_restJson1ContextFull
+   * deserializeAws_restJson1ContextActionOut
    */
-  const de_ContextFull = (
+  const de_ContextActionOut = (
     output: any,
     context: __SerdeContext
-  ): ContextFull => {
-    return take(output, {
-      'change_reason': __expectString,
-      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
-      'created_by': __expectString,
-      'description': __expectString,
-      'id': __expectString,
-      'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
-      'last_modified_by': __expectString,
-      'override': (_: any) => de_Overrides(_, context),
-      'override_id': __expectString,
-      'value': (_: any) => de_Condition(_, context),
-      'weight': __expectString,
-    }) as any;
+  ): ContextActionOut => {
+    if (__expectString(output.DELETE) !== undefined) {
+      return { DELETE: __expectString(output.DELETE) as any }
+    }
+    if (output.MOVE != null) {
+      return {
+        MOVE: de_ContextResponse(output.MOVE, context)
+      };
+    }
+    if (output.PUT != null) {
+      return {
+        PUT: de_ContextResponse(output.PUT, context)
+      };
+    }
+    if (output.REPLACE != null) {
+      return {
+        REPLACE: de_ContextResponse(output.REPLACE, context)
+      };
+    }
+    return { $unknown: Object.entries(output)[0] };
   }
 
   /**
@@ -4341,8 +4381,6 @@ const de_CommandError = async(
     });
     return retVal;
   }
-
-  // de_ContextMoveOut omitted.
 
   /**
    * deserializeAws_restJson1ContextPartial
@@ -4360,7 +4398,27 @@ const de_CommandError = async(
     }) as any;
   }
 
-  // de_ContextPutOut omitted.
+  /**
+   * deserializeAws_restJson1ContextResponse
+   */
+  const de_ContextResponse = (
+    output: any,
+    context: __SerdeContext
+  ): ContextResponse => {
+    return take(output, {
+      'change_reason': __expectString,
+      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'created_by': __expectString,
+      'description': __expectString,
+      'id': __expectString,
+      'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'last_modified_by': __expectString,
+      'override': (_: any) => de_Overrides(_, context),
+      'override_id': __expectString,
+      'value': (_: any) => de_Condition(_, context),
+      'weight': __expectString,
+    }) as any;
+  }
 
   /**
    * deserializeAws_restJson1DefaultConfigFull
@@ -4555,9 +4613,9 @@ const de_CommandError = async(
   const de_ListContextOut = (
     output: any,
     context: __SerdeContext
-  ): (ContextFull)[] => {
+  ): (ContextResponse)[] => {
     const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
-      return de_ContextFull(entry, context);
+      return de_ContextResponse(entry, context);
     });
     return retVal;
   }

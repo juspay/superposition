@@ -19,12 +19,12 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.ContextFull
+import qualified Io.Superposition.Model.ContextResponse
 
 data ListContextsOutput = ListContextsOutput {
     total_pages :: Data.Maybe.Maybe Integer,
     total_items :: Data.Maybe.Maybe Integer,
-    data' :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextFull.ContextFull)
+    data' :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextResponse.ContextResponse)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -52,7 +52,7 @@ instance Data.Aeson.FromJSON ListContextsOutput where
 data ListContextsOutputBuilderState = ListContextsOutputBuilderState {
     total_pagesBuilderState :: Data.Maybe.Maybe Integer,
     total_itemsBuilderState :: Data.Maybe.Maybe Integer,
-    data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextFull.ContextFull)
+    data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextResponse.ContextResponse)
 } deriving (
   GHC.Generics.Generic
   )
@@ -93,7 +93,7 @@ setTotalItems :: Data.Maybe.Maybe Integer -> ListContextsOutputBuilder ()
 setTotalItems value =
    ListContextsOutputBuilder (\s -> (s { total_itemsBuilderState = value }, ()))
 
-setData' :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextFull.ContextFull) -> ListContextsOutputBuilder ()
+setData' :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextResponse.ContextResponse) -> ListContextsOutputBuilder ()
 setData' value =
    ListContextsOutputBuilder (\s -> (s { data'BuilderState = value }, ()))
 

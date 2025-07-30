@@ -21,18 +21,18 @@ use service_utils::{
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
-use superposition_types::database::superposition_schema::superposition::workspaces;
-use superposition_types::DBConnection;
 use superposition_types::{
     database::{
-        models::{cac::ConfigVersion, Workspace},
+        models::{cac::ConfigVersion, Description, Workspace},
         schema::{
             config_versions,
             contexts::dsl::{self as ctxt},
             default_configs::dsl as def_conf,
         },
+        superposition_schema::superposition::workspaces,
     },
-    result as superposition, Cac, Condition, Config, Context, Overrides,
+    result as superposition, Cac, Condition, Config, Context, DBConnection,
+    OverrideWithKeys, Overrides,
 };
 
 #[cfg(feature = "high-performance-mode")]
@@ -260,7 +260,7 @@ pub fn generate_cac(
             condition,
             priority: weight.to_owned(),
             weight: weight.to_owned(),
-            override_with_keys: vec![override_id.to_owned()],
+            override_with_keys: OverrideWithKeys::new(override_id.to_owned()),
         };
         contexts.push(ctxt);
         overrides.insert(override_id.to_owned(), override_);
@@ -293,7 +293,7 @@ pub fn generate_cac(
 pub fn add_config_version(
     state: &Data<AppState>,
     tags: Option<Vec<String>>,
-    description: String,
+    description: Description,
     db_conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<i64> {

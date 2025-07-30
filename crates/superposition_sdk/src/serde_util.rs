@@ -41,11 +41,7 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
             }
 
 pub(crate) fn create_context_output_output_correct_errors(mut builder: crate::operation::create_context::builders::CreateContextOutputBuilder) -> crate::operation::create_context::builders::CreateContextOutputBuilder {
-                if builder.context_id.is_none() { builder.context_id = Some(Default::default()) }
-if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
-if builder.weight.is_none() { builder.weight = Some(Default::default()) }
-if builder.description.is_none() { builder.description = Some(Default::default()) }
-if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
                 builder
             }
 
@@ -374,11 +370,7 @@ if builder.data.is_none() { builder.data = Some(Default::default()) }
             }
 
 pub(crate) fn move_context_output_output_correct_errors(mut builder: crate::operation::move_context::builders::MoveContextOutputBuilder) -> crate::operation::move_context::builders::MoveContextOutputBuilder {
-                if builder.context_id.is_none() { builder.context_id = Some(Default::default()) }
-if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
-if builder.weight.is_none() { builder.weight = Some(Default::default()) }
-if builder.description.is_none() { builder.description = Some(Default::default()) }
-if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
                 builder
             }
 
@@ -622,7 +614,7 @@ if builder.variant_id.is_none() { builder.variant_id = Some(Default::default()) 
                 builder
             }
 
-pub(crate) fn context_full_correct_errors(mut builder: crate::types::builders::ContextFullBuilder) -> crate::types::builders::ContextFullBuilder {
+pub(crate) fn context_response_correct_errors(mut builder: crate::types::builders::ContextResponseBuilder) -> crate::types::builders::ContextResponseBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
                 builder
             }

@@ -300,7 +300,7 @@ fn autofill_form(
                                     dimensions=dimensions.get_value()
                                     edit_id=context.id
                                     handle_submit
-                                    description=context.description
+                                    description=context.description.deref().to_string()
                                 />
                             }
                         } else {
@@ -896,8 +896,6 @@ fn change_log_summary(
                                     "Override changes",
                                     update_request
                                         .description
-                                        .as_ref()
-                                        .map(|d| d.deref().to_string())
                                         .unwrap_or_else(|| context.description.clone()),
                                 )
                             }
@@ -918,12 +916,17 @@ fn change_log_summary(
                                     vec![
                                         (
                                             "Description".to_string(),
-                                            Value::String(context.description.clone()),
+                                            Value::String(context.description.deref().to_string()),
                                         ),
                                     ],
                                 )
                                 new_values=Map::from_iter(
-                                    vec![("Description".to_string(), Value::String(description))],
+                                    vec![
+                                        (
+                                            "Description".to_string(),
+                                            Value::String(description.deref().to_string()),
+                                        ),
+                                    ],
                                 )
                             />
                         }

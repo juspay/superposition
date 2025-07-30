@@ -29,8 +29,8 @@ import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
 data DeleteFunctionError =
-    FunctionNotFound Io.Superposition.Model.FunctionNotFound.FunctionNotFound
-    | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
+    InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
+    | FunctionNotFound Io.Superposition.Model.FunctionNotFound.FunctionNotFound
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
 

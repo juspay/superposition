@@ -107,6 +107,34 @@ impl TryFrom<String> for ChangeReason {
 pub struct Description(String);
 const DESCRIPTION_CHAR_LIMIT: usize = 1024;
 
+impl Description {
+    pub fn try_from_change_reasons(
+        change_reasons: Vec<ChangeReason>,
+    ) -> Result<Self, String> {
+        let description = change_reasons
+            .into_iter()
+            .map(|reason| reason.0)
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        if description.is_empty() {
+            return Err(String::from("Empty description not allowed"));
+        }
+
+        match Self::try_from(description.clone()) {
+            Ok(desc) => Ok(desc),
+            Err(_) => {
+                let truncated_desc = description
+                    .chars()
+                    .take(DESCRIPTION_CHAR_LIMIT - 3)
+                    .collect::<String>()
+                    + "...";
+                Self::try_from(truncated_desc)
+            }
+        }
+    }
+}
+
 impl Default for Description {
     fn default() -> Self {
         Self(String::from("Description not provided"))
@@ -141,6 +169,12 @@ impl TryFrom<String> for Description {
             ));
         }
         Ok(Self(value))
+    }
+}
+
+impl From<ChangeReason> for Description {
+    fn from(value: ChangeReason) -> Self {
+        Self(value.0)
     }
 }
 

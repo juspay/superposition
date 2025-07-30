@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::{
@@ -138,7 +140,10 @@ pub fn context_card(
                     <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md m-0 w-max">
                         "Condition"
                     </h3>
-                    <InfoDescription description=description change_reason=change_reason />
+                    <InfoDescription
+                        description=description.deref().to_string()
+                        change_reason=change_reason.deref().to_string()
+                    />
                     <div class="group relative inline-block text-xs text-gray-700 cursor-pointer">
                         <div class="z-[1000] hidden absolute top-full left-1/2 p-2.5 group-hover:flex flex-col gap-4 bg-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
                             <div class="flex flex-col gap-1">

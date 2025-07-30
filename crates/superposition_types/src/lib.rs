@@ -27,7 +27,7 @@ use diesel_derive_enum as _;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-pub use crate::config::{Condition, Config, Context, Overrides};
+pub use crate::config::{Condition, Config, Context, OverrideWithKeys, Overrides};
 pub use crate::contextual::Contextual;
 pub use crate::overridden::Overridden;
 

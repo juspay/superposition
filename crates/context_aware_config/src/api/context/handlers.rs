@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashSet, ops::Deref};
+use std::{cmp::min, collections::HashSet};
 
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
@@ -8,10 +8,6 @@ use crate::{
             hash,
             helpers::{query_description, validate_ctx},
             operations,
-            types::{
-                BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-                MoveReq, PutReq, WeightRecomputeResponse,
-            },
         },
         dimension::{get_dimension_data, get_dimension_data_map},
     },
@@ -38,13 +34,17 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::context::{ContextListFilters, ContextValidationRequest, SortOn, UpdateRequest},
+    api::context::{
+        BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
+        ContextListFilters, ContextValidationRequest, MoveRequest, PutRequest, SortOn,
+        UpdateRequest, WeightRecomputeResponse,
+    },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,
     },
     database::{
-        models::cac::Context,
+        models::{cac::Context, ChangeReason, Description},
         schema::contexts::{self, id},
     },
     result as superposition, Contextual, ListResponse, Overridden, PaginatedResponse,
@@ -69,7 +69,7 @@ pub fn endpoints() -> Scope {
 async fn put_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
-    req: Json<PutReq>,
+    req: Json<PutRequest>,
     mut db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
@@ -106,7 +106,7 @@ async fn put_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                req_change_reason,
+                req_change_reason.into(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -154,7 +154,7 @@ async fn update_override_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                req_change_reason.deref().to_string(),
+                req_change_reason.into(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -181,7 +181,7 @@ async fn move_handler(
     state: Data<AppState>,
     path: Path<String>,
     custom_headers: CustomHeaders,
-    req: Json<MoveReq>,
+    req: Json<MoveRequest>,
     mut db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
@@ -215,7 +215,7 @@ async fn move_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                move_response.change_reason.clone(),
+                move_response.change_reason.clone().into(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -412,11 +412,13 @@ async fn delete_context_handler(
                 .schema_name(&schema_name)
                 .first::<Context>(transaction_conn)?;
             operations::delete(ctx_id.clone(), &user, transaction_conn, &schema_name)?;
-            let change_reason = format!("Deleted context by {}", user.username);
+            let config_version_desc =
+                Description::try_from(format!("Deleted context by {}", user.username))
+                    .map_err(|e| unexpected_error!(e))?;
             let version_id = add_config_version(
                 &state,
                 tags,
-                change_reason,
+                config_version_desc,
                 transaction_conn,
                 &schema_name,
             )?;
@@ -506,8 +508,7 @@ async fn bulk_operations(
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
                     ContextAction::Replace(update_request) => {
-                        all_change_reasons
-                            .push((*update_request.change_reason).to_string());
+                        all_change_reasons.push(update_request.change_reason.clone());
                         let update_resp = operations::update(
                             update_request,
                             transaction_conn,
@@ -538,10 +539,13 @@ async fn bulk_operations(
                         let description = context.description;
 
                         let email: String = user.clone().get_email();
-                        let change_reason =
-                            format!("Context deleted by {}", email.clone());
+                        let change_reason = ChangeReason::try_from(format!(
+                            "Context deleted by {}",
+                            email.clone()
+                        ))
+                        .map_err(|e| unexpected_error!(e))?;
                         all_descriptions.push(description.clone());
-                        all_change_reasons.push(change_reason.clone());
+                        all_change_reasons.push(change_reason);
 
                         match deleted_row {
                             // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
@@ -598,12 +602,11 @@ async fn bulk_operations(
                 }
             }
 
-            let combined_change_reasons = all_change_reasons.join(",");
-
             let version_id = add_config_version(
                 &state,
                 tags,
-                combined_change_reasons,
+                Description::try_from_change_reasons(all_change_reasons)
+                    .unwrap_or_default(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -700,8 +703,8 @@ async fn weight_recompute(
                         db_error!(err)
                     })?;
             }
-            let change_reason = "Recomputed weight".to_string();
-            let version_id = add_config_version(&state, tags, change_reason, transaction_conn, &schema_name)?;
+            let config_version_desc = Description::try_from("Recomputed weight".to_string()).map_err(|e| unexpected_error!(e))?;
+            let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &schema_name)?;
             Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]

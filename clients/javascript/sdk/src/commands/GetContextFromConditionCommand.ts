@@ -5,7 +5,7 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  ContextFull,
+  ContextResponse,
   GetContextFromConditionInput,
 } from "../models/models_0";
 import {
@@ -32,7 +32,7 @@ export interface GetContextFromConditionCommandInput extends GetContextFromCondi
  *
  * The output of {@link GetContextFromConditionCommand}.
  */
-export interface GetContextFromConditionCommandOutput extends ContextFull, __MetadataBearer {}
+export interface GetContextFromConditionCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
  * @public
@@ -50,7 +50,7 @@ export interface GetContextFromConditionCommandOutput extends ContextFull, __Met
  * };
  * const command = new GetContextFromConditionCommand(input);
  * const response = await client.send(command);
- * // { // ContextFull
+ * // { // ContextResponse
  * //   id: "STRING_VALUE", // required
  * //   value: { // Condition
  * //     "<keys>": "DOCUMENT_VALUE",
@@ -103,7 +103,7 @@ export class GetContextFromConditionCommand extends $Command.classBuilder<GetCon
 declare protected static __types: {
   api: {
       input: GetContextFromConditionInput;
-      output: ContextFull;
+      output: ContextResponse;
   };
   sdk: {
       input: GetContextFromConditionCommandInput;

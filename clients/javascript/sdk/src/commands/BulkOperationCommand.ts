@@ -92,27 +92,57 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  * //   bulk_operation_output: { // BulkOperationOut
  * //     output: [ // BulkOperationOutList
  * //       { // ContextActionOut Union: only one key present
- * //         PUT: { // ContextPutOut
- * //           context_id: "STRING_VALUE",
+ * //         PUT: { // ContextResponse
+ * //           id: "STRING_VALUE", // required
+ * //           value: { // Condition
+ * //             "<keys>": "DOCUMENT_VALUE",
+ * //           },
+ * //           override: { // Overrides
+ * //             "<keys>": "DOCUMENT_VALUE",
+ * //           },
  * //           override_id: "STRING_VALUE",
  * //           weight: "STRING_VALUE",
  * //           description: "STRING_VALUE",
  * //           change_reason: "STRING_VALUE",
+ * //           created_at: new Date("TIMESTAMP"),
+ * //           created_by: "STRING_VALUE",
+ * //           last_modified_at: new Date("TIMESTAMP"),
+ * //           last_modified_by: "STRING_VALUE",
  * //         },
  * //         REPLACE: {
- * //           context_id: "STRING_VALUE",
+ * //           id: "STRING_VALUE", // required
+ * //           value: {
+ * //             "<keys>": "DOCUMENT_VALUE",
+ * //           },
+ * //           override: {
+ * //             "<keys>": "DOCUMENT_VALUE",
+ * //           },
  * //           override_id: "STRING_VALUE",
  * //           weight: "STRING_VALUE",
  * //           description: "STRING_VALUE",
  * //           change_reason: "STRING_VALUE",
+ * //           created_at: new Date("TIMESTAMP"),
+ * //           created_by: "STRING_VALUE",
+ * //           last_modified_at: new Date("TIMESTAMP"),
+ * //           last_modified_by: "STRING_VALUE",
  * //         },
  * //         DELETE: "STRING_VALUE",
- * //         MOVE: { // ContextMoveOut
- * //           context_id: "STRING_VALUE",
+ * //         MOVE: {
+ * //           id: "STRING_VALUE", // required
+ * //           value: {
+ * //             "<keys>": "DOCUMENT_VALUE",
+ * //           },
+ * //           override: {
+ * //             "<keys>": "DOCUMENT_VALUE",
+ * //           },
  * //           override_id: "STRING_VALUE",
  * //           weight: "STRING_VALUE",
  * //           description: "STRING_VALUE",
  * //           change_reason: "STRING_VALUE",
+ * //           created_at: new Date("TIMESTAMP"),
+ * //           created_by: "STRING_VALUE",
+ * //           last_modified_at: new Date("TIMESTAMP"),
+ * //           last_modified_by: "STRING_VALUE",
  * //         },
  * //       },
  * //     ],

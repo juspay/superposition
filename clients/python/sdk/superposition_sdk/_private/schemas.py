@@ -1005,65 +1005,67 @@ WEIGHT = Schema(
 
 )
 
-CONTEXT_MOVE_OUT = Schema.collection(
-    id=ShapeID("io.superposition#ContextMoveOut"),
+CONTEXT_RESPONSE = Schema.collection(
+    id=ShapeID("io.superposition#ContextResponse"),
 
     members={
-        "context_id": {
+        "id": {
             "target": STRING,
             "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "value": {
+            "target": CONDITION,
+            "index": 1,
+        },
+
+        "override": {
+            "target": OVERRIDES,
+            "index": 2,
         },
 
         "override_id": {
             "target": STRING,
-            "index": 1,
+            "index": 3,
         },
 
         "weight": {
             "target": WEIGHT,
-            "index": 2,
+            "index": 4,
         },
 
         "description": {
             "target": STRING,
-            "index": 3,
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 4,
+            "index": 6,
         },
 
-    }
-)
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 7,
+        },
 
-CONTEXT_PUT_OUT = Schema.collection(
-    id=ShapeID("io.superposition#ContextPutOut"),
-
-    members={
-        "context_id": {
+        "created_by": {
             "target": STRING,
-            "index": 0,
+            "index": 8,
         },
 
-        "override_id": {
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 9,
+        },
+
+        "last_modified_by": {
             "target": STRING,
-            "index": 1,
-        },
-
-        "weight": {
-            "target": WEIGHT,
-            "index": 2,
-        },
-
-        "description": {
-            "target": STRING,
-            "index": 3,
-        },
-
-        "change_reason": {
-            "target": STRING,
-            "index": 4,
+            "index": 10,
         },
 
     }
@@ -1074,12 +1076,12 @@ CONTEXT_ACTION_OUT = Schema.collection(
     shape_type=ShapeType.UNION,
     members={
         "PUT": {
-            "target": CONTEXT_PUT_OUT,
+            "target": CONTEXT_RESPONSE,
             "index": 0,
         },
 
         "REPLACE": {
-            "target": CONTEXT_PUT_OUT,
+            "target": CONTEXT_RESPONSE,
             "index": 1,
         },
 
@@ -1089,7 +1091,7 @@ CONTEXT_ACTION_OUT = Schema.collection(
         },
 
         "MOVE": {
-            "target": CONTEXT_MOVE_OUT,
+            "target": CONTEXT_RESPONSE,
             "index": 3,
         },
 
@@ -2268,56 +2270,68 @@ CREATE_CONTEXT_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#CreateContextOutput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextActionResponse"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextResponse"),
         Trait.new(id=ShapeID("smithy.api#output")),
 
     ],
     members={
-        "context_id": {
+        "id": {
             "target": STRING,
             "index": 0,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "value": {
+            "target": CONDITION,
+            "index": 1,
+        },
+
+        "override": {
+            "target": OVERRIDES,
+            "index": 2,
         },
 
         "override_id": {
             "target": STRING,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 3,
         },
 
         "weight": {
             "target": WEIGHT,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 4,
         },
 
         "description": {
             "target": STRING,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 4,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+            "index": 6,
+        },
 
-            ],
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 7,
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 8,
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 9,
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 10,
         },
 
     }
@@ -2460,7 +2474,7 @@ GET_CONTEXT_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#GetContextOutput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextFull"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextResponse"),
         Trait.new(id=ShapeID("smithy.api#output")),
 
     ],
@@ -2586,7 +2600,7 @@ GET_CONTEXT_FROM_CONDITION_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#GetContextFromConditionOutput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextFull"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextResponse"),
         Trait.new(id=ShapeID("smithy.api#output")),
 
     ],
@@ -2837,78 +2851,12 @@ LIST_CONTEXTS_INPUT = Schema.collection(
     }
 )
 
-CONTEXT_FULL = Schema.collection(
-    id=ShapeID("io.superposition#ContextFull"),
-
-    members={
-        "id": {
-            "target": STRING,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "value": {
-            "target": CONDITION,
-            "index": 1,
-        },
-
-        "override": {
-            "target": OVERRIDES,
-            "index": 2,
-        },
-
-        "override_id": {
-            "target": STRING,
-            "index": 3,
-        },
-
-        "weight": {
-            "target": WEIGHT,
-            "index": 4,
-        },
-
-        "description": {
-            "target": STRING,
-            "index": 5,
-        },
-
-        "change_reason": {
-            "target": STRING,
-            "index": 6,
-        },
-
-        "created_at": {
-            "target": DATE_TIME,
-            "index": 7,
-        },
-
-        "created_by": {
-            "target": STRING,
-            "index": 8,
-        },
-
-        "last_modified_at": {
-            "target": DATE_TIME,
-            "index": 9,
-        },
-
-        "last_modified_by": {
-            "target": STRING,
-            "index": 10,
-        },
-
-    }
-)
-
 LIST_CONTEXT_OUT = Schema.collection(
     id=ShapeID("io.superposition#ListContextOut"),
     shape_type=ShapeType.LIST,
     members={
         "member": {
-            "target": CONTEXT_FULL,
+            "target": CONTEXT_RESPONSE,
             "index": 0,
         },
 
@@ -3037,56 +2985,68 @@ MOVE_CONTEXT_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#MoveContextOutput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextActionResponse"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextResponse"),
         Trait.new(id=ShapeID("smithy.api#output")),
 
     ],
     members={
-        "context_id": {
+        "id": {
             "target": STRING,
             "index": 0,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "value": {
+            "target": CONDITION,
+            "index": 1,
+        },
+
+        "override": {
+            "target": OVERRIDES,
+            "index": 2,
         },
 
         "override_id": {
             "target": STRING,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 3,
         },
 
         "weight": {
             "target": WEIGHT,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 4,
         },
 
         "description": {
             "target": STRING,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 4,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+            "index": 6,
+        },
 
-            ],
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 7,
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 8,
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 9,
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 10,
         },
 
     }
@@ -3162,7 +3122,7 @@ UPDATE_OVERRIDE_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#UpdateOverrideOutput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextFull"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ContextResponse"),
         Trait.new(id=ShapeID("smithy.api#output")),
 
     ],
