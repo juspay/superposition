@@ -1201,7 +1201,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "itertools 0.10.5",
- "jsonlogic",
+ "juspay_jsonlogic",
  "log",
  "mini-moka",
  "once_cell",
@@ -1591,11 +1591,11 @@ dependencies = [
  "cac_client",
  "cfg-if",
  "chrono",
- "diesel",
  "fred",
  "itertools 0.10.5",
- "jsonlogic",
  "jsonschema",
+ "juspay_diesel",
+ "juspay_jsonlogic",
  "log",
  "num-bigint",
  "serde",
@@ -1946,27 +1946,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "diesel"
-version = "2.2.4"
-source = "git+https://github.com/juspay/diesel.git?branch=dynamic-schema#19833ad9e1cb2eb681b9ac9bd664063e57889414"
-dependencies = [
- "bigdecimal",
- "bitflags 2.9.1",
- "byteorder",
- "chrono",
- "diesel_derives",
- "downcast-rs",
- "itoa",
- "num-bigint",
- "num-integer",
- "num-traits",
- "pq-sys",
- "r2d2",
- "serde_json",
- "uuid",
-]
-
-[[package]]
 name = "diesel-derive-enum"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1980,8 +1959,9 @@ dependencies = [
 
 [[package]]
 name = "diesel_derives"
-version = "2.2.0"
-source = "git+https://github.com/juspay/diesel.git?branch=dynamic-schema#19833ad9e1cb2eb681b9ac9bd664063e57889414"
+version = "2.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b96984c469425cb577bf6f17121ecb3e4fe1e81de5d8f780dd372802858d756"
 dependencies = [
  "diesel_table_macro_syntax",
  "dsl_auto_type",
@@ -1993,7 +1973,8 @@ dependencies = [
 [[package]]
 name = "diesel_table_macro_syntax"
 version = "0.2.0"
-source = "git+https://github.com/juspay/diesel.git?branch=dynamic-schema#19833ad9e1cb2eb681b9ac9bd664063e57889414"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "209c735641a413bc68c4923a9d6ad4bcb3ca306b794edaa7eb0b3228a99ffb25"
 dependencies = [
  "syn 2.0.103",
 ]
@@ -2042,8 +2023,9 @@ checksum = "669a445ee724c5c69b1b06fe0b63e70a1c84bc9bb7d9696cd4f4e3ec45050408"
 
 [[package]]
 name = "dsl_auto_type"
-version = "0.1.0"
-source = "git+https://github.com/juspay/diesel.git?branch=dynamic-schema#19833ad9e1cb2eb681b9ac9bd664063e57889414"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "139ae9aca7527f85f26dd76483eb38533fd84bd571065da1739656ef71c5ff5b"
 dependencies = [
  "darling 0.20.10",
  "either",
@@ -2204,7 +2186,7 @@ dependencies = [
  "cbindgen",
  "chrono",
  "derive_more",
- "jsonlogic",
+ "juspay_jsonlogic",
  "log",
  "once_cell",
  "reqwest",
@@ -2232,8 +2214,8 @@ dependencies = [
  "blake3",
  "cac_client",
  "chrono",
- "diesel",
  "experimentation_client",
+ "juspay_diesel",
  "log",
  "reqwest",
  "serde",
@@ -3158,16 +3140,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jsonlogic"
-version = "0.5.5"
-source = "git+https://github.com/juspay/jsonlogic_rs.git#822ee099cc3f40ef0608eda61d2a37e5ad60271d"
-dependencies = [
- "regex",
- "serde_json",
- "unicode-normalization",
-]
-
-[[package]]
 name = "jsonschema"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3195,6 +3167,39 @@ dependencies = [
  "time",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "juspay_diesel"
+version = "2.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "094e23f903983e5756cfe5ccf1546ba44b930b57b4d7031b3fc6eb9e909b38ac"
+dependencies = [
+ "bigdecimal",
+ "bitflags 2.9.1",
+ "byteorder",
+ "chrono",
+ "diesel_derives",
+ "downcast-rs",
+ "itoa",
+ "num-bigint",
+ "num-integer",
+ "num-traits",
+ "pq-sys",
+ "r2d2",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "juspay_jsonlogic"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eeb5ea313a880c663adfd8dd6e018778c987cad06091621952a3ef640c58983"
+dependencies = [
+ "regex",
+ "serde_json",
+ "unicode-normalization",
 ]
 
 [[package]]
@@ -5188,10 +5193,10 @@ dependencies = [
  "base64 0.21.2",
  "chrono",
  "derive_more",
- "diesel",
  "fred",
  "futures-util",
  "jsonschema",
+ "juspay_diesel",
  "log",
  "once_cell",
  "openidconnect",
@@ -5410,7 +5415,6 @@ dependencies = [
  "cfg-if",
  "chrono",
  "context_aware_config",
- "diesel",
  "dotenv",
  "env_logger",
  "experimentation_platform",
@@ -5418,6 +5422,7 @@ dependencies = [
  "frontend",
  "futures-util",
  "idgenerator",
+ "juspay_diesel",
  "leptos",
  "leptos_actix",
  "log",
@@ -5450,7 +5455,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "itertools 0.10.5",
- "jsonlogic",
+ "juspay_jsonlogic",
  "log",
  "mini-moka",
  "once_cell",
@@ -5525,9 +5530,9 @@ dependencies = [
  "bigdecimal",
  "chrono",
  "derive_more",
- "diesel",
  "diesel-derive-enum",
- "jsonlogic",
+ "juspay_diesel",
+ "juspay_jsonlogic",
  "log",
  "regex",
  "serde",
