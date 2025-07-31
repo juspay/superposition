@@ -18,7 +18,7 @@ members = [
     "crates/superposition_derives",
     "crates/superposition_core",
     "crates/superposition_provider",
-    "crates/superposition_sdk"
+    "crates/superposition_sdk",
 ]
 
 [[workspace.metadata.leptos]]
@@ -40,19 +40,19 @@ bigdecimal = { version = "0.3.1", features = ["serde"] }
 cfg-if = "1.0.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 derive_more = "^0.99"
-diesel = { git = "https://github.com/juspay/diesel.git", branch = "dynamic-schema", features = [
+diesel = { version = "2.2.4", package = "juspay_diesel", features = [
     "postgres",
     "r2d2",
     "serde_json",
     "chrono",
     "uuid",
     "postgres_backend",
-    "numeric"
+    "numeric",
 ] }
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
 itertools = { version = "0.10.5" }
-jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.5" }
+jsonlogic = { version = "0.5.5", package = "juspay_jsonlogic" }
 jsonschema = "~0.17"
 leptos = { version = "0.6.11" }
 log = { version = "0.4.20", features = ["kv_unstable_serde"] }
@@ -67,7 +67,7 @@ strum_macros = "0.25"
 toml = { version = "0.8.8", features = ["preserve_order"] }
 url = "2.5.0"
 uuid = { version = "1.3.4", features = ["v4", "serde"] }
-uniffi = { version = "0.29.3", features = [ "cli" ] }
+uniffi = { version = "0.29.3", features = ["cli"] }
 
 [workspace.lints.clippy]
 mod_module_files = "warn"
