@@ -1,10 +1,20 @@
+
 plugins {
-    `java-library-conventions`
+    `java-library`
     `publishing-conventions`
 }
 
 extra["displayName"] = "Superposition SDK"
 description = "Java SDK for Superposition."
+
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
 
 dependencies {
     implementation("software.amazon.smithy.java:client-core:0.0.1")
