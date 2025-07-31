@@ -139,13 +139,23 @@ pub async fn get_partial_resolve_config(
     context_id: &str,
     workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
-    let http_client = state.http_client.clone();
-    let url = state.cac_host.clone() + "/config/resolve";
     let mut exp_context_dimension_value = extract_dimensions(exp_context)?;
     exp_context_dimension_value.insert(
         "context_id".to_string(),
         Value::String(context_id.to_string()),
     );
+    get_resolved_config(user, state, &exp_context_dimension_value, workspace_request)
+        .await
+}
+
+pub async fn get_resolved_config(
+    user: &User,
+    state: &Data<AppState>,
+    query_map: &Map<String, Value>,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<Map<String, Value>> {
+    let http_client = state.http_client.clone();
+    let url = state.cac_host.clone() + "/config/resolve";
 
     let user_str = serde_json::to_string(user).map_err(|err| {
         log::error!("Something went wrong, failed to stringify user data {err}");
@@ -164,7 +174,7 @@ pub async fn get_partial_resolve_config(
     )?;
     let response = http_client
         .get(&url)
-        .query(&exp_context_dimension_value)
+        .query(&query_map)
         .headers(headers_map.into())
         .header(
             header::AUTHORIZATION,

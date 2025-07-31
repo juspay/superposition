@@ -277,6 +277,7 @@ pub struct Workspace {
     pub strict_mode: bool,
     pub metrics: Metrics,
     pub allow_experiment_self_approval: bool,
+    pub auto_populate_control: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

@@ -1425,4 +1425,7 @@ ALTER TABLE localorg_test.functions
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
 ALTER COLUMN created_at SET NOT NULL;
 
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT FALSE;
+
 COMMIT;

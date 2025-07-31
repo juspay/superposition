@@ -22,6 +22,7 @@ resource Workspace {
         strict_mode: Boolean
         metrics: Document
         allow_experiment_self_approval: Boolean
+        auto_populate_control: Boolean
     }
     list: ListWorkspace
     put: UpdateWorkspace
@@ -55,6 +56,9 @@ structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
 
     @required
     $allow_experiment_self_approval
+
+    @required
+    $auto_populate_control
 }
 
 structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
@@ -74,6 +78,8 @@ structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $metrics
 
     $allow_experiment_self_approval
+
+    $auto_populate_control
 }
 
 structure WorkspaceResponse for Workspace {
@@ -118,6 +124,9 @@ structure WorkspaceResponse for Workspace {
 
     @required
     $allow_experiment_self_approval
+
+    @required
+    $auto_populate_control
 }
 
 list WorkspaceList {
