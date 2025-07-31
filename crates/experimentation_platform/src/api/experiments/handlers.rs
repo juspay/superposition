@@ -30,6 +30,7 @@ use service_utils::{
         AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
     },
 };
+use superposition_derives::auth_action;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
@@ -117,6 +118,7 @@ fn add_config_version_to_header(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[auth_action("read")]
 #[post("")]
 async fn create(
     state: Data<AppState>,
@@ -208,7 +210,7 @@ async fn create(
     //create overrides in CAC, if successfull then create experiment in DB
     let mut cac_operations: Vec<ContextAction> = vec![];
     for variant in &mut variants {
-        let variant_id = experiment_id.to_string() + "-" + &variant.id;
+        let variant_id = experiment_id.to_string() + "-" + variant.id.as_ref();
 
         // updating variant.id to => experiment_id + variant.id
         variant.id = variant_id.to_string();
@@ -376,6 +378,7 @@ async fn create(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[auth_action("conclude")]
 #[patch("/{experiment_id}/conclude")]
 async fn conclude_handler(
     state: Data<AppState>,
@@ -651,6 +654,7 @@ pub async fn conclude(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[auth_action("discard")]
 #[patch("/{experiment_id}/discard")]
 async fn discard_handler(
     state: Data<AppState>,
@@ -817,6 +821,7 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
+#[auth_action("read")]
 #[route("/applicable-variants", method = "GET", method = "POST")]
 async fn get_applicable_variants(
     req: HttpRequest,
@@ -894,6 +899,7 @@ async fn get_applicable_variants(
     }
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_experiments(
     req: HttpRequest,
@@ -1015,6 +1021,7 @@ async fn list_experiments(
     }))
 }
 
+#[auth_action("read")]
 #[get("/{id}")]
 async fn get_experiment_handler(
     params: web::Path<i64>,
@@ -1037,6 +1044,7 @@ pub fn user_allowed_to_ramp(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[auth_action("ramp")]
 #[patch("/{id}/ramp")]
 async fn ramp(
     state: Data<AppState>,
@@ -1177,6 +1185,7 @@ async fn ramp(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[auth_action("update")]
 #[put("/{id}/overrides")]
 async fn update_overrides(
     params: web::Path<i64>,
@@ -1480,6 +1489,7 @@ async fn update_overrides(
     Ok(http_resp.json(experiment_response))
 }
 
+#[auth_action("read")]
 #[get("/audit")]
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
@@ -1531,6 +1541,7 @@ async fn get_audit_logs(
     }))
 }
 
+#[auth_action("pause")]
 #[patch("/{experiment_id}/pause")]
 async fn pause_handler(
     state: Data<AppState>,
@@ -1620,6 +1631,7 @@ pub async fn pause(
     Ok(updated_experiment)
 }
 
+#[auth_action("resume")]
 #[patch("/{experiment_id}/resume")]
 async fn resume_handler(
     state: Data<AppState>,
