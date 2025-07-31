@@ -289,29 +289,25 @@ jobs:
         if: github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
         env:
-            VERSION: ${{ needs.tag-release.outputs.version }}
-            AWS_REGION: ${{ vars.AWS_REGION }}
-            CODEARTIFACT_DOMAIN: ${{ vars.CODEARTIFACT_DOMAIN }}
-            CODEARTIFACT_REPOSITORY: ${{ vars.CODEARTIFACT_REPOSITORY }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.SONATYPE_MAVEN_SIGNING_KEY }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ vars.SONATYPE_MAVEN_SIGNING_PUB_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.SONATYPE_MAVEN_SIGNING_KEY_PASSWORD }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.SONATYPE_MAVEN_USERNAME }}
+          JRELEASER_MAVENCENTRAL_TOKEN: ${{ secrets.SONATYPE_MAVEN_PASSWORD }}
+          VERSION: ${{ needs.tag-release.outputs.version }}
+        defaults:
+          run:
+              working-directory: clients/java
+
         steps:
-            - name: Checkout repository
+            - name: Checkout code
               uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
 
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v4.1.0
-              with:
-                  audience: sts.amazonaws.com
-                  aws-region: ${{ env.AWS_REGION }}
-                  role-session-name: superposition-release
-                  role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
-
-            - name: Install JDK 17
+            - name: Set up JDK 17
               uses: actions/setup-java@v4
               with:
-                  java-version: "17"
-                  distribution: "temurin"
+                  java-version: '17'
+                  distribution: 'temurin'
 
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
@@ -327,7 +323,7 @@ jobs:
 
             - name: Extract and organize native libraries
               run: |
-                  mkdir -p clients/java/bindings/src/main/resources
+                  mkdir -p bindings/src/main/resources
                   mkdir temp_extract
                   # Extract all native libraries
                   for zip_file in rust-binaries/*.zip; do
@@ -364,7 +360,7 @@ jobs:
                           esac
 
                           # Create the platform-specific directory
-                          target_dir="clients/java/bindings/src/main/resources/$platform"
+                          target_dir="bindings/src/main/resources/$platform"
                           mkdir -p "$target_dir"
 
                           # Copy the file
@@ -378,36 +374,16 @@ jobs:
 
                   # List what we have
                   echo "Native libraries in bindings package:"
-                  ls -lar clients/java/bindings/src/main/resources/
+                  ls -lar bindings/src/main/resources/
 
-            - name: Configure CodeArtifact for Gradle
-              run: |
-                  # Get CodeArtifact authorization token
-                  export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --query authorizationToken --output text)
+            - name: Make gradlew executable
+              run: chmod +x gradlew
 
-                  # Get repository endpoint
-                  export CODEARTIFACT_REPOSITORY_ENDPOINT=$(aws codeartifact get-repository-endpoint \
-                      --domain $CODEARTIFACT_DOMAIN \
-                      --repository $CODEARTIFACT_REPOSITORY \
-                      --format maven --query repositoryEndpoint --output text)
+            - name: Publish
+              run: ./gradlew clean publish
 
-                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_ENV
-                  echo "CODEARTIFACT_REPOSITORY_ENDPOINT=$CODEARTIFACT_REPOSITORY_ENDPOINT" >> $GITHUB_ENV
-
-            - name: Build Java packages
-              run: |
-                  cd clients/java
-                  ./gradlew build -x test
-
-            - name: Publish Java packages
-              run: |
-                  cd clients/java
-                  ./gradlew publish
-              env:
-                  CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
-                  CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
+            - name: Deploy to Sonatype
+              run: ./gradlew jreleaserDeploy --info --stacktrace
 
     generate-python-packages:
         needs: [tag-release, generate-rust-binary]
@@ -609,7 +585,7 @@ jobs:
                   toolchain: 1.86.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy, cargo
-                  
+
             - name: install cargo-edit to perform set-version
               uses: baptiste0928/cargo-install@v2.2.0
               with:
@@ -632,7 +608,7 @@ jobs:
                   cargo publish --package superposition_types
                   cargo publish --package superposition_core
                   cargo publish --package superposition_provider
-                  
+
     release:
         needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest

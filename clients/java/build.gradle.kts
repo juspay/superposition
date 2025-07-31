@@ -15,6 +15,17 @@ allprojects {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force(
+            "com.fasterxml.jackson.core:jackson-core:2.16.0",
+            "com.fasterxml.jackson:jackson-bom:2.16.0",
+            "com.fasterxml.jackson.core:jackson-databind:2.16.0",
+            "com.fasterxml.jackson.core:jackson-annotations:2.16.0"
+        )
+    }
+}
+
 /*
  * Jreleaser (https://jreleaser.org) config.
  */
@@ -55,7 +66,7 @@ jreleaser {
                     active = Active.ALWAYS
                     url = "https://central.sonatype.com/api/v1/publisher"
                     snapshotSupported = true
-                    stagingRepository(rootProject.layout.buildDirectory.dir("staging-deploy").get().asFile.path)
+                    stagingRepository(rootProject.layout.buildDirectory.dir("m2").get().asFile.path)
                 }
             }
         }

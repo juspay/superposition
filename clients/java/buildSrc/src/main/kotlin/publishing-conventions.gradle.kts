@@ -14,6 +14,9 @@ publishing {
             create<MavenPublication>("maven") {
                 from(components["java"])
                 val displayName: String by extra
+                tasks.findByName("dokkaJavadocJar")?.let {
+                    artifact(it)
+                }
                 pom {
                     name.set(displayName)
                     description.set(project.description)
@@ -45,7 +48,7 @@ publishing {
     }
     repositories {
         maven {
-            url = uri(layout.buildDirectory.dir("staging-deploy"))
+            url = uri(rootProject.layout.buildDirectory.dir("m2"))
         }
     }
 }

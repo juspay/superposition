@@ -1,7 +1,14 @@
 plugins {
-    `java-library-conventions`
     `publishing-conventions`
-    kotlin("jvm") version "1.9.10"
+    `kotlin-conventions`
+    `java-library`
+}
+
+java {
+    withSourcesJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 extra["displayName"] = "Superposition Foreign Function Interface"

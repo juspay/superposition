@@ -1,8 +1,15 @@
 plugins {
-    `java-library-conventions`
+    `java-library`
     `publishing-conventions`
-    kotlin("jvm") version "1.9.10"
+    `kotlin-conventions`
     id("io.freefair.lombok") version "8.6"
+}
+
+java {
+    withSourcesJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 group = "${rootProject.group}.openfeature"
