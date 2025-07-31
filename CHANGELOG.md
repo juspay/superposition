@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.82.1 - 2025-07-31
+### Package updates
+- experimentation_client bumped to experimentation_client-v0.14.1
+- superposition_types bumped to superposition_types-v0.26.1
+- context_aware_config bumped to context_aware_config-v0.56.1
+- frontend bumped to frontend-v0.36.1
+### Global changes
+#### Bug Fixes
+- Add created_by and created_at column for functions table (#626) - (984c436) - Ayush Jain
+
+- - -
+
 ## v0.82.0 - 2025-07-30
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.36.0

@@ -1581,7 +1581,7 @@ checksum = "13418e745008f7349ec7e449155f419a61b92b58a99cc3616942b926825ec76b"
 
 [[package]]
 name = "context_aware_config"
-version = "0.56.0"
+version = "0.56.1"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -2199,7 +2199,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_client"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "cbindgen",
  "chrono",
@@ -2389,7 +2389,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.36.0"
+version = "0.36.1"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -5517,7 +5517,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_types"
-version = "0.26.0"
+version = "0.26.1"
 dependencies = [
  "actix-web",
  "anyhow",

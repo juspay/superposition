@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.56.1 - 2025-07-31
+#### Bug Fixes
+- Add created_by and created_at column for functions table (#626) - (984c436) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.56.0 - 2025-07-28
 #### Features
 - Standalone page for dimensions, default-configs, type-templates, webhooks (#614) - (f2f7d1a) - Ayush Jain

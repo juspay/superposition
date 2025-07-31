@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.14.1 - 2025-07-31
+#### Bug Fixes
+- bucketing logic (#629) - (ebb2fab) - Ankit Kumar Mahato
+
+- - -
+
 ## experimentation_client-v0.14.0 - 2025-07-30
 #### Features
 - experiment bucketing - (274afdf) - Ankit.Mahato
