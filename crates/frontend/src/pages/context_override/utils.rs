@@ -2,7 +2,7 @@ use anyhow::Result;
 use serde_json::{json, Map, Value};
 use superposition_types::{
     api::context::{Identifier, UpdateRequest},
-    database::models::{ChangeReason, Description},
+    database::models::{cac::Context, ChangeReason, Description},
     Cac, Overrides,
 };
 
@@ -34,7 +34,7 @@ pub async fn create_context(
     description: String,
     change_reason: String,
     org_id: String,
-) -> Result<Value, String> {
+) -> Result<Context, String> {
     let host = get_host();
     let url = format!("{host}/context");
     let request_payload =
@@ -68,7 +68,7 @@ pub async fn update_context(
     request_payload: UpdateRequest,
     tenant: String,
     org_id: String,
-) -> Result<Value, String> {
+) -> Result<Context, String> {
     let host = get_host();
     let url = format!("{host}/context/overrides");
     let response = request(

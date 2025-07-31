@@ -31,9 +31,7 @@ pub use crate::types::_list_versions_member::ListVersionsMemberBuilder;
 
 pub use crate::types::_bulk_operation_out::BulkOperationOutBuilder;
 
-pub use crate::types::_context_move_out::ContextMoveOutBuilder;
-
-pub use crate::types::_context_put_out::ContextPutOutBuilder;
+pub use crate::types::_context_response::ContextResponseBuilder;
 
 pub use crate::types::_bulk_operation_req::BulkOperationReqBuilder;
 
@@ -44,8 +42,6 @@ pub use crate::types::_update_context_override_request::UpdateContextOverrideReq
 pub use crate::types::_context_put::ContextPutBuilder;
 
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponseBuilder;
-
-pub use crate::types::_context_full::ContextFullBuilder;
 
 pub use crate::types::_dimension_ext::DimensionExtBuilder;
 

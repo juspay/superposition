@@ -29,21 +29,21 @@ use service_utils::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::config::ContextPayload,
+    api::{config::ContextPayload, context::PutRequest},
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },
     database::{
-        models::cac::ConfigVersion,
+        models::{cac::ConfigVersion, ChangeReason, Description},
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
         superposition_schema::superposition::workspaces,
     },
-    result as superposition, Cac, Condition, Config, Context, DBConnection, Overrides,
-    PaginatedResponse, User,
+    result as superposition, Cac, Condition, Config, Context, DBConnection,
+    OverrideWithKeys, Overrides, PaginatedResponse, User,
 };
 use uuid::Uuid;
 
-use crate::{api::context::PutReq, helpers::generate_cac};
+use crate::helpers::generate_cac;
 use crate::{
     api::context::{self, helpers::query_description},
     helpers::DimensionData,
@@ -386,7 +386,7 @@ fn get_contextids_from_overrideid(
 
 fn construct_new_payload(
     req_payload: &Map<String, Value>,
-) -> superposition::Result<context::PutReq> {
+) -> superposition::Result<PutRequest> {
     let mut res = req_payload.clone();
     res.remove("to_be_deleted");
     res.remove("override_id");
@@ -431,19 +431,25 @@ fn construct_new_payload(
             return Err(bad_argument!("Description must be a string"));
         }
         None => None,
-    };
+    }
+    .map(Description::try_from)
+    .transpose()
+    .map_err(|e| unexpected_error!(e))?;
 
-    // Handle change_reason
-    let change_reason = res
-        .get("change_reason")
-        .and_then(|val| val.as_str())
-        .map(|s| s.to_string())
-        .ok_or_else(|| {
-            log::error!("construct new payload: Change reason not present or invalid");
-            bad_argument!("Change reason is required and must be a string")
-        })?;
+    let change_reason = ChangeReason::try_from(
+        res.get("change_reason")
+            .and_then(|val| val.as_str())
+            .map(|s| s.to_string())
+            .ok_or_else(|| {
+                log::error!(
+                    "construct new payload: Change reason not present or invalid"
+                );
+                bad_argument!("Change reason is required and must be a string")
+            })?,
+    )
+    .map_err(|e| unexpected_error!(e))?;
 
-    Ok(PutReq {
+    Ok(PutRequest {
         context,
         r#override: override_,
         description,
@@ -577,7 +583,7 @@ async fn reduce_config_key(
                     }
 
                     let mut elem = og_contexts[ctx_index].clone();
-                    elem.override_with_keys = vec![new_id];
+                    elem.override_with_keys = OverrideWithKeys::new(new_id);
                     og_contexts[ctx_index] = elem;
 
                     if delete_old_oid {

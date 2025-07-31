@@ -6,7 +6,9 @@ use superposition_core::{Experiments, FfiExperiment};
 use superposition_types::database::models::experimentation::{
     Variant, VariantType, Variants,
 };
-use superposition_types::{Cac, Condition, Config, Context, Exp, Overrides};
+use superposition_types::{
+    Cac, Condition, Config, Context, Exp, OverrideWithKeys, Overrides,
+};
 
 pub struct ConversionUtils;
 
@@ -78,12 +80,21 @@ impl ConversionUtils {
                         ))
                     })?;
 
+                let override_with_keys = OverrideWithKeys::try_from(
+                    context_partial.override_with_keys().to_vec(),
+                )
+                .map_err(|e| {
+                    SuperpositionError::SerializationError(format!(
+                        "Invalid override_with_keys: {e}",
+                    ))
+                })?;
+
                 Ok(Context {
-                    id: context_partial.id().unwrap_or("").to_string(),
+                    id: context_partial.id().map(String::from).unwrap_or_default(),
                     condition: condition.into_inner(),
-                    priority: context_partial.priority().unwrap_or(0),
-                    weight: context_partial.weight().unwrap_or(0),
-                    override_with_keys: context_partial.override_with_keys().to_vec(),
+                    priority: context_partial.priority().unwrap_or_default(),
+                    weight: context_partial.weight().unwrap_or_default(),
+                    override_with_keys,
                 })
             })
             .collect::<Result<Vec<Context>>>()?;
@@ -159,8 +170,14 @@ impl ConversionUtils {
                         )
                     })?
                     .iter()
-                    .map(|v| v.as_str().unwrap_or("").to_string())
+                    .filter_map(|v| v.as_str().map(String::from))
                     .collect();
+                let override_with_keys = OverrideWithKeys::try_from(override_with_keys)
+                    .map_err(|e| {
+                    SuperpositionError::ConfigError(format!(
+                        "Invalid override_with_keys: {e}",
+                    ))
+                })?;
 
                 // Extract condition
                 let condition_map = context_obj

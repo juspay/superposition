@@ -323,11 +323,11 @@ pub(crate) mod shape_bucket;
 
 pub(crate) mod shape_context_action;
 
-pub(crate) mod shape_context_full;
-
 pub(crate) mod shape_context_identifier;
 
 pub(crate) mod shape_context_partial;
+
+pub(crate) mod shape_context_response;
 
 pub(crate) mod shape_default_config_full;
 
@@ -362,8 +362,4 @@ pub(crate) mod shape_context_put;
 pub(crate) mod shape_override_with_keys;
 
 pub(crate) mod shape_context_action_out;
-
-pub(crate) mod shape_context_move_out;
-
-pub(crate) mod shape_context_put_out;
 

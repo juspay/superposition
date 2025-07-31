@@ -252,20 +252,6 @@ impl Overridden<Exp<Overrides>> for Variant {
         self.overrides.clone().into_inner()
     }
 }
-type VariantOverrides = Exp<Overrides>;
-impl TryFrom<Overrides> for Exp<Overrides> {
-    type Error = std::io::Error;
-    fn try_from(value: Overrides) -> Result<Self, Self::Error> {
-        Exp::<Overrides>::try_from(Into::<serde_json::Map<String, Value>>::into(value))
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
-    }
-}
-impl From<Exp<Overrides>> for Overrides {
-    fn from(value: Exp<Overrides>) -> Self {
-        value.0
-    }
-}
-uniffi::custom_type!(VariantOverrides, Overrides);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Deref, DerefMut)]
 #[cfg_attr(

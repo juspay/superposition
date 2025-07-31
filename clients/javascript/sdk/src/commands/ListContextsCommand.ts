@@ -61,7 +61,7 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  * //   total_pages: Number("int"),
  * //   total_items: Number("int"),
  * //   data: [ // ListContextOut
- * //     { // ContextFull
+ * //     { // ContextResponse
  * //       id: "STRING_VALUE", // required
  * //       value: { // Condition
  * //         "<keys>": "DOCUMENT_VALUE",

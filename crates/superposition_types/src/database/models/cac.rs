@@ -48,8 +48,8 @@ pub struct Context {
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub weight: BigDecimal,
-    pub description: String,
-    pub change_reason: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
 }
 
 impl Contextual for Context {
@@ -210,7 +210,7 @@ pub struct ConfigVersion {
     pub config_hash: String,
     pub tags: Option<Vec<String>>,
     pub created_at: DateTime<Utc>,
-    pub description: String,
+    pub description: Description,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

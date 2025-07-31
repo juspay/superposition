@@ -33,13 +33,11 @@ from ._private.schemas import (
     CONCLUDE_EXPERIMENT_OUTPUT as _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT,
     CONTEXT_ACTION as _SCHEMA_CONTEXT_ACTION,
     CONTEXT_ACTION_OUT as _SCHEMA_CONTEXT_ACTION_OUT,
-    CONTEXT_FULL as _SCHEMA_CONTEXT_FULL,
     CONTEXT_IDENTIFIER as _SCHEMA_CONTEXT_IDENTIFIER,
     CONTEXT_MOVE as _SCHEMA_CONTEXT_MOVE,
-    CONTEXT_MOVE_OUT as _SCHEMA_CONTEXT_MOVE_OUT,
     CONTEXT_PARTIAL as _SCHEMA_CONTEXT_PARTIAL,
     CONTEXT_PUT as _SCHEMA_CONTEXT_PUT,
-    CONTEXT_PUT_OUT as _SCHEMA_CONTEXT_PUT_OUT,
+    CONTEXT_RESPONSE as _SCHEMA_CONTEXT_RESPONSE,
     CREATE_CONTEXT as _SCHEMA_CREATE_CONTEXT,
     CREATE_CONTEXT_INPUT as _SCHEMA_CREATE_CONTEXT_INPUT,
     CREATE_CONTEXT_OUTPUT as _SCHEMA_CREATE_CONTEXT_OUTPUT,
@@ -1510,32 +1508,55 @@ class BulkOperationInput:
         return kwargs
 
 @dataclass(kw_only=True)
-class ContextMoveOut:
+class ContextResponse:
 
-    context_id: str | None = None
+    id: str
+
+    value: dict[str, Document] | None = None
+    override: dict[str, Document] | None = None
     override_id: str | None = None
     weight: str | None = None
     description: str | None = None
     change_reason: str | None = None
+    created_at: datetime | None = None
+    created_by: str | None = None
+    last_modified_at: datetime | None = None
+    last_modified_by: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTEXT_MOVE_OUT, self)
+        serializer.write_struct(_SCHEMA_CONTEXT_RESPONSE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.context_id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_MOVE_OUT.members["context_id"], self.context_id)
+        serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["id"], self.id)
+        if self.value is not None:
+            _serialize_condition(serializer, _SCHEMA_CONTEXT_RESPONSE.members["value"], self.value)
+
+        if self.override is not None:
+            _serialize_overrides(serializer, _SCHEMA_CONTEXT_RESPONSE.members["override"], self.override)
 
         if self.override_id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_MOVE_OUT.members["override_id"], self.override_id)
+            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["override_id"], self.override_id)
 
         if self.weight is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_MOVE_OUT.members["weight"], self.weight)
+            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["weight"], self.weight)
 
         if self.description is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_MOVE_OUT.members["description"], self.description)
+            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["description"], self.description)
 
         if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_MOVE_OUT.members["change_reason"], self.change_reason)
+            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["change_reason"], self.change_reason)
+
+        if self.created_at is not None:
+            serializer.write_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["created_at"], self.created_at)
+
+        if self.created_by is not None:
+            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["created_by"], self.created_by)
+
+        if self.last_modified_at is not None:
+            serializer.write_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_at"], self.last_modified_at)
+
+        if self.last_modified_by is not None:
+            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1548,89 +1569,48 @@ class ContextMoveOut:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_CONTEXT_MOVE_OUT.members["context_id"])
+                    kwargs["id"] = de.read_string(_SCHEMA_CONTEXT_RESPONSE.members["id"])
 
                 case 1:
-                    kwargs["override_id"] = de.read_string(_SCHEMA_CONTEXT_MOVE_OUT.members["override_id"])
+                    kwargs["value"] = _deserialize_condition(de, _SCHEMA_CONTEXT_RESPONSE.members["value"])
 
                 case 2:
-                    kwargs["weight"] = de.read_string(_SCHEMA_CONTEXT_MOVE_OUT.members["weight"])
+                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_CONTEXT_RESPONSE.members["override"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_CONTEXT_MOVE_OUT.members["description"])
+                    kwargs["override_id"] = de.read_string(_SCHEMA_CONTEXT_RESPONSE.members["override_id"])
 
                 case 4:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CONTEXT_MOVE_OUT.members["change_reason"])
+                    kwargs["weight"] = de.read_string(_SCHEMA_CONTEXT_RESPONSE.members["weight"])
+
+                case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_CONTEXT_RESPONSE.members["description"])
+
+                case 6:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CONTEXT_RESPONSE.members["change_reason"])
+
+                case 7:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["created_at"])
+
+                case 8:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_CONTEXT_RESPONSE.members["created_by"])
+
+                case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_at"])
+
+                case 10:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_by"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_CONTEXT_MOVE_OUT, consumer=_consumer)
-        return kwargs
-
-@dataclass(kw_only=True)
-class ContextPutOut:
-
-    context_id: str | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTEXT_PUT_OUT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        if self.context_id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_PUT_OUT.members["context_id"], self.context_id)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_PUT_OUT.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_PUT_OUT.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_PUT_OUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_PUT_OUT.members["change_reason"], self.change_reason)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_CONTEXT_PUT_OUT.members["context_id"])
-
-                case 1:
-                    kwargs["override_id"] = de.read_string(_SCHEMA_CONTEXT_PUT_OUT.members["override_id"])
-
-                case 2:
-                    kwargs["weight"] = de.read_string(_SCHEMA_CONTEXT_PUT_OUT.members["weight"])
-
-                case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_CONTEXT_PUT_OUT.members["description"])
-
-                case 4:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CONTEXT_PUT_OUT.members["change_reason"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_CONTEXT_PUT_OUT, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_CONTEXT_RESPONSE, consumer=_consumer)
         return kwargs
 
 @dataclass
 class ContextActionOutPUT:
 
-    value: ContextPutOut
+    value: ContextResponse
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_ACTION_OUT, self)
@@ -1640,12 +1620,12 @@ class ContextActionOutPUT:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=ContextPutOut.deserialize(deserializer))
+        return cls(value=ContextResponse.deserialize(deserializer))
 
 @dataclass
 class ContextActionOutREPLACE:
 
-    value: ContextPutOut
+    value: ContextResponse
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_ACTION_OUT, self)
@@ -1655,7 +1635,7 @@ class ContextActionOutREPLACE:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=ContextPutOut.deserialize(deserializer))
+        return cls(value=ContextResponse.deserialize(deserializer))
 
 @dataclass
 class ContextActionOutDELETE:
@@ -1675,7 +1655,7 @@ class ContextActionOutDELETE:
 @dataclass
 class ContextActionOutMOVE:
 
-    value: ContextMoveOut
+    value: ContextResponse
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_ACTION_OUT, self)
@@ -1685,7 +1665,7 @@ class ContextActionOutMOVE:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=ContextMoveOut.deserialize(deserializer))
+        return cls(value=ContextResponse.deserialize(deserializer))
 
 @dataclass
 class ContextActionOutUnknown:
@@ -2817,25 +2797,53 @@ class CreateContextInput:
 @dataclass(kw_only=True)
 class CreateContextOutput:
 
-    context_id: str
+    id: str
 
-    override_id: str
-
-    weight: str
-
-    description: str
-
-    change_reason: str
+    value: dict[str, Document] | None = None
+    override: dict[str, Document] | None = None
+    override_id: str | None = None
+    weight: str | None = None
+    description: str | None = None
+    change_reason: str | None = None
+    created_at: datetime | None = None
+    created_by: str | None = None
+    last_modified_at: datetime | None = None
+    last_modified_by: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_CONTEXT_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["context_id"], self.context_id)
-        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
-        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["weight"], self.weight)
-        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["description"], self.description)
-        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["id"], self.id)
+        if self.value is not None:
+            _serialize_condition(serializer, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["value"], self.value)
+
+        if self.override is not None:
+            _serialize_overrides(serializer, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["override"], self.override)
+
+        if self.override_id is not None:
+            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
+
+        if self.weight is not None:
+            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["weight"], self.weight)
+
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["description"], self.description)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
+
+        if self.created_at is not None:
+            serializer.write_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_at"], self.created_at)
+
+        if self.created_by is not None:
+            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_by"], self.created_by)
+
+        if self.last_modified_at is not None:
+            serializer.write_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+        if self.last_modified_by is not None:
+            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2848,19 +2856,37 @@ class CreateContextOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["context_id"])
+                    kwargs["id"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["id"])
 
                 case 1:
-                    kwargs["override_id"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["override_id"])
+                    kwargs["value"] = _deserialize_condition(de, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["value"])
 
                 case 2:
-                    kwargs["weight"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["weight"])
+                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["override"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["description"])
+                    kwargs["override_id"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["override_id"])
 
                 case 4:
+                    kwargs["weight"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["weight"])
+
+                case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["change_reason"])
+
+                case 7:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_at"])
+
+                case 8:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_by"])
+
+                case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_at"])
+
+                case 10:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_by"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2957,8 +2983,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -3346,120 +3372,20 @@ class ListContextsInput:
         deserializer.read_struct(_SCHEMA_LIST_CONTEXTS_INPUT, consumer=_consumer)
         return kwargs
 
-@dataclass(kw_only=True)
-class ContextFull:
-
-    id: str
-
-    value: dict[str, Document] | None = None
-    override: dict[str, Document] | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-    created_at: datetime | None = None
-    created_by: str | None = None
-    last_modified_at: datetime | None = None
-    last_modified_by: str | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTEXT_FULL, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_CONTEXT_FULL.members["id"], self.id)
-        if self.value is not None:
-            _serialize_condition(serializer, _SCHEMA_CONTEXT_FULL.members["value"], self.value)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_CONTEXT_FULL.members["override"], self.override)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_FULL.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_FULL.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_FULL.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_FULL.members["change_reason"], self.change_reason)
-
-        if self.created_at is not None:
-            serializer.write_timestamp(_SCHEMA_CONTEXT_FULL.members["created_at"], self.created_at)
-
-        if self.created_by is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_FULL.members["created_by"], self.created_by)
-
-        if self.last_modified_at is not None:
-            serializer.write_timestamp(_SCHEMA_CONTEXT_FULL.members["last_modified_at"], self.last_modified_at)
-
-        if self.last_modified_by is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_FULL.members["last_modified_by"], self.last_modified_by)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["id"] = de.read_string(_SCHEMA_CONTEXT_FULL.members["id"])
-
-                case 1:
-                    kwargs["value"] = _deserialize_condition(de, _SCHEMA_CONTEXT_FULL.members["value"])
-
-                case 2:
-                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_CONTEXT_FULL.members["override"])
-
-                case 3:
-                    kwargs["override_id"] = de.read_string(_SCHEMA_CONTEXT_FULL.members["override_id"])
-
-                case 4:
-                    kwargs["weight"] = de.read_string(_SCHEMA_CONTEXT_FULL.members["weight"])
-
-                case 5:
-                    kwargs["description"] = de.read_string(_SCHEMA_CONTEXT_FULL.members["description"])
-
-                case 6:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CONTEXT_FULL.members["change_reason"])
-
-                case 7:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CONTEXT_FULL.members["created_at"])
-
-                case 8:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_CONTEXT_FULL.members["created_by"])
-
-                case 9:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CONTEXT_FULL.members["last_modified_at"])
-
-                case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CONTEXT_FULL.members["last_modified_by"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_CONTEXT_FULL, consumer=_consumer)
-        return kwargs
-
-def _serialize_list_context_out(serializer: ShapeSerializer, schema: Schema, value: list[ContextFull]) -> None:
+def _serialize_list_context_out(serializer: ShapeSerializer, schema: Schema, value: list[ContextResponse]) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_list_context_out(deserializer: ShapeDeserializer, schema: Schema) -> list[ContextFull]:
-    result: list[ContextFull] = []
+def _deserialize_list_context_out(deserializer: ShapeDeserializer, schema: Schema) -> list[ContextResponse]:
+    result: list[ContextResponse] = []
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
-            result.append(ContextFull.deserialize(d))
+            result.append(ContextResponse.deserialize(d))
     deserializer.read_list(schema, _read_value)
     return result
 
@@ -3468,7 +3394,7 @@ class ListContextsOutput:
 
     total_pages: int | None = None
     total_items: int | None = None
-    data: list[ContextFull] | None = None
+    data: list[ContextResponse] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_CONTEXTS_OUTPUT, self)
@@ -3582,25 +3508,53 @@ class MoveContextInput:
 @dataclass(kw_only=True)
 class MoveContextOutput:
 
-    context_id: str
+    id: str
 
-    override_id: str
-
-    weight: str
-
-    description: str
-
-    change_reason: str
+    value: dict[str, Document] | None = None
+    override: dict[str, Document] | None = None
+    override_id: str | None = None
+    weight: str | None = None
+    description: str | None = None
+    change_reason: str | None = None
+    created_at: datetime | None = None
+    created_by: str | None = None
+    last_modified_at: datetime | None = None
+    last_modified_by: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MOVE_CONTEXT_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["context_id"], self.context_id)
-        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
-        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["weight"], self.weight)
-        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["description"], self.description)
-        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["id"], self.id)
+        if self.value is not None:
+            _serialize_condition(serializer, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["value"], self.value)
+
+        if self.override is not None:
+            _serialize_overrides(serializer, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["override"], self.override)
+
+        if self.override_id is not None:
+            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
+
+        if self.weight is not None:
+            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["weight"], self.weight)
+
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["description"], self.description)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
+
+        if self.created_at is not None:
+            serializer.write_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_at"], self.created_at)
+
+        if self.created_by is not None:
+            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_by"], self.created_by)
+
+        if self.last_modified_at is not None:
+            serializer.write_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+        if self.last_modified_by is not None:
+            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3613,19 +3567,37 @@ class MoveContextOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["context_id"])
+                    kwargs["id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["id"])
 
                 case 1:
-                    kwargs["override_id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["override_id"])
+                    kwargs["value"] = _deserialize_condition(de, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["value"])
 
                 case 2:
-                    kwargs["weight"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["weight"])
+                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["override"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["description"])
+                    kwargs["override_id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["override_id"])
 
                 case 4:
+                    kwargs["weight"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["weight"])
+
+                case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["change_reason"])
+
+                case 7:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_at"])
+
+                case 8:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_by"])
+
+                case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_at"])
+
+                case 10:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_by"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5961,8 +5933,8 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6183,8 +6155,8 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6454,8 +6426,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6729,8 +6701,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")

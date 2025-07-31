@@ -5,7 +5,7 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  ContextFull,
+  ContextResponse,
   UpdateOverrideInput,
 } from "../models/models_0";
 import {
@@ -32,7 +32,7 @@ export interface UpdateOverrideCommandInput extends UpdateOverrideInput {}
  *
  * The output of {@link UpdateOverrideCommand}.
  */
-export interface UpdateOverrideCommandOutput extends ContextFull, __MetadataBearer {}
+export interface UpdateOverrideCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
  * @public
@@ -63,7 +63,7 @@ export interface UpdateOverrideCommandOutput extends ContextFull, __MetadataBear
  * };
  * const command = new UpdateOverrideCommand(input);
  * const response = await client.send(command);
- * // { // ContextFull
+ * // { // ContextResponse
  * //   id: "STRING_VALUE", // required
  * //   value: { // Condition
  * //     "<keys>": "DOCUMENT_VALUE",
@@ -116,7 +116,7 @@ export class UpdateOverrideCommand extends $Command.classBuilder<UpdateOverrideC
 declare protected static __types: {
   api: {
       input: UpdateOverrideInput;
-      output: ContextFull;
+      output: ContextResponse;
   };
   sdk: {
       input: UpdateOverrideCommandInput;

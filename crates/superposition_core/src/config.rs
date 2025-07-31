@@ -162,22 +162,21 @@ fn get_overrides(
             &Value::Object(context.condition.clone().into()),
             &query_data_value,
         ) {
-            for override_key in &context.override_with_keys {
-                if let Some(overriden_value) = overrides.get(override_key) {
-                    match merge_strategy {
-                        MergeStrategy::REPLACE => replace_top_level(
-                            required_overrides.as_object_mut().unwrap(),
+            let override_key = context.override_with_keys.get_key();
+            if let Some(overriden_value) = overrides.get(override_key) {
+                match merge_strategy {
+                    MergeStrategy::REPLACE => replace_top_level(
+                        required_overrides.as_object_mut().unwrap(),
+                        &Value::Object(overriden_value.clone().into()),
+                        || on_override_select(context.clone()),
+                        override_key,
+                    ),
+                    MergeStrategy::MERGE => {
+                        merge(
+                            &mut required_overrides,
                             &Value::Object(overriden_value.clone().into()),
-                            || on_override_select(context.clone()),
-                            override_key,
-                        ),
-                        MergeStrategy::MERGE => {
-                            merge(
-                                &mut required_overrides,
-                                &Value::Object(overriden_value.clone().into()),
-                            );
-                            on_override_select(context.clone())
-                        }
+                        );
+                        on_override_select(context.clone())
                     }
                 }
             }

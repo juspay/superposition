@@ -382,23 +382,18 @@ export interface BulkOperationInput {
 /**
  * @public
  */
-export interface ContextMoveOut {
-  context_id?: string | undefined;
+export interface ContextResponse {
+  id: string | undefined;
+  value?: Record<string, __DocumentType> | undefined;
+  override?: Record<string, __DocumentType> | undefined;
   override_id?: string | undefined;
   weight?: string | undefined;
   description?: string | undefined;
   change_reason?: string | undefined;
-}
-
-/**
- * @public
- */
-export interface ContextPutOut {
-  context_id?: string | undefined;
-  override_id?: string | undefined;
-  weight?: string | undefined;
-  description?: string | undefined;
-  change_reason?: string | undefined;
+  created_at?: Date | undefined;
+  created_by?: string | undefined;
+  last_modified_at?: Date | undefined;
+  last_modified_by?: string | undefined;
 }
 
 /**
@@ -417,7 +412,7 @@ export type ContextActionOut =
 export namespace ContextActionOut {
 
   export interface PUTMember {
-    PUT: ContextPutOut;
+    PUT: ContextResponse;
     REPLACE?: never;
     DELETE?: never;
     MOVE?: never;
@@ -426,7 +421,7 @@ export namespace ContextActionOut {
 
   export interface REPLACEMember {
     PUT?: never;
-    REPLACE: ContextPutOut;
+    REPLACE: ContextResponse;
     DELETE?: never;
     MOVE?: never;
     $unknown?: never;
@@ -444,7 +439,7 @@ export namespace ContextActionOut {
     PUT?: never;
     REPLACE?: never;
     DELETE?: never;
-    MOVE: ContextMoveOut;
+    MOVE: ContextResponse;
     $unknown?: never;
   }
 
@@ -460,10 +455,10 @@ export namespace ContextActionOut {
   }
 
   export interface Visitor<T> {
-    PUT: (value: ContextPutOut) => T;
-    REPLACE: (value: ContextPutOut) => T;
+    PUT: (value: ContextResponse) => T;
+    REPLACE: (value: ContextResponse) => T;
     DELETE: (value: string) => T;
-    MOVE: (value: ContextMoveOut) => T;
+    MOVE: (value: ContextResponse) => T;
     _: (name: string, value: any) => T;
   }
 
@@ -694,17 +689,6 @@ export interface ListVersionsOutput {
 /**
  * @public
  */
-export interface ContextActionResponse {
-  context_id: string | undefined;
-  override_id: string | undefined;
-  weight: string | undefined;
-  description: string | undefined;
-  change_reason: string | undefined;
-}
-
-/**
- * @public
- */
 export interface CreateContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -729,23 +713,6 @@ export interface DeleteContextInput {
  * @public
  */
 export interface DeleteContextOutput {
-}
-
-/**
- * @public
- */
-export interface ContextFull {
-  id: string | undefined;
-  value?: Record<string, __DocumentType> | undefined;
-  override?: Record<string, __DocumentType> | undefined;
-  override_id?: string | undefined;
-  weight?: string | undefined;
-  description?: string | undefined;
-  change_reason?: string | undefined;
-  created_at?: Date | undefined;
-  created_by?: string | undefined;
-  last_modified_at?: Date | undefined;
-  last_modified_by?: string | undefined;
 }
 
 /**
@@ -815,7 +782,7 @@ export interface ListContextsInput {
 export interface ListContextsOutput {
   total_pages?: number | undefined;
   total_items?: number | undefined;
-  data?: (ContextFull)[] | undefined;
+  data?: (ContextResponse)[] | undefined;
 }
 
 /**

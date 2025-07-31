@@ -18,7 +18,7 @@ import qualified Data.List
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
-import qualified Io.Superposition.Model.ContextFull
+import qualified Io.Superposition.Model.ContextResponse
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.ListContextsInput
 import qualified Io.Superposition.Model.ListContextsOutput
@@ -166,7 +166,7 @@ deserializeResponse response = do
                 Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
         
     
-    data'DocumentE :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextFull.ContextFull) <-
+    data'DocumentE :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextResponse.ContextResponse) <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "data") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)

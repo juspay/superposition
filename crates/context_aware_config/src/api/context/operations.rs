@@ -9,9 +9,9 @@ use serde_json::Value;
 use service_utils::service::types::SchemaName;
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
-    api::context::{Identifier, UpdateRequest},
+    api::context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
     database::{
-        models::cac::Context,
+        models::{cac::Context, Description},
         schema::contexts::{self, dsl},
     },
     result, DBConnection, User,
@@ -26,21 +26,19 @@ use crate::{
 };
 
 use super::{
-    helpers::validate_override_with_functions,
-    types::{MoveReq, PutResp, UpdateContextOverridesChangeset},
+    helpers::validate_override_with_functions, types::UpdateContextOverridesChangeset,
     validations::validate_override_with_default_configs,
-    PutReq,
 };
 
 pub fn upsert(
-    req: PutReq,
-    description: String,
+    req: PutRequest,
+    description: Description,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
     schema_name: &SchemaName,
     replace: bool,
-) -> result::Result<PutResp> {
+) -> result::Result<Context> {
     use contexts::dsl::contexts;
     let new_ctx = create_ctx_from_put_req(req, description, conn, user, schema_name)?;
 
@@ -54,7 +52,7 @@ pub fn upsert(
         .execute(conn);
 
     match insert {
-        Ok(_) => Ok(new_ctx.into()),
+        Ok(_) => Ok(new_ctx),
         Err(DatabaseError(UniqueViolation, _)) => {
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
@@ -109,13 +107,13 @@ pub fn update(
 
 pub fn r#move(
     old_ctx_id: String,
-    req: Json<MoveReq>,
-    req_description: String,
+    req: Json<MoveRequest>,
+    req_description: Description,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
     schema_name: &SchemaName,
-) -> result::Result<PutResp> {
+) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
     let ctx_condition = req.context.to_owned().into_inner();
@@ -184,7 +182,7 @@ pub fn r#move(
         };
 
     match context {
-        Ok(ctx) => Ok(ctx.into()),
+        Ok(ctx) => Ok(ctx),
         Err(DatabaseError(UniqueViolation, _)) => {
             if already_under_txn {
                 diesel::sql_query("ROLLBACK TO update_ctx_savepoint").execute(conn)?;

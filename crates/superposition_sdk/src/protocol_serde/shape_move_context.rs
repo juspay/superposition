@@ -114,8 +114,13 @@ pub(crate) fn de_move_context(value: &[u8], mut builder: crate::operation::move_
                             ).transpose()?
                         );
                     }
-                    "context_id" => {
-                        builder = builder.set_context_id(
+                    "created_at" => {
+                        builder = builder.set_created_at(
+                            ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?
+                        );
+                    }
+                    "created_by" => {
+                        builder = builder.set_created_by(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
                                     u.into_owned()
@@ -132,6 +137,34 @@ pub(crate) fn de_move_context(value: &[u8], mut builder: crate::operation::move_
                             ).transpose()?
                         );
                     }
+                    "id" => {
+                        builder = builder.set_id(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "last_modified_at" => {
+                        builder = builder.set_last_modified_at(
+                            ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?
+                        );
+                    }
+                    "last_modified_by" => {
+                        builder = builder.set_last_modified_by(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "override" => {
+                        builder = builder.set_override(
+                            crate::protocol_serde::shape_overrides::de_overrides(tokens)?
+                        );
+                    }
                     "override_id" => {
                         builder = builder.set_override_id(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -139,6 +172,11 @@ pub(crate) fn de_move_context(value: &[u8], mut builder: crate::operation::move_
                                     u.into_owned()
                                 )
                             ).transpose()?
+                        );
+                    }
+                    "value" => {
+                        builder = builder.set_value(
+                            crate::protocol_serde::shape_condition::de_condition(tokens)?
                         );
                     }
                     "weight" => {

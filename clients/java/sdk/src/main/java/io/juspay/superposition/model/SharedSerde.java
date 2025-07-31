@@ -483,34 +483,34 @@ final class SharedSerde {
         }
     }
 
-    static final class ListContextOutSerializer implements BiConsumer<List<ContextFull>, ShapeSerializer> {
+    static final class ListContextOutSerializer implements BiConsumer<List<ContextResponse>, ShapeSerializer> {
         static final ListContextOutSerializer INSTANCE = new ListContextOutSerializer();
 
         @Override
-        public void accept(List<ContextFull> values, ShapeSerializer serializer) {
+        public void accept(List<ContextResponse> values, ShapeSerializer serializer) {
             for (var value : values) {
                 serializer.writeStruct(SharedSchemas.LIST_CONTEXT_OUT.listMember(), value);
             }
         }
     }
 
-    static List<ContextFull> deserializeListContextOut(Schema schema, ShapeDeserializer deserializer) {
+    static List<ContextResponse> deserializeListContextOut(Schema schema, ShapeDeserializer deserializer) {
         var size = deserializer.containerSize();
-        List<ContextFull> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        List<ContextResponse> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
         deserializer.readList(schema, result, ListContextOut$MemberDeserializer.INSTANCE);
         return result;
     }
 
-    private static final class ListContextOut$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<ContextFull>> {
+    private static final class ListContextOut$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<ContextResponse>> {
         static final ListContextOut$MemberDeserializer INSTANCE = new ListContextOut$MemberDeserializer();
 
         @Override
-        public void accept(List<ContextFull> state, ShapeDeserializer deserializer) {
+        public void accept(List<ContextResponse> state, ShapeDeserializer deserializer) {
             if (deserializer.isNull()) {
 
                 return;
             }
-            state.add(ContextFull.builder().deserializeMember(deserializer, SharedSchemas.LIST_CONTEXT_OUT.listMember()).build());
+            state.add(ContextResponse.builder().deserializeMember(deserializer, SharedSchemas.LIST_CONTEXT_OUT.listMember()).build());
         }
     }
 

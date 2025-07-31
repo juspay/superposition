@@ -33,7 +33,10 @@ use service_utils::{
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
-        context::{Identifier, UpdateRequest},
+        context::{
+            ContextAction, ContextBulkResponse, Identifier, MoveRequest, PutRequest,
+            UpdateRequest,
+        },
         default_config::DefaultConfigUpdateRequest,
         experiment_groups::ExpGroupMemberRequest,
         experiments::{
@@ -89,7 +92,6 @@ use super::{
         fetch_experiment, handle_experiment_group_membership, hash, validate_experiment,
         validate_override_keys,
     },
-    types::{ContextAction, ContextBulkResponse, ContextMoveReq, ContextPutReq},
 };
 
 pub fn endpoints(scope: Scope) -> Scope {
@@ -206,7 +208,7 @@ async fn create(
     let experiment_id = generate_snowflake_id(&state)?;
 
     //create overrides in CAC, if successfull then create experiment in DB
-    let mut cac_operations: Vec<ContextAction> = vec![];
+    let mut cac_operations: Vec<ContextAction> = Vec::new();
     for variant in &mut variants {
         let variant_id = experiment_id.to_string() + "-" + &variant.id;
 
@@ -216,21 +218,18 @@ async fn create(
         let updated_cacccontext =
             add_variant_dimension_to_ctx(&exp_context, variant_id.to_string())?;
 
-        let payload = ContextPutReq {
+        let payload = PutRequest {
             context: updated_cacccontext
                 .as_object()
-                .ok_or_else(|| {
-                    log::error!("Could not convert updated CAC context to serde Object");
-                    unexpected_error!(
-                        "Something went wrong, failed to create experiment contexts"
-                    )
-                })?
-                .clone(),
-            r#override: json!(variant.overrides),
+                .ok_or_else(|| unexpected_error!("Failed to convert context to object"))?
+                .clone()
+                .try_into()
+                .map_err(|e: String| unexpected_error!(e))?,
+            r#override: variant.overrides.clone().into(),
             description: Some(description.clone()),
             change_reason: change_reason.clone(),
         };
-        cac_operations.push(ContextAction::PUT(payload));
+        cac_operations.push(ContextAction::Put(payload));
     }
 
     // creating variants' context in CAC
@@ -276,7 +275,7 @@ async fn create(
     let created_contexts = resp_contexts
         .into_iter()
         .map(|item| match item {
-            ContextBulkResponse::PUT(context) => Ok(context),
+            ContextBulkResponse::Put(context) => Ok(context),
             _ => Err(format!("Unexpected response item: {item:?}")),
         })
         .collect::<Result<Vec<_>, _>>()
@@ -289,7 +288,7 @@ async fn create(
 
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
-        variants[i].context_id = Some(created_context.context_id.clone());
+        variants[i].context_id = Some(created_context.id.clone());
         variants[i].override_id = Some(created_context.override_id.clone());
     }
 
@@ -474,8 +473,6 @@ pub async fn conclude(
         ));
     }
 
-    let experiment_context: Map<String, Value> = experiment.context.clone().into();
-
     let mut operations: Vec<ContextAction> = vec![];
 
     let mut is_valid_winner_variant = false;
@@ -486,22 +483,26 @@ pub async fn conclude(
         })?;
 
         if variant.id != winner_variant_id {
-            operations.push(ContextAction::DELETE(context_id));
+            operations.push(ContextAction::Delete(context_id));
             continue;
         }
 
-        if !experiment_context.is_empty() {
+        if !experiment.context.is_empty() {
             match (experiment.experiment_type, variant.variant_type) {
                 (ExperimentType::Default, _) => {
-                    let context_move_req = ContextMoveReq {
-                        context: experiment_context.clone(),
-                        description: description.clone(),
+                    let context_move_req = MoveRequest {
+                        context: experiment
+                            .context
+                            .clone()
+                            .try_into()
+                            .map_err(|e: String| unexpected_error!(e))?,
+                        description: Some(description.clone()),
                         change_reason: change_reason.clone(),
                     };
-                    operations.push(ContextAction::MOVE((context_id, context_move_req)));
+                    operations.push(ContextAction::Move((context_id, context_move_req)));
                 }
                 (ExperimentType::DeleteOverrides, VariantType::CONTROL) => {
-                    operations.push(ContextAction::DELETE(context_id));
+                    operations.push(ContextAction::Delete(context_id));
                 }
                 (ExperimentType::DeleteOverrides, _) => {
                     let current_context = get_context_override(
@@ -519,7 +520,7 @@ pub async fn conclude(
                     }
 
                     if context_override.is_empty() {
-                        operations.push(ContextAction::DELETE(exp_context_id.clone()));
+                        operations.push(ContextAction::Delete(exp_context_id.clone()));
                     } else {
                         let payload = UpdateRequest {
                             context: Identifier::Id(exp_context_id.clone()),
@@ -530,9 +531,9 @@ pub async fn conclude(
                             description: None,
                             change_reason: change_reason.clone(),
                         };
-                        operations.push(ContextAction::REPLACE(payload));
+                        operations.push(ContextAction::Replace(payload));
                     }
-                    operations.push(ContextAction::DELETE(context_id));
+                    operations.push(ContextAction::Delete(context_id));
                 }
             }
         } else {
@@ -572,7 +573,7 @@ pub async fn conclude(
                         .await
                         .map_err(|err| unexpected_error!(err))?;
             }
-            operations.push(ContextAction::DELETE(context_id));
+            operations.push(ContextAction::Delete(context_id));
         }
 
         is_valid_winner_variant = true;
@@ -738,7 +739,7 @@ pub async fn discard(
         .map(|variant| {
             variant
                 .context_id
-                .map(ContextAction::DELETE)
+                .map(ContextAction::Delete)
                 .ok_or_else(|| {
                     log::error!("context id not available for variant {:?}", variant.id);
                     unexpected_error!(
@@ -1337,7 +1338,7 @@ async fn update_overrides(
             change_reason: change_reason.clone(),
         };
 
-        cac_operations.push(ContextAction::REPLACE(payload));
+        cac_operations.push(ContextAction::Replace(payload));
     }
 
     let http_client = reqwest::Client::new();
@@ -1380,7 +1381,7 @@ async fn update_overrides(
     let created_contexts = resp_contexts
         .into_iter()
         .map(|item| match item {
-            ContextBulkResponse::REPLACE(context) => Ok(context),
+            ContextBulkResponse::Replace(context) => Ok(context),
             _ => Err(format!("Unexpected response item: {item:?}")),
         })
         .collect::<Result<Vec<_>, _>>()

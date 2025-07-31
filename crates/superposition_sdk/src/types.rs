@@ -63,9 +63,7 @@ pub use crate::types::_bulk_operation_out::BulkOperationOut;
 
 pub use crate::types::_context_action_out::ContextActionOut;
 
-pub use crate::types::_context_move_out::ContextMoveOut;
-
-pub use crate::types::_context_put_out::ContextPutOut;
+pub use crate::types::_context_response::ContextResponse;
 
 pub use crate::types::_bulk_operation_req::BulkOperationReq;
 
@@ -80,8 +78,6 @@ pub use crate::types::_context_identifier::ContextIdentifier;
 pub use crate::types::_context_put::ContextPut;
 
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponse;
-
-pub use crate::types::_context_full::ContextFull;
 
 pub use crate::types::_context_filter_sort_on::ContextFilterSortOn;
 
@@ -105,19 +101,15 @@ mod _context_action_out;
 
 mod _context_filter_sort_on;
 
-mod _context_full;
-
 mod _context_identifier;
 
 mod _context_move;
-
-mod _context_move_out;
 
 mod _context_partial;
 
 mod _context_put;
 
-mod _context_put_out;
+mod _context_response;
 
 mod _default_config_full;
 

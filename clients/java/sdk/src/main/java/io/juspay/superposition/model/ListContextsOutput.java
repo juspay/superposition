@@ -31,7 +31,7 @@ public final class ListContextsOutput implements SerializableStruct {
 
     private final transient Integer totalPages;
     private final transient Integer totalItems;
-    private final transient List<ContextFull> data;
+    private final transient List<ContextResponse> data;
 
     private ListContextsOutput(Builder builder) {
         this.totalPages = builder.totalPages;
@@ -47,7 +47,7 @@ public final class ListContextsOutput implements SerializableStruct {
         return totalItems;
     }
 
-    public List<ContextFull> data() {
+    public List<ContextResponse> data() {
         if (data == null) {
             return Collections.emptyList();
         }
@@ -139,7 +139,7 @@ public final class ListContextsOutput implements SerializableStruct {
     public static final class Builder implements ShapeBuilder<ListContextsOutput> {
         private Integer totalPages;
         private Integer totalItems;
-        private List<ContextFull> data;
+        private List<ContextResponse> data;
 
         private Builder() {}
 
@@ -167,7 +167,7 @@ public final class ListContextsOutput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder data(List<ContextFull> data) {
+        public Builder data(List<ContextResponse> data) {
             this.data = data;
             return this;
         }
@@ -183,7 +183,7 @@ public final class ListContextsOutput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> totalPages((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_PAGES, member, value));
                 case 1 -> totalItems((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_ITEMS, member, value));
-                case 2 -> data((List<ContextFull>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
+                case 2 -> data((List<ContextResponse>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
