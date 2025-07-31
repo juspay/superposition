@@ -109,19 +109,16 @@ pub fn default_config_list() -> impl IntoView {
 
             if is_folder {
                 view! {
-                    <A
-                        class="text-blue-500 underline underline-offset-2"
-                        href=redirect_url(Some(prefix))
-                    >
-                        {label}
+                    <A href=redirect_url(Some(prefix))>
+                        <i class="ri-folder-open-line mr-2" />
+                        <span class="text-blue-500 underline underline-offset-2">{label}</span>
                     </A>
                 }
                 .into_view()
             } else {
                 view! {
-                    <span class="mr-2">{label}</span>
-                    <A href=prefix class="text-blue-500">
-                        <i class="ri-link" />
+                    <A href=prefix class="ml-[22px] text-blue-500 underline underline-offset-2">
+                        {label}
                     </A>
                 }
                 .into_view()
