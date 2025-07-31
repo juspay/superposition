@@ -286,7 +286,7 @@ pub fn get_applicable_variants_from_group_response(
                         &Value::Object(exp.context.clone().into()),
                         context,
                     ) == Ok(Value::Bool(true)))
-                    && *exp.traffic_percentage >= *toss as u8;
+                    && (*exp.traffic_percentage as usize * exp.variants.len()) >= *toss;
 
                 res.then_some(bucket.variant_id.clone())
             })
