@@ -1,6 +1,6 @@
 [package]
 name = "experimentation_client"
-version = "0.14.1"
+version.workspace = true
 edition = "2021"
 
 [dependencies]
@@ -11,7 +11,7 @@ log = { workspace = true }
 once_cell = { workspace = true }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
-superposition_types = { path = "../superposition_types", features = [
+superposition_types = { workspace = true, features = [
     "experimentation",
     "api",
 ] }

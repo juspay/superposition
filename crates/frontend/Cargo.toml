@@ -1,6 +1,6 @@
 [package]
 name = "frontend"
-version = "0.36.1"
+version.workspace = true
 edition = "2021"
 include = ["src/**/*", "src-js/**/*"]
 
@@ -26,8 +26,8 @@ serde-wasm-bindgen = "0.6.5"
 reqwest = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-superposition_derives = { path = "../superposition_derives" }
-superposition_macros = { path = "../superposition_macros" }
+superposition_derives = { workspace = true }
+superposition_macros = { workspace = true }
 superposition_types = { path = "../superposition_types", features = [
     "experimentation",
     "api",
