@@ -40,8 +40,8 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListDefaultConfigsCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListDefaultConfigsCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListDefaultConfigsCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListDefaultConfigsCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListDefaultConfigsInput
  *   count: Number("int"),

@@ -40,8 +40,8 @@ export interface PublishCommandOutput extends FunctionResponse, __MetadataBearer
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, PublishCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, PublishCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, PublishCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, PublishCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // PublishInput
  *   workspace_id: "STRING_VALUE", // required

@@ -12,6 +12,7 @@ jobs:
         permissions:
             contents: write
             id-token: write
+        if: github.ref == 'refs/heads/main'
         outputs:
             version: ${{ steps.git_tag.outputs.version }}
         steps:
@@ -417,22 +418,13 @@ jobs:
             id-token: write
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
-            AWS_REGION: ${{ vars.AWS_REGION }}
-            CODEARTIFACT_DOMAIN: ${{ vars.CODEARTIFACT_DOMAIN }}
-            CODEARTIFACT_REPOSITORY: ${{ vars.CODEARTIFACT_REPOSITORY }}
+            TWINE_USERNAME: __token__
+            TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v4.1.0
-              with:
-                  audience: sts.amazonaws.com
-                  aws-region: ${{ env.AWS_REGION }}
-                  role-session-name: superposition-release
-                  role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
 
             - name: Set up Python
               uses: actions/setup-python@v5
@@ -525,13 +517,9 @@ jobs:
                   echo "All Python wheels:"
                   ls -la python-wheels/
 
-            - name: Configure CodeArtifact for twine
+            - name: Publish Python packages to PyPI
               run: |
-                  aws codeartifact login --tool twine --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY
-
-            - name: Publish Python packages to CodeArtifact
-              run: |
-                  twine upload --repository codeartifact python-wheels/*.whl
+                  twine upload -r testpypi python-wheels/*.whl
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
@@ -542,31 +530,15 @@ jobs:
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
-            AWS_REGION: ${{ vars.AWS_REGION }}
-            CODEARTIFACT_DOMAIN: ${{ vars.CODEARTIFACT_DOMAIN }}
-            CODEARTIFACT_REPOSITORY: ${{ vars.CODEARTIFACT_REPOSITORY }}
-
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v4.1.0
-              with:
-                  audience: sts.amazonaws.com
-                  aws-region: ${{ env.AWS_REGION }}
-                  role-session-name: superposition-release
-                  role-to-assume: ${{ secrets.AWS_ARTIFACT_ROLE }}
-
             - uses: actions/setup-node@v4
               with:
                   node-version: "20.0.0"
-
-            - name: Configure CodeArtifact for npm
-              run: |
-                  aws codeartifact login --tool npm --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY
 
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
@@ -612,11 +584,9 @@ jobs:
             - run: |
                   cd clients/javascript
                   npm ci
-                  npm publish --access public --scope @juspay --workspace bindings --workspace sdk --workspace open-feature-provider
+                  npm publish --access public --workspace bindings --workspace sdk --workspace open-feature-provider
               env:
-                  CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
-                  CODEARTIFACT_REPOSITORY_ENDPOINT: ${{ env.CODEARTIFACT_REPOSITORY_ENDPOINT }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     generate-rust-packages:
         needs: tag-release
@@ -624,6 +594,7 @@ jobs:
             contents: read
             id-token: write
         runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
         steps:
@@ -662,7 +633,6 @@ jobs:
                   cargo publish --package superposition_core
                   cargo publish --package superposition_provider
                   
-
     release:
         needs: [tag-release, generate-rust-binary]
         runs-on: ubuntu-latest

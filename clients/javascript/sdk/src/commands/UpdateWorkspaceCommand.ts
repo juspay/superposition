@@ -40,8 +40,8 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, UpdateWorkspaceCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, UpdateWorkspaceCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, UpdateWorkspaceCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, UpdateWorkspaceCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // UpdateWorkspaceRequest
  *   org_id: "STRING_VALUE", // required

@@ -40,8 +40,8 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListFunctionCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListFunctionCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListFunctionCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListFunctionCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListFunctionInput
  *   count: Number("int"),

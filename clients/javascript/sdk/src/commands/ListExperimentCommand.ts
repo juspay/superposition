@@ -40,8 +40,8 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, ListExperimentCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, ListExperimentCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, ListExperimentCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, ListExperimentCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListExperimentInput
  *   workspace_id: "STRING_VALUE", // required
