@@ -2,21 +2,9 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
-## superposition_core-v0.5.0 - 2025-08-04
+## superposition_sdk-v0.3.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (8b62d45) - datron
-
-- - -
-
-## superposition_core-v0.2.0 - 2025-07-28
-#### Features
-- rust open-feature implementation (#597) - (e34dc64) - PRATIK MISHRA
-
-- - -
-
-## superposition_core-v0.1.2 - 2025-07-15
-#### Bug Fixes
-- rename core to superposition_core - (c899522) - Pratik Mishra
 
 - - -
 

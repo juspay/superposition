@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.59.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (8b62d45) - datron
+
+- - -
+
 ## context_aware_config-v0.56.1 - 2025-07-31
 #### Bug Fixes
 - Add created_by and created_at column for functions table (#626) - (984c436) - Ayush Jain

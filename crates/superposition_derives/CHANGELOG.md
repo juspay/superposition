@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_derives-v0.6.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (8b62d45) - datron
+
+- - -
+
 ## superposition_derives-v0.3.0 - 2025-07-03
 #### Features
 - Rust Version Bump + Uniffi + Java OpenFeature SDK (#553) - (1aba4b4) - ShreyBana

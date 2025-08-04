@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.39.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (8b62d45) - datron
+
+- - -
+
 ## experimentation_platform-v0.36.0 - 2025-07-30
 #### Features
 - experiment bucketing - (274afdf) - Ankit.Mahato
