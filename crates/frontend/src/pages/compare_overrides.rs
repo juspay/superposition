@@ -226,7 +226,7 @@ pub fn compare_overrides() -> impl IntoView {
                 view! { <Skeleton variant=SkeletonVariant::Block /> }
             }>
                 <div class="card bg-base-100 shadow">
-                    <div class="card-body collapse collapse-arrow gap-4" style="overflow: unset">
+                    <div class="card-body collapse collapse-arrow" style="overflow: unset">
                         <input type="checkbox" checked=true />
                         <h2 class="card-title collapse-title h-fit !p-0">"Add Contexts"</h2>
                         <div class="collapse-content !p-0 flex flex-col gap-8">

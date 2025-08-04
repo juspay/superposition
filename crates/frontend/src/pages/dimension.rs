@@ -8,6 +8,7 @@ use superposition_types::{
 
 use crate::api::{delete_dimension, get_dimension};
 use crate::components::badge::Badge;
+use crate::components::description::ContentDescription;
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -81,60 +82,6 @@ fn tree_node(
                 }
             })
             .collect_view()}
-    }
-}
-
-#[component]
-fn dimension_description(dimension: DimensionResponse) -> impl IntoView {
-    view! {
-        <div class="card bg-base-100 max-w-screen shadow">
-            <div class="card-body flex flex-row gap-2 flex-wrap">
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Description"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&dimension.description)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&dimension.description)}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created by"</div>
-                    <div class="stat-value text-sm">{dimension.created_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created at"</div>
-                    <div class="stat-value text-sm">
-                        {dimension.created_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified by"</div>
-                    <div class="stat-value text-sm">{dimension.last_modified_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified at"</div>
-                    <div class="stat-value text-sm">
-                        {dimension.last_modified_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Change Reason"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&dimension.change_reason)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&dimension.change_reason)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     }
 }
 
@@ -319,7 +266,14 @@ pub fn dimension_page() -> impl IntoView {
                                 ().into_view()
                             }}
                         </div>
-                        <DimensionDescription dimension=dimension.clone() />
+                        <ContentDescription
+                            description=dimension.description.clone()
+                            change_reason=dimension.change_reason.clone()
+                            created_by=dimension.created_by.clone()
+                            created_at=dimension.created_at
+                            last_modified_by=dimension.last_modified_by.clone()
+                            last_modified_at=dimension.last_modified_at
+                        />
                         <DimensionInfo dimension=dimension.clone() />
                         {if dimension.dependency_graph.is_empty() && dimension.dependents.is_empty()
                         {

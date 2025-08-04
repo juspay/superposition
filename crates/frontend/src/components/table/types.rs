@@ -57,8 +57,8 @@ pub fn default_column_formatter(value: &str) -> View {
 }
 
 impl Column {
-    pub fn default(name: String) -> Column {
-        Column {
+    pub fn default(name: String) -> Self {
+        Self {
             name,
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
@@ -67,11 +67,11 @@ impl Column {
             column_formatter: Box::new(Rc::new(default_column_formatter)),
         }
     }
-    pub fn default_with_cell_formatter<NF>(name: String, formatter: NF) -> Column
+    pub fn default_with_cell_formatter<NF>(name: String, formatter: NF) -> Self
     where
         NF: Fn(&str, &Map<String, Value>) -> View + 'static,
     {
-        Column {
+        Self {
             name,
             hidden: false,
             formatter: Box::new(Rc::new(formatter)),
@@ -80,8 +80,8 @@ impl Column {
             column_formatter: Box::new(Rc::new(default_column_formatter)),
         }
     }
-    pub fn default_no_collapse(name: String) -> Column {
-        Column {
+    pub fn default_no_collapse(name: String) -> Self {
+        Self {
             name,
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
@@ -90,14 +90,27 @@ impl Column {
             column_formatter: Box::new(Rc::new(default_column_formatter)),
         }
     }
-    pub fn default_with_sort(name: String, sortable: ColumnSortable) -> Column {
-        Column {
+    pub fn default_with_sort(name: String, sortable: ColumnSortable) -> Self {
+        Self {
             name,
             hidden: false,
             formatter: Box::new(Rc::new(default_formatter)),
             sortable,
             expandable: Expandable::Enabled(100),
             column_formatter: Box::new(Rc::new(default_column_formatter)),
+        }
+    }
+    pub fn default_with_column_formatter<CF: Fn(&str) -> View + 'static>(
+        name: String,
+        column_formatter: CF,
+    ) -> Self {
+        Self {
+            name,
+            hidden: false,
+            formatter: Box::new(Rc::new(default_formatter)),
+            sortable: ColumnSortable::No,
+            expandable: Expandable::Enabled(100),
+            column_formatter: Box::new(Rc::new(column_formatter)),
         }
     }
     pub fn new<NF, CF>(
@@ -107,12 +120,12 @@ impl Column {
         sortable: ColumnSortable,
         expandable: Expandable,
         column_formatter: CF,
-    ) -> Column
+    ) -> Self
     where
         NF: Fn(&str, &Map<String, Value>) -> View + 'static,
         CF: Fn(&str) -> View + 'static,
     {
-        Column {
+        Self {
             name,
             hidden,
             formatter: Box::new(Rc::new(formatter)),
