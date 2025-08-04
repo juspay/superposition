@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_toml-v0.3.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (167ea94) - datron
+#### Miscellaneous Chores
+- build and release core binaries - (6a79905) - Kartik
+
+- - -
+
 ## cac_toml-v0.2.0 - 2024-09-30
 #### Bug Fixes
 - Dependency pruning (#250) - (8b68900) - Ayush Jain

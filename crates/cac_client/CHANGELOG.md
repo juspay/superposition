@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.18.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (167ea94) - datron
+- Context API types unification (#619) - (424de2e) - Ayush Jain
+
+- - -
+
 ## cac_client-v0.17.0 - 2025-03-26
 #### Features
 - generate multiple binaries for clients based on platform (#445) - (cd6d30b) - Datron

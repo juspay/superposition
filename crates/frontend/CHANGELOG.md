@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.37.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (167ea94) - datron
+- Context API types unification (#619) - (424de2e) - Ayush Jain
+
+- - -
+
 ## frontend-v0.36.1 - 2025-07-31
 #### Bug Fixes
 - View detailed default config UX (#630) - (2f6a6a8) - Ayush Jain

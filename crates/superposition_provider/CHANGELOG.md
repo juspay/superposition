@@ -2,22 +2,11 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
-## superposition_core-v0.3.0 - 2025-08-04
+## superposition_provider-v0.1.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (167ea94) - datron
 - Context API types unification (#619) - (424de2e) - Ayush Jain
-
-- - -
-
-## superposition_core-v0.2.0 - 2025-07-28
-#### Features
 - rust open-feature implementation (#597) - (e34dc64) - PRATIK MISHRA
-
-- - -
-
-## superposition_core-v0.1.2 - 2025-07-15
-#### Bug Fixes
-- rename core to superposition_core - (c899522) - Pratik Mishra
 
 - - -
 
