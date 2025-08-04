@@ -57,9 +57,9 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                     </div>
                 </div>
                 <div class="h-fit w-[300px]">
-                    <div class="stat-title">Traffic Percentage</div>
+                    <div class="stat-title">Traffic</div>
                     <div class="stat-value text-sm">
-                        {experiment.with_value(|v| *v.traffic_percentage)}
+                        {experiment.with_value(|v| *v.traffic_percentage).to_string() + "%"}
                     </div>
                 </div>
                 {experiment

@@ -136,7 +136,9 @@ pub fn default_config_list() -> impl IntoView {
             ),
             Column::default("value".to_string()),
             Column::default("created_at".to_string()),
-            Column::default("last_modified_at".to_string()),
+            Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
+                default_column_formatter("Modified At")
+            }),
         ]
     });
 

@@ -65,7 +65,9 @@ pub fn types_page() -> impl IntoView {
         ),
         Column::default("created_by".to_string()),
         Column::default("created_at".to_string()),
-        Column::default("last_modified_at".to_string()),
+        Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
+            default_column_formatter("Modified At")
+        }),
     ]);
 
     let handle_page_change = Callback::new(move |page: i64| {

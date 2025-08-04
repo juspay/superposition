@@ -9,6 +9,7 @@ use crate::components::{
     alert::AlertType,
     button::Button,
     default_config_form::{ChangeLogSummary, ChangeType, DefaultConfigForm},
+    description::ContentDescription,
     drawer::PortalDrawer,
     input::{Input, InputType},
     skeleton::{Skeleton, SkeletonVariant},
@@ -17,60 +18,6 @@ use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorPro
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
-
-#[component]
-fn config_description(default_config: DefaultConfig) -> impl IntoView {
-    view! {
-        <div class="card bg-base-100 max-w-screen shadow">
-            <div class="card-body flex flex-row gap-2 flex-wrap">
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Description"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&default_config.description)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&default_config.description)}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created by"</div>
-                    <div class="stat-value text-sm">{default_config.created_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created at"</div>
-                    <div class="stat-value text-sm">
-                        {default_config.created_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified by"</div>
-                    <div class="stat-value text-sm">{default_config.last_modified_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified at"</div>
-                    <div class="stat-value text-sm">
-                        {default_config.last_modified_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Change Reason"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&default_config.change_reason)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&default_config.change_reason)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
 
 #[component]
 fn config_info(default_config: DefaultConfig) -> impl IntoView {
@@ -257,7 +204,14 @@ pub fn default_config() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                        <ConfigDescription default_config=default_config.clone() />
+                        <ContentDescription
+                            description=default_config.description.clone()
+                            change_reason=default_config.change_reason.clone()
+                            created_by=default_config.created_by.clone()
+                            created_at=default_config.created_at
+                            last_modified_by=default_config.last_modified_by.clone()
+                            last_modified_at=default_config.last_modified_at
+                        />
                         <ConfigInfo default_config=default_config.clone() />
                     </div>
                     {match action_rws.get() {

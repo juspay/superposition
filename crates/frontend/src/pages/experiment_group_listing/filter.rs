@@ -1,16 +1,14 @@
-use std::{collections::HashSet, fmt::Display, str::FromStr};
-use strum::IntoEnumIterator;
+use std::{fmt::Display, str::FromStr};
 
 use leptos::*;
 use superposition_types::{
     api::experiment_groups::ExpGroupFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
-    database::models::experimentation::GroupType,
 };
 use web_sys::MouseEvent;
 
 use crate::components::{
-    badge::GrayPill,
+    badge::{GlassyPills, GrayPill, ListPills},
     button::{Button, ButtonStyle},
     drawer::{close_drawer, Drawer, DrawerBtn},
     form::label::Label,
@@ -36,6 +34,7 @@ pub(super) fn filter_summary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Int
             let filters_empty = filters_rws
                 .with(|f| {
                     f.created_by.is_none() && f.name.is_none() && f.last_modified_by.is_none()
+                        && f.group_type.is_none()
                 });
             !filters_empty
         }>
@@ -123,6 +122,24 @@ pub(super) fn filter_summary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Int
                                 }
                             })
                     }}
+                    {move || {
+                        view! {
+                            <ListPills
+                                label="Type"
+                                items=filters_rws
+                                    .with(|f| {
+                                        f.group_type
+                                            .as_ref()
+                                            .map(|p| p.0.clone())
+                                            .unwrap_or_default()
+                                    })
+                                on_delete=move |idx| {
+                                    filters_rws
+                                        .update(|f| f.group_type = filter_index(&f.group_type, idx))
+                                }
+                            />
+                        }
+                    }}
                 </div>
             </div>
         </Show>
@@ -135,22 +152,6 @@ pub(super) fn experiment_group_filter_widget(
     filters_rws: RwSignal<ExpGroupFilters>,
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
-
-    let group_type_management = move |checked: bool, group_type: GroupType| {
-        filters_buffer_rws.update(|f| {
-            let group_types = f.group_type.clone().map(|s| s.0).unwrap_or_default();
-            let mut old_group_vector: HashSet<GroupType> =
-                HashSet::from_iter(group_types);
-
-            if checked {
-                old_group_vector.insert(group_type);
-            } else {
-                old_group_vector.remove(&group_type);
-            }
-            let new_group_vector = old_group_vector.into_iter().collect();
-            f.group_type = Some(CommaSeparatedQParams(new_group_vector))
-        })
-    };
 
     view! {
         <DrawerBtn
@@ -220,42 +221,17 @@ pub(super) fn experiment_group_filter_widget(
                         }
                     />
                 </div>
-                <div class="form-control w-full">
-                    <Label title="Group Type" />
-                    <div class="flex flex-row flex-wrap justify-start gap-5">
-                        {GroupType::iter()
-                            .map(|status| {
-                                let label = status.to_string();
-                                let input_id = format!("{label}-checkbox");
-
-                                view! {
-                                    <div>
-                                        <input
-                                            type="checkbox"
-                                            id=&input_id
-                                            class="peer hidden"
-                                            checked=move || {
-                                                filters_buffer_rws
-                                                    .with(|f| f.group_type.clone())
-                                                    .is_some_and(|s| s.iter().any(|item| *item == status))
-                                            }
-                                            on:change=move |event| {
-                                                let checked = event_target_checked(&event);
-                                                group_type_management(checked, status)
-                                            }
-                                        />
-                                        <label
-                                            for=&input_id
-                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:border-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out peer-checked:shadow-purple-500 peer-checked:shadow-md shadow-inner shadow-slate-500"
-                                        >
-                                            {label}
-                                        </label>
-                                    </div>
-                                }
-                            })
-                            .collect_view()}
-                    </div>
-                </div>
+                <GlassyPills
+                    selected=Signal::derive(move || {
+                        filters_buffer_rws
+                            .with(|f| f.group_type.clone().map(|p| p.0).unwrap_or_default())
+                    })
+                    title="Group Type"
+                    on_click=move |items| {
+                        filters_buffer_rws
+                            .update(|f| f.group_type = Some(CommaSeparatedQParams(items)))
+                    }
+                />
                 <div class="flex justify-end gap-2">
                     <Button
                         class="h-12 w-48"

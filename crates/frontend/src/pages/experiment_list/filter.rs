@@ -1,21 +1,19 @@
-use std::{collections::HashSet, fmt::Display, ops::Deref, str::FromStr};
+use std::{fmt::Display, ops::Deref, str::FromStr};
 
 use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
 use serde_json::{json, Map, Value};
-use strum::IntoEnumIterator;
 use superposition_types::{
     api::{experiments::ExperimentListFilters, workspace::WorkspaceResponse},
     custom_query::{
         CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
     },
-    database::models::experimentation::ExperimentStatusType,
 };
 use web_sys::MouseEvent;
 
 use crate::{
     components::{
-        badge::{GrayPill, ListPills},
+        badge::{GlassyPills, GrayPill, ListPills},
         button::{Button, ButtonStyle},
         condition_pills::Condition,
         context_form::ContextForm,
@@ -259,23 +257,6 @@ pub(super) fn experiment_table_filter_widget(
 
     let dim = combined_resource.dimensions;
 
-    let status_filter_management =
-        move |checked: bool, filter_status: ExperimentStatusType| {
-            filters_buffer_rws.update(|f| {
-                let status_types = f.status.clone().map(|s| s.0).unwrap_or_default();
-                let mut old_status_vector: HashSet<ExperimentStatusType> =
-                    HashSet::from_iter(status_types);
-
-                if checked {
-                    old_status_vector.insert(filter_status);
-                } else {
-                    old_status_vector.remove(&filter_status);
-                }
-                let new_status_vector = old_status_vector.into_iter().collect();
-                f.status = Some(CommaSeparatedQParams(new_status_vector))
-            })
-        };
-
     let fn_environment = create_memo(move |_| {
         let context = context_rws.get();
         json!({
@@ -365,42 +346,17 @@ pub(super) fn experiment_table_filter_widget(
                     </div>
                 </div>
 
-                <div class="form-control w-full">
-                    <Label title="Experiment Status" />
-                    <div class="flex flex-row flex-wrap justify-start gap-5">
-                        {ExperimentStatusType::iter()
-                            .map(|status| {
-                                let label = status.to_string();
-                                let input_id = format!("{label}-checkbox");
+                <GlassyPills
+                    selected=Signal::derive(move || {
+                        filters_buffer_rws
+                            .with(|f| f.status.clone().map(|p| p.0).unwrap_or_default())
+                    })
+                    title="Experiment Status"
+                    on_click=move |items| {
+                        filters_buffer_rws.update(|f| f.status = Some(CommaSeparatedQParams(items)))
+                    }
+                />
 
-                                view! {
-                                    <div>
-                                        <input
-                                            type="checkbox"
-                                            id=&input_id
-                                            class="peer hidden"
-                                            checked=move || {
-                                                filters_buffer_rws
-                                                    .with(|f| f.status.clone())
-                                                    .is_some_and(|s| s.iter().any(|item| *item == status))
-                                            }
-                                            on:change=move |event| {
-                                                let checked = event_target_checked(&event);
-                                                status_filter_management(checked, status)
-                                            }
-                                        />
-                                        <label
-                                            for=&input_id
-                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:border-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out peer-checked:shadow-purple-500 peer-checked:shadow-md shadow-inner shadow-slate-500"
-                                        >
-                                            {label}
-                                        </label>
-                                    </div>
-                                }
-                            })
-                            .collect_view()}
-                    </div>
-                </div>
                 <div class="form-control">
                     <Label title="Experiment Name" />
                     <input
