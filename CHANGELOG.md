@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.84.0 - 2025-08-04
+### Package updates
+- service_utils bumped to service_utils-v0.31.0
+- superposition_macros bumped to superposition_macros-v0.5.0
+- superposition_sdk bumped to superposition_sdk-v0.2.0
+- superposition_core bumped to superposition_core-v0.4.0
+- superposition_types bumped to superposition_types-v0.28.0
+- cac_client bumped to cac_client-v0.19.0
+- frontend bumped to frontend-v0.38.0
+- experimentation_client bumped to experimentation_client-v0.16.0
+- cac_toml bumped to cac_toml-v0.4.0
+- superposition_provider bumped to superposition_provider-v0.2.0
+- superposition_derives bumped to superposition_derives-v0.5.0
+- experimentation_platform bumped to experimentation_platform-v0.38.0
+- context_aware_config bumped to context_aware_config-v0.58.0
+### Global changes
+#### Features
+- publish rust libraries through crates.io - (b1ce609) - datron
+
+- - -
+
 ## v0.82.1 - 2025-07-31
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.14.1

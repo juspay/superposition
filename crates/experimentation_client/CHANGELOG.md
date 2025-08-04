@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.16.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (b1ce609) - datron
+
+- - -
+
 ## experimentation_client-v0.14.1 - 2025-07-31
 #### Bug Fixes
 - bucketing logic (#629) - (ebb2fab) - Ankit Kumar Mahato
