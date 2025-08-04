@@ -15,13 +15,13 @@ use superposition_macros::box_params;
 use superposition_types::{
     api::functions::Stage,
     custom_query::{CustomQuery, Query},
-    database::models::{cac::FunctionType, ChangeReason, Description},
 };
 use types::PageParams;
 
 use crate::api::fetch_function;
 use crate::components::{
     button::Button,
+    description::ContentDescription,
     function_form::{FunctionEditor, Mode},
     skeleton::{Skeleton, SkeletonVariant},
 };
@@ -35,59 +35,6 @@ fn stage_to_action(stage: Stage) -> String {
     match stage {
         Stage::Published => "Published".to_string(),
         Stage::Draft => "Draft Edited".to_string(),
-    }
-}
-
-#[component]
-fn function_info(
-    function_type: FunctionType,
-    description: Description,
-    change_reason: ChangeReason,
-    last_modified_by: String,
-    last_modified_at: DateTime<Utc>,
-) -> impl IntoView {
-    view! {
-        <div class="card bg-base-100 max-w-screen shadow">
-            <div class="card-body flex flex-row gap-2 flex-wrap">
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Function Type"</div>
-                    <div class="stat-value text-sm">{function_type.to_string()}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Description"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&description)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&description)}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified by"</div>
-                    <div class="stat-value text-sm">{last_modified_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified at"</div>
-                    <div class="stat-value text-sm">
-                        {last_modified_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Change Reason"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&change_reason)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&change_reason)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     }
 }
 
@@ -173,12 +120,23 @@ pub fn function_page() -> impl IntoView {
                     let function_st = StoredValue::new(function.clone());
                     view! {
                         <h1 class="text-2xl font-extrabold">{function.function_name.clone()}</h1>
-                        <FunctionInfo
-                            function_type=function.function_type
+                        <ContentDescription
+                            pre_data=move || {
+                                view! {
+                                    <div class="h-fit w-[250px]">
+                                        <div class="stat-title">"Function Type"</div>
+                                        <div class="stat-value text-sm">
+                                            {function.function_type.to_string()}
+                                        </div>
+                                    </div>
+                                }
+                            }
                             description=function.description.clone()
                             change_reason=function.change_reason.clone()
-                            last_modified_by=function.draft_edited_by.clone()
-                            last_modified_at=function.draft_edited_at
+                            created_by=function.created_by.clone()
+                            created_at=function.created_at
+                            last_modified_by=function.last_modified_by.clone()
+                            last_modified_at=function.last_modified_at
                         />
                         <div class="flex justify-between">
                             <div role="tablist" class="tabs tabs-lifted">
