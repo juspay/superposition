@@ -5,7 +5,7 @@
     systems.url = "github:nix-systems/default";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     haskell-flake.url = "github:srid/haskell-flake";
-    rust-flake.url = "github:datron/rust-flake";
+    rust-flake.url = "github:juspay/rust-flake";
   };
 
   outputs =

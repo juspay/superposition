@@ -1,5 +1,5 @@
 {
-    "name": "@juspay/superposition-provider",
+    "name": "superposition-provider",
     "version": "0.0.1",
     "type": "module",
     "description": "OpenFeature provider for Superposition feature flags",
@@ -56,7 +56,7 @@
         "dist/**/*"
     ],
     "bundledDependencies": [
-      "@juspay/superposition-bindings",
-      "@juspay/superposition-sdk"
+      "superposition-bindings",
+      "superposition-sdk"
     ]
 }

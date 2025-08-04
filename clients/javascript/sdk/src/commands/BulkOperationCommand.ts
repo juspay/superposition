@@ -40,8 +40,8 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, BulkOperationCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, BulkOperationCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, BulkOperationCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, BulkOperationCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // BulkOperationInput
  *   workspace_id: "STRING_VALUE", // required

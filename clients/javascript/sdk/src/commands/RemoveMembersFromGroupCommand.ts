@@ -39,8 +39,8 @@ export interface RemoveMembersFromGroupCommandOutput extends ExperimentGroupResp
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, RemoveMembersFromGroupCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, RemoveMembersFromGroupCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, RemoveMembersFromGroupCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, RemoveMembersFromGroupCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ModifyMembersToGroupRequest
  *   workspace_id: "STRING_VALUE", // required

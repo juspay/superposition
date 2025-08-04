@@ -40,8 +40,8 @@ export interface UpdateOverrideCommandOutput extends ContextResponse, __Metadata
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, UpdateOverrideCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, UpdateOverrideCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, UpdateOverrideCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, UpdateOverrideCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // UpdateOverrideInput
  *   workspace_id: "STRING_VALUE", // required

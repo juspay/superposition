@@ -1,6 +1,6 @@
 {
-    "name": "@juspay/superposition-sdk",
-    "description": "@juspay/superposition-sdk client",
+    "name": "superposition-sdk",
+    "description": "superposition-sdk client",
     "version": "0.0.1",
     "scripts": {
         "build": "npm run build:types && npm run build:cjs && npm run build:es",

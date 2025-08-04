@@ -40,8 +40,8 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, GetConfigCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, GetConfigCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, GetConfigCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, GetConfigCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // GetConfigInput
  *   workspace_id: "STRING_VALUE", // required

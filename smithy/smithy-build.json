@@ -37,7 +37,7 @@
         "moduleRepository": "https://github.com/juspay/superposition"
     },
     "typescript-client-codegen": {
-      "package": "@juspay/superposition-sdk",
+      "package": "superposition-sdk",
       "packageVersion": "0.0.1"
     },
     "python-client-codegen": {

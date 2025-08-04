@@ -40,8 +40,8 @@ export interface MoveContextCommandOutput extends ContextResponse, __MetadataBea
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
- * import { SuperpositionClient, MoveContextCommand } from "@juspay/superposition-sdk"; // ES Modules import
- * // const { SuperpositionClient, MoveContextCommand } = require("@juspay/superposition-sdk"); // CommonJS import
+ * import { SuperpositionClient, MoveContextCommand } from "superposition-sdk"; // ES Modules import
+ * // const { SuperpositionClient, MoveContextCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // MoveContextInput
  *   workspace_id: "STRING_VALUE", // required
