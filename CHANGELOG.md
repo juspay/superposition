@@ -2,6 +2,32 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.83.0 - 2025-08-04
+### Package updates
+- superposition_derives bumped to superposition_derives-v0.6.0
+- cac_client bumped to cac_client-v0.20.0
+- cac_toml bumped to cac_toml-v0.5.0
+- service_utils bumped to service_utils-v0.32.0
+- superposition_provider bumped to superposition_provider-v0.3.0
+- experimentation_client bumped to experimentation_client-v0.17.0
+- experimentation_platform bumped to experimentation_platform-v0.39.0
+- frontend bumped to frontend-v0.39.0
+- context_aware_config bumped to context_aware_config-v0.59.0
+- superposition_macros bumped to superposition_macros-v0.6.0
+- superposition_sdk bumped to superposition_sdk-v0.3.0
+- superposition_core bumped to superposition_core-v0.5.0
+- superposition_types bumped to superposition_types-v0.29.0
+### Global changes
+#### Bug Fixes
+- Juspay forked dependencies (#631) - (48a1473) - Ayush Jain
+#### Features
+- Context API types unification (#619) - (424de2e) - Ayush Jain
+- publish rust libraries through crates.io - (8b62d45) - datron
+#### Miscellaneous Chores
+- Add superposition.sql for initial db setup (#613) - (3a7398e) - Ayush Jain
+
+- - -
+
 ## v0.82.1 - 2025-07-31
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.14.1

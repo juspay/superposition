@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_macros-v0.6.0 - 2025-08-04
+#### Features
+- publish rust libraries through crates.io - (8b62d45) - datron
+
+- - -
+
 ## superposition_macros-v0.3.1 - 2025-05-09
 #### Bug Fixes
 - webhook implementation (#503) - (1ffd6eb) - Ankit Kumar Mahato
