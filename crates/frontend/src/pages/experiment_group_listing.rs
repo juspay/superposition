@@ -27,15 +27,14 @@ use crate::{
     },
     components::{
         condition_pills::Condition as ConditionComponent,
-        description_icon::InfoDescription,
-        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
+        drawer::{close_drawer, Drawer, DrawerBtn},
         experiment_group_form::{ChangeLogSummary, ChangeType, ExperimentGroupForm},
         skeleton::Skeleton,
         stat::Stat,
         table::{
             types::{
-                default_column_formatter, Column, ColumnSortable, Expandable,
-                TablePaginationProps,
+                default_column_formatter, default_formatter, Column, ColumnSortable,
+                Expandable, TablePaginationProps,
             },
             Table,
         },
@@ -64,11 +63,7 @@ pub struct RowData {
     pub traffic_percentage: i32,
 }
 
-fn table_columns(
-    delete_group_rws: RwSignal<Option<String>>,
-    selected_group_rws: RwSignal<Option<RowData>>,
-    filters_rws: RwSignal<ExpGroupFilters>,
-) -> Vec<Column> {
+fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let current_filters = filters_rws.get();
     let current_sort_on = current_filters.sort_on.unwrap_or_default();
@@ -79,6 +74,7 @@ fn table_columns(
             .map(String::from)
             .unwrap_or_default()
     };
+
     vec![
         Column::new(
             "name".to_string(),
@@ -106,9 +102,7 @@ fn table_columns(
                         Err(_) => logging::log!("unable to copy to clipboard"),
                     }
                 };
-                let description = get_row_string_fn(row, "description");
 
-                let change_reason = get_row_string_fn(row, "change_reason");
                 view! {
                     <div>
                         <A href=group_id.to_string() class="text-blue-500 underline underline-offset-2">
@@ -120,7 +114,7 @@ fn table_columns(
                             </span>
                             <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
                             <Show when=move || copied_rs.get()>
-                                <div class="inline-block ml-2 px-2 bg-gray-600 rounded-xl">
+                                <div class="w-fit ml-2 px-2 flex justify-center items-center bg-gray-600 rounded-xl">
                                     <span class="text-white text-xs font-semibold">
                                         "copied!"
                                     </span>
@@ -128,7 +122,6 @@ fn table_columns(
                             </Show>
                         </div>
                     </div>
-                    <InfoDescription description=description change_reason=change_reason />
                 }.into_view()
             },
             ColumnSortable::Yes {
@@ -183,24 +176,6 @@ fn table_columns(
         ),
         Column::default("group_type".to_string()),
         Column::default_with_sort(
-            "last_modified_at".to_string(),
-            ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let sort_by = filters.sort_by.unwrap_or_default().flip();
-                    let new_filters = ExpGroupFilters {
-                        sort_on: Some(SortOn::LastModifiedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    filters_rws.set(new_filters);
-                }),
-                sort_by: current_sort_by.clone(),
-                currently_sorted: current_sort_on == SortOn::LastModifiedAt,
-            },
-        ),
-        Column::default("last_modified_by".to_string()),
-        Column::default_with_sort(
             "created_at".to_string(),
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
@@ -219,53 +194,25 @@ fn table_columns(
         ),
         Column::default("created_by".to_string()),
         Column::new(
-            "actions".to_string(),
+            "last_modified_at".to_string(),
             false,
-            move |_, row: &Map<String, Value>| {
-                let group = RowData {
-                    id: get_row_string_fn(row, "id"),
-                    name: get_row_string_fn(row, "name"),
-                    description: get_row_string_fn(row, "description"),
-                    context: Conditions::from_context_json(
-                        &row.get("context")
-                            .and_then(|v| v.as_object())
-                            .cloned()
-                            .unwrap_or_default(),
-                    )
-                    .unwrap_or_default(),
-                    traffic_percentage: row
-                        .get("traffic_percentage")
-                        .and_then(|v| v.as_number())
-                        .and_then(|p| p.as_i64().map(|i| i as i32))
-                        .unwrap_or_default(),
-                };
-                let group = StoredValue::new(group);
-                let edit_click_handler = move |_| {
-                    let group = group.get_value();
-                    logging::log!("{:?}", group);
-                    selected_group_rws.set(Some(group));
-                    open_drawer("create_exp_group_drawer");
-                };
-
-                let handle_delete = move |_| {
-                    delete_group_rws.set(Some(group.with_value(|g| g.id.clone())))
-                };
-
-                view! {
-                    <div class="join">
-                        <span class="cursor-pointer" on:click=edit_click_handler>
-                            <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                        </span>
-                        <span class="cursor-pointer text-red-500" on:click=handle_delete>
-                            <i class="ri-delete-bin-5-line ri-xl text-red-500"></i>
-                        </span>
-                    </div>
-                }
-                .into_view()
+            default_formatter,
+            ColumnSortable::Yes {
+                sort_fn: Callback::new(move |_| {
+                    let filters = filters_rws.get();
+                    let sort_by = filters.sort_by.unwrap_or_default().flip();
+                    let new_filters = ExpGroupFilters {
+                        sort_on: Some(SortOn::LastModifiedAt),
+                        sort_by: Some(sort_by),
+                        ..filters
+                    };
+                    filters_rws.set(new_filters);
+                }),
+                sort_by: current_sort_by.clone(),
+                currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },
-            ColumnSortable::No,
-            Expandable::Disabled,
-            default_column_formatter,
+            Expandable::Enabled(100),
+            |_| default_column_formatter("Modified At"),
         ),
     ]
 }
@@ -384,11 +331,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                         {move || {
                             let value = experiment_groups_resource.get();
                             let pagination_params = pagination_params_rws.get();
-                            let table_columns = table_columns(
-                                delete_group_id_rws,
-                                selected_group_rws,
-                                filters_rws,
-                            );
+                            let table_columns = table_columns(filters_rws);
                             match value {
                                 Some(v) => {
                                     let data = v

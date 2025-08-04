@@ -1,7 +1,10 @@
-use std::fmt::Display;
+use std::{collections::HashSet, fmt::Display, hash::Hash};
 
 use leptos::*;
 use leptos_router::A;
+use strum::IntoEnumIterator;
+
+use crate::components::form::label::Label;
 
 use super::dropdown::utils::DropdownOption;
 
@@ -108,4 +111,57 @@ where
         </div>
     }
     .into_view()
+}
+
+#[component]
+pub fn glassy_pills<T: IntoEnumIterator + Display + Eq + Hash + Copy + 'static>(
+    #[prop(into)] selected: Signal<Vec<T>>,
+    #[prop(into)] title: String,
+    #[prop(into)] on_click: Callback<Vec<T>, ()>,
+) -> impl IntoView {
+    let get_updated_items = move |checked: bool, item: T| {
+        let mut old_group_vector: HashSet<T> = HashSet::from_iter(selected.get());
+
+        if checked {
+            old_group_vector.insert(item);
+        } else {
+            old_group_vector.remove(&item);
+        }
+        Vec::from_iter(old_group_vector)
+    };
+
+    view! {
+        <div class="form-control w-full">
+            <Label title />
+            <div class="flex flex-row flex-wrap justify-start gap-5">
+                {T::iter()
+                    .map(|item| {
+                        let label = item.to_string();
+                        let input_id = format!("{label}-checkbox");
+
+                        view! {
+                            <div>
+                                <input
+                                    type="checkbox"
+                                    id=&input_id
+                                    class="peer hidden"
+                                    checked=selected.get().iter().any(|it| *it == item)
+                                    on:change=move |event| {
+                                        let checked = event_target_checked(&event);
+                                        on_click.call(get_updated_items(checked, item));
+                                    }
+                                />
+                                <label
+                                    for=&input_id
+                                    class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:border-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out peer-checked:shadow-purple-500 peer-checked:shadow-md shadow-inner shadow-slate-500"
+                                >
+                                    {label}
+                                </label>
+                            </div>
+                        }
+                    })
+                    .collect_view()}
+            </div>
+        </div>
+    }
 }

@@ -71,13 +71,12 @@ pub fn table(
 ) -> impl IntoView {
     let pagination_props = StoredValue::new(pagination);
     let container_style = format!("{} overflow-x-auto overflow-y-clip", class);
-    let get_sticky_position_classes = |index: usize, header: bool| {
-        match (header, index) {
-        (true, 0) => "sticky left-20 top-0 z-30 after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]",
-        (true, _) => "sticky z-20 top-0",
-        (false, 0) => "sticky left-20 z-20 after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]",
-        _ => "",
-    }
+    let sticky_shadow_class = "after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-[-1px] after:w-[5px] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0)_100%)]";
+    let get_sticky_position_classes = |index: usize, header: bool| match (header, index) {
+        (true, 0) => format!("sticky left-20 top-0 z-30 {}", sticky_shadow_class),
+        (true, _) => "sticky z-20 top-0".to_string(),
+        (false, 0) => format!("sticky left-20 z-20 {}", sticky_shadow_class),
+        _ => String::new(),
     };
 
     view! {
@@ -103,28 +102,30 @@ pub fn table(
                                         view! {
                                             <th
                                                 class=format!(
-                                                    "px-3 flex items-center gap-1 bg-inherit cursor-pointer {sticky_class}",
+                                                    "px-3 bg-inherit cursor-pointer {sticky_class}",
                                                 )
                                                 on:click=move |_| sort_fn.call(())
                                             >
-                                                {col_formatter(&column.name)}
-                                                {match (currently_sorted, sort_by) {
-                                                    (false, _) => {
-                                                        view! {
-                                                            <i class="ri-expand-up-down-fill ri-xl self-center" />
+                                                <div class="flex items-center gap-1">
+                                                    {col_formatter(&column.name)}
+                                                    {match (currently_sorted, sort_by) {
+                                                        (false, _) => {
+                                                            view! {
+                                                                <i class="ri-expand-up-down-fill ri-xl self-center" />
+                                                            }
                                                         }
-                                                    }
-                                                    (_, SortBy::Desc) => {
-                                                        view! {
-                                                            <i class="ri-arrow-down-s-fill ri-xl text-purple-700" />
+                                                        (_, SortBy::Desc) => {
+                                                            view! {
+                                                                <i class="ri-arrow-down-s-fill ri-xl text-purple-700" />
+                                                            }
                                                         }
-                                                    }
-                                                    (_, SortBy::Asc) => {
-                                                        view! {
-                                                            <i class="ri-arrow-up-s-fill ri-xl text-purple-700" />
+                                                        (_, SortBy::Asc) => {
+                                                            view! {
+                                                                <i class="ri-arrow-up-s-fill ri-xl text-purple-700" />
+                                                            }
                                                         }
-                                                    }
-                                                }}
+                                                    }}
+                                                </div>
                                             </th>
                                         }
                                     }

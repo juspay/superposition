@@ -20,16 +20,15 @@ use crate::{
     },
     components::{
         alert::AlertType,
+        button::Button,
         condition_pills::Condition as ConditionComponent,
         delete_modal::DeleteModal,
-        drawer::{close_drawer, Drawer, DrawerBtn},
+        description::ContentDescription,
+        drawer::PortalDrawer,
         experiment_group_form::AddExperimentToGroupForm,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
-            types::{
-                default_column_formatter, Column, ColumnSortable, Expandable,
-                TablePaginationProps,
-            },
+            types::{default_column_formatter, Column, ColumnSortable, Expandable},
             Table,
         },
     },
@@ -80,7 +79,7 @@ fn table_columns(
             },
             ColumnSortable::No,
             Expandable::Disabled,
-            move |_| default_column_formatter("Experiment Name"),
+            |_| default_column_formatter("Experiment Name"),
         ),
         Column::default("traffic_percentage".to_string()),
         Column::new(
@@ -128,12 +127,12 @@ fn table_columns(
 }
 
 #[component]
-fn experiment_group_info(group: StoredValue<ExperimentGroup>) -> impl IntoView {
+fn experiment_group_info(group: ExperimentGroup) -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
-    let group = group.get_value();
     let conditions = Conditions::from_context_json(&group.context).unwrap_or_default();
+
     view! {
-        <div class="card bg-base-100 max-w-screen shadow">
+        <div class="-mt-5 card bg-base-100 max-w-screen shadow">
             <div class="card-body flex flex-row gap-2 flex-wrap">
                 <ConditionCollapseProvider>
                     <ConditionComponent
@@ -143,20 +142,15 @@ fn experiment_group_info(group: StoredValue<ExperimentGroup>) -> impl IntoView {
                         strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                     />
                 </ConditionCollapseProvider>
-                <div class="h-fit w-[300px]">
-                    <div class="stat-title">Group ID</div>
-                    <div class="stat-value text-sm">{group.id}</div>
-                </div>
-
-                <div class="h-fit w-[300px]">
-                    <div class="stat-title">Group Traffic Percentage</div>
-                    <div class="stat-value text-sm">
-                        {group.traffic_percentage.to_string() + "%"}
-                    </div>
-                </div>
             </div>
         </div>
     }
+}
+
+#[derive(Clone)]
+enum Action {
+    Add,
+    None,
 }
 
 #[component]
@@ -167,7 +161,8 @@ pub fn experiment_groups() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (delete_modal_rs, delete_modal_ws) = create_signal(false);
-    let delete_group_rws = create_rw_signal(RemoveRequest::default());
+    let delete_group_rws = RwSignal::new(RemoveRequest::default());
+    let action_rws = RwSignal::new(Action::None);
 
     let source = move || {
         let tenant_id = workspace.get().0;
@@ -263,47 +258,73 @@ pub fn experiment_groups() -> impl IntoView {
                     .map(|ele| json!(ele).as_object().cloned().unwrap_or_default())
                     .collect::<Vec<Map<String, Value>>>()
                     .to_owned();
-                let pagination_props = TablePaginationProps::default();
-                let resource_group = StoredValue::new(resource.group);
 
                 view! {
                     <div class="h-full flex flex-col gap-10 overflow-x-auto bg-transparent">
-                        <h1 class="text-2xl font-extrabold">{resource_group.get_value().name}</h1>
-                        <ExperimentGroupInfo group=resource_group />
-                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
-                            <div class="card-body overflow-y-auto overflow-x-visible">
-                                <div class="flex justify-between">
-                                    <h2 class="card-title">"Member Experiments"</h2>
-                                    <DrawerBtn
-                                        drawer_id="add_members_group_drawer"
-                                        text="Add Members"
-                                        icon_class="ri-add-large-fill"
+                        <h1 class="text-2xl font-extrabold">{resource.group.name.clone()}</h1>
+                        <ExperimentGroupInfo group=resource.group.clone() />
+                        <ContentDescription
+                            pre_data=move || {
+                                view! {
+                                    <div class="h-fit w-[250px]">
+                                        <div class="stat-title">"Group ID"</div>
+                                        <div class="stat-value text-sm">
+                                            {resource.group.id.to_string()}
+                                        </div>
+                                    </div>
+                                    <div class="h-fit w-[250px]">
+                                        <div class="stat-title">"Traffic"</div>
+                                        <div class="stat-value text-sm">
+                                            {resource.group.traffic_percentage.to_string() + "%"}
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            description=resource.group.description.clone()
+                            change_reason=resource.group.change_reason.clone()
+                            created_at=resource.group.created_at
+                            created_by=resource.group.created_by.clone()
+                            last_modified_at=resource.group.last_modified_at
+                            last_modified_by=resource.group.last_modified_by.clone()
+                        />
+                        <div class="-mt-5 flex flex-col gap-5">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-semibold">"Member Experiments"</h2>
+                                <Button
+                                    on_click=move |_| action_rws.set(Action::Add)
+                                    text="Add Members"
+                                    icon_class="ri-add-line"
+                                />
+                            </div>
+                            <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                                <div class="card-body overflow-y-auto overflow-x-visible">
+                                    <Table
+                                        class="!overflow-y-auto"
+                                        rows=data
+                                        key_column="id"
+                                        columns=table_columns
                                     />
                                 </div>
-                                <Table
-                                    class="!overflow-y-auto"
-                                    rows=data
-                                    key_column="id"
-                                    columns=table_columns
-                                    pagination=pagination_props
-                                />
                             </div>
                         </div>
                     </div>
-                    <Drawer
-                        id="add_members_group_drawer"
-                        header="Add members to the group"
-                        handle_close=move || { close_drawer("add_members_group_drawer") }
-                    >
-                        <AddExperimentToGroupForm
-                            experiment_group=resource_group
-                            handle_submit=Callback::new(move |_| {
-                                close_drawer("add_members_group_drawer");
-                                experiment_group_resource.refetch();
-                            })
-                        />
-
-                    </Drawer>
+                    {move || match action_rws.get() {
+                        Action::Add => {
+                            view! {
+                                <PortalDrawer
+                                    title="Add members to the group"
+                                    handle_close=move |_| action_rws.set(Action::None)
+                                >
+                                    <AddExperimentToGroupForm
+                                        experiment_group_id=resource.group.id
+                                        handle_submit=move |_| experiment_group_resource.refetch()
+                                    />
+                                </PortalDrawer>
+                            }
+                                .into_view()
+                        }
+                        Action::None => view! {}.into_view(),
+                    }}
                 }
                     .into_view()
             }}
