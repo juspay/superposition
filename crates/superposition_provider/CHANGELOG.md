@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.4.0 - 2025-08-05
+#### Features
+- push npm and pypi packages to public registry - (6b31c97) - datron
+#### Miscellaneous Chores
+- **(version)** v0.83.0 [skip ci] - (2e2d48c) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.3.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (8b62d45) - datron
