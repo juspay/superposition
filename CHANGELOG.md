@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.84.0 - 2025-08-05
+### Package updates
+- superposition_provider bumped to superposition_provider-v0.4.0
+### Global changes
+#### Features
+- push npm and pypi packages to public registry - (6b31c97) - datron
+#### Miscellaneous Chores
+- **(version)** v0.83.0 [skip ci] - (2e2d48c) - Superposition Bot
+
+- - -
+
 ## v0.83.0 - 2025-08-04
 ### Package updates
 - superposition_derives bumped to superposition_derives-v0.6.0
