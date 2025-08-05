@@ -519,7 +519,7 @@ jobs:
 
             - name: Publish Python packages to PyPI
               run: |
-                  twine upload -r testpypi python-wheels/*.whl
+                  twine upload python-wheels/*.whl
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
@@ -530,6 +530,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -539,6 +540,7 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: "20.0.0"
+                  registry-url: 'https://registry.npmjs.org'
 
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
@@ -585,8 +587,6 @@ jobs:
                   cd clients/javascript
                   npm ci
                   npm publish --access public --workspace bindings --workspace sdk --workspace open-feature-provider
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     generate-rust-packages:
         needs: tag-release
