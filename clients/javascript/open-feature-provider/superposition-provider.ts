@@ -13,8 +13,8 @@ import {
     Logger,
 } from '@openfeature/server-sdk';
 
-import { ConfigurationClient } from './configuration-client';
-import { convertToBoolean, convertToString, convertToNumber, convertToObject, getNestedValue } from './utils';
+import { SuperpositionClient } from './superposition-client';
+import { convertToBoolean, convertToString, convertToNumber, convertToObject, getNestedValue, isNetworkError, categorizeError } from './utils';
 import {
     SuperpositionOptions,
     EvaluationCacheOptions,
@@ -56,14 +56,17 @@ export class SuperpositionProvider implements Provider {
     events = new OpenFeatureEventEmitter();
     readonly hooks: Hook[] = [];
 
-    private client: ConfigurationClient;
+    private client: SuperpositionClient;
     status: ProviderStatus = ProviderStatus.NOT_READY;
+    private lastError: string | null = null;
+    private connectionRetryCount = 0;
+    private maxRetries = 3;
 
     // Cache for processed contexts
     private processedContextCache = new WeakMap<EvaluationContext, Record<string, any>>();
 
     constructor(private config: SuperpositionProviderOptions) {
-        this.client = new ConfigurationClient(
+        this.client = new SuperpositionClient(
             {
                 endpoint: config.endpoint,
                 token: config.token,
@@ -86,12 +89,34 @@ export class SuperpositionProvider implements Provider {
             await this.client.initialize();
             await this.client.eval(context || {});
             this.status = ProviderStatus.READY;
+            this.connectionRetryCount = 0;
+            this.lastError = null;
             this.events.emit(ProviderEvents.Ready, { message: 'Provider ready' });
         } catch (error) {
-            this.status = ProviderStatus.ERROR;
-            const message = error instanceof Error ? error.message : 'Initialization failed';
-            this.events.emit(ProviderEvents.Error, { message, errorCode: ErrorCode.PROVIDER_NOT_READY });
+            this.handleInitializationError(error);
             throw error;
+        }
+    }
+
+    private handleInitializationError(error: unknown): void {
+        const errorMessage = categorizeError(error, this.config.endpoint);
+        this.lastError = errorMessage;
+        
+        console.warn(`SuperpositionProvider: ${errorMessage}`);
+
+        // Set appropriate status based on error type
+        if (isNetworkError(error)) {
+            this.status = ProviderStatus.ERROR;
+            this.events.emit(ProviderEvents.Error, { 
+                message: errorMessage, 
+                errorCode: ErrorCode.PROVIDER_NOT_READY 
+            });
+        } else {
+            this.status = ProviderStatus.FATAL;
+            this.events.emit(ProviderEvents.Error, { 
+                message: errorMessage, 
+                errorCode: ErrorCode.PROVIDER_FATAL 
+            });
         }
     }
 
@@ -114,11 +139,24 @@ export class SuperpositionProvider implements Provider {
             this.processedContextCache.set(context, processedContext);
         }
 
-        const config = await this.client.eval(processedContext);
-        const value = getNestedValue(config, flagKey);
-        const converter = TYPE_CONVERTERS[type] as ConverterFunction<T>;
-
-        return converter(value, defaultValue);
+        try {
+            const config = await this.client.eval(processedContext);
+            const value = getNestedValue(config, flagKey);
+            const converter = TYPE_CONVERTERS[type] as ConverterFunction<T>;
+            return converter(value, defaultValue);
+        } catch (error) {
+            // Handle server connectivity issues gracefully
+            if (isNetworkError(error) && this.connectionRetryCount < this.maxRetries) {
+                this.connectionRetryCount++;
+                
+                // Set status to STALE if we have fallback data
+                if (this.config.fallbackConfig) {
+                    this.status = ProviderStatus.STALE;
+                }
+            }
+            
+            throw error;
+        }
     }
 
     private filterContext(context: EvaluationContext): Record<string, any> {
@@ -154,22 +192,38 @@ export class SuperpositionProvider implements Provider {
                     value: defaultValue,
                     reason: 'ERROR',
                     errorCode: this.status === ProviderStatus.FATAL ? ErrorCode.PROVIDER_FATAL : ErrorCode.PROVIDER_NOT_READY,
-                    errorMessage: `Provider status: ${this.status}`
+                    errorMessage: this.lastError || `Provider status: ${this.status}`
                 };
             }
 
             try {
                 const value = await this.evaluateFlag(flagKey, defaultValue, context, type);
+                
+                // Reset retry count on successful evaluation
+                if (this.connectionRetryCount > 0) {
+                    this.connectionRetryCount = 0;
+                    if (this.status === ProviderStatus.STALE) {
+                        this.status = ProviderStatus.READY;
+                    }
+                }
+                
                 return {
                     value,
                     reason: this.status === ProviderStatus.STALE ? 'STALE' : 'TARGETING_MATCH',
                 };
             } catch (error) {
+                const errorMessage = categorizeError(error, this.config.endpoint);
+                
+                // Only log network errors once to avoid spam
+                if (isNetworkError(error) && this.connectionRetryCount === 1) {
+                    console.warn(`SuperpositionProvider: ${errorMessage}. Using default values.`);
+                }
+                
                 return {
                     value: defaultValue,
                     reason: 'ERROR',
-                    errorCode: ErrorCode.GENERAL,
-                    errorMessage: error instanceof Error ? error.message : 'Evaluation failed'
+                    errorCode: isNetworkError(error) ? ErrorCode.PROVIDER_NOT_READY : ErrorCode.GENERAL,
+                    errorMessage
                 };
             }
         };
@@ -224,13 +278,34 @@ export class SuperpositionProvider implements Provider {
 
             const targetingKey = context.targetingKey;
             return await this.client.getAllConfigValue(defaultValue, processedContext, targetingKey);
-        }
-        catch (error) {
-            console.error('Error resolving all config details:', error);
+        } catch (error) {
+            const errorMessage = categorizeError(error, this.config.endpoint);
+            
+            if (isNetworkError(error)) {
+                console.warn(`SuperpositionProvider: ${errorMessage}. Using default configuration.`);
+            }
+            
             return defaultValue;
         }
     }
 
     getStatus(): ProviderStatus { return this.status; }
-    getConfigurationClient(): ConfigurationClient { return this.client; }
+    getSuperpositionClient(): SuperpositionClient { return this.client; }
+    getLastError(): string | null { return this.lastError; }
+    
+    // Expose getApplicableVariants on the provider layer
+    async getApplicableVariants(
+        queryData: Record<string, any>,
+        identifier: string,
+        filterPrefixes?: string[]
+    ): Promise<string[]> {
+        try {
+            return await this.client.getApplicableVariants(queryData, identifier, filterPrefixes);
+        } catch (error) {
+            if (isNetworkError(error)) {
+                console.warn('SuperpositionProvider: Unable to fetch applicable variants. Server may be down.');
+            }
+            return [];
+        }
+    }
 }
