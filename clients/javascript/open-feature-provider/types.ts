@@ -34,12 +34,14 @@ export interface ExperimentationOptions {
     refreshStrategy: RefreshStrategy;
     evaluationCache?: EvaluationCacheOptions;
     defaultIdentifier?: string;
+    enableDetailedErrorLogging?: boolean;
 }
 
 export interface ConfigOptions {
     fallbackConfig?: Record<string, any>;
     evaluationCache?: EvaluationCacheOptions;
     refreshStrategy?: RefreshStrategy;
+    enableDetailedErrorLogging?: boolean;
 }
 
 export interface ConfigData {
