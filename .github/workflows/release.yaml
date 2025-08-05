@@ -71,7 +71,6 @@ jobs:
             - name: Push code to main
               shell: bash
               run: |
-                  git pull --rebase origin main
                   git push origin main
                   git push origin --tags
 
@@ -420,7 +419,7 @@ jobs:
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
             TWINE_USERNAME: __token__
-            TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+            TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
