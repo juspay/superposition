@@ -71,6 +71,7 @@ jobs:
             - name: Push code to main
               shell: bash
               run: |
+                  git pull --rebase origin main
                   git push origin main
                   git push origin --tags
 

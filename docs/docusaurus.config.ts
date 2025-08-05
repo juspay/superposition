@@ -54,10 +54,13 @@ const config: Config = {
     ],
 
     themeConfig: {
-        metadata: [
-            {name: "algolia-site-verification", content: "FB4EDDBA3F35A471" }
-        ],
         image: "img/logo.jpg",
+        algolia: {
+            appId: 'ZK6EG087JC',
+            // Public API key: it is safe to commit it
+            apiKey: '2d61980440a8ce3d5832392666e51c65',
+            indexName: 'superposition-docusaurus-1',
+        },
         navbar: {
             title: "Superposition Docs",
             logo: {
