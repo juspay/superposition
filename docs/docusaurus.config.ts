@@ -54,7 +54,9 @@ const config: Config = {
     ],
 
     themeConfig: {
-        // Replace with your project's social card
+        metadata: [
+            {name: "algolia-site-verification", content: "FB4EDDBA3F35A471" }
+        ],
         image: "img/logo.jpg",
         navbar: {
             title: "Superposition Docs",
