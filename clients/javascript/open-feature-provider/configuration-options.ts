@@ -1,16 +1,18 @@
 import { SuperpositionOptions, ConfigOptions, ConfigData, PollingStrategy, ExperimentationArgs } from './types';
 import { NativeResolver } from '@juspay/superposition-bindings';
 import { SuperpositionClient, GetConfigCommand, GetConfigCommandInput } from '@juspay/superposition-sdk';
-import { ExperimentationClient, Experiment } from './experimentation-client';
+import { ExperimentationConfig, Experiment } from './experimentation-options';
 import { ExperimentationOptions } from './types';
 
-export class ConfigurationClient {
+export class CacConfig {
     private config: SuperpositionOptions;
     private resolver: NativeResolver;
     private options: ConfigOptions;
     private currentConfigData: ConfigData | null = null;
-    private experimentationClient?: ExperimentationClient;
+    private experimentationConfig?: ExperimentationConfig;
     private experimentationOptions?: ExperimentationOptions;
+    private enableDetailedErrorLogging: boolean = false;
+    private lastErrorMessage: string | null = null;
 
     private defaults: ConfigData | null = null;
     private smithyClient: SuperpositionClient;
@@ -24,6 +26,7 @@ export class ConfigurationClient {
         this.config = config;
         this.resolver = resolver;
         this.options = options;
+        this.enableDetailedErrorLogging = options.enableDetailedErrorLogging ?? false;
 
         if (this.options.refreshStrategy && 'interval' in this.options.refreshStrategy) {
             const strategy = this.options.refreshStrategy as PollingStrategy;
@@ -32,18 +35,26 @@ export class ConfigurationClient {
                 try {
                     const refreshedConfig = await this.fetchConfigData();
                     this.currentConfigData = refreshedConfig;
-                    console.log("Configuration refreshed successfully.");
+                    this.lastErrorMessage = null; // Clear error on successful refresh
+                    if (this.enableDetailedErrorLogging) {
+                        console.log("Configuration refreshed successfully.");
+                    }
                 } catch (error) {
-                    console.error("Failed to refresh configuration. Will continue to use the last known good configuration.", error);
+                    const errorMessage = this.categorizeError(error);
+                    this.lastErrorMessage = errorMessage;
+                    
+                    if (this.enableDetailedErrorLogging) {
+                        console.error("Failed to refresh configuration:", error);
+                    } else {
+                        console.warn(`SuperpositionProvider: ${errorMessage}. Will continue with cached configuration.`);
+                    }
                 }
-
             }, strategy.interval);
 
             if (experimentationOptions) {
                 this.experimentationOptions = experimentationOptions;
-                this.experimentationClient = new ExperimentationClient(config, experimentationOptions);
+                this.experimentationConfig = new ExperimentationConfig(config, experimentationOptions);
             }
-
         }
 
         this.smithyClient = new SuperpositionClient({
@@ -52,10 +63,47 @@ export class ConfigurationClient {
         });
     }
 
+    private categorizeError(error: unknown): string {
+        if (!error) return 'Unknown error occurred';
+        
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        // Network-related errors
+        if (this.isNetworkError(error)) {
+            return `Configuration fetch failed - server may be down`;
+        }
+        
+        // Authentication errors
+        if (errorMessage.includes('401') || errorMessage.includes('403')) {
+            return 'Authentication failed while fetching configuration';
+        }
+        
+        // Configuration errors
+        if (errorMessage.includes('404')) {
+            return 'Configuration not found - check workspace and org settings';
+        }
+        
+        return 'Configuration fetch failed';
+    }
+
+    private isNetworkError(error: unknown): boolean {
+        if (!error) return false;
+        
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        return errorMessage.includes('ECONNREFUSED') ||
+               errorMessage.includes('ENOTFOUND') ||
+               errorMessage.includes('ECONNRESET') ||
+               errorMessage.includes('ETIMEDOUT') ||
+               errorMessage.includes('fetch failed') ||
+               errorMessage.includes('network') ||
+               errorMessage.includes('connection');
+    }
+
     async initialize(): Promise<void> {
         // Initialize experimentation client if present
-        if (this.experimentationClient) {
-            await this.experimentationClient.initialize();
+        if (this.experimentationConfig) {
+            await this.experimentationConfig.initialize();
         }
     }
 
@@ -63,13 +111,12 @@ export class ConfigurationClient {
     async eval<T>(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<T>;
     async eval(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<any> {
         try {
-
             const configData = await this.fetchConfigData();
 
             let experimentationArgs: ExperimentationArgs | undefined;
 
-            if (this.experimentationClient && targetingKey) {
-                const experiments = await this.experimentationClient.getExperiments();
+            if (this.experimentationConfig && targetingKey) {
+                const experiments = await this.experimentationConfig.getExperiments();
                 experimentationArgs = {
                     experiments,
                     targeting_key: targetingKey
@@ -89,7 +136,11 @@ export class ConfigurationClient {
 
         } catch (error) {
             if (this.defaults) {
-                console.log('Falling back to defaults');
+                if (this.enableDetailedErrorLogging) {
+                    console.log('Falling back to defaults due to error:', error);
+                } else if (this.isNetworkError(error)) {
+                    console.warn('SuperpositionProvider: Using fallback configuration - server connection failed');
+                }
                 return this.resolver.resolveConfig(
                     this.defaults.default_configs || {},
                     this.defaults.contexts || [],
@@ -116,7 +167,6 @@ export class ConfigurationClient {
         const command = new GetConfigCommand(commandInput);
 
         try {
-
             const response = await this.smithyClient.send(command);
             this.currentConfigData = {
                 default_configs: response.default_configs || {},
@@ -127,9 +177,14 @@ export class ConfigurationClient {
             return this.currentConfigData;
 
         } catch (error) {
-            console.error('SuperpositionClient GetConfigCommand failed:', error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            throw new Error(`Failed to fetch configuration: ${errorMessage}`);
+            const errorMessage = this.categorizeError(error);
+            this.lastErrorMessage = errorMessage;
+            
+            if (this.enableDetailedErrorLogging) {
+                console.error('SuperpositionClient GetConfigCommand failed:', error);
+            }
+            
+            throw new Error(errorMessage);
         }
     }
 
@@ -144,8 +199,8 @@ export class ConfigurationClient {
             // Prepare query data with experiment variants if applicable
             let queryData = { ...context };
 
-            if (this.experimentationClient && targetingKey) {
-                const experiments = await this.experimentationClient.getExperiments();
+            if (this.experimentationConfig && targetingKey) {
+                const experiments = await this.experimentationConfig.getExperiments();
                 const identifier = this.experimentationOptions?.defaultIdentifier ||
                     (targetingKey ? targetingKey : 'default');
 
@@ -166,6 +221,11 @@ export class ConfigurationClient {
             return result;
         } catch (error) {
             if (this.defaults) {
+                if (this.enableDetailedErrorLogging) {
+                    console.log('Falling back to defaults for getAllConfigValue:', error);
+                } else if (this.isNetworkError(error)) {
+                    console.warn('SuperpositionProvider: Using fallback configuration for getAllConfigValue');
+                }
                 return this.resolver.resolveConfig(
                     this.defaults.default_configs || {},
                     this.defaults.contexts || [],
@@ -179,7 +239,7 @@ export class ConfigurationClient {
     }
 
     // Add method to get applicable variants
-    private async getApplicableVariants(
+    async getApplicableVariants(
         experiments: Experiment[],
         queryData: Record<string, any>,
         identifier: string,
@@ -196,8 +256,12 @@ export class ConfigurationClient {
 
     // Add method to close and cleanup
     async close(): Promise<void> {
-        if (this.experimentationClient) {
-            await this.experimentationClient.close();
+        if (this.experimentationConfig) {
+            await this.experimentationConfig.close();
         }
+    }
+
+    getLastError(): string | null {
+        return this.lastErrorMessage;
     }
 }

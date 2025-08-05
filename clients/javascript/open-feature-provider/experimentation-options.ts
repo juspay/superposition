@@ -1,4 +1,4 @@
-import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput, ListExperimentGroupsCommandInput, ListExperimentGroupsCommand, GroupType } from '@juspay/superposition-sdk';
+import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput, ListExperimentGroupsCommandInput, ListExperimentGroupsCommand, GroupType as SdkGroupType } from '@juspay/superposition-sdk';
 import { SuperpositionOptions, ExperimentationOptions, PollingStrategy, OnDemandStrategy } from './types';
 
 export interface Variant {
@@ -26,7 +26,7 @@ export interface ExperimentGroup {
     group_type: GroupType;
 }
 
-export class ExperimentationClient {
+export class ExperimentationConfig {
     private smithyClient: SuperpositionClient;
     private options: ExperimentationOptions;
     private cachedExperiments: Experiment[] | null = null;
@@ -34,27 +34,83 @@ export class ExperimentationClient {
     private lastUpdated: Date | null = null;
     private evaluationCache: Map<string, any> = new Map();
     private pollingInterval?: NodeJS.Timeout;
+    private enableDetailedErrorLogging: boolean = false;
+    private lastErrorMessage: string | null = null;
 
     constructor(
         private superpositionOptions: SuperpositionOptions,
         experimentOptions: ExperimentationOptions
     ) {
         this.options = experimentOptions;
+        this.enableDetailedErrorLogging = experimentOptions.enableDetailedErrorLogging ?? false;
         this.smithyClient = new SuperpositionClient({
             endpoint: superpositionOptions.endpoint,
             token: { token: superpositionOptions.token },
         });
     }
 
+    private categorizeError(error: unknown): string {
+        if (!error) return 'Unknown error occurred';
+        
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        // Network-related errors
+        if (this.isNetworkError(error)) {
+            return `Experimentation service unavailable`;
+        }
+        
+        // Authentication errors
+        if (errorMessage.includes('401') || errorMessage.includes('403')) {
+            return 'Authentication failed for experimentation service';
+        }
+        
+        // Configuration errors
+        if (errorMessage.includes('404')) {
+            return 'Experiments not found - check workspace and org settings';
+        }
+        
+        return 'Failed to fetch experiments';
+    }
+
+    private isNetworkError(error: unknown): boolean {
+        if (!error) return false;
+        
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        return errorMessage.includes('ECONNREFUSED') ||
+               errorMessage.includes('ENOTFOUND') ||
+               errorMessage.includes('ECONNRESET') ||
+               errorMessage.includes('ETIMEDOUT') ||
+               errorMessage.includes('fetch failed') ||
+               errorMessage.includes('network') ||
+               errorMessage.includes('connection');
+    }
+
     async initialize(): Promise<void> {
-        // Fetch initial experiments
-        const experiments = await this.fetchExperiments();
-        const experimentgroups = await this.fetchExperimentGroups();
-        if (experiments && experimentgroups) {
-            this.cachedExperiments = experiments;
-            this.cachedExperimentGroups = experimentgroups;
-            this.lastUpdated = new Date();
-            console.log('Experiments and Experiment Groups fetched successfully.');
+        try {
+            // Fetch initial experiments
+            const experiments = await this.fetchExperiments();
+            const experimentgroups = await this.fetchExperimentGroups();
+            if (experiments && experimentgroups) {
+                this.cachedExperiments = experiments;
+                this.cachedExperimentGroups = experimentgroups;
+                this.lastUpdated = new Date();
+                this.lastErrorMessage = null;
+                if (this.enableDetailedErrorLogging) {
+                    console.log('Experiments and Experiment Groups fetched successfully.');
+                }
+            }
+        } catch (error) {
+            const errorMessage = this.categorizeError(error);
+            this.lastErrorMessage = errorMessage;
+            
+            if (this.enableDetailedErrorLogging) {
+                console.error('ExperimentationConfig initialization failed:', error);
+            } else if (this.isNetworkError(error)) {
+                console.warn(`SuperpositionProvider: ${errorMessage}. Experiments will be unavailable.`);
+            }
+            
+            // Don't throw - allow the provider to work without experiments
         }
 
         // Set up refresh strategy
@@ -73,10 +129,26 @@ export class ExperimentationClient {
                     this.cachedExperiments = experiments;
                     this.cachedExperimentGroups = experimentGroups;
                     this.lastUpdated = new Date();
-                    console.log('Experiments and Experiment Groups refreshed successfully.');
+                    this.lastErrorMessage = null;
+                    if (this.enableDetailedErrorLogging) {
+                        console.log('Experiments and Experiment Groups refreshed successfully.');
+                    }
                 }
             } catch (error) {
-                console.error('Polling error:', error);
+                const errorMessage = this.categorizeError(error);
+                this.lastErrorMessage = errorMessage;
+                
+                if (this.enableDetailedErrorLogging) {
+                    console.error('Polling error:', error);
+                } else if (this.isNetworkError(error)) {
+                    // Only log polling errors occasionally to avoid spam
+                    const now = Date.now();
+                    const lastLogTime = parseInt(localStorage?.getItem('lastPollingErrorLog') || '0');
+                    if (now - lastLogTime > 300000) { // Log at most once every 5 minutes
+                        console.warn(`SuperpositionProvider: ${errorMessage}. Will retry on next poll.`);
+                        localStorage?.setItem('lastPollingErrorLog', now.toString());
+                    }
+                }
             }
         }, interval);
     }
@@ -102,7 +174,9 @@ export class ExperimentationClient {
             for (const exp of response.data) {
                 // Skip experiments without required fields
                 if (!exp.id) {
-                    console.warn('Skipping experiment without ID');
+                    if (this.enableDetailedErrorLogging) {
+                        console.warn('Skipping experiment without ID');
+                    }
                     continue;
                 }
 
@@ -112,13 +186,17 @@ export class ExperimentationClient {
                     for (const variant of exp.variants) {
                         // Skip variants without required fields
                         if (!variant.id) {
-                            console.warn(`Skipping variant without ID in experiment ${exp.id}`);
+                            if (this.enableDetailedErrorLogging) {
+                                console.warn(`Skipping variant without ID in experiment ${exp.id}`);
+                            }
                             continue;
                         }
 
                         const variantType = variant.variant_type as 'CONTROL' | 'EXPERIMENTAL';
                         if (variantType !== 'CONTROL' && variantType !== 'EXPERIMENTAL') {
-                            console.warn(`Invalid variant type: ${variant.variant_type}`);
+                            if (this.enableDetailedErrorLogging) {
+                                console.warn(`Invalid variant type: ${variant.variant_type}`);
+                            }
                             continue;
                         }
 
@@ -142,8 +220,10 @@ export class ExperimentationClient {
 
             return experiments;
         } catch (error) {
-            console.error('Error fetching experiments from Superposition:', error);
-            return null;
+            if (this.enableDetailedErrorLogging) {
+                console.error('Error fetching experiments from Superposition:', error);
+            }
+            throw error; // Let the caller handle the categorization
         }
     }
 
@@ -166,19 +246,23 @@ export class ExperimentationClient {
             const experimentGroups: ExperimentGroup[] = [];
 
             for (const exp_group of response.data) {
-                experimentGroups.push({
-                    id: exp_group.id,
-                    context: this.normalizeToStringRecord(exp_group.context),
-                    traffic_percentage: exp_group.traffic_percentage || 100,
-                    member_experiment_ids: exp_group.member_experiment_ids || [],
-                    group_type: exp_group.group_type as GroupType || GroupType.USER_CREATED
-                });
+                if (exp_group.id) {
+                    experimentGroups.push({
+                        id: exp_group.id,
+                        context: this.normalizeToStringRecord(exp_group.context),
+                        traffic_percentage: exp_group.traffic_percentage || 100,
+                        member_experiment_ids: exp_group.member_experiment_ids || [],
+                        group_type: (exp_group.group_type as GroupType) || 'USER_CREATED'
+                    });
+                }
             }
 
             return experimentGroups;
         } catch (error) {
-            console.error('Error fetching experiment groups from Superposition:', error);
-            return null;
+            if (this.enableDetailedErrorLogging) {
+                console.error('Error fetching experiment groups from Superposition:', error);
+            }
+            throw error; // Let the caller handle the categorization
         }
     }
 
@@ -221,18 +305,32 @@ export class ExperimentationClient {
 
             if (shouldRefresh) {
                 try {
-                    console.log('TTL expired. Fetching experiments on-demand.');
+                    if (this.enableDetailedErrorLogging) {
+                        console.log('TTL expired. Fetching experiments on-demand.');
+                    }
                     const experiments = await this.fetchExperiments();
                     if (experiments) {
                         this.cachedExperiments = experiments;
                         this.lastUpdated = new Date();
+                        this.lastErrorMessage = null;
                     }
                 } catch (error) {
-                    console.warn('On-demand fetch failed:', error);
-                    if (!strategy.use_stale_on_error || !this.cachedExperiments) {
-                        throw error;
+                    const errorMessage = this.categorizeError(error);
+                    this.lastErrorMessage = errorMessage;
+                    
+                    if (this.enableDetailedErrorLogging) {
+                        console.warn('On-demand fetch failed:', error);
+                    } else if (this.isNetworkError(error)) {
+                        console.warn(`SuperpositionProvider: ${errorMessage}. Using cached experiments.`);
                     }
-                    console.log('Using stale experiments due to error.');
+                    
+                    if (!strategy.use_stale_on_error || !this.cachedExperiments) {
+                        return []; // Return empty array instead of throwing
+                    }
+                    
+                    if (this.enableDetailedErrorLogging) {
+                        console.log('Using stale experiments due to error.');
+                    }
                 }
             }
         }
@@ -249,18 +347,32 @@ export class ExperimentationClient {
 
             if (shouldRefresh) {
                 try {
-                    console.log('TTL expired. Fetching experiment groups on-demand.');
+                    if (this.enableDetailedErrorLogging) {
+                        console.log('TTL expired. Fetching experiment groups on-demand.');
+                    }
                     const experimentGroups = await this.fetchExperimentGroups();
                     if (experimentGroups) {
                         this.cachedExperimentGroups = experimentGroups;
                         this.lastUpdated = new Date();
+                        this.lastErrorMessage = null;
                     }
                 } catch (error) {
-                    console.warn('On-demand fetch failed:', error);
-                    if (!strategy.use_stale_on_error || !this.cachedExperimentGroups) {
-                        throw error;
+                    const errorMessage = this.categorizeError(error);
+                    this.lastErrorMessage = errorMessage;
+                    
+                    if (this.enableDetailedErrorLogging) {
+                        console.warn('On-demand fetch failed:', error);
+                    } else if (this.isNetworkError(error)) {
+                        console.warn(`SuperpositionProvider: ${errorMessage}. Using cached experiment groups.`);
                     }
-                    console.log('Using stale experiment groups due to error.');
+                    
+                    if (!strategy.use_stale_on_error || !this.cachedExperimentGroups) {
+                        return []; // Return empty array instead of throwing
+                    }
+                    
+                    if (this.enableDetailedErrorLogging) {
+                        console.log('Using stale experiment groups due to error.');
+                    }
                 }
             }
         }
@@ -288,17 +400,29 @@ export class ExperimentationClient {
         try {
             if (this.pollingInterval) {
                 clearInterval(this.pollingInterval);
-                console.log('Polling stopped successfully');
+                if (this.enableDetailedErrorLogging) {
+                    console.log('Polling stopped successfully');
+                }
             }
 
             this.clearEvalCache();
             this.cachedExperiments = null;
+            this.cachedExperimentGroups = null;
             this.lastUpdated = null;
+            this.lastErrorMessage = null;
 
-            console.log('ExperimentationClient closed successfully');
+            if (this.enableDetailedErrorLogging) {
+                console.log('ExperimentationConfig closed successfully');
+            }
         } catch (error) {
-            console.error('Error during ExperimentationClient cleanup:', error);
-            throw error;
+            if (this.enableDetailedErrorLogging) {
+                console.error('Error during ExperimentationConfig cleanup:', error);
+            }
+            // Don't throw during cleanup
         }
+    }
+
+    getLastError(): string | null {
+        return this.lastErrorMessage;
     }
 }
