@@ -1,5 +1,6 @@
-import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput, ListExperimentGroupsCommandInput, ListExperimentGroupsCommand, GroupType } from 'superposition-sdk';
+import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput, ListExperimentGroupsCommandInput, ListExperimentGroupsCommand, GroupType as SdkGroupType } from 'superposition-sdk';
 import { SuperpositionOptions, ExperimentationOptions, PollingStrategy, OnDemandStrategy } from './types';
+import { isNetworkError, categorizeError } from './utils';
 
 export interface Variant {
     id: string;
@@ -26,7 +27,7 @@ export interface ExperimentGroup {
     group_type: GroupType;
 }
 
-export class ExperimentationClient {
+export class ExperimentationConfig {
     private smithyClient: SuperpositionClient;
     private options: ExperimentationOptions;
     private cachedExperiments: Experiment[] | null = null;
@@ -34,6 +35,7 @@ export class ExperimentationClient {
     private lastUpdated: Date | null = null;
     private evaluationCache: Map<string, any> = new Map();
     private pollingInterval?: NodeJS.Timeout;
+    private lastErrorMessage: string | null = null;
 
     constructor(
         private superpositionOptions: SuperpositionOptions,
@@ -47,14 +49,25 @@ export class ExperimentationClient {
     }
 
     async initialize(): Promise<void> {
-        // Fetch initial experiments
-        const experiments = await this.fetchExperiments();
-        const experimentgroups = await this.fetchExperimentGroups();
-        if (experiments && experimentgroups) {
-            this.cachedExperiments = experiments;
-            this.cachedExperimentGroups = experimentgroups;
-            this.lastUpdated = new Date();
-            console.log('Experiments and Experiment Groups fetched successfully.');
+        try {
+            // Fetch initial experiments
+            const experiments = await this.fetchExperiments();
+            const experimentgroups = await this.fetchExperimentGroups();
+            if (experiments && experimentgroups) {
+                this.cachedExperiments = experiments;
+                this.cachedExperimentGroups = experimentgroups;
+                this.lastUpdated = new Date();
+                this.lastErrorMessage = null;
+            }
+        } catch (error) {
+            const errorMessage = categorizeError(error, this.superpositionOptions.endpoint);
+            this.lastErrorMessage = errorMessage;
+
+            if (isNetworkError(error)) {
+                console.warn(`SuperpositionProvider: ${errorMessage}. Experiments will be unavailable.`);
+            }
+
+            // Don't throw - allow the provider to work without experiments
         }
 
         // Set up refresh strategy
@@ -73,10 +86,21 @@ export class ExperimentationClient {
                     this.cachedExperiments = experiments;
                     this.cachedExperimentGroups = experimentGroups;
                     this.lastUpdated = new Date();
-                    console.log('Experiments and Experiment Groups refreshed successfully.');
+                    this.lastErrorMessage = null;
                 }
             } catch (error) {
-                console.error('Polling error:', error);
+                const errorMessage = categorizeError(error, this.superpositionOptions.endpoint);
+                this.lastErrorMessage = errorMessage;
+
+                if (isNetworkError(error)) {
+                    // Only log polling errors occasionally to avoid spam
+                    const now = Date.now();
+                    const lastLogTime = parseInt(localStorage?.getItem('lastPollingErrorLog') || '0');
+                    if (now - lastLogTime > 300000) { // Log at most once every 5 minutes
+                        console.warn(`SuperpositionProvider: ${errorMessage}. Will retry on next poll.`);
+                        localStorage?.setItem('lastPollingErrorLog', now.toString());
+                    }
+                }
             }
         }, interval);
     }
@@ -102,7 +126,6 @@ export class ExperimentationClient {
             for (const exp of response.data) {
                 // Skip experiments without required fields
                 if (!exp.id) {
-                    console.warn('Skipping experiment without ID');
                     continue;
                 }
 
@@ -112,13 +135,11 @@ export class ExperimentationClient {
                     for (const variant of exp.variants) {
                         // Skip variants without required fields
                         if (!variant.id) {
-                            console.warn(`Skipping variant without ID in experiment ${exp.id}`);
                             continue;
                         }
 
                         const variantType = variant.variant_type as 'CONTROL' | 'EXPERIMENTAL';
                         if (variantType !== 'CONTROL' && variantType !== 'EXPERIMENTAL') {
-                            console.warn(`Invalid variant type: ${variant.variant_type}`);
                             continue;
                         }
 
@@ -142,8 +163,7 @@ export class ExperimentationClient {
 
             return experiments;
         } catch (error) {
-            console.error('Error fetching experiments from Superposition:', error);
-            return null;
+            throw error; // Let the caller handle the categorization
         }
     }
 
@@ -166,19 +186,20 @@ export class ExperimentationClient {
             const experimentGroups: ExperimentGroup[] = [];
 
             for (const exp_group of response.data) {
-                experimentGroups.push({
-                    id: exp_group.id,
-                    context: this.normalizeToStringRecord(exp_group.context),
-                    traffic_percentage: exp_group.traffic_percentage || 100,
-                    member_experiment_ids: exp_group.member_experiment_ids || [],
-                    group_type: exp_group.group_type as GroupType || GroupType.USER_CREATED
-                });
+                if (exp_group.id) {
+                    experimentGroups.push({
+                        id: exp_group.id,
+                        context: this.normalizeToStringRecord(exp_group.context),
+                        traffic_percentage: exp_group.traffic_percentage || 100,
+                        member_experiment_ids: exp_group.member_experiment_ids || [],
+                        group_type: (exp_group.group_type as GroupType) || 'USER_CREATED'
+                    });
+                }
             }
 
             return experimentGroups;
         } catch (error) {
-            console.error('Error fetching experiment groups from Superposition:', error);
-            return null;
+            throw error; // Let the caller handle the categorization
         }
     }
 
@@ -221,18 +242,23 @@ export class ExperimentationClient {
 
             if (shouldRefresh) {
                 try {
-                    console.log('TTL expired. Fetching experiments on-demand.');
                     const experiments = await this.fetchExperiments();
                     if (experiments) {
                         this.cachedExperiments = experiments;
                         this.lastUpdated = new Date();
+                        this.lastErrorMessage = null;
                     }
                 } catch (error) {
-                    console.warn('On-demand fetch failed:', error);
-                    if (!strategy.use_stale_on_error || !this.cachedExperiments) {
-                        throw error;
+                    const errorMessage = categorizeError(error, this.superpositionOptions.endpoint);
+                    this.lastErrorMessage = errorMessage;
+
+                    if (isNetworkError(error)) {
+                        console.warn(`SuperpositionProvider: ${errorMessage}. Using cached experiments.`);
                     }
-                    console.log('Using stale experiments due to error.');
+
+                    if (!strategy.use_stale_on_error || !this.cachedExperiments) {
+                        return []; // Return empty array instead of throwing
+                    }
                 }
             }
         }
@@ -249,18 +275,23 @@ export class ExperimentationClient {
 
             if (shouldRefresh) {
                 try {
-                    console.log('TTL expired. Fetching experiment groups on-demand.');
                     const experimentGroups = await this.fetchExperimentGroups();
                     if (experimentGroups) {
                         this.cachedExperimentGroups = experimentGroups;
                         this.lastUpdated = new Date();
+                        this.lastErrorMessage = null;
                     }
                 } catch (error) {
-                    console.warn('On-demand fetch failed:', error);
-                    if (!strategy.use_stale_on_error || !this.cachedExperimentGroups) {
-                        throw error;
+                    const errorMessage = categorizeError(error, this.superpositionOptions.endpoint);
+                    this.lastErrorMessage = errorMessage;
+
+                    if (isNetworkError(error)) {
+                        console.warn(`SuperpositionProvider: ${errorMessage}. Using cached experiment groups.`);
                     }
-                    console.log('Using stale experiment groups due to error.');
+
+                    if (!strategy.use_stale_on_error || !this.cachedExperimentGroups) {
+                        return []; // Return empty array instead of throwing
+                    }
                 }
             }
         }
@@ -288,17 +319,19 @@ export class ExperimentationClient {
         try {
             if (this.pollingInterval) {
                 clearInterval(this.pollingInterval);
-                console.log('Polling stopped successfully');
             }
 
             this.clearEvalCache();
             this.cachedExperiments = null;
+            this.cachedExperimentGroups = null;
             this.lastUpdated = null;
-
-            console.log('ExperimentationClient closed successfully');
+            this.lastErrorMessage = null;
         } catch (error) {
-            console.error('Error during ExperimentationClient cleanup:', error);
-            throw error;
+            // Don't throw during cleanup
         }
+    }
+
+    getLastError(): string | null {
+        return this.lastErrorMessage;
     }
 }

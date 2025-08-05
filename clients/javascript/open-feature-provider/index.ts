@@ -1,5 +1,6 @@
 export { SuperpositionProvider, SuperpositionProviderOptions } from './superposition-provider';
-export { ConfigurationClient } from './configuration-client';
-export { ExperimentationClient, Experiment, Variant } from './experimentation-client';
+export { SuperpositionClient } from './superposition-client';
+export { CacConfig } from './configuration-options';
+export { ExperimentationConfig, Experiment, Variant, ExperimentGroup } from './experimentation-options';
 export * from './types';
 export * from './utils';
