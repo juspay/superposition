@@ -1,0 +1,24 @@
+diff --git a/clients/python/sdk/pyproject.toml b/clients/python/sdk/pyproject.toml
+index 7c295b28..b7a7bd7e 100644
+--- a/clients/python/sdk/pyproject.toml
++++ b/clients/python/sdk/pyproject.toml
+@@ -3,7 +3,7 @@
+ 
+ [project]
+ name = "superposition_sdk"
+-version = "0.0.1"
++dynamic = ["version"]
+ description = "superposition_sdk client"
+ readme = "README.md"
+ requires-python = ">=3.12"
+@@ -48,6 +48,10 @@ exclude = [
+   "tests",
+ ]
+ 
++[tool.hatch.version]
++source = "env"
++variable = "VERSION"
++
+ [tool.pyright]
+ typeCheckingMode = "strict"
+ reportPrivateUsage = false
