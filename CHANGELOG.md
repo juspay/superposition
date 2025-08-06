@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.85.0 - 2025-08-06
+### Package updates
+- superposition_provider bumped to superposition_provider-v0.4.1
+### Global changes
+#### Bug Fixes
+- python sdk package version and npm release - (a53bd49) - datron
+- push to pypi registry - (c70f39e) - datron
+- add smithy python sdk patch - (8764abf) - datron
+#### Features
+- verify domain for algolia - (4d92451) - datron
+- add algolia search support to docusaurus - (35f9511) - datron
+#### Miscellaneous Chores
+- **(version)** v0.84.0 [skip ci] - (b5cfc08) - Superposition Bot
+
+- - -
+
 ## v0.84.0 - 2025-08-05
 ### Package updates
 - superposition_provider bumped to superposition_provider-v0.4.0

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.4.1 - 2025-08-06
+#### Bug Fixes
+- add smithy python sdk patch - (8764abf) - datron
+#### Miscellaneous Chores
+- **(version)** v0.84.0 [skip ci] - (b5cfc08) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.4.0 - 2025-08-05
 #### Features
 - push npm and pypi packages to public registry - (6b31c97) - datron
