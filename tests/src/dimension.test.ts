@@ -194,6 +194,29 @@ describe("Dimension API", () => {
         }
     });
 
+    test("CreateDimension: should reject non primitive type for dimension", async () => {
+        if (ENV.jsonlogic_enabled) {
+            console.log(
+                "Skipping non primitive type update test because JSONLogic is enabled"
+            );
+            return;
+        }
+        const invalidPositionInput = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: `test-dimension-non-primitive-${Date.now()}`,
+            position: 1,
+            schema: { type: "object" },
+            description: "Test dimension with non primitive type",
+            change_reason: "Testing non primitive validation",
+        };
+
+        const cmd = new CreateDimensionCommand(invalidPositionInput);
+        expect(superpositionClient.send(cmd)).rejects.toThrow(
+            /Invalid schema: expected a primitive type or an array of primitive types/i
+        );
+    });
+
     test("CreateDimension: should reject duplicate position", async () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
@@ -357,6 +380,27 @@ describe("Dimension API", () => {
             console.error(e["$response"]);
             throw e;
         }
+    });
+
+    test("UpdateDimension: should reject updating to non primitive type", async () => {
+        if (ENV.jsonlogic_enabled) {
+            console.log(
+                "Skipping non primitive type update test because JSONLogic is enabled"
+            );
+            return;
+        }
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: createdDimension.dimension,
+            schema: { type: "object" }, // Non primitive type
+            change_reason: "Testing error handling",
+        };
+
+        const cmd = new UpdateDimensionCommand(input);
+        expect(superpositionClient.send(cmd)).rejects.toThrow(
+            /Invalid schema: expected a primitive type or an array of primitive types/i
+        );
     });
 
     test("UpdateDimension: should handle non-existent dimension", async () => {

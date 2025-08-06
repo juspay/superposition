@@ -1,7 +1,6 @@
 use chrono::Utc;
 use experimentation_platform::api::experiments::helpers;
 use serde_json::{json, Map, Value};
-use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::ExperimentationFlags;
 use superposition_types::{
     database::models::{
@@ -11,7 +10,7 @@ use superposition_types::{
         },
         ChangeReason, Description, Metrics,
     },
-    result as superposition, Cac, Condition, Exp, Overrides,
+    result as superposition, Condition, Exp, Overrides,
 };
 
 enum Dimensions {
@@ -21,6 +20,7 @@ enum Dimensions {
     VariantIds(String),
 }
 
+#[cfg(feature = "jsonlogic")]
 fn single_dimension_ctx_gen(value: Dimensions) -> Map<String, Value> {
     let mut map = Map::new();
     match value {
@@ -49,12 +49,30 @@ fn single_dimension_ctx_gen(value: Dimensions) -> Map<String, Value> {
     map
 }
 
+#[cfg(feature = "jsonlogic")]
 fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> Map<String, Value> {
     let mut conditions: Vec<Map<String, Value>> = vec![];
     for val in values {
         conditions.push(single_dimension_ctx_gen(val));
     }
     Map::from_iter(vec![("and".to_string(), json!(conditions))])
+}
+
+#[cfg(not(feature = "jsonlogic"))]
+fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> Map<String, Value> {
+    values
+        .into_iter()
+        .map(|val| {
+            let (key, value) = match val {
+                Dimensions::Os(os) => ("os".to_string(), json!(os)),
+                Dimensions::Client(client_id) => {
+                    ("clientId".to_string(), json!(client_id))
+                }
+                Dimensions::VariantIds(id) => ("variantIds".to_string(), json!(id)),
+            };
+            (key, value)
+        })
+        .collect::<Map<String, Value>>()
 }
 
 fn experiment_gen(
@@ -105,8 +123,12 @@ fn test_unique_override_key_entries() {
     ));
 }
 
+#[cfg(feature = "jsonlogic")]
 #[test]
 fn test_extract_dimensions() -> Result<(), superposition::AppError> {
+    use service_utils::helpers::extract_dimensions;
+    use superposition_types::Cac;
+
     let context_a = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),

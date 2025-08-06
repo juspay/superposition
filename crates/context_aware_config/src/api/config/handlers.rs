@@ -19,11 +19,12 @@ use diesel::{dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQu
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
 use serde_json::{json, Map, Value};
+#[cfg(feature = "jsonlogic")]
+use service_utils::helpers::extract_dimensions;
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::AppState;
-use service_utils::{
-    helpers::extract_dimensions,
-    service::types::{AppHeader, DbConnection, SchemaName, WorkspaceContext},
+use service_utils::service::types::{
+    AppHeader, DbConnection, SchemaName, WorkspaceContext,
 };
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -276,7 +277,10 @@ fn reduce(
 ) -> superposition::Result<Vec<Map<String, Value>>> {
     let mut dimensions: Vec<Map<String, Value>> = Vec::new();
     for (context, overrides, key_val, override_id) in contexts_overrides_values {
+        #[cfg(feature = "jsonlogic")]
         let mut ct_dimensions = extract_dimensions(&context.condition)?;
+        #[cfg(not(feature = "jsonlogic"))]
+        let mut ct_dimensions: Map<String, Value> = context.condition.clone().into();
         ct_dimensions.insert("key_val".to_string(), key_val);
         let request_payload = json!({
             "override": overrides,
@@ -367,7 +371,11 @@ fn get_contextids_from_overrideid(
 ) -> superposition::Result<Vec<(Context, Map<String, Value>, Value, String)>> {
     let mut res: Vec<(Context, Map<String, Value>, Value, String)> = Vec::new();
     for ct in contexts {
+        #[cfg(feature = "jsonlogic")]
         let ct_dimensions = extract_dimensions(&ct.condition)?;
+        #[cfg(not(feature = "jsonlogic"))]
+        let ct_dimensions = &ct.condition;
+
         if ct_dimensions.contains_key("variantIds") {
             continue;
         }

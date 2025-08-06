@@ -11,7 +11,7 @@ use std::{
 use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
 use reqwest::StatusCode;
-use serde_json::{Map, Value};
+use serde_json::Value;
 use superposition_types::{
     api::experiments::ExperimentListFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
@@ -144,11 +144,19 @@ impl Client {
             .await
             .iter()
             .filter(|(_, exp)| {
-                exp.context.is_empty()
-                    || jsonlogic::apply(
-                        &Value::Object(exp.context.clone().into()),
-                        context,
-                    ) == Ok(Value::Bool(true))
+                #[cfg(feature = "jsonlogic")]
+                {
+                    exp.context.is_empty()
+                        || jsonlogic::apply(
+                            &Value::Object(exp.context.clone().into()),
+                            context,
+                        ) == Ok(Value::Bool(true))
+                }
+                #[cfg(not(feature = "jsonlogic"))]
+                superposition_types::apply(
+                    &exp.context,
+                    &context.as_object().cloned().unwrap_or_default(),
+                )
             })
             .map(|(_, exp)| exp.clone())
             .collect::<Experiments>();
@@ -176,6 +184,7 @@ impl Client {
                 if exp.context.is_empty() {
                     Some(exp.clone())
                 } else {
+                    #[cfg(feature = "jsonlogic")]
                     match jsonlogic::partial_apply(
                         &Value::Object(exp.context.clone().into()),
                         context,
@@ -188,6 +197,12 @@ impl Client {
                         }
                         _ => None,
                     }
+                    #[cfg(not(feature = "jsonlogic"))]
+                    superposition_types::partial_apply(
+                        &exp.context,
+                        &context.as_object().cloned().unwrap_or_default(),
+                    )
+                    .then(|| exp.clone())
                 }
             })
             .collect::<Vec<_>>();
@@ -252,11 +267,20 @@ pub fn get_applicable_buckets_from_group(
         .iter()
         .filter_map(|exp_group| {
             let hashed_percentage = calculate_bucket_index(identifier, &exp_group.id);
-            let exp_context: Map<String, Value> = exp_group.context.clone().into();
-            let res = (exp_context.is_empty()
-                || jsonlogic::apply(&Value::Object(exp_context), context)
-                    == Ok(Value::Bool(true)))
-                && *exp_group.traffic_percentage >= hashed_percentage as u8;
+            let exp_context = &exp_group.context;
+
+            #[cfg(feature = "jsonlogic")]
+            let valid_context = exp_context.is_empty()
+                || jsonlogic::apply(&Value::Object(exp_context.clone().into()), context)
+                    == Ok(Value::Bool(true));
+            #[cfg(not(feature = "jsonlogic"))]
+            let valid_context = superposition_types::apply(
+                exp_context,
+                &context.as_object().cloned().unwrap_or_default(),
+            );
+
+            let res =
+                valid_context && *exp_group.traffic_percentage >= hashed_percentage as u8;
             let exp_toss =
                 (hashed_percentage * 100) / *exp_group.traffic_percentage as usize;
 
@@ -281,11 +305,19 @@ pub fn get_applicable_variants_from_group_response(
         .iter()
         .filter_map(|(toss, bucket)| {
             experiments.get(&bucket.experiment_id).and_then(|exp| {
-                let res = (exp.context.is_empty()
+                #[cfg(feature = "jsonlogic")]
+                let valid_context = exp.context.is_empty()
                     || jsonlogic::apply(
                         &Value::Object(exp.context.clone().into()),
                         context,
-                    ) == Ok(Value::Bool(true)))
+                    ) == Ok(Value::Bool(true));
+                #[cfg(not(feature = "jsonlogic"))]
+                let valid_context = superposition_types::apply(
+                    &exp.context,
+                    &context.as_object().cloned().unwrap_or_default(),
+                );
+
+                let res = valid_context
                     && (*exp.traffic_percentage as usize * exp.variants.len()) >= *toss;
 
                 res.then_some(bucket.variant_id.clone())

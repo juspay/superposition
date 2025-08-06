@@ -22,7 +22,7 @@ diesel = { workspace = true, optional = true }
 diesel-derive-enum = { version = "2.0.1", features = [
     "postgres",
 ], optional = true }
-jsonlogic = { workspace = true }
+jsonlogic = { workspace = true, optional = true }
 log = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true }
@@ -46,6 +46,7 @@ diesel_derives = [
     "dep:base64",
 ]
 disable_db_data_validation = []
+jsonlogic = ["dep:jsonlogic"]
 result = ["dep:diesel", "dep:anyhow", "dep:thiserror", "dep:actix-web"]
 server = ["dep:actix-web"]
 experimentation = []

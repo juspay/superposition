@@ -1,7 +1,9 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+#[cfg(feature = "jsonlogic")]
+use serde_json::json;
+use serde_json::{Map, Value};
 use superposition_types::{database::models::cac::Context, Context as ConfigContext};
 
 use crate::schema::{HtmlDisplay, SchemaType};
@@ -14,9 +16,12 @@ use crate::schema::{HtmlDisplay, SchemaType};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Expression {
     Is(serde_json::Value),
+    #[cfg(feature = "jsonlogic")]
     In(serde_json::Value),
     Has(serde_json::Value),
+    #[cfg(feature = "jsonlogic")]
     Between(serde_json::Value, serde_json::Value),
+    #[cfg(feature = "jsonlogic")]
     Other(String, Vec<serde_json::Value>),
 }
 
@@ -32,6 +37,7 @@ pub fn is_constant(v: &serde_json::Value) -> bool {
 }
 
 impl Expression {
+    #[cfg(feature = "jsonlogic")]
     fn try_from_expression_map(
         source: &Map<String, serde_json::Value>,
     ) -> Result<Self, &'static str> {
@@ -74,6 +80,8 @@ impl Expression {
 
         Err("not a valid expression map")
     }
+
+    #[cfg(feature = "jsonlogic")]
     fn to_expression_json(&self, var: &str) -> serde_json::Value {
         match self {
             Expression::Is(c) => {
@@ -116,20 +124,28 @@ impl Expression {
             }
         }
     }
+
     fn to_expression_query_str(&self, var: &str) -> Option<String> {
         match self {
             Expression::Is(c) => Some(format!("{var}={value}", value = c.html_display())),
             _ => None,
         }
     }
+
     pub fn to_constants_vec(&self) -> Vec<serde_json::Value> {
         match self {
-            Expression::Is(c) | Expression::In(c) | Expression::Has(c) => {
+            Expression::Is(c) | Expression::Has(c) => {
                 vec![c.clone()]
             }
+            #[cfg(feature = "jsonlogic")]
+            Expression::In(c) => {
+                vec![c.clone()]
+            }
+            #[cfg(feature = "jsonlogic")]
             Expression::Between(c1, c2) => {
                 vec![c1.clone(), c2.clone()]
             }
+            #[cfg(feature = "jsonlogic")]
             Expression::Other(_, operands) => operands
                 .iter()
                 .filter_map(|operand| {
@@ -141,14 +157,19 @@ impl Expression {
                 .collect::<Vec<serde_json::Value>>(),
         }
     }
+
     pub fn to_operator(&self) -> Operator {
         Operator::from(self)
     }
 
     pub fn to_value(&self) -> Value {
         match self {
-            Expression::Is(c) | Expression::In(c) | Expression::Has(c) => c.clone(),
+            Expression::Is(c) | Expression::Has(c) => c.clone(),
+            #[cfg(feature = "jsonlogic")]
+            Expression::In(c) => c.clone(),
+            #[cfg(feature = "jsonlogic")]
             Expression::Between(c1, c2) => json!([c1, c2]),
+            #[cfg(feature = "jsonlogic")]
             Expression::Other(_, operands) => Value::Array(operands.clone()),
         }
     }
@@ -158,11 +179,14 @@ impl From<(SchemaType, Operator)> for Expression {
     fn from((r#type, operator): (SchemaType, Operator)) -> Self {
         match operator {
             Operator::Is => Expression::Is(r#type.default_value()),
+            #[cfg(feature = "jsonlogic")]
             Operator::In => Expression::In(Value::Array(vec![])),
             Operator::Has => Expression::Has(r#type.default_value()),
+            #[cfg(feature = "jsonlogic")]
             Operator::Between => {
                 Expression::Between(r#type.default_value(), r#type.default_value())
             }
+            #[cfg(feature = "jsonlogic")]
             Operator::Other(o) => Expression::Other(o, vec![]),
         }
     }
@@ -173,9 +197,12 @@ impl From<(SchemaType, Operator)> for Expression {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Operator {
     Is,
+    #[cfg(feature = "jsonlogic")]
     In,
     Has,
+    #[cfg(feature = "jsonlogic")]
     Between,
+    #[cfg(feature = "jsonlogic")]
     Other(String),
 }
 
@@ -183,9 +210,12 @@ impl From<&Expression> for Operator {
     fn from(value: &Expression) -> Self {
         match value {
             Expression::Is(_) => Operator::Is,
+            #[cfg(feature = "jsonlogic")]
             Expression::In(_) => Operator::In,
             Expression::Has(_) => Operator::Has,
+            #[cfg(feature = "jsonlogic")]
             Expression::Between(_, _) => Operator::Between,
+            #[cfg(feature = "jsonlogic")]
             Expression::Other(o, _) => Operator::Other(o.clone()),
         }
     }
@@ -198,6 +228,7 @@ impl From<&Condition> for Operator {
 }
 
 impl Operator {
+    #[cfg(feature = "jsonlogic")]
     pub fn from_operator_input(source: String) -> Self {
         match source.as_str() {
             "==" => Operator::Is,
@@ -208,6 +239,7 @@ impl Operator {
         }
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub fn to_condition_json_operator(&self) -> String {
         match self {
             Self::Has => "in",
@@ -221,7 +253,7 @@ impl Operator {
 
     pub fn strict_mode_display(&self) -> String {
         match self {
-            Self::Is => self.to_condition_json_operator(),
+            Self::Is => "==".to_string(),
             _ => self.to_string(),
         }
     }
@@ -232,8 +264,11 @@ impl Display for Operator {
         match self {
             Self::Has => f.write_str("has"),
             Self::Is => f.write_str("is"),
+            #[cfg(feature = "jsonlogic")]
             Self::In => f.write_str("in"),
+            #[cfg(feature = "jsonlogic")]
             Self::Between => f.write_str("between"),
+            #[cfg(feature = "jsonlogic")]
             Self::Other(o) => f.write_str(o),
         }
     }
@@ -253,6 +288,7 @@ impl Condition {
         }
     }
 
+    #[cfg(feature = "jsonlogic")]
     fn try_var_from_condition_map(
         source: &Map<String, serde_json::Value>,
     ) -> Result<String, &'static str> {
@@ -271,6 +307,7 @@ impl Condition {
         Err("not a valid condition map")
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub fn try_from_condition_map(
         source: &Map<String, serde_json::Value>,
     ) -> Result<Self, &'static str> {
@@ -283,6 +320,7 @@ impl Condition {
         })
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub fn try_from_condition_json(
         source: &serde_json::Value,
     ) -> Result<Self, &'static str> {
@@ -292,6 +330,7 @@ impl Condition {
         Self::try_from_condition_map(obj)
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub fn to_condition_json(&self) -> serde_json::Value {
         self.expression.to_expression_json(&self.variable)
     }
@@ -318,6 +357,7 @@ impl Conditions {
         self.iter().any(|c| c.variable == *variable)
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub fn from_context_json(
         context: &Map<String, serde_json::Value>,
     ) -> Result<Self, &'static str> {
@@ -332,6 +372,25 @@ impl Conditions {
                 })?,
             None => Condition::try_from_condition_map(context).map(|v| vec![v])?,
         }))
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub fn from_context_json(
+        context: &Map<String, serde_json::Value>,
+    ) -> Result<Self, &'static str> {
+        Ok(Conditions(
+            context
+                .iter()
+                .map(|(k, v)| Condition {
+                    variable: k.clone(),
+                    expression: if k == "variantIds" {
+                        Expression::Has(v.clone())
+                    } else {
+                        Expression::Is(v.clone())
+                    },
+                })
+                .collect::<Vec<_>>(),
+        ))
     }
 
     pub fn from_resolve_context(context: &Map<String, serde_json::Value>) -> Self {
@@ -354,6 +413,7 @@ impl Conditions {
         ))
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub fn as_context_json(&self) -> Map<String, Value> {
         if self.is_empty() {
             return Map::new();
@@ -367,6 +427,14 @@ impl Conditions {
             ),
         )])
     }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub fn as_context_json(&self) -> Map<String, Value> {
+        self.iter()
+            .map(|c| (c.variable.clone(), c.expression.to_value()))
+            .collect()
+    }
+
     pub fn as_query_string(&self) -> String {
         self.iter()
             .filter_map(|v| v.to_condition_query_str())
