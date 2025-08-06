@@ -17,6 +17,7 @@ public final class Workspace implements ApiResource {
         "workspace_name", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
         Map.entry("workspace_admin_email", PreludeSchemas.STRING),
+        Map.entry("auto_populate_control", PreludeSchemas.BOOLEAN),
         Map.entry("created_at", SharedSchemas.DATE_TIME),
         Map.entry("organisation_name", PreludeSchemas.STRING),
         Map.entry("last_modified_by", PreludeSchemas.STRING),

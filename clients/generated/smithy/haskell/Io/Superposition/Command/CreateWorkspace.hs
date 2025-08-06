@@ -42,6 +42,7 @@ serCreateWorkspacePAYLOAD input =
         "allow_experiment_self_approval" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.allow_experiment_self_approval input,
         "workspace_admin_email" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.workspace_admin_email input,
         "strict_mode" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.strict_mode input,
+        "auto_populate_control" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.auto_populate_control input,
         "metrics" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.metrics input,
         "workspace_name" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.workspace_name input,
         "workspace_status" Data.Aeson..= Io.Superposition.Model.CreateWorkspaceInput.workspace_status input
@@ -110,6 +111,13 @@ deserializeResponse response = do
     
     workspace_admin_emailDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_admin_email") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    auto_populate_controlDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "auto_populate_control") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -215,6 +223,7 @@ deserializeResponse response = do
     
     Io.Superposition.Model.CreateWorkspaceOutput.build $ do
         Io.Superposition.Model.CreateWorkspaceOutput.setWorkspaceAdminEmail workspace_admin_emailDocumentE
+        Io.Superposition.Model.CreateWorkspaceOutput.setAutoPopulateControl auto_populate_controlDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setCreatedAt created_atDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setOrganisationName organisation_nameDocumentE
         Io.Superposition.Model.CreateWorkspaceOutput.setLastModifiedBy last_modified_byDocumentE

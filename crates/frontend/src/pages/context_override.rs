@@ -196,7 +196,6 @@ fn form(
                 context=context_rs.get_untracked()
                 on_context_change=move |new_context| context_ws.set(new_context)
                 fn_environment
-                handle_change=move |new_context| context_ws.set(new_context)
                 disabled=edit_id.get_value().is_some()
             />
 

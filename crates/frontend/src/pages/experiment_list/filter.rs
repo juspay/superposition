@@ -302,8 +302,8 @@ pub(super) fn experiment_table_filter_widget(
                 <ContextForm
                     dimensions=dim
                     context=context_rws.get_untracked()
-                    on_context_change=move |new_context| context_rws.set(new_context)
-                    handle_change=move |context: Conditions| {
+                    on_context_change=move |context: Conditions| {
+                        context_rws.set(context.clone());
                         let map = context
                             .iter()
                             .filter_map(|condition| {

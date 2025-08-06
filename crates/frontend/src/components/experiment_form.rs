@@ -127,10 +127,6 @@ pub fn experiment_form(
             },
         );
 
-    let handle_context_form_change = move |updated_ctx: Conditions| {
-        context_ws.set_untracked(updated_ctx);
-    };
-
     let handle_variant_form_change =
         move |updated_varaints: Vec<(String, VariantFormT)>| {
             variants_ws.set_untracked(updated_varaints);
@@ -309,7 +305,6 @@ pub fn experiment_form(
                         dimensions=dimensions.get_value()
                         context=context_rs.get_untracked()
                         on_context_change=move |new_context| context_ws.set(new_context)
-                        handle_change=handle_context_form_change
                         resolve_mode=workspace_settings.get_value().strict_mode
                         disabled=edit_id.get_value().is_some()
                             || (experiment_form_type.get_value() != ExperimentFormType::Default)
@@ -328,6 +323,7 @@ pub fn experiment_form(
                         view! {
                             <VariantForm
                                 edit=edit_id.get_value().is_some()
+                                context=context_rs
                                 variants
                                 default_config=default_config.get_value()
                                 handle_change=handle_variant_form_change

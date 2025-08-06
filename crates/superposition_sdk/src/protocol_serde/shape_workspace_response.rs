@@ -122,6 +122,11 @@ pub(crate) fn de_workspace_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                                 );
                             }
+                            "auto_populate_control" => {
+                                builder = builder.set_auto_populate_control(
+                                    ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                                );
+                            }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                         }
                     }

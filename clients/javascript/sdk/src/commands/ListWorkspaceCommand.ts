@@ -73,6 +73,7 @@ export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __Met
  * //       strict_mode: true || false, // required
  * //       metrics: "DOCUMENT_VALUE",
  * //       allow_experiment_self_approval: true || false, // required
+ * //       auto_populate_control: true || false, // required
  * //     },
  * //   ],
  * // };

@@ -28,6 +28,9 @@ import {
     SuperpositionClient,
     GetExperimentGroupCommand,
     DiscardExperimentCommand,
+    type CreateContextCommandOutput,
+    CreateContextCommand,
+    type GetContextCommandOutput,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
@@ -572,7 +575,83 @@ describe("Experiments API", () => {
         }
     });
 
-    test("3.1 Update Experiment 1 Overrides", async () => {
+    test("3.1 Check Auto populate Control", async () => {
+        // This test checks if the auto-populate control functionality works correctly, relies on experimentId1
+        try {
+            test("should create a valid context successfully", async () => {
+                const input = {
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    override: {
+                        pmTestKey1: "value1-test-auto-populate-control",
+                    },
+                    context: {
+                        and: [
+                            { "==": [{ var: "os" }, "ios"] },
+                            { "==": [{ var: "clientId" }, "testClientCac1"] },
+                        ],
+                    },
+                    description: "Test auto populate control",
+                    change_reason: "Test auto populate control",
+                };
+    
+                let response: CreateContextCommandOutput;
+                try {
+                    const cmd = new CreateContextCommand(input);
+                    response = await superpositionClient.send(cmd);
+                } catch (err: any) {
+                    console.log(err.$response);
+                    throw err.$response;
+                }
+    
+                expect(response.$metadata.httpStatusCode).toBe(200);
+                expect(response.context_id).toBeDefined();
+    
+    
+                const getCmd = new GetContextCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    id: response.context_id,
+                });
+    
+                let fetchedContext: GetContextCommandOutput;
+                try {
+                    fetchedContext = await superpositionClient.send(getCmd);
+                } catch (err: any) {
+                    console.log(err.$response);
+                    throw err.$response;
+                }
+
+                // Should fail ramp due to outdated control variant overrides
+                if (!experimentId1) {
+                    throw new Error("Experiment 1 ID not set, cannot ramp.");
+                }
+                const rampPercentage = 46;
+                const cmd = new RampExperimentCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    id: experimentId1,
+                    traffic_percentage: rampPercentage,
+                    change_reason: "Testing auto populate control functionality",
+                });
+
+                expect(
+                    superpositionClient.send(cmd),
+                ).rejects.toThrow(
+                    "Outdated control variant overrides: {\"pmTestKey1\":\"value1-test-auto-populate-control\"}. Please update the control variant's overrides.",
+                );
+                
+            });
+        } catch (e: any) {
+            console.error(
+                "Error in test '3.1 Check Auto populate Control':",
+                e?.$response || e.message
+            );
+            throw e;
+        }
+    });
+
+    test("3.2 Update Experiment 1 Overrides", async () => {
         try {
             if (!experimentId1 || !experiment1Variants) {
                 throw new Error(
@@ -595,7 +674,7 @@ describe("Experiments API", () => {
                 {
                     id: controlVariant.id,
                     overrides: {
-                        pmTestKey1: "value-7910-an-control",
+                        pmTestKey1: "value-test-auto-populate-control",
                         pmTestKey2: "value-6910-an-control",
                     },
                 },
@@ -640,14 +719,14 @@ describe("Experiments API", () => {
             expect(out.name).toBe("experiment-1-from-test");
         } catch (e: any) {
             console.error(
-                "Error in test '3.1 Update Experiment 1 Overrides':",
+                "Error in test '3.2 Update Experiment 1 Overrides':",
                 e?.$response || e.message
             );
             throw e;
         }
     });
 
-    test("3. Ramp Experiment 1", async () => {
+    test("3.3 Ramp Experiment 1", async () => {
         try {
             if (!experimentId1) {
                 throw new Error("Experiment 1 ID not set, cannot ramp.");
@@ -679,7 +758,7 @@ describe("Experiments API", () => {
             expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
         } catch (e: any) {
             console.error(
-                "Error in test '3. Ramp Experiment 1':",
+                "Error in test '3.3 Ramp Experiment 1':",
                 e?.$response || e.message
             );
             throw e;

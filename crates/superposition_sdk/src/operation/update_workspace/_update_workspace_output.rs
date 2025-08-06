@@ -33,6 +33,8 @@ pub struct UpdateWorkspaceOutput  {
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub allow_experiment_self_approval: bool,
+    #[allow(missing_docs)] // documentation missing in model
+    pub auto_populate_control: bool,
 }
 impl  UpdateWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -98,6 +100,10 @@ impl  UpdateWorkspaceOutput  {
     pub fn allow_experiment_self_approval(&self) -> bool {
         self.allow_experiment_self_approval
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn auto_populate_control(&self) -> bool {
+        self.auto_populate_control
+    }
 }
 impl UpdateWorkspaceOutput {
     /// Creates a new builder-style object to manufacture [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput).
@@ -125,6 +131,7 @@ pub struct UpdateWorkspaceOutputBuilder {
     pub(crate) strict_mode: ::std::option::Option<bool>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
+    pub(crate) auto_populate_control: ::std::option::Option<bool>,
 }
 impl UpdateWorkspaceOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -339,6 +346,20 @@ impl UpdateWorkspaceOutputBuilder {
     pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
         &self.allow_experiment_self_approval
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn auto_populate_control(mut self, input: bool) -> Self {
+        self.auto_populate_control = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_auto_populate_control(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.auto_populate_control = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
+        &self.auto_populate_control
+    }
     /// Consumes the builder and constructs a [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`workspace_name`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::workspace_name)
@@ -353,6 +374,7 @@ impl UpdateWorkspaceOutputBuilder {
     /// - [`created_at`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::created_at)
     /// - [`strict_mode`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::strict_mode)
     /// - [`allow_experiment_self_approval`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::allow_experiment_self_approval)
+    /// - [`auto_populate_control`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::auto_populate_control)
     pub fn build(self) -> ::std::result::Result<crate::operation::update_workspace::UpdateWorkspaceOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::update_workspace::UpdateWorkspaceOutput {
@@ -420,6 +442,11 @@ impl UpdateWorkspaceOutputBuilder {
                 allow_experiment_self_approval: self.allow_experiment_self_approval
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("allow_experiment_self_approval", "allow_experiment_self_approval was not specified but it is required when building UpdateWorkspaceOutput")
+                    )?
+                ,
+                auto_populate_control: self.auto_populate_control
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("auto_populate_control", "auto_populate_control was not specified but it is required when building UpdateWorkspaceOutput")
                     )?
                 ,
             }

@@ -709,6 +709,7 @@ export const se_CreateWorkspaceCommand = async(
   let body: any;
   body = JSON.stringify(take(input, {
     'allow_experiment_self_approval': [],
+    'auto_populate_control': [],
     'metrics': _ => se_Document(_, context),
     'strict_mode': [],
     'workspace_admin_email': [],
@@ -1923,6 +1924,7 @@ export const se_UpdateWorkspaceCommand = async(
   let body: any;
   body = JSON.stringify(take(input, {
     'allow_experiment_self_approval': [],
+    'auto_populate_control': [],
     'config_version': [],
     'mandatory_dimensions': _ => _json(_),
     'metrics': _ => se_Document(_, context),
@@ -2385,6 +2387,7 @@ export const de_CreateWorkspaceCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'allow_experiment_self_approval': __expectBoolean,
+    'auto_populate_control': __expectBoolean,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -3750,6 +3753,7 @@ export const de_UpdateWorkspaceCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'allow_experiment_self_approval': __expectBoolean,
+    'auto_populate_control': __expectBoolean,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -4905,6 +4909,7 @@ const de_CommandError = async(
   ): WorkspaceResponse => {
     return take(output, {
       'allow_experiment_self_approval': __expectBoolean,
+      'auto_populate_control': __expectBoolean,
       'config_version': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,

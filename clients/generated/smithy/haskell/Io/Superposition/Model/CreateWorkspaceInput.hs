@@ -6,6 +6,7 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     setStrictMode,
     setMetrics,
     setAllowExperimentSelfApproval,
+    setAutoPopulateControl,
     build,
     CreateWorkspaceInputBuilder,
     CreateWorkspaceInput,
@@ -15,7 +16,8 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     workspace_status,
     strict_mode,
     metrics,
-    allow_experiment_self_approval
+    allow_experiment_self_approval,
+    auto_populate_control
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -36,7 +38,8 @@ data CreateWorkspaceInput = CreateWorkspaceInput {
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
     strict_mode :: Bool,
     metrics :: Data.Maybe.Maybe Data.Aeson.Value,
-    allow_experiment_self_approval :: Bool
+    allow_experiment_self_approval :: Bool,
+    auto_populate_control :: Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -51,7 +54,8 @@ instance Data.Aeson.ToJSON CreateWorkspaceInput where
         "workspace_status" Data.Aeson..= workspace_status a,
         "strict_mode" Data.Aeson..= strict_mode a,
         "metrics" Data.Aeson..= metrics a,
-        "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a
+        "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
+        "auto_populate_control" Data.Aeson..= auto_populate_control a
         ]
     
 
@@ -65,6 +69,7 @@ instance Data.Aeson.FromJSON CreateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..: "strict_mode")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
         Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
+        Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
     
 
 
@@ -76,7 +81,8 @@ data CreateWorkspaceInputBuilderState = CreateWorkspaceInputBuilderState {
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
     strict_modeBuilderState :: Data.Maybe.Maybe Bool,
     metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
-    allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool
+    allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
+    auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -89,7 +95,8 @@ defaultBuilderState = CreateWorkspaceInputBuilderState {
     workspace_statusBuilderState = Data.Maybe.Nothing,
     strict_modeBuilderState = Data.Maybe.Nothing,
     metricsBuilderState = Data.Maybe.Nothing,
-    allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing
+    allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
+    auto_populate_controlBuilderState = Data.Maybe.Nothing
 }
 
 newtype CreateWorkspaceInputBuilder a = CreateWorkspaceInputBuilder {
@@ -141,6 +148,10 @@ setAllowExperimentSelfApproval :: Bool -> CreateWorkspaceInputBuilder ()
 setAllowExperimentSelfApproval value =
    CreateWorkspaceInputBuilder (\s -> (s { allow_experiment_self_approvalBuilderState = Data.Maybe.Just value }, ()))
 
+setAutoPopulateControl :: Bool -> CreateWorkspaceInputBuilder ()
+setAutoPopulateControl value =
+   CreateWorkspaceInputBuilder (\s -> (s { auto_populate_controlBuilderState = Data.Maybe.Just value }, ()))
+
 build :: CreateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text CreateWorkspaceInput
 build builder = do
     let (st, _) = runCreateWorkspaceInputBuilder builder defaultBuilderState
@@ -151,6 +162,7 @@ build builder = do
     strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.strict_mode is a required property.") Data.Either.Right (strict_modeBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
     allow_experiment_self_approval' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.allow_experiment_self_approval is a required property.") Data.Either.Right (allow_experiment_self_approvalBuilderState st)
+    auto_populate_control' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.auto_populate_control is a required property.") Data.Either.Right (auto_populate_controlBuilderState st)
     Data.Either.Right (CreateWorkspaceInput { 
         org_id = org_id',
         workspace_admin_email = workspace_admin_email',
@@ -158,7 +170,8 @@ build builder = do
         workspace_status = workspace_status',
         strict_mode = strict_mode',
         metrics = metrics',
-        allow_experiment_self_approval = allow_experiment_self_approval'
+        allow_experiment_self_approval = allow_experiment_self_approval',
+        auto_populate_control = auto_populate_control'
     })
 
 

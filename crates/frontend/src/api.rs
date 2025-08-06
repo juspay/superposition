@@ -19,14 +19,14 @@ use superposition_types::{
             FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
         },
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
-        workspace::WorkspaceResponse,
+        workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap},
     database::models::{
         cac::{ConfigVersion, Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-        ChangeReason, Description, NonEmptyString,
+        ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
     },
     Config, PaginatedResponse,
 };
@@ -369,23 +369,93 @@ pub async fn fetch_types(
         .map_err(err_handler)
 }
 
-pub async fn fetch_workspaces(
-    filters: &PaginationParams,
-    org_id: &String,
-) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
-    let client = reqwest::Client::new();
-    let host = use_host_server();
-    let url = format!("{}/workspaces?{}", host, filters);
-    let response: PaginatedResponse<WorkspaceResponse> = client
-        .get(url)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
+pub mod workspaces {
+    use super::*;
+
+    pub async fn fetch_all(
+        filters: &PaginationParams,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
+        let host = use_host_server();
+        let url = format!("{}/workspaces?{}", host, filters);
+
+        let response = request::<()>(
+            url,
+            reqwest::Method::GET,
+            None,
+            construct_request_headers(&[("x-org-id", org_id)])
+                .map_err(|e| ServerFnError::new(e.to_string()))?,
+        )
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    Ok(response)
+
+        let response: PaginatedResponse<WorkspaceResponse> =
+            parse_json_response(response)
+                .await
+                .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+        Ok(response)
+    }
+
+    pub async fn create(
+        payload: CreateWorkspaceRequest,
+        org_id: &str,
+    ) -> Result<serde_json::Value, String> {
+        let host = use_host_server();
+        let url = format!("{}/workspaces", host);
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub fn try_update_payload(
+        workspace_admin_email: String,
+        config_version: Value,
+        workspace_status: WorkspaceStatus,
+        mandatory_dimensions: Vec<String>,
+        metrics: Metrics,
+        allow_experiment_self_approval: bool,
+        auto_populate_control: bool,
+    ) -> Result<UpdateWorkspaceRequest, String> {
+        Ok(UpdateWorkspaceRequest {
+            workspace_admin_email,
+            config_version: Some(
+                serde_json::from_value(config_version)
+                    .map_err(|e| format!("Invalid config version: {}", e))?,
+            ),
+            workspace_status: Some(workspace_status),
+            mandatory_dimensions: Some(mandatory_dimensions),
+            metrics: Some(metrics),
+            allow_experiment_self_approval: Some(allow_experiment_self_approval),
+            auto_populate_control: Some(auto_populate_control),
+        })
+    }
+
+    pub async fn update(
+        workspace_key: &str,
+        payload: UpdateWorkspaceRequest,
+        org_id: &str,
+    ) -> Result<serde_json::Value, String> {
+        let host = use_host_server();
+        let url = format!("{}/workspaces/{}", host, workspace_key);
+
+        let response = request(
+            url,
+            reqwest::Method::PUT,
+            Some(payload),
+            construct_request_headers(&[("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

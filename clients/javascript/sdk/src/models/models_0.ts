@@ -1160,6 +1160,7 @@ export interface CreateWorkspaceRequest {
   strict_mode: boolean | undefined;
   metrics?: __DocumentType | undefined;
   allow_experiment_self_approval: boolean | undefined;
+  auto_populate_control: boolean | undefined;
 }
 
 /**
@@ -1181,6 +1182,7 @@ export interface WorkspaceResponse {
   strict_mode: boolean | undefined;
   metrics?: __DocumentType | undefined;
   allow_experiment_self_approval: boolean | undefined;
+  auto_populate_control: boolean | undefined;
 }
 
 /**
@@ -1931,6 +1933,7 @@ export interface UpdateWorkspaceRequest {
   workspace_status?: WorkspaceStatus | undefined;
   metrics?: __DocumentType | undefined;
   allow_experiment_self_approval?: boolean | undefined;
+  auto_populate_control?: boolean | undefined;
 }
 
 /**

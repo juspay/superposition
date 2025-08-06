@@ -75,7 +75,8 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_webhook_by_event, get_workspace, validate_delete_experiment_variants,
+            fetch_webhook_by_event, get_workspace, validate_control_overrides,
+            validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -175,6 +176,30 @@ async fn create(
                         unique_override_keys.join(",")
                     )
                 );
+            }
+
+            // Validate control overrides against resolved config when auto-populate is enabled
+            if workspace_settings.auto_populate_control {
+                let control_variant = variants
+                    .iter()
+                    .find(|v| v.variant_type == VariantType::CONTROL)
+                    .ok_or_else(|| {
+                        log::error!(
+                            "Control variant not found in existing experiment variants"
+                        );
+                        unexpected_error!(
+                            "Control variant not found in existing experiment variants"
+                        )
+                    })?;
+
+                validate_control_overrides(
+                    &control_variant.overrides,
+                    &exp_context,
+                    &workspace_request,
+                    &user,
+                    &state,
+                )
+                .await?;
             }
 
             // validating experiment against other active experiments based on permission flags
@@ -1074,6 +1099,49 @@ async fn ramp(
         ));
     }
 
+    let experiment_variants = experiment.variants.clone().into_inner();
+
+    match experiment.experiment_type {
+        ExperimentType::Default => {
+            // Validate control overrides against resolved config when auto-populate is enabled and experiment is in CREATED state
+            if workspace_settings.auto_populate_control
+                && experiment.status == ExperimentStatusType::CREATED
+            {
+                let control_variant = experiment_variants
+                    .iter()
+                    .find(|v| v.variant_type == VariantType::CONTROL)
+                    .ok_or_else(|| {
+                        log::error!(
+                            "Error finding control variant in the experiment variants"
+                        );
+                        unexpected_error!(
+                            "Error finding control variant in the experiment variants"
+                        )
+                    })?;
+
+                validate_control_overrides(
+                    &control_variant.overrides,
+                    &experiment.context,
+                    &workspace_request,
+                    &user,
+                    &state,
+                )
+                .await?;
+            }
+        }
+        ExperimentType::DeleteOverrides => {
+            validate_delete_experiment_variants(
+                &user,
+                &state,
+                &experiment.context,
+                &hash(&Value::Object(experiment.context.clone().into())),
+                &workspace_request,
+                &experiment.variants,
+            )
+            .await?;
+        }
+    }
+
     let old_traffic_percentage = experiment.traffic_percentage;
     let new_traffic_percentage = &req.traffic_percentage;
     let variants_count = experiment.variants.clone().into_inner().len() as u8;
@@ -1226,11 +1294,19 @@ async fn update_overrides(
             .collect::<Vec<(String, &Variant)>>(),
     );
 
+    // checking if variants passed with correct existing variant ids
+    if variants.len() != id_to_existing_variant.len() {
+        Err(bad_argument!(
+            "Number of variants passed in the request does not match with existing experiment variants"
+        ))?;
+    }
+
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
     /****************** Validating override_keys and variant overrides *********************/
 
     validate_override_keys(&override_keys)?;
 
-    // checking if variants passed with correct existing variant ids
     let variant_ids: HashSet<String> = HashSet::from_iter(
         variants
             .iter()
@@ -1246,6 +1322,7 @@ async fn update_overrides(
     }
     // Checking if all the variants are overriding the mentioned keys
     let mut new_variants: Vec<Variant> = variants
+        .clone()
         .into_iter()
         .map(|variant| {
             let existing_variant: &Variant =
@@ -1291,6 +1368,40 @@ async fn update_overrides(
                         override_keys.join(",")
                     )
                 )?;
+            }
+
+            // Validate control overrides against resolved config when auto-populate is enabled
+            if workspace_settings.auto_populate_control {
+                let control_variant_id = experiment
+                    .variants
+                    .iter()
+                    .find(|v| v.variant_type == VariantType::CONTROL)
+                    .map(|v| v.id.to_string())
+                    .ok_or_else(|| {
+                        log::error!(
+                            "Control variant not found in existing experiment variants"
+                        );
+                        unexpected_error!(
+                            "Control variant not found in existing experiment variants"
+                        )
+                    })?;
+
+                let req_control_variant = variants
+                    .iter()
+                    .find(|v| v.id == control_variant_id)
+                    .ok_or_else(|| {
+                        log::error!("Control variant missing from request variants");
+                        bad_argument!("Control variant missing from request variants")
+                    })?;
+
+                validate_control_overrides(
+                    &req_control_variant.overrides,
+                    &experiment.context,
+                    &workspace_request,
+                    &user,
+                    &state,
+                )
+                .await?;
             }
 
             // validating experiment against other active experiments based on permission flags

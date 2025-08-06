@@ -302,9 +302,6 @@ pub fn experiment_group_form(
                     dimensions=dimensions
                     context=context_rs.get_untracked()
                     on_context_change=move |new_context| context_ws.set(new_context)
-                    handle_change=move |new_context: Conditions| {
-                        context_ws.set_untracked(new_context);
-                    }
                     resolve_mode=workspace_settings.get_value().strict_mode
                     disabled=is_edit
                     heading_sub_text="Define rules under which this experiment group would function"

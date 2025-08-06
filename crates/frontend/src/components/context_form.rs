@@ -205,8 +205,7 @@ pub fn condition_input(
 }
 
 #[component]
-pub fn context_form<NF>(
-    handle_change: NF,
+pub fn context_form(
     context: Conditions,
     dimensions: Vec<DimensionResponse>,
     fn_environment: Memo<Value>,
@@ -215,10 +214,7 @@ pub fn context_form<NF>(
     #[prop(into, default = String::new())] heading_sub_text: String,
     #[prop(default = DropdownDirection::Down)] dropdown_direction: DropdownDirection,
     #[prop(into)] on_context_change: Callback<Conditions, ()>,
-) -> impl IntoView
-where
-    NF: Fn(Conditions) + 'static,
-{
+) -> impl IntoView {
     let dimension_map = store_value(
         dimensions
             .iter()
@@ -309,12 +305,6 @@ where
     });
 
     let last_idx = create_memo(move |_| context_rs.get().len().max(1) - 1);
-
-    create_effect(move |_| {
-        let f_context = context_rs.get();
-        logging::log!("Context form effect {:?}", f_context);
-        handle_change(f_context.clone());
-    });
 
     let on_select_dimension =
         Callback::new(move |selected_dimension: DimensionResponse| {

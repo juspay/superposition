@@ -43,6 +43,7 @@ serUpdateWorkspacePAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
         "allow_experiment_self_approval" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.allow_experiment_self_approval input,
         "workspace_admin_email" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.workspace_admin_email input,
+        "auto_populate_control" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.auto_populate_control input,
         "metrics" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.metrics input,
         "config_version" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.config_version input,
         "mandatory_dimensions" Data.Aeson..= Io.Superposition.Model.UpdateWorkspaceInput.mandatory_dimensions input,
@@ -115,6 +116,13 @@ deserializeResponse response = do
     
     workspace_admin_emailDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_admin_email") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    auto_populate_controlDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "auto_populate_control") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -220,6 +228,7 @@ deserializeResponse response = do
     
     Io.Superposition.Model.UpdateWorkspaceOutput.build $ do
         Io.Superposition.Model.UpdateWorkspaceOutput.setWorkspaceAdminEmail workspace_admin_emailDocumentE
+        Io.Superposition.Model.UpdateWorkspaceOutput.setAutoPopulateControl auto_populate_controlDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setCreatedAt created_atDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setOrganisationName organisation_nameDocumentE
         Io.Superposition.Model.UpdateWorkspaceOutput.setLastModifiedBy last_modified_byDocumentE

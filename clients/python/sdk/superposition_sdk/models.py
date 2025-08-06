@@ -2983,8 +2983,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -5652,6 +5652,7 @@ class CreateWorkspaceInput:
     strict_mode: bool | None = None
     metrics: Document | None = None
     allow_experiment_self_approval: bool | None = None
+    auto_populate_control: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_INPUT, self)
@@ -5674,6 +5675,9 @@ class CreateWorkspaceInput:
 
         if self.allow_experiment_self_approval is not None:
             serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
+
+        if self.auto_populate_control is not None:
+            serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["auto_populate_control"], self.auto_populate_control)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5705,6 +5709,9 @@ class CreateWorkspaceInput:
 
                 case 6:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
+
+                case 7:
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["auto_populate_control"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5757,6 +5764,8 @@ class CreateWorkspaceOutput:
 
     allow_experiment_self_approval: bool
 
+    auto_populate_control: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
     metrics: Document | None = None
@@ -5786,6 +5795,7 @@ class CreateWorkspaceOutput:
             serializer.write_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
 
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
+        serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5841,6 +5851,9 @@ class CreateWorkspaceOutput:
 
                 case 14:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
+
+                case 15:
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5933,8 +5946,8 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6155,8 +6168,8 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6426,8 +6439,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6701,8 +6714,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -12031,6 +12044,8 @@ class WorkspaceResponse:
 
     allow_experiment_self_approval: bool
 
+    auto_populate_control: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
     metrics: Document | None = None
@@ -12060,6 +12075,7 @@ class WorkspaceResponse:
             serializer.write_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"], self.metrics)
 
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
+        serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"], self.auto_populate_control)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12115,6 +12131,9 @@ class WorkspaceResponse:
 
                 case 14:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"])
+
+                case 15:
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -12791,6 +12810,7 @@ class UpdateWorkspaceInput:
     workspace_status: str | None = None
     metrics: Document | None = None
     allow_experiment_self_approval: bool | None = None
+    auto_populate_control: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_INPUT, self)
@@ -12813,6 +12833,9 @@ class UpdateWorkspaceInput:
 
         if self.allow_experiment_self_approval is not None:
             serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
+
+        if self.auto_populate_control is not None:
+            serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["auto_populate_control"], self.auto_populate_control)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12848,6 +12871,9 @@ class UpdateWorkspaceInput:
                 case 7:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
 
+                case 8:
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["auto_populate_control"])
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -12881,6 +12907,8 @@ class UpdateWorkspaceOutput:
 
     allow_experiment_self_approval: bool
 
+    auto_populate_control: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
     metrics: Document | None = None
@@ -12910,6 +12938,7 @@ class UpdateWorkspaceOutput:
             serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
 
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
+        serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12965,6 +12994,9 @@ class UpdateWorkspaceOutput:
 
                 case 14:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
+
+                case 15:
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
