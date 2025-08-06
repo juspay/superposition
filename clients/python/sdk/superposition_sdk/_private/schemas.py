@@ -5356,6 +5356,15 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
+        "auto_populate_control": {
+            "target": BOOLEAN,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -5497,6 +5506,15 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
             "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "auto_populate_control": {
+            "target": BOOLEAN,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -12158,6 +12176,15 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
+        "auto_populate_control": {
+            "target": BOOLEAN,
+            "index": 15,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -12894,6 +12921,11 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
             "index": 7,
         },
 
+        "auto_populate_control": {
+            "target": BOOLEAN,
+            "index": 8,
+        },
+
     }
 )
 
@@ -13023,6 +13055,15 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
             "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "auto_populate_control": {
+            "target": BOOLEAN,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 

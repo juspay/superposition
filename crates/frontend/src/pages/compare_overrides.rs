@@ -244,7 +244,6 @@ pub fn compare_overrides() -> impl IntoView {
                                         }
                                         heading_sub_text="Query your configs"
                                         resolve_mode=true
-                                        handle_change=move |new_context| context_ws.set(new_context)
                                         fn_environment
                                     />
                                 }

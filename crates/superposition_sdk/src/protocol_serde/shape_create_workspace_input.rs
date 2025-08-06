@@ -6,20 +6,23 @@ pub fn ser_create_workspace_input_input(
     if let Some(var_1) = &input.allow_experiment_self_approval {
         object.key("allow_experiment_self_approval").boolean(*var_1);
     }
-    if let Some(var_2) = &input.metrics {
-        object.key("metrics").document(var_2);
+    if let Some(var_2) = &input.auto_populate_control {
+        object.key("auto_populate_control").boolean(*var_2);
     }
-    if let Some(var_3) = &input.strict_mode {
-        object.key("strict_mode").boolean(*var_3);
+    if let Some(var_3) = &input.metrics {
+        object.key("metrics").document(var_3);
     }
-    if let Some(var_4) = &input.workspace_admin_email {
-        object.key("workspace_admin_email").string(var_4.as_str());
+    if let Some(var_4) = &input.strict_mode {
+        object.key("strict_mode").boolean(*var_4);
     }
-    if let Some(var_5) = &input.workspace_name {
-        object.key("workspace_name").string(var_5.as_str());
+    if let Some(var_5) = &input.workspace_admin_email {
+        object.key("workspace_admin_email").string(var_5.as_str());
     }
-    if let Some(var_6) = &input.workspace_status {
-        object.key("workspace_status").string(var_6.as_str());
+    if let Some(var_6) = &input.workspace_name {
+        object.key("workspace_name").string(var_6.as_str());
+    }
+    if let Some(var_7) = &input.workspace_status {
+        object.key("workspace_status").string(var_7.as_str());
     }
     Ok(())
 }

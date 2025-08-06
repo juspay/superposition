@@ -283,6 +283,7 @@ index b8972981..99508fcb 100644
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("org_id", PreludeSchemas.STRING,
          "workspace_name", PreludeSchemas.STRING);
 -    private static final Map<String, Schema> $PROPERTIES = Map.of("workspace_admin_email", PreludeSchemas.STRING,
+-        "auto_populate_control", PreludeSchemas.BOOLEAN,
 -        "created_at", SharedSchemas.DATE_TIME,
 -        "organisation_name", PreludeSchemas.STRING,
 -        "last_modified_by", PreludeSchemas.STRING,
@@ -298,6 +299,7 @@ index b8972981..99508fcb 100644
 -        "metrics", PreludeSchemas.DOCUMENT);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
 +        Map.entry("workspace_admin_email", PreludeSchemas.STRING),
++        Map.entry("auto_populate_control", PreludeSchemas.BOOLEAN),
 +        Map.entry("created_at", SharedSchemas.DATE_TIME),
 +        Map.entry("organisation_name", PreludeSchemas.STRING),
 +        Map.entry("last_modified_by", PreludeSchemas.STRING),

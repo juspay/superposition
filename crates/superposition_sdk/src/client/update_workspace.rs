@@ -11,6 +11,7 @@ impl super::Client {
     ///   - [`workspace_status(WorkspaceStatus)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::workspace_status) / [`set_workspace_status(Option<WorkspaceStatus>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_workspace_status):<br>required: **false**<br>(undocumented)<br>
     ///   - [`metrics(Document)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::metrics) / [`set_metrics(Option<Document>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_metrics):<br>required: **false**<br>(undocumented)<br>
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::allow_experiment_self_approval) / [`set_allow_experiment_self_approval(Option<bool>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_allow_experiment_self_approval):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`auto_populate_control(bool)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::auto_populate_control) / [`set_auto_populate_control(Option<bool>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_auto_populate_control):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput) with field(s):
     ///   - [`workspace_name(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_name): (undocumented)
     ///   - [`organisation_id(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::organisation_id): (undocumented)
@@ -27,6 +28,7 @@ impl super::Client {
     ///   - [`strict_mode(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::strict_mode): (undocumented)
     ///   - [`metrics(Option<Document>)`](crate::operation::update_workspace::UpdateWorkspaceOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::allow_experiment_self_approval): (undocumented)
+    ///   - [`auto_populate_control(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::auto_populate_control): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateWorkspaceError>`](crate::operation::update_workspace::UpdateWorkspaceError)
     pub fn update_workspace(&self) -> crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder {
                                 crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::new(self.handle.clone())

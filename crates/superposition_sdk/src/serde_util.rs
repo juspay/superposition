@@ -178,6 +178,7 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
+if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
                 builder
             }
 
@@ -605,6 +606,7 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
+if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
                 builder
             }
 
@@ -768,6 +770,7 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
+if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
                 builder
             }
 

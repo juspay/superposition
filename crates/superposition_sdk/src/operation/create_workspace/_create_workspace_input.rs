@@ -17,6 +17,8 @@ pub struct CreateWorkspaceInput  {
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub allow_experiment_self_approval: ::std::option::Option<bool>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub auto_populate_control: ::std::option::Option<bool>,
 }
 impl  CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -47,6 +49,10 @@ impl  CreateWorkspaceInput  {
     pub fn allow_experiment_self_approval(&self) -> ::std::option::Option<bool> {
         self.allow_experiment_self_approval
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn auto_populate_control(&self) -> ::std::option::Option<bool> {
+        self.auto_populate_control
+    }
 }
 impl CreateWorkspaceInput {
     /// Creates a new builder-style object to manufacture [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
@@ -66,6 +72,7 @@ pub struct CreateWorkspaceInputBuilder {
     pub(crate) strict_mode: ::std::option::Option<bool>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
+    pub(crate) auto_populate_control: ::std::option::Option<bool>,
 }
 impl CreateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -164,6 +171,20 @@ impl CreateWorkspaceInputBuilder {
     pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
         &self.allow_experiment_self_approval
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn auto_populate_control(mut self, input: bool) -> Self {
+        self.auto_populate_control = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_auto_populate_control(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.auto_populate_control = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
+        &self.auto_populate_control
+    }
     /// Consumes the builder and constructs a [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_workspace::CreateWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -181,6 +202,8 @@ impl CreateWorkspaceInputBuilder {
                 metrics: self.metrics
                 ,
                 allow_experiment_self_approval: self.allow_experiment_self_approval
+                ,
+                auto_populate_control: self.auto_populate_control
                 ,
             }
         )

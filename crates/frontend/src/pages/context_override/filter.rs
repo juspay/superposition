@@ -249,10 +249,10 @@ pub fn context_filter_drawer(
                 <ContextForm
                     dimensions
                     context=context_rs.get_untracked()
-                    on_context_change=move |new_context| context_ws.set(new_context)
                     fn_environment
                     resolve_mode=true
-                    handle_change=move |context: Conditions| {
+                    on_context_change=move |context: Conditions| {
+                        context_ws.set(context.clone());
                         let map = context
                             .iter()
                             .filter_map(|condition| {

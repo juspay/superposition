@@ -51,6 +51,7 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *   strict_mode: true || false, // required
  *   metrics: "DOCUMENT_VALUE",
  *   allow_experiment_self_approval: true || false, // required
+ *   auto_populate_control: true || false, // required
  * };
  * const command = new CreateWorkspaceCommand(input);
  * const response = await client.send(command);
@@ -72,6 +73,7 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   strict_mode: true || false, // required
  * //   metrics: "DOCUMENT_VALUE",
  * //   allow_experiment_self_approval: true || false, // required
+ * //   auto_populate_control: true || false, // required
  * // };
  *
  * ```

@@ -7,6 +7,7 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     setWorkspaceStatus,
     setMetrics,
     setAllowExperimentSelfApproval,
+    setAutoPopulateControl,
     build,
     UpdateWorkspaceInputBuilder,
     UpdateWorkspaceInput,
@@ -17,7 +18,8 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     mandatory_dimensions,
     workspace_status,
     metrics,
-    allow_experiment_self_approval
+    allow_experiment_self_approval,
+    auto_populate_control
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -39,7 +41,8 @@ data UpdateWorkspaceInput = UpdateWorkspaceInput {
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
     metrics :: Data.Maybe.Maybe Data.Aeson.Value,
-    allow_experiment_self_approval :: Data.Maybe.Maybe Bool
+    allow_experiment_self_approval :: Data.Maybe.Maybe Bool,
+    auto_populate_control :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -55,7 +58,8 @@ instance Data.Aeson.ToJSON UpdateWorkspaceInput where
         "mandatory_dimensions" Data.Aeson..= mandatory_dimensions a,
         "workspace_status" Data.Aeson..= workspace_status a,
         "metrics" Data.Aeson..= metrics a,
-        "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a
+        "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
+        "auto_populate_control" Data.Aeson..= auto_populate_control a
         ]
     
 
@@ -70,6 +74,7 @@ instance Data.Aeson.FromJSON UpdateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..: "workspace_status")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
         Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
+        Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
     
 
 
@@ -82,7 +87,8 @@ data UpdateWorkspaceInputBuilderState = UpdateWorkspaceInputBuilderState {
     mandatory_dimensionsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
     metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
-    allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool
+    allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
+    auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -96,7 +102,8 @@ defaultBuilderState = UpdateWorkspaceInputBuilderState {
     mandatory_dimensionsBuilderState = Data.Maybe.Nothing,
     workspace_statusBuilderState = Data.Maybe.Nothing,
     metricsBuilderState = Data.Maybe.Nothing,
-    allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing
+    allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
+    auto_populate_controlBuilderState = Data.Maybe.Nothing
 }
 
 newtype UpdateWorkspaceInputBuilder a = UpdateWorkspaceInputBuilder {
@@ -152,6 +159,10 @@ setAllowExperimentSelfApproval :: Data.Maybe.Maybe Bool -> UpdateWorkspaceInputB
 setAllowExperimentSelfApproval value =
    UpdateWorkspaceInputBuilder (\s -> (s { allow_experiment_self_approvalBuilderState = value }, ()))
 
+setAutoPopulateControl :: Data.Maybe.Maybe Bool -> UpdateWorkspaceInputBuilder ()
+setAutoPopulateControl value =
+   UpdateWorkspaceInputBuilder (\s -> (s { auto_populate_controlBuilderState = value }, ()))
+
 build :: UpdateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text UpdateWorkspaceInput
 build builder = do
     let (st, _) = runUpdateWorkspaceInputBuilder builder defaultBuilderState
@@ -163,6 +174,7 @@ build builder = do
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
     allow_experiment_self_approval' <- Data.Either.Right (allow_experiment_self_approvalBuilderState st)
+    auto_populate_control' <- Data.Either.Right (auto_populate_controlBuilderState st)
     Data.Either.Right (UpdateWorkspaceInput { 
         org_id = org_id',
         workspace_name = workspace_name',
@@ -171,7 +183,8 @@ build builder = do
         mandatory_dimensions = mandatory_dimensions',
         workspace_status = workspace_status',
         metrics = metrics',
-        allow_experiment_self_approval = allow_experiment_self_approval'
+        allow_experiment_self_approval = allow_experiment_self_approval',
+        auto_populate_control = auto_populate_control'
     })
 
 

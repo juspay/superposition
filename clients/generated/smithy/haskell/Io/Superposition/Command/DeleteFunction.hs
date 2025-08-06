@@ -31,8 +31,8 @@ import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
 data DeleteFunctionError =
-    InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
-    | FunctionNotFound Io.Superposition.Model.FunctionNotFound.FunctionNotFound
+    FunctionNotFound Io.Superposition.Model.FunctionNotFound.FunctionNotFound
+    | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
        deriving (GHC.Generics.Generic, GHC.Show.Show)

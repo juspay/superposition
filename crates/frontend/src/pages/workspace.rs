@@ -7,7 +7,7 @@ use superposition_types::{
     database::models::{Metrics, WorkspaceStatus},
 };
 
-use crate::api::fetch_workspaces;
+use crate::api::workspaces;
 use crate::components::{
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
@@ -36,7 +36,7 @@ pub fn workspace() -> impl IntoView {
     let workspace_resource = create_blocking_resource(
         move || (pagination_params_rws.get(), org_id.get().0),
         |(pagination_params, org_id)| async move {
-            fetch_workspaces(&pagination_params, &org_id)
+            workspaces::fetch_all(&pagination_params, &org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -84,6 +84,9 @@ pub fn workspace() -> impl IntoView {
                 .as_bool()
                 .unwrap_or_default();
 
+            let auto_populate_control =
+                row["auto_populate_control"].as_bool().unwrap_or_default();
+
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     workspace_name: workspace_name.clone(),
@@ -98,6 +101,7 @@ pub fn workspace() -> impl IntoView {
                     created_at: created_at.clone(),
                     metrics: metrics.clone(),
                     allow_experiment_self_approval,
+                    auto_populate_control,
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -176,6 +180,7 @@ pub fn workspace() -> impl IntoView {
                                 metrics=selected_workspace_data.metrics
                                 allow_experiment_self_approval=selected_workspace_data
                                     .allow_experiment_self_approval
+                                auto_populate_control=selected_workspace_data.auto_populate_control
                                 handle_submit=move |_| {
                                     workspace_resource.refetch();
                                     selected_workspace.set(None);

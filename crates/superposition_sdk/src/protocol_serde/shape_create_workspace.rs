@@ -82,6 +82,11 @@ pub(crate) fn de_create_workspace(value: &[u8], mut builder: crate::operation::c
                             ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                         );
                     }
+                    "auto_populate_control" => {
+                        builder = builder.set_auto_populate_control(
+                            ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                        );
+                    }
                     "config_version" => {
                         builder = builder.set_config_version(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

@@ -193,5 +193,19 @@ impl CreateWorkspaceFluentBuilder {
     pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
                     self.inner.get_allow_experiment_self_approval()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn auto_populate_control(mut self, input: bool) -> Self {
+                    self.inner = self.inner.auto_populate_control(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_auto_populate_control(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_auto_populate_control(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_auto_populate_control()
+                }
 }
 
