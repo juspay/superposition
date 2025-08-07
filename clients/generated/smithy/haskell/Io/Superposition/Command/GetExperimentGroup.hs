@@ -20,6 +20,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.Bucket
 import qualified Io.Superposition.Model.GetExperimentGroupInput
 import qualified Io.Superposition.Model.GetExperimentGroupOutput
@@ -38,7 +40,10 @@ data GetExperimentGroupError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON GetExperimentGroupError
+instance Data.Aeson.FromJSON GetExperimentGroupError
 
 serGetExperimentGroupHEADER :: Io.Superposition.Model.GetExperimentGroupInput.GetExperimentGroupInput -> Network.HTTP.Types.Header.RequestHeaders
 serGetExperimentGroupHEADER input =

@@ -19,6 +19,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.TypeTemplatesNotFound
 import qualified Io.Superposition.Model.UpdateTypeTemplatesInput
@@ -35,7 +37,10 @@ data UpdateTypeTemplatesError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON UpdateTypeTemplatesError
+instance Data.Aeson.FromJSON UpdateTypeTemplatesError
 
 serUpdateTypeTemplatesPAYLOAD:: Io.Superposition.Model.UpdateTypeTemplatesInput.UpdateTypeTemplatesInput -> Network.HTTP.Client.RequestBody
 serUpdateTypeTemplatesPAYLOAD input =

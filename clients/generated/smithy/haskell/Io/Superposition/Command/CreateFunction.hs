@@ -19,6 +19,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.CreateFunctionInput
 import qualified Io.Superposition.Model.CreateFunctionOutput
 import qualified Io.Superposition.Model.FunctionTypes
@@ -34,7 +36,10 @@ data CreateFunctionError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON CreateFunctionError
+instance Data.Aeson.FromJSON CreateFunctionError
 
 serCreateFunctionPAYLOAD:: Io.Superposition.Model.CreateFunctionInput.CreateFunctionInput -> Network.HTTP.Client.RequestBody
 serCreateFunctionPAYLOAD input =

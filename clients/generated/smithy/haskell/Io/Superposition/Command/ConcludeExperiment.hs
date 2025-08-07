@@ -20,6 +20,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.ConcludeExperimentInput
 import qualified Io.Superposition.Model.ConcludeExperimentOutput
 import qualified Io.Superposition.Model.ExperimentStatusType
@@ -37,7 +39,10 @@ data ConcludeExperimentError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON ConcludeExperimentError
+instance Data.Aeson.FromJSON ConcludeExperimentError
 
 serConcludeExperimentPAYLOAD:: Io.Superposition.Model.ConcludeExperimentInput.ConcludeExperimentInput -> Network.HTTP.Client.RequestBody
 serConcludeExperimentPAYLOAD input =

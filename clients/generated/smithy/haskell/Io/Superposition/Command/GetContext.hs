@@ -20,6 +20,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.GetContextInput
 import qualified Io.Superposition.Model.GetContextOutput
 import qualified Io.Superposition.Model.InternalServerError
@@ -36,7 +38,10 @@ data GetContextError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON GetContextError
+instance Data.Aeson.FromJSON GetContextError
 
 serGetContextHEADER :: Io.Superposition.Model.GetContextInput.GetContextInput -> Network.HTTP.Types.Header.RequestHeaders
 serGetContextHEADER input =

@@ -20,6 +20,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.Bucket
 import qualified Io.Superposition.Model.GroupType
 import qualified Io.Superposition.Model.InternalServerError
@@ -38,7 +40,10 @@ data UpdateExperimentGroupError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON UpdateExperimentGroupError
+instance Data.Aeson.FromJSON UpdateExperimentGroupError
 
 serUpdateExperimentGroupPAYLOAD:: Io.Superposition.Model.UpdateExperimentGroupInput.UpdateExperimentGroupInput -> Network.HTTP.Client.RequestBody
 serUpdateExperimentGroupPAYLOAD input =

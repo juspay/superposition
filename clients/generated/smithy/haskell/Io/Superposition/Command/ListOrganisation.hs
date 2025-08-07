@@ -18,6 +18,8 @@ import qualified Data.List
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.ListOrganisationInput
 import qualified Io.Superposition.Model.ListOrganisationOutput
@@ -32,7 +34,10 @@ data ListOrganisationError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON ListOrganisationError
+instance Data.Aeson.FromJSON ListOrganisationError
 
 serListOrganisationQUERY :: Io.Superposition.Model.ListOrganisationInput.ListOrganisationInput -> Data.ByteString.ByteString
 serListOrganisationQUERY input =

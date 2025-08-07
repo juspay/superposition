@@ -17,6 +17,8 @@ import qualified Data.List
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.DeleteDimensionInput
 import qualified Io.Superposition.Model.DeleteDimensionOutput
 import qualified Io.Superposition.Model.InternalServerError
@@ -33,7 +35,10 @@ data DeleteDimensionError =
     | ResourceNotFound Io.Superposition.Model.ResourceNotFound.ResourceNotFound
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON DeleteDimensionError
+instance Data.Aeson.FromJSON DeleteDimensionError
 
 serDeleteDimensionHEADER :: Io.Superposition.Model.DeleteDimensionInput.DeleteDimensionInput -> Network.HTTP.Types.Header.RequestHeaders
 serDeleteDimensionHEADER input =

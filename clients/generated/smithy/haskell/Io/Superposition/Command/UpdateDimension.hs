@@ -20,6 +20,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.ResourceNotFound
 import qualified Io.Superposition.Model.UpdateDimensionInput
@@ -36,7 +38,10 @@ data UpdateDimensionError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON UpdateDimensionError
+instance Data.Aeson.FromJSON UpdateDimensionError
 
 serUpdateDimensionPAYLOAD:: Io.Superposition.Model.UpdateDimensionInput.UpdateDimensionInput -> Network.HTTP.Client.RequestBody
 serUpdateDimensionPAYLOAD input =

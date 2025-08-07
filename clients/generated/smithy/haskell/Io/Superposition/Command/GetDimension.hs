@@ -20,6 +20,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.GetDimensionInput
 import qualified Io.Superposition.Model.GetDimensionOutput
 import qualified Io.Superposition.Model.InternalServerError
@@ -36,7 +38,10 @@ data GetDimensionError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON GetDimensionError
+instance Data.Aeson.FromJSON GetDimensionError
 
 serGetDimensionHEADER :: Io.Superposition.Model.GetDimensionInput.GetDimensionInput -> Network.HTTP.Types.Header.RequestHeaders
 serGetDimensionHEADER input =

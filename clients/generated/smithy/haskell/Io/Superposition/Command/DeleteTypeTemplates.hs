@@ -19,6 +19,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.DeleteTypeTemplatesInput
 import qualified Io.Superposition.Model.DeleteTypeTemplatesOutput
 import qualified Io.Superposition.Model.InternalServerError
@@ -35,7 +37,10 @@ data DeleteTypeTemplatesError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON DeleteTypeTemplatesError
+instance Data.Aeson.FromJSON DeleteTypeTemplatesError
 
 serDeleteTypeTemplatesHEADER :: Io.Superposition.Model.DeleteTypeTemplatesInput.DeleteTypeTemplatesInput -> Network.HTTP.Types.Header.RequestHeaders
 serDeleteTypeTemplatesHEADER input =
