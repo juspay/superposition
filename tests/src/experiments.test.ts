@@ -28,9 +28,8 @@ import {
     SuperpositionClient,
     GetExperimentGroupCommand,
     DiscardExperimentCommand,
-    type CreateContextCommandOutput,
     CreateContextCommand,
-    type GetContextCommandOutput,
+    CreateWorkspaceCommand,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
@@ -58,18 +57,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-            {
-                variant_type: VariantType.CONTROL,
-                overrides: {
-                    pmTestKey1: "value1-control",
-                    pmTestKey2: "value1-control",
-                },
+        {
+            variant_type: VariantType.CONTROL,
+            overrides: {
+                pmTestKey1: "value1-control",
+                pmTestKey2: "value1-control",
             },
-            {
-                variant_type: VariantType.EXPERIMENTAL,
-                overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
-            },
-        ];
+        },
+        {
+            variant_type: VariantType.EXPERIMENTAL,
+            overrides: { pmTestKey1: "value2-test", pmTestKey2: "value2-test" },
+        },
+    ];
 
     const experiment2Context = {
         and: [
@@ -81,18 +80,18 @@ describe("Experiments API", () => {
         Variant,
         "id" | "context_id" | "override_id"
     >[] = [
-            {
-                variant_type: VariantType.CONTROL,
-                overrides: {
-                    pmTestKey3: "value3-control",
-                    pmTestKey4: "value3-control",
-                },
+        {
+            variant_type: VariantType.CONTROL,
+            overrides: {
+                pmTestKey3: "value3-control",
+                pmTestKey4: "value3-control",
             },
-            {
-                variant_type: VariantType.EXPERIMENTAL,
-                overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
-            },
-        ];
+        },
+        {
+            variant_type: VariantType.EXPERIMENTAL,
+            overrides: { pmTestKey3: "value4-test", pmTestKey4: "value4-test" },
+        },
+    ];
 
     // Experiment group context (common base for both experiments)
     const experimentGroupContext = {
@@ -102,105 +101,127 @@ describe("Experiments API", () => {
         ],
     };
 
+    const auto_populate_test_workspace = `temptestexp${Date.now() % 10000}`;
+
     beforeAll(async () => {
-        const cmd = new ListDimensionsCommand({
-            workspace_id: ENV.workspace_id,
-            org_id: ENV.org_id,
-            count: 100,
-            page: 1,
-        });
-        const out = await superpositionClient.send(cmd);
-        const dimensions = out.data || [];
-        const requiredDimensions = [
-            {
-                name: "clientId",
-                description: "Client dimension for testing",
-                schema: { type: "string" },
-            },
-            {
-                name: "os",
-                description: "Operating system dimension for testing",
-                schema: {
-                    type: "string",
-                    enum: ["ios", "android", "web"],
-                },
-            },
-        ];
-
-        for (const dimension of requiredDimensions) {
-            const exists = dimensions.some(
-                (d) => d.dimension === dimension.name
-            );
-            if (!exists) {
-                const createCmd = new CreateDimensionCommand({
-                    dimension: dimension.name,
-                    workspace_id: ENV.workspace_id,
-                    org_id: ENV.org_id,
-                    schema: dimension.schema,
-                    position: dimensions.length,
-                    change_reason: "Automated Test - Adding required dimension",
-                    description: dimension.description,
-                });
-                await superpositionClient.send(createCmd);
-                created_dimensions.push(dimension.name);
-            }
-        }
-
-        const defaultConfigsNeeded = {
-            pmTestKey1: "default-value1",
-            pmTestKey2: "default-value2",
-            pmTestKey3: "default-value3",
-            pmTestKey4: "default-value4",
-        };
-
-        const defaultConfigCmg = new ListDefaultConfigsCommand({
-            workspace_id: ENV.workspace_id,
-            org_id: ENV.org_id,
-            count: 100,
-            page: 1,
-        });
-        const defaultConfigOut = await superpositionClient.send(
-            defaultConfigCmg
-        );
-        const defaultConfigs = defaultConfigOut.data || [];
-
-        for (const [key, value] of Object.entries(defaultConfigsNeeded)) {
-            const existingConfig = defaultConfigs.find((d) => d.key === key);
-            if (!existingConfig) {
-                const createCmd = new CreateDefaultConfigCommand({
-                    workspace_id: ENV.workspace_id,
-                    org_id: ENV.org_id,
-                    key: key,
-                    value: value,
+        async function setupWorkspace(workspaceId: string) {
+            const cmd = new ListDimensionsCommand({
+                workspace_id: workspaceId,
+                org_id: ENV.org_id,
+                count: 100,
+                page: 1,
+            });
+            const out = await superpositionClient.send(cmd);
+            const dimensions = out.data || [];
+            const requiredDimensions = [
+                {
+                    name: "clientId",
+                    description: "Client dimension for testing",
                     schema: { type: "string" },
-                    description: `Default config for ${key}`,
-                    change_reason: "Automated Test - Adding default config",
-                });
-                await superpositionClient.send(createCmd);
-            } else {
-                console.log(`Default config for key "${key}" already exists.`);
+                },
+                {
+                    name: "os",
+                    description: "Operating system dimension for testing",
+                    schema: {
+                        type: "string",
+                        enum: ["ios", "android", "web"],
+                    },
+                },
+            ];
+
+            for (const dimension of requiredDimensions) {
+                const exists = dimensions.some(
+                    (d) => d.dimension === dimension.name
+                );
+                if (!exists) {
+                    const createCmd = new CreateDimensionCommand({
+                        dimension: dimension.name,
+                        workspace_id: workspaceId,
+                        org_id: ENV.org_id,
+                        schema: dimension.schema,
+                        position: dimensions.length,
+                        change_reason:
+                            "Automated Test - Adding required dimension",
+                        description: dimension.description,
+                    });
+                    await superpositionClient.send(createCmd);
+                    created_dimensions.push(dimension.name);
+                }
             }
+
+            const defaultConfigsNeeded = {
+                pmTestKey1: "default-value1",
+                pmTestKey2: "default-value2",
+                pmTestKey3: "default-value3",
+                pmTestKey4: "default-value4",
+            };
+
+            const defaultConfigCmg = new ListDefaultConfigsCommand({
+                workspace_id: workspaceId,
+                org_id: ENV.org_id,
+                count: 100,
+                page: 1,
+            });
+            const defaultConfigOut = await superpositionClient.send(
+                defaultConfigCmg
+            );
+            const defaultConfigs = defaultConfigOut.data || [];
+
+            for (const [key, value] of Object.entries(defaultConfigsNeeded)) {
+                const existingConfig = defaultConfigs.find(
+                    (d) => d.key === key
+                );
+                if (!existingConfig) {
+                    const createCmd = new CreateDefaultConfigCommand({
+                        workspace_id: workspaceId,
+                        org_id: ENV.org_id,
+                        key: key,
+                        value: value,
+                        schema: { type: "string" },
+                        description: `Default config for ${key}`,
+                        change_reason: "Automated Test - Adding default config",
+                    });
+                    await superpositionClient.send(createCmd);
+                } else {
+                    console.log(
+                        `Default config for key "${key}" already exists.`
+                    );
+                }
+            }
+
+            // Create experiment group
+            console.log("Creating experiment group...");
+            const groupName = uniqueName("test-exp-group");
+            const createGroupInput: CreateExperimentGroupCommandInput = {
+                workspace_id: workspaceId,
+                org_id: ENV.org_id,
+                name: groupName,
+                description: "Test experiment group for automated tests",
+                change_reason: "Automated Test - Creating experiment group",
+                context: experimentGroupContext,
+                traffic_percentage: 100,
+                member_experiment_ids: [], // Start with empty, will add experiments later
+            };
+
+            const groupResponse = await superpositionClient.send(
+                new CreateExperimentGroupCommand(createGroupInput)
+            );
+            experimentGroupId = groupResponse.id!;
+            console.log(`Created experiment group: ${experimentGroupId}`);
         }
-
-        // Create experiment group
-        console.log("Creating experiment group...");
-        const groupName = uniqueName("test-exp-group");
-        const createGroupInput: CreateExperimentGroupCommandInput = {
-            workspace_id: ENV.workspace_id,
+        const createWorkspaceCmd = new CreateWorkspaceCommand({
             org_id: ENV.org_id,
-            name: groupName,
-            description: "Test experiment group for automated tests",
-            change_reason: "Automated Test - Creating experiment group",
-            context: experimentGroupContext,
-            traffic_percentage: 100,
-            member_experiment_ids: [], // Start with empty, will add experiments later
-        };
+            workspace_admin_email: "admin@example.com",
+            workspace_name: auto_populate_test_workspace,
+            strict_mode: true,
+            allow_experiment_self_approval: true,
+            auto_populate_control: true,
+        });
+        await superpositionClient.send(createWorkspaceCmd);
 
-        const groupResponse = await superpositionClient.send(
-            new CreateExperimentGroupCommand(createGroupInput)
-        );
-        experimentGroupId = groupResponse.id!;
-        console.log(`Created experiment group: ${experimentGroupId}`);
+        await setupWorkspace(auto_populate_test_workspace);
+
+        await setupWorkspace(ENV.workspace_id);
     });
 
     afterAll(async () => {
@@ -218,7 +239,10 @@ describe("Experiments API", () => {
             const experiments = experimentsOut.data || [];
             for (const experiment of experiments) {
                 if (experiment.name && experiment.name.includes("-from-test")) {
-                    if (experiment.status !== ExperimentStatusType.CONCLUDED && experiment.status !== ExperimentStatusType.DISCARDED) {
+                    if (
+                        experiment.status !== ExperimentStatusType.CONCLUDED &&
+                        experiment.status !== ExperimentStatusType.DISCARDED
+                    ) {
                         const controlVariant = experiment.variants?.find(
                             (v) => v.variant_type === VariantType.CONTROL
                         );
@@ -576,78 +600,140 @@ describe("Experiments API", () => {
     });
 
     test("3.1 Check Auto populate Control", async () => {
-        // This test checks if the auto-populate control functionality works correctly, relies on experimentId1
+        let contextResponse;
+
         try {
-            test("should create a valid context successfully", async () => {
-                const input = {
-                    workspace_id: ENV.workspace_id,
-                    org_id: ENV.org_id,
-                    override: {
-                        pmTestKey1: "value1-test-auto-populate-control",
-                    },
-                    context: {
-                        and: [
-                            { "==": [{ var: "os" }, "ios"] },
-                            { "==": [{ var: "clientId" }, "testClientCac1"] },
-                        ],
-                    },
-                    description: "Test auto populate control",
-                    change_reason: "Test auto populate control",
-                };
-    
-                let response: CreateContextCommandOutput;
-                try {
-                    const cmd = new CreateContextCommand(input);
-                    response = await superpositionClient.send(cmd);
-                } catch (err: any) {
-                    console.log(err.$response);
-                    throw err.$response;
-                }
-    
-                expect(response.$metadata.httpStatusCode).toBe(200);
-                expect(response.context_id).toBeDefined();
-    
-    
-                const getCmd = new GetContextCommand({
-                    workspace_id: ENV.workspace_id,
-                    org_id: ENV.org_id,
-                    id: response.context_id,
-                });
-    
-                let fetchedContext: GetContextCommandOutput;
-                try {
-                    fetchedContext = await superpositionClient.send(getCmd);
-                } catch (err: any) {
-                    console.log(err.$response);
-                    throw err.$response;
-                }
-
-                // Should fail ramp due to outdated control variant overrides
-                if (!experimentId1) {
-                    throw new Error("Experiment 1 ID not set, cannot ramp.");
-                }
-                const rampPercentage = 46;
-                const cmd = new RampExperimentCommand({
-                    workspace_id: ENV.workspace_id,
-                    org_id: ENV.org_id,
-                    id: experimentId1,
-                    traffic_percentage: rampPercentage,
-                    change_reason: "Testing auto populate control functionality",
-                });
-
-                expect(
-                    superpositionClient.send(cmd),
-                ).rejects.toThrow(
-                    "Outdated control variant overrides: {\"pmTestKey1\":\"value1-test-auto-populate-control\"}. Please update the control variant's overrides.",
-                );
-                
+            const createFailingTest = new CreateExperimentCommand({
+                workspace_id: auto_populate_test_workspace,
+                org_id: ENV.org_id,
+                name: "experiment-1-auto-populate-control",
+                context: experiment1Context,
+                variants: experiment1InitialVariants.map((v, index) => ({
+                    id: index === 0 ? "control" : `test${index}`,
+                    variant_type: v.variant_type,
+                    overrides: v.overrides,
+                    description: defaultDescription,
+                    change_reason: defaultChangeReason,
+                })),
+                description: defaultDescription,
+                change_reason: defaultChangeReason,
             });
+            expect(
+                superpositionClient.send(createFailingTest)
+            ).rejects.toThrow();
+
+            const experimentVariants: Omit<
+                Variant,
+                "id" | "context_id" | "override_id"
+            >[] = [
+                {
+                    variant_type: VariantType.CONTROL,
+                    overrides: {
+                        pmTestKey1: "default-value1",
+                        pmTestKey2: "default-value2",
+                    },
+                },
+                {
+                    variant_type: VariantType.EXPERIMENTAL,
+                    overrides: {
+                        pmTestKey1: "value2-test",
+                        pmTestKey2: "value2-test",
+                    },
+                },
+            ];
+
+            const createExperimentCmd = new CreateExperimentCommand({
+                workspace_id: auto_populate_test_workspace,
+                org_id: ENV.org_id,
+                name: "experiment-1-auto-populate-control",
+                context: experiment1Context,
+                variants: experimentVariants.map((v, index) => ({
+                    id: index === 0 ? "control" : `test${index}`,
+                    variant_type: v.variant_type,
+                    overrides: v.overrides,
+                })),
+                description: defaultDescription,
+                change_reason: defaultChangeReason,
+            });
+            const expResponse = await superpositionClient.send(
+                createExperimentCmd
+            );
+
+            console.log("Experiment created successfully:", expResponse.id);
+
+            const createContextCmd = new CreateContextCommand({
+                workspace_id: auto_populate_test_workspace,
+                org_id: ENV.org_id,
+                context: experiment1Context,
+                override: {
+                    pmTestKey1: "new-control",
+                    pmTestKey2: "new-control",
+                },
+                description: "Context for auto-populate control test",
+                change_reason: "Testing auto-populate control",
+            });
+
+            contextResponse = await superpositionClient.send(createContextCmd);
+
+            console.log("Context created successfully:", contextResponse.id);
+
+            // Attempt to ramp the experiment, which should fail due to missing overrides
+            const rampCmd = new RampExperimentCommand({
+                workspace_id: auto_populate_test_workspace,
+                org_id: ENV.org_id,
+                id: expResponse.id,
+                traffic_percentage: 50, // Example ramp percentage
+                change_reason: "Testing auto-populate control ramp",
+            });
+            expect(superpositionClient.send(rampCmd)).rejects.toThrow();
+
+            const updatedVariants: VariantUpdateRequest[] =
+                expResponse.variants?.map((variant, index) => ({
+                    id: variant.id,
+                    overrides:
+                        variant.variant_type === VariantType.CONTROL
+                            ? {
+                                  pmTestKey1: "new-control",
+                                  pmTestKey2: "new-control",
+                              }
+                            : variant.overrides,
+                }));
+
+            const updateOverridesCmd = new UpdateOverridesExperimentCommand({
+                workspace_id: auto_populate_test_workspace,
+                org_id: ENV.org_id,
+                id: expResponse.id,
+                variant_list: updatedVariants,
+                description: "Updating overrides for auto-populate control",
+                change_reason: "Testing auto-populate control update",
+            });
+
+            await superpositionClient.send(updateOverridesCmd);
+
+            // Now ramp the experiment again, which should succeed
+            const rampSuccessCmd = new RampExperimentCommand({
+                workspace_id: auto_populate_test_workspace,
+                org_id: ENV.org_id,
+                id: expResponse.id,
+                traffic_percentage: 50, // Example ramp percentage
+                change_reason: "Testing auto-populate control ramp success",
+            });
+            const rampResponse = await superpositionClient.send(rampSuccessCmd);
         } catch (e: any) {
             console.error(
                 "Error in test '3.1 Check Auto populate Control':",
                 e?.$response || e.message
             );
             throw e;
+        }
+        if (contextResponse) {
+            // delete the created context
+            const deleteContextCmd = new DeleteContextCommand({
+                workspace_id: auto_populate_test_workspace,
+                org_id: ENV.org_id,
+                id: contextResponse.id,
+            });
+            await superpositionClient.send(deleteContextCmd);
         }
     });
 
@@ -674,7 +760,7 @@ describe("Experiments API", () => {
                 {
                     id: controlVariant.id,
                     overrides: {
-                        pmTestKey1: "value-test-auto-populate-control",
+                        pmTestKey1: "value-7910-an-control",
                         pmTestKey2: "value-6910-an-control",
                     },
                 },
@@ -817,10 +903,10 @@ describe("Experiments API", () => {
                                 workspace_id: ENV.workspace_id,
                                 org_id: ENV.org_id,
                                 id: experimentGroupId,
-                            }),
-                        ),
+                            })
+                        )
                     ).rejects.toThrow(
-                        "No records found. Please refine or correct your search parameters",
+                        "No records found. Please refine or correct your search parameters"
                     );
                 } catch (error: any) {
                     if (error.name !== "ResourceNotFound") {
@@ -1111,10 +1197,10 @@ describe("Experiments API", () => {
                             workspace_id: ENV.workspace_id,
                             org_id: ENV.org_id,
                             id: experimentGroupId,
-                        }),
-                    ),
+                        })
+                    )
                 ).rejects.toThrow(
-                    "No records found. Please refine or correct your search parameters",
+                    "No records found. Please refine or correct your search parameters"
                 );
             } catch (error: any) {
                 if (error.name !== "ResourceNotFound") {
@@ -1126,7 +1212,7 @@ describe("Experiments API", () => {
                 }
             }
         }
-    })
+    });
 
     test("9. List Experiments (Basic)", async () => {
         try {
