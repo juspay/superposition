@@ -526,16 +526,6 @@ async fn reduce_config_key(
                 Some(Value::Bool(to_be_deleted)),
                 Some(Value::Object(override_val)),
             ) => {
-                let override_val =
-                    Cac::<Overrides>::validate_db_data(override_val.clone())
-                        .map_err(|err| {
-                            log::error!(
-                        "reduce_config_key: failed to decode overrides from db {err}"
-                    );
-                            unexpected_error!(err)
-                        })?
-                        .into_inner();
-
                 if *to_be_deleted {
                     if is_approve {
                         let _ = context::delete(cid.clone(), user, conn, schema_name);
@@ -566,6 +556,16 @@ async fn reduce_config_key(
                             );
                         }
                     }
+
+                    let override_val =
+                        Cac::<Overrides>::validate_db_data(override_val.clone())
+                            .map_err(|err| {
+                                log::error!(
+                            "reduce_config_key: failed to decode overrides from db {err}"
+                        );
+                                unexpected_error!(err)
+                            })?
+                            .into_inner();
 
                     let new_id =
                         context::hash(&Value::Object(override_val.clone().into()));
