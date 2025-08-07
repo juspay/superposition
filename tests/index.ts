@@ -28,7 +28,7 @@ async function setupWorkspace() {
             workspace_status: WorkspaceStatus.ENABLED,
             strict_mode: true,
             allow_experiment_self_approval: true,
-            auto_populate_control: true,
+            auto_populate_control: false,
         });
 
         console.info(`Create test workspace as ${TEST_WORKSPACE}`);
