@@ -39,7 +39,6 @@ uniffi = { workspace = true }
 uniffi = { workspace = true }
 
 [features]
-default = ["server"]
 diesel_derives = [
     "dep:diesel",
     "superposition_derives/diesel_derives",

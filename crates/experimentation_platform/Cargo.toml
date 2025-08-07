@@ -25,6 +25,7 @@ superposition_types = { workspace = true, features = [
     "experimentation",
     "result",
     "diesel_derives",
+    "server",
 ] }
 
 [features]

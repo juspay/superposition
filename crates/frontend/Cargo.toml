@@ -28,7 +28,7 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 superposition_derives = { workspace = true }
 superposition_macros = { workspace = true }
-superposition_types = { path = "../superposition_types", features = [
+superposition_types = { workspace = true, features = [
     "experimentation",
     "api",
 ], default-features = false }

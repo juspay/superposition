@@ -33,6 +33,7 @@ superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
     "api",
     "diesel_derives",
+    "server",
 ] }
 
 [features]
