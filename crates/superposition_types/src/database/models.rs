@@ -395,3 +395,25 @@ impl TryFrom<String> for NonEmptyString {
         Ok(Self(value))
     }
 }
+
+pub mod i64_formatter {
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    // Serialize i64 to String
+    pub fn serialize<S>(value: &i64, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&value.to_string())
+    }
+
+    // Deserialize String to i64
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<i64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        s.parse::<i64>()
+            .map_err(|e| serde::de::Error::custom(format!("Failed to parse i64: {}", e)))
+    }
+}
