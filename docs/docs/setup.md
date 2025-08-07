@@ -1,6 +1,6 @@
 ---
-sidebar_position: 2
-title: Setup
+sidebar_position: 3
+title: Development Setup
 ---
 
 # Setup Instructions for Superposition Platform

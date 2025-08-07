@@ -4,8 +4,20 @@
 <img src="https://juspay.io/images/superposition/logo.jpg" alttext="Superposition Logo" width="400">
 </p>
 
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/juspay/superposition)](https://github.com/juspay/superposition/pulse) 
-[![GitHub last commit](https://img.shields.io/github/last-commit/juspay/superposition)](https://github.com/juspay/superposition/commits/main)  ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)  [![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr) 
+![GitHub License](https://img.shields.io/github/license/juspay/superposition)
+![Dynamic TOML Badge](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjuspay%2Fsuperposition%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.package.version&label=version&color=green)
+[![GitHub Release Date](https://img.shields.io/github/release-date-pre/juspay/superposition)](https://github.com/juspay/superposition/releases) 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/juspay/superposition/release.yaml)
+
+[![Crates.io Downloads (latest version)](https://img.shields.io/crates/dv/superposition_provider?label=openfeature-provider%40crates.io)](https://crates.io/crates/superposition_provider)
+[![Crates.io Downloads (latest version)](https://img.shields.io/crates/dv/superposition_sdk?label=superposition%20sdk%40crates.io)](https://crates.io/crates/superposition_sdk)
+[![NPM Downloads](https://img.shields.io/npm/dm/superposition-provider?label=openfeature%20provider%40npm)](https://www.npmjs.com/package/superposition-provider)
+[![NPM Downloads](https://img.shields.io/npm/dm/superposition-sdk?label=superposition%20sdk%40npm)
+](https://www.npmjs.com/package/superposition-sdk)
+
+
+![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)
+[![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr) 
 
 
 Superposition is a cloud configuration and experimentation management platform that allows software teams to manage their configuration via a central location, run multi-variate experiments for different configuration values and evaluate results of these experiments and conclude them accordingly.
