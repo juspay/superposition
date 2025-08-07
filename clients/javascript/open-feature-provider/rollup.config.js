@@ -39,6 +39,7 @@ export default {
     ],
     external,
     plugins: [
+        json(),
         copy({
             targets: [
                 { src: '../bindings/native-lib/**/*', dest: 'dist/native-lib' }
@@ -48,7 +49,6 @@ export default {
         nodeResolve({
             preferBuiltins: true
         }),
-        json(),
         commonjs(),
         typescript({
             tsconfig: './tsconfig.json'

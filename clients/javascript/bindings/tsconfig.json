@@ -6,7 +6,6 @@
             "es2020",
             "dom"
         ],
-        "types": ["node"],
         "declaration": true,
         "outDir": "./dist",
         "rootDir": "./",
