@@ -347,10 +347,13 @@ async fn backfill_experiment_groups(
     state: Data<AppState>,
     db_conn: DbConnection,
     schema_name: SchemaName,
-    user: User,
 ) -> superposition::Result<Json<Vec<ExperimentGroup>>> {
     log::info!("Backfilling experiment groups");
     let DbConnection(mut conn) = db_conn;
+    let user = User {
+        email: "system@superposition.io".into(),
+        username: "superposition".into(),
+    };
     let experiment_groups =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let mut results = vec![];
