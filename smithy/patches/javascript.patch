@@ -1,9 +1,9 @@
 diff --git a/clients/javascript/sdk/package.json b/clients/javascript/sdk/package.json
-index a7763ceb..ed540f0a 100644
+index 500df093..253b75ca 100644
 --- a/clients/javascript/sdk/package.json
 +++ b/clients/javascript/sdk/package.json
-@@ -3,13 +3,13 @@
-     "description": "@juspay/superposition-sdk client",
+@@ -3,13 +3,14 @@
+     "description": "superposition-sdk client",
      "version": "0.0.1",
      "scripts": {
 -        "build": "concurrently 'yarn:build:cjs' 'yarn:build:es' 'yarn:build:types'",
@@ -15,22 +15,32 @@ index a7763ceb..ed540f0a 100644
 -        "clean": "rimraf ./dist-* && rimraf *.tsbuildinfo || exit 0",
 -        "prepack": "yarn run clean && yarn run build"
 +        "clean": "rimraf ./dist-* && rimraf *.tsbuildinfo",
-+        "prepack": "npm run clean && npm run build"
++        "prepack": "npm run clean && npm run build",
++        "prepublishOnly": "npm --no-git-tag-version version $VERSION"
      },
      "main": "./dist-cjs/index.js",
      "types": "./dist-types/index.d.ts",
-@@ -53,11 +53,11 @@
-     },
-     "devDependencies": {
-         "@tsconfig/node18": "18.2.4",
--        "concurrently": "7.0.0",
-         "downlevel-dts": "0.10.1",
--        "rimraf": "^3.0.0",
-+        "rimraf": "^5.0.0",
-         "typescript": "~5.2.2",
--        "@types/node": "^18.19.69"
-+        "@types/node": "^18.19.69",
-+        "concurrently": "^6.2.0"
-     },
-     "engines": {
-         "node": ">=18.0.0"
+diff --git a/clients/javascript/sdk/src/runtimeConfig.browser.ts b/clients/javascript/sdk/src/runtimeConfig.browser.ts
+index 1e58eb05..561025ef 100644
+--- a/clients/javascript/sdk/src/runtimeConfig.browser.ts
++++ b/clients/javascript/sdk/src/runtimeConfig.browser.ts
+@@ -1,6 +1,6 @@
+ // smithy-typescript generated code
+ // @ts-ignore: package.json will be imported from dist folders
+-import packageInfo from "../package.json"; // eslint-disable-line
++import packageInfo from "../package.json" with {type: json}; // eslint-disable-line
+ 
+ import { Sha256 } from "@aws-crypto/sha256-browser";
+ import { createDefaultUserAgentProvider } from "@aws-sdk/util-user-agent-browser";
+diff --git a/clients/javascript/sdk/src/runtimeConfig.ts b/clients/javascript/sdk/src/runtimeConfig.ts
+index a12da561..b13a3dfb 100644
+--- a/clients/javascript/sdk/src/runtimeConfig.ts
++++ b/clients/javascript/sdk/src/runtimeConfig.ts
+@@ -1,6 +1,6 @@
+ // smithy-typescript generated code
+ // @ts-ignore: package.json will be imported from dist folders
+-import packageInfo from "../package.json"; // eslint-disable-line
++import packageInfo from "../package.json" with {type: json}; // eslint-disable-line
+ 
+ import {
+   NODE_APP_ID_CONFIG_OPTIONS,

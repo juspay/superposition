@@ -54,11 +54,11 @@
     },
     "devDependencies": {
         "@tsconfig/node18": "18.2.4",
+        "concurrently": "7.0.0",
         "downlevel-dts": "0.10.1",
-        "rimraf": "^5.0.0",
+        "rimraf": "^3.0.0",
         "typescript": "~5.2.2",
-        "@types/node": "^18.19.69",
-        "concurrently": "^6.2.0"
+        "@types/node": "^18.19.69"
     },
     "engines": {
         "node": ">=18.0.0"

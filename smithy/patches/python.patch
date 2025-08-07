@@ -22,3 +22,4 @@ index 7c295b28..b7a7bd7e 100644
  [tool.pyright]
  typeCheckingMode = "strict"
  reportPrivateUsage = false
+ 
