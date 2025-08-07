@@ -28,7 +28,7 @@ use super::super::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
     type_templates,
 };
-use super::{ChangeReason, Description};
+use super::{i64_formatter, ChangeReason, Description};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[cfg_attr(
@@ -207,6 +207,19 @@ pub struct EventLog {
 pub struct ConfigVersion {
     pub id: i64,
     pub config: Value,
+    pub config_hash: String,
+    pub tags: Option<Vec<String>>,
+    pub created_at: DateTime<Utc>,
+    pub description: Description,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+#[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable))]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = config_versions))]
+pub struct ConfigVersionListItem {
+    #[serde(with = "i64_formatter")]
+    pub id: i64,
     pub config_hash: String,
     pub tags: Option<Vec<String>>,
     pub created_at: DateTime<Utc>,
