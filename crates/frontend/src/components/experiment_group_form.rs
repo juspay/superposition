@@ -8,7 +8,7 @@ use superposition_types::{
         experiment_groups::{ExpGroupMemberRequest, ExpGroupUpdateRequest},
         workspace::WorkspaceResponse,
     },
-    database::models::{experimentation::ExperimentGroup, ChangeReason},
+    database::models::ChangeReason,
 };
 use web_sys::MouseEvent;
 
@@ -32,8 +32,8 @@ use crate::{
 
 #[component]
 pub fn add_experiment_to_group_form(
-    experiment_group: StoredValue<ExperimentGroup>,
-    handle_submit: Callback<()>,
+    experiment_group_id: i64,
+    #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -68,7 +68,7 @@ pub fn add_experiment_to_group_form(
                 };
 
                 let result = add_members(
-                    &experiment_group.get_value().id.to_string(),
+                    &experiment_group_id.to_string(),
                     payload,
                     &tenant,
                     &org_id,

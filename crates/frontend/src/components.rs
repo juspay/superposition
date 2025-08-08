@@ -8,7 +8,7 @@ pub mod context_card;
 pub mod context_form;
 pub mod default_config_form;
 pub mod delete_modal;
-pub mod description_icon;
+pub mod description;
 pub mod dimension_form;
 pub mod drawer;
 pub mod dropdown;
