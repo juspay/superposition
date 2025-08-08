@@ -18,6 +18,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.GetResolvedConfigInput
 import qualified Io.Superposition.Model.GetResolvedConfigOutput
 import qualified Io.Superposition.Model.InternalServerError
@@ -32,7 +34,10 @@ data GetResolvedConfigError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON GetResolvedConfigError
+instance Data.Aeson.FromJSON GetResolvedConfigError
 
 serGetResolvedConfigPAYLOAD:: Io.Superposition.Model.GetResolvedConfigInput.GetResolvedConfigInput -> Network.HTTP.Client.RequestBody
 serGetResolvedConfigPAYLOAD input =

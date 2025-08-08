@@ -19,6 +19,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.OrgStatus
 import qualified Io.Superposition.Model.OrganisationNotFound
@@ -35,7 +37,10 @@ data UpdateOrganisationError =
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON UpdateOrganisationError
+instance Data.Aeson.FromJSON UpdateOrganisationError
 
 serUpdateOrganisationPAYLOAD:: Io.Superposition.Model.UpdateOrganisationInput.UpdateOrganisationInput -> Network.HTTP.Client.RequestBody
 serUpdateOrganisationPAYLOAD input =

@@ -19,6 +19,8 @@ import qualified Data.List
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.ExperimentResponse
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.ListExperimentInput
@@ -34,7 +36,10 @@ data ListExperimentError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON ListExperimentError
+instance Data.Aeson.FromJSON ListExperimentError
 
 serListExperimentQUERY :: Io.Superposition.Model.ListExperimentInput.ListExperimentInput -> Data.ByteString.ByteString
 serListExperimentQUERY input =

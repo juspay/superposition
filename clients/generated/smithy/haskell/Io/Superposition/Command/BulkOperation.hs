@@ -17,6 +17,8 @@ import qualified Data.List
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.BulkOperationInput
 import qualified Io.Superposition.Model.BulkOperationOut
 import qualified Io.Superposition.Model.BulkOperationOutput
@@ -32,7 +34,10 @@ data BulkOperationError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON BulkOperationError
+instance Data.Aeson.FromJSON BulkOperationError
 
 serBulkOperationPAYLOAD:: Io.Superposition.Model.BulkOperationInput.BulkOperationInput -> Network.HTTP.Client.RequestBody
 serBulkOperationPAYLOAD input =

@@ -18,6 +18,8 @@ import qualified Data.List
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.GetTypeTemplatesListInput
 import qualified Io.Superposition.Model.GetTypeTemplatesListOutput
 import qualified Io.Superposition.Model.InternalServerError
@@ -33,7 +35,10 @@ data GetTypeTemplatesListError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON GetTypeTemplatesListError
+instance Data.Aeson.FromJSON GetTypeTemplatesListError
 
 serGetTypeTemplatesListQUERY :: Io.Superposition.Model.GetTypeTemplatesListInput.GetTypeTemplatesListInput -> Data.ByteString.ByteString
 serGetTypeTemplatesListQUERY input =

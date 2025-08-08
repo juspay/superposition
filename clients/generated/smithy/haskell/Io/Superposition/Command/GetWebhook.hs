@@ -20,6 +20,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Io.Superposition.Model.GetWebhookInput
 import qualified Io.Superposition.Model.GetWebhookOutput
 import qualified Io.Superposition.Model.HttpMethod
@@ -36,7 +38,10 @@ data GetWebhookError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON GetWebhookError
+instance Data.Aeson.FromJSON GetWebhookError
 
 serGetWebhookHEADER :: Io.Superposition.Model.GetWebhookInput.GetWebhookInput -> Network.HTTP.Types.Header.RequestHeaders
 serGetWebhookHEADER input =
