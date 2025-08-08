@@ -2,13 +2,15 @@ use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{database::schema, result, DBConnection};
 
-use crate::helpers::{validate_context_jsonschema, DimensionData};
+use crate::helpers::validate_context_jsonschema;
+use crate::helpers::DimensionData;
 
+#[cfg(feature = "jsonlogic")]
 use super::types::DimensionCondition;
 
 pub fn validate_override_with_default_configs(
@@ -61,6 +63,7 @@ pub fn validate_override_with_default_configs(
     Ok(())
 }
 
+#[cfg(feature = "jsonlogic")]
 pub fn validate_dimensions(
     object_key: &str,
     cond: &Value,
@@ -93,7 +96,7 @@ pub fn validate_dimensions(
             for i in arr {
                 if let (None, Ok(x)) = (
                     &condition,
-                    serde_json::from_value::<DimensionCondition>(json!(i)),
+                    serde_json::from_value::<DimensionCondition>(serde_json::json!(i)),
                 ) {
                     condition = Some(x);
                 } else if val.is_none() {
@@ -128,4 +131,18 @@ pub fn validate_dimensions(
         }
         _ => Ok(()),
     }
+}
+
+#[cfg(not(feature = "jsonlogic"))]
+pub fn validate_dimensions(
+    cond: &Map<String, Value>,
+    dimension_schema_map: &HashMap<String, DimensionData>,
+) -> result::Result<()> {
+    for (dimension, value) in cond.iter() {
+        let dimension_data = dimension_schema_map
+            .get(dimension)
+            .ok_or(bad_argument!("No matching dimension ({}) found", dimension))?;
+        validate_context_jsonschema(value, &dimension_data.schema)?;
+    }
+    Ok(())
 }

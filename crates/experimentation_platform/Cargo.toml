@@ -30,6 +30,12 @@ superposition_types = { workspace = true, features = [
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
+jsonlogic = [
+    "cac_client/jsonlogic",
+    "experimentation_client/jsonlogic",
+    "service_utils/jsonlogic",
+    "superposition_types/jsonlogic",
+]
 
 [lints]
 workspace = true
