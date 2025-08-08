@@ -274,6 +274,9 @@ amend-no-edit: amend
 grafana-local:
 	cd grafana && $(COMPOSE) up
 
+local-docs-view:
+	cd docs && npm ci && npm start
+
 default: dev-build frontend
 
 schema-file:
