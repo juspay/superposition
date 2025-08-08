@@ -244,6 +244,10 @@ import {
   UpdateWorkspaceCommandOutput,
 } from "../commands/UpdateWorkspaceCommand";
 import {
+  UpdateWorkspaceDatabaseCommandInput,
+  UpdateWorkspaceDatabaseCommandOutput,
+} from "../commands/UpdateWorkspaceDatabaseCommand";
+import {
   WeightRecomputeCommandInput,
   WeightRecomputeCommandOutput,
 } from "../commands/WeightRecomputeCommand";
@@ -1932,6 +1936,26 @@ export const se_UpdateWorkspaceCommand = async(
     'workspace_status': [],
   }));
   b.m("PUT")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1UpdateWorkspaceDatabaseCommand
+ */
+export const se_UpdateWorkspaceDatabaseCommand = async(
+  input: UpdateWorkspaceDatabaseCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/workspaces/{workspace_name}/db/update");
+  b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
+  let body: any;
+  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -3744,6 +3768,42 @@ export const de_UpdateWorkspaceCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<UpdateWorkspaceCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'allow_experiment_self_approval': __expectBoolean,
+    'auto_populate_control': __expectBoolean,
+    'config_version': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'mandatory_dimensions': _json,
+    'metrics': _ => de_Document(_, context),
+    'organisation_id': __expectString,
+    'organisation_name': __expectString,
+    'strict_mode': __expectBoolean,
+    'workspace_admin_email': __expectString,
+    'workspace_name': __expectString,
+    'workspace_schema_name': __expectString,
+    'workspace_status': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1UpdateWorkspaceDatabaseCommand
+ */
+export const de_UpdateWorkspaceDatabaseCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<UpdateWorkspaceDatabaseCommandOutput> => {
   if (output.statusCode !== 200 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
