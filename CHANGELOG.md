@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.85.1 - 2025-08-08
+### Package updates
+- superposition_types bumped to superposition_types-v0.29.1
+- experimentation_platform bumped to experimentation_platform-v0.39.1
+- context_aware_config bumped to context_aware_config-v0.59.1
+- superposition_provider bumped to superposition_provider-v0.4.2
+- frontend bumped to frontend-v0.39.1
+### Global changes
+#### Bug Fixes
+- **(haskell-sdk)** JSON & Show instances for Error types. (#649) - (6004dbf) - ShreyBana
+- add patch file for rust (#646) - (1e90f08) - Datron
+- Use workspace superposition_types in frontend crate (#650) - (613abce) - Ayush Jain
+#### Documentation
+- add readme badges (#645) - (5f9ad55) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.85.0 [skip ci] - (fa5767d) - Superposition Bot
+
+- - -
+
 ## v0.85.0 - 2025-08-06
 ### Package updates
 - superposition_provider bumped to superposition_provider-v0.4.1

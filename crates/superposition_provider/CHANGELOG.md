@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.4.2 - 2025-08-08
+#### Bug Fixes
+- experiment group backfilling user details - (8a4788c) - Ankit.Mahato
+#### Miscellaneous Chores
+- **(version)** v0.85.0 [skip ci] - (fa5767d) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.4.1 - 2025-08-06
 #### Bug Fixes
 - add smithy python sdk patch - (8764abf) - datron

@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.59.1 - 2025-08-08
+#### Bug Fixes
+- Use workspace superposition_types in frontend crate (#650) - (613abce) - Ayush Jain
+- Error in reduce api - (408a5ae) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.83.0 [skip ci] - (2e2d48c) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.59.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (8b62d45) - datron
