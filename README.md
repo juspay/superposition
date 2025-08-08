@@ -50,25 +50,27 @@ The Superposition platform provides a variety of clients to interact with the Su
 2. provider (or open-feature-provider) - this open feature compatible library is meant to be used by the applications that consume configurations hosted in Superposition.  This has support for in-memory-caching and period polling based refresh of configuration in the application.
 3. bindings - this library contains the core configuration resolution logic - which is wrapped by the provider in an open-feature compatible format
 
-## Applications using Superposition
+## Deeper dive into Superposition
 
-Superposition comes as a shot in the arm for any application that needs safe and flexibile configurability.  We have build many internal applications that leverage the Superposition across different parts of the software stack - frontend, backend, infra, storage.
-
-## More links
+For a deeper dive into the under-pinnings of Superposition, development setup, API docs - you can go over the following links.
 1. Conceptual docs
     * [Context-Aware-Configuration](https://juspay.io/superposition/docs/basic-concepts/context-aware-config)
     * [Experimentation](https://juspay.io/superposition/docs/basic-concepts/experimentation)
 3. [Development setup](https://juspay.io/superposition/docs/setup)
 4. API Ref (TBD)
-5. [TOML formatted Context-Aware-Configuration example](docs/docs/experimental/cac-toml.md)
+
+## Applications using Superposition
+
+Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have build many internal applications that leverage the Superposition across different parts of the software stack - frontend, backend, infra and storage.
 
 ## Key highlights
+
 * **Admin UI** - Out of the box administration (and tools) UI for configurations and experiments
-* **Rich API support** - every action on the platform to manage configurations / experiments is supported with an accompanying API
+* **Rich API support** - every action on the platform to manage configurations / experiments is supported with an accompanying API (and in the SDK as well)
 * **Safe configuration changes** - support canary testing for releasing configuration changes using experiments
 * **Type/Validation support** - Comprehensive type support using json-schema and custom validator function support for configuration values
 * **Multi-tenant support** - a single deployment allows multiple tenants to manage their configurations/experiments in a completely isolated manner
-* **Authn/Authz support** - control who can make configuration/experimentation changes
+* **Authn/Authz support** - RBAC support to decide can make configuration/experimentation changes
 
 ## Email us
 * [superposition@juspay.in](mailto:superposition@juspay.in)
