@@ -1,19 +1,20 @@
 plugins {
     `java-library`
-    `maven-publish`
-    kotlin("jvm") version "1.9.10"
+    `publishing-conventions`
+    `kotlin-conventions`
     id("io.freefair.lombok") version "8.6"
 }
 
 java {
+    withSourcesJar()
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
+group = "${rootProject.group}.openfeature"
+extra["displayName"] = "Superposition Openfeature Provider"
+description = "Openfeature provider implementation for Superposition."
 
 dependencies {
     implementation(project(":bindings"))
@@ -41,15 +42,5 @@ tasks.test {
         showCauses = true
         showStackTraces = true
         showStandardStreams = true
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "${rootProject.group}.openfeature"
-            artifactId = "superposition-provider"
-            from(components["java"])
-        }
     }
 }
