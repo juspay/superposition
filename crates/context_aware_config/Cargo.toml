@@ -30,6 +30,7 @@ superposition_types = { workspace = true, features = [
     "api",
     "result",
     "diesel_derives",
+    "server",
 ] }
 uuid = { workspace = true }
 
