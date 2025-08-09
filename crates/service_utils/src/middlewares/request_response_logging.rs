@@ -1,14 +1,16 @@
+use actix_web::body::MessageBody;
 use actix_web::dev::{
     forward_ready, Payload, Service, ServiceRequest, ServiceResponse, Transform,
 };
 use actix_web::web::Bytes;
-use actix_web::{error::PayloadError, Error};
+use actix_web::{error::PayloadError, http::StatusCode, Error};
 use futures_util::future::{ok, Ready};
 use futures_util::stream::{once, StreamExt};
 use log::{info, warn};
 use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
+use std::task::{Context, Poll};
 
 pub struct RequestResponseLogger;
 
@@ -18,13 +20,83 @@ impl Default for RequestResponseLogger {
     }
 }
 
+// Custom body wrapper for logging response bodies
+pub struct LoggingBody<B> {
+    inner: B,
+    status: StatusCode,
+    headers: Vec<String>,
+    body_bytes: Vec<u8>,
+    consumed: bool,
+}
+
+impl<B> LoggingBody<B> {
+    fn new(body: B, status: StatusCode, headers: Vec<String>) -> Self {
+        Self {
+            inner: body,
+            status,
+            headers,
+            body_bytes: Vec::new(),
+            consumed: false,
+        }
+    }
+}
+
+impl<B> MessageBody for LoggingBody<B>
+where
+    B: MessageBody + Unpin,
+{
+    type Error = B::Error;
+
+    fn size(&self) -> actix_web::body::BodySize {
+        self.inner.size()
+    }
+
+    fn poll_next(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<Result<Bytes, Self::Error>>> {
+        let this = self.get_mut();
+        let inner = Pin::new(&mut this.inner);
+
+        match inner.poll_next(cx) {
+            Poll::Ready(Some(Ok(chunk))) => {
+                this.body_bytes.extend_from_slice(&chunk);
+                Poll::Ready(Some(Ok(chunk)))
+            }
+            Poll::Ready(Some(Err(e))) => Poll::Ready(Some(Err(e))),
+            Poll::Ready(None) => {
+                if !this.consumed {
+                    this.consumed = true;
+                    // Log the complete response body
+                    let response_body = if this.body_bytes.is_empty() {
+                        String::from("(empty)")
+                    } else {
+                        String::from_utf8(this.body_bytes.clone()).unwrap_or_else(|_| {
+                            format!("(binary data, {} bytes)", this.body_bytes.len())
+                        })
+                    };
+
+                    info!(
+                        "RESPONSE: {} headers=[{}] body={}",
+                        this.status,
+                        this.headers.join(", "),
+                        response_body
+                    );
+                }
+                Poll::Ready(None)
+            }
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
 impl<S, B> Transform<S, ServiceRequest> for RequestResponseLogger
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + Unpin + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<LoggingBody<B>>;
     type Error = Error;
     type InitError = ();
     type Transform = RequestResponseLoggerMiddleware<S>;
@@ -45,9 +117,9 @@ impl<S, B> Service<ServiceRequest> for RequestResponseLoggerMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + Unpin + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<LoggingBody<B>>;
     type Error = Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
@@ -141,13 +213,11 @@ where
                     }
                 }
 
-                info!(
-                    "RESPONSE: {} headers=[{}]",
-                    status,
-                    response_headers.join(", ")
-                );
+                // Wrap the response body with our logging wrapper
+                let logged_res = res
+                    .map_body(|_, body| LoggingBody::new(body, status, response_headers));
 
-                Ok(res)
+                Ok(logged_res)
             } else {
                 // For GET/DELETE etc, don't extract body
                 info!(
@@ -174,13 +244,11 @@ where
                     }
                 }
 
-                info!(
-                    "RESPONSE: {} headers=[{}]",
-                    status,
-                    response_headers.join(", ")
-                );
+                // Wrap the response body with our logging wrapper
+                let logged_res = res
+                    .map_body(|_, body| LoggingBody::new(body, status, response_headers));
 
-                Ok(res)
+                Ok(logged_res)
             }
         })
     }
