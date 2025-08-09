@@ -20,9 +20,9 @@
 [![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr) 
 
 
-Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations (any data-type) safely.  It allows teams to run multi-variate experiments on these configuration values.  Superposition places a strong emphasis on safety of configuration changes.  It does this by supporting strong typing (via [json-schema](https://json-schema.org/)), custom validation functions (with an embedded JS runtime) and supporting staggering configuration changes via experiments.  This gives applications robust platform to roll-out changes safely.
+Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and allow them to run multi-variate experiments on them. Superposition places a strong emphasis on safety of configuration changes.  It does this by supporting strong typing of configuration values (via [json-schema](https://json-schema.org/)), custom validation functions (with an embedded Javascript runtime) that can validate configuration values against external data-sources and supporting staggering configuration changes via experiments.  This comprehensive setup gives applications a robust platform to roll-out changes safely.
 
-The Superposition platform comprises of two components:
+The Superposition platform comprises of two main components:
 
 * **Context-Aware-Configuration** - a flexible configuration management system that supports contextual overrides for configuration keys
 * **Experimentation** - a experimentation management system that allows supplying different configuration values to equal-sized cohorts (facilitating A/B/...Z testing)
@@ -40,15 +40,15 @@ Once you run this command, you can access the Superposition admin interface at `
 
 ### Integrating Superposition in your application
 
-Once you have played with the Superposition admin interface, you may want to consume the configuration in your application.  Superposition is [OpenFeature](https://openfeature.dev/docs/reference/concepts/provider) compatible.  OpenFeature allows your application code to remain agnostic of the underlying configuration/feature-flag platform (like [open telemetry](https://opentelemetry.io/) for telemetry).  The [quick start guide](https://juspay.io/superposition/docs/quick_start) has details on how to integrate and consume configuration setup in Superposition in your application using the Superposition Open Feature provider.
+Once you have played with the Superposition admin interface, you may want to consume the configuration in your application.  Superposition is [OpenFeature](https://openfeature.dev/docs/reference/concepts/provider) compatible.  OpenFeature allows your application code to remain agnostic of the underlying configuration/feature-flag platform (like [open telemetry](https://opentelemetry.io/) for telemetry).  The [quick start guide](https://juspay.io/superposition/docs/quick_start) has details on how to integrate and consume configurations (setup in Superposition) in your application using the Superposition Open Feature provider.
 
 ## Superposition Clients
 
 Superposition comes with a variety of clients supported in multiple programming languages to interact with the Superposition platform.
 
-1. sdk - this library contains methods to interact with the control plane of Superposition to manage configurations and experiments.  In short, all APIs supported by the Superposition platform can be invoked using the sdk (built using [AWS' Smithy IDL](https://smithy.io)).
-2. provider (or open-feature-provider) - this open feature compatible library is meant to be used by the applications that consume configurations hosted in Superposition.  This has support for in-memory-caching and period polling based refresh of configuration in the application.
-3. bindings - this library contains the core configuration resolution logic - which is wrapped by the provider in an open-feature compatible format
+1. `sdk` - this library contains methods to interact with the control plane of Superposition to manage configurations and experiments.  In short, all APIs supported by the Superposition platform can be invoked using the sdk (built using [AWS' Smithy IDL](https://smithy.io)).
+2. `provider` (or open-feature-provider) - this open feature compatible library is meant to be used by the applications that consume configurations hosted in Superposition.  This has support for in-memory-caching and period polling based refresh of configuration in the application.
+3. `bindings` - this library contains the core configuration resolution logic - which is wrapped by the provider in an open-feature compatible format
 
 ## Deeper dive into Superposition
 
@@ -57,11 +57,11 @@ For a deeper dive into the under-pinnings of Superposition, development setup, A
     * [Context-Aware-Configuration](https://juspay.io/superposition/docs/basic-concepts/context-aware-config)
     * [Experimentation](https://juspay.io/superposition/docs/basic-concepts/experimentation)
 3. [Development setup](https://juspay.io/superposition/docs/setup)
-4. API Ref (TBD)
+4. API Ref (TODO:)
 
 ## Applications using Superposition
 
-Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have build many internal applications that leverage the Superposition across different parts of the software stack - frontend, backend, infra and storage.
+Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have build many internal applications that leverage the Superposition across different parts of the software stack - frontend, backend, infra and storage. (TODO: links to applications)
 
 ## Key highlights
 
