@@ -149,6 +149,7 @@ get-password:
 
 superposition: CARGO_FLAGS += --features='$(FEATURES)'
 superposition:
+	#cargo build $(CARGO_FLAGS) --features request-response-logging --bin superposition
 	cargo build $(CARGO_FLAGS) --bin superposition
 	@cd target && ln -s ../node_modules node_modules || true
 
