@@ -48,6 +48,9 @@ jsonlogic = [
     "service_utils/jsonlogic",
     "superposition_types/jsonlogic",
 ]
+request-response-logging = [
+    "service_utils/request-response-logging",
+]
 
 [lints]
 workspace = true
