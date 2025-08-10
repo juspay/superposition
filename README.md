@@ -20,12 +20,13 @@
 [![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr) 
 
 
-Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and allow them to run multi-variate experiments on them. Superposition places a strong emphasis on safety of configuration changes.  It does this by supporting strong typing of configuration values (via [json-schema](https://json-schema.org/)), custom validation functions (with an embedded Javascript runtime) that can validate configuration values against external data-sources and supporting staggering configuration changes via experiments.  This comprehensive setup gives applications a robust platform to roll-out changes safely.
+Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and allows them to run multi-variate experiments on those configurations. Superposition places a strong emphasis on safety of configuration changes.  It does this by the following:
 
-The Superposition platform comprises of two main components:
+* supporting strong typing of configuration values (via [json-schema](https://json-schema.org/))
+* custom validation functions (with an embedded Javascript runtime) that can validate configuration values using state-less logic or validate them against external data-sources
+* supporting staggering configuration changes via experiments.
 
-* **Context-Aware-Configuration** - a flexible configuration management system that supports contextual overrides for configuration keys
-* **Experimentation** - a experimentation management system that allows supplying different configuration values to equal-sized cohorts (facilitating A/B/...Z testing)
+This comprehensive setup gives applications a robust platform to roll-out changes safely.
 
 ## Getting started
 
@@ -53,7 +54,7 @@ Superposition comes with a variety of clients supported in multiple programming 
 ## Deeper dive into Superposition
 
 For a deeper dive into the under-pinnings of Superposition, development setup, API docs - you can go over the following links.
-1. Conceptual docs
+1. Conceptual docs on two foundational services of Superposition:
     * [Context-Aware-Configuration](https://juspay.io/superposition/docs/basic-concepts/context-aware-config)
     * [Experimentation](https://juspay.io/superposition/docs/basic-concepts/experimentation)
 3. [Development setup](https://juspay.io/superposition/docs/setup)
@@ -61,7 +62,7 @@ For a deeper dive into the under-pinnings of Superposition, development setup, A
 
 ## Applications using Superposition
 
-Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have build many internal applications that leverage the Superposition across different parts of the software stack - frontend, backend, infra and storage. (TODO: links to applications)
+Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have build applications that leverage the Superposition across different parts of the software stack - frontend, backend, infra and storage. (TODO: links to applications)
 
 ## Key highlights
 
