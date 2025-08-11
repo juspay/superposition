@@ -146,7 +146,7 @@ const { SuperpositionProvider } = require('@superposition/typescript/clients/jav
 async function runDemo() {
     const config = {
         endpoint: "http://localhost:8080",
-        token: "12345678",
+        token: "your-token-here",
         org_id: "localorg",
         workspace_id: "dev"
     };
@@ -222,7 +222,7 @@ refresh_strategy = PollingStrategy(
 ```javascript
 const config = {
     endpoint: "http://localhost:8080",
-    token: "your-token",
+    token: "your-token-here",
     org_id: "your-org",
     workspace_id: "your-workspace",
     polling_interval: 60000,  // Poll every 60 seconds (in milliseconds)

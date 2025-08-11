@@ -1,10 +1,11 @@
 # Superposition Provider
 
-A Rust implementation of an OpenFeature provider for Superposition, enabling feature flag and configuration management with experimentation capabilities.
+Superposition provider is an openfeature provider that works with [Superposition](https://juspay.io/open-source/superposition) to manage configurations and experiments in your application. It allows you to fetch feature flags, configurations, and experiment variants from a Superposition server. Read the [Superposition Provider Docs](https://juspay.io/open-source/superposition/docs) or [docs.rs](https://docs.rs/superposition_provider/latest/superposition_provider/) for more details.
 
 ## Overview
 
 The Superposition Provider integrates with OpenFeature to provide:
+
 - **Context Aware Configuration (CAC)**: Dynamic configuration management based on context
 - **Experimentation**: A/B testing and feature experimentation capabilities
 - **Real-time Updates**: Support for polling and on-demand refresh strategies
@@ -22,13 +23,19 @@ tokio = { version = "1.0", features = ["full"] }
 env_logger = "0.10"
 ```
 
+### OR
+
+```
+cargo add superposition_provider
+```
+
 ## Quick Start
 
 ### Basic Usage
 
 ```rust
 use superposition_provider::{
-    ConfigurationOptions, SuperpositionOptions, SuperpositionProvider, 
+    ConfigurationOptions, SuperpositionOptions, SuperpositionProvider,
     SuperpositionProviderOptions, RefreshStrategy, PollingStrategy
 };
 use open_feature::OpenFeature;
@@ -40,10 +47,10 @@ async fn main() {
 
     // Get the OpenFeature API singleton
     let mut api = OpenFeature::singleton_mut().await;
-    
+
     // Configure the Superposition provider
     let options = SuperpositionProviderOptions {
-        
+
         endpoint: "http://localhost:8080/".to_string(),
         token: "your_token_here".to_string(),
         org_id: "your_org_id".to_string(),
@@ -56,16 +63,16 @@ async fn main() {
         }),
         experimentation_options: None // CAC only
     };
-    
+
     // Set the provider
     api.set_provider(SuperpositionProvider::new(options)).await;
-    
+
     // Create a client
     let client = api.create_client();
-    
+
     // Wait for initialization
     sleep(Duration::from_secs(3)).await;
-    
+
     // Evaluate feature flags
     let int_value = client.get_int_value("my_feature_flag", None, None).await.unwrap();
     println!("Feature flag value: {}", int_value);
@@ -81,7 +88,7 @@ Core connection settings for the Superposition service:
 ```rust
 let superposition_options = SuperpositionOptions {
     endpoint: "https://superposition.example.com".to_string(),
-    token: "your_api_token".to_string(),
+    token: "your_token_here".to_string(),
     org_id: "your_organization_id".to_string(),
     workspace_id: "your_workspace_id".to_string(),
 };
@@ -90,6 +97,7 @@ let superposition_options = SuperpositionOptions {
 ### Refresh Strategies
 
 #### Polling Strategy
+
 Automatically fetches updates at regular intervals:
 
 ```rust
@@ -100,6 +108,7 @@ let polling_strategy = RefreshStrategy::Polling(PollingStrategy {
 ```
 
 #### On-Demand Strategy
+
 Fetches updates only when requested, with TTL-based caching:
 
 ```rust
@@ -133,7 +142,7 @@ Enable A/B testing and experimentation features:
 use superposition_provider::ExperimentationOptions;
 
 let options = SuperpositionProviderOptions {
-    
+
     endpoint: "http://localhost:8080/".to_string(),
     token: "your_token_here".to_string(),
     org_id: "your_org_id".to_string(),
@@ -164,7 +173,7 @@ context.targeting_key = Some("user_123".to_string());
 // Add custom fields
 let mut custom_fields = HashMap::new();
 custom_fields.insert(
-    "user_tier".to_string(), 
+    "user_tier".to_string(),
     open_feature::EvaluationContextFieldValue::String("premium".to_string())
 );
 custom_fields.insert(
@@ -237,6 +246,7 @@ match client.get_string_value("my_flag", None, None).await {
     }
 }
 ```
+
 ## Performance Considerations
 
 - **Caching**: Enable evaluation caching for frequently accessed flags
@@ -253,6 +263,7 @@ env_logger::init();
 ```
 
 Set the log level with the `RUST_LOG` environment variable:
+
 ```bash
 RUST_LOG=debug cargo run
 ```
