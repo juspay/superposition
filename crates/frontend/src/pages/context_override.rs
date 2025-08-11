@@ -100,7 +100,6 @@ fn form(
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -192,7 +191,6 @@ fn form(
         <div class="flex flex-col gap-5">
             <ContextForm
                 dimensions=dimensions.get_value()
-                resolve_mode=workspace_settings.with_value(|w| w.strict_mode)
                 context=context_rs.get_untracked()
                 on_context_change=move |new_context| context_ws.set(new_context)
                 fn_environment

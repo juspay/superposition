@@ -6,7 +6,6 @@ use superposition_types::{
     api::{
         dimension::DimensionResponse,
         experiment_groups::{ExpGroupMemberRequest, ExpGroupUpdateRequest},
-        workspace::WorkspaceResponse,
     },
     database::models::{experimentation::ExperimentGroup, ChangeReason},
 };
@@ -181,7 +180,6 @@ pub fn experiment_group_form(
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let experiment_group_id = StoredValue::new(group_id);
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
     let group_name_rws = create_rw_signal(group_name);
     let group_description_rws = create_rw_signal(group_description);
@@ -302,7 +300,6 @@ pub fn experiment_group_form(
                     dimensions=dimensions
                     context=context_rs.get_untracked()
                     on_context_change=move |new_context| context_ws.set(new_context)
-                    resolve_mode=workspace_settings.get_value().strict_mode
                     disabled=is_edit
                     heading_sub_text="Define rules under which this experiment group would function"
                     fn_environment

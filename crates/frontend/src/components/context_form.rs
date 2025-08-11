@@ -106,7 +106,7 @@ pub fn condition_input(
                 </label>
 
                 <select
-                    disabled=disabled || resolve_mode
+                    disabled=disabled || resolve_mode || strict_mode
                     value=operator.to_string()
                     on:input=move |event| {
                         on_operator_change
@@ -118,7 +118,7 @@ pub fn condition_input(
                 >
                     <option
                         value="=="
-                        selected={ matches!(operator, Operator::Is) } || resolve_mode
+                        selected={ matches!(operator, Operator::Is) } || resolve_mode || strict_mode
                     >
                         {if strict_mode {
                             { Operator::Is.strict_mode_display().to_uppercase() }

@@ -10,7 +10,6 @@ use superposition_types::{
         dimension::DimensionResponse,
         experiment_groups::ExpGroupFilters,
         experiments::{ExperimentResponse, OverrideKeysUpdateRequest},
-        workspace::WorkspaceResponse,
     },
     custom_query::PaginationParams,
     database::models::{
@@ -97,7 +96,6 @@ pub fn experiment_form(
     let experiment_form_type = StoredValue::new(experiment_form_type);
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
     let (context_rs, context_ws) = create_signal(context.clone());
@@ -305,7 +303,6 @@ pub fn experiment_form(
                         dimensions=dimensions.get_value()
                         context=context_rs.get_untracked()
                         on_context_change=move |new_context| context_ws.set(new_context)
-                        resolve_mode=workspace_settings.get_value().strict_mode
                         disabled=edit_id.get_value().is_some()
                             || (experiment_form_type.get_value() != ExperimentFormType::Default)
                         heading_sub_text=String::from(
