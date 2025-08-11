@@ -257,8 +257,6 @@ pub fn get_applicable_buckets_from_group(
                 || jsonlogic::apply(&Value::Object(exp_context), context)
                     == Ok(Value::Bool(true)))
                 && *exp_group.traffic_percentage >= hashed_percentage as u8;
-            let exp_toss =
-                (hashed_percentage * 100) / *exp_group.traffic_percentage as usize;
 
             res.then_some(
                 exp_group
@@ -267,7 +265,12 @@ pub fn get_applicable_buckets_from_group(
                     .and_then(Clone::clone),
             )
             .flatten()
-            .map(|b| (exp_toss, b))
+            .and_then(|b| {
+                (*exp_group.traffic_percentage > 0).then_some((
+                    (hashed_percentage * 100) / *exp_group.traffic_percentage as usize,
+                    b,
+                ))
+            })
         })
         .collect()
 }
