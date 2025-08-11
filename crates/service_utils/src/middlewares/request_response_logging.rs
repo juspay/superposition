@@ -129,6 +129,9 @@ where
         let service = self.service.clone();
 
         Box::pin(async move {
+            // to hold responses in all cases for logging
+            let res;
+
             // Log request details
             let method = req.method().to_string();
             let uri = req.uri().to_string();
@@ -143,9 +146,10 @@ where
             }
 
             // For PUT/POST requests, extract and log the body
-            let should_log_body = matches!(method.as_str(), "PUT" | "POST" | "PATCH");
+            let should_log_request_body =
+                matches!(method.as_str(), "PUT" | "POST" | "PATCH");
 
-            if should_log_body {
+            if should_log_request_body {
                 // Extract the request and payload
                 let (http_req, mut payload) = req.into_parts();
                 let mut body_bytes = Vec::new();
@@ -198,26 +202,10 @@ where
                             >,
                         >)
                 };
-
                 let new_req = ServiceRequest::from_parts(http_req, new_payload);
 
                 // Call the next service
-                let res = service.call(new_req).await?;
-
-                // Log response details
-                let status = res.status();
-                let mut response_headers = Vec::new();
-                for (name, value) in res.headers().iter() {
-                    if let Ok(value_str) = value.to_str() {
-                        response_headers.push(format!("{}: {}", name, value_str));
-                    }
-                }
-
-                // Wrap the response body with our logging wrapper
-                let logged_res = res
-                    .map_body(|_, body| LoggingBody::new(body, status, response_headers));
-
-                Ok(logged_res)
+                res = service.call(new_req).await?;
             } else {
                 // For GET/DELETE etc, don't extract body
                 info!(
@@ -233,23 +221,23 @@ where
                 );
 
                 // Call the next service
-                let res = service.call(req).await?;
-
-                // Log response details
-                let status = res.status();
-                let mut response_headers = Vec::new();
-                for (name, value) in res.headers().iter() {
-                    if let Ok(value_str) = value.to_str() {
-                        response_headers.push(format!("{}: {}", name, value_str));
-                    }
-                }
-
-                // Wrap the response body with our logging wrapper
-                let logged_res = res
-                    .map_body(|_, body| LoggingBody::new(body, status, response_headers));
-
-                Ok(logged_res)
+                res = service.call(req).await?;
             }
+
+            // Log response details
+            let status = res.status();
+            let mut response_headers = Vec::new();
+            for (name, value) in res.headers().iter() {
+                if let Ok(value_str) = value.to_str() {
+                    response_headers.push(format!("{}: {}", name, value_str));
+                }
+            }
+
+            // Wrap the response body with our logging wrapper
+            let logged_res =
+                res.map_body(|_, body| LoggingBody::new(body, status, response_headers));
+
+            Ok(logged_res)
         })
     }
 }
