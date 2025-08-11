@@ -80,8 +80,8 @@ pub async fn fetch_default_config(
 }
 
 pub mod snapshots {
-    use superposition_types::{
-        api::config::ConfigVersionResponse, database::models::cac::ConfigVersionListItem,
+    use superposition_types::database::models::cac::{
+        ConfigVersion, ConfigVersionListItem,
     };
 
     use super::*;
@@ -113,7 +113,7 @@ pub mod snapshots {
         id: &str,
         tenant: String,
         org_id: String,
-    ) -> Result<ConfigVersionResponse, ServerFnError> {
+    ) -> Result<ConfigVersion, ServerFnError> {
         let client = reqwest::Client::new();
         let host = use_host_server();
 

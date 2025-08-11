@@ -234,22 +234,46 @@ pub fn context_form(
     #[prop(default = DropdownDirection::Down)] dropdown_direction: DropdownDirection,
     #[prop(into)] on_context_change: Callback<Conditions, ()>,
 ) -> impl IntoView {
-    let dimension_map = store_value(
+    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
+
+    let dimensions = StoredValue::new(dimensions);
+    let dimension_map = StoredValue::new(
         dimensions
-            .iter()
+            .get_value()
+            .into_iter()
             .map(|v| (v.dimension.clone(), v.clone()))
             .collect::<HashMap<String, DimensionResponse>>(),
     );
-
-    let dimensions = StoredValue::new(dimensions);
     let mandatory_dimensions = StoredValue::new(
         dimensions
             .get_value()
             .into_iter()
             .filter(|dim| dim.mandatory)
-            .map(|dim| dim.dimension)
-            .collect::<HashSet<String>>(),
+            .collect::<Vec<_>>(),
     );
+    let mandatory_dimensions_set = StoredValue::new(
+        mandatory_dimensions
+            .get_value()
+            .into_iter()
+            .map(|dim| dim.dimension)
+            .collect::<HashSet<_>>(),
+    );
+    let autocomplete_callbacks = Signal::derive(move || {
+        dimensions
+            .get_value()
+            .into_iter()
+            .filter_map(|d| {
+                autocomplete_fn_generator(
+                    d.dimension.clone(),
+                    d.autocomplete_function_name.clone(),
+                    fn_environment,
+                    workspace.get_untracked().0,
+                    org_id.get_untracked().0,
+                )
+            })
+            .collect::<AutoCompleteCallbacks>()
+    });
 
     let insert_dimension =
         move |context: &mut Conditions, dimension: &DimensionResponse| {
@@ -279,21 +303,18 @@ pub fn context_form(
                 });
         };
 
-    let context_data = {
+    let (context_rs, context_ws) = create_signal({
         let mut context = context;
         if !disabled && !resolve_mode {
-            dimensions
+            mandatory_dimensions
                 .get_value()
                 .into_iter()
-                .filter(|dim| dim.mandatory)
                 .for_each(|dimension| {
                     insert_dimension(&mut context, &dimension);
                 });
         }
         context
-    };
-
-    let (context_rs, context_ws) = create_signal(context_data);
+    });
 
     Effect::new(move |_| {
         let context = context_rs.get();
@@ -366,7 +387,7 @@ pub fn context_form(
 
     let get_tool_tip_text = move |condition: StoredValue<Condition>| -> String {
         let variable = condition.get_value().variable;
-        if mandatory_dimensions.get_value().contains(&variable) {
+        if mandatory_dimensions_set.with_value(|s| s.contains(&variable)) {
             return "Mandatory Dimension".to_string();
         }
         if context_dependencies.get().contains(&variable) {
@@ -385,22 +406,6 @@ pub fn context_form(
         }
         String::new()
     };
-
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
-    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
-    let autocomplete_callbacks = dimensions
-        .get_value()
-        .iter()
-        .filter_map(|d| {
-            autocomplete_fn_generator(
-                d.dimension.clone(),
-                d.autocomplete_function_name.clone(),
-                fn_environment,
-                workspace.get_untracked().0,
-                org_id.get_untracked().0,
-            )
-        })
-        .collect::<AutoCompleteCallbacks>();
 
     view! {
         <div class="form-control w-full">
@@ -458,7 +463,7 @@ pub fn context_form(
                                     .into_view();
                             }
                             let schema_type = store_value(schema_type.unwrap());
-                            let is_mandatory = mandatory_dimensions
+                            let is_mandatory = mandatory_dimensions_set
                                 .with_value(|v| v.contains(&condition.variable));
                             let has_context_dependency = context_dependencies
                                 .with(|v| v.contains(&condition.variable));
@@ -499,7 +504,7 @@ pub fn context_form(
                                     on_value_change
                                     on_operator_change
                                     tooltip_text
-                                    autocomplete_callbacks=autocomplete_callbacks.clone()
+                                    autocomplete_callbacks=autocomplete_callbacks.get()
                                 />
                                 {move || {
                                     if last_idx.get() != idx {
@@ -522,18 +527,22 @@ pub fn context_form(
                         <div class="mt-4">
 
                             {move || {
-                                let dimensions = dimensions
-                                    .get_value()
-                                    .into_iter()
-                                    .filter(|dimension| {
-                                        !used_dimensions.get().contains(&dimension.dimension)
-                                    })
-                                    .collect::<Vec<DimensionResponse>>();
+                                let unused_dimensions = Signal::derive(move || {
+                                    let used_dimensions = used_dimensions.get();
+                                    dimensions
+                                        .get_value()
+                                        .into_iter()
+                                        .filter(|dimension| {
+                                            !used_dimensions.contains(&dimension.dimension)
+                                        })
+                                        .collect::<Vec<DimensionResponse>>()
+                                });
+
                                 view! {
                                     <Dropdown
                                         dropdown_icon="ri-add-line".to_string()
                                         dropdown_text="Add Context".to_string()
-                                        dropdown_options=dimensions
+                                        dropdown_options=unused_dimensions.get()
                                         disabled=disabled
                                         dropdown_direction
                                         on_select=on_select_dimension
