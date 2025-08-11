@@ -1,3 +1,10 @@
+import org.jreleaser.model.Active
+
+plugins {
+    id("org.jreleaser") version "1.19.0"
+    id("base")
+}
+
 allprojects {
     group = "io.juspay.superposition"
     version = System.getenv("VERSION") ?: "0.0.1-SNAPSHOT"
@@ -6,17 +13,60 @@ allprojects {
         google()
         gradlePluginPortal()
     }
+}
 
-    apply(plugin = "maven-publish")
+configurations.all {
+    resolutionStrategy {
+        force(
+            "com.fasterxml.jackson.core:jackson-core:2.16.0",
+            "com.fasterxml.jackson:jackson-bom:2.16.0",
+            "com.fasterxml.jackson.core:jackson-databind:2.16.0",
+            "com.fasterxml.jackson.core:jackson-annotations:2.16.0"
+        )
+    }
+}
 
-    configure<PublishingExtension> {
-        repositories {
-            maven {
-                name = "CodeArtifact"
-                url = uri(System.getenv("CODEARTIFACT_REPOSITORY_ENDPOINT") ?: "https://non.existent.site.here")
-                credentials {
-                    username = "aws"
-                    password = System.getenv("CODEARTIFACT_AUTH_TOKEN")
+/*
+ * Jreleaser (https://jreleaser.org) config.
+ */
+jreleaser {
+    dryrun = false
+
+    // Used for creating a tagged release, uploading files and generating changelog.
+    // In the future we can set this up to push release tags to GitHub, but for now it's
+    // set up to do nothing.
+    // https://jreleaser.org/guide/latest/reference/release/index.html
+    release {
+        generic {
+            enabled = true
+            skipRelease = true
+        }
+    }
+
+    // Used to announce a release to configured announcers.
+    // https://jreleaser.org/guide/latest/reference/announce/index.html
+    announce {
+        active = Active.NEVER
+    }
+
+    // Signing configuration.
+    // https://jreleaser.org/guide/latest/reference/signing.html
+    signing {
+        active = Active.ALWAYS
+        armored = true
+        verify = false
+    }
+
+    // Configuration for deploying to Maven Central.
+    // https://jreleaser.org/guide/latest/examples/maven/maven-central.html#_gradle
+    deploy {
+        maven {
+            mavenCentral {
+                create("maven-central") {
+                    active = Active.ALWAYS
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    snapshotSupported = true
+                    stagingRepository(rootProject.layout.buildDirectory.dir("m2").get().asFile.path)
                 }
             }
         }
