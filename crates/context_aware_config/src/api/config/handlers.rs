@@ -33,10 +33,7 @@ use service_utils::service::types::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::{
-        config::{ConfigVersionResponse, ContextPayload},
-        context::PutRequest,
-    },
+    api::{config::ContextPayload, context::PutRequest},
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },
@@ -969,7 +966,7 @@ async fn fetch_config_version(
     db_conn: DbConnection,
     version: Path<i64>,
     schema_name: SchemaName,
-) -> superposition::Result<Json<ConfigVersionResponse>> {
+) -> superposition::Result<Json<ConfigVersion>> {
     let DbConnection(mut conn) = db_conn;
 
     let config_version = config_versions::config_versions
@@ -977,5 +974,5 @@ async fn fetch_config_version(
         .find(version.into_inner())
         .get_result::<ConfigVersion>(&mut conn)?;
 
-    Ok(Json(config_version.into()))
+    Ok(Json(config_version))
 }

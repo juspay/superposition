@@ -304,6 +304,13 @@ pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> 
     })
 }
 
+pub fn unwrap_or_default_with_error<T: Default>(option: Option<T>, error: &str) -> T {
+    option.unwrap_or_else(|| {
+        enqueue_alert(error.to_string(), AlertType::Error, 5000);
+        Default::default()
+    })
+}
+
 pub fn set_function(selected_function: FunctionsName, value: &mut Option<String>) {
     let function_name = selected_function.clone();
     leptos::logging::log!("function selected: {:?}", function_name);

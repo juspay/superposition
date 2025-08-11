@@ -15,6 +15,7 @@ use crate::components::table::types::{ColumnSortable, Expandable, TablePaginatio
 use crate::components::table::{types::Column, Table};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
+use crate::utils::unwrap_or_default_with_error;
 use crate::{
     api::snapshots::fetch_all, components::table::types::default_column_formatter,
 };
@@ -75,10 +76,10 @@ pub fn config_version_list() -> impl IntoView {
                                         .data
                                         .into_iter()
                                         .map(|config_version| {
-                                            let mut map = json!(config_version)
-                                                .as_object()
-                                                .unwrap()
-                                                .clone();
+                                            let mut map = unwrap_or_default_with_error(
+                                                json!(config_version).as_object().cloned(),
+                                                "Failed to parse config version",
+                                            );
                                             map.insert(
                                                 "id".to_string(),
                                                 Value::String(config_version.id.to_string()),
@@ -97,6 +98,7 @@ pub fn config_version_list() -> impl IntoView {
                                         total_pages,
                                         on_page_change: handle_page_change,
                                     };
+
                                     view! {
                                         <Table
                                             class="!overflow-y-auto"

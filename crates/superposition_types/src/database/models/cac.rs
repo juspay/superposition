@@ -205,6 +205,7 @@ pub struct EventLog {
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
 pub struct ConfigVersion {
+    #[serde(with = "i64_formatter")]
     pub id: i64,
     pub config: Value,
     pub config_hash: String,
