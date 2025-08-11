@@ -51,6 +51,17 @@ Superposition comes with a variety of clients supported in multiple programming 
 2. `provider` (or open-feature-provider) - this open feature compatible library is meant to be used by the applications that consume configurations hosted in Superposition.  This has support for in-memory-caching and period polling based refresh of configuration in the application.
 3. `bindings` - this library contains the core configuration resolution logic - which is wrapped by the provider in an open-feature compatible format
 
+The following matrix contains the languages in which the above client libraries are available:
+
+| Language       | sdk | provider | bindings |
+|----------------|-----|----------|----------|
+| Rust           | ✔️  |    ✔️    |  NA      |
+| Javascript     | ✔️  |    ✔️    |  ✔️      |
+| Python         | ✔️  |    ✔️    |  ✔️      |
+| Java           | ✔️  |    ✔️    |  ✔️      |
+| Haskell        | WIP |    WIP   |  WIP     |
+| Go             | TBD |    TBD   |  TBD     |
+
 ## Deeper dive into Superposition
 
 For a deeper dive into the under-pinnings of Superposition, development setup, API docs - you can go over the following links.
