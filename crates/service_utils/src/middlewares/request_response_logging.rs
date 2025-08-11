@@ -130,7 +130,7 @@ where
 
         Box::pin(async move {
             // to hold responses in all cases for logging
-            let res;
+            let res: ServiceResponse<B>;
 
             // Log request details
             let method = req.method().to_string();
