@@ -23,7 +23,7 @@
 Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and allows them to run multi-variate experiments on those configurations. Superposition places a strong emphasis on safety of configuration changes.  It does this by the following:
 
 * supporting strong typing of configuration values (via [json-schema](https://json-schema.org/))
-* custom validation functions (with an embedded Javascript runtime) that can validate configuration values using state-less logic or validate them against external data-sources
+* custom validation functions (written in Javascript) that can validate configuration values using state-less logic or validate them against external data-sources
 * supporting staggering configuration changes via experiments.
 
 This comprehensive setup gives applications a robust platform to roll-out changes safely.
