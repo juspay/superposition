@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.17.1 - 2025-08-12
+#### Bug Fixes
+- bucketing logic - (e7a74d9) - Ankit.Mahato
+#### Miscellaneous Chores
+- **(version)** v0.83.0 [skip ci] - (2e2d48c) - Superposition Bot
+
+- - -
+
 ## experimentation_client-v0.17.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (8b62d45) - datron

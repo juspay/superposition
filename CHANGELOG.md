@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.86.0 - 2025-08-12
+### Package updates
+- superposition_types bumped to superposition_types-v0.30.0
+- superposition_sdk bumped to superposition_sdk-v0.4.0
+- experimentation_platform bumped to experimentation_platform-v0.40.0
+- frontend bumped to frontend-v0.40.0
+- experimentation_client bumped to experimentation_client-v0.17.1
+### Global changes
+#### Documentation
+- Add registry specific documentation to provider, bindings and SDK (#652) - (7badc93) - Datron
+#### Features
+- **(java)** Publishing to central-sonatype. (#638) - (5750a54) - ShreyBana
+- control population - (aa9d23d) - Ankit.Mahato
+#### Miscellaneous Chores
+- **(version)** v0.85.1 [skip ci] - (ab6070f) - Superposition Bot
+#### Tests
+- Update test - (16af9bb) - ayush.jain@juspay.in
+
+- - -
+
 ## v0.85.1 - 2025-08-08
 ### Package updates
 - superposition_types bumped to superposition_types-v0.29.1
