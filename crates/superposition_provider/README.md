@@ -17,7 +17,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-superposition_provider = "0.83.0"
+superposition_provider = "<version>"
 open-feature = "0.2"
 tokio = { version = "1.0", features = ["full"] }
 env_logger = "0.10"

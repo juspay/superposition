@@ -3,7 +3,7 @@ name = "superposition_core"
 version.workspace = true
 edition = "2021"
 description = "Core native library for Superposition FFI bindings"
-license-file = { workspace = true }
+license = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 readme = "README.md"

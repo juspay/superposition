@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-package.license-file = "LICENSE"
+package.license = "MIT OR Apache-2.0"
 package.homepage = "https://juspay.io/open-source/superposition"
 package.repository = "https://github.com/juspay/superposition"
 package.readme = "README.md"

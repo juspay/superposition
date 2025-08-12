@@ -11,7 +11,7 @@ index 2da93b58..143b8ca2 100644
  authors = ["superposition@juspay.in"]
  description = "Rust SDK to work with Superposition"
  edition = "2021"
-+license-file = { workspace = true }
++license = { workspace = true }
 +homepage = { workspace = true }
  repository = "https://github.com/juspay/superposition"
 +readme = "README.md"
