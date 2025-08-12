@@ -16,7 +16,7 @@ const config: Config = {
     },
 
     // Set the production url of your site here
-    url: "https://d32fun98zecd6d.cloudfront.net",
+    url: "https://juspay.io/",
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
     baseUrl: "/superposition/",
