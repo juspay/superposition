@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.4.0 - 2025-08-12
+#### Documentation
+- Add registry specific documentation to provider, bindings and SDK (#652) - (7badc93) - Datron
+#### Features
+- control population - (aa9d23d) - Ankit.Mahato
+#### Miscellaneous Chores
+- **(version)** v0.83.0 [skip ci] - (2e2d48c) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.3.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (8b62d45) - datron

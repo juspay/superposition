@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.30.0 - 2025-08-12
+#### Features
+- control population - (aa9d23d) - Ankit.Mahato
+#### Miscellaneous Chores
+- **(version)** v0.85.1 [skip ci] - (ab6070f) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.29.1 - 2025-08-08
 #### Bug Fixes
 - Use workspace superposition_types in frontend crate (#650) - (613abce) - Ayush Jain
