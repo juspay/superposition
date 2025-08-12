@@ -21,7 +21,7 @@ use superposition_types::{
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
         workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
     },
-    custom_query::{DimensionQuery, PaginationParams, QueryMap},
+    custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::models::{
         cac::{Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
@@ -40,7 +40,7 @@ pub async fn fetch_dimensions(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/dimension?{}", host, filters);
+    let url = format!("{}/dimension?{}", host, filters.to_query_param());
     let response: PaginatedResponse<DimensionResponse> = client
         .get(url)
         .header("x-tenant", &tenant)
@@ -65,7 +65,12 @@ pub async fn fetch_default_config(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/default-config?{}&{}", host, pagination, filters);
+    let url = format!(
+        "{}/default-config?{}&{}",
+        host,
+        pagination.to_query_param(),
+        filters.to_query_param()
+    );
     let response: PaginatedResponse<DefaultConfig> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -94,7 +99,7 @@ pub mod snapshots {
         let client = reqwest::Client::new();
         let host = use_host_server();
 
-        let url = format!("{host}/config/versions?{}", filters);
+        let url = format!("{host}/config/versions?{}", filters.to_query_param());
         let response = client
             .get(url)
             .header("x-tenant", tenant)
@@ -171,9 +176,14 @@ pub async fn fetch_experiments(
 ) -> Result<PaginatedResponse<ExperimentResponse>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-    let pagination = pagination.to_string();
 
-    let url = format!("{host}/experiments?{filters}&{pagination}&{dimension_params}");
+    let url = format!(
+        "{}/experiments?{}&{}&{}",
+        host,
+        filters.to_query_param(),
+        pagination.to_query_param(),
+        dimension_params.to_query_param()
+    );
     let response: PaginatedResponse<ExperimentResponse> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -196,7 +206,12 @@ pub async fn fetch_functions(
 ) -> Result<PaginatedResponse<Function>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-    let url = format!("{}/function?{}&{}", host, filters, pagination);
+    let url = format!(
+        "{}/function?{}&{}",
+        host,
+        filters.to_query_param(),
+        pagination.to_query_param()
+    );
     let response: PaginatedResponse<Function> = client
         .get(url)
         .header("x-tenant", tenant)
@@ -274,8 +289,12 @@ pub async fn fetch_context(
 ) -> Result<PaginatedResponse<Context>, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-    let url =
-        format!("{host}/context/list?{pagination}&{context_filters}&{dimension_params}");
+    let url = format!(
+        "{host}/context/list?{}&{}&{}",
+        pagination.to_query_param(),
+        context_filters.to_query_param(),
+        dimension_params.to_query_param()
+    );
 
     match client
         .get(url)
@@ -384,7 +403,7 @@ pub async fn fetch_types(
     org_id: String,
 ) -> Result<PaginatedResponse<TypeTemplate>, ServerFnError> {
     let host = use_host_server();
-    let url = format!("{host}/types?{}", filters);
+    let url = format!("{host}/types?{}", filters.to_query_param());
     let err_handler = |e: String| ServerFnError::new(e.to_string());
     let response = request::<()>(
         url,
@@ -408,7 +427,7 @@ pub mod workspaces {
         org_id: &str,
     ) -> Result<PaginatedResponse<WorkspaceResponse>, ServerFnError> {
         let host = use_host_server();
-        let url = format!("{}/workspaces?{}", host, filters);
+        let url = format!("{}/workspaces?{}", host, filters.to_query_param());
 
         let response = request::<()>(
             url,
@@ -556,7 +575,7 @@ pub async fn fetch_webhooks(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let url = format!("{}/webhook?{}", host, filters);
+    let url = format!("{}/webhook?{}", host, filters.to_query_param());
     let response: PaginatedResponse<Webhook> = client
         .get(url)
         .header("x-tenant", &tenant)
@@ -860,9 +879,13 @@ pub mod experiment_groups {
         org_id: &str,
     ) -> Result<PaginatedResponse<ExperimentGroup>, ServerFnError> {
         let host = use_host_server();
-        let pagination = pagination.to_string();
 
-        let url = format!("{}/experiment-groups?{}&{}", host, filters, pagination);
+        let url = format!(
+            "{}/experiment-groups?{}&{}",
+            host,
+            filters.to_query_param(),
+            pagination.to_query_param()
+        );
         let response = request::<()>(
             url,
             reqwest::Method::GET,

@@ -1,17 +1,14 @@
-use core::fmt;
-use std::fmt::Display;
-
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use superposition_derives::IsEmpty;
+use superposition_derives::{IsEmpty, QueryParam};
 
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::functions;
 use crate::{
-    custom_query::CommaSeparatedQParams,
+    custom_query::{CommaSeparatedQParams, QueryParam},
     database::models::{
         cac::{FunctionCode, FunctionType},
         ChangeReason, Description,
@@ -130,19 +127,10 @@ pub struct FunctionExecutionResponse {
     pub function_type: FunctionType,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, IsEmpty)]
+#[derive(
+    Debug, Default, Clone, Serialize, Deserialize, PartialEq, IsEmpty, QueryParam,
+)]
 pub struct ListFunctionFilters {
+    #[query_param(skip_if_empty)]
     pub function_type: Option<CommaSeparatedQParams<FunctionType>>,
-}
-
-impl Display for ListFunctionFilters {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut query_params = vec![];
-        if let Some(fntype) = &self.function_type {
-            if !fntype.is_empty() {
-                query_params.push(format!("function_type={}", fntype));
-            }
-        }
-        write!(f, "{}", query_params.join("&"))
-    }
 }

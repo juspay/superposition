@@ -1,35 +1,18 @@
-use std::{
-    collections::HashMap,
-    fmt::{self, Display},
-};
+use std::collections::HashMap;
 
 use derive_more::{Deref, DerefMut};
 use serde::{Deserialize, Deserializer};
 use serde_json::{Map, Value};
-use superposition_derives::IsEmpty;
+use superposition_derives::{IsEmpty, QueryParam};
 use superposition_types::{
-    custom_query::{CustomQuery, DimensionQuery},
+    custom_query::{CustomQuery, DimensionQuery, QueryParam},
     IsEmpty,
 };
 
-#[derive(PartialEq, Clone, IsEmpty)]
+#[derive(PartialEq, Clone, IsEmpty, QueryParam)]
 pub(super) struct PageParams {
     pub(super) grouped: bool,
     pub(super) prefix: Option<String>,
-}
-
-impl Display for PageParams {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut parts = vec![];
-
-        parts.push(format!("grouped={}", self.grouped));
-
-        if let Some(ref prefix) = self.prefix {
-            parts.push(format!("prefix={}", prefix));
-        }
-
-        write!(f, "{}", parts.join("&"))
-    }
 }
 
 impl Default for PageParams {
@@ -101,10 +84,9 @@ impl ContextList {
     }
 }
 
-impl Display for ContextList {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let parts = self
-            .clone()
+impl QueryParam for ContextList {
+    fn to_query_param(&self) -> String {
+        self.clone()
             .0
             .into_inner()
             .iter()
@@ -115,9 +97,8 @@ impl Display for ContextList {
                     Value::Object(context.clone())
                 )
             })
-            .collect::<Vec<_>>();
-
-        write!(f, "{}", parts.join("&"))
+            .collect::<Vec<_>>()
+            .join("&")
     }
 }
 

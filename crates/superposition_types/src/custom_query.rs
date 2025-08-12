@@ -1,6 +1,5 @@
 use std::{collections::HashMap, fmt::Display, str::FromStr};
 
-use core::fmt;
 use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
@@ -10,11 +9,15 @@ use serde::{
 use serde_json::{Map, Value};
 #[cfg(feature = "experimentation")]
 use strum::IntoEnumIterator;
-use superposition_derives::IsEmpty;
+use superposition_derives::{IsEmpty, QueryParam};
 
 #[cfg(feature = "experimentation")]
 use crate::database::models::experimentation::ExperimentStatusType;
 use crate::IsEmpty;
+
+pub trait QueryParam {
+    fn to_query_param(&self) -> String;
+}
 
 pub trait CustomQuery: Sized {
     type Inner: DeserializeOwned;
@@ -197,8 +200,8 @@ impl From<HashMap<String, String>> for QueryMap {
     }
 }
 
-impl Display for DimensionQuery<QueryMap> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl QueryParam for DimensionQuery<QueryMap> {
+    fn to_query_param(&self) -> String {
         let parts = self
             .clone()
             .into_inner()
@@ -206,7 +209,7 @@ impl Display for DimensionQuery<QueryMap> {
             .map(|(key, value)| format!("dimension[{key}]={value}"))
             .collect::<Vec<_>>();
 
-        write!(f, "{}", parts.join("&"))
+        parts.join("&")
     }
 }
 
@@ -222,7 +225,7 @@ impl Default for DimensionQuery<QueryMap> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, IsEmpty)]
+#[derive(Debug, Clone, PartialEq, IsEmpty, QueryParam)]
 pub struct PaginationParams {
     pub count: Option<i64>,
     pub page: Option<i64>,
@@ -254,26 +257,6 @@ impl Default for PaginationParams {
             page: Some(1),
             all: None,
         }
-    }
-}
-
-impl Display for PaginationParams {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut parts = vec![];
-
-        if let Some(page) = self.page {
-            parts.push(format!("page={}", page));
-        }
-
-        if let Some(count) = self.count {
-            parts.push(format!("count={}", count));
-        }
-
-        if let Some(all) = self.all {
-            parts.push(format!("all={}", all));
-        }
-
-        write!(f, "{}", parts.join("&"))
     }
 }
 

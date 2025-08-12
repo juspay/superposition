@@ -1,27 +1,11 @@
-use std::fmt::{self, Display};
-
 use serde::{Deserialize, Deserializer};
-use superposition_derives::IsEmpty;
-use superposition_types::IsEmpty;
+use superposition_derives::{IsEmpty, QueryParam};
+use superposition_types::{custom_query::QueryParam, IsEmpty};
 
-#[derive(PartialEq, Clone, IsEmpty)]
+#[derive(PartialEq, Clone, IsEmpty, QueryParam)]
 pub struct PageParams {
     pub grouped: bool,
     pub prefix: Option<String>,
-}
-
-impl Display for PageParams {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut parts = vec![];
-
-        parts.push(format!("grouped={}", self.grouped));
-
-        if let Some(ref prefix) = self.prefix {
-            parts.push(format!("prefix={}", prefix));
-        }
-
-        write!(f, "{}", parts.join("&"))
-    }
 }
 
 impl Default for PageParams {

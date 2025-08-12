@@ -1,11 +1,9 @@
-use std::fmt::{self, Display};
-
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
-use superposition_derives::IsEmpty;
+use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::{
-    custom_query::CommaSeparatedStringQParams,
+    custom_query::{CommaSeparatedStringQParams, QueryParam},
     database::models::{cac::Context, ChangeReason, Description},
     Cac, Condition, IsEmpty, Overrides, SortBy,
 };
@@ -37,52 +35,17 @@ impl Default for SortOn {
     }
 }
 
-#[derive(Deserialize, PartialEq, Default, Clone, IsEmpty)]
+#[derive(Deserialize, PartialEq, Default, Clone, IsEmpty, QueryParam)]
 pub struct ContextListFilters {
+    #[query_param(skip_if_empty)]
     pub prefix: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
+    #[query_param(skip_if_empty)]
     pub created_by: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty)]
     pub last_modified_by: Option<CommaSeparatedStringQParams>,
     pub plaintext: Option<String>,
-}
-
-impl Display for ContextListFilters {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut parts = vec![];
-
-        if let Some(prefix) = &self.prefix {
-            if !prefix.is_empty() {
-                parts.push(format!("prefix={prefix}"));
-            }
-        }
-
-        if let Some(sort_on) = &self.sort_on {
-            parts.push(format!("sort_on={sort_on}"));
-        }
-
-        if let Some(sort_by) = &self.sort_by {
-            parts.push(format!("sort_by={sort_by}"));
-        }
-
-        if let Some(created_by) = &self.created_by {
-            if !created_by.is_empty() {
-                parts.push(format!("created_by={created_by}"));
-            }
-        }
-
-        if let Some(last_modified_by) = &self.last_modified_by {
-            if !last_modified_by.is_empty() {
-                parts.push(format!("last_modified_by={last_modified_by}"));
-            }
-        }
-
-        if let Some(plaintext) = &self.plaintext {
-            parts.push(format!("plaintext={plaintext}"));
-        }
-
-        write!(f, "{}", parts.join("&"))
-    }
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
