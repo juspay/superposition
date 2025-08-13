@@ -47,9 +47,9 @@ The following matrix contains the languages in which the above client libraries 
 
 | Language       | sdk | provider |
 |----------------|-----|----------|
-| Rust           | ![Crates.io Version](https://img.shields.io/crates/v/superposition_sdk?color=green&label=superposition_sdk&link=https%3A%2F%2Fcrates.io%2Fcrates%2Fsuperposition_sdk) | ![Crates.io Version](https://img.shields.io/crates/v/superposition_provider?color=green&label=superposition_provider&link=https%3A%2F%2Fcrates.io%2Fcrates%2Fsuperposition_provider) |
-| Javascript     | ![NPM Version](https://img.shields.io/npm/v/superposition-sdk?color=green&label=superposition-sdk&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fsuperposition-sdk) |  ![NPM Version](https://img.shields.io/npm/v/superposition-provider?color=green&label=superposition-provider&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fsuperposition-provider) |
-| Python         | ![PyPI - Version](https://img.shields.io/pypi/v/superposition_sdk?color=green&label=superposition_sdk&link=https%3A%2F%2Fpypi.org%2Fproject%2Fsuperposition-sdk%2F) | ![PyPI - Version](https://img.shields.io/pypi/v/superposition_provider?color=green&label=superposition_provider&link=https%3A%2F%2Fpypi.org%2Fproject%2Fsuperposition-provider%2F) |
+| Rust           | [![Crates.io Version](https://img.shields.io/crates/v/superposition_sdk?color=green&label=superposition_sdk)](https://crates.io/crates/superposition_sdk) | [![Crates.io Version](https://img.shields.io/crates/v/superposition_provider?color=green&label=superposition_provider)](https://crates.io/crates/superposition_provider) |
+| Javascript     | [![NPM Version](https://img.shields.io/npm/v/superposition-sdk?color=green&label=superposition-sdk)](https://www.npmjs.com/package/superposition-sdk) |  [![NPM Version](https://img.shields.io/npm/v/superposition-provider?color=green&label=superposition-provider)](https://www.npmjs.com/package/superposition-provider) |
+| Python         | [![PyPI - Version](https://img.shields.io/pypi/v/superposition_sdk?color=green&label=superposition_sdk)](https://pypi.org/project/superposition-sdk/) | [![PyPI - Version](https://img.shields.io/pypi/v/superposition_provider?color=green&label=superposition_provider)](https://pypi.org/project/superposition-provider/) |
 | Java           | ✔️  |    ✔️    |
 | Haskell        | WIP |    WIP   |
 | Go             | TBD |    TBD   |
