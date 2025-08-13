@@ -48,6 +48,7 @@ pub fn condition_input(
                 }),
             )]
         }
+        #[cfg(feature = "jsonlogic")]
         Expression::In(c) => {
             vec![(
                 c,
@@ -64,6 +65,7 @@ pub fn condition_input(
                 }),
             )]
         }
+        #[cfg(feature = "jsonlogic")]
         Expression::Between(c1, c2) => {
             let c2_clone = c2.clone();
             vec![
@@ -82,10 +84,37 @@ pub fn condition_input(
                 ),
             ]
         }
+        #[cfg(feature = "jsonlogic")]
         _ => vec![],
     };
 
     let strict_mode = workspace_settings.with_value(|v| v.strict_mode);
+
+    cfg_if::cfg_if!(
+        if #[cfg(feature = "jsonlogic")] {
+           let options = view! {
+                <option value="in" selected=matches!(operator, Operator::In)>
+                    {if strict_mode {
+                        { Operator::In.strict_mode_display().to_uppercase() }
+                    } else {
+                        { Operator::In.to_string().to_uppercase() }
+                    }}
+                </option>
+                <option value="has" selected=matches!(operator, Operator::Has)>
+                    {if strict_mode {
+                        { Operator::Has.strict_mode_display().to_uppercase() }
+                    } else {
+                        { Operator::Has.to_string().to_uppercase() }
+                    }}
+                </option>
+                <option value="<=" selected=matches!(operator, Operator::Between)>
+                    "BETWEEN (inclusive)"
+                </option>
+            }.into_view();
+        } else {
+            let options = ().into_view();
+        }
+    );
 
     view! {
         <div class="flex gap-x-6">
@@ -108,9 +137,15 @@ pub fn condition_input(
                 <select
                     disabled=disabled || resolve_mode || strict_mode
                     value=operator.to_string()
-                    on:input=move |event| {
-                        on_operator_change
-                            .call(Operator::from_operator_input(event_target_value(&event)));
+                    on:input=move |_event| {
+                        cfg_if::cfg_if! {
+                            if #[cfg(feature = "jsonlogic")] {
+                                on_operator_change
+                                    .call(Operator::from_operator_input(event_target_value(&_event)));
+                            } else {
+                                on_operator_change.call(Operator::Is)
+                            }
+                        }
                     }
 
                     name="context-dimension-operator"
@@ -126,23 +161,7 @@ pub fn condition_input(
                             { Operator::Is.to_string().to_uppercase() }
                         }}
                     </option>
-                    <option value="in" selected=matches!(operator, Operator::In)>
-                        {if strict_mode {
-                            { Operator::In.strict_mode_display().to_uppercase() }
-                        } else {
-                            { Operator::In.to_string().to_uppercase() }
-                        }}
-                    </option>
-                    <option value="has" selected=matches!(operator, Operator::Has)>
-                        {if strict_mode {
-                            { Operator::Has.strict_mode_display().to_uppercase() }
-                        } else {
-                            { Operator::Has.to_string().to_uppercase() }
-                        }}
-                    </option>
-                    <option value="<=" selected=matches!(operator, Operator::Between)>
-                        "BETWEEN (inclusive)"
-                    </option>
+                    {options}
                 </select>
 
             </div>

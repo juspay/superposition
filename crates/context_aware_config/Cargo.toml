@@ -18,7 +18,7 @@ chrono = { workspace = true }
 diesel = { workspace = true, features = ["numeric"] }
 fred = { workspace = true, optional = true, features = ["metrics"] }
 itertools = { workspace = true }
-jsonlogic = { workspace = true }
+jsonlogic = { workspace = true, optional = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
 num-bigint = "0.4"
@@ -37,6 +37,12 @@ uuid = { workspace = true }
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
 high-performance-mode = ["dep:fred"]
+jsonlogic = [
+    "dep:jsonlogic",
+    "cac_client/jsonlogic",
+    "service_utils/jsonlogic",
+    "superposition_types/jsonlogic",
+]
 
 [lints]
 workspace = true

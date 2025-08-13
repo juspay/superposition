@@ -11,6 +11,7 @@ actix-http = "3.3.1"
 anyhow = { workspace = true }
 blake3 = "1.3.3"
 cac_client = { path = "../cac_client" }
+cfg-if = { workspace = true }
 chrono = { workspace = true }
 diesel = { workspace = true }
 experimentation_client = { path = "../experimentation_client" }
@@ -30,6 +31,12 @@ superposition_types = { workspace = true, features = [
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
+jsonlogic = [
+    "cac_client/jsonlogic",
+    "experimentation_client/jsonlogic",
+    "service_utils/jsonlogic",
+    "superposition_types/jsonlogic",
+]
 
 [lints]
 workspace = true

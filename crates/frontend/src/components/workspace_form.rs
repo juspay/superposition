@@ -41,6 +41,7 @@ pub fn workspace_form(
     let (mandatory_dimensions_rs, mandatory_dimensions_ws) =
         create_signal(mandatory_dimensions);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
+    #[cfg(feature = "jsonlogic")]
     let (strict_mode_rs, strict_mode_ws) = create_signal(true);
     let metrics_rws = RwSignal::new(metrics);
     let allow_experiment_self_approval_rs = RwSignal::new(allow_experiment_self_approval);
@@ -80,6 +81,7 @@ pub fn workspace_form(
                         workspace_admin_email: workspace_admin_email_rs.get_untracked(),
                         workspace_name: workspace_name_rs.get_untracked(),
                         workspace_status: Some(workspace_status_rs.get_untracked()),
+                        #[cfg(feature = "jsonlogic")]
                         strict_mode: strict_mode_rs.get_untracked(),
                         metrics: Some(metrics_rws.get_untracked()),
                         allow_experiment_self_approval: allow_experiment_self_approval_rs
@@ -115,6 +117,29 @@ pub fn workspace_form(
                 }
             }
         });
+    };
+
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "jsonlogic")] {
+            let strict_mode =
+                view! {
+                    <Show when=move || !edit>
+                        <div class="w-fit flex items-center gap-2">
+                            <Toggle
+                                name="workspace-strict-mode"
+                                value=strict_mode_rs.get_untracked()
+                                on_change=move |_| strict_mode_ws.update(|v| *v = !*v)
+                            />
+                            <Label
+                                title="Strict Mode"
+                                extra_info="Strict Mode limits the operators available to just ==. This is the recommended mode for production environments"
+                            />
+                        </div>
+                    </Show>
+                }.into_view();
+        } else {
+            let strict_mode = ().into_view();
+        }
     };
 
     view! {
@@ -214,19 +239,7 @@ pub fn workspace_form(
                     <Label title="Allow self approval for Experiments" />
                 </div>
 
-                <Show when=move || !edit>
-                    <div class="w-fit flex items-center gap-2">
-                        <Toggle
-                            name="workspace-strict-mode"
-                            value=strict_mode_rs.get_untracked()
-                            on_change=move |_| strict_mode_ws.update(|v| *v = !*v)
-                        />
-                        <Label
-                            title="Strict Mode"
-                            extra_info="Strict Mode limits the operators available to just ==. This is the recommended mode for production environments"
-                        />
-                    </div>
-                </Show>
+                {strict_mode}
 
                 <div class="w-fit flex items-center gap-2">
                     <Toggle
