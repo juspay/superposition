@@ -44,13 +44,13 @@ Install the provider for your language of choice. The provider will allow you to
   <TabItem value="java" label="Java" default>
       ```gradle title="app/build.gradle"
       implementation "dev.openfeature:sdk:1.15.1"
-      implementation "io.juspay.superposition.openfeature:superposition-provider:0.85.0"
+      implementation "io.juspay.superposition:openfeature-provider:0.87.0"
       ```
   </TabItem>
   <TabItem value="kotlin" label="Kotlin" default>
       ```kotlin title="app/build.gradle.kts"
       implementation("dev.openfeature:sdk:1.15.1")
-      implementation("io.juspay.superposition.openfeature:superposition-provider:0.85.0")
+      implementation("io.juspay.superposition:openfeature-provider:0.87.0")
       ```
   </TabItem>
   <TabItem value="python" label="Python">
@@ -81,10 +81,10 @@ Install the provider for your language of choice. The provider will allow you to
       import dev.openfeature.sdk.*;
       import io.juspay.superposition.openfeature.*;
       import io.juspay.superposition.openfeature.options.RefreshStrategy;
-      
+
       import java.util.List;
       import java.util.Map;
-      
+
       public class Example {
           public static void main(String[] args) {
               // Configure experimentation options
@@ -92,7 +92,7 @@ Install the provider for your language of choice. The provider will allow you to
                   SuperpositionProviderOptions.ExperimentationOptions.builder()
                       .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000)) // 5s timeout, 2s interval
                       .build();
-      
+
               // Configure provider options
               SuperpositionProviderOptions options =
                   SuperpositionProviderOptions.builder()
@@ -103,7 +103,7 @@ Install the provider for your language of choice. The provider will allow you to
                       .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000)) // 10s timeout, 5s interval
                       .experimentationOptions(expOptions)
                       .build();
-      
+
               // Initialize provider
               SuperpositionOpenFeatureProvider provider =
                   new SuperpositionOpenFeatureProvider(options);
@@ -117,13 +117,13 @@ Install the provider for your language of choice. The provider will allow you to
   <TabItem value="kotlin" label="Kotlin" default>
       ```kotlin title="app/build.gradle.kts"
       package org.example
-      
+
       import dev.openfeature.sdk.*
       import io.juspay.superposition.openfeature.*
       import io.juspay.superposition.openfeature.options.RefreshStrategy
-      
+
       import io.juspay.superposition.sdk.*
-      
+
       fun main() {
           val spOptions = SuperpositionProviderOptions.builder()
               .orgId("localorg")
@@ -132,7 +132,7 @@ Install the provider for your language of choice. The provider will allow you to
               .token("api-token")
               .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
               .build()
-      
+
           val provider = SuperpositionOpenFeatureProvider(spOptions)
           val initCtx = ImmutableContext(mapOf("foo" to Value("bar")))
           provider.initialize(initCtx)
@@ -145,11 +145,11 @@ Install the provider for your language of choice. The provider will allow you to
       from openfeature import api
       from superposition_provider.provider import SuperpositionProvider
       from superposition_provider.types import ExperimentationOptions, SuperpositionProviderOptions, PollingStrategy
-      
+
       config_options = SuperpositionProviderOptions(
         endpoint="http://localhost:8080",
         token="api-token",
-        org_id="localorg", 
+        org_id="localorg",
         workspace_id="test",
         refresh_strategy=PollingStrategy(
             interval=5,  # Poll every 5 seconds
@@ -164,7 +164,7 @@ Install the provider for your language of choice. The provider will allow you to
             )
         )
     )
-    
+
     provider = SuperpositionProvider(provider_options=config_options)
     # Initialize provider
     await provider.initialize(context=ctx)
@@ -175,7 +175,7 @@ Install the provider for your language of choice. The provider will allow you to
       ```js title="index.js"
         import { OpenFeature } from '@openfeature/server-sdk';
         import { SuperpositionProvider } from 'superposition-provider';
-        
+
         // create a simple configuration object, for all options check the provider documentation
         const config = {
           endpoint: "http://localhost:8080",
@@ -185,7 +185,7 @@ Install the provider for your language of choice. The provider will allow you to
         };
         const provider = new SuperpositionProvider(config);
         console.log("Provider created successfully");
-      
+
         // Initialize the provider
         await OpenFeature.setProviderAndWait(provider);
         console.log("Provider initialized successfully");
@@ -194,22 +194,22 @@ Install the provider for your language of choice. The provider will allow you to
   <TabItem value="rust" label="Rust">
       ```rust title="main.rs"
       use superposition_provider::{
-          ConfigurationOptions, SuperpositionOptions, SuperpositionProvider, 
+          ConfigurationOptions, SuperpositionOptions, SuperpositionProvider,
           SuperpositionProviderOptions, RefreshStrategy, PollingStrategy
       };
       use open_feature::OpenFeature;
       use tokio::time::{sleep, Duration};
-      
+
       #[tokio::main]
       async fn main() {
           env_logger::init();
-      
+
           // Get the OpenFeature API singleton
           let mut api = OpenFeature::singleton_mut().await;
-          
+
           // Configure the Superposition provider
           let options = SuperpositionProviderOptions {
-              
+
               endpoint: "http://localhost:8080/".to_string(),
               token: "api-token".to_string(),
               org_id: "localorg".to_string(),
@@ -222,7 +222,7 @@ Install the provider for your language of choice. The provider will allow you to
               }),
               experimentation_options: None // CAC only
           };
-          
+
           // Set the provider
           api.set_provider(SuperpositionProvider::new(options)).await;
     }
@@ -242,11 +242,11 @@ Once the provider is initialized, you can evaluate feature flags and configurati
       // Create evaluation context (optional)
       EvaluationContext ctx =
           new ImmutableContext(Map.of("userId", new Value("123")));
-          
+
       // Evaluate a boolean flag
       boolean enabled = client.getBooleanValue("my-feature-flag", false, ctx);
       System.out.println("Feature enabled: " + enabled);
-      
+
       // Evaluate & get the entire configuration
       System.out.println("Full config: " + provider.evaluateConfig(ctx));
       ```
@@ -256,7 +256,7 @@ Once the provider is initialized, you can evaluate feature flags and configurati
       val client = OpenFeatureAPI.getInstance().client
       // Create evaluation context (optional)
       val ctx = ImmutableContext(mapOf("d1" to Value(true)))
-      
+
      // Evaluate a boolean flag
      val enabled = client.getBooleanValue("bool", false, ctx)
      println("Feature enabled: $enabled")
@@ -268,12 +268,12 @@ Once the provider is initialized, you can evaluate feature flags and configurati
   <TabItem value="python" label="Python">
       ```python title="configuration.py"
       client = api.get_client()
-      
+
       ctx = EvaluationContext(
         targeting_key="25",  # Using a targeting key for experiment variant decider
         attributes={'d1': 'd1'}
       )
-      
+
       bool_val = client.get_boolean_details(
           flag_key="bool",
           default_value=True,
@@ -292,22 +292,22 @@ Once the provider is initialized, you can evaluate feature flags and configurati
       const context = {
         d1: "d1",
       };
-  
+
       console.log("Testing feature flags...");
-  
+
       const boolValue = await client.getBooleanValue("bool", false, context);
       console.log("Boolean flag 'bool':", boolValue);
-  
+
       const stringValue = await client.getStringValue(
         "string",
         "default",
         context,
       );
       console.log("String flag 'string':", stringValue);
-  
+
       const numberValue = await client.getNumberValue("number_key", 0, context);
       console.log("Number flag 'number_key':", numberValue);
-  
+
       // Test resolving all config
       const allConfig = await provider.resolveAllConfigDetails({}, context);
       console.log("All config:", allConfig);
@@ -317,10 +317,10 @@ Once the provider is initialized, you can evaluate feature flags and configurati
       ```rust title="main.rs"
       // Create a client
       let client = api.create_client();
-      
+
       // Wait for initialization
       sleep(Duration::from_secs(3)).await;
-      
+
       // Evaluate feature flags
       let int_value = client.get_int_value("my_feature_flag", None, None).await.unwrap();
       println!("Feature flag value: {}", int_value);
