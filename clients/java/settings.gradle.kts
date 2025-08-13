@@ -3,6 +3,6 @@ plugins {
 }
 
 rootProject.name = "superposition-java-clients"
-include("open-feature-provider")
+include("openfeature-provider")
 include("sdk")
 include("bindings")

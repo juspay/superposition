@@ -15,17 +15,6 @@ allprojects {
     }
 }
 
-configurations.all {
-    resolutionStrategy {
-        force(
-            "com.fasterxml.jackson.core:jackson-core:2.16.0",
-            "com.fasterxml.jackson:jackson-bom:2.16.0",
-            "com.fasterxml.jackson.core:jackson-databind:2.16.0",
-            "com.fasterxml.jackson.core:jackson-annotations:2.16.0"
-        )
-    }
-}
-
 /*
  * Jreleaser (https://jreleaser.org) config.
  */
