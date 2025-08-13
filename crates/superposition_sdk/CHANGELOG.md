@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.5.0 - 2025-08-13
+#### Bug Fixes
+- show proper license in crates.io (#657) - (9406a0d) - Datron
+#### Features
+- simplify workspace migration with an API endpoint (#585) - (0f58aed) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.86.0 [skip ci] - (f11fc97) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.4.0 - 2025-08-12
 #### Documentation
 - Add registry specific documentation to provider, bindings and SDK (#652) - (7badc93) - Datron

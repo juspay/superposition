@@ -2,6 +2,33 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.87.0 - 2025-08-13
+### Package updates
+- superposition_types bumped to superposition_types-v0.30.1
+- superposition_provider bumped to superposition_provider-v0.4.3
+- superposition_sdk bumped to superposition_sdk-v0.5.0
+- superposition_derives bumped to superposition_derives-v0.6.1
+- superposition_core bumped to superposition_core-v0.5.1
+### Global changes
+#### Bug Fixes
+- **(java)** Added docs, fixed doc generation & fixed release-ci for java. (#665) - (e67533a) - ShreyBana
+- show proper license in crates.io (#657) - (9406a0d) - Datron
+#### Documentation
+- base README.md update (#655) - (1eb4f45) - Natarajan Kannan
+- fix links - (6040455) - Natarajan Kannan
+- fix links in intro.md - (9815cf9) - Natarajan Kannan
+#### Features
+- simplify workspace migration with an API endpoint (#585) - (0f58aed) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump esbuild and vite in /examples/dynamic-payment-fields - (61ed7de) - dependabot[bot]
+- **(deps)** bump slab in /examples/cac_redis_module - (330d0ff) - dependabot[bot]
+- **(deps)** bump tokio in /examples/k8s-staggered-releaser - (07dd301) - dependabot[bot]
+- **(deps)** bump openssl in /examples/k8s-staggered-releaser - (3c4cc57) - dependabot[bot]
+- **(deps)** bump ring in /examples/k8s-staggered-releaser - (2239c4a) - dependabot[bot]
+- **(version)** v0.86.0 [skip ci] - (f11fc97) - Superposition Bot
+
+- - -
+
 ## v0.86.0 - 2025-08-12
 ### Package updates
 - superposition_types bumped to superposition_types-v0.30.0

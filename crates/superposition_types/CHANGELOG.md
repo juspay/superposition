@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.30.1 - 2025-08-13
+#### Bug Fixes
+- show proper license in crates.io (#657) - (9406a0d) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.86.0 [skip ci] - (f11fc97) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.30.0 - 2025-08-12
 #### Features
 - control population - (aa9d23d) - Ankit.Mahato
