@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.4.3 - 2025-08-13
+#### Bug Fixes
+- show proper license in crates.io (#657) - (9406a0d) - Datron
+#### Documentation
+- Add registry specific documentation to provider, bindings and SDK (#652) - (7badc93) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.85.1 [skip ci] - (ab6070f) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.4.2 - 2025-08-08
 #### Bug Fixes
 - experiment group backfilling user details - (8a4788c) - Ankit.Mahato
