@@ -140,6 +140,28 @@ This section shows a complete configuration and how
     }
     ```
 
+### Analogy with CSS 
+
+For people familiar with how CSS works - the following table comparing CAC to CSS will help them grasp CAC's structure quickly
+
+| CSS | Context Aware Configuration |
+|-----|---------------------------|
+| `body {`<br/>&nbsp;&nbsp;`color: black;`<br/>`}` | `default {`<br/>&nbsp;&nbsp;`color: black`<br/>`}` |
+| `#main {`<br/>&nbsp;&nbsp;`color: green;`<br/>`}` | `[id="main"] {`<br/>&nbsp;&nbsp;`color: green`<br/>`}` |
+| `.module {`<br/>&nbsp;&nbsp;`color: blue;`<br/>`}` | `[class="module"] {`<br/>&nbsp;&nbsp;`color: blue`<br/>`}` |
+| `#main .module {`<br/>&nbsp;&nbsp;`color: orange`<br/>`}` | `[id="main, class="module"] {`<br/>&nbsp;&nbsp;`color: orange`<br/>`}` |
+
+The following mapping of concepts between CAC and CSS will also be useful:
+
+| CSS | Context Aware Configuration |
+|-----|---------------------------|
+| default stylesheet | default config |
+| property | configuration key |
+| value | value (typed) |
+| selector | context<br/>(variables involved in contexts are called dimensions) |
+| set of property:values | override |
+| selector + set of property:value | contextual override |
+
 ## Complete CAC configuration file in TOML format
 The complete context-aware-configuration file for the above example is shown below:
 
