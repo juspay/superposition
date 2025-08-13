@@ -1,0 +1,198 @@
+{
+    "contexts": [
+        {
+            "id": "ecf6429051c98d48140b0247768e27d75474a41d9c5928db27226aeebe0ddc1e",
+            "condition": {
+                "and": [
+                    {
+                        "==": [
+                            {
+                                "var": "newd"
+                            },
+                            "hi"
+                        ]
+                    }
+                ]
+            },
+            "priority": 0,
+            "weight": 0,
+            "override_with_keys": [
+                "3f23b15793e4d57f7486e73b00b1bff535b4273aa68d78fb3d168e0ca8c091bf"
+            ]
+        },
+        {
+            "id": "52eae63b03a0356c0707b9e4c52414f313290eb807444320d0ff7b3ce312a79b",
+            "condition": {
+                "and": [
+                    {
+                        "==": [
+                            {
+                                "var": "d1"
+                            },
+                            "d1"
+                        ]
+                    }
+                ]
+            },
+            "priority": 1,
+            "weight": 1,
+            "override_with_keys": [
+                "3b829029fdc9dab2bd1fdb324616472cbc1369ec48767d815dc6362a8d59a8f4"
+            ]
+        },
+        {
+            "id": "9cbb8d19f64e84bc54d0767cfd79a7c47dd988004f14483531d376001ba6031a",
+            "condition": {
+                "and": [
+                    {
+                        "==": [
+                            {
+                                "var": "d1"
+                            },
+                            "d1"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "7346449145428840448-control",
+                            {
+                                "var": "variantIds"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "priority": 2,
+            "weight": 2,
+            "override_with_keys": [
+                "976d2505d41f148a5d85cd27e3d6d8ff0235c6fdb0ed651741102891faac2f76"
+            ]
+        },
+        {
+            "id": "cb526bd70506e73d29bef5ea4a52e7d2eed4179e63d18c9421322e53700e5f37",
+            "condition": {
+                "and": [
+                    {
+                        "==": [
+                            {
+                                "var": "d1"
+                            },
+                            "d1"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "7346449145428840448-experimental",
+                            {
+                                "var": "variantIds"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "priority": 3,
+            "weight": 3,
+            "override_with_keys": [
+                "8667094de85aab4e03d23d922de082e56ca3833ba1559ba527b954442f495199"
+            ]
+        },
+        {
+            "id": "281d7ebc28baf4229f43edfdc9825d3b6f97e79be444f06892d15fb66c20d9af",
+            "condition": {
+                "and": [
+                    {
+                        "==": [
+                            {
+                                "var": "new104"
+                            },
+                            5
+                        ]
+                    }
+                ]
+            },
+            "priority": 4,
+            "weight": 4,
+            "override_with_keys": [
+                "058b8c8b58d91a5dd5f1882b8b0f4c132b91de2c62020ab7d9df944bdbf06b25"
+            ]
+        },
+        {
+            "id": "f43acd43e0b027b04e71fe2a99d14bb75dcabda2ed4d5ed64bf3cedbb0357b73",
+            "condition": {
+                "and": [
+                    {
+                        "==": [
+                            {
+                                "var": "new105"
+                            },
+                            10
+                        ]
+                    }
+                ]
+            },
+            "priority": 5,
+            "weight": 5,
+            "override_with_keys": [
+                "8fcaf756a61f6a1169f1f49ebb7ef90ac796dbc0390959281efa9751f49f8ddb"
+            ]
+        },
+        {
+            "id": "d2cdbae5da962283db941a82c75e481a2fc19997c132ff35d74b353043c70398",
+            "condition": {
+                "and": [
+                    {
+                        "==": [
+                            {
+                                "var": "new705"
+                            },
+                            21
+                        ]
+                    }
+                ]
+            },
+            "priority": 6,
+            "weight": 6,
+            "override_with_keys": [
+                "e577c9fedd01c1d47c86d1dd071aa7441c077d6ed31e976fbf072f7117b515e3"
+            ]
+        }
+    ],
+    "overrides": {
+        "8fcaf756a61f6a1169f1f49ebb7ef90ac796dbc0390959281efa9751f49f8ddb": {
+            "new2": "qdw"
+        },
+        "976d2505d41f148a5d85cd27e3d6d8ff0235c6fdb0ed651741102891faac2f76": {
+            "string": "control"
+        },
+        "e577c9fedd01c1d47c86d1dd071aa7441c077d6ed31e976fbf072f7117b515e3": {
+            "new2": "fwfe"
+        },
+        "3b829029fdc9dab2bd1fdb324616472cbc1369ec48767d815dc6362a8d59a8f4": {
+            "bool": true
+        },
+        "3f23b15793e4d57f7486e73b00b1bff535b4273aa68d78fb3d168e0ca8c091bf": {
+            "bool_key": false
+        },
+        "058b8c8b58d91a5dd5f1882b8b0f4c132b91de2c62020ab7d9df944bdbf06b25": {
+            "new2": "jbkjkbk"
+        },
+        "8667094de85aab4e03d23d922de082e56ca3833ba1559ba527b954442f495199": {
+            "string": "variant"
+        }
+    },
+    "default_configs": {
+        "abcd": 2,
+        "bool": false,
+        "bool_key": true,
+        "double": 1.2,
+        "integer": 1,
+        "new": "help",
+        "new2": "hithere",
+        "object": {
+            "k1": {
+                "k2": "v1"
+            }
+        },
+        "string": "something"
+    }
+}

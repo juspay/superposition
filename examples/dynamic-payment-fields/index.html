@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Superposition Demo - Dynamic Payment Configuration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      select {
+        appearance: none;
+      }
+      .dimension-card {
+        backdrop-filter: blur(20px);
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .dimension-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1) 0%,
+          rgba(255, 255, 255, 0.05) 100%
+        );
+        border-radius: 12px;
+        pointer-events: none;
+      }
+      .dimension-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      }
+      .dimension-selector {
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        color: #1f2937;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        position: relative;
+        z-index: 10;
+      }
+      .dimension-selector:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+      .dimension-selector option {
+        color: #1f2937;
+      }
+      .main-container {
+        min-height: calc(100vh - 200px);
+      }
+      .sidebar {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      .dimension-icon {
+        width: 16px;
+        height: 16px;
+        opacity: 0.9;
+      }
+      .dimension-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        position: relative;
+        z-index: 10;
+      }
+      .dimension-description {
+        font-size: 0.6875rem;
+        opacity: 0.8;
+        margin-top: 0.25rem;
+        position: relative;
+        z-index: 10;
+      }
+      .dimension-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        position: relative;
+        z-index: 10;
+      }
+      .payment-form {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      .context-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin: 0.25rem;
+        display: inline-block;
+      }
+      .form-section {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1.5rem;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg
+                class="h-8 w-8 text-indigo-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                ></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <h1 class="text-2xl font-bold text-gray-900">
+                Superposition Demo
+              </h1>
+              <p class="text-sm text-gray-500">Dynamic Payment Configuration</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+            >
+              Live
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 main-container">
+        <!-- Left Sidebar - Dimension Selectors -->
+        <div class="lg:col-span-1">
+          <div class="sidebar p-6 sticky top-8">
+            <div class="mb-6">
+              <h2 class="text-xl font-semibold text-gray-900 mb-2">
+                Configuration Context
+              </h2>
+              <p class="text-sm text-gray-600">
+                Select your payment processing context to generate the
+                appropriate form fields.
+              </p>
+            </div>
+
+            <form id="context-form" class="space-y-3">
+              <!-- Connector -->
+              <div
+                class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 dimension-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <svg
+                      class="dimension-icon mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <label class="dimension-label">Connector</label>
+                  </div>
+                  <span class="dimension-badge">⚡</span>
+                </div>
+                <div class="relative">
+                  <select
+                    class="dimension-selector w-full p-2 text-sm rounded"
+                    name="connector"
+                  >
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                  <div
+                    class="self-center absolute pointer-events-none z-10"
+                    style="
+                      color: rgb(84, 84, 84);
+                      left: 97%;
+                      margin-left: -1rem;
+                      top: 42%;
+                    "
+                  >
+                    <svg
+                      class="fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                      width="10"
+                      height="10"
+                    >
+                      <path
+                        d="M12.08 70.78c-16.17-16.24-16.09-42.54.15-58.7 16.25-16.17 42.54-16.09 58.71.15L256 197.76 441.06 12.23c16.17-16.24 42.46-16.32 58.71-.15 16.24 16.16 16.32 42.46.15 58.7L285.27 285.96c-16.24 16.17-42.54 16.09-58.7-.15L12.08 70.78z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p class="dimension-description">Payment processor</p>
+              </div>
+
+              <!-- Payment Method -->
+              <div
+                class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 dimension-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <svg
+                      class="dimension-icon mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <label class="dimension-label">Method</label>
+                  </div>
+                  <span class="dimension-badge">💳</span>
+                </div>
+                <div class="relative">
+                  <select
+                    class="dimension-selector w-full p-2 text-sm rounded"
+                    name="payment_method"
+                  >
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                  <div
+                    class="self-center absolute pointer-events-none z-10"
+                    style="
+                      color: rgb(84, 84, 84);
+                      left: 97%;
+                      margin-left: -1rem;
+                      top: 42%;
+                    "
+                  >
+                    <svg
+                      class="fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                      width="10"
+                      height="10"
+                    >
+                      <path
+                        d="M12.08 70.78c-16.17-16.24-16.09-42.54.15-58.7 16.25-16.17 42.54-16.09 58.71.15L256 197.76 441.06 12.23c16.17-16.24 42.46-16.32 58.71-.15 16.24 16.16 16.32 42.46.15 58.7L285.27 285.96c-16.24 16.17-42.54 16.09-58.7-.15L12.08 70.78z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p class="dimension-description">Payment type</p>
+              </div>
+
+              <!-- Payment Method Type -->
+              <div
+                class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 dimension-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <svg
+                      class="dimension-icon mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <label class="dimension-label">Type</label>
+                  </div>
+                  <span class="dimension-badge">🎯</span>
+                </div>
+                <div class="relative">
+                  <select
+                    class="dimension-selector w-full p-2 text-sm rounded"
+                    name="payment_method_type"
+                  >
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                  <div
+                    class="self-center absolute pointer-events-none z-10"
+                    style="
+                      color: rgb(84, 84, 84);
+                      left: 97%;
+                      margin-left: -1rem;
+                      top: 42%;
+                    "
+                  >
+                    <svg
+                      class="fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                      width="10"
+                      height="10"
+                    >
+                      <path
+                        d="M12.08 70.78c-16.17-16.24-16.09-42.54.15-58.7 16.25-16.17 42.54-16.09 58.71.15L256 197.76 441.06 12.23c16.17-16.24 42.46-16.32 58.71-.15 16.24 16.16 16.32 42.46.15 58.7L285.27 285.96c-16.24 16.17-42.54 16.09-58.7-.15L12.08 70.78z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p class="dimension-description">Method variant</p>
+              </div>
+
+              <!-- Country -->
+              <div
+                class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 dimension-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <svg
+                      class="dimension-icon mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <label class="dimension-label">Country</label>
+                  </div>
+                  <span class="dimension-badge">🌍</span>
+                </div>
+                <div class="relative">
+                  <select
+                    class="dimension-selector w-full p-2 text-sm rounded"
+                    name="country"
+                  >
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                  <div
+                    class="self-center absolute pointer-events-none z-10"
+                    style="
+                      color: rgb(84, 84, 84);
+                      left: 97%;
+                      margin-left: -1rem;
+                      top: 42%;
+                    "
+                  >
+                    <svg
+                      class="fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                      width="10"
+                      height="10"
+                    >
+                      <path
+                        d="M12.08 70.78c-16.17-16.24-16.09-42.54.15-58.7 16.25-16.17 42.54-16.09 58.71.15L256 197.76 441.06 12.23c16.17-16.24 42.46-16.32 58.71-.15 16.24 16.16 16.32 42.46.15 58.7L285.27 285.96c-16.24 16.17-42.54 16.09-58.7-.15L12.08 70.78z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p class="dimension-description">Market location</p>
+              </div>
+
+              <!-- Mandate Type -->
+              <div
+                class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 dimension-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <svg
+                      class="dimension-icon mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                        clip-rule="evenodd"
+                      ></path>
+                      <path
+                        fill-rule="evenodd"
+                        d="M4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 2a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <label class="dimension-label">Mandate</label>
+                  </div>
+                  <span class="dimension-badge">📋</span>
+                </div>
+                <div class="relative">
+                  <select
+                    class="dimension-selector w-full p-2 text-sm rounded"
+                    name="mandate_type"
+                  >
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                  <div
+                    class="self-center absolute pointer-events-none z-10"
+                    style="
+                      color: rgb(84, 84, 84);
+                      left: 97%;
+                      margin-left: -1rem;
+                      top: 42%;
+                    "
+                  >
+                    <svg
+                      class="fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                      width="10"
+                      height="10"
+                    >
+                      <path
+                        d="M12.08 70.78c-16.17-16.24-16.09-42.54.15-58.7 16.25-16.17 42.54-16.09 58.71.15L256 197.76 441.06 12.23c16.17-16.24 42.46-16.32 58.71-.15 16.24 16.16 16.32 42.46.15 58.7L285.27 285.96c-16.24 16.17-42.54 16.09-58.7-.15L12.08 70.78z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p class="dimension-description">Authorization type</p>
+              </div>
+
+              <!-- Collect Billing Details -->
+              <div
+                class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 dimension-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <svg
+                      class="dimension-icon mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <label class="dimension-label">Billing Details</label>
+                  </div>
+                  <span class="dimension-badge">💳</span>
+                </div>
+                <div class="relative">
+                  <select
+                    class="dimension-selector w-full p-2 text-sm rounded"
+                    name="collect_billing_details_from_wallet_connector"
+                  >
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                  <div
+                    class="self-center absolute pointer-events-none z-10"
+                    style="
+                      color: rgb(84, 84, 84);
+                      left: 97%;
+                      margin-left: -1rem;
+                      top: 42%;
+                    "
+                  >
+                    <svg
+                      class="fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                      width="10"
+                      height="10"
+                    >
+                      <path
+                        d="M12.08 70.78c-16.17-16.24-16.09-42.54.15-58.7 16.25-16.17 42.54-16.09 58.71.15L256 197.76 441.06 12.23c16.17-16.24 42.46-16.32 58.71-.15 16.24 16.16 16.32 42.46.15 58.7L285.27 285.96c-16.24 16.17-42.54 16.09-58.7-.15L12.08 70.78z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p class="dimension-description">Wallet billing collection</p>
+              </div>
+
+              <!-- Collect Shipping Details -->
+              <div
+                class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 dimension-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <svg
+                      class="dimension-icon mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                      ></path>
+                      <path
+                        fill-rule="evenodd"
+                        d="M3 4a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 14.846 4.632 16 6.414 16H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3zM16 6H6.75l.5 2H15.5l-1 2H8.75l.5 2H15.5l-1 2H10.75l.5 2H16V6z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <label class="dimension-label">Shipping Details</label>
+                  </div>
+                  <span class="dimension-badge">🚚</span>
+                </div>
+                <div class="relative">
+                  <select
+                    class="dimension-selector w-full p-2 text-sm rounded"
+                    name="collect_shipping_details_from_wallet_connector"
+                  >
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                  <div
+                    class="self-center absolute pointer-events-none z-10"
+                    style="
+                      color: rgb(84, 84, 84);
+                      left: 97%;
+                      margin-left: -1rem;
+                      top: 42%;
+                    "
+                  >
+                    <svg
+                      class="fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                      width="10"
+                      height="10"
+                    >
+                      <path
+                        d="M12.08 70.78c-16.17-16.24-16.09-42.54.15-58.7 16.25-16.17 42.54-16.09 58.71.15L256 197.76 441.06 12.23c16.17-16.24 42.46-16.32 58.71-.15 16.24 16.16 16.32 42.46.15 58.7L285.27 285.96c-16.24 16.17-42.54 16.09-58.7-.15L12.08 70.78z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p class="dimension-description">Wallet shipping collection</p>
+              </div>
+            </form>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+              <div class="flex items-center text-xs text-blue-800">
+                <svg
+                  class="w-3 h-3 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                <span>Form updates automatically on selection change</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Content - Dynamic Form -->
+        <div class="lg:col-span-2">
+          <div id="config-table">
+            <!-- Dynamic content will be inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="text-center text-sm text-gray-500">
+          <p>Powered by Superposition • Dynamic Configuration Management</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="superposition.js"></script>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

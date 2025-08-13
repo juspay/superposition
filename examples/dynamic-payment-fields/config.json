@@ -1,0 +1,6492 @@
+{
+  "contexts": [
+    {
+      "id": "ddc7145ab7744586033c1e44f85b1ca437b5136e69307925073658055acdff34",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 0,
+      "weight": 0,
+      "override_with_keys": [
+        "d59511a6348e7482aaa1e85f19cfa56426172355f8c70788a07eda89cda5adbf"
+      ]
+    },
+    {
+      "id": "dd25910e31675e68a7bb7fa84504c2166713ab0d6647f5c230866dbb7540d4c2",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Aci"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 1,
+      "weight": 1,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "f6335ef28e10b2bd66deef9853e7c709139d59ae753e50d6e698aa2da6e8d103",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 2,
+      "weight": 2,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "0bd5c08c1a21896aa5c88b5870028a925d703d89f9335e36ae38522ecb4759c3",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Cybersource"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 3,
+      "weight": 3,
+      "override_with_keys": [
+        "6d0e90476e9e2e11dda61bc0fc284bb8d52c9002766204a5b8558d81aeb214f8"
+      ]
+    },
+    {
+      "id": "d9901b73c7819b89d2aa32bb0eebe49277784d320682dfbaf1a1a31357a41b42",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Bankofamerica"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 4,
+      "weight": 4,
+      "override_with_keys": [
+        "e4cbbe84a64fb4073a0fb7489d79d2f52bba2b689735d96a35dbc147d597c534"
+      ]
+    },
+    {
+      "id": "666dc6c68000fde18443aa3e9afa538a02eb73e642442bf5d2fcc361ad83a551",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Datatrans"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 5,
+      "weight": 5,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "efd713b81666f9f7aefea086a8e9c6acae0cf266793b3e5186c2b7537b60f81d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Multisafepay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 6,
+      "weight": 6,
+      "override_with_keys": [
+        "c031ac6e7693b9c7da649b43836a10ec53ef24b05bf3e276cfb213639a77f951"
+      ]
+    },
+    {
+      "id": "ce1ae02f8cf06f26c198d9317c87ecb70d64fedfdc4d4039da983f6216876857",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Hipay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 7,
+      "weight": 7,
+      "override_with_keys": [
+        "6d0e90476e9e2e11dda61bc0fc284bb8d52c9002766204a5b8558d81aeb214f8"
+      ]
+    },
+    {
+      "id": "e1160aaa89a4ee62e4ef7e991330ff2b631953319f3bc7c7f00480c8e6fa456c",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Novalnet"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 8,
+      "weight": 8,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "c7dec2a777b969cd11f7dd14469f2f7972520b4f39ed59e23e3223db0b9a005a",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Noon"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 9,
+      "weight": 9,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "e3138c5ae86104d70ad6b112345ddb6f98df039f7fd4541b569ef3cc4ea68694",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Paybox"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 10,
+      "weight": 10,
+      "override_with_keys": [
+        "108a7b1f528f6fdb45e346b272b67f3e5d48b3cb0ba76b5b27546fa4423bb1cb"
+      ]
+    },
+    {
+      "id": "d72b45960c50f09fd725e28a79bd4eef7b175742cfa06fed1cc87474d78859fb",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Nexixpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 11,
+      "weight": 11,
+      "override_with_keys": [
+        "e55adf3dea029ecedcccb70db6715b739c7a13360c2cf98fdb289ec37d5fe43a"
+      ]
+    },
+    {
+      "id": "900e69eb64f5bb959ea9b03466dcfe7cb279af259e9424c3eb4f1b526e222936",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Payme"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 12,
+      "weight": 12,
+      "override_with_keys": [
+        "790734d9ba447f506bf99a6bd2727cb0ebc40abc79ab2a98e36eafc4c0943986"
+      ]
+    },
+    {
+      "id": "8256b1e96a11f3ac61ddd05b24589b4412461b9e296aa1951939f6ef174ab749",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Payload"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 13,
+      "weight": 13,
+      "override_with_keys": [
+        "e4cbbe84a64fb4073a0fb7489d79d2f52bba2b689735d96a35dbc147d597c534"
+      ]
+    },
+    {
+      "id": "a6bfec2170d83d8a1471409224f36c58fbdeba7714ab704395c4a0a726d1cb0b",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Worldpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 14,
+      "weight": 14,
+      "override_with_keys": [
+        "5355bba013acd4d2e3b34e1a07be59ef286fbb5142a323255fe9925d01dfbb63"
+      ]
+    },
+    {
+      "id": "97c03e275157e5021ebc11b0f4762d7a15a69604f477f614ca4dfe558012b0f2",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Wellsfargo"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 15,
+      "weight": 15,
+      "override_with_keys": [
+        "e4cbbe84a64fb4073a0fb7489d79d2f52bba2b689735d96a35dbc147d597c534"
+      ]
+    },
+    {
+      "id": "14d724addfea38b97545463d9c5272b01c3e6b2560f2942f2affad18f13ea983",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Xendit"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          }
+        ]
+      },
+      "priority": 16,
+      "weight": 16,
+      "override_with_keys": [
+        "a69f86edc428551e3a64bd991e5d8217ee586175b99db1b5fd2a2e078b34dfee"
+      ]
+    },
+    {
+      "id": "d4df997c4d79082ffc91d3b5e7f503aaeac194c27b65d54a851f8ac0c76359d6",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Novalnet"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "ApplePay"
+            ]
+          }
+        ]
+      },
+      "priority": 17,
+      "weight": 17,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "e9fb9608345be438ec8b5fbdfcb785bb8006fa1dd84abcc3c53be9c2c1adafdc",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Cybersource"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "ApplePay"
+            ]
+          }
+        ]
+      },
+      "priority": 18,
+      "weight": 18,
+      "override_with_keys": [
+        "6d0e90476e9e2e11dda61bc0fc284bb8d52c9002766204a5b8558d81aeb214f8"
+      ]
+    },
+    {
+      "id": "319503f9cf01383c79c775d6a9cf4538c4ec4b78c8d817f745a341605786d087",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Wellsfargo"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "ApplePay"
+            ]
+          }
+        ]
+      },
+      "priority": 19,
+      "weight": 19,
+      "override_with_keys": [
+        "7b373a75c5c5f543b9802cb9a2f7c32dadb6afceac1d4a0bce7ad560f65310c5"
+      ]
+    },
+    {
+      "id": "b1f3cf2c0c8590667b8d6a22a50551f7bd7e0e3de9dd2c8d950e3456a5a7c9ca",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Bankofamerica"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "ApplePay"
+            ]
+          }
+        ]
+      },
+      "priority": 20,
+      "weight": 20,
+      "override_with_keys": [
+        "e4cbbe84a64fb4073a0fb7489d79d2f52bba2b689735d96a35dbc147d597c534"
+      ]
+    },
+    {
+      "id": "f85bd84eb845ec50d60a021d8eb79b65f9cc0777f9affc392d8568ad2f5e781e",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Bankofamerica"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "GooglePay"
+            ]
+          }
+        ]
+      },
+      "priority": 21,
+      "weight": 21,
+      "override_with_keys": [
+        "e4cbbe84a64fb4073a0fb7489d79d2f52bba2b689735d96a35dbc147d597c534"
+      ]
+    },
+    {
+      "id": "56a6e8fe667a9189d596872ee634c86eaceb350401ee05b19559ec9a9791c7d2",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Wellsfargo"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "GooglePay"
+            ]
+          }
+        ]
+      },
+      "priority": 22,
+      "weight": 22,
+      "override_with_keys": [
+        "7b373a75c5c5f543b9802cb9a2f7c32dadb6afceac1d4a0bce7ad560f65310c5"
+      ]
+    },
+    {
+      "id": "20e396633dabde0a8766c2ba8191f742d0c7f3717174aaf9fe526d46e498b152",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Cybersource"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "SamsungPay"
+            ]
+          }
+        ]
+      },
+      "priority": 23,
+      "weight": 23,
+      "override_with_keys": [
+        "6d0e90476e9e2e11dda61bc0fc284bb8d52c9002766204a5b8558d81aeb214f8"
+      ]
+    },
+    {
+      "id": "9f069003b776c9d1240d74621e8bc9c9c765fc1c451a52b97b92ca4b78858f0f",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Multisafepay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "GooglePay"
+            ]
+          }
+        ]
+      },
+      "priority": 24,
+      "weight": 24,
+      "override_with_keys": [
+        "75e4b9726bd3a3b8a45d0b24f8d5b405a34a2384978caa9eda69f247e228df9c"
+      ]
+    },
+    {
+      "id": "7b8c8782bc399f578c47b2b69ae0f4b93d7f84146ca130dd0b3e7565832a4bea",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Novalnet"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "GooglePay"
+            ]
+          }
+        ]
+      },
+      "priority": 25,
+      "weight": 25,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "af19da6b0c4648207dc03b3adddf5cb8c5e65829bce7867136013e7d3358c5a6",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Cybersource"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "GooglePay"
+            ]
+          }
+        ]
+      },
+      "priority": 26,
+      "weight": 26,
+      "override_with_keys": [
+        "6d0e90476e9e2e11dda61bc0fc284bb8d52c9002766204a5b8558d81aeb214f8"
+      ]
+    },
+    {
+      "id": "51ad109c17d1024d7b55c97878b3ecae86553ceb5e7c21cb0ef813462cfdcde1",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Novalnet"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Paypal"
+            ]
+          }
+        ]
+      },
+      "priority": 27,
+      "weight": 27,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "5a87ad0c7b38ba1d6f7555ee7be4f9d6e475190a037c2fe4f52589e04b2ffd95",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Paypal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Paypal"
+            ]
+          }
+        ]
+      },
+      "priority": 28,
+      "weight": 28,
+      "override_with_keys": [
+        "42a1a5ff453ff65063d01ba538275c9fd753439813f4f3b59a4f7cfbc881d988"
+      ]
+    },
+    {
+      "id": "3d815ea8f1505374aa0622c22e251efd0cbe15af3315ad172c8cf4c6d42178be",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Paypal"
+            ]
+          }
+        ]
+      },
+      "priority": 29,
+      "weight": 29,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "9c4a575362709f97d183ddc4c70181b2b5137d547c39b2309f12a7ee546a0f92",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "MbWay"
+            ]
+          }
+        ]
+      },
+      "priority": 30,
+      "weight": 30,
+      "override_with_keys": [
+        "ea09a1b825ca336ae41a9af5acbbbc8f8482c59c436a23d0a1a02f78e4c694ab"
+      ]
+    },
+    {
+      "id": "9c0cfb1f9934ad9003a6b8abd2be74f4b4f7de38084232ca0ae98c0a11e2a781",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Airwallex"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Paypal"
+            ]
+          }
+        ]
+      },
+      "priority": 31,
+      "weight": 31,
+      "override_with_keys": [
+        "fd831c4359b8fbabbe6ae7fd3099293fce3217e3b7c6eface98faa837d3c8746"
+      ]
+    },
+    {
+      "id": "6cb6e094cdb0224422e5d833bd10d3b716734810ef89a3c73303a3cab3472ddc",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "AfterpayClearpay"
+            ]
+          }
+        ]
+      },
+      "priority": 32,
+      "weight": 32,
+      "override_with_keys": [
+        "9243526e1de909ebeaa0f654a3eb4c2463874fd3b20ce1b133a123b23a48c78c"
+      ]
+    },
+    {
+      "id": "2ec3d4066487f20c5ce17ae5a629c101dc6ab061cd1e83586cec7c1eded8b8b7",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "AfterpayClearpay"
+            ]
+          }
+        ]
+      },
+      "priority": 33,
+      "weight": 33,
+      "override_with_keys": [
+        "4f3bc28b6c5344895e6c9b7394627cd89d6805dfad9ed516665b05d47231b357"
+      ]
+    },
+    {
+      "id": "122849fc98dc7f70669f88e5616ff2ac15a0360fe728aafb911bde82d0ff38a7",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Mifinity"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Mifinity"
+            ]
+          }
+        ]
+      },
+      "priority": 34,
+      "weight": 34,
+      "override_with_keys": [
+        "9d537ac7e5abf794ac7577be6d169b523b4b659a6151bf13fc08e491adc76100"
+      ]
+    },
+    {
+      "id": "635c1d78ab097c172d9a8f7391bc19751b524967611a6f5fdc30b14b9e4ddd8c",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Airwallex"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Skrill"
+            ]
+          }
+        ]
+      },
+      "priority": 35,
+      "weight": 35,
+      "override_with_keys": [
+        "05eecb702089b362187b7119d529afa9869d39b92cbe5f87e4f52112ab27b81e"
+      ]
+    },
+    {
+      "id": "4df74ba7cc94816fd802de495624f1faa7781d26cc6dcc687881c8e182b6035a",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Klarna"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Klarna"
+            ]
+          }
+        ]
+      },
+      "priority": 36,
+      "weight": 36,
+      "override_with_keys": [
+        "adf8b881916cdb21c5d681de5bbec681b053fcd9d0b9189d613a5e670e2df26d"
+      ]
+    },
+    {
+      "id": "7a6eafddd09190df2be58f704022c489761b7c46b16e65f5ede336ed0c3f3588",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Klarna"
+            ]
+          }
+        ]
+      },
+      "priority": 37,
+      "weight": 37,
+      "override_with_keys": [
+        "d8f177756754454093a82d8a005dd450306c2b909765f03fdcd9b22f6ff21310"
+      ]
+    },
+    {
+      "id": "962d5768e6bbace92ce0906e0ecec77d15302336e60df2ec4538645f59d1357e",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Klarna"
+            ]
+          }
+        ]
+      },
+      "priority": 38,
+      "weight": 38,
+      "override_with_keys": [
+        "bff37f0ae1f2c1d5b95012722554195bab41e386113abe1f75d47c4ddd34a7cb"
+      ]
+    },
+    {
+      "id": "c0e775882dff6e8755994a2ea3f932846cefd650bfa3efb52c91279d474c2470",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Walley"
+            ]
+          }
+        ]
+      },
+      "priority": 39,
+      "weight": 39,
+      "override_with_keys": [
+        "bec2e518e43142de81515970aaec2d6226097b5e5c9feb37d24c559a934f0f53"
+      ]
+    },
+    {
+      "id": "8732eb990b2c8853b4bcf840ee9573e194b16bc509e0acdfd35d6ab91414c074",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "SevenEleven"
+            ]
+          }
+        ]
+      },
+      "priority": 40,
+      "weight": 40,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "930a0fc583237f55f8eac8df3e14eefeb90314629789a62861b46f1aa6d3e283",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Indomaret"
+            ]
+          }
+        ]
+      },
+      "priority": 41,
+      "weight": 41,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "bad4e2f6694407bb21693cac86745e34914f20123add69e9a2fe82d66e32f1df",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Alfamart"
+            ]
+          }
+        ]
+      },
+      "priority": 42,
+      "weight": 42,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "ddfe0e5d302e1ca637e54f2309108a2e18d3a8890d5b994bb52a6ce7c416cd14",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "PayEasy"
+            ]
+          }
+        ]
+      },
+      "priority": 43,
+      "weight": 43,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "060de4be969e0416158c08b965b765e3d0af456e48db9d0e72c7861ab5f21360",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "FamilyMart"
+            ]
+          }
+        ]
+      },
+      "priority": 44,
+      "weight": 44,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "d56f43bb4d8afc827360494fb553ed1e1d03d37de7bceca71a037591385085b7",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "MiniStop"
+            ]
+          }
+        ]
+      },
+      "priority": 45,
+      "weight": 45,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "bd1cd7a1b39b9622366f749fdf120d338a32ab87ecd683629098c08c0076f4a2",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Seicomart"
+            ]
+          }
+        ]
+      },
+      "priority": 46,
+      "weight": 46,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "9596543e2d4c235e44f803ee5999f5fe87070f837ae753a58ee0a027a5e6fa58",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sepa"
+            ]
+          }
+        ]
+      },
+      "priority": 47,
+      "weight": 47,
+      "override_with_keys": [
+        "4a28066c6e1856ced458d5e6a61a2bdd2a8d8a2b25d9621a5933a0dd0edaf923"
+      ]
+    },
+    {
+      "id": "002ecf10707ab0070a031b754ca63b2ed603b44efe0897eedeaa1527cb596064",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Lawson"
+            ]
+          }
+        ]
+      },
+      "priority": 48,
+      "weight": 48,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "9a760447624a9795257b2185bbe08c59d34d7c9c935c7c4c8a36087542131e59",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sepa"
+            ]
+          }
+        ]
+      },
+      "priority": 49,
+      "weight": 49,
+      "override_with_keys": [
+        "c56c95de52cba9f2e084cc05c9e37f5d1c838f9107a46311d36c2212e70c10d7"
+      ]
+    },
+    {
+      "id": "dd099191aee08bea871944f8d7ab54d5e17e55b3ffda354075071662316f92ec",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Deutschebank"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sepa"
+            ]
+          }
+        ]
+      },
+      "priority": 50,
+      "weight": 50,
+      "override_with_keys": [
+        "4a28066c6e1856ced458d5e6a61a2bdd2a8d8a2b25d9621a5933a0dd0edaf923"
+      ]
+    },
+    {
+      "id": "73ab3ac26c79fdc7a3597bac56e2903bc9f4f548f5343cb4a06e7548aaef17d3",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ach"
+            ]
+          }
+        ]
+      },
+      "priority": 51,
+      "weight": 51,
+      "override_with_keys": [
+        "8101b549ab90550c3ad80e49e758c9e99ed7a9c6acb649a7ce7c7b84834d82c1"
+      ]
+    },
+    {
+      "id": "9cd4963ef0db0a4c295776c819ac0da3f53ffb5d31f2a7bc547c5020b5c2c964",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Bacs"
+            ]
+          }
+        ]
+      },
+      "priority": 52,
+      "weight": 52,
+      "override_with_keys": [
+        "697ced0f81368a879a30894eb5d9d3b99b67feb4adc4daa214ccc1826a633592"
+      ]
+    },
+    {
+      "id": "7a8ffe8fae75d48bcc5df68a166778e3a32901cb46f3786ef2da152107992fba",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Inespay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sepa"
+            ]
+          }
+        ]
+      },
+      "priority": 53,
+      "weight": 53,
+      "override_with_keys": [
+        "d6da34defdab14cf8c5b623fd4dc593bae131c7eca1f14411caa89bfd8d4d4b4"
+      ]
+    },
+    {
+      "id": "516242952d91b078b182afb11e0c50f4b2cb9bdfeafb603147d321ef8d7743f2",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Bacs"
+            ]
+          }
+        ]
+      },
+      "priority": 54,
+      "weight": 54,
+      "override_with_keys": [
+        "55ea4efb2ce7059c7363135f2cc4e0738a5df049c9ae2eefcbcda2539677046e"
+      ]
+    },
+    {
+      "id": "62adfcc89811463d78b9481a600b6a877448bac41e09cb24c43ad170aff2247c",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Becs"
+            ]
+          }
+        ]
+      },
+      "priority": 55,
+      "weight": 55,
+      "override_with_keys": [
+        "7d449d2cfe0a197a26119f38a1e39ca1731742da0d9abb9a112bdbd3f1914a9c"
+      ]
+    },
+    {
+      "id": "77da1369de60e117e983130a3482d02ee46d261de319e532178c683d4186b429",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Becs"
+            ]
+          }
+        ]
+      },
+      "priority": 56,
+      "weight": 56,
+      "override_with_keys": [
+        "442a6b499444b919c6939342c92b328e619a22892a3287ba5bb6165cbfbb1cc0"
+      ]
+    },
+    {
+      "id": "ae5b39282ea5521181e771a80c8bdc2ffea889712b609a9b4452f70d4c2a4dad",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Itaubank"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Pix"
+            ]
+          }
+        ]
+      },
+      "priority": 57,
+      "weight": 57,
+      "override_with_keys": [
+        "e93d4223ffedbc8f8c46ef7a07afdfbcb7b9d56ce7746596566f9211c185636d"
+      ]
+    },
+    {
+      "id": "7b660c8e96767c1e4e9161f54fd6f1ddb0ebe56d8eb8bd275b3580e09dab7515",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Zsl"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "LocalBankTransfer"
+            ]
+          }
+        ]
+      },
+      "priority": 58,
+      "weight": 58,
+      "override_with_keys": [
+        "9bd950a396d6ff9c135a344d39421affaa8a2451dfd16cdd5279ac73f7195748"
+      ]
+    },
+    {
+      "id": "2efd5a6884def3490902d524a3c7aaea187b6662a3cc41e679ac57973dcf44f7",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Multibanco"
+            ]
+          }
+        ]
+      },
+      "priority": 59,
+      "weight": 59,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "337efab5641f67059eb6a4c03facda06d531019c19cd956a1c46820dd2e4925d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Santander"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Pix"
+            ]
+          }
+        ]
+      },
+      "priority": 60,
+      "weight": 60,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "464197081d8e4f16fd9b7700353ae330a0234b614e2ac831be6d63ff754715fe",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "PermataBankTransfer"
+            ]
+          }
+        ]
+      },
+      "priority": 61,
+      "weight": 61,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "6b705ec13e46fe0920254863b00205174b3efa3d1954c4548349c0583172208c",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Facilitapay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Pix"
+            ]
+          }
+        ]
+      },
+      "priority": 62,
+      "weight": 62,
+      "override_with_keys": [
+        "706fe842ffe908f1b80bfca670321e972feda473eb9621a50ec839d3152e13d6"
+      ]
+    },
+    {
+      "id": "7cb4bfda8d607f84da9e18c1f9caa9351e0143cf82e00d46c74c3c8e8a5a150e",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "BcaBankTransfer"
+            ]
+          }
+        ]
+      },
+      "priority": 63,
+      "weight": 63,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "3082b628725851d580d48fd40caeab468ca39d4fbe52508f12f3d2bd45f8f0c8",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "BriVa"
+            ]
+          }
+        ]
+      },
+      "priority": 64,
+      "weight": 64,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "167c55939c2174958c580e2b2bd8f8797a4a56df0e1d48bfb8b732e95d169a3e",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Bluecode"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Pix"
+            ]
+          }
+        ]
+      },
+      "priority": 65,
+      "weight": 65,
+      "override_with_keys": [
+        "85b50be842acc93162807f49cf57da5c12be54411ca680ee9cb4e7b753b0803e"
+      ]
+    },
+    {
+      "id": "a7e71f6c8a74aa38e33de2ba2f528b01bf8551aa49247fdb7e27cdf2f232cbe9",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "DanamonVa"
+            ]
+          }
+        ]
+      },
+      "priority": 66,
+      "weight": 66,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "34ca12b23889d99421d9c6ed46fa0e7d41caff82859134061c9fceccb277b0c1",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "MandiriVa"
+            ]
+          }
+        ]
+      },
+      "priority": 67,
+      "weight": 67,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "9897fd00cec3120bc6333495f71a90822beaf8b52ff77524d0d40428c744e0c8",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "CimbVa"
+            ]
+          }
+        ]
+      },
+      "priority": 68,
+      "weight": 68,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "ea1708ac87869d9d28d80a505b35a31970f2b36d2f80bedd0ef4914660b15278",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "BniVa"
+            ]
+          }
+        ]
+      },
+      "priority": 69,
+      "weight": 69,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "7d5f482b9b7c6d1c8ba6864048afd567dcb3775e0963ae103d528e6945e961e0",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "SepaBankTransfer"
+            ]
+          }
+        ]
+      },
+      "priority": 70,
+      "weight": 70,
+      "override_with_keys": [
+        "6f4b3e7ed9f4303e1e7e60084f2766f9536a0d5d52a707595560a8d966d14606"
+      ]
+    },
+    {
+      "id": "0d38550e2bb5bef947b0172673d736edc901eb24589ec91146f41d5178a31cae",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "InstantBankTransfer"
+            ]
+          }
+        ]
+      },
+      "priority": 71,
+      "weight": 71,
+      "override_with_keys": [
+        "108a7b1f528f6fdb45e346b272b67f3e5d48b3cb0ba76b5b27546fa4423bb1cb"
+      ]
+    },
+    {
+      "id": "3f94234a56e474c8859ebcbbdce5869ef979956e8e101f469c0e79a84ca9edaf",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "SepaBankTransfer"
+            ]
+          }
+        ]
+      },
+      "priority": 72,
+      "weight": 72,
+      "override_with_keys": [
+        "108a7b1f528f6fdb45e346b272b67f3e5d48b3cb0ba76b5b27546fa4423bb1cb"
+      ]
+    },
+    {
+      "id": "470e9a2a371dec0dc234eb5b52933e5b0d0c8993424c7912f3741d5dc3cdeedd",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Volt"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OpenBankingUk"
+            ]
+          }
+        ]
+      },
+      "priority": 73,
+      "weight": 73,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "e758645658b7937ae7459e530eec3a4e49d5e3cfb6138731b8d124689879e8a0",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "InstantBankTransferFinland"
+            ]
+          }
+        ]
+      },
+      "priority": 74,
+      "weight": 74,
+      "override_with_keys": [
+        "85201e0415c04df8be22a4323be523755ba5d4864c55fa42f9b54f31c528202e"
+      ]
+    },
+    {
+      "id": "f198f7dca2ed8e0608b78770ecd056d93c20b6e5ae737f8ef3fe12ef3765c4c2",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "InstantBankTransferPoland"
+            ]
+          }
+        ]
+      },
+      "priority": 75,
+      "weight": 75,
+      "override_with_keys": [
+        "780dd8f34466d2ef532f718a79d7564da8c2d63fdac1b97e3d19997aa97006d2"
+      ]
+    },
+    {
+      "id": "07ab0ec7a56868d962809f5f47857e9fffb186f1d097a366027de4ea52e0e31c",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OnlineBankingCzechRepublic"
+            ]
+          }
+        ]
+      },
+      "priority": 76,
+      "weight": 76,
+      "override_with_keys": [
+        "864313e4116c332f9717f5a3ccb4bf341c7454173d7108e346b73c9f518b8df1"
+      ]
+    },
+    {
+      "id": "fb0eb7117fb5032592ed9fdc8d2f71342186f9022bfe6015a58d520d4c79d52e",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OpenBankingUk"
+            ]
+          }
+        ]
+      },
+      "priority": 77,
+      "weight": 77,
+      "override_with_keys": [
+        "07e5abee8428e3091ae24fb013691b89031fa4559e7654fc8e357d62635e74d2"
+      ]
+    },
+    {
+      "id": "e1f192881609fb7ef7fe4f2f31e8c95d2d39cd724ad8868c2ee555d37a5afb9b",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OnlineBankingPoland"
+            ]
+          }
+        ]
+      },
+      "priority": 78,
+      "weight": 78,
+      "override_with_keys": [
+        "47391ebfb37d31ab05cc2641be65e9864a42fea2726056a1d7bcdb256934bea3"
+      ]
+    },
+    {
+      "id": "c39d59754288472f3c07c3a2ecddc12527d39278eaf0f8d27c292cd02e04221e",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OnlineBankingFinland"
+            ]
+          }
+        ]
+      },
+      "priority": 79,
+      "weight": 79,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "d92660ca2caba3bd73e5da989e07f52c9094874796c223cf638e4239313e657e",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "BancontactCard"
+            ]
+          }
+        ]
+      },
+      "priority": 80,
+      "weight": 80,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "e984e75820f9e652523ceed57abb9e2e57b3c6b1de87cd80ffc0538365afd39d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Przelewy24"
+            ]
+          }
+        ]
+      },
+      "priority": 81,
+      "weight": 81,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "6b8521c2272ef5e204fd02f62935f161d74b6417922c1b114d9949c5653a664c",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OnlineBankingThailand"
+            ]
+          }
+        ]
+      },
+      "priority": 82,
+      "weight": 82,
+      "override_with_keys": [
+        "4ceacff2c2cda8894ea100b0b951ed227ec06d7e3e064b1b9c037b6acf674415"
+      ]
+    },
+    {
+      "id": "fa80e8a5859a2fa73f3b30f905a99e9d694d7c5ee5f04005d521ae738549a342",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OnlineBankingFpx"
+            ]
+          }
+        ]
+      },
+      "priority": 83,
+      "weight": 83,
+      "override_with_keys": [
+        "829f4d937fa64c6f002f0e20534435afa33d02c9c1359bc3f965459a035b2a20"
+      ]
+    },
+    {
+      "id": "debec9c68fb0c317a9572027994ebc3a6c53b538e09d10f63d2df25dc7e33feb",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "OnlineBankingSlovakia"
+            ]
+          }
+        ]
+      },
+      "priority": 84,
+      "weight": 84,
+      "override_with_keys": [
+        "b3703ec98a3d2e52739904e529a82e19af1e91654e0bc3a9a2d81335d1f5fb53"
+      ]
+    },
+    {
+      "id": "340a7690af78a46878fc7c4ac79c74e4cfa49db6a10a7ee53538b7469065bae3",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Giropay"
+            ]
+          }
+        ]
+      },
+      "priority": 85,
+      "weight": 85,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "85a77f8e1274bbdc5b4d6c15d8b10ce6f4eb56a212d81dcbd506aeffcb5a0272",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Paypal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Giropay"
+            ]
+          }
+        ]
+      },
+      "priority": 86,
+      "weight": 86,
+      "override_with_keys": [
+        "125f1a0c0287176abd4b2dac8e9e54b6abf615ebc7956ffa4207c2a78e693caf"
+      ]
+    },
+    {
+      "id": "919cbef4f9c1c6b859f84d6b69837042992405db75b2b8e5e5701de128cd10e4",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Nuvei"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Giropay"
+            ]
+          }
+        ]
+      },
+      "priority": 87,
+      "weight": 87,
+      "override_with_keys": [
+        "d1366509af961c4c842ce1f871300e95bb61ed6b8a9e7e134a3e5ee1828dbd22"
+      ]
+    },
+    {
+      "id": "e5f478ebf8ede2d218939bf8aeb3654787bf48a0391ea910c368327814715cd1",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Globalpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Giropay"
+            ]
+          }
+        ]
+      },
+      "priority": 88,
+      "weight": 88,
+      "override_with_keys": [
+        "41cdffa16714322cfc6be7b113f3a487afbb7623eea979ea613cc0aa23fa49ae"
+      ]
+    },
+    {
+      "id": "a4fd2abb1218d39cf82b71794cb8f948184d8e58d312ecbddc6ef60bbef38bdf",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "BancontactCard"
+            ]
+          }
+        ]
+      },
+      "priority": 89,
+      "weight": 89,
+      "override_with_keys": [
+        "059c3552b077abf70e87cabe4a942186124f241a5be3cc41b68cfa399cc2ba69"
+      ]
+    },
+    {
+      "id": "869c8fe11a6e780f293a15fd4ba4748e4226946a81e4459621639453e3743c4b",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Shift4"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ideal"
+            ]
+          }
+        ]
+      },
+      "priority": 90,
+      "weight": 90,
+      "override_with_keys": [
+        "aee91f17ca8256b2691e8e80c22d706a89c26f45368a468469eccf4b898a1f42"
+      ]
+    },
+    {
+      "id": "90a0e9431998cef91c94ee4e95946752ba69b717e61e71c913e466158a541082",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ideal"
+            ]
+          }
+        ]
+      },
+      "priority": 91,
+      "weight": 91,
+      "override_with_keys": [
+        "9fd1f0e0d919a255780dea4995d26d1d4a8a82088f9b9ef4b4744be955992118"
+      ]
+    },
+    {
+      "id": "0c3b0362f9d459b24e20f2b67857e9966a5fb9f3387cafb2ba220a306283b4f7",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Giropay"
+            ]
+          }
+        ]
+      },
+      "priority": 92,
+      "weight": 92,
+      "override_with_keys": [
+        "29155679be6c2363236a7123baa0c6b5e82abbb4491b886161dab1b5ac0be0ea"
+      ]
+    },
+    {
+      "id": "2face3686f990863c11bc1a64dcb02f00492beccf614425bf7b6b60dbf0336c3",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Nuvei"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sofort"
+            ]
+          }
+        ]
+      },
+      "priority": 93,
+      "weight": 93,
+      "override_with_keys": [
+        "b24f1a27e9233f41f727052984c07804a86b40ac1f443ed56f12f7fc3a65c7e3"
+      ]
+    },
+    {
+      "id": "88a29b14e19b89b401099794ae4306ae73b828392365577e0c95ccd7f8fe0ff4",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Paypal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sofort"
+            ]
+          }
+        ]
+      },
+      "priority": 94,
+      "weight": 94,
+      "override_with_keys": [
+        "96945ca2698ea3b61cd9a907ca7fbb0025cbf03d14e6dd9730c07c59e7f040fe"
+      ]
+    },
+    {
+      "id": "7f3d33d0ac993515a91453bf1c602dbd77defb725671d1b6c48e33f74aa98901",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Eps"
+            ]
+          }
+        ]
+      },
+      "priority": 95,
+      "weight": 95,
+      "override_with_keys": [
+        "12d737904239c703b7bdf15ea768149e8e9d8ea8b234bde32d99a6959bfe8525"
+      ]
+    },
+    {
+      "id": "282d95d12c9d5e52fe86f3977852ab484fb60f85d3b1fb51dcc486d49e08ea3a",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Paypal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Eps"
+            ]
+          }
+        ]
+      },
+      "priority": 96,
+      "weight": 96,
+      "override_with_keys": [
+        "ce34a5f4e9c4f78bc91fc776418a4632762c9288ad08476979f0758c6596993a"
+      ]
+    },
+    {
+      "id": "59afbc8ea353a8ca30409c80269bda5f22b075e3dd2bf1efe88df99133d57707",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Eps"
+            ]
+          }
+        ]
+      },
+      "priority": 97,
+      "weight": 97,
+      "override_with_keys": [
+        "5c28eae7fa37f2aedad1712e87f6ee30dfd5b9ecccc2124ed293f99ecf24c464"
+      ]
+    },
+    {
+      "id": "c80d5ffbdfd260fcd178b0e0dd113ab3e8ac963c47327fee61b8d931979c9b0f",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sofort"
+            ]
+          }
+        ]
+      },
+      "priority": 98,
+      "weight": 98,
+      "override_with_keys": [
+        "1c3c8492dc17a43e8bd62ae698f6d43e33834df3b2947ef845d91343acb30974"
+      ]
+    },
+    {
+      "id": "b329923d56c19a30e65c1e7db0405e02c00d9e0b9ad7e1eb8bdf774b2c472358",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sofort"
+            ]
+          }
+        ]
+      },
+      "priority": 99,
+      "weight": 99,
+      "override_with_keys": [
+        "2830aae42f2bbecc5128897eef760b1fbe60570cb9db739451fc18020101bfea"
+      ]
+    },
+    {
+      "id": "53d63553b639b4ed5d17b3b81b220c715803dff5714016d131685735ce65aaa8",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Blik"
+            ]
+          }
+        ]
+      },
+      "priority": 100,
+      "weight": 100,
+      "override_with_keys": [
+        "55bad7d2ea600deba1ae2c3538605ad466de942675fddfc5d03bd3b66d6ebde1"
+      ]
+    },
+    {
+      "id": "49dc6f8d779ba40012d18a203e976d5313f41ec66d85f4363c6920651836f2bc",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Nuvei"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Eps"
+            ]
+          }
+        ]
+      },
+      "priority": 101,
+      "weight": 101,
+      "override_with_keys": [
+        "a211c9cacae4e23fd5bdcb4e002ac670ae25405d80de89132a3f22ec0719cde8"
+      ]
+    },
+    {
+      "id": "c7eecf500f875c2faa07d1877eb599be1a40271dde32cabf5726db9ab2f6b94a",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Blik"
+            ]
+          }
+        ]
+      },
+      "priority": 102,
+      "weight": 102,
+      "override_with_keys": [
+        "55bad7d2ea600deba1ae2c3538605ad466de942675fddfc5d03bd3b66d6ebde1"
+      ]
+    },
+    {
+      "id": "47206551d830d6f87aa3cb2fac629576c4db85668f5d9fed780fb3a9cb549568",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Eps"
+            ]
+          }
+        ]
+      },
+      "priority": 103,
+      "weight": 103,
+      "override_with_keys": [
+        "b1b1bf7020c15e203f45a5e1acbf463758b3c072b9977a4afd3d82685d91ea54"
+      ]
+    },
+    {
+      "id": "2d7a9f0ae85563aa2e2477d5e8bff3ee7f5cfb7512b899bce124de8ea53c608d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Globalpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Eps"
+            ]
+          }
+        ]
+      },
+      "priority": 104,
+      "weight": 104,
+      "override_with_keys": [
+        "b7f430ee9a8b43cc8944b736bec4e36d088c581aca6ce502c6210b5c65121dd9"
+      ]
+    },
+    {
+      "id": "04d4b0b658211c411c2e899feb4a8770e73fc93bfc13acbcdde179efd6426034",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Razorpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "UpiCollect"
+            ]
+          }
+        ]
+      },
+      "priority": 105,
+      "weight": 105,
+      "override_with_keys": [
+        "3b8d2539f167427419cd698c3506fae36784690f8d7e480f84598cc7949be373"
+      ]
+    },
+    {
+      "id": "c3ae11715406e1c949f2063c781fe3d5086bdd0e26062944d1ee3b62ef923d64",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Airwallex"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Blik"
+            ]
+          }
+        ]
+      },
+      "priority": 106,
+      "weight": 106,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "c01a851be3f032aab46f2477b4d3336e903e00e967aef9fe4ec95ba8db2ed2d0",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Blik"
+            ]
+          }
+        ]
+      },
+      "priority": 107,
+      "weight": 107,
+      "override_with_keys": [
+        "108a7b1f528f6fdb45e346b272b67f3e5d48b3cb0ba76b5b27546fa4423bb1cb"
+      ]
+    },
+    {
+      "id": "eeca54d93d3ee4312ce2195a8831bae4fa5fad737c40bf50aa983cc959570d39",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Phonepe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "UpiCollect"
+            ]
+          }
+        ]
+      },
+      "priority": 108,
+      "weight": 108,
+      "override_with_keys": [
+        "3b8d2539f167427419cd698c3506fae36784690f8d7e480f84598cc7949be373"
+      ]
+    },
+    {
+      "id": "19d9b33d977203cb8397e7ec287bc1f588fd29f1eb5461c123dbaa8edddd102d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Cryptopay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "CryptoCurrency"
+            ]
+          }
+        ]
+      },
+      "priority": 109,
+      "weight": 109,
+      "override_with_keys": [
+        "054def55a50cebdf9601524553e39d82ee81a78cb775b9e9d423c31f34304ff6"
+      ]
+    },
+    {
+      "id": "7eeeb5cf4adb4fc790a6dc125830b78cf88b9fd0c3038f65ce7e91e236214c7a",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Benefit"
+            ]
+          }
+        ]
+      },
+      "priority": 110,
+      "weight": 110,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "e190ee106c7d3a945afaf6c8af8a9b89d4dcbdc10be82f3c6591817e0370373c",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Paytm"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "UpiCollect"
+            ]
+          }
+        ]
+      },
+      "priority": 111,
+      "weight": 111,
+      "override_with_keys": [
+        "3b8d2539f167427419cd698c3506fae36784690f8d7e480f84598cc7949be373"
+      ]
+    },
+    {
+      "id": "58e4cb7ad6bc28529a0eaa4b3247cdc06e404742eced2d8abdbeb941dc1916bf",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Knet"
+            ]
+          }
+        ]
+      },
+      "priority": 112,
+      "weight": 112,
+      "override_with_keys": [
+        "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd"
+      ]
+    },
+    {
+      "id": "b1a838857eb943d204a5ea6535c43c8664e0ee003428c2815c35e3bef83d9721",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Givex"
+            ]
+          }
+        ]
+      },
+      "priority": 113,
+      "weight": 113,
+      "override_with_keys": [
+        "63f324b92c6da3f5ebf151e2fbbebb86954199a60165fc5687d9559a8866dd1f"
+      ]
+    },
+    {
+      "id": "6d462f1c5058c14b81bb0debc746606bb499834482596bcdc7c32d2ee14658f5",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Digitalvirgo"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "DirectCarrierBilling"
+            ]
+          }
+        ]
+      },
+      "priority": 114,
+      "weight": 114,
+      "override_with_keys": [
+        "5e0a711d7b2604d15e4f1220a96571a2ff442ab287a0d1d98c2984e7f321bb0f"
+      ]
+    },
+    {
+      "id": "d892d9508f41136e6fb8677fdc904bed3de5175856c2e62f289dbd3814532591",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Aci"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Eps"
+            ]
+          }
+        ]
+      },
+      "priority": 115,
+      "weight": 115,
+      "override_with_keys": [
+        "b7f430ee9a8b43cc8944b736bec4e36d088c581aca6ce502c6210b5c65121dd9"
+      ]
+    },
+    {
+      "id": "cba1611023da716e4ce16153873f374e989c7255adb148dbef216bc7bc6cd4cd",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Globalpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sofort"
+            ]
+          }
+        ]
+      },
+      "priority": 116,
+      "weight": 116,
+      "override_with_keys": [
+        "69db95864e8a966587afff501ed8e720fbdf2957d4b965c1cb819e5212ddc0cc"
+      ]
+    },
+    {
+      "id": "b586fd088944d18fd7cc8db00f203ac5659a4dfb05534eb89984768fbc013295",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Aci"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sofort"
+            ]
+          }
+        ]
+      },
+      "priority": 117,
+      "weight": 117,
+      "override_with_keys": [
+        "e9d44d98dab0cbfbb5bac217e173b2f333f86244565233f47093d2acdd062d76"
+      ]
+    },
+    {
+      "id": "ebd4fb60f16f6fca43d1d35a4ff9c4ef3892442fa0f3d093ffb7e253de225dfd",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Aci"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Giropay"
+            ]
+          }
+        ]
+      },
+      "priority": 118,
+      "weight": 118,
+      "override_with_keys": [
+        "41cdffa16714322cfc6be7b113f3a487afbb7623eea979ea613cc0aa23fa49ae"
+      ]
+    },
+    {
+      "id": "58e4411c9effc3e9748dedb383c84ba5e2f2d8d09ab564018874e6fdcd7263cb",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "BankDebit"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ach"
+            ]
+          }
+        ]
+      },
+      "priority": 119,
+      "weight": 119,
+      "override_with_keys": [
+        "8101b549ab90550c3ad80e49e758c9e99ed7a9c6acb649a7ce7c7b84834d82c1"
+      ]
+    },
+    {
+      "id": "8777ec12c54f0b8f3a24102db8b70e0680b9637d5275ebdd041a91fa53c4c5a3",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "BankTransfer"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ach"
+            ]
+          }
+        ]
+      },
+      "priority": 120,
+      "weight": 120,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "151267dbce2ac7f2d43cd744f53bce6af85fb72b44b75769a2f51913802ae6ce",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Coinbase"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 121,
+      "weight": 121,
+      "override_with_keys": [
+        "336b4dccb911f5ae71e2b3c8d3b24aff2d0d95d302d9392442e9387386efd5a3"
+      ]
+    },
+    {
+      "id": "7ebf0fed7c71f3336f2f407e27c1ab7ab7e48e1690125c617d3124f8b6f89f90",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Bluesnap"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 122,
+      "weight": 122,
+      "override_with_keys": [
+        "790734d9ba447f506bf99a6bd2727cb0ebc40abc79ab2a98e36eafc4c0943986"
+      ]
+    },
+    {
+      "id": "9689b365193a18b1518e0e4ba9e046c0a3a33bf2dbdeaee57cc5d055878ec48f",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Bambora"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 123,
+      "weight": 123,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "1eac7816dec11e6db71740fa69a6c407c56279c302c067981c59ac53f9eb7c4b",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Forte"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 124,
+      "weight": 124,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "5d33340468842cdea1795d9164d84661f2d739471acac13a437e5cb099447e59",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Dlocal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 125,
+      "weight": 125,
+      "override_with_keys": [
+        "fd831c4359b8fbabbe6ae7fd3099293fce3217e3b7c6eface98faa837d3c8746"
+      ]
+    },
+    {
+      "id": "a36c57e64fbe5c216ee1990a611e8e9564be7d67e557aea40d7afa229c8c9645",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Elavon"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 126,
+      "weight": 126,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "8ec5d358937ae5887243a28a92e54fd81fe96cb175d92bc87d26f958a42b10c0",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Deutschebank"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 127,
+      "weight": 127,
+      "override_with_keys": [
+        "e4cbbe84a64fb4073a0fb7489d79d2f52bba2b689735d96a35dbc147d597c534"
+      ]
+    },
+    {
+      "id": "89e9217ef18ba7fbae9f2f9ecb94d052e32c63e71f7f13503c384d2323e77ea3",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Helcim"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 128,
+      "weight": 128,
+      "override_with_keys": [
+        "a6abbaf4a1c8a5374485f933815311fd3ef18ce10500c8c64ac5458908a362f8"
+      ]
+    },
+    {
+      "id": "d26c83b48b65e277a7f60b24fb8d990ad13927324cfdf6c7c159db1594e51fba",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Fiuu"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 129,
+      "weight": 129,
+      "override_with_keys": [
+        "6ee2c243cff3e190dc8a52e5acfe78af6f72271bb5d0e76c67c8ea8adddddcbd"
+      ]
+    },
+    {
+      "id": "4c3cf0be29fd6c951fac2333d5fe1859e04be3c0b82f59dbabe847eb4c32c108",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Mollie"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 130,
+      "weight": 130,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "14290918b853daccca40a923746f5e6e07ccb8377c936ae6f179d48acf824241",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Nmi"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 131,
+      "weight": 131,
+      "override_with_keys": [
+        "2d0136830f9c51bd87bd26f7776d36a3b5355cd6eabda2180b8c8812607d1ad3"
+      ]
+    },
+    {
+      "id": "1774d265955fdeb9e2ea68bfbe45f1c534c5b2b37d134bf84800a31efb67d6fe",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Powertranz"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 132,
+      "weight": 132,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "06c7fc2a9edc58654cf8f32da52c748fc916ace7c43ebe38561337de615e7547",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stax"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 133,
+      "weight": 133,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "d7facdfa456ea2ddcece2e30bef24bac92af777ec2dd99b05f585968159c859f",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Rapyd"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 134,
+      "weight": 134,
+      "override_with_keys": [
+        "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7"
+      ]
+    },
+    {
+      "id": "bc7e9efd9927805754e4931ade366f17877b147f1baec073e41a1c5319272d74",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Zen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 135,
+      "weight": 135,
+      "override_with_keys": [
+        "d5b7dc9ed7e4ecabb0a1706185c7e543f1774a2e568855995f42eeadc6b1f93c"
+      ]
+    },
+    {
+      "id": "524d21cbea28787cd9ea0fbb5c4cd1a9fdb61e0f64d4236583e8463fcb33338d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 136,
+      "weight": 136,
+      "override_with_keys": [
+        "edee2356b27d9ee7c4459c755a810714d1d168daee92589e7922191b76ebd871"
+      ]
+    },
+    {
+      "id": "188dad808966ea03a073a10d08963f77cc54ebf6c1ae6a42722c08872bb7d50a",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Worldline"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method"
+              },
+              "Card"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 137,
+      "weight": 137,
+      "override_with_keys": [
+        "9e02ff14e5d8b20c455e82da28f24f1d48b0de1eaba6a216253e1cc2405916e0"
+      ]
+    },
+    {
+      "id": "84db0c3a558f53ac937cbb952970461e083ec3983aa5ab22cb47dda9959457bb",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Flexiti"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Flexiti"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 138,
+      "weight": 138,
+      "override_with_keys": [
+        "4fdf1c8ea24ea9e0d6ca612b79d6c63ed74d3e8fb5a30f40fcde615af1d86905"
+      ]
+    },
+    {
+      "id": "259d8524a7a362a7eb9b40fe4f89017b8e84c24ad9b420ed5650d4ed6c631b50",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Airwallex"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Klarna"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 139,
+      "weight": 139,
+      "override_with_keys": [
+        "9e02ff14e5d8b20c455e82da28f24f1d48b0de1eaba6a216253e1cc2405916e0"
+      ]
+    },
+    {
+      "id": "a62b67f1ba5a1d080b256163af1870a648b0fb365f75eb94ebc3d48d45ee944d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Atome"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 140,
+      "weight": 140,
+      "override_with_keys": [
+        "524ba0f632b9fdb9cc12b494292f001de68f42ceb309c9ff142e8d3de4efd13e"
+      ]
+    },
+    {
+      "id": "5f7485bf4b99a0a5b8adb748be400d1c304feb8241794a1951009678312e654b",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "PayBright"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 141,
+      "weight": 141,
+      "override_with_keys": [
+        "4a0a07dc7e07fcec013a8af593a4d7f0c3a9a981ced9ab56cb2f8e5bad227316"
+      ]
+    },
+    {
+      "id": "b8f64847ab79baaf430c6b9659185153aa3edab52dc1cbc51399e542de3364d0",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Alma"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 142,
+      "weight": 142,
+      "override_with_keys": [
+        "eb193022e8ffb0d9d4248f0ea9266195ef1457ad79375d885e8fa22d15b56144"
+      ]
+    },
+    {
+      "id": "12de9761e1e24efda37cd7c10614460d093d47b1aba6d6f7810c8e8950644b7f",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Affirm"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 143,
+      "weight": 143,
+      "override_with_keys": [
+        "0a0620188d0f54e384ad8aa0dbb557b16738bb56a4874378cb0d8a4ffda57805"
+      ]
+    },
+    {
+      "id": "d519f01a429a749762dbef9fdcba351da5edf0eb47d5ed5cc5e7f57463336d9d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Adyen"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Boleto"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 144,
+      "weight": 144,
+      "override_with_keys": [
+        "859131532e919d18ba514e337583b0838cb28fc08e67af15ac29ac15ed26a651"
+      ]
+    },
+    {
+      "id": "891b452b94240c11a5ccac5c46c044231eddb517eec961d978ceba8c293956b4",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Airwallex"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Atome"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 145,
+      "weight": 145,
+      "override_with_keys": [
+        "ea09a1b825ca336ae41a9af5acbbbc8f8482c59c436a23d0a1a02f78e4c694ab"
+      ]
+    },
+    {
+      "id": "6d1c71d87e8d7bae90e3a9f22524f116648d972ae5aec414e6f4de197e64fcb9",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Airwallex"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Trustly"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 146,
+      "weight": 146,
+      "override_with_keys": [
+        "fd831c4359b8fbabbe6ae7fd3099293fce3217e3b7c6eface98faa837d3c8746"
+      ]
+    },
+    {
+      "id": "4892dd0768d1ac8030e45fe48a7faca64076b8335438deb11ee2ae0500edaa3d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Paypal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ideal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 147,
+      "weight": 147,
+      "override_with_keys": [
+        "3b8008943ceeaa9ab42b65a1261f82bedeaf4c78f6062fa5c934e1a3318637c7"
+      ]
+    },
+    {
+      "id": "dfb03acb0f14dbc277fae866c488525b7030bc561a59bf549a96cf3ffa2886d9",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Nuvei"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ideal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 148,
+      "weight": 148,
+      "override_with_keys": [
+        "1a0d91340de11ba6fea87588b26e46a1cb0c90926f45a5adcf7c20c48c878e45"
+      ]
+    },
+    {
+      "id": "ffe23f3e86a25d257ea50d5f2317ef1fe6abeff4f8df79ce62d52d1544469377",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Trustpay"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ideal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 149,
+      "weight": 149,
+      "override_with_keys": [
+        "9a705dc9352136fa3c399e9f39a12c0ee704087dd9ff771b1364e0adc9b2317a"
+      ]
+    },
+    {
+      "id": "bfff083b75d888184bef3f81822a343d5e55dbdfa098b5f8efdf6f08aae9cc51",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Sofort"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 150,
+      "weight": 150,
+      "override_with_keys": [
+        "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d"
+      ]
+    },
+    {
+      "id": "fdeecd04235579322d7c34afa63c80e5e2194f6e41364726fa6ba2e625cbcd4d",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Stripe"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ideal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 151,
+      "weight": 151,
+      "override_with_keys": [
+        "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193"
+      ]
+    },
+    {
+      "id": "934adddf1b1fdd87f7a919d27e5fa5c1046aee9824ff51aa8d0674a5e24214c0",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "connector"
+              },
+              "Aci"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "payment_method_type"
+              },
+              "Ideal"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "mandate_type"
+              },
+              "non_mandate"
+            ]
+          }
+        ]
+      },
+      "priority": 152,
+      "weight": 152,
+      "override_with_keys": [
+        "40eb71da1be79946c83bf800eaa53ac05027ebad7013c14ae9bc0e7599c07fbd"
+      ]
+    },
+    {
+      "id": "bec6d6b5bb0ce8e34f96b7abb5f307dd14357b5d47726d65156c031297184001",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "collect_billing_details_from_wallet_connector"
+              },
+              "always"
+            ]
+          }
+        ]
+      },
+      "priority": 153,
+      "weight": 153,
+      "override_with_keys": [
+        "2d305a209dd83da540ada6659694590f62f8c9cc2a432693ed2beff9f097a11c"
+      ]
+    },
+    {
+      "id": "b240155da87539e34f7312e3475e77dac2c5a75142c49296bf571844c36f01c8",
+      "condition": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "collect_shipping_details_from_wallet_connector"
+              },
+              "always"
+            ]
+          }
+        ]
+      },
+      "priority": 154,
+      "weight": 154,
+      "override_with_keys": [
+        "e97418dd15279112200bd6ae937fbaf1497b08a980fea9cfbaef75ccaceb2e5a"
+      ]
+    }
+  ],
+  "overrides": {
+    "85b50be842acc93162807f49cf57da5c12be54411ca680ee9cb4e7b753b0803e": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": [
+        "AT",
+        "BE",
+        "BG",
+        "HR",
+        "CY",
+        "CZ",
+        "DK",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "HU",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SK",
+        "SI",
+        "ES",
+        "SE",
+        "IS",
+        "LI",
+        "NO"
+      ],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true
+    },
+    "9fd1f0e0d919a255780dea4995d26d1d4a8a82088f9b9ef4b4744be955992118": {
+      "bank_redirect.ideal.bank_name._required": true
+    },
+    "e4cbbe84a64fb4073a0fb7489d79d2f52bba2b689735d96a35dbc147d597c534": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "email._required": true
+    },
+    "1a0d91340de11ba6fea87588b26e46a1cb0c90926f45a5adcf7c20c48c878e45": {
+      "billing.address.country._options": ["NL"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "email._required": true
+    },
+    "442a6b499444b919c6939342c92b328e619a22892a3287ba5bb6165cbfbb1cc0": {
+      "bank_debit.becs_bank_debit.account_number._required": true,
+      "bank_debit.becs_sort_code._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "96945ca2698ea3b61cd9a907ca7fbb0025cbf03d14e6dd9730c07c59e7f040fe": {
+      "billing.address.country._options": ["ES", "GB", "AT", "NL", "DE", "BE"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "a211c9cacae4e23fd5bdcb4e002ac670ae25405d80de89132a3f22ec0719cde8": {
+      "billing.address.country._options": ["AT"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "email._required": true
+    },
+    "125f1a0c0287176abd4b2dac8e9e54b6abf615ebc7956ffa4207c2a78e693caf": {
+      "billing.address.country._options": ["DE"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "d5b7dc9ed7e4ecabb0a1706185c7e543f1774a2e568855995f42eeadc6b1f93c": {
+      "card.card_cvc._required": false,
+      "email._required": true
+    },
+    "b1b1bf7020c15e203f45a5e1acbf463758b3c072b9977a4afd3d82685d91ea54": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["AT"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true
+    },
+    "e93d4223ffedbc8f8c46ef7a07afdfbcb7b9d56ce7746596566f9211c185636d": {
+      "bank_transfer.pix.cnpj._required": true,
+      "bank_transfer.pix.cpf._required": true,
+      "bank_transfer.pix.pix.key._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "a6abbaf4a1c8a5374485f933815311fd3ef18ce10500c8c64ac5458908a362f8": {
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true
+    },
+    "790734d9ba447f506bf99a6bd2727cb0ebc40abc79ab2a98e36eafc4c0943986": {
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "email._required": true
+    },
+    "864313e4116c332f9717f5a3ccb4bf341c7454173d7108e346b73c9f518b8df1": {
+      "bank_redirect.open_banking_czech_republic.issuer._required": true
+    },
+    "edee2356b27d9ee7c4459c755a810714d1d168daee92589e7922191b76ebd871": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true
+    },
+    "829f4d937fa64c6f002f0e20534435afa33d02c9c1359bc3f965459a035b2a20": {
+      "bank_redirect.open_banking_fpx.issuer._required": true
+    },
+    "75e4b9726bd3a3b8a45d0b24f8d5b405a34a2384978caa9eda69f247e228df9c": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true
+    },
+    "2830aae42f2bbecc5128897eef760b1fbe60570cb9db739451fc18020101bfea": {
+      "billing.address.country._options": ["ES", "AT", "NL", "DE", "BE"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "05eecb702089b362187b7119d529afa9869d39b92cbe5f87e4f52112ab27b81e": {
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.email._required": true
+    },
+    "4fdf1c8ea24ea9e0d6ca612b79d6c63ed74d3e8fb5a30f40fcde615af1d86905": {
+      "billing.address.city._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "shipping.address.city._required": true,
+      "shipping.address.first_name._required": true,
+      "shipping.address.last_name._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.line2._required": true,
+      "shipping.address.state._required": true,
+      "shipping.address.zip._required": true
+    },
+    "6d0e90476e9e2e11dda61bc0fc284bb8d52c9002766204a5b8558d81aeb214f8": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true
+    },
+    "c903dde450cb6afb14f434070bdeb58214734481f6c321787a16df17f9634193": {
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.email._required": true
+    },
+    "e55adf3dea029ecedcccb70db6715b739c7a13360c2cf98fdb289ec37d5fe43a": {
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "card.card_cvc._required": false
+    },
+    "4ceacff2c2cda8894ea100b0b951ed227ec06d7e3e064b1b9c037b6acf674415": {
+      "bank_redirect.open_banking_thailand.issuer._required": true
+    },
+    "0a0620188d0f54e384ad8aa0dbb557b16738bb56a4874378cb0d8a4ffda57805": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["US"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true,
+      "shipping.address.city._required": true,
+      "shipping.address.country._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.line2._required": true,
+      "shipping.address.zip._required": true
+    },
+    "63f324b92c6da3f5ebf151e2fbbebb86954199a60165fc5687d9559a8866dd1f": {
+      "gift_card.givex.cvc._required": true,
+      "gift_card.givex.number._required": true
+    },
+    "ce34a5f4e9c4f78bc91fc776418a4632762c9288ad08476979f0758c6596993a": {
+      "billing.address.country._options": ["AT"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "aee91f17ca8256b2691e8e80c22d706a89c26f45368a468469eccf4b898a1f42": {
+      "billing.address.country._options": ["NL"],
+      "billing.address.country._required": true
+    },
+    "4f3bc28b6c5344895e6c9b7394627cd89d6805dfad9ed516665b05d47231b357": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["GB", "AU", "CA", "US", "NZ"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true,
+      "shipping.address.city._required": true,
+      "shipping.address.country._required": true,
+      "shipping.address.first_name._required": true,
+      "shipping.address.last_name._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.state._required": true,
+      "shipping.address.zip._required": true
+    },
+    "d59511a6348e7482aaa1e85f19cfa56426172355f8c70788a07eda89cda5adbf": {
+      "card.card_cvc._required": true,
+      "card.card_exp_month._required": true,
+      "card.card_exp_year._required": true,
+      "card.card_network._required": true,
+      "card.card_number._required": true
+    },
+    "07e5abee8428e3091ae24fb013691b89031fa4559e7654fc8e357d62635e74d2": {
+      "bank_redirect.open_banking_uk.issuer._required": true
+    },
+    "55bad7d2ea600deba1ae2c3538605ad466de942675fddfc5d03bd3b66d6ebde1": {
+      "bank_redirect.blik.blik_code._required": true
+    },
+    "059c3552b077abf70e87cabe4a942186124f241a5be3cc41b68cfa399cc2ba69": {
+      "bank_redirect.bancontact_card.card_exp_month._required": true,
+      "bank_redirect.bancontact_card.card_exp_year._required": true,
+      "bank_redirect.bancontact_card.card_number._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "12d737904239c703b7bdf15ea768149e8e9d8ea8b234bde32d99a6959bfe8525": {
+      "bank_redirect.eps.bank_name._required": true
+    },
+    "1c3c8492dc17a43e8bd62ae698f6d43e33834df3b2947ef845d91343acb30974": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": [
+        "ES",
+        "GB",
+        "SE",
+        "AT",
+        "NL",
+        "DE",
+        "CH",
+        "BE",
+        "FR",
+        "FI",
+        "IT",
+        "PL"
+      ],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true
+    },
+    "5e0a711d7b2604d15e4f1220a96571a2ff442ab287a0d1d98c2984e7f321bb0f": {
+      "mobile_payment.direct_carrier_billing.client_uid._required": true,
+      "mobile_payment.direct_carrier_billing.msisdn._required": true,
+      "order_details.0.product_name._required": true
+    },
+    "697ced0f81368a879a30894eb5d9d3b99b67feb4adc4daa214ccc1826a633592": {
+      "bank_debit.bacs_bank_debit.account_number._required": true,
+      "bank_debit.bacs_bank_debit.sort_code._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "29155679be6c2363236a7123baa0c6b5e82abbb4491b886161dab1b5ac0be0ea": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["DE"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true
+    },
+    "5355bba013acd4d2e3b34e1a07be59ef286fbb5142a323255fe9925d01dfbb63": {
+      "billing.address.first_name._required": true,
+      "card.card_cvc._required": false
+    },
+    "b7f430ee9a8b43cc8944b736bec4e36d088c581aca6ce502c6210b5c65121dd9": {
+      "billing.address.country._options": ["AT"],
+      "billing.address.country._required": true
+    },
+    "7b373a75c5c5f543b9802cb9a2f7c32dadb6afceac1d4a0bce7ad560f65310c5": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "email._required": true,
+      "shipping.address.city._required": true,
+      "shipping.address.country._required": true,
+      "shipping.address.first_name._required": true,
+      "shipping.address.last_name._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.state._required": true,
+      "shipping.address.zip._required": true
+    },
+    "bec2e518e43142de81515970aaec2d6226097b5e5c9feb37d24c559a934f0f53": {
+      "billing.address.country._options": ["DK", "FI", "NO", "SE"],
+      "billing.address.country._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true
+    },
+    "8101b549ab90550c3ad80e49e758c9e99ed7a9c6acb649a7ce7c7b84834d82c1": {
+      "bank_debit.ach_bank_debit.account_number._required": true,
+      "bank_debit.ach_bank_debit.routing_number._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "3b8d2539f167427419cd698c3506fae36784690f8d7e480f84598cc7949be373": {
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true,
+      "upi.upi_collect.vpa_id._required": true
+    },
+    "40eb71da1be79946c83bf800eaa53ac05027ebad7013c14ae9bc0e7599c07fbd": {
+      "bank_redirect.ideal.bank_name._required": true,
+      "billing.address.country._options": ["NL"],
+      "billing.address.country._required": true
+    },
+    "524ba0f632b9fdb9cc12b494292f001de68f42ceb309c9ff142e8d3de4efd13e": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["MY", "SG"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true
+    },
+    "054def55a50cebdf9601524553e39d82ee81a78cb775b9e9d423c31f34304ff6": {
+      "crypto.network._required": true,
+      "crypto.pay_currency._required": true
+    },
+    "9243526e1de909ebeaa0f654a3eb4c2463874fd3b20ce1b133a123b23a48c78c": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["GB", "AU", "CA", "US", "NZ"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true,
+      "shipping.address.city._required": true,
+      "shipping.address.country._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.line2._required": true,
+      "shipping.address.zip._required": true
+    },
+    "9bd950a396d6ff9c135a344d39421affaa8a2451dfd16cdd5279ac73f7195748": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["CN"],
+      "billing.address.country._required": true
+    },
+    "bff37f0ae1f2c1d5b95012722554195bab41e386113abe1f75d47c4ddd34a7cb": {
+      "billing.address.country._options": [
+        "AU",
+        "AT",
+        "BE",
+        "CA",
+        "CZ",
+        "DK",
+        "FI",
+        "FR",
+        "GR",
+        "DE",
+        "IE",
+        "IT",
+        "NL",
+        "NZ",
+        "NO",
+        "PL",
+        "PT",
+        "RO",
+        "ES",
+        "SE",
+        "CH",
+        "GB",
+        "US"
+      ],
+      "billing.address.country._required": true,
+      "billing.email._required": true
+    },
+    "e9d44d98dab0cbfbb5bac217e173b2f333f86244565233f47093d2acdd062d76": {
+      "billing.address.country._options": [
+        "ES",
+        "GB",
+        "SE",
+        "AT",
+        "NL",
+        "DE",
+        "CH",
+        "BE",
+        "FR",
+        "FI",
+        "IT",
+        "PL"
+      ],
+      "billing.address.country._required": true
+    },
+    "9e60a32993e8f3758b480e26f0079b9bd7cf2be56b634a802f073bcfa23ac4b7": {
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "706fe842ffe908f1b80bfca670321e972feda473eb9621a50ec839d3152e13d6": {
+      "bank_transfer.pix.cpf._required": true,
+      "bank_transfer.pix.source_bank_account_id._required": true,
+      "billing.address.country._options": ["BR"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "9d537ac7e5abf794ac7577be6d169b523b4b659a6151bf13fc08e491adc76100": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": [
+        "BR",
+        "CN",
+        "SG",
+        "MY",
+        "DE",
+        "CH",
+        "DK",
+        "GB",
+        "ES",
+        "AD",
+        "GI",
+        "FI",
+        "FR",
+        "GR",
+        "HR",
+        "IT",
+        "JP",
+        "MX",
+        "AR",
+        "CO",
+        "CL",
+        "PE",
+        "VE",
+        "UY",
+        "PY",
+        "BO",
+        "EC",
+        "GT",
+        "HN",
+        "SV",
+        "NI",
+        "CR",
+        "PA",
+        "DO",
+        "CU",
+        "PR",
+        "NL",
+        "NO",
+        "PL",
+        "PT",
+        "SE",
+        "RU",
+        "TR",
+        "TW",
+        "HK",
+        "MO",
+        "AX",
+        "AL",
+        "DZ",
+        "AS",
+        "AO",
+        "AI",
+        "AG",
+        "AM",
+        "AW",
+        "AU",
+        "AT",
+        "AZ",
+        "BS",
+        "BH",
+        "BD",
+        "BB",
+        "BE",
+        "BZ",
+        "BJ",
+        "BM",
+        "BT",
+        "BQ",
+        "BA",
+        "BW",
+        "IO",
+        "BN",
+        "BG",
+        "BF",
+        "BI",
+        "KH",
+        "CM",
+        "CA",
+        "CV",
+        "KY",
+        "CF",
+        "TD",
+        "CX",
+        "CC",
+        "KM",
+        "CG",
+        "CK",
+        "CI",
+        "CW",
+        "CY",
+        "CZ",
+        "DJ",
+        "DM",
+        "EG",
+        "GQ",
+        "ER",
+        "EE",
+        "ET",
+        "FK",
+        "FO",
+        "FJ",
+        "GF",
+        "PF",
+        "TF",
+        "GA",
+        "GM",
+        "GE",
+        "GH",
+        "GL",
+        "GD",
+        "GP",
+        "GU",
+        "GG",
+        "GN",
+        "GW",
+        "GY",
+        "HT",
+        "HM",
+        "VA",
+        "IS",
+        "IN",
+        "ID",
+        "IE",
+        "IM",
+        "IL",
+        "JE",
+        "JO",
+        "KZ",
+        "KE",
+        "KI",
+        "KW",
+        "KG",
+        "LA",
+        "LV",
+        "LB",
+        "LS",
+        "LI",
+        "LT",
+        "LU",
+        "MK",
+        "MG",
+        "MW",
+        "MV",
+        "ML",
+        "MT",
+        "MH",
+        "MQ",
+        "MR",
+        "MU",
+        "YT",
+        "FM",
+        "MD",
+        "MC",
+        "MN",
+        "ME",
+        "MS",
+        "MA",
+        "MZ",
+        "NA",
+        "NR",
+        "NP",
+        "NC",
+        "NZ",
+        "NE",
+        "NG",
+        "NU",
+        "NF",
+        "MP",
+        "OM",
+        "PK",
+        "PW",
+        "PS",
+        "PG",
+        "PH",
+        "PN",
+        "QA",
+        "RE",
+        "RO",
+        "RW",
+        "BL",
+        "SH",
+        "KN",
+        "LC",
+        "MF",
+        "PM",
+        "VC",
+        "WS",
+        "SM",
+        "ST",
+        "SA",
+        "SN",
+        "RS",
+        "SC",
+        "SL",
+        "SX",
+        "SK",
+        "SI",
+        "SB",
+        "SO",
+        "ZA",
+        "GS",
+        "KR",
+        "LK",
+        "SR",
+        "SJ",
+        "SZ",
+        "TH",
+        "TL",
+        "TG",
+        "TK",
+        "TO",
+        "TT",
+        "TN",
+        "TM",
+        "TC",
+        "TV",
+        "UG",
+        "UA",
+        "AE",
+        "UZ",
+        "VU",
+        "VN",
+        "VG",
+        "VI",
+        "WF",
+        "EH",
+        "ZM"
+      ],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true,
+      "wallet.mifinity.date_of_birth._required": true,
+      "wallet.mifinity.language_preference._required": true
+    },
+    "2d305a209dd83da540ada6659694590f62f8c9cc2a432693ed2beff9f097a11c": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true
+    },
+    "41cdffa16714322cfc6be7b113f3a487afbb7623eea979ea613cc0aa23fa49ae": {
+      "billing.address.country._options": ["DE"],
+      "billing.address.country._required": true
+    },
+    "47391ebfb37d31ab05cc2641be65e9864a42fea2726056a1d7bcdb256934bea3": {
+      "bank_redirect.open_banking_poland.issuer._required": true,
+      "billing.email._required": true
+    },
+    "a69f86edc428551e3a64bd991e5d8217ee586175b99db1b5fd2a2e078b34dfee": {
+      "billing.email._required": true,
+      "billing.phone.number._required": true
+    },
+    "c031ac6e7693b9c7da649b43836a10ec53ef24b05bf3e276cfb213639a77f951": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.zip._required": true
+    },
+    "ea09a1b825ca336ae41a9af5acbbbc8f8482c59c436a23d0a1a02f78e4c694ab": {
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true
+    },
+    "99c93fd787a439839b62a3ed6a44136196046eb4b79de0b54437f8590bb1b1dd": {
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true
+    },
+    "eb193022e8ffb0d9d4248f0ea9266195ef1457ad79375d885e8fa22d15b56144": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["FR"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true
+    },
+    "fd831c4359b8fbabbe6ae7fd3099293fce3217e3b7c6eface98faa837d3c8746": {
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "d6da34defdab14cf8c5b623fd4dc593bae131c7eca1f14411caa89bfd8d4d4b4": {
+      "bank_debit.sepa_bank_debit.iban._required": true
+    },
+    "9e02ff14e5d8b20c455e82da28f24f1d48b0de1eaba6a216253e1cc2405916e0": {
+      "billing.address.country._required": true
+    },
+    "55ea4efb2ce7059c7363135f2cc4e0738a5df049c9ae2eefcbcda2539677046e": {
+      "bank_debit.bacs_bank_debit.account_number._required": true,
+      "bank_debit.bacs_bank_debit.sort_code._required": true,
+      "billing.address.country._options": ["UK"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true
+    },
+    "9a705dc9352136fa3c399e9f39a12c0ee704087dd9ff771b1364e0adc9b2317a": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["NL"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true
+    },
+    "4a28066c6e1856ced458d5e6a61a2bdd2a8d8a2b25d9621a5933a0dd0edaf923": {
+      "bank_debit.sepa_bank_debit.iban._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.email._required": true
+    },
+    "6f4b3e7ed9f4303e1e7e60084f2766f9536a0d5d52a707595560a8d966d14606": {
+      "billing.address.country._options": ["BE", "DE", "ES", "FR", "IE", "NL"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.email._required": true
+    },
+    "5c28eae7fa37f2aedad1712e87f6ee30dfd5b9ecccc2124ed293f99ecf24c464": {
+      "bank_redirect.eps.bank_name._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "4a0a07dc7e07fcec013a8af593a4d7f0c3a9a981ced9ab56cb2f8e5bad227316": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["CA"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "billing.email._required": true,
+      "billing.phone.country_code._required": true,
+      "billing.phone.number._required": true,
+      "shipping.address.city._required": true,
+      "shipping.address.country._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.line2._required": true,
+      "shipping.address.zip._required": true
+    },
+    "adf8b881916cdb21c5d681de5bbec681b053fcd9d0b9189d613a5e670e2df26d": {
+      "billing.address.country._options": [
+        "AU",
+        "AT",
+        "BE",
+        "CA",
+        "CZ",
+        "DK",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "IE",
+        "IT",
+        "NL",
+        "NZ",
+        "NO",
+        "PL",
+        "PT",
+        "ES",
+        "SE",
+        "CH",
+        "GB",
+        "US"
+      ],
+      "billing.address.country._required": true
+    },
+    "d1366509af961c4c842ce1f871300e95bb61ed6b8a9e7e134a3e5ee1828dbd22": {
+      "billing.address.country._options": ["DE"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "email._required": true
+    },
+    "780dd8f34466d2ef532f718a79d7564da8c2d63fdac1b97e3d19997aa97006d2": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["PL"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true,
+      "email._required": true
+    },
+    "040d019d3a00f11f91fb627d1ee5aa05f5d5af79eade1f929c76834c930ebb1d": {
+      "billing.email._required": true
+    },
+    "69db95864e8a966587afff501ed8e720fbdf2957d4b965c1cb819e5212ddc0cc": {
+      "billing.address.country._options": ["AT", "BE", "DE", "ES", "IT", "NL"],
+      "billing.address.country._required": true
+    },
+    "b3703ec98a3d2e52739904e529a82e19af1e91654e0bc3a9a2d81335d1f5fb53": {
+      "bank_redirect.open_banking_slovakia.issuer._required": true
+    },
+    "6ee2c243cff3e190dc8a52e5acfe78af6f72271bb5d0e76c67c8ea8adddddcbd": {
+      "billing.address.first_name._required": true,
+      "billing.email._required": true
+    },
+    "7d449d2cfe0a197a26119f38a1e39ca1731742da0d9abb9a112bdbd3f1914a9c": {
+      "bank_debit.becs_bank_debit.account_number._required": true,
+      "bank_debit.becs_bank_debit.bsb_number._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.email._required": true
+    },
+    "d8f177756754454093a82d8a005dd450306c2b909765f03fdcd9b22f6ff21310": {
+      "billing.address.country._required": true,
+      "billing.email._required": true
+    },
+    "2d0136830f9c51bd87bd26f7776d36a3b5355cd6eabda2180b8c8812607d1ad3": {
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.zip._required": true
+    },
+    "336b4dccb911f5ae71e2b3c8d3b24aff2d0d95d302d9392442e9387386efd5a3": {
+      "billing.address.first_name._required": true
+    },
+    "42a1a5ff453ff65063d01ba538275c9fd753439813f4f3b59a4f7cfbc881d988": {
+      "shipping.address.city._required": true,
+      "shipping.address.country._required": true,
+      "shipping.address.first_name._required": true,
+      "shipping.address.last_name._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.state._required": true,
+      "shipping.address.zip._required": true
+    },
+    "c56c95de52cba9f2e084cc05c9e37f5d1c838f9107a46311d36c2212e70c10d7": {
+      "bank_debit.sepa_bank_debit.iban._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "3b8008943ceeaa9ab42b65a1261f82bedeaf4c78f6062fa5c934e1a3318637c7": {
+      "billing.address.country._options": ["NL"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true
+    },
+    "e97418dd15279112200bd6ae937fbaf1497b08a980fea9cfbaef75ccaceb2e5a": {
+      "shipping.address.city._required": true,
+      "shipping.address.country._required": true,
+      "shipping.address.first_name._required": true,
+      "shipping.address.last_name._required": true,
+      "shipping.address.line1._required": true,
+      "shipping.address.line2._required": true,
+      "shipping.address.state._required": true,
+      "shipping.address.zip._required": true,
+      "shipping.email._required": true,
+      "shipping.phone.country_code._required": true,
+      "shipping.phone.number._required": true
+    },
+    "b24f1a27e9233f41f727052984c07804a86b40ac1f443ed56f12f7fc3a65c7e3": {
+      "billing.address.country._options": [
+        "ES",
+        "GB",
+        "IT",
+        "DE",
+        "FR",
+        "AT",
+        "BE",
+        "NL",
+        "BE",
+        "SK"
+      ],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "email._required": true
+    },
+    "85201e0415c04df8be22a4323be523755ba5d4864c55fa42f9b54f31c528202e": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["FI"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true,
+      "email._required": true
+    },
+    "108a7b1f528f6fdb45e346b272b67f3e5d48b3cb0ba76b5b27546fa4423bb1cb": {
+      "billing.address.city._required": true,
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.zip._required": true,
+      "email._required": true
+    },
+    "859131532e919d18ba514e337583b0838cb28fc08e67af15ac29ac15ed26a651": {
+      "billing.address.city._required": true,
+      "billing.address.country._options": ["BR"],
+      "billing.address.country._required": true,
+      "billing.address.first_name._required": true,
+      "billing.address.last_name._required": true,
+      "billing.address.line1._required": true,
+      "billing.address.line2._required": true,
+      "billing.address.state._required": true,
+      "billing.address.zip._required": true,
+      "voucher.boleto.social_security_number._required": true
+    }
+  },
+  "default_configs": {
+    "bank_debit.ach_bank_debit.account_number._default_value": "",
+    "bank_debit.ach_bank_debit.account_number._display_name": "Account Number",
+    "bank_debit.ach_bank_debit.account_number._field_type": "text_input",
+    "bank_debit.ach_bank_debit.account_number._output_path": "payment_method_data.bank_debit.ach_bank_debit.account_number",
+    "bank_debit.ach_bank_debit.account_number._required": false,
+    "bank_debit.ach_bank_debit.routing_number._default_value": "",
+    "bank_debit.ach_bank_debit.routing_number._display_name": "Routing Number",
+    "bank_debit.ach_bank_debit.routing_number._field_type": "text_input",
+    "bank_debit.ach_bank_debit.routing_number._output_path": "payment_method_data.bank_debit.ach_bank_debit.routing_number",
+    "bank_debit.ach_bank_debit.routing_number._required": false,
+    "bank_debit.bacs_bank_debit.account_number._default_value": "",
+    "bank_debit.bacs_bank_debit.account_number._display_name": "Account Number",
+    "bank_debit.bacs_bank_debit.account_number._field_type": "text_input",
+    "bank_debit.bacs_bank_debit.account_number._output_path": "payment_method_data.bank_debit.bacs_bank_debit.account_number",
+    "bank_debit.bacs_bank_debit.account_number._required": false,
+    "bank_debit.bacs_bank_debit.sort_code._default_value": "",
+    "bank_debit.bacs_bank_debit.sort_code._display_name": "Sort Code",
+    "bank_debit.bacs_bank_debit.sort_code._field_type": "text_input",
+    "bank_debit.bacs_bank_debit.sort_code._output_path": "payment_method_data.bank_debit.bacs_bank_debit.sort_code",
+    "bank_debit.bacs_bank_debit.sort_code._required": false,
+    "bank_debit.becs_bank_debit.account_number._default_value": "",
+    "bank_debit.becs_bank_debit.account_number._display_name": "Account Number",
+    "bank_debit.becs_bank_debit.account_number._field_type": "text_input",
+    "bank_debit.becs_bank_debit.account_number._output_path": "payment_method_data.bank_debit.becs_bank_debit.account_number",
+    "bank_debit.becs_bank_debit.account_number._required": false,
+    "bank_debit.becs_bank_debit.bsb_number._default_value": "",
+    "bank_debit.becs_bank_debit.bsb_number._display_name": "BSB Number",
+    "bank_debit.becs_bank_debit.bsb_number._field_type": "text_input",
+    "bank_debit.becs_bank_debit.bsb_number._output_path": "payment_method_data.bank_debit.becs_bank_debit.bsb_number",
+    "bank_debit.becs_bank_debit.bsb_number._required": false,
+    "bank_debit.becs_sort_code._default_value": "",
+    "bank_debit.becs_sort_code._display_name": "Sort Code",
+    "bank_debit.becs_sort_code._field_type": "text_input",
+    "bank_debit.becs_sort_code._output_path": "payment_method_data.bank_debit.becs_bank_debit.sort_code",
+    "bank_debit.becs_sort_code._required": false,
+    "bank_debit.sepa_bank_debit.iban._default_value": "",
+    "bank_debit.sepa_bank_debit.iban._display_name": "IBAN",
+    "bank_debit.sepa_bank_debit.iban._field_type": "text_input",
+    "bank_debit.sepa_bank_debit.iban._output_path": "payment_method_data.bank_debit.sepa_bank_debit.iban",
+    "bank_debit.sepa_bank_debit.iban._required": false,
+    "bank_redirect.bancontact_card.card_exp_month._default_value": "",
+    "bank_redirect.bancontact_card.card_exp_month._display_name": "Expiry Month",
+    "bank_redirect.bancontact_card.card_exp_month._field_type": "month_select",
+    "bank_redirect.bancontact_card.card_exp_month._output_path": "payment_method_data.bank_redirect.bancontact_card.card_exp_month",
+    "bank_redirect.bancontact_card.card_exp_month._required": false,
+    "bank_redirect.bancontact_card.card_exp_year._default_value": "",
+    "bank_redirect.bancontact_card.card_exp_year._display_name": "Expiry Year",
+    "bank_redirect.bancontact_card.card_exp_year._field_type": "year_select",
+    "bank_redirect.bancontact_card.card_exp_year._output_path": "payment_method_data.bank_redirect.bancontact_card.card_exp_year",
+    "bank_redirect.bancontact_card.card_exp_year._required": false,
+    "bank_redirect.bancontact_card.card_number._default_value": "",
+    "bank_redirect.bancontact_card.card_number._display_name": "Card Number",
+    "bank_redirect.bancontact_card.card_number._field_type": "text_input",
+    "bank_redirect.bancontact_card.card_number._output_path": "payment_method_data.bank_redirect.bancontact_card.card_number",
+    "bank_redirect.bancontact_card.card_number._required": false,
+    "bank_redirect.blik.blik_code._default_value": "",
+    "bank_redirect.blik.blik_code._display_name": "BLIK Code",
+    "bank_redirect.blik.blik_code._field_type": "text_input",
+    "bank_redirect.blik.blik_code._output_path": "payment_method_data.bank_redirect.blik.blik_code",
+    "bank_redirect.blik.blik_code._required": false,
+    "bank_redirect.eps.bank_name._default_value": "",
+    "bank_redirect.eps.bank_name._display_name": "Bank",
+    "bank_redirect.eps.bank_name._field_type": "dropdown_select",
+    "bank_redirect.eps.bank_name._options": [
+      "AbnAmro",
+      "ArzteUndApothekerBank",
+      "AsnBank",
+      "AustrianAnadiBankAg",
+      "BankAustria",
+      "BankhausCarlSpangler",
+      "BankhausSchelhammerUndSchatteraAg",
+      "BawagPskAg",
+      "BksBankAg",
+      "BrullKallmusBankAg",
+      "BtvVierLanderBank",
+      "Bunq",
+      "CapitalBankGraweGruppeAg",
+      "Citi",
+      "Dolomitenbank",
+      "EasybankAg",
+      "ErsteBankUndSparkassen",
+      "Handelsbanken",
+      "HypoAlpeadriabankInternationalAg",
+      "HypoNoeLbFurNiederosterreichUWien",
+      "HypoOberosterreichSalzburgSteiermark",
+      "HypoTirolBankAg",
+      "HypoVorarlbergBankAg",
+      "HypoBankBurgenlandAktiengesellschaft",
+      "Ing",
+      "Knab",
+      "MarchfelderBank",
+      "OberbankAg",
+      "RaiffeisenBankengruppeOsterreich",
+      "Rabobank",
+      "Regiobank",
+      "Revolut",
+      "SnsBank",
+      "TriodosBank",
+      "VanLanschot",
+      "Moneyou",
+      "SchoellerbankAg",
+      "SpardaBankWien",
+      "VolksbankGruppe",
+      "VolkskreditbankAg",
+      "VrBankBraunau",
+      "PlusBank"
+    ],
+    "bank_redirect.eps.bank_name._output_path": "payment_method_data.bank_redirect.eps.bank_name",
+    "bank_redirect.eps.bank_name._required": false,
+    "bank_redirect.ideal.bank_name._default_value": "",
+    "bank_redirect.ideal.bank_name._display_name": "Bank",
+    "bank_redirect.ideal.bank_name._field_type": "dropdown_select",
+    "bank_redirect.ideal.bank_name._output_path": "payment_method_data.bank_redirect.ideal.bank_name",
+    "bank_redirect.ideal.bank_name._required": false,
+    "bank_redirect.open_banking_czech_republic.issuer._default_value": "",
+    "bank_redirect.open_banking_czech_republic.issuer._display_name": "Bank/Issuer",
+    "bank_redirect.open_banking_czech_republic.issuer._field_type": "dropdown_select",
+    "bank_redirect.open_banking_czech_republic.issuer._output_path": "payment_method_data.bank_redirect.open_banking_czech_republic.issuer",
+    "bank_redirect.open_banking_czech_republic.issuer._required": false,
+    "bank_redirect.open_banking_fpx.issuer._default_value": "",
+    "bank_redirect.open_banking_fpx.issuer._display_name": "Bank/Issuer",
+    "bank_redirect.open_banking_fpx.issuer._field_type": "dropdown_select",
+    "bank_redirect.open_banking_fpx.issuer._output_path": "payment_method_data.bank_redirect.open_banking_fpx.issuer",
+    "bank_redirect.open_banking_fpx.issuer._required": false,
+    "bank_redirect.open_banking_poland.issuer._default_value": "",
+    "bank_redirect.open_banking_poland.issuer._display_name": "Bank/Issuer",
+    "bank_redirect.open_banking_poland.issuer._field_type": "dropdown_select",
+    "bank_redirect.open_banking_poland.issuer._output_path": "payment_method_data.bank_redirect.open_banking_poland.issuer",
+    "bank_redirect.open_banking_poland.issuer._required": false,
+    "bank_redirect.open_banking_slovakia.issuer._default_value": "",
+    "bank_redirect.open_banking_slovakia.issuer._display_name": "Bank/Issuer",
+    "bank_redirect.open_banking_slovakia.issuer._field_type": "dropdown_select",
+    "bank_redirect.open_banking_slovakia.issuer._output_path": "payment_method_data.bank_redirect.open_banking_slovakia.issuer",
+    "bank_redirect.open_banking_slovakia.issuer._required": false,
+    "bank_redirect.open_banking_thailand.issuer._default_value": "",
+    "bank_redirect.open_banking_thailand.issuer._display_name": "Bank/Issuer",
+    "bank_redirect.open_banking_thailand.issuer._field_type": "dropdown_select",
+    "bank_redirect.open_banking_thailand.issuer._output_path": "payment_method_data.bank_redirect.open_banking_thailand.issuer",
+    "bank_redirect.open_banking_thailand.issuer._required": false,
+    "bank_redirect.open_banking_uk.issuer._default_value": "",
+    "bank_redirect.open_banking_uk.issuer._display_name": "Bank/Issuer",
+    "bank_redirect.open_banking_uk.issuer._field_type": "dropdown_select",
+    "bank_redirect.open_banking_uk.issuer._output_path": "payment_method_data.bank_redirect.open_banking_uk.issuer",
+    "bank_redirect.open_banking_uk.issuer._required": false,
+    "bank_transfer.pix.cnpj._default_value": "",
+    "bank_transfer.pix.cnpj._display_name": "CNPJ",
+    "bank_transfer.pix.cnpj._field_type": "text_input",
+    "bank_transfer.pix.cnpj._output_path": "payment_method_data.bank_transfer.pix.cnpj",
+    "bank_transfer.pix.cnpj._required": false,
+    "bank_transfer.pix.cpf._default_value": "",
+    "bank_transfer.pix.cpf._display_name": "CPF",
+    "bank_transfer.pix.cpf._field_type": "text_input",
+    "bank_transfer.pix.cpf._output_path": "payment_method_data.bank_transfer.pix.cpf",
+    "bank_transfer.pix.cpf._required": false,
+    "bank_transfer.pix.pix.key._default_value": "",
+    "bank_transfer.pix.pix.key._display_name": "PIX Key",
+    "bank_transfer.pix.pix.key._field_type": "text_input",
+    "bank_transfer.pix.pix.key._output_path": "payment_method_data.bank_transfer.pix.pix.key",
+    "bank_transfer.pix.pix.key._required": false,
+    "bank_transfer.pix.source_bank_account_id._default_value": "",
+    "bank_transfer.pix.source_bank_account_id._display_name": "Source Account ID",
+    "bank_transfer.pix.source_bank_account_id._field_type": "text_input",
+    "bank_transfer.pix.source_bank_account_id._output_path": "payment_method_data.bank_transfer.pix.source_bank_account_id",
+    "bank_transfer.pix.source_bank_account_id._required": false,
+    "billing.address.city._default_value": "",
+    "billing.address.city._display_name": "City",
+    "billing.address.city._field_type": "text_input",
+    "billing.address.city._output_path": "payment_method_data.billing.address.city",
+    "billing.address.city._required": false,
+    "billing.address.country._default_value": "",
+    "billing.address.country._display_name": "Country",
+    "billing.address.country._field_type": "country_select",
+    "billing.address.country._options": [
+      "AC",
+      "AD",
+      "AE",
+      "AF",
+      "AG",
+      "AI",
+      "AL",
+      "AM",
+      "AO",
+      "AQ",
+      "AR",
+      "AS",
+      "AT",
+      "AU",
+      "AW",
+      "AX",
+      "AZ",
+      "BA",
+      "BB",
+      "BD",
+      "BE",
+      "BF",
+      "BG",
+      "BH",
+      "BI",
+      "BJ",
+      "BL",
+      "BM",
+      "BN",
+      "BO",
+      "BQ",
+      "BR",
+      "BS",
+      "BT",
+      "BV",
+      "BW",
+      "BY",
+      "BZ",
+      "CA",
+      "CC",
+      "CD",
+      "CF",
+      "CG",
+      "CH",
+      "CI",
+      "CK",
+      "CL",
+      "CM",
+      "CN",
+      "CO",
+      "CR",
+      "CU",
+      "CV",
+      "CW",
+      "CX",
+      "CY",
+      "CZ",
+      "DE",
+      "DJ",
+      "DK",
+      "DM",
+      "DO",
+      "DZ",
+      "EC",
+      "EE",
+      "EG",
+      "EH",
+      "ER",
+      "ES",
+      "ET",
+      "FI",
+      "FJ",
+      "FK",
+      "FM",
+      "FO",
+      "FR",
+      "GA",
+      "GB",
+      "GD",
+      "GE",
+      "GF",
+      "GG",
+      "GH",
+      "GI",
+      "GL",
+      "GM",
+      "GN",
+      "GP",
+      "GQ",
+      "GR",
+      "GS",
+      "GT",
+      "GU",
+      "GW",
+      "GY",
+      "HK",
+      "HM",
+      "HN",
+      "HR",
+      "HT",
+      "HU",
+      "ID",
+      "IE",
+      "IL",
+      "IM",
+      "IN",
+      "IO",
+      "IQ",
+      "IR",
+      "IS",
+      "IT",
+      "JE",
+      "JM",
+      "JO",
+      "JP",
+      "KE",
+      "KG",
+      "KH",
+      "KI",
+      "KM",
+      "KN",
+      "KP",
+      "KR",
+      "KW",
+      "KY",
+      "KZ",
+      "LA",
+      "LB",
+      "LC",
+      "LI",
+      "LK",
+      "LR",
+      "LS",
+      "LT",
+      "LU",
+      "LV",
+      "LY",
+      "MA",
+      "MC",
+      "MD",
+      "ME",
+      "MF",
+      "MG",
+      "MH",
+      "MK",
+      "ML",
+      "MM",
+      "MN",
+      "MO",
+      "MP",
+      "MQ",
+      "MR",
+      "MS",
+      "MT",
+      "MU",
+      "MV",
+      "MW",
+      "MX",
+      "MY",
+      "MZ",
+      "NA",
+      "NC",
+      "NE",
+      "NF",
+      "NG",
+      "NI",
+      "NL",
+      "NO",
+      "NP",
+      "NR",
+      "NU",
+      "NZ",
+      "OM",
+      "PA",
+      "PE",
+      "PF",
+      "PG",
+      "PH",
+      "PK",
+      "PL",
+      "PM",
+      "PN",
+      "PR",
+      "PS",
+      "PT",
+      "PW",
+      "PY",
+      "QA",
+      "RE",
+      "RO",
+      "RS",
+      "RU",
+      "RW",
+      "SA",
+      "SB",
+      "SC",
+      "SD",
+      "SE",
+      "SG",
+      "SH",
+      "SI",
+      "SJ",
+      "SK",
+      "SL",
+      "SM",
+      "SN",
+      "SO",
+      "SR",
+      "SS",
+      "ST",
+      "SV",
+      "SX",
+      "SY",
+      "SZ",
+      "TA",
+      "TC",
+      "TD",
+      "TF",
+      "TG",
+      "TH",
+      "TJ",
+      "TK",
+      "TL",
+      "TM",
+      "TN",
+      "TO",
+      "TR",
+      "TT",
+      "TV",
+      "TW",
+      "TZ",
+      "UA",
+      "UG",
+      "UM",
+      "US",
+      "UY",
+      "UZ",
+      "VA",
+      "VC",
+      "VE",
+      "VG",
+      "VI",
+      "VN",
+      "VU",
+      "WF",
+      "WS",
+      "XK",
+      "YE",
+      "YT",
+      "ZA",
+      "ZM",
+      "ZW"
+    ],
+    "billing.address.country._output_path": "payment_method_data.billing.address.country",
+    "billing.address.country._required": false,
+    "billing.address.first_name._default_value": "",
+    "billing.address.first_name._display_name": "Cardholder Name",
+    "billing.address.first_name._field_type": "text_input",
+    "billing.address.first_name._output_path": "payment_method_data.billing.address.first_name",
+    "billing.address.first_name._required": false,
+    "billing.address.last_name._default_value": "",
+    "billing.address.last_name._display_name": "Cardholder Name",
+    "billing.address.last_name._field_type": "text_input",
+    "billing.address.last_name._output_path": "payment_method_data.billing.address.last_name",
+    "billing.address.last_name._required": false,
+    "billing.address.line1._default_value": "",
+    "billing.address.line1._display_name": "Address Line 1",
+    "billing.address.line1._field_type": "text_input",
+    "billing.address.line1._output_path": "payment_method_data.billing.address.line1",
+    "billing.address.line1._required": false,
+    "billing.address.line2._default_value": "",
+    "billing.address.line2._display_name": "Address Line 2",
+    "billing.address.line2._field_type": "text_input",
+    "billing.address.line2._output_path": "payment_method_data.billing.address.line2",
+    "billing.address.line2._required": false,
+    "billing.address.state._default_value": "",
+    "billing.address.state._display_name": "State/Province",
+    "billing.address.state._field_type": "text_input",
+    "billing.address.state._output_path": "payment_method_data.billing.address.state",
+    "billing.address.state._required": false,
+    "billing.address.zip._default_value": "",
+    "billing.address.zip._display_name": "ZIP/Postal Code",
+    "billing.address.zip._field_type": "text_input",
+    "billing.address.zip._output_path": "payment_method_data.billing.address.zip",
+    "billing.address.zip._required": false,
+    "billing.email._default_value": "",
+    "billing.email._display_name": "Email Address",
+    "billing.email._field_type": "email_input",
+    "billing.email._output_path": "payment_method_data.billing.email",
+    "billing.email._required": false,
+    "billing.phone.country_code._default_value": "",
+    "billing.phone.country_code._display_name": "Code",
+    "billing.phone.country_code._field_type": "country_code_select",
+    "billing.phone.country_code._output_path": "payment_method_data.billing.phone.country_code",
+    "billing.phone.country_code._required": false,
+    "billing.phone.number._default_value": "",
+    "billing.phone.number._display_name": "Phone Number",
+    "billing.phone.number._field_type": "phone_input",
+    "billing.phone.number._output_path": "payment_method_data.billing.phone.number",
+    "billing.phone.number._required": false,
+    "card.card_cvc._default_value": "",
+    "card.card_cvc._display_name": "CVC",
+    "card.card_cvc._field_type": "password_input",
+    "card.card_cvc._output_path": "payment_method_data.card.card_cvc",
+    "card.card_cvc._required": false,
+    "card.card_exp_month._default_value": "",
+    "card.card_exp_month._display_name": "Expiry Month",
+    "card.card_exp_month._field_type": "month_select",
+    "card.card_exp_month._output_path": "payment_method_data.card.card_exp_month",
+    "card.card_exp_month._required": false,
+    "card.card_exp_year._default_value": "",
+    "card.card_exp_year._display_name": "Expiry Year",
+    "card.card_exp_year._field_type": "year_select",
+    "card.card_exp_year._output_path": "payment_method_data.card.card_exp_year",
+    "card.card_exp_year._required": false,
+    "card.card_network._default_value": "",
+    "card.card_network._display_name": "Card Network",
+    "card.card_network._field_type": "dropdown_select",
+    "card.card_network._output_path": "payment_method_data.card.card_network",
+    "card.card_network._required": false,
+    "card.card_number._default_value": "",
+    "card.card_number._display_name": "Card Number",
+    "card.card_number._field_type": "text_input",
+    "card.card_number._output_path": "payment_method_data.card.card_number",
+    "card.card_number._required": false,
+    "crypto.network._default_value": "",
+    "crypto.network._display_name": "Network",
+    "crypto.network._field_type": "dropdown_select",
+    "crypto.network._output_path": "payment_method_data.crypto.network",
+    "crypto.network._required": false,
+    "crypto.pay_currency._default_value": "",
+    "crypto.pay_currency._display_name": "Currency",
+    "crypto.pay_currency._field_type": "currency_select",
+    "crypto.pay_currency._options": [
+      "BTC",
+      "LTC",
+      "ETH",
+      "XRP",
+      "XLM",
+      "BCH",
+      "ADA",
+      "SOL",
+      "SHIB",
+      "TRX",
+      "DOGE",
+      "BNB",
+      "USDT",
+      "USDC",
+      "DAI"
+    ],
+    "crypto.pay_currency._output_path": "payment_method_data.crypto.pay_currency",
+    "crypto.pay_currency._required": false,
+    "email._default_value": "",
+    "email._display_name": "Email Address",
+    "email._field_type": "email_input",
+    "email._output_path": "email",
+    "email._required": false,
+    "gift_card.givex.cvc._default_value": "",
+    "gift_card.givex.cvc._display_name": "Gift Card CVC",
+    "gift_card.givex.cvc._field_type": "password_input",
+    "gift_card.givex.cvc._output_path": "payment_method_data.gift_card.givex.givex.cvc",
+    "gift_card.givex.cvc._required": false,
+    "gift_card.givex.number._default_value": "",
+    "gift_card.givex.number._display_name": "Gift Card Number",
+    "gift_card.givex.number._field_type": "text_input",
+    "gift_card.givex.number._output_path": "payment_method_data.gift_card.givex.givex.number",
+    "gift_card.givex.number._required": false,
+    "mobile_payment.direct_carrier_billing.client_uid._default_value": "",
+    "mobile_payment.direct_carrier_billing.client_uid._display_name": "Client ID",
+    "mobile_payment.direct_carrier_billing.client_uid._field_type": "text_input",
+    "mobile_payment.direct_carrier_billing.client_uid._output_path": "payment_method_data.mobile_payment.direct_carrier_billing.client_uid",
+    "mobile_payment.direct_carrier_billing.client_uid._required": false,
+    "mobile_payment.direct_carrier_billing.msisdn._default_value": "",
+    "mobile_payment.direct_carrier_billing.msisdn._display_name": "Mobile Number",
+    "mobile_payment.direct_carrier_billing.msisdn._field_type": "text_input",
+    "mobile_payment.direct_carrier_billing.msisdn._output_path": "payment_method_data.mobile_payment.direct_carrier_billing.msisdn",
+    "mobile_payment.direct_carrier_billing.msisdn._required": false,
+    "order_details.0.product_name._default_value": "",
+    "order_details.0.product_name._display_name": "Product Name",
+    "order_details.0.product_name._field_type": "text_input",
+    "order_details.0.product_name._output_path": "order_details.0.product_name",
+    "order_details.0.product_name._required": false,
+    "shipping.address.city._default_value": "",
+    "shipping.address.city._display_name": "City",
+    "shipping.address.city._field_type": "text_input",
+    "shipping.address.city._output_path": "shipping.address.city",
+    "shipping.address.city._required": false,
+    "shipping.address.country._default_value": "",
+    "shipping.address.country._display_name": "Country",
+    "shipping.address.country._field_type": "country_select",
+    "shipping.address.country._options": [
+      "AC",
+      "AD",
+      "AE",
+      "AF",
+      "AG",
+      "AI",
+      "AL",
+      "AM",
+      "AO",
+      "AQ",
+      "AR",
+      "AS",
+      "AT",
+      "AU",
+      "AW",
+      "AX",
+      "AZ",
+      "BA",
+      "BB",
+      "BD",
+      "BE",
+      "BF",
+      "BG",
+      "BH",
+      "BI",
+      "BJ",
+      "BL",
+      "BM",
+      "BN",
+      "BO",
+      "BQ",
+      "BR",
+      "BS",
+      "BT",
+      "BV",
+      "BW",
+      "BY",
+      "BZ",
+      "CA",
+      "CC",
+      "CD",
+      "CF",
+      "CG",
+      "CH",
+      "CI",
+      "CK",
+      "CL",
+      "CM",
+      "CN",
+      "CO",
+      "CR",
+      "CU",
+      "CV",
+      "CW",
+      "CX",
+      "CY",
+      "CZ",
+      "DE",
+      "DJ",
+      "DK",
+      "DM",
+      "DO",
+      "DZ",
+      "EC",
+      "EE",
+      "EG",
+      "EH",
+      "ER",
+      "ES",
+      "ET",
+      "FI",
+      "FJ",
+      "FK",
+      "FM",
+      "FO",
+      "FR",
+      "GA",
+      "GB",
+      "GD",
+      "GE",
+      "GF",
+      "GG",
+      "GH",
+      "GI",
+      "GL",
+      "GM",
+      "GN",
+      "GP",
+      "GQ",
+      "GR",
+      "GS",
+      "GT",
+      "GU",
+      "GW",
+      "GY",
+      "HK",
+      "HM",
+      "HN",
+      "HR",
+      "HT",
+      "HU",
+      "ID",
+      "IE",
+      "IL",
+      "IM",
+      "IN",
+      "IO",
+      "IQ",
+      "IR",
+      "IS",
+      "IT",
+      "JE",
+      "JM",
+      "JO",
+      "JP",
+      "KE",
+      "KG",
+      "KH",
+      "KI",
+      "KM",
+      "KN",
+      "KP",
+      "KR",
+      "KW",
+      "KY",
+      "KZ",
+      "LA",
+      "LB",
+      "LC",
+      "LI",
+      "LK",
+      "LR",
+      "LS",
+      "LT",
+      "LU",
+      "LV",
+      "LY",
+      "MA",
+      "MC",
+      "MD",
+      "ME",
+      "MF",
+      "MG",
+      "MH",
+      "MK",
+      "ML",
+      "MM",
+      "MN",
+      "MO",
+      "MP",
+      "MQ",
+      "MR",
+      "MS",
+      "MT",
+      "MU",
+      "MV",
+      "MW",
+      "MX",
+      "MY",
+      "MZ",
+      "NA",
+      "NC",
+      "NE",
+      "NF",
+      "NG",
+      "NI",
+      "NL",
+      "NO",
+      "NP",
+      "NR",
+      "NU",
+      "NZ",
+      "OM",
+      "PA",
+      "PE",
+      "PF",
+      "PG",
+      "PH",
+      "PK",
+      "PL",
+      "PM",
+      "PN",
+      "PR",
+      "PS",
+      "PT",
+      "PW",
+      "PY",
+      "QA",
+      "RE",
+      "RO",
+      "RS",
+      "RU",
+      "RW",
+      "SA",
+      "SB",
+      "SC",
+      "SD",
+      "SE",
+      "SG",
+      "SH",
+      "SI",
+      "SJ",
+      "SK",
+      "SL",
+      "SM",
+      "SN",
+      "SO",
+      "SR",
+      "SS",
+      "ST",
+      "SV",
+      "SX",
+      "SY",
+      "SZ",
+      "TA",
+      "TC",
+      "TD",
+      "TF",
+      "TG",
+      "TH",
+      "TJ",
+      "TK",
+      "TL",
+      "TM",
+      "TN",
+      "TO",
+      "TR",
+      "TT",
+      "TV",
+      "TW",
+      "TZ",
+      "UA",
+      "UG",
+      "UM",
+      "US",
+      "UY",
+      "UZ",
+      "VA",
+      "VC",
+      "VE",
+      "VG",
+      "VI",
+      "VN",
+      "VU",
+      "WF",
+      "WS",
+      "XK",
+      "YE",
+      "YT",
+      "ZA",
+      "ZM",
+      "ZW"
+    ],
+    "shipping.address.country._output_path": "shipping.address.country",
+    "shipping.address.country._required": false,
+    "shipping.address.first_name._default_value": "",
+    "shipping.address.first_name._display_name": "First Name",
+    "shipping.address.first_name._field_type": "text_input",
+    "shipping.address.first_name._output_path": "shipping.address.first_name",
+    "shipping.address.first_name._required": false,
+    "shipping.address.last_name._default_value": "",
+    "shipping.address.last_name._display_name": "Last Name",
+    "shipping.address.last_name._field_type": "text_input",
+    "shipping.address.last_name._output_path": "shipping.address.last_name",
+    "shipping.address.last_name._required": false,
+    "shipping.address.line1._default_value": "",
+    "shipping.address.line1._display_name": "Address Line 1",
+    "shipping.address.line1._field_type": "text_input",
+    "shipping.address.line1._output_path": "shipping.address.line1",
+    "shipping.address.line1._required": false,
+    "shipping.address.line2._default_value": "",
+    "shipping.address.line2._display_name": "Address Line 2",
+    "shipping.address.line2._field_type": "text_input",
+    "shipping.address.line2._output_path": "shipping.address.line2",
+    "shipping.address.line2._required": false,
+    "shipping.address.state._default_value": "",
+    "shipping.address.state._display_name": "State/Province",
+    "shipping.address.state._field_type": "text_input",
+    "shipping.address.state._output_path": "shipping.address.state",
+    "shipping.address.state._required": false,
+    "shipping.address.zip._default_value": "",
+    "shipping.address.zip._display_name": "ZIP/Postal Code",
+    "shipping.address.zip._field_type": "text_input",
+    "shipping.address.zip._output_path": "shipping.address.zip",
+    "shipping.address.zip._required": false,
+    "shipping.email._default_value": "",
+    "shipping.email._display_name": "Email Address",
+    "shipping.email._field_type": "email_input",
+    "shipping.email._output_path": "shipping.email",
+    "shipping.email._required": false,
+    "shipping.phone.country_code._default_value": "",
+    "shipping.phone.country_code._display_name": "Code",
+    "shipping.phone.country_code._field_type": "country_code_select",
+    "shipping.phone.country_code._output_path": "shipping.phone.country_code",
+    "shipping.phone.country_code._required": false,
+    "shipping.phone.number._default_value": "",
+    "shipping.phone.number._display_name": "Phone Number",
+    "shipping.phone.number._field_type": "phone_input",
+    "shipping.phone.number._output_path": "shipping.phone.number",
+    "shipping.phone.number._required": false,
+    "upi.upi_collect.vpa_id._default_value": "",
+    "upi.upi_collect.vpa_id._display_name": "UPI ID",
+    "upi.upi_collect.vpa_id._field_type": "text_input",
+    "upi.upi_collect.vpa_id._output_path": "payment_method_data.upi.upi_collect.vpa_id",
+    "upi.upi_collect.vpa_id._required": false,
+    "voucher.boleto.social_security_number._default_value": "",
+    "voucher.boleto.social_security_number._display_name": "Social Security Number",
+    "voucher.boleto.social_security_number._field_type": "text_input",
+    "voucher.boleto.social_security_number._output_path": "payment_method_data.voucher.boleto.social_security_number",
+    "voucher.boleto.social_security_number._required": false,
+    "wallet.mifinity.date_of_birth._default_value": "",
+    "wallet.mifinity.date_of_birth._display_name": "Date of Birth",
+    "wallet.mifinity.date_of_birth._field_type": "date_picker",
+    "wallet.mifinity.date_of_birth._output_path": "payment_method_data.wallet.mifinity.date_of_birth",
+    "wallet.mifinity.date_of_birth._required": false,
+    "wallet.mifinity.language_preference._default_value": "",
+    "wallet.mifinity.language_preference._display_name": "Language",
+    "wallet.mifinity.language_preference._field_type": "dropdown_select",
+    "wallet.mifinity.language_preference._options": [
+      "BR",
+      "PT_BR",
+      "CN",
+      "ZH_CN",
+      "DE",
+      "DK",
+      "DA",
+      "DA_DK",
+      "EN",
+      "ES",
+      "FI",
+      "FR",
+      "GR",
+      "EL",
+      "EL_GR",
+      "HR",
+      "IT",
+      "JP",
+      "JA",
+      "JA_JP",
+      "LA",
+      "ES_LA",
+      "NL",
+      "NO",
+      "PL",
+      "PT",
+      "RU",
+      "SV",
+      "SE",
+      "SV_SE",
+      "ZH",
+      "TW",
+      "ZH_TW"
+    ],
+    "wallet.mifinity.language_preference._output_path": "payment_method_data.wallet.mifinity.language_preference",
+    "wallet.mifinity.language_preference._required": false
+  }
+}

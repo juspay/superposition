@@ -8,54 +8,73 @@
 ![Dynamic TOML Badge](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjuspay%2Fsuperposition%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.package.version&label=version&color=green)
 [![GitHub Release Date](https://img.shields.io/github/release-date-pre/juspay/superposition)](https://github.com/juspay/superposition/releases) 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/juspay/superposition/release.yaml)
-
-[![Crates.io Downloads (latest version)](https://img.shields.io/crates/dv/superposition_provider?label=openfeature-provider%40crates.io)](https://crates.io/crates/superposition_provider)
-[![Crates.io Downloads (latest version)](https://img.shields.io/crates/dv/superposition_sdk?label=superposition%20sdk%40crates.io)](https://crates.io/crates/superposition_sdk)
-[![NPM Downloads](https://img.shields.io/npm/dm/superposition-provider?label=openfeature%20provider%40npm)](https://www.npmjs.com/package/superposition-provider)
-[![NPM Downloads](https://img.shields.io/npm/dm/superposition-sdk?label=superposition%20sdk%40npm)
-](https://www.npmjs.com/package/superposition-sdk)
-
-
 ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)
 [![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr) 
 
 
-Superposition is a cloud configuration and experimentation management platform that allows software teams to manage their configuration via a central location, run multi-variate experiments for different configuration values and evaluate results of these experiments and conclude them accordingly.
+Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and allows them to run multi-variate experiments on those configurations. Superposition places a strong emphasis on safety of configuration changes.  It does this by the following:
 
-The Superposition platform comes with three components:
+* supporting strong typing of configuration values (via [json-schema](https://json-schema.org/))
+* custom validation functions (written in Javascript) that can validate configuration values using state-less logic or validate them against external data-sources
+* supporting staggering configuration changes via experiments.
+* allows configurations to cascade from least specific to most specific contexts [much like CSS](https://juspay.io/superposition/docs/basic-concepts/context-aware-config#analogy-with-css)
 
-* **Context-Aware-Configuration** - a flexible configuration management system that supports contextual overrides for configuration keys
-* **Experimentation** - a experimentation management system that allows supplying different configuration values to equal-sized cohorts (facilitating A/B testing)
-* **Metrics** - a metrics sub-system that interacts with analytics backends to provide supporting metrics that enable conclusions to be drawn from experiments (TBD)
+This comprehensive setup gives applications a robust platform to roll-out changes safely.
 
 ## Getting started
 
-The fastest way to setup superposition along with a demo-app is to use the following docker command:
+### Setup the server
+The fastest way to setup Superposition is to use the following docker command which runs Superposition and its dependencies (a Postgres database) locally:
 
 ```
 docker run -p 8080:8080 ghcr.io/juspay/superposition-demo:latest
 ```
 
-Once you run this command, you'll find Superposition at `localhost:8080`. Play around to understand Superposition better, then dive into the documentation below!
+Once you run this command, you can access the Superposition admin interface at `localhost:8080`. Play around to understand Superposition better, then dive into the documentation below!
 
-## Detailed documentation
-1. [Context-Aware-Configuration](docs/docs/basic-concepts/context-aware-config.md)
-2. [Experimentation](docs/docs/basic-concepts/experimentation.md)
-3. [Client Context-Aware-Configuration](docs/docs/clients/legacy/client_context_aware_configuration.md)
-4. [Client Experimentation](docs/docs/clients/legacy/client_experimentation.md)
-5. [Local setup](docs/docs/setup.md)
-6. [Context-Aware-Configuration API Ref - Postman Collection](postman/cac.postman_collection.json)
-7. [Experimentation API Ref - Postman Collection](postman/experimentation-platform.postman_collection.json)
-8. [TOML formatted Context-Aware-Configuration example](docs/docs/experimental/cac-toml.md)
-9. [Hitchiker's Guide to Create a New Client](docs/docs/clients/legacy/creating_client.md)
+### Integrating Superposition in your application
+
+Once you have played with the Superposition admin interface, you may want to consume the configuration in your application.  Superposition is [OpenFeature](https://openfeature.dev/docs/reference/concepts/provider) compatible.  OpenFeature allows your application code to remain agnostic of the underlying configuration/feature-flag platform (like [open telemetry](https://opentelemetry.io/) for telemetry).  The [quick start guide](https://juspay.io/superposition/docs/quick_start) has details on how to integrate and consume configurations (setup in Superposition) in your application using the Superposition Open Feature provider.
+
+## Superposition Clients
+
+Superposition comes with a variety of clients supported in multiple programming languages to interact with the Superposition platform.
+
+1. `sdk` - this library contains methods to interact with the control plane of Superposition to manage configurations and experiments.  In short, all APIs supported by the Superposition platform can be invoked using the sdk (built using [AWS' Smithy IDL](https://smithy.io)).
+2. `provider` (or open-feature-provider) - this open feature compatible library is meant to be used by the applications that consume configurations hosted in Superposition.  This has support for in-memory-caching and period polling based refresh of configuration in the application.
+
+The following matrix contains the languages in which the above client libraries are available:
+
+| Language       | sdk | provider |
+|----------------|-----|----------|
+| Rust           | ![Crates.io Version](https://img.shields.io/crates/v/superposition_sdk?color=green&label=superposition_sdk&link=https%3A%2F%2Fcrates.io%2Fcrates%2Fsuperposition_sdk) | ![Crates.io Version](https://img.shields.io/crates/v/superposition_provider?color=green&label=superposition_provider&link=https%3A%2F%2Fcrates.io%2Fcrates%2Fsuperposition_provider) |
+| Javascript     | ![NPM Version](https://img.shields.io/npm/v/superposition-sdk?color=green&label=superposition-sdk&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fsuperposition-sdk) |  ![NPM Version](https://img.shields.io/npm/v/superposition-provider?color=green&label=superposition-provider&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fsuperposition-provider) |
+| Python         | ![PyPI - Version](https://img.shields.io/pypi/v/superposition_sdk?color=green&label=superposition_sdk&link=https%3A%2F%2Fpypi.org%2Fproject%2Fsuperposition-sdk%2F) | ![PyPI - Version](https://img.shields.io/pypi/v/superposition_provider?color=green&label=superposition_provider&link=https%3A%2F%2Fpypi.org%2Fproject%2Fsuperposition-provider%2F) |
+| Java           | ✔️  |    ✔️    |
+| Haskell        | WIP |    WIP   |
+| Go             | TBD |    TBD   |
+
+## Deeper dive into Superposition
+
+For a deeper dive into the under-pinnings of Superposition, development setup, API docs - you can go over the following links.
+1. Conceptual docs on two foundational services of Superposition:
+    * [Context-Aware-Configuration](https://juspay.io/superposition/docs/basic-concepts/context-aware-config)
+    * [Experimentation](https://juspay.io/superposition/docs/basic-concepts/experimentation)
+3. [Development setup](https://juspay.io/superposition/docs/setup)
+4. API Ref (TODO:)
+
+## Applications using Superposition
+
+Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have built applications that leverage the Superposition across different parts of the software stack - [frontend](examples/dynamic-payment-fields), backend, [infra](examples/k8s-staggered-releaser) and [storage](examples/cac_redis_module).
 
 ## Key highlights
+
 * **Admin UI** - Out of the box administration (and tools) UI for configurations and experiments
-* **Rich API support** - every action on the platform to manage configurations / experiments is supported with an accompanying API
+* **Rich API support** - every action on the platform to manage configurations / experiments is supported with an accompanying API (and in the SDK as well)
 * **Safe configuration changes** - support canary testing for releasing configuration changes using experiments
 * **Type/Validation support** - Comprehensive type support using json-schema and custom validator function support for configuration values
 * **Multi-tenant support** - a single deployment allows multiple tenants to manage their configurations/experiments in a completely isolated manner
-* **Authn/Authz support** - control who can make configuration/experimentation changes
+* **Authn/Authz support** - RBAC support to decide can make configuration/experimentation changes
 
 ## Email us
 * [superposition@juspay.in](mailto:superposition@juspay.in)

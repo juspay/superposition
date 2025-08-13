@@ -1,0 +1,20 @@
+[package]
+name = "redis_module_cac"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "redis_module_cac"
+crate-type = ["cdylib"]
+
+[dependencies]
+redis-module = "*"
+serde_json = "1.0"
+jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.5" }
+jsonschema = "~0.17"
+leptos = { version = "0.6.11" }
+log = { version = "0.4.20", features = ["kv_unstable_serde"] }
+serde = { version = "^1", features = ["derive"] }
+strum = "0.25"
+strum_macros = "0.25"
+superposition_types = { git = "https://github.com/juspay/superposition.git", version = "0.23.0" }
