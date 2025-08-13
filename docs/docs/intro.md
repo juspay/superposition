@@ -8,7 +8,7 @@ Superposition is a configuration and experimentation management platform that al
 * supporting strong typing of configuration values (via [json-schema](https://json-schema.org/))
 * custom validation functions (written in Javascript) that can validate configuration values using state-less logic or validate them against external data-sources
 * supporting staggering configuration changes via experiments.
-* allows configurations to cascade from least specific to most specific contexts much like CSS
+* allows configurations to cascade from least specific to most specific contexts [much like CSS](https://juspay.io/superposition/docs/basic-concepts/context-aware-config#analogy-with-css)
 
 This comprehensive setup gives applications a robust platform to roll-out changes safely.
 
