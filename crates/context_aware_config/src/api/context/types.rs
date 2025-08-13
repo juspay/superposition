@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use diesel::prelude::AsChangeset;
-use serde::{Deserialize, Serialize};
+#[cfg(feature = "jsonlogic")]
+use serde::Deserialize;
+use serde::Serialize;
 use superposition_types::{
     database::{
         models::{cac::FunctionCode, ChangeReason, Description},
@@ -21,6 +23,7 @@ pub(crate) struct UpdateContextOverridesChangeset {
     pub change_reason: ChangeReason,
 }
 
+#[cfg(feature = "jsonlogic")]
 #[derive(Deserialize, Clone)]
 pub struct DimensionCondition {
     pub var: String,

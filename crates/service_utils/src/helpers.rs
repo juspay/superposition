@@ -15,12 +15,14 @@ use reqwest::{
     StatusCode,
 };
 use serde::Serialize;
+#[cfg(feature = "jsonlogic")]
 use serde_json::{Map, Value};
+#[cfg(feature = "jsonlogic")]
+use superposition_types::Condition;
 use superposition_types::{
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
     database::models::others::{HttpMethod, Webhook, WebhookEvent},
     result::{self},
-    Condition,
 };
 
 use crate::service::types::{AppState, WorkspaceContext};
@@ -103,6 +105,7 @@ pub fn get_pod_info() -> (String, String) {
     (pod_id, deployment_id)
 }
 
+#[cfg(feature = "jsonlogic")]
 pub fn extract_dimensions(context: &Condition) -> result::Result<Map<String, Value>> {
     // Assuming max 2-level nesting in context json logic
 
@@ -139,6 +142,7 @@ pub fn extract_dimensions(context: &Condition) -> result::Result<Map<String, Val
     Ok(Map::from_iter(dimension_tuples))
 }
 
+#[cfg(feature = "jsonlogic")]
 pub fn get_variable_name_and_value(operands: &[Value]) -> result::Result<(&str, &Value)> {
     let (obj_pos, variable_obj) = operands
         .iter()

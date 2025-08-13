@@ -3,9 +3,10 @@ use std::collections::{HashMap, HashSet};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::{deserialize::FromSqlRow, expression::AsExpression, sql_types::Json};
+#[cfg(feature = "jsonlogic")]
 use jsonlogic::validation as logic_validation;
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
 use uniffi::deps::anyhow;
@@ -139,6 +140,7 @@ uniffi::custom_type!(Condition, HashMap<String, String>, {
     }
 });
 
+#[cfg(feature = "jsonlogic")]
 static CAC_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
     logic_validation::ValidationConfig {
         require_and_wrapper: Some(logic_validation::RequireAndWrapper {
@@ -146,6 +148,7 @@ static CAC_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
         }),
     };
 
+#[cfg(feature = "jsonlogic")]
 static EXP_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
     logic_validation::ValidationConfig {
         require_and_wrapper: Some(logic_validation::RequireAndWrapper {
@@ -154,8 +157,9 @@ static EXP_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
     };
 
 impl Condition {
+    #[cfg(feature = "jsonlogic")]
     fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
-        let condition_val = json!(condition_map);
+        let condition_val = serde_json::json!(condition_map);
         logic_validation::validate(&condition_val, &CAC_CONDITION_VALIDATION_CONFIG)
             .map_err(|err| {
                 let msg = format!("Condition validation error: {}", err.message);
@@ -169,8 +173,18 @@ impl Condition {
         Ok(Self(condition_map))
     }
 
+    #[cfg(not(feature = "jsonlogic"))]
+    fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
+        if condition_map.is_empty() {
+            log::error!("Condition validation error: Context is empty");
+            return Err("Context should not be empty".to_owned());
+        }
+        Ok(Self(condition_map))
+    }
+
+    #[cfg(feature = "jsonlogic")]
     fn validate_data_for_exp(condition_map: Map<String, Value>) -> Result<Self, String> {
-        let condition_val = json!(condition_map);
+        let condition_val = serde_json::json!(condition_map);
         logic_validation::validate(&condition_val, &EXP_CONDITION_VALIDATION_CONFIG)
             .map_err(|err| {
                 let msg = format!("Condition validation error: {}", err.message);
@@ -199,6 +213,18 @@ impl Condition {
         Ok(Self(condition_map))
     }
 
+    #[cfg(not(feature = "jsonlogic"))]
+    fn validate_data_for_exp(condition_map: Map<String, Value>) -> Result<Self, String> {
+        if condition_map.contains_key("variantIds") {
+            return Err(
+                "experiment's context should not contain variantIds dimension"
+                    .to_string(),
+            );
+        }
+        Ok(Self(condition_map))
+    }
+
+    #[cfg(feature = "jsonlogic")]
     pub fn contains(&self, other_condition: &Condition) -> Result<bool, String> {
         let condition1 = Value::Object(self.0.clone());
         let condition1 = jsonlogic::expression::Expression::from_json(&condition1)?
@@ -207,6 +233,20 @@ impl Condition {
         let condition2 = jsonlogic::expression::Expression::from_json(&condition2)?
             .get_variable_names_and_values()?;
         Ok(condition1.is_superset(&condition2))
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub fn contains(&self, other_condition: &Condition) -> Result<bool, String> {
+        for (key, value) in &other_condition.0 {
+            if let Some(val) = self.0.get(key) {
+                if *val != *value {
+                    return Ok(false);
+                }
+            } else {
+                return Ok(false);
+            }
+        }
+        Ok(true)
     }
 }
 
@@ -332,7 +372,7 @@ impl Config {
         &self,
         prefix_list: &HashSet<String>,
     ) -> Map<String, Value> {
-        filter_config_keys_by_prefix(self.default_configs.clone(), prefix_list)
+        filter_config_keys_by_prefix(&self.default_configs, prefix_list)
     }
 
     pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
@@ -342,7 +382,7 @@ impl Config {
 
         for (key, overrides) in &self.overrides {
             let filtered_overrides_map =
-                filter_config_keys_by_prefix(overrides.clone().into(), prefix_list);
+                filter_config_keys_by_prefix(overrides, prefix_list);
 
             let _ = Cac::<Overrides>::try_from(filtered_overrides_map).map(
                 |filtered_overrides_map| {
@@ -377,6 +417,7 @@ pub(crate) mod tests {
 
     use super::Config;
 
+    #[cfg(feature = "jsonlogic")]
     pub(crate) fn get_config() -> Config {
         let config_json = json!({
             "contexts": [
@@ -466,6 +507,70 @@ pub(crate) mod tests {
         from_value(config_json).unwrap()
     }
 
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_config() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                       "test2": 123
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                },
+                {
+                    "id": "9fbf3b9fa10caaaf31f6003cbd20ed36d40efe73b5c6b238288c0a96e6933500",
+                    "condition": {
+                        "test3": false,
+                        "test": "test"
+                    },
+                    "priority": 2,
+                    "weight": 2,
+                    "override_with_keys": [
+                        "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                },
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8": {
+                    "key1": true
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
     pub(crate) fn get_dimension_data1() -> Map<String, Value> {
         Map::from_iter(vec![(String::from("test3"), Value::Bool(true))])
     }
@@ -485,6 +590,7 @@ pub(crate) mod tests {
         ])
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub(crate) fn get_dimension_filtered_config1() -> Config {
         let config_json = json!({
             "contexts": [
@@ -543,6 +649,56 @@ pub(crate) mod tests {
         from_value(config_json).unwrap()
     }
 
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_dimension_filtered_config1() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "test2": 123
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
     pub(crate) fn get_dimension_filtered_config2() -> Config {
         let config_json = json!({
             "contexts": [
@@ -555,6 +711,40 @@ pub(crate) mod tests {
                             },
                             123
                         ]
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_dimension_filtered_config2() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "test2": 123
                     },
                     "priority": 1,
                     "weight": 1,
@@ -597,6 +787,7 @@ pub(crate) mod tests {
         from_value(config_json).unwrap()
     }
 
+    #[cfg(feature = "jsonlogic")]
     pub(crate) fn get_prefix_filtered_config1() -> Config {
         let config_json = json!({
             "contexts": [
@@ -630,6 +821,36 @@ pub(crate) mod tests {
         from_value(config_json).unwrap()
     }
 
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_prefix_filtered_config1() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
     pub(crate) fn get_prefix_filtered_config2() -> Config {
         let config_json = json!({
             "contexts": [
@@ -658,6 +879,53 @@ pub(crate) mod tests {
                             },
                             123
                         ]
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_prefix_filtered_config2() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "test2": 123
                     },
                     "priority": 1,
                     "weight": 1,
