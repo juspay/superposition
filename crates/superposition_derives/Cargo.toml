@@ -2,7 +2,7 @@
 name = "superposition_derives"
 version.workspace = true
 edition = "2021"
-license-file = { workspace = true }
+license = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 readme = "README.md"

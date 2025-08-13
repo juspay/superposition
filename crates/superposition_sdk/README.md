@@ -8,13 +8,13 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-superposition_sdk = "0.84.0"
+superposition_sdk = "<version>"
 ```
 
 ## Initialization
 
 ```rust
-use anyhow::Result;
+use anyhow::Result; // anyhow is optional and used to simplify this example
 use superposition_sdk::{Client, Config};
 
 /// Create a Superposition SDK client with the given URL
@@ -35,7 +35,7 @@ pub fn create_client(url: String, token: String) -> Result<Client> {
 The SDK provides commands for every API call that Superposition supports. Below is an example of how to use the SDK to list default configs.
 
 ```rust
-use anyhow::Result;
+use anyhow::Result; // anyhow is optional and used to simplify this example
 use superposition_sdk::types::DefaultConfigFull;
 
 /// Fetch all default configs using the Superposition SDK
