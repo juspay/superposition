@@ -312,7 +312,7 @@ jobs:
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
               with:
-                  path: rust-binaries
+                  path: clients/java/rust-binaries
                   pattern: superposition_core-*
                   merge-multiple: true
 

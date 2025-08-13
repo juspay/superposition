@@ -29,8 +29,6 @@ public class SuperpositionProviderOptions {
     /** Strategy for refreshing feature flag data from the backend. */
     @NonNull
     RefreshStrategy refreshStrategy;
-    /** Options for local evaluation cache (optional). */
-    //@Nullable EvaluationCacheOptions evaluationCacheOptions;
     /** Fallback configuration if remote fetch fails (optional). */
     @Nullable SuperpositionConfig fallbackConfig;
     /** Experimentation-specific options (optional). */

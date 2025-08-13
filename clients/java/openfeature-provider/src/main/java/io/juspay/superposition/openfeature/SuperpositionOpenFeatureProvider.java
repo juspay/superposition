@@ -26,6 +26,45 @@ import java.util.stream.Collectors;
 
 import static software.amazon.smithy.java.auth.api.identity.TokenIdentity.*;
 
+/**
+ * Openfeature Provider implementation for Superposition.
+ * <h2>Basic Usage:</h2>
+ * <pre>{@code
+ * // Configure experimentation options
+ * SuperpositionProviderOptions.ExperimentationOptions expOptions =
+ * SuperpositionProviderOptions.ExperimentationOptions.builder()
+ * .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000)) // 5s timeout, 2s interval
+ * .build();
+ *
+ * // Configure provider options
+ * SuperpositionProviderOptions options =
+ * SuperpositionProviderOptions.builder()
+ * .orgId("your-org-id")
+ * .workspaceId("your-workspace-id")
+ * .endpoint("https://api.superposition.dev")
+ * .token("your-api-token")
+ * .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000)) // 10s timeout, 5s interval
+ * .experimentationOptions(expOptions)
+ * .build();
+ *
+ * // Initialize provider
+ * SuperpositionOpenFeatureProvider provider =
+ * new SuperpositionOpenFeatureProvider(options);
+ * EvaluationContext initCtx =
+ * new ImmutableContext(Map.of("foo", new Value("bar")));
+ * provider.initialize(initCtx);
+ * OpenFeatureAPI.getInstance().setProvider(provider);
+ * Client client = OpenFeatureAPI.getInstance().getClient();
+ *
+ * // Create evaluation context (optional)
+ * EvaluationContext ctx =
+ * new ImmutableContext(Map.of("userId", new Value("123")));
+ *
+ * // Evaluate a boolean flag
+ * boolean enabled = client.getBooleanValue("my-feature-flag", false, ctx);
+ *  }
+ *  </pre>
+ */
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @Slf4j
 public class SuperpositionOpenFeatureProvider implements FeatureProvider {
@@ -187,7 +226,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
 
     public @Nullable List<String> applicableVariants(@NonNull EvaluationContext ctx) {
         try {
-            return EvaluationArgs.Companion.getApplicableVariants$open_feature_provider(ctx, getExperimentationArgs(ctx));
+            return EvaluationArgs.Companion.getApplicableVariants$openfeature_provider(ctx, getExperimentationArgs(ctx));
         } catch (Exception e) {
             log.error("An exception occurred during evaluation.\nMessage: {}.", e.getMessage());
             return null;

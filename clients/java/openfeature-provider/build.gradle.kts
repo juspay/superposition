@@ -7,13 +7,13 @@ plugins {
 
 java {
     withSourcesJar()
+    withJavadocJar()
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
-group = "${rootProject.group}.openfeature"
-extra["displayName"] = "Superposition Openfeature Provider"
+extra["displayName"] = "Superposition's Openfeature Provider"
 description = "Openfeature provider implementation for Superposition."
 
 dependencies {

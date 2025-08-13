@@ -11,6 +11,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:1.9.10")
     implementation("org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.0.0")
+    // Needed due to `Dependency-Check`(transitive-dep): https://github.com/dependency-check/DependencyCheck#gradle-build-environment
     constraints {
         // org.owasp.dependencycheck needs at least this version of jackson. Other plugins pull in older versions..
         add("implementation", "com.fasterxml.jackson:jackson-bom:2.16.1")
