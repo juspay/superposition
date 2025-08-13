@@ -1,0 +1,2 @@
+CAC.EVAL '{"newd": "hi"}'
+"{\"eval_type\":\"config_evaluation_with_file\",\"query_data\":{\"newd\":\"hi\"},\"result\":{\"abcd\":2,\"bool\":true,\"bool_key\":false,\"double\":1.2,\"integer\":1,\"new\":\"help\",\"new2\":\"hithere\",\"object\":{\"k1\":{\"k2\":\"v1\"}},\"string\":\"something\"},\"status\":\"success\",\"timestamp\":1752049397}"

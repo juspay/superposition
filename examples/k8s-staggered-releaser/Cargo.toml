@@ -1,0 +1,11 @@
+[package]
+name = "mayday"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = {version = "*"}
+serde = {version = "*"}
+serde_json = {version = "*"}
+reqwest = {version = "*", features = ["json"]}
+jsonlogic = { git = "https://github.com/juspay/jsonlogic_rs.git", version = "0.5.3" }

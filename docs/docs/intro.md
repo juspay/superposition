@@ -56,7 +56,7 @@ For a deeper dive into the under-pinnings of Superposition, development setup, A
 
 ## Applications using Superposition
 
-Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have build applications that leverage the Superposition across different parts of the software stack - frontend, backend, infra and storage. (TODO: links to applications)
+Superposition comes as a shot in the arm for any application that needs safe and flexible configurability.  We have built applications that leverage the Superposition across different parts of the software stack - [frontend](examples/dynamic-payment-fields), backend, [infra](examples/k8s-staggered-releaser) and [storage](examples/cac_redis_module).
 
 ## Key highlights
 
