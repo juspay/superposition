@@ -133,6 +133,9 @@ import io.juspay.superposition.model.ListWebhookOutput;
 import io.juspay.superposition.model.ListWorkspace;
 import io.juspay.superposition.model.ListWorkspaceInput;
 import io.juspay.superposition.model.ListWorkspaceOutput;
+import io.juspay.superposition.model.MigrateWorkspaceSchema;
+import io.juspay.superposition.model.MigrateWorkspaceSchemaInput;
+import io.juspay.superposition.model.MigrateWorkspaceSchemaOutput;
 import io.juspay.superposition.model.MoveContext;
 import io.juspay.superposition.model.MoveContextInput;
 import io.juspay.superposition.model.MoveContextOutput;
@@ -203,8 +206,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
@@ -390,6 +393,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<ListWorkspaceOutput> listWorkspace(ListWorkspaceInput input, RequestOverrideConfig overrideConfig) {return call(input, ListWorkspace.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<MigrateWorkspaceSchemaOutput> migrateWorkspaceSchema(MigrateWorkspaceSchemaInput input, RequestOverrideConfig overrideConfig) {return call(input, MigrateWorkspaceSchema.instance(), overrideConfig);
     }
 
     @Override

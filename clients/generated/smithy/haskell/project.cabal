@@ -23,6 +23,7 @@ library
                         Io.Superposition.Model.ApplicableVariantsOutput,
                         Io.Superposition.Command.BulkOperation,
                         Io.Superposition.Command.DeleteDefaultConfig,
+                        Io.Superposition.Model.MigrateWorkspaceSchemaInput,
                         Io.Superposition.Model.ListWebhookInput,
                         Io.Superposition.Model.HttpMethod,
                         Io.Superposition.Model.ContextAction,
@@ -243,6 +244,7 @@ library
                         Io.Superposition.Model.FunctionExecutionRequest,
                         Io.Superposition.Model.ResumeExperimentInput,
                         Io.Superposition.Model.ContextFilterSortOn,
+                        Io.Superposition.Command.MigrateWorkspaceSchema,
                         Io.Superposition.Model.ContextPut,
                         Io.Superposition.Model.ResourceNotFound,
                         Io.Superposition.Command.DeleteDimension,
@@ -252,6 +254,7 @@ library
                         Io.Superposition.Model.GetResolvedConfigOutput,
                         Io.Superposition.Model.Version,
                         Io.Superposition.Model.ListContextsInput,
+                        Io.Superposition.Model.MigrateWorkspaceSchemaOutput,
                         Io.Superposition.Model.GetContextFromConditionOutput,
                         Io.Superposition.Model.ExperimentGroupResponse
     other-modules:      Io.Superposition.Utility

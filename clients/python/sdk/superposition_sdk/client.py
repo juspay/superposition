@@ -78,6 +78,7 @@ from .deserialize import (
     _deserialize_list_versions,
     _deserialize_list_webhook,
     _deserialize_list_workspace,
+    _deserialize_migrate_workspace_schema,
     _deserialize_move_context,
     _deserialize_pause_experiment,
     _deserialize_publish,
@@ -230,7 +231,10 @@ from .models import (
     ListWebhookOutput,
     ListWorkspaceInput,
     ListWorkspaceOutput,
+    MIGRATE_WORKSPACE_SCHEMA,
     MOVE_CONTEXT,
+    MigrateWorkspaceSchemaInput,
+    MigrateWorkspaceSchemaOutput,
     MoveContextInput,
     MoveContextOutput,
     PAUSE_EXPERIMENT,
@@ -331,6 +335,7 @@ from .serialize import (
     _serialize_list_versions,
     _serialize_list_webhook,
     _serialize_list_workspace,
+    _serialize_migrate_workspace_schema,
     _serialize_move_context,
     _serialize_pause_experiment,
     _serialize_publish,
@@ -1519,6 +1524,32 @@ class Superposition:
             deserialize=_deserialize_list_workspace,
             config=self._config,
             operation=LIST_WORKSPACE,
+        )
+
+    async def migrate_workspace_schema(self, input: MigrateWorkspaceSchemaInput, plugins: list[Plugin] | None = None) -> MigrateWorkspaceSchemaOutput:
+        """
+        Invokes the MigrateWorkspaceSchema operation.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_migrate_workspace_schema,
+            deserialize=_deserialize_migrate_workspace_schema,
+            config=self._config,
+            operation=MIGRATE_WORKSPACE_SCHEMA,
         )
 
     async def move_context(self, input: MoveContextInput, plugins: list[Plugin] | None = None) -> MoveContextOutput:

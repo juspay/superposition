@@ -132,6 +132,9 @@ pub mod list_webhook;
 /// Types for the `ListWorkspace` operation.
 pub mod list_workspace;
 
+/// Types for the `MigrateWorkspaceSchema` operation.
+pub mod migrate_workspace_schema;
+
 /// Types for the `MoveContext` operation.
 pub mod move_context;
 

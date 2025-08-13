@@ -31,8 +31,8 @@ import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
 data DeleteDefaultConfigError =
-    ResourceNotFound Io.Superposition.Model.ResourceNotFound.ResourceNotFound
-    | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
+    InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
+    | ResourceNotFound Io.Superposition.Model.ResourceNotFound.ResourceNotFound
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
        deriving (GHC.Generics.Generic, GHC.Show.Show)

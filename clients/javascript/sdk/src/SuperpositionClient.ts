@@ -182,6 +182,10 @@ import {
   ListWorkspaceCommandOutput,
 } from "./commands/ListWorkspaceCommand";
 import {
+  MigrateWorkspaceSchemaCommandInput,
+  MigrateWorkspaceSchemaCommandOutput,
+} from "./commands/MigrateWorkspaceSchemaCommand";
+import {
   MoveContextCommandInput,
   MoveContextCommandOutput,
 } from "./commands/MoveContextCommand";
@@ -363,6 +367,7 @@ export type ServiceInputTypes =
   | ListVersionsCommandInput
   | ListWebhookCommandInput
   | ListWorkspaceCommandInput
+  | MigrateWorkspaceSchemaCommandInput
   | MoveContextCommandInput
   | PauseExperimentCommandInput
   | PublishCommandInput
@@ -430,6 +435,7 @@ export type ServiceOutputTypes =
   | ListVersionsCommandOutput
   | ListWebhookCommandOutput
   | ListWorkspaceCommandOutput
+  | MigrateWorkspaceSchemaCommandOutput
   | MoveContextCommandOutput
   | PauseExperimentCommandOutput
   | PublishCommandOutput

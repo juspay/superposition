@@ -115,6 +115,8 @@ pub(crate) mod shape_list_webhook;
 
 pub(crate) mod shape_list_workspace;
 
+pub(crate) mod shape_migrate_workspace_schema;
+
 pub(crate) mod shape_move_context;
 
 pub(crate) mod shape_pause_experiment;
