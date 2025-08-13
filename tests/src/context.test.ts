@@ -374,6 +374,17 @@ describe("Context API Integration Tests", () => {
 
     describe("PUT Context Endpoint", () => {
         test("should create a valid context successfully", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "test-client"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "test-client",
+                  };
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
@@ -381,13 +392,7 @@ describe("Context API Integration Tests", () => {
                     key1: "value1",
                     key2: 42,
                 },
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "test-client"],
-                        },
-                    ],
-                },
+                context,
                 description: "Test context",
                 change_reason: "Initial creation",
             };
@@ -435,6 +440,12 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should reject context creation with unwrapped JSON Logic", async () => {
+            if (!ENV.jsonlogic_enabled) {
+                console.log(
+                    "Skipping unwrapped context test as JSON Logic is not enabled"
+                );
+                return;
+            }
             // Attempt to create a context with an unwrapped condition
             const unwrappedInput = {
                 workspace_id: testWorkspaceId,
@@ -476,28 +487,39 @@ describe("Context API Integration Tests", () => {
                 await client.send(unwrappedCmd);
             } catch (err: any) {
                 expect(err.$response.body).toMatch(
-                    /Empty JSON Logic is not allowed/i
+                    ENV.jsonlogic_enabled
+                        ? /Empty JSON Logic is not allowed/i
+                        : /Context should not be empty/i
                 );
             }
         });
 
         test("should create context with multiple dimensions and calculate weight correctly", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "weight-test-client"],
+                          },
+                          {
+                              "==": [
+                                  { var: "moveSource" },
+                                  "weight-test-source",
+                              ],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "weight-test-client",
+                      moveSource: "weight-test-source",
+                  };
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
                 override: {
                     key1: "multi-dimension-value",
                 },
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "weight-test-client"],
-                        },
-                        {
-                            "==": [{ var: "moveSource" }, "weight-test-source"],
-                        },
-                    ],
-                },
+                context,
                 description: "Multi-dimension context for weight test",
                 change_reason: "Testing weight calculation",
             };
@@ -520,6 +542,12 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should fail with invalid context condition", async () => {
+            if (!ENV.jsonlogic_enabled) {
+                console.log(
+                    "Skipping invalid context condition test as JSON Logic is not enabled"
+                );
+                return;
+            }
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
@@ -552,17 +580,22 @@ describe("Context API Integration Tests", () => {
 
         test("should fail with missing required dimension", async () => {
             // Assuming a workspace has mandatory dimensions configured
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "moveSource" }, "value"],
+                          },
+                      ],
+                  }
+                : {
+                      moveSource: "value",
+                  };
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
                 override: { key1: "value1" },
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "moveSource" }, "value"],
-                        },
-                    ],
-                },
+                context,
                 description: "Testing missing mandatory dimension",
                 change_reason: "Testing missing mandatory dimension",
             };
@@ -573,21 +606,55 @@ describe("Context API Integration Tests", () => {
             );
         });
 
+        test("should fail with invalid dimension schema", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, 123],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: 123,
+                  };
+            const input = {
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                override: {
+                    key1: "123",
+                },
+                context,
+                description: "Testing invalid dimension schema",
+                change_reason: "Testing invalid dimension schema",
+            };
+
+            const cmd = new CreateContextCommand(input);
+            expect(client.send(cmd)).rejects.toThrow(
+                "failed to validate dimension value 123: value doesn't match the required type(s) `Single(String)`"
+            );
+        });
+
         test("should fail with invalid override schema", async () => {
             // Assuming key1 has a schema that requires string values
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "test-client"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "test-client",
+                  };
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
                 override: {
                     key1: 123, // Assuming schema expects string
                 },
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "test-client"],
-                        },
-                    ],
-                },
+                context,
                 description: "Testing invalid override",
                 change_reason: "Testing invalid override",
             };
@@ -602,6 +669,17 @@ describe("Context API Integration Tests", () => {
 
     describe("Update Context Override Endpoint", () => {
         test("should update override for existing context", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "test-client"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "test-client",
+                  };
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
@@ -610,13 +688,7 @@ describe("Context API Integration Tests", () => {
                         key1: "updated-value",
                         key3: "new-value",
                     },
-                    context: {
-                        context: {
-                            and: [
-                                { "==": [{ var: "clientId" }, "test-client"] },
-                            ],
-                        },
-                    },
+                    context: { context },
                     description: "Updated context",
                     change_reason: "Updating override",
                 },
@@ -649,6 +721,17 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should replace all override values", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "test-client"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "test-client",
+                  };
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
@@ -656,13 +739,7 @@ describe("Context API Integration Tests", () => {
                     override: {
                         key4: "replaced-value",
                     },
-                    context: {
-                        context: {
-                            and: [
-                                { "==": [{ var: "clientId" }, "test-client"] },
-                            ],
-                        },
-                    },
+                    context: { context },
                     change_reason: "Replacing override",
                 },
             };
@@ -696,6 +773,18 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should fail when context does not exist", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [
+                                  { var: "clientId" },
+                                  "non-existent-context-test",
+                              ],
+                          },
+                      ],
+                  }
+                : { clientId: "non-existent-context-test" };
             const input = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
@@ -704,16 +793,7 @@ describe("Context API Integration Tests", () => {
                         key4: "replaced-value",
                     },
                     context: {
-                        context: {
-                            and: [
-                                {
-                                    "==": [
-                                        { var: "clientId" },
-                                        "non-existent-context-test",
-                                    ],
-                                },
-                            ],
-                        },
+                        context,
                     },
                     change_reason: "Replacing override",
                 },
@@ -728,6 +808,20 @@ describe("Context API Integration Tests", () => {
 
     describe("Update Context Override By ID Endpoint", () => {
         test("should update override for context using ID", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [
+                                  { var: "clientId" },
+                                  "update-by-id-test-client",
+                              ],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "update-by-id-test-client",
+                  };
             // First create a context to get an ID
             const createCmd = new CreateContextCommand({
                 workspace_id: testWorkspaceId,
@@ -736,16 +830,7 @@ describe("Context API Integration Tests", () => {
                     key1: "original-value",
                     key2: 100,
                 },
-                context: {
-                    and: [
-                        {
-                            "==": [
-                                { var: "clientId" },
-                                "update-by-id-test-client",
-                            ],
-                        },
-                    ],
-                },
+                context,
                 description: "Context for update by ID test",
                 change_reason: "Creating for update by ID test",
             });
@@ -796,7 +881,23 @@ describe("Context API Integration Tests", () => {
             );
         });
 
+        //sdkjfbjsbfjbsjdfbhsj pending from here
+
         test("should replace all override values when updating by ID", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [
+                                  { var: "clientId" },
+                                  "replace-by-id-test-client",
+                              ],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "replace-by-id-test-client",
+                  };
             // First create a context to get an ID
             const createCmd = new CreateContextCommand({
                 workspace_id: testWorkspaceId,
@@ -805,16 +906,7 @@ describe("Context API Integration Tests", () => {
                     key1: "replace-original",
                     key2: 200,
                 },
-                context: {
-                    and: [
-                        {
-                            "==": [
-                                { var: "clientId" },
-                                "replace-by-id-test-client",
-                            ],
-                        },
-                    ],
-                },
+                context,
                 description: "Context for replace by ID test",
                 change_reason: "Creating for replace by ID test",
             });
@@ -885,20 +977,26 @@ describe("Context API Integration Tests", () => {
 
     describe("Move Context Endpoint", () => {
         test("should move context to new condition", async () => {
+            const createContext = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "move-test-client"],
+                          },
+                          {
+                              "==": [{ var: "moveSource" }, "source"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "move-test-client",
+                      moveSource: "source",
+                  };
             const createCmd = new CreateContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
                 override: { moveKey: "moveValue" },
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "move-test-client"],
-                        },
-                        {
-                            "==": [{ var: "moveSource" }, "source"],
-                        },
-                    ],
-                },
+                context: createContext,
                 description: "Context to move",
                 change_reason: "Creating for move test",
             });
@@ -910,19 +1008,25 @@ describe("Context API Integration Tests", () => {
 
             const sourceId = createResp.id;
 
+            const moveContext = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "move-test-client"],
+                          },
+                          {
+                              "==": [{ var: "moveTarget" }, "target"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "move-test-client",
+                      moveTarget: "target",
+                  };
             const moveInput = {
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "move-test-client"],
-                        },
-                        {
-                            "==": [{ var: "moveTarget" }, "target"],
-                        },
-                    ],
-                },
+                context: moveContext,
                 description: "Moved context",
                 change_reason: "Testing move operation",
             };
@@ -957,6 +1061,21 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should merge overrides when moving to existing condition", async () => {
+            const firstCreateContext = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "merge-test-client"],
+                          },
+                          {
+                              "==": [{ var: "moveSource" }, "merge-source"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "merge-test-client",
+                      moveSource: "merge-source",
+                  };
             // Create first context with some overrides
             const createFirstCmd = new CreateContextCommand({
                 workspace_id: testWorkspaceId,
@@ -965,16 +1084,7 @@ describe("Context API Integration Tests", () => {
                     key1: "source-value",
                     uniqueKey1: "only-in-source",
                 },
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "merge-test-client"],
-                        },
-                        {
-                            "==": [{ var: "moveSource" }, "merge-source"],
-                        },
-                    ],
-                },
+                context: firstCreateContext,
                 description: "Source context for merge test",
                 change_reason: "Creating source for merge test",
             });
@@ -986,6 +1096,21 @@ describe("Context API Integration Tests", () => {
 
             const sourceId = firstResp.id;
 
+            const secondCreateContext = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "merge-test-client"],
+                          },
+                          {
+                              "==": [{ var: "moveTarget" }, "merge-target"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "merge-test-client",
+                      moveTarget: "merge-target",
+                  };
             // Create second context with overlapping and different overrides
             const createSecondCmd = new CreateContextCommand({
                 workspace_id: testWorkspaceId,
@@ -994,16 +1119,7 @@ describe("Context API Integration Tests", () => {
                     key1: "target-value", // Will be replaced
                     uniqueKey2: "only-in-target", // Will be preserved
                 },
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "merge-test-client"],
-                        },
-                        {
-                            "==": [{ var: "moveTarget" }, "merge-target"],
-                        },
-                    ],
-                },
+                context: secondCreateContext,
                 description: "Target context for merge test",
                 change_reason: "Creating target for merge test",
             });
@@ -1015,21 +1131,27 @@ describe("Context API Integration Tests", () => {
 
             const targetId = secondResp.id;
 
+            const moveContext = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "merge-test-client"],
+                          },
+                          {
+                              "==": [{ var: "moveTarget" }, "merge-target"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "merge-test-client",
+                      moveTarget: "merge-target",
+                  };
             // Now attempt to move first context to location of second context
             const moveCmd = new MoveContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
                 id: sourceId,
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "merge-test-client"],
-                        },
-                        {
-                            "==": [{ var: "moveTarget" }, "merge-target"],
-                        },
-                    ],
-                },
+                context: moveContext,
                 description: "Moved and merged context",
                 change_reason: "Testing merge behavior",
             });
@@ -1062,17 +1184,23 @@ describe("Context API Integration Tests", () => {
             expect(mergedContext.override?.uniqueKey1).toBe("only-in-source"); // Source-unique key preserved
             expect(mergedContext.override?.uniqueKey2).toBe("only-in-target"); // Target-unique key preserved
 
+            const expectContext = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "merge-test-client"],
+                          },
+                          {
+                              "==": [{ var: "moveTarget" }, "merge-target"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "merge-test-client",
+                      moveTarget: "merge-target",
+                  };
             // Verify the condition matches the target context
-            expect(mergedContext.value).toEqual({
-                and: [
-                    {
-                        "==": [{ var: "clientId" }, "merge-test-client"],
-                    },
-                    {
-                        "==": [{ var: "moveTarget" }, "merge-target"],
-                    },
-                ],
-            });
+            expect(mergedContext.value).toEqual(expectContext);
 
             // Verify the description and weight
             expect(mergedContext.description).toBe("Moved and merged context");
@@ -1081,20 +1209,26 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should fail when context id does not exist", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "move-test-client"],
+                          },
+                          {
+                              "==": [{ var: "moveTarget" }, "target"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "move-test-client",
+                      moveTarget: "target",
+                  };
             const moveCmd = new MoveContextCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
                 id: "non-existent-id",
-                context: {
-                    and: [
-                        {
-                            "==": [{ var: "clientId" }, "move-test-client"],
-                        },
-                        {
-                            "==": [{ var: "moveTarget" }, "target"],
-                        },
-                    ],
-                },
+                context,
                 description: "Testing non-existent move",
                 change_reason: "Testing non-existent move",
             });
@@ -1115,6 +1249,36 @@ describe("Context API Integration Tests", () => {
 
     describe("Bulk Operations Endpoint", () => {
         test("should perform multiple operations in bulk", async () => {
+            const context1 = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "bulk-test-client"],
+                          },
+                          {
+                              "==": [{ var: "bulkTest" }, "value1"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "bulk-test-client",
+                      bulkTest: "value1",
+                  };
+            const context2 = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "bulk-test-client"],
+                          },
+                          {
+                              "==": [{ var: "bulkTest" }, "value2"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "bulk-test-client",
+                      bulkTest: "value2",
+                  };
             const bulkCmd = new BulkOperationCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
@@ -1122,22 +1286,7 @@ describe("Context API Integration Tests", () => {
                     operations: [
                         {
                             PUT: {
-                                context: {
-                                    and: [
-                                        {
-                                            "==": [
-                                                { var: "clientId" },
-                                                "bulk-test-client",
-                                            ],
-                                        },
-                                        {
-                                            "==": [
-                                                { var: "bulkTest" },
-                                                "value1",
-                                            ],
-                                        },
-                                    ],
-                                },
+                                context: context1,
                                 override: { bulkKey1: "bulkValue1" },
                                 description: "Bulk test context 1",
                                 change_reason: "Bulk operation 1",
@@ -1145,22 +1294,7 @@ describe("Context API Integration Tests", () => {
                         },
                         {
                             PUT: {
-                                context: {
-                                    and: [
-                                        {
-                                            "==": [
-                                                { var: "clientId" },
-                                                "bulk-test-client",
-                                            ],
-                                        },
-                                        {
-                                            "==": [
-                                                { var: "bulkTest" },
-                                                "value2",
-                                            ],
-                                        },
-                                    ],
-                                },
+                                context: context2,
                                 override: { bulkKey2: "bulkValue2" },
                                 description: "Bulk test context 2",
                                 change_reason: "Bulk operation 2",
@@ -1203,16 +1337,22 @@ describe("Context API Integration Tests", () => {
                 id: firstOp?.PUT?.id || "",
             });
             const firstContext = await client.send(getFirstCmd);
-            expect(firstContext.value).toEqual({
-                and: [
-                    {
-                        "==": [{ var: "clientId" }, "bulk-test-client"],
-                    },
-                    {
-                        "==": [{ var: "bulkTest" }, "value1"],
-                    },
-                ],
-            });
+            const expectContext1 = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "bulk-test-client"],
+                          },
+                          {
+                              "==": [{ var: "bulkTest" }, "value1"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "bulk-test-client",
+                      bulkTest: "value1",
+                  };
+            expect(firstContext.value).toEqual(expectContext1);
             expect(firstContext.override?.bulkKey1).toBe("bulkValue1");
             expect(firstContext.change_reason).toBe("Bulk operation 1");
             expect(firstContext.description).toBe("Bulk test context 1");
@@ -1225,16 +1365,22 @@ describe("Context API Integration Tests", () => {
                 id: secondOp?.PUT?.id || "",
             });
             const secondContext = await client.send(getSecondCmd);
-            expect(secondContext.value).toEqual({
-                and: [
-                    {
-                        "==": [{ var: "clientId" }, "bulk-test-client"],
-                    },
-                    {
-                        "==": [{ var: "bulkTest" }, "value2"],
-                    },
-                ],
-            });
+            const expectContext2 = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "bulk-test-client"],
+                          },
+                          {
+                              "==": [{ var: "bulkTest" }, "value2"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "bulk-test-client",
+                      bulkTest: "value2",
+                  };
+            expect(secondContext.value).toEqual(expectContext2);
             expect(secondContext.override?.bulkKey2).toBe("bulkValue2");
             expect(secondContext.change_reason).toBe("Bulk operation 2");
             expect(secondContext.description).toBe("Bulk test context 2");
@@ -1242,6 +1388,37 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should rollback all operations if one fails", async () => {
+            const context1 = ENV.jsonlogic_enabled
+                ? {
+                      // here too with and and clientId
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "bulk-test-client"],
+                          },
+                          {
+                              "==": [{ var: "rollbackTest" }, "valid"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "bulk-test-client",
+                      rollbackTest: "valid",
+                  };
+            const context2 = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "bulk-test-client"],
+                          },
+                          {
+                              "==": [{ var: "rollbackTest" }, "invalid"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "bulk-test-client",
+                      rollbackTest: "invalid",
+                  };
             const bulkCmd = new BulkOperationCommand({
                 workspace_id: testWorkspaceId,
                 org_id: testOrgId,
@@ -1249,23 +1426,7 @@ describe("Context API Integration Tests", () => {
                     operations: [
                         {
                             PUT: {
-                                context: {
-                                    // here too with and and clientId
-                                    and: [
-                                        {
-                                            "==": [
-                                                { var: "clientId" },
-                                                "bulk-test-client",
-                                            ],
-                                        },
-                                        {
-                                            "==": [
-                                                { var: "rollbackTest" },
-                                                "valid",
-                                            ],
-                                        },
-                                    ],
-                                },
+                                context: context1,
                                 override: { rollbackKey: "rollbackValue" },
                                 description: "Valid context",
                                 change_reason: "Valid operation",
@@ -1273,22 +1434,7 @@ describe("Context API Integration Tests", () => {
                         },
                         {
                             PUT: {
-                                context: {
-                                    and: [
-                                        {
-                                            "==": [
-                                                { var: "clientId" },
-                                                "bulk-test-client",
-                                            ],
-                                        },
-                                        {
-                                            "==": [
-                                                { var: "rollbackTest" },
-                                                "invalid",
-                                            ],
-                                        },
-                                    ],
-                                },
+                                context: context2,
                                 override: { invalidKey: 123 }, // Schema expects string
                                 description: "Invalid context",
                                 change_reason: "Invalid operation",

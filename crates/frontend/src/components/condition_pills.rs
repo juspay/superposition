@@ -1,5 +1,5 @@
 use crate::{
-    logic::{Condition, Conditions, Expression, Operator},
+    logic::{Condition, Conditions, Operator},
     schema::HtmlDisplay,
 };
 
@@ -92,7 +92,8 @@ pub fn condition_expression(
                     </span>
 
                     {match condition.get_value().expression {
-                        Expression::Between(c1, c2) => {
+                        #[cfg(feature = "jsonlogic")]
+                        crate::logic::Expression::Between(c1, c2) => {
                             view! {
                                 <>
                                     <span class="font-semibold context_condition">

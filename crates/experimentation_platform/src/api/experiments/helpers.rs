@@ -10,10 +10,10 @@ use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
-
-use service_utils::{
-    helpers::extract_dimensions,
-    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
+#[cfg(feature = "jsonlogic")]
+use service_utils::helpers::extract_dimensions;
+use service_utils::service::types::{
+    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::database::models::experimentation::GroupType;
@@ -100,8 +100,15 @@ pub fn are_overlapping_contexts(
     context_a: &Condition,
     context_b: &Condition,
 ) -> superposition::Result<bool> {
-    let dimensions_a = extract_dimensions(context_a)?;
-    let dimensions_b = extract_dimensions(context_b)?;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "jsonlogic")] {
+            let dimensions_a = extract_dimensions(context_a)?;
+            let dimensions_b = extract_dimensions(context_b)?;
+        } else {
+            let dimensions_a = context_a;
+            let dimensions_b = context_b;
+        }
+    }
 
     let dim_a_keys = dimensions_a.keys();
     let dim_b_keys = dimensions_b.keys();
@@ -378,6 +385,7 @@ pub fn validate_experiment(
     is_valid_experiment(context, override_keys, flags, &active_experiments)
 }
 
+#[cfg(feature = "jsonlogic")]
 pub fn add_variant_dimension_to_ctx(
     context: &Condition,
     variant: String,
@@ -388,7 +396,6 @@ pub fn add_variant_dimension_to_ctx(
             { "var": "variantIds" }
         ]
     });
-    let context: Map<String, Value> = context.clone().into();
 
     if context.is_empty() {
         Ok(serde_json::json!({"and" : [variant_condition]}))
@@ -400,7 +407,7 @@ pub fn add_variant_dimension_to_ctx(
                     "Failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic"
                 ))?
                 .clone(),
-            None => vec![Value::Object(context.clone())],
+            None => vec![Value::Object(context.clone().into())],
         };
 
         conditions.push(variant_condition);
@@ -415,6 +422,16 @@ pub fn add_variant_dimension_to_ctx(
             )),
         }
     }
+}
+
+#[cfg(not(feature = "jsonlogic"))]
+pub fn add_variant_dimension_to_ctx(
+    context: &Condition,
+    variant: String,
+) -> superposition::Result<Value> {
+    let mut context_map: Map<String, Value> = context.clone().into();
+    context_map.insert("variantIds".to_string(), Value::String(variant));
+    Ok(Value::Object(context_map))
 }
 
 pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> {
@@ -787,9 +804,16 @@ pub async fn validate_control_overrides(
     user: &User,
     state: &Data<AppState>,
 ) -> superposition::Result<()> {
-    let context = extract_dimensions(exp_context)?;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "jsonlogic")] {
+            let context = &extract_dimensions(exp_context)?;
+        } else {
+            let context = &exp_context;
+        }
+    }
+
     let resolved_config =
-        get_resolved_config(user, state, &context, workspace_request).await?;
+        get_resolved_config(user, state, context, workspace_request).await?;
     let control_variant_overrides = control_overrides.clone().into_inner();
     let mismatched_overrides: Map<_, _> = control_variant_overrides
         .into_iter()

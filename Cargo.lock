@@ -1198,6 +1198,7 @@ version = "0.87.0"
 dependencies = [
  "actix-web",
  "cbindgen",
+ "cfg-if",
  "chrono",
  "derive_more",
  "itertools 0.10.5",
@@ -2184,6 +2185,7 @@ name = "experimentation_client"
 version = "0.87.0"
 dependencies = [
  "cbindgen",
+ "cfg-if",
  "chrono",
  "derive_more",
  "juspay_jsonlogic",
@@ -2213,6 +2215,7 @@ dependencies = [
  "anyhow",
  "blake3",
  "cac_client",
+ "cfg-if",
  "chrono",
  "experimentation_client",
  "juspay_diesel",
@@ -5412,7 +5415,6 @@ dependencies = [
  "actix-web",
  "anyhow",
  "aws-sdk-kms",
- "cfg-if",
  "chrono",
  "context_aware_config",
  "dotenv",
@@ -5452,6 +5454,7 @@ version = "0.87.0"
 dependencies = [
  "actix-web",
  "anyhow",
+ "cfg-if",
  "chrono",
  "derive_more",
  "itertools 0.10.5",

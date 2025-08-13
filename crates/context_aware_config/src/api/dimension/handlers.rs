@@ -24,6 +24,8 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
+#[cfg(not(feature = "jsonlogic"))]
+use crate::helpers::allow_primitive_types;
 use crate::{
     api::dimension::utils::{
         get_dimension_usage_context_ids, validate_and_update_dimension_hierarchy,
@@ -69,6 +71,8 @@ async fn create(
         create_req.position,
         num_rows,
     )?;
+    #[cfg(not(feature = "jsonlogic"))]
+    allow_primitive_types(&schema_value)?;
     validate_jsonschema(&state.meta_schema, &schema_value)?;
 
     let mut dimension_data = Dimension {
@@ -197,6 +201,8 @@ async fn update(
     let update_req = req.into_inner();
 
     if let Some(schema_value) = update_req.schema.clone() {
+        #[cfg(not(feature = "jsonlogic"))]
+        allow_primitive_types(&schema_value)?;
         validate_jsonschema(&state.meta_schema, &schema_value)?;
     }
 

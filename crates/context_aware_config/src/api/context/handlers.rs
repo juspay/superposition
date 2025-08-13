@@ -119,12 +119,13 @@ async fn put_handler(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "high-performance-mode")] {
-            let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-        }
+
+    #[cfg(feature = "high-performance-mode")]
+    {
+        let DbConnection(mut conn) = db_conn;
+        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     }
+
     Ok(http_resp.json(put_response))
 }
 
@@ -166,12 +167,13 @@ async fn update_override_handler(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "high-performance-mode")] {
-            let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-        }
+
+    #[cfg(feature = "high-performance-mode")]
+    {
+        let DbConnection(mut conn) = db_conn;
+        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     }
+
     Ok(http_resp.json(override_resp))
 }
 
@@ -228,12 +230,13 @@ async fn move_handler(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "high-performance-mode")] {
-            let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-        }
+
+    #[cfg(feature = "high-performance-mode")]
+    {
+        let DbConnection(mut conn) = db_conn;
+        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     }
+
     Ok(http_resp.json(move_response))
 }
 
@@ -424,12 +427,13 @@ async fn delete_context_handler(
             )?;
             Ok(version_id)
         })?;
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "high-performance-mode")] {
-            let DbConnection(mut conn) = db_conn;
-            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-        }
+
+    #[cfg(feature = "high-performance-mode")]
+    {
+        let DbConnection(mut conn) = db_conn;
+        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     }
+
     Ok(HttpResponse::NoContent()
         .insert_header((
             AppHeader::XConfigVersion.to_string().as_str(),

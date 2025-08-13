@@ -64,14 +64,20 @@ pub fn get_satisfied_experiments(
     let running_experiments = experiments
         .iter()
         .filter(|exp| {
-            exp.context.is_empty()
-                || jsonlogic::apply(
-                    &Value::Object(exp.context.clone().into()),
-                    &Value::Object(context.clone()),
-                ) == Ok(Value::Bool(true))
+            cfg_if::cfg_if! {
+                if #[cfg(feature = "jsonlogic")] {
+                    exp.context.is_empty()
+                        || jsonlogic::apply(
+                            &Value::Object(exp.context.clone().into()),
+                            &Value::Object(context.clone()),
+                        ) == Ok(Value::Bool(true))
+                } else {
+                    superposition_types::partial_apply(&exp.context, context)
+                }
+            }
         })
         .cloned()
-        .collect::<Experiments>();
+        .collect();
 
     if let Some(prefix_list) = filter_prefixes {
         return Ok(filter_experiments_by_prefix(

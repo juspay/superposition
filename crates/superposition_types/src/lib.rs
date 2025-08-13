@@ -8,6 +8,7 @@ mod config;
 mod contextual;
 pub mod custom_query;
 pub mod database;
+pub mod logic;
 mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
@@ -27,9 +28,10 @@ use diesel_derive_enum as _;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-pub use crate::config::{Condition, Config, Context, OverrideWithKeys, Overrides};
-pub use crate::contextual::Contextual;
-pub use crate::overridden::Overridden;
+pub use config::{Condition, Config, Context, OverrideWithKeys, Overrides};
+pub use contextual::Contextual;
+pub use logic::{apply, partial_apply};
+pub use overridden::Overridden;
 
 pub trait IsEmpty {
     fn is_empty(&self) -> bool;
@@ -311,6 +313,7 @@ mod tests {
 
     #[test]
     fn fail_test_deserialize_condition() {
+        #[cfg(feature = "jsonlogic")]
         let request_condition_map: Map<String, Value> = Map::from_iter(vec![(
             "and".to_string(),
             json!([
@@ -325,6 +328,7 @@ mod tests {
             ]),
         )]);
 
+        #[cfg(feature = "jsonlogic")]
         let exp_condition_map: Map<String, Value> = Map::from_iter(vec![(
             "and".to_string(),
             json!([
@@ -339,6 +343,11 @@ mod tests {
             ]),
         )]);
 
+        #[cfg(not(feature = "jsonlogic"))]
+        let exp_condition_map: Map<String, Value> =
+            Map::from_iter(vec![("variantIds".to_string(), json!("variant-id"))]);
+
+        #[cfg(feature = "jsonlogic")]
         let fail_condition = serde_json::from_str::<Cac<Condition>>(
             &json!(request_condition_map).to_string(),
         )
@@ -348,6 +357,7 @@ mod tests {
             .map(|a| a.into_inner())
             .map_err(|_| "variantIds should not be present".to_owned());
 
+        #[cfg(feature = "jsonlogic")]
         assert!(json!(fail_condition)
             .to_string()
             .contains("Invalid operation"));
