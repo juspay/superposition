@@ -27,8 +27,17 @@ fn json_from_map(m: HashMap<String, String>) -> serde_json::Result<Map<String, V
         .collect::<serde_json::Result<Map<String, Value>>>()
 }
 
+type EvalFn = fn(
+    Map<String, Value>,
+    &[Context],
+    &HashMap<String, Overrides>,
+    &Map<String, Value>,
+    MergeStrategy,
+    Option<Vec<String>>,
+) -> Result<Map<String, Value>, String>;
+
 #[allow(clippy::too_many_arguments)]
-fn ffi_eval_logic<F>(
+fn ffi_eval_logic(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
@@ -36,18 +45,8 @@ fn ffi_eval_logic<F>(
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
     experimentation: Option<ExperimentationArgs>,
-    eval_fn: F,
-) -> Result<HashMap<String, String>, OperationError>
-where
-    F: FnOnce(
-        Map<String, Value>,
-        &[Context],
-        &HashMap<String, Overrides>,
-        &Map<String, Value>,
-        MergeStrategy,
-        Option<Vec<String>>,
-    ) -> Result<Map<String, Value>, String>,
-{
+    eval_fn: EvalFn,
+) -> Result<HashMap<String, String>, OperationError> {
     let _d = json_from_map(default_config)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
     let mut _q = json_from_map(query_data)

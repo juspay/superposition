@@ -35,40 +35,42 @@ pub async fn get(
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
 
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "high-performance-mode")] {
-            let redis_url =
-                get_from_env_or_default("REDIS_URL", String::from("http://localhost:6379"));
-            let redis_pool_size = get_from_env_or_default("REDIS_POOL_SIZE", 10);
-            let redis_max_attempts = get_from_env_or_default("REDIS_MAX_ATTEMPTS", 10);
-            let redis_connection_timeout = get_from_env_or_default("REDIS_CONN_TIMEOUT", 1000);
-            let config = RedisConfig::from_url(&redis_url)
-                .expect(format!("Failed to create RedisConfig from url {}", redis_url).as_str());
-            let reconnect_policy =
-                ReconnectPolicy::new_constant(redis_max_attempts, 100);
-            let redis_pool = RedisPool::new(
-                config,
-                Some(PerformanceConfig {
-                    auto_pipeline: true,
-                    ..Default::default()
-                }),
-                Some(ConnectionConfig {
-                    connection_timeout: Duration::from_millis(redis_connection_timeout),
-                    ..Default::default()
-                }),
-                Some(reconnect_policy),
-                redis_pool_size,
-            )
-            .map_err(|e| format!("Could not connect to redis due to {e}"))
-            .unwrap();
+    #[cfg(feature = "high-performance-mode")]
+    let redis_pool = {
+        let redis_url =
+            get_from_env_or_default("REDIS_URL", String::from("http://localhost:6379"));
+        let redis_pool_size = get_from_env_or_default("REDIS_POOL_SIZE", 10);
+        let redis_max_attempts = get_from_env_or_default("REDIS_MAX_ATTEMPTS", 10);
+        let redis_connection_timeout =
+            get_from_env_or_default("REDIS_CONN_TIMEOUT", 1000);
+        let config = RedisConfig::from_url(&redis_url).expect(
+            format!("Failed to create RedisConfig from url {}", redis_url).as_str(),
+        );
+        let reconnect_policy = ReconnectPolicy::new_constant(redis_max_attempts, 100);
+        let redis_pool = RedisPool::new(
+            config,
+            Some(PerformanceConfig {
+                auto_pipeline: true,
+                ..Default::default()
+            }),
+            Some(ConnectionConfig {
+                connection_timeout: Duration::from_millis(redis_connection_timeout),
+                ..Default::default()
+            }),
+            Some(reconnect_policy),
+            redis_pool_size,
+        )
+        .map_err(|e| format!("Could not connect to redis due to {e}"))
+        .unwrap();
 
-            redis_pool.connect();
-            redis_pool.wait_for_connect()
-                .await
-                .expect("Failed to connect to Redis");
-        }
+        redis_pool.connect();
+        redis_pool
+            .wait_for_connect()
+            .await
+            .expect("Failed to connect to Redis");
 
-    }
+        redis_pool
+    };
 
     AppState {
         db_pool: init_pool_manager(kms_client, &app_env, max_pool_size).await,

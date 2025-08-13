@@ -12,7 +12,7 @@ use crate::{
         description_icon::InfoDescription,
         table::{types::Column, Table},
     },
-    logic::{Conditions, Expression},
+    logic::Conditions,
 };
 
 #[component]
@@ -128,10 +128,16 @@ pub fn context_card(
     let actions_supported =
         show_actions && !conditions.0.iter().any(|c| c.variable == "variantIds");
 
-    let edit_unsupported = conditions
-        .0
-        .iter()
-        .any(|c| matches!(c.expression, Expression::Other(_, _)));
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "jsonlogic")] {
+            let edit_unsupported = conditions
+                .0
+                .iter()
+                .any(|c| matches!(c.expression, crate::logic::Expression::Other(_, _)));
+        } else {
+            let edit_unsupported = false;
+        }
+    }
 
     view! {
         <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
