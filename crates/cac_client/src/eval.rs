@@ -55,13 +55,22 @@ fn get_overrides(
         }
     };
 
+    #[cfg(feature = "jsonlogic")]
     let query_data = Value::Object(query_data.clone());
 
     for context in contexts {
-        if let Ok(Value::Bool(true)) = jsonlogic::apply(
-            &Value::Object(context.condition.clone().into()),
-            &query_data,
-        ) {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "jsonlogic")] {
+                let valid_context = jsonlogic::apply(
+                    &Value::Object(context.condition.clone().into()),
+                    &query_data,
+                ) == Ok(Value::Bool(true));
+            } else {
+                let valid_context = superposition_types::apply(&context.condition, query_data);
+            }
+        }
+
+        if valid_context {
             let override_key = context.override_with_keys.get_key();
             if let Some(overriden_value) = overrides.get(override_key) {
                 match merge_strategy {

@@ -1,5 +1,6 @@
-use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
+
+use serde_json::{json, Map, Value};
 use superposition_types::{Config, Context, Overrides};
 
 #[derive(Clone, Debug, PartialEq, strum_macros::Display, Default, uniffi::Enum)]
@@ -155,13 +156,23 @@ fn get_overrides(
         }
     };
 
+    #[cfg(feature = "jsonlogic")]
     let query_data_value = Value::Object(query_data.clone());
 
     for context in contexts {
-        if let Ok(Value::Bool(true)) = jsonlogic::apply(
-            &Value::Object(context.condition.clone().into()),
-            &query_data_value,
-        ) {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "jsonlogic")] {
+                let valid_context = Ok(Value::Bool(true))
+                    == jsonlogic::apply(
+                        &Value::Object(context.condition.clone().into()),
+                        &query_data_value,
+                    );
+            } else {
+                let valid_context = superposition_types::apply(&context.condition, query_data);
+            }
+        }
+
+        if valid_context {
             let override_key = context.override_with_keys.get_key();
             if let Some(overriden_value) = overrides.get(override_key) {
                 match merge_strategy {

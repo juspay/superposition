@@ -1,4 +1,3 @@
-use jsonlogic::{expression::Expression, partial_apply, PartialApplyOutcome};
 use serde_json::{Map, Value};
 
 use crate::config::Condition;
@@ -6,6 +5,7 @@ use crate::config::Condition;
 pub trait Contextual: Clone {
     fn get_condition(&self) -> Condition;
 
+    #[cfg(feature = "jsonlogic")]
     fn filter_by_eval(
         contexts: Vec<Self>,
         dimension_data: &Map<String, Value>,
@@ -14,22 +14,36 @@ pub trait Contextual: Clone {
             .into_iter()
             .filter(|context| {
                 matches!(
-                    partial_apply(
+                    jsonlogic::partial_apply(
                         &Value::Object(context.get_condition().into()),
                         &Value::Object(dimension_data.clone()),
                     ),
-                    Ok(PartialApplyOutcome::Resolved(Value::Bool(true)))
-                        | Ok(PartialApplyOutcome::Ambiguous)
+                    Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(true)))
+                        | Ok(jsonlogic::PartialApplyOutcome::Ambiguous)
                 )
             })
             .collect()
     }
 
+    #[cfg(not(feature = "jsonlogic"))]
+    fn filter_by_eval(
+        contexts: Vec<Self>,
+        dimension_data: &Map<String, Value>,
+    ) -> Vec<Self> {
+        contexts
+            .into_iter()
+            .filter(|context| {
+                crate::partial_apply(&context.get_condition().into(), dimension_data)
+            })
+            .collect()
+    }
+
+    #[cfg(feature = "jsonlogic")]
     fn filter_by_dimension(contexts: Vec<Self>, dimension_keys: &[String]) -> Vec<Self> {
         contexts
             .into_iter()
             .filter(|context| {
-                Expression::from_json(&Value::Object(
+                jsonlogic::expression::Expression::from_json(&Value::Object(
                     context.clone().get_condition().into(),
                 ))
                 .and_then(|ast| ast.get_variable_names())
@@ -38,6 +52,19 @@ pub trait Contextual: Clone {
                         .iter()
                         .all(|dimension| variables.contains(dimension))
                 })
+            })
+            .collect()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    fn filter_by_dimension(contexts: Vec<Self>, dimension_keys: &[String]) -> Vec<Self> {
+        contexts
+            .into_iter()
+            .filter(|context| {
+                let variables: Map<String, Value> = context.get_condition().into();
+                dimension_keys
+                    .iter()
+                    .all(|dimension| variables.contains_key(dimension))
             })
             .collect()
     }
@@ -58,6 +85,7 @@ mod tests {
 
     use super::Contextual;
 
+    #[cfg(feature = "jsonlogic")]
     fn get_dimension_filtered_contexts1() -> Vec<Context> {
         let contexts = json!([
             {
@@ -109,6 +137,38 @@ mod tests {
         from_value(contexts).unwrap()
     }
 
+    #[cfg(not(feature = "jsonlogic"))]
+    fn get_dimension_filtered_contexts1() -> Vec<Context> {
+        let contexts = json!([
+            {
+                "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                "condition": {
+                     "test3": true
+                },
+                "priority": 0,
+                "weight": 0,
+                "override_with_keys": [
+                    "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                ]
+            },
+            {
+                "id": "9fbf3b9fa10caaaf31f6003cbd20ed36d40efe73b5c6b238288c0a96e6933500",
+                "condition": {
+                    "test3": false,
+                    "test": "test"
+                },
+                "priority": 2,
+                "weight": 2,
+                "override_with_keys": [
+                    "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
+                ]
+            }
+        ]);
+
+        from_value(contexts).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
     fn get_dimension_filtered_contexts2() -> Vec<Context> {
         let contexts = json!([{
             "id": "9fbf3b9fa10caaaf31f6003cbd20ed36d40efe73b5c6b238288c0a96e6933500",
@@ -131,6 +191,24 @@ mod tests {
                         ]
                     }
                 ]
+            },
+            "priority": 2,
+            "weight": 2,
+            "override_with_keys": [
+                "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
+            ]
+        }]);
+
+        from_value(contexts).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    fn get_dimension_filtered_contexts2() -> Vec<Context> {
+        let contexts = json!([{
+            "id": "9fbf3b9fa10caaaf31f6003cbd20ed36d40efe73b5c6b238288c0a96e6933500",
+            "condition": {
+                "test3": false,
+                "test": "test"
             },
             "priority": 2,
             "weight": 2,

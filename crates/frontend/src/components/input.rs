@@ -72,9 +72,10 @@ impl From<(SchemaType, EnumVariants)> for InputType {
 
 impl From<(SchemaType, EnumVariants, Operator)> for InputType {
     fn from(
-        (schema_type, enum_variants, operator): (SchemaType, EnumVariants, Operator),
+        (schema_type, enum_variants, _operator): (SchemaType, EnumVariants, Operator),
     ) -> Self {
-        if operator == Operator::In {
+        #[cfg(feature = "jsonlogic")]
+        if _operator == Operator::In {
             let EnumVariants(ev) = enum_variants;
             return InputType::Monaco(ev);
         }
@@ -116,6 +117,7 @@ fn parse_with_operator(
     op: &Operator,
 ) -> Result<Value, String> {
     match op {
+        #[cfg(feature = "jsonlogic")]
         Operator::In => match type_ {
             JsonSchemaType::String => serde_json::from_str::<Vec<String>>(s)
                 .map(|v| json!(v))

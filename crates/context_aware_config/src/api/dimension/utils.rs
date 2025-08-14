@@ -3,7 +3,11 @@ use std::collections::HashMap;
 use chrono::Utc;
 use diesel::{query_dsl::methods::SchemaNameDsl, ExpressionMethods, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema};
-use service_utils::{helpers::extract_dimensions, service::types::SchemaName};
+#[cfg(not(feature = "jsonlogic"))]
+use serde_json::{Map, Value};
+#[cfg(feature = "jsonlogic")]
+use service_utils::helpers::extract_dimensions;
+use service_utils::service::types::SchemaName;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     api::dimension::DimensionName,
@@ -75,7 +79,15 @@ pub fn get_dimension_usage_context_ids(
             })?
             .into_inner();
 
-        if extract_dimensions(&condition)?.get(key).is_some() {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "jsonlogic")] {
+                let map = extract_dimensions(&condition)?;
+            } else {
+                let map: Map<String, Value> = condition.into();
+            }
+        }
+
+        if map.get(key).is_some() {
             context_ids.push(context.id.to_owned())
         }
     }

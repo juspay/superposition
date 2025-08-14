@@ -10,24 +10,31 @@ readme = "README.md"
 
 [dependencies]
 actix-web = { workspace = true }
+anyhow = { workspace = true }
+cfg-if = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 itertools = { workspace = true }
-jsonlogic = { workspace = true }
+jsonlogic = { workspace = true, optional = true }
 log = { workspace = true }
 mini-moka = { version = "0.10.3" }
 once_cell = { workspace = true }
+rand = "0.9.1"
 reqwest = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-superposition_types = { workspace = true, features = ["experimentation", "api"] }
-tokio = { version = "1.29.1", features = ["full"] }
-serde = { workspace = true }
-uniffi = { workspace = true }
-anyhow = { workspace = true }
+superposition_types = { workspace = true, features = [
+    "experimentation",
+    "api",
+] }
 thiserror = { version = "1.0.57" }
-rand = "0.9.1"
+tokio = { version = "1.29.1", features = ["full"] }
+uniffi = { workspace = true }
+
+[features]
+jsonlogic = ["dep:jsonlogic", "superposition_types/jsonlogic"]
 
 [dev-dependencies]
 uniffi = { workspace = true }

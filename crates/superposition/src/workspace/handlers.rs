@@ -112,7 +112,10 @@ async fn create_workspace(
         last_modified_at: timestamp,
         created_at: timestamp,
         mandatory_dimensions: None,
+        #[cfg(feature = "jsonlogic")]
         strict_mode: request.strict_mode,
+        #[cfg(not(feature = "jsonlogic"))]
+        strict_mode: true,
         metrics: request.metrics.unwrap_or_default(),
         allow_experiment_self_approval: request.allow_experiment_self_approval,
         auto_populate_control: request.auto_populate_control,

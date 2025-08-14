@@ -5,11 +5,12 @@ use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
-use service_utils::{
-    helpers::{extract_dimensions, get_variable_name_and_value},
-    service::types::SchemaName,
-};
-use superposition_macros::{bad_argument, unexpected_error, validation_error};
+#[cfg(feature = "jsonlogic")]
+use service_utils::helpers::{extract_dimensions, get_variable_name_and_value};
+use service_utils::service::types::SchemaName;
+#[cfg(feature = "jsonlogic")]
+use superposition_macros::bad_argument;
+use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::{
         context::PutRequest,
@@ -121,6 +122,7 @@ pub fn validate_condition_with_functions(
     Ok(())
 }
 
+#[cfg(feature = "jsonlogic")]
 pub fn validate_condition_with_strict_mode(
     context: &Condition,
     strict_mode: bool,
@@ -415,17 +417,32 @@ pub fn validate_ctx(
     condition: Condition,
 ) -> superposition::Result<HashMap<String, DimensionData>> {
     let workspace_settings = get_workspace(schema_name, conn)?;
-    validate_condition_with_strict_mode(&condition, workspace_settings.strict_mode)?;
-    let context_map = extract_dimensions(&condition)?;
-    let condition_val = Value::Object(condition.clone().into());
+
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "jsonlogic")] {
+            validate_condition_with_strict_mode(&condition, workspace_settings.strict_mode)?;
+
+            let context_map = &extract_dimensions(&condition)?;
+            let condition_val = Value::Object(condition.clone().into());
+        } else {
+            let context_map = &condition;
+            let condition_val = condition.clone();
+        }
+    }
+
     validate_condition_with_mandatory_dimensions(
-        &context_map,
+        context_map,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
-    validate_condition_with_dependent_dimensions(conn, &context_map, schema_name)?;
-    validate_condition_with_functions(conn, &context_map, schema_name)?;
+    validate_condition_with_dependent_dimensions(conn, context_map, schema_name)?;
+    validate_condition_with_functions(conn, context_map, schema_name)?;
     let dimension_data = get_dimension_data(conn, schema_name)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
-    validate_dimensions("context", &condition_val, &dimension_data_map)?;
+    validate_dimensions(
+        #[cfg(feature = "jsonlogic")]
+        "context",
+        &condition_val,
+        &dimension_data_map,
+    )?;
     Ok(dimension_data_map)
 }

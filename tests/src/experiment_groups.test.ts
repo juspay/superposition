@@ -55,27 +55,27 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-            {
-                name: "os",
-                schema: { type: "string", enum: ["ios", "android", "web"] },
-                description: "OS dimension from experiments.test",
-            },
-            {
-                name: "clientId",
-                schema: { type: "string" },
-                description: "Client ID from experiments.test",
-            },
-            {
-                name: "app_version",
-                schema: { type: "string" },
-                description: "App version for superset context",
-            },
-            {
-                name: "device_specific_id",
-                schema: { type: "string" },
-                description: "Dimension for invalid context conflict",
-            },
-        ];
+        {
+            name: "os",
+            schema: { type: "string", enum: ["ios", "android", "web"] },
+            description: "OS dimension from experiments.test",
+        },
+        {
+            name: "clientId",
+            schema: { type: "string" },
+            description: "Client ID from experiments.test",
+        },
+        {
+            name: "app_version",
+            schema: { type: "string" },
+            description: "App version for superset context",
+        },
+        {
+            name: "device_specific_id",
+            schema: { type: "string" },
+            description: "Dimension for invalid context conflict",
+        },
+    ];
 
     // Define default configs based on experiments.test.ts
     const defaultConfigsToEnsure: {
@@ -84,37 +84,50 @@ describe("Experiment Groups API Integration Tests", () => {
         schema: any;
         description: string;
     }[] = [
-            {
-                key: "pmTestKey1",
-                value: "default_group_val_1",
-                schema: { type: "string" },
-                description: "Default for pmTestKey1 (group tests)",
-            },
-            {
-                key: "pmTestKey2",
-                value: "default_group_val_2",
-                schema: { type: "string" },
-                description: "Default for pmTestKey2 (group tests)",
-            },
-        ];
+        {
+            key: "pmTestKey1",
+            value: "default_group_val_1",
+            schema: { type: "string" },
+            description: "Default for pmTestKey1 (group tests)",
+        },
+        {
+            key: "pmTestKey2",
+            value: "default_group_val_2",
+            schema: { type: "string" },
+            description: "Default for pmTestKey2 (group tests)",
+        },
+    ];
 
     // Contexts using the ensured dimensions
-    const groupContext = {
-        and: [
-            { "==": [{ var: "os" }, "ios"] },
-            { "==": [{ var: "clientId" }, "clientForExpGroup"] },
-        ],
-    };
+    const groupContext = ENV.jsonlogic_enabled
+        ? {
+              and: [
+                  { "==": [{ var: "os" }, "ios"] },
+                  { "==": [{ var: "clientId" }, "clientForExpGroup"] },
+              ],
+          }
+        : {
+              os: "ios",
+              clientId: "clientForExpGroup",
+          };
     const expValid1Context = { ...groupContext }; // Exact match
-    const expValid2Context = {
-        and: [
-            ...(groupContext.and as any[]),
-            { "==": [{ var: "app_version" }, "2.0.0"] },
-        ],
-    }; // Superset
-    const expInvalidContextConflict = {
-        and: [{ "==": [{ var: "device_specific_id" }, "devSpecificXYZ"] }],
-    };
+    const expValid2Context = ENV.jsonlogic_enabled
+        ? {
+              and: [
+                  ...(groupContext.and as any[]),
+                  { "==": [{ var: "app_version" }, "2.0.0"] },
+              ],
+          }
+        : { ...groupContext, app_version: "2.0.0" }; // Superset
+    const expInvalidContextConflict = ENV.jsonlogic_enabled
+        ? {
+              and: [
+                  { "==": [{ var: "device_specific_id" }, "devSpecificXYZ"] },
+              ],
+          }
+        : {
+              device_specific_id: "devSpecificXYZ",
+          };
 
     // Variants using the ensured default configs (matching CreateExperimentCommandInput['variants'] structure)
     const defaultVariantInputsForGroupExperiments: CreateExperimentCommandInput["variants"] =
@@ -314,12 +327,15 @@ describe("Experiment Groups API Integration Tests", () => {
         console.log(`Created expValid2Id: ${expValid2Id}`);
 
         const expInvalidProgName = uniqueName("exp-invalid-prog");
+        const context = ENV.jsonlogic_enabled
+            ? { and: [{ "==": [{ var: "os" }, "android"] }] } // Use an ensured dimension
+            : { os: "android" };
         const createExp3Input: CreateExperimentCommandInput = {
             // Context for this one can be simple as status is the key
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             name: expInvalidProgName,
-            context: { and: [{ "==": [{ var: "os" }, "android"] }] }, // Use an ensured dimension
+            context,
             variants: defaultVariantInputsForGroupExperiments,
             description: "Invalid experiment (in progress) for group",
             change_reason: "Test setup",

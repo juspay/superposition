@@ -1,16 +1,18 @@
 use std::collections::HashMap;
+#[cfg(not(feature = "jsonlogic"))]
+use std::collections::HashSet;
 
-use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
-use actix_web::web::Data;
+use actix_web::{
+    http::header::{HeaderMap, HeaderName, HeaderValue},
+    web::Data,
+};
+use bigdecimal::{BigDecimal, Num};
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
-
-use bigdecimal::{BigDecimal, Num};
-use jsonlogic;
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
@@ -81,11 +83,12 @@ pub fn get_meta_schema() -> JSONSchema {
 }
 
 pub fn validate_context_jsonschema(
-    object_key: &str,
+    #[cfg(feature = "jsonlogic")] object_key: &str,
     dimension_value: &Value,
     dimension_schema: &JSONSchema,
 ) -> superposition::Result<()> {
     match dimension_value {
+        #[cfg(feature = "jsonlogic")]
         Value::Array(val_arr) if object_key == "in" => {
             let mut verrors = Vec::new();
             val_arr.iter().for_each(|x| {
@@ -173,6 +176,24 @@ pub fn validate_jsonschema(
     }
 }
 
+#[cfg(not(feature = "jsonlogic"))]
+pub fn allow_primitive_types(schema: &Value) -> superposition::Result<()> {
+    match schema.as_object().and_then(|o| o.get("type")).cloned().unwrap_or_default() {
+        Value::String(type_val) if type_val != "array" && type_val != "object" => {
+            Ok(())
+        }
+        Value::Array(arr) if arr.iter().all(|v| v.as_str().is_some_and(|s| s != "array" && s != "object")) => {
+            Ok(())
+        }
+        _ => {
+            Err(validation_error!(
+                "Invalid schema: expected a primitive type or an array of primitive types, found: {}",
+                schema
+            ))
+        }
+    }
+}
+
 fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
     let base = BigUint::from(2u32);
     let result = base.pow(index);
@@ -187,14 +208,23 @@ pub fn calculate_context_weight(
     cond: &Value,
     dimension_position_map: &HashMap<String, DimensionData>,
 ) -> Result<BigDecimal, String> {
-    let ast = jsonlogic::expression::Expression::from_json(cond).map_err(|msg| {
-        log::error!("Condition validation error: {}", msg);
-        msg
-    })?;
-    let dimensions = ast.get_variable_names().map_err(|msg| {
-        log::error!("Error while parsing variable names : {}", msg);
-        msg
-    })?;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "jsonlogic")] {
+            let ast = jsonlogic::expression::Expression::from_json(cond).map_err(|msg| {
+                log::error!("Condition validation error: {}", msg);
+                msg
+            })?;
+            let dimensions =  ast.get_variable_names().map_err(|msg| {
+                log::error!("Error while parsing variable names : {}", msg);
+                msg
+            })?;
+        } else {
+            let dimensions: HashSet<String> = cond
+                .as_object()
+                .map(|o| o.keys().cloned().collect())
+                .unwrap_or_default();
+        }
+    }
 
     let mut weight = BigDecimal::from(0);
     for dimension in dimensions {
@@ -413,11 +443,18 @@ mod tests {
         .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.");
 
         let str_dimension_val = json!("string1".to_owned());
+        #[cfg(feature = "jsonlogic")]
         let arr_dimension_val = json!(["string1".to_owned(), "string2".to_owned()]);
-        let ok_str_context =
-            validate_context_jsonschema("in", &str_dimension_val, &test_jsonschema);
+        let ok_str_context = validate_context_jsonschema(
+            #[cfg(feature = "jsonlogic")]
+            "in",
+            &str_dimension_val,
+            &test_jsonschema,
+        );
+        #[cfg(feature = "jsonlogic")]
         let ok_arr_context =
             validate_context_jsonschema("in", &arr_dimension_val, &test_jsonschema);
+        #[cfg(feature = "jsonlogic")]
         let err_arr_context =
             match validate_context_jsonschema("==", &arr_dimension_val, &test_jsonschema)
             {
@@ -429,7 +466,9 @@ mod tests {
             };
 
         assert!(ok_str_context.is_ok());
+        #[cfg(feature = "jsonlogic")]
         assert!(err_arr_context);
+        #[cfg(feature = "jsonlogic")]
         assert!(ok_arr_context.is_ok());
     }
     #[test]
