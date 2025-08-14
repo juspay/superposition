@@ -14,7 +14,7 @@ use reqwest::StatusCode;
 use serde_json::{Map, Value};
 use superposition_types::{
     api::experiments::ExperimentListFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    custom_query::{CommaSeparatedQParams, PaginationParams, QueryString},
     database::models::experimentation::{
         Bucket, ExperimentGroup, ExperimentStatusType, Variant,
     },
@@ -322,7 +322,11 @@ async fn get_experiments(
         sort_by: None,
     };
     let pagination_params = PaginationParams::all_entries();
-    let endpoint = format!("{hostname}/experiments?{pagination_params}&{list_filters}");
+    let endpoint = format!(
+        "{hostname}/experiments?{}&{}",
+        pagination_params.to_query(),
+        list_filters.to_query()
+    );
     let experiment_response = http_client
         .get(endpoint)
         .header("x-tenant", tenant.to_string())
@@ -363,7 +367,10 @@ async fn get_experiment_groups(
     tenant: String,
 ) -> Result<ExperimentGroupStore, String> {
     let pagination_params = PaginationParams::all_entries();
-    let endpoint = format!("{hostname}/experiment-groups?{pagination_params}");
+    let endpoint = format!(
+        "{hostname}/experiment-groups?{}",
+        pagination_params.to_query()
+    );
 
     let experiment_group_response = http_client
         .get(endpoint)
