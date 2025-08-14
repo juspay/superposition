@@ -1,4 +1,6 @@
-use std::{env, str::FromStr};
+#[cfg(feature = "ssr")]
+use std::env;
+use std::str::FromStr;
 
 use leptos::*;
 use reqwest::{
@@ -44,10 +46,6 @@ pub fn add_prefix(o_str: &str, prefix: &str) -> String {
     }
 }
 
-pub fn is_server() -> bool {
-    env::var("SERVICE_NAME").is_ok()
-}
-
 pub fn use_url_base() -> String {
     let service_prefix = use_service_prefix();
     match service_prefix.as_str() {
@@ -57,12 +55,14 @@ pub fn use_url_base() -> String {
 }
 
 pub fn use_host_server() -> String {
-    let service_prefix = use_service_prefix();
-    if is_server() {
-        add_prefix("http://localhost:8080", &service_prefix)
-    } else {
-        get_host()
+    #[cfg(feature = "ssr")]
+    {
+        let service_prefix = use_service_prefix();
+        let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+        add_prefix(&format!("http://localhost:{port}"), &service_prefix)
     }
+    #[cfg(not(feature = "ssr"))]
+    get_host()
 }
 
 pub fn get_host() -> String {

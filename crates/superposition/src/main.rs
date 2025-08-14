@@ -21,7 +21,7 @@ use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
 use service_utils::{
     aws::kms,
-    helpers::get_from_env_unsafe,
+    helpers::{get_from_env_or_default, get_from_env_unsafe},
     middlewares::{auth_n::AuthNHandler, tenant::OrgWorkspaceMiddlewareFactory},
     service::types::AppEnv,
 };
@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
 
     let ui_envs = UIEnvs {
         service_prefix: service_prefix_str,
-        host: get_from_env_unsafe("API_HOSTNAME").expect("API_HOSTNAME is not set"),
+        host: get_from_env_or_default("API_HOSTNAME", String::new()),
     };
 
     let routes_ui_envs = ui_envs.clone();
@@ -95,7 +95,14 @@ async fn main() -> Result<()> {
     };
 
     let app_state = Data::new(
-        app_state::get(app_env, &kms_client, service_prefix_str.to_owned(), &base).await,
+        app_state::get(
+            app_env,
+            cac_port,
+            &kms_client,
+            service_prefix_str.to_owned(),
+            &base,
+        )
+        .await,
     );
 
     let auth_n = AuthNHandler::init(&kms_client, &app_env, base.clone()).await;
