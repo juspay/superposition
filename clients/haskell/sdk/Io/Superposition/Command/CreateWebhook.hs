@@ -1,0 +1,42 @@
+module Io.Superposition.Command.CreateWebhook (
+    CreateWebhookError (..),
+    createWebhook
+) where
+import qualified Data.Aeson
+import qualified Data.Text
+import qualified GHC.Generics
+import qualified GHC.Show
+import qualified Io.Superposition.Model.CreateWebhookInput
+import qualified Io.Superposition.Model.CreateWebhookOutput
+import qualified Io.Superposition.Model.InternalServerError
+import qualified Io.Superposition.SuperpositionClient
+import qualified Io.Superposition.Utility
+
+data CreateWebhookError =
+    InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
+    | BuilderError Data.Text.Text
+    | DeSerializationError Data.Text.Text
+    | UnexpectedError Data.Text.Text
+    | UnexpectedStatus Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
+
+instance Data.Aeson.ToJSON CreateWebhookError
+instance Data.Aeson.FromJSON CreateWebhookError
+instance Io.Superposition.Utility.OperationError CreateWebhookError where
+    mkDeSerializationError = DeSerializationError
+    mkUnexpectedError = UnexpectedError
+    mkUnexpectedStatusError = UnexpectedStatus . Data.Text.pack . show
+
+    getErrorParser status
+        | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.InternalServerError.InternalServerError) = Just (fmap InternalServerError (Io.Superposition.Utility.responseParser @Io.Superposition.Model.InternalServerError.InternalServerError))
+        | otherwise = Nothing
+
+
+createWebhook :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.CreateWebhookInput.CreateWebhookInputBuilder () -> IO (Either CreateWebhookError Io.Superposition.Model.CreateWebhookOutput.CreateWebhookOutput)
+createWebhook client builder =
+    let endpoint = Io.Superposition.SuperpositionClient.endpointUri client
+        manager = Io.Superposition.SuperpositionClient.httpManager client
+        token = Io.Superposition.SuperpositionClient.token client
+        setAuth = Io.Superposition.Utility.serHeader "Authorization" ("Bearer " <> token)
+    in Io.Superposition.Utility.runOperation endpoint manager setAuth (Io.Superposition.Model.CreateWebhookInput.build builder)
+

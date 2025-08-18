@@ -15,7 +15,7 @@
       "software.amazon.smithy.python.codegen:core:0.0.1",
       "software.amazon.smithy.java:client-core:0.0.1",
       "software.amazon.smithy.java.codegen:plugins:0.0.1",
-      "in.juspay.smithy.haskell:client-codegen:0.0.2-dev",
+      "in.juspay.smithy.haskell:client-codegen:0.0.3-dev",
       "software.amazon.smithy.java:aws-client-restjson:0.0.1"
     ]
   },
