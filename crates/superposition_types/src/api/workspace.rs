@@ -60,6 +60,7 @@ pub struct CreateWorkspaceRequest {
     pub strict_mode: bool,
     pub metrics: Option<Metrics>,
     pub allow_experiment_self_approval: bool,
+    #[serde(default = "true")]
     pub auto_populate_control: bool,
 }
 
