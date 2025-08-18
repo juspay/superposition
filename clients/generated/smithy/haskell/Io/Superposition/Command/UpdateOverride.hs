@@ -69,10 +69,12 @@ serUpdateOverrideHEADER input =
         
                     Data.Functor.<&> \x -> [("x-config-tags", Data.Text.Encoding.encodeUtf8 x)]
         
+        contentType = Just [("content-type", "application/json")]
         in Data.List.concat $ Data.Maybe.catMaybes [
             workspace_idHeader,
             org_idHeader,
-            config_tagsHeader
+            config_tagsHeader,
+            contentType
             ]
         
     

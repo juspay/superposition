@@ -63,9 +63,11 @@ serTestHEADER input =
                     Data.Function.& \x -> [("x-org-id", Data.Text.Encoding.encodeUtf8 x)]
                     Data.Function.& Data.Maybe.Just
         
+        contentType = Just [("content-type", "application/json")]
         in Data.List.concat $ Data.Maybe.catMaybes [
             workspace_idHeader,
-            org_idHeader
+            org_idHeader,
+            contentType
             ]
         
     
