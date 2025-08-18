@@ -1,3 +1,4 @@
 packages:
+    sdk
     hs-cac-client
     hs-exp-client
