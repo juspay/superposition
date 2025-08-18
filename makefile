@@ -254,13 +254,15 @@ smithy-clients: smithy-build
 				clients/java/sdk/src/main/java
 	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
 				clients/python/sdk
+	cp -r $(SMITHY_BUILD_SRC)/haskell-client-codegen/*\
+				clients/haskell/sdk
 	cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen/*\
 				clients/javascript/sdk
 	cp -r $(SMITHY_BUILD_SRC)/rust-client-codegen/*\
 				crates/superposition_sdk
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
-		[[ "$$d" =~ "java" || "$$d" =~ "python" || "$$d" =~ "typescript" || "$$d" =~ "rust" ]] && continue; \
+		[[ "$$d" =~ "java" || "$$d" =~ "haskell" || "$$d" =~ "python" || "$$d" =~ "typescript" || "$$d" =~ "rust" ]] && continue; \
 		name=$$(basename "$$d" -client-codegen); \
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
@@ -322,4 +324,3 @@ schema-file:
 	diesel print-schema --schema superposition > crates/superposition_types/src/database/superposition_schema.rs
 	git apply crates/superposition_types/src/database/superposition_schema.patch
 	git apply crates/superposition_types/src/database/schema-timestamp-migration.patch
-

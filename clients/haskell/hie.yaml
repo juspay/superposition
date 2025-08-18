@@ -1,0 +1,7 @@
+cradle:
+  cabal:
+    - path: "./sdk/./"
+      component: "lib:SuperpositionSDK"
+
+    - path: "./sdk-it/test"
+      component: "sdk-it:test:sdk-it-test"
