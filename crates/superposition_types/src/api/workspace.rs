@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 
-use super::{deserialize_option_i64, I64Update};
+use super::{deserialize_option_i64, I64Update, default_true};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WorkspaceResponse {
@@ -64,6 +64,7 @@ pub struct CreateWorkspaceRequest {
     pub strict_mode: bool,
     pub metrics: Option<Metrics>,
     pub allow_experiment_self_approval: bool,
+    #[serde(default = "default_true")]
     pub auto_populate_control: bool,
 }
 

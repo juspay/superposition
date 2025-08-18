@@ -21,6 +21,10 @@ pub mod type_templates;
 pub mod webhook;
 pub mod workspace;
 
+pub fn default_true() -> bool {
+    true
+}
+
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Nullable<BigInt>))]
