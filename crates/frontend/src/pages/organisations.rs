@@ -11,23 +11,23 @@ use crate::components::{
         Table,
     },
 };
-use crate::utils::use_host_server;
+use crate::utils::use_url_base;
 
 #[component]
 pub fn organisations() -> impl IntoView {
-    let host = use_host_server();
+    let base = use_url_base();
     let organisation_resource = create_blocking_resource(
         || (),
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );
 
     let table_columns = StoredValue::new({
-        let host = host.clone();
+        let base = base.clone();
         let navigate = move |value: &str, _row: &Map<String, Value>| {
             let organisation_id = value.to_string();
             view! {
                 <button
-                    formaction=format!("{host}/organisations/switch/{organisation_id}")
+                    formaction=format!("{base}/organisations/switch/{organisation_id}")
                     class="cursor-pointer text-blue-500"
                 >
                     {organisation_id}
