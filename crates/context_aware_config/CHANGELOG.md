@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.60.0 - 2025-08-19
+#### Features
+- Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.85.1 [skip ci] - (ab6070f) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.59.1 - 2025-08-08
 #### Bug Fixes
 - Use workspace superposition_types in frontend crate (#650) - (613abce) - Ayush Jain
