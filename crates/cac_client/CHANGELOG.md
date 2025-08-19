@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.21.0 - 2025-08-19
+#### Features
+- Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.83.0 [skip ci] - (2e2d48c) - Superposition Bot
+
+- - -
+
 ## cac_client-v0.20.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (8b62d45) - datron

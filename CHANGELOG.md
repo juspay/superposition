@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.88.0 - 2025-08-19
+### Package updates
+- experimentation_client bumped to experimentation_client-v0.18.0
+- cac_client bumped to cac_client-v0.21.0
+- experimentation_platform bumped to experimentation_platform-v0.41.0
+- context_aware_config bumped to context_aware_config-v0.60.0
+- superposition_types bumped to superposition_types-v0.31.0
+- frontend bumped to frontend-v0.41.0
+- service_utils bumped to service_utils-v0.33.0
+- superposition_core bumped to superposition_core-v0.6.0
+### Global changes
+#### Documentation
+- update Java badges and minor fixes - (9f0b880) - Natarajan Kannan
+- update Java badges and minor fixes - (f586489) - Natarajan Kannan
+#### Features
+- Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.87.0 [skip ci] - (87e0763) - Superposition Bot
+
+- - -
+
 ## v0.87.0 - 2025-08-13
 ### Package updates
 - superposition_types bumped to superposition_types-v0.30.1

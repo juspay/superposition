@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.41.0 - 2025-08-19
+#### Features
+- Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.86.0 [skip ci] - (f11fc97) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.40.0 - 2025-08-12
 #### Features
 - control population - (aa9d23d) - Ankit.Mahato

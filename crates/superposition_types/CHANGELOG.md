@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.31.0 - 2025-08-19
+#### Features
+- Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.87.0 [skip ci] - (87e0763) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.30.1 - 2025-08-13
 #### Bug Fixes
 - show proper license in crates.io (#657) - (9406a0d) - Datron
