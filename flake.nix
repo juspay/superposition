@@ -20,7 +20,7 @@
         inputs.rust-flake.flakeModules.nixpkgs
         inputs.pre-commit-hooks.flakeModule
         ./nix/pre-commit.nix
-        ./clients/haskell
+        # ./clients/haskell
         ./nix/rust.nix
         ./nix/om.nix
       ];
