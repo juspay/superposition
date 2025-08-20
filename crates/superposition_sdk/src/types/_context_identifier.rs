@@ -3,7 +3,7 @@
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub enum ContextIdentifier {
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     Context(::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>),
     #[allow(missing_docs)] // documentation missing in model
     Id(::std::string::String),

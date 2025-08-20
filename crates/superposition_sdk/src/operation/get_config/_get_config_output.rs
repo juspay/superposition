@@ -7,7 +7,7 @@ pub struct GetConfigOutput  {
     pub contexts: ::std::option::Option<::std::vec::Vec::<crate::types::ContextPartial>>,
     #[allow(missing_docs)] // documentation missing in model
     pub overrides: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub default_configs: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
@@ -28,7 +28,7 @@ impl  GetConfigOutput  {
     pub fn overrides(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>> {
         self.overrides.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn default_configs(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.default_configs.as_ref()
     }
@@ -104,17 +104,18 @@ impl GetConfigOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_default_configs`](Self::set_default_configs).
     ///
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn default_configs(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.default_configs.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.default_configs = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn set_default_configs(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.default_configs = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn get_default_configs(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.default_configs
     }

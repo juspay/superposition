@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves config data with context evaluation, including applicable contexts, overrides, and default
+ * values based on provided conditions.
+ */
 @SmithyGenerated
 public final class GetConfig implements ApiOperation<GetConfigInput, GetConfigOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetConfig");

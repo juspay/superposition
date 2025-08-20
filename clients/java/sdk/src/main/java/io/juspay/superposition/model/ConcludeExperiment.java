@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment
+ * to a concluded state.
+ */
 @SmithyGenerated
 public final class ConcludeExperiment implements ApiOperation<ConcludeExperimentInput, ConcludeExperimentOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ConcludeExperiment");

@@ -35,8 +35,7 @@ export interface ListVersionsCommandInput extends ListVersionsInput {}
 export interface ListVersionsCommandOutput extends ListVersionsOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -81,6 +80,7 @@ export interface ListVersionsCommandOutput extends ListVersionsOutput, __Metadat
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListVersionsCommand extends $Command.classBuilder<ListVersionsCommandInput, ListVersionsCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

@@ -35,8 +35,7 @@ export interface GetWebhookCommandInput extends GetWebhookInput {}
 export interface GetWebhookCommandOutput extends WebhookResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -85,6 +84,7 @@ export interface GetWebhookCommandOutput extends WebhookResponse, __MetadataBear
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetWebhookCommand extends $Command.classBuilder<GetWebhookCommandInput, GetWebhookCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

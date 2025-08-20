@@ -35,8 +35,7 @@ export interface ListFunctionCommandInput extends ListFunctionInput {}
 export interface ListFunctionCommandOutput extends ListFunctionOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of all functions in the workspace with their basic information and current status.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -88,6 +87,7 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListFunctionCommand extends $Command.classBuilder<ListFunctionCommandInput, ListFunctionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

@@ -35,8 +35,7 @@ export interface TestCommandInput extends TestInput {}
 export interface TestCommandOutput extends FunctionExecutionResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Executes a function in test mode with provided input parameters to validate its behavior before publishing or deployment.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -83,6 +82,7 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class TestCommand extends $Command.classBuilder<TestCommandInput, TestCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

@@ -19,6 +19,7 @@ impl crate::operation::list_workspace::builders::ListWorkspaceInputBuilder {
                 }
 /// Fluent builder constructing a request to `ListWorkspace`.
 /// 
+/// Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListWorkspaceFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

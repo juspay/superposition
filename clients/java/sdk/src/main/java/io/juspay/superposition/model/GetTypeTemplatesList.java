@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves a paginated list of all type templates in the workspace, including their schemas and
+ * metadata for type management.
+ */
 @SmithyGenerated
 public final class GetTypeTemplatesList implements ApiOperation<GetTypeTemplatesListInput, GetTypeTemplatesListOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetTypeTemplatesList");

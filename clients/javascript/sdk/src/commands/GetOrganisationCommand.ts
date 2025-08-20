@@ -35,8 +35,7 @@ export interface GetOrganisationCommandInput extends GetOrganisationInput {}
 export interface GetOrganisationCommandOutput extends OrganisationResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves detailed information about a specific organisation including its status, contact details, and administrative metadata.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -78,6 +77,7 @@ export interface GetOrganisationCommandOutput extends OrganisationResponse, __Me
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetOrganisationCommand extends $Command.classBuilder<GetOrganisationCommandInput, GetOrganisationCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

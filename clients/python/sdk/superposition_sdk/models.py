@@ -427,6 +427,10 @@ class AddMembersToGroupOutput:
     """
     Standard response structure for an experiment group.
 
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
     """
 
     id: str
@@ -616,6 +620,13 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class ApplicableVariantsInput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -1053,6 +1064,13 @@ class AutocompleteFunctionRequest:
 
 @dataclass(kw_only=True)
 class ContextMove:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     context: dict[str, Document]
 
@@ -1122,6 +1140,18 @@ def _deserialize_overrides(deserializer: ShapeDeserializer, schema: Schema) -> d
 
 @dataclass(kw_only=True)
 class ContextPut:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    :param override:
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
+
+    """
 
     context: dict[str, Document]
 
@@ -1187,6 +1217,11 @@ class ContextIdentifierId:
 
 @dataclass
 class ContextIdentifierContext:
+    """
+    Represents conditional criteria used for context matching. Keys define dimension
+    names and values specify the criteria that must be met.
+
+    """
 
     value: dict[str, Document]
 
@@ -1254,6 +1289,14 @@ class _ContextIdentifierDeserializer:
 
 @dataclass(kw_only=True)
 class UpdateContextOverrideRequest:
+    """
+
+    :param override:
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
+
+    """
 
     context: ContextIdentifier
 
@@ -1512,6 +1555,21 @@ class BulkOperationInput:
 
 @dataclass(kw_only=True)
 class ContextResponse:
+    """
+
+    :param value:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    :param override:
+         Configuration overrides that replace default values when context conditions are
+         met. Keys represent configuration keys and values are the override data.
+
+    :param weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    """
 
     id: str
 
@@ -1908,6 +1966,13 @@ class ExperimentStatusType(StrEnum):
 
 @dataclass(kw_only=True)
 class ConcludeExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -2161,6 +2226,13 @@ def _deserialize_override_with_keys(deserializer: ShapeDeserializer, schema: Sch
 
 @dataclass(kw_only=True)
 class ContextPartial:
+    """
+
+    :param condition:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    """
 
     id: str | None = None
     condition: dict[str, Document] | None = None
@@ -2273,6 +2345,13 @@ def _deserialize_overrides_map(deserializer: ShapeDeserializer, schema: Schema) 
 
 @dataclass(kw_only=True)
 class GetConfigOutput:
+    """
+
+    :param default_configs:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     contexts: list[ContextPartial] | None = None
     overrides: dict[str, dict[str, Document]] | None = None
@@ -2735,6 +2814,18 @@ LIST_VERSIONS = APIOperation(
 
 @dataclass(kw_only=True)
 class CreateContextInput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    :param override:
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -2799,6 +2890,21 @@ class CreateContextInput:
 
 @dataclass(kw_only=True)
 class CreateContextOutput:
+    """
+
+    :param value:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    :param override:
+         Configuration overrides that replace default values when context conditions are
+         met. Keys represent configuration keys and values are the override data.
+
+    :param weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    """
 
     id: str
 
@@ -3034,6 +3140,21 @@ class GetContextInput:
 
 @dataclass(kw_only=True)
 class GetContextOutput:
+    """
+
+    :param value:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    :param override:
+         Configuration overrides that replace default values when context conditions are
+         met. Keys represent configuration keys and values are the override data.
+
+    :param weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    """
 
     id: str
 
@@ -3187,6 +3308,21 @@ class GetContextFromConditionInput:
 
 @dataclass(kw_only=True)
 class GetContextFromConditionOutput:
+    """
+
+    :param value:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    :param override:
+         Configuration overrides that replace default values when context conditions are
+         met. Keys represent configuration keys and values are the override data.
+
+    :param weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    """
 
     id: str
 
@@ -3301,8 +3437,20 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 )
 
 class SortBy(StrEnum):
+    """
+    Sort order enumeration for list operations.
+
+    """
     DESC = "desc"
+    """
+    Descending order (Z-A, newest first)
+
+    """
     ASC = "asc"
+    """
+    Ascending order (A-Z, oldest first)
+
+    """
 
 class ContextFilterSortOn(StrEnum):
     LAST_MODIFIED_AT = "last_modified_at"
@@ -3311,6 +3459,12 @@ class ContextFilterSortOn(StrEnum):
 
 @dataclass(kw_only=True)
 class ListContextsInput:
+    """
+
+    :param sort_by:
+         Sort order enumeration for list operations.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -3453,6 +3607,13 @@ LIST_CONTEXTS = APIOperation(
 
 @dataclass(kw_only=True)
 class MoveContextInput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -3510,6 +3671,21 @@ class MoveContextInput:
 
 @dataclass(kw_only=True)
 class MoveContextOutput:
+    """
+
+    :param value:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    :param override:
+         Configuration overrides that replace default values when context conditions are
+         met. Keys represent configuration keys and values are the override data.
+
+    :param weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    """
 
     id: str
 
@@ -3667,6 +3843,21 @@ class UpdateOverrideInput:
 
 @dataclass(kw_only=True)
 class UpdateOverrideOutput:
+    """
+
+    :param value:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    :param override:
+         Configuration overrides that replace default values when context conditions are
+         met. Keys represent configuration keys and values are the override data.
+
+    :param weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    """
 
     id: str
 
@@ -3820,6 +4011,21 @@ class WeightRecomputeInput:
 
 @dataclass(kw_only=True)
 class WeightRecomputeResponse:
+    """
+
+    :param condition:
+         Represents conditional criteria used for context matching. Keys define dimension
+         names and values specify the criteria that must be met.
+
+    :param old_weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    :param new_weight:
+         Priority weight used to determine the order of context evaluation. Higher
+         weights take precedence during configuration resolution.
+
+    """
 
     id: str | None = None
     condition: dict[str, Document] | None = None
@@ -4258,6 +4464,13 @@ def _deserialize_dependents(deserializer: ShapeDeserializer, schema: Schema) -> 
 
 @dataclass(kw_only=True)
 class CreateDimensionOutput:
+    """
+
+    :param dependency_graph:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     dimension: str
 
@@ -4389,6 +4602,13 @@ CREATE_DIMENSION = APIOperation(
 
 @dataclass(kw_only=True)
 class CreateExperimentInput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -4477,6 +4697,13 @@ class CreateExperimentInput:
 
 @dataclass(kw_only=True)
 class CreateExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -4647,6 +4874,10 @@ class CreateExperimentGroupInput:
     :param change_reason:
         **[Required]** - Reason for creating this experiment group.
 
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
     :param member_experiment_ids:
          List of experiment IDs that are members of this group.
 
@@ -4727,6 +4958,10 @@ class CreateExperimentGroupInput:
 class CreateExperimentGroupOutput:
     """
     Standard response structure for an experiment group.
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     """
 
@@ -5417,6 +5652,13 @@ class Version(StrEnum):
 
 @dataclass(kw_only=True)
 class CreateWebhookInput:
+    """
+
+    :param custom_headers:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -5512,6 +5754,13 @@ class CreateWebhookInput:
 
 @dataclass(kw_only=True)
 class CreateWebhookOutput:
+    """
+
+    :param custom_headers:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     name: str
 
@@ -6493,6 +6742,10 @@ class DeleteExperimentGroupOutput:
     """
     Standard response structure for an experiment group.
 
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
     """
 
     id: str
@@ -6921,6 +7174,13 @@ class GetDimensionInput:
 
 @dataclass(kw_only=True)
 class GetDimensionOutput:
+    """
+
+    :param dependency_graph:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     dimension: str
 
@@ -7099,6 +7359,13 @@ class ListDimensionsInput:
 
 @dataclass(kw_only=True)
 class DimensionExt:
+    """
+
+    :param dependency_graph:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     dimension: str
 
@@ -7377,6 +7644,13 @@ class UpdateDimensionInput:
 
 @dataclass(kw_only=True)
 class UpdateDimensionOutput:
+    """
+
+    :param dependency_graph:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     dimension: str
 
@@ -7552,6 +7826,13 @@ class DiscardExperimentInput:
 
 @dataclass(kw_only=True)
 class DiscardExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -7756,6 +8037,10 @@ class GetExperimentGroupInput:
 class GetExperimentGroupOutput:
     """
     Standard response structure for an experiment group.
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     """
 
@@ -7996,6 +8281,10 @@ class ListExperimentGroupsInput:
 class ExperimentGroupResponse:
     """
     Standard response structure for an experiment group.
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     """
 
@@ -8250,6 +8539,10 @@ class RemoveMembersFromGroupOutput:
     """
     Standard response structure for an experiment group.
 
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
     """
 
     id: str
@@ -8447,6 +8740,10 @@ class UpdateExperimentGroupOutput:
     """
     Standard response structure for an experiment group.
 
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
     """
 
     id: str
@@ -8571,6 +8868,13 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class ExperimentResponse:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -8776,6 +9080,13 @@ class GetExperimentInput:
 
 @dataclass(kw_only=True)
 class GetExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -8944,6 +9255,12 @@ class ExperimentSortOn(StrEnum):
 
 @dataclass(kw_only=True)
 class ListExperimentInput:
+    """
+
+    :param sort_by:
+         Sort order enumeration for list operations.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -9125,6 +9442,13 @@ class PauseExperimentInput:
 
 @dataclass(kw_only=True)
 class PauseExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -9339,6 +9663,13 @@ class RampExperimentInput:
 
 @dataclass(kw_only=True)
 class RampExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -9546,6 +9877,13 @@ class ResumeExperimentInput:
 
 @dataclass(kw_only=True)
 class ResumeExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -9834,6 +10172,13 @@ class UpdateOverridesExperimentInput:
 
 @dataclass(kw_only=True)
 class UpdateOverridesExperimentOutput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
 
     id: str
 
@@ -11398,6 +11743,13 @@ class GetWebhookInput:
 
 @dataclass(kw_only=True)
 class GetWebhookOutput:
+    """
+
+    :param custom_headers:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     name: str
 
@@ -11790,6 +12142,13 @@ class ListWebhookInput:
 
 @dataclass(kw_only=True)
 class WebhookResponse:
+    """
+
+    :param custom_headers:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     name: str
 
@@ -12721,6 +13080,13 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class UpdateWebhookInput:
+    """
+
+    :param custom_headers:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
@@ -12813,6 +13179,13 @@ class UpdateWebhookInput:
 
 @dataclass(kw_only=True)
 class UpdateWebhookOutput:
+    """
+
+    :param custom_headers:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     name: str
 

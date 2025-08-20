@@ -35,8 +35,7 @@ export interface ListAuditLogsCommandInput extends ListAuditLogsInput {}
 export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -86,6 +85,7 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListAuditLogsCommand extends $Command.classBuilder<ListAuditLogsCommandInput, ListAuditLogsCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

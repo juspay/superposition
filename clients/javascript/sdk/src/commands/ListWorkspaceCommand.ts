@@ -35,8 +35,7 @@ export interface ListWorkspaceCommandInput extends ListWorkspaceInput {}
 export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -91,6 +90,7 @@ export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __Met
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListWorkspaceCommand extends $Command.classBuilder<ListWorkspaceCommandInput, ListWorkspaceCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

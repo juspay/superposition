@@ -19,6 +19,7 @@ impl crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchem
                 }
 /// Fluent builder constructing a request to `MigrateWorkspaceSchema`.
 /// 
+/// Migrates the workspace database schema to the new version of the template
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct MigrateWorkspaceSchemaFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

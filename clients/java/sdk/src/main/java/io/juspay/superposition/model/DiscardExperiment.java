@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Discards an experiment without selecting a winner, effectively canceling the experiment and removing
+ * its effects.
+ */
 @SmithyGenerated
 public final class DiscardExperiment implements ApiOperation<DiscardExperimentInput, DiscardExperimentOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#DiscardExperiment");

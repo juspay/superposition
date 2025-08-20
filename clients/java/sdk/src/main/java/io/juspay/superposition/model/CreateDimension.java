@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new dimension with the specified json schema. Dimensions define categorical attributes
+ * used for context-based config management.
+ */
 @SmithyGenerated
 public final class CreateDimension implements ApiOperation<CreateDimensionInput, CreateDimensionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateDimension");

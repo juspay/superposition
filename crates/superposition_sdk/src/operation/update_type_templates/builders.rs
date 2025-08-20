@@ -19,6 +19,7 @@ impl crate::operation::update_type_templates::builders::UpdateTypeTemplatesInput
                 }
 /// Fluent builder constructing a request to `UpdateTypeTemplates`.
 /// 
+/// Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateTypeTemplatesFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

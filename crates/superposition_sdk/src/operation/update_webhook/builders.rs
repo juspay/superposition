@@ -19,6 +19,7 @@ impl crate::operation::update_webhook::builders::UpdateWebhookInputBuilder {
                 }
 /// Fluent builder constructing a request to `UpdateWebhook`.
 /// 
+/// Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook properties.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateWebhookFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,
@@ -212,17 +213,17 @@ impl UpdateWebhookFluentBuilder {
     /// 
     /// To override the contents of this collection use [`set_custom_headers`](Self::set_custom_headers).
     /// 
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn custom_headers(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
                     self.inner = self.inner.custom_headers(k.into(), v);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn set_custom_headers(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
                     self.inner = self.inner.set_custom_headers(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn get_custom_headers(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
                     self.inner.get_custom_headers()
                 }

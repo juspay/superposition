@@ -35,8 +35,7 @@ export interface GetDimensionCommandInput extends GetDimensionInput {}
 export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -89,6 +88,7 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetDimensionCommand extends $Command.classBuilder<GetDimensionCommandInput, GetDimensionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

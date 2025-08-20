@@ -5,13 +5,13 @@
 pub struct GetContextOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub value: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
     pub override_id: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub weight: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
@@ -31,11 +31,11 @@ impl  GetContextOutput  {
     pub fn id(&self) -> &str {
         use std::ops::Deref; self.id.deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn value(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.value.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn r#override(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.r#override.as_ref()
     }
@@ -43,7 +43,7 @@ impl  GetContextOutput  {
     pub fn override_id(&self) -> ::std::option::Option<&str> {
         self.override_id.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn weight(&self) -> ::std::option::Option<&str> {
         self.weight.as_deref()
     }
@@ -114,17 +114,18 @@ impl GetContextOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_value`](Self::set_value).
     ///
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn value(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.value.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.value = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn set_value(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.value = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn get_value(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.value
     }
@@ -132,17 +133,18 @@ impl GetContextOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_override`](Self::set_override).
     ///
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn r#override(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.r#override.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.r#override = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn set_override(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.r#override = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn get_override(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.r#override
     }
@@ -159,16 +161,16 @@ impl GetContextOutputBuilder {
     pub fn get_override_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.override_id
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.weight = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn set_weight(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.weight = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn get_weight(&self) -> &::std::option::Option<::std::string::String> {
         &self.weight
     }

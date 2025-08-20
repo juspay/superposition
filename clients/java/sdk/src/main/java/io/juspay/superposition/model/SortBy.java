@@ -13,10 +13,19 @@ import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Sort order enumeration for list operations.
+ */
 @SmithyGenerated
 public final class SortBy implements SerializableShape {
     public static final ShapeId $ID = ShapeId.from("io.superposition#SortBy");
+    /**
+     * Descending order (Z-A, newest first)
+     */
     public static final SortBy DESC = new SortBy(Type.DESC, "desc");
+    /**
+     * Ascending order (A-Z, oldest first)
+     */
     public static final SortBy ASC = new SortBy(Type.ASC, "asc");
     private static final List<SortBy> $TYPES = List.of(DESC, ASC);
 

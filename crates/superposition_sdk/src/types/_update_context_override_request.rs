@@ -5,7 +5,7 @@
 pub struct UpdateContextOverrideRequest  {
     #[allow(missing_docs)] // documentation missing in model
     pub context: crate::types::ContextIdentifier,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub r#override: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
@@ -17,7 +17,7 @@ impl  UpdateContextOverrideRequest  {
     pub fn context(&self) -> &crate::types::ContextIdentifier {
         &self.context
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn r#override(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
         &self.r#override
     }
@@ -65,17 +65,18 @@ impl UpdateContextOverrideRequestBuilder {
     ///
     /// To override the contents of this collection use [`set_override`](Self::set_override).
     ///
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn r#override(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.r#override.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.r#override = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn set_override(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.r#override = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn get_override(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.r#override
     }

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new experiment with variants, context and conditions. You can optionally specify metrics
+ * and experiment group for tracking and analysis.
+ */
 @SmithyGenerated
 public final class CreateExperiment implements ApiOperation<CreateExperimentInput, CreateExperimentOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateExperiment");

@@ -19,6 +19,7 @@ impl crate::operation::delete_function::builders::DeleteFunctionInputBuilder {
                 }
 /// Fluent builder constructing a request to `DeleteFunction`.
 /// 
+/// Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct DeleteFunctionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

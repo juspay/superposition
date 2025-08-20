@@ -35,8 +35,7 @@ export interface ListDimensionsCommandInput extends ListDimensionsInput {}
 export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -95,6 +94,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListDimensionsCommand extends $Command.classBuilder<ListDimensionsCommandInput, ListDimensionsCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

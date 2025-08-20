@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves a paginated list of config versions with their metadata, hash values, and creation
+ * timestamps for audit and rollback purposes.
+ */
 @SmithyGenerated
 public final class ListVersions implements ApiOperation<ListVersionsInput, ListVersionsOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListVersions");

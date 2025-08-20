@@ -19,6 +19,7 @@ impl crate::operation::get_context_from_condition::builders::GetContextFromCondi
                 }
 /// Fluent builder constructing a request to `GetContextFromCondition`.
 /// 
+/// Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetContextFromConditionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

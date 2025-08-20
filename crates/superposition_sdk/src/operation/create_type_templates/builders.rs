@@ -19,6 +19,7 @@ impl crate::operation::create_type_templates::builders::CreateTypeTemplatesInput
                 }
 /// Fluent builder constructing a request to `CreateTypeTemplates`.
 /// 
+/// Creates a new type template with specified schema definition, providing reusable type definitions for config validation.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateTypeTemplatesFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

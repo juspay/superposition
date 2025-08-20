@@ -35,8 +35,7 @@ export interface CreateWorkspaceCommandInput extends CreateWorkspaceRequest {}
 export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -89,6 +88,7 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateWorkspaceCommand extends $Command.classBuilder<CreateWorkspaceCommandInput, CreateWorkspaceCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

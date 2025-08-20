@@ -19,6 +19,7 @@ impl crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder {
                 }
 /// Fluent builder constructing a request to `ListAuditLogs`.
 /// 
+/// Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListAuditLogsFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

@@ -19,6 +19,7 @@ impl crate::operation::create_default_config::builders::CreateDefaultConfigInput
                 }
 /// Fluent builder constructing a request to `CreateDefaultConfig`.
 /// 
+/// Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateDefaultConfigFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

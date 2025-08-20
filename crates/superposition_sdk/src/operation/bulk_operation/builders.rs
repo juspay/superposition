@@ -19,6 +19,7 @@ impl crate::operation::bulk_operation::builders::BulkOperationInputBuilder {
                 }
 /// Fluent builder constructing a request to `BulkOperation`.
 /// 
+/// Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct BulkOperationFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

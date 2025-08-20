@@ -19,6 +19,7 @@ impl crate::operation::get_config::builders::GetConfigInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetConfig`.
 /// 
+/// Retrieves config data with context evaluation, including applicable contexts, overrides, and default values based on provided conditions.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetConfigFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

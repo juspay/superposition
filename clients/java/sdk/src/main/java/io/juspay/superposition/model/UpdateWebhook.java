@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook
+ * properties.
+ */
 @SmithyGenerated
 public final class UpdateWebhook implements ApiOperation<UpdateWebhookInput, UpdateWebhookOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateWebhook");

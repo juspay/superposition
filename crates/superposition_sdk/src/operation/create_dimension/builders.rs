@@ -19,6 +19,7 @@ impl crate::operation::create_dimension::builders::CreateDimensionInputBuilder {
                 }
 /// Fluent builder constructing a request to `CreateDimension`.
 /// 
+/// Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateDimensionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

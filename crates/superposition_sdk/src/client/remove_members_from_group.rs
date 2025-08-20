@@ -14,7 +14,7 @@ impl super::Client {
     ///   - [`name(String)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::name): (undocumented)
     ///   - [`description(String)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::change_reason): (undocumented)
-    ///   - [`context(HashMap::<String, Document>)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::context): (undocumented)
+    ///   - [`context(HashMap::<String, Document>)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::context): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     ///   - [`traffic_percentage(i32)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::traffic_percentage): (undocumented)
     ///   - [`member_experiment_ids(Vec::<String>)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::member_experiment_ids): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput::created_at): (undocumented)

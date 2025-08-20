@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves detailed information about a specific context by its unique identifier, including
+ * conditions, overrides, and metadata.
+ */
 @SmithyGenerated
 public final class GetContext implements ApiOperation<GetContextInput, GetContextOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetContext");
