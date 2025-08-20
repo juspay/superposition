@@ -10,7 +10,7 @@ use diesel::{
 };
 use serde_json::Value;
 use service_utils::{
-    helpers::generate_snowflake_id,
+    helpers::{generate_snowflake_id, get_from_env_or_default},
     service::types::{AppState, DbConnection, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, unexpected_error};
@@ -354,6 +354,8 @@ async fn backfill_experiment_groups(
         email: "system@superposition.io".into(),
         username: "superposition".into(),
     };
+    let delay = get_from_env_or_default("BACKFILL_DELAY", 100);
+
     let experiment_groups =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let mut results = vec![];
@@ -393,6 +395,8 @@ async fn backfill_experiment_groups(
                     .execute(transaction_conn)?;
 
                 results.push(experiment_group);
+
+                std::thread::sleep(std::time::Duration::from_millis(delay));
             }
             Ok(results)
         })?;
