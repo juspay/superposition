@@ -4,17 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Name: public; Type: SCHEMA; Schema: -; Owner: -
 --
 CREATE SCHEMA IF NOT EXISTS public;
---
--- Name: dimension_type; Type: TYPE; Schema: public; Owner: -
---
-CREATE TYPE public.dimension_type AS ENUM (
-    'NULL',
-    'BOOL',
-    'NUMBER',
-    'STRING',
-    'ARRAY',
-    'OBJECT'
-);
+
 --
 -- Name: event_logger(); Type: FUNCTION; Schema: public; Owner: -
 --
