@@ -28,6 +28,7 @@ reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 serde = { workspace = true }
 service_utils = { workspace = true }
+superposition_derives = { workspace = true }
 superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
     "api",

@@ -8,6 +8,7 @@ use diesel::{
     delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use service_utils::service::types::{AppState, DbConnection, SchemaName};
+use superposition_derives::auth_action;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     api::dimension::{
@@ -45,6 +46,7 @@ pub fn endpoints() -> Scope {
         .service(delete_dimension)
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create(
     state: Data<AppState>,
@@ -149,6 +151,7 @@ async fn create(
     })
 }
 
+#[auth_action("read")]
 #[get("/{name}")]
 async fn get(
     db_conn: DbConnection,
@@ -171,6 +174,7 @@ async fn get(
     Ok(Json(DimensionResponse::new(result, is_mandatory)))
 }
 
+#[auth_action("update")]
 #[put("/{name}")]
 async fn update(
     path: Path<DimensionName>,
@@ -287,6 +291,7 @@ async fn update(
     Ok(HttpResponse::Ok().json(DimensionResponse::new(result, is_mandatory)))
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list(
     db_conn: DbConnection,
@@ -343,6 +348,7 @@ async fn list(
     }))
 }
 
+#[auth_action("delete")]
 #[delete("/{name}")]
 async fn delete_dimension(
     path: Path<DeleteRequest>,
