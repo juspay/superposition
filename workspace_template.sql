@@ -679,3 +679,15 @@ UPDATE {replaceme}.functions SET created_at = last_modified_at WHERE created_at 
 ALTER TABLE {replaceme}.functions
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
 ALTER COLUMN created_at SET NOT NULL;
+
+DO $$ BEGIN
+    CREATE TYPE public.dimension_type AS ENUM (
+        'REGULAR',
+        'COHORT'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE {replaceme}.dimensions
+ADD COLUMN dimension_type public.DIMENSION_TYPE NOT NULL DEFAULT 'REGULAR';
