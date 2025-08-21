@@ -226,7 +226,7 @@ jobs:
             max-parallel: 5
             matrix:
                 platform:
-                    - os: ubuntu-latest
+                    - os: ubuntu-22.04
                       target: x86_64-unknown-linux-gnu
                       superposition_core_bin_name: libsuperposition_core.so
                       superposition_core_zip_name: superposition_core-x86_64-unknown-linux-gnu.zip
