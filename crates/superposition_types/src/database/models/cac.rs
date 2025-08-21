@@ -64,6 +64,38 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Eq,
+    Hash,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+    uniffi::Enum,
+    Default,
+)]
+#[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::schema::sql_types::DimensionType"
+)]
+pub enum DimensionType {
+    #[default]
+    Regular,
+    Cohort,
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -87,6 +119,8 @@ pub struct Dimension {
     pub dependents: Vec<String>,
     pub dependencies: Vec<String>,
     pub autocomplete_function_name: Option<String>,
+    pub dimension_type: DimensionType,
+    pub cohort_based_on: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

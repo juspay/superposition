@@ -6,7 +6,7 @@ use superposition_types::{
     api::dimension::DimensionResponse, database::models::cac::DependencyGraph,
 };
 
-use crate::api::{delete_dimension, get_dimension};
+use crate::api::{dimensions::delete_dimension, get_dimension};
 use crate::components::badge::Badge;
 use crate::components::{
     alert::AlertType,

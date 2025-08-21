@@ -16,7 +16,7 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::{
         models::{
-            cac::{DependencyGraph, Dimension},
+            cac::{DependencyGraph, Dimension, DimensionType},
             Workspace,
         },
         schema::dimensions::{self, dsl::*},
@@ -31,7 +31,7 @@ use crate::{
         get_dimension_usage_context_ids, validate_and_update_dimension_hierarchy,
         validate_dimension_deletability, validate_dimension_position,
     },
-    helpers::{get_workspace, validate_jsonschema},
+    helpers::{get_workspace, validate_cohort_schema, validate_jsonschema},
 };
 
 use super::utils::validate_and_initialize_dimension_hierarchy;
@@ -71,10 +71,19 @@ async fn create(
         create_req.position,
         num_rows,
     )?;
-    #[cfg(not(feature = "jsonlogic"))]
-    allow_primitive_types(&schema_value)?;
-    validate_jsonschema(&state.meta_schema, &schema_value)?;
-
+    match create_req.dimension_type {
+        DimensionType::Regular => {
+            #[cfg(not(feature = "jsonlogic"))]
+            allow_primitive_types(&schema_value)?;
+            validate_jsonschema(&state.meta_schema, &schema_value)?
+        }
+        DimensionType::Cohort => validate_cohort_schema(
+            &schema_value,
+            create_req.cohort_based_on.clone(),
+            &schema_name,
+            &mut conn,
+        )?,
+    };
     let mut dimension_data = Dimension {
         dimension: create_req.dimension.into(),
         position: create_req.position,
@@ -90,6 +99,8 @@ async fn create(
         dependents: Vec::new(),
         dependencies: create_req.dependencies.unwrap_or_default(),
         autocomplete_function_name: create_req.autocomplete_function_name,
+        dimension_type: create_req.dimension_type,
+        cohort_based_on: create_req.cohort_based_on,
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -201,9 +212,19 @@ async fn update(
     let update_req = req.into_inner();
 
     if let Some(schema_value) = update_req.schema.clone() {
-        #[cfg(not(feature = "jsonlogic"))]
-        allow_primitive_types(&schema_value)?;
-        validate_jsonschema(&state.meta_schema, &schema_value)?;
+        match dimension_data.dimension_type {
+            DimensionType::Regular => {
+                #[cfg(not(feature = "jsonlogic"))]
+                allow_primitive_types(&schema_value)?;
+                validate_jsonschema(&state.meta_schema, &schema_value)?
+            }
+            DimensionType::Cohort => validate_cohort_schema(
+                &schema_value,
+                update_req.cohort_based_on.clone(),
+                &schema_name,
+                &mut conn,
+            )?,
+        };
     }
 
     let result =
