@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 
-use super::{deserialize_option_i64, I64Update, default_true};
+use super::{default_true, deserialize_option_i64, I64Update};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WorkspaceResponse {
