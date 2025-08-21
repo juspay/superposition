@@ -78,9 +78,14 @@ jobs:
             - name: Check conventional commit
               shell: bash
               run: |
-                  git config --global user.name "${{ github.event.pull_request.user.login }}"
+                  if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                    git config --global user.name "${{ github.event.pull_request.user.login }}"
+                    commit=$(git log --format=%B -n 1 ${{ github.event.pull_request.head.sha }})
+                  else
+                    git config --global user.name "${{ github.event.pusher.name }}"
+                    commit=$(git log --format=%B -n 1 ${{ github.sha }})
+                  fi
                   git config --global user.email "temp_email@juspay.in"
-                  commit=$(git log --format=%B -n 1 ${{ github.event.pull_request.head.sha }})
                   cog verify "$commit"
 
     test:
