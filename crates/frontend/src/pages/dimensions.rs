@@ -4,7 +4,7 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
-use crate::api::fetch_dimensions;
+use crate::api::dimensions::fetch_dimensions;
 use crate::components::button::Button;
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::PortalDrawer;
