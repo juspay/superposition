@@ -5488,6 +5488,19 @@ name = "superposition_macros"
 version = "0.88.1"
 
 [[package]]
+name = "superposition_mcp"
+version = "0.1.0"
+dependencies = [
+ "aws-smithy-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "superposition_sdk",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "superposition_provider"
 version = "0.88.1"
 dependencies = [
