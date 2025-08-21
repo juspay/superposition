@@ -12,3 +12,12 @@ superposition_sdk = { path = "../superposition_sdk", features = ["behavior-versi
 reqwest = { version = "0.11", features = ["json"] }
 uuid = { version = "1.0", features = ["v4"] }
 aws-smithy-types = "1.0"
+
+# Actix Web dependencies for HTTP transport
+actix-web = "4.0"
+actix-cors = "0.7"
+actix-rt = "2.0"
+futures-util = "0.3"
+bytes = "1.0"
+async-stream = "0.3"
+chrono = { version = "0.4", features = ["serde"] }
