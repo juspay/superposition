@@ -1,6 +1,7 @@
 mod http_handlers;
 mod mcp_service;
 mod streaming;
+mod tools;
 
 use actix_cors::Cors;
 use actix_web::{http, middleware::Logger, web, App, HttpServer};

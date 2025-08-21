@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::error::Error;
-use superposition_sdk::types::MergeStrategy;
 use superposition_sdk::{Client, Config};
 
 // Utility function to convert Document to serde_json::Value
@@ -66,6 +65,17 @@ pub fn value_to_document(value: &Value) -> Document {
         Value::String(s) => Document::String(s.clone()),
         Value::Bool(b) => Document::Bool(*b),
         Value::Null => Document::Null,
+    }
+}
+
+pub fn value_to_hashmap(value: Value) -> Option<HashMap<String, Document>> {
+    match value {
+        Value::Object(map) => Some(
+            map.into_iter()
+                .map(|(key, val)| (key, value_to_document(&val)))
+                .collect(),
+        ),
+        _ => None,
     }
 }
 
@@ -366,187 +376,18 @@ impl McpService {
         }
     }
 
-    // Tool definitions moved to separate method for reusability
+    // Tool definitions from modular system
     fn get_tools_definition(&self) -> Vec<Tool> {
-        vec![
-            // Configuration Resolution
-            Tool {
-                name: "get_resolved_config".to_string(),
-                description:
-                    "Get resolved configuration based on context using Superposition CAC"
-                        .to_string(),
-                input_schema: json!({
-                    "type": "object",
-                    "properties": {
-                        "context": {
-                            "type": "object",
-                            "description": "Context object containing dimensions for configuration resolution"
-                        },
-                        "prefix": {
-                            "type": "string",
-                            "description": "Optional key prefix to filter configurations"
-                        },
-                        "merge_strategy": {
-                            "type": "string",
-                            "enum": ["MERGE", "REPLACE"],
-                            "default": "MERGE",
-                            "description": "Strategy for merging configurations"
-                        }
-                    },
-                    "required": ["context"]
-                }),
-            },
-            // Default Config Operations
-            Tool {
-                name: "get_default_config".to_string(),
-                description: "Get all default configurations or a specific config by key"
-                    .to_string(),
-                input_schema: json!({
-                    "type": "object",
-                    "properties": {
-                        "key": {
-                            "type": "string",
-                            "description": "Optional specific configuration key to retrieve"
-                        }
-                    }
-                }),
-            },
-            Tool {
-                name: "create_default_config".to_string(),
-                description: "Create a new default configuration".to_string(),
-                input_schema: json!({
-                    "type": "object",
-                    "properties": {
-                        "key": {
-                            "type": "string",
-                            "description": "Configuration key name"
-                        },
-                        "value": {
-                            "description": "Default value for the configuration"
-                        },
-                        "schema": {
-                            "type": "object",
-                            "description": "JSON schema for validating the configuration value"
-                        },
-                        "description": {
-                            "type": "string",
-                            "description": "description of the key"
-                        },
-                        "change_reason": {
-                            "type": "string",
-                            "description": "reason for adding for this key"
-                        }
-                    },
-                    "required": ["key", "value", "schema", "description", "change_reason"]
-                }),
-            },
-            // Add more tools as needed - truncated for brevity
-        ]
+        crate::tools::get_all_tools()
     }
 
-    // Tool execution logic moved to separate method
+    // Tool execution logic using modular system
     async fn execute_tool(
         &self,
         tool_name: &str,
         arguments: &Value,
     ) -> Result<Value, Box<dyn Error>> {
-        match tool_name {
-            "get_resolved_config" => {
-                let empty_map = serde_json::Map::new();
-                let context = arguments["context"].as_object().unwrap_or(&empty_map);
-                let prefix = arguments["prefix"].as_str();
-                let merge_strategy =
-                    arguments["merge_strategy"].as_str().unwrap_or("MERGE");
-
-                let strategy = match merge_strategy {
-                    "REPLACE" => MergeStrategy::Replace,
-                    _ => MergeStrategy::Merge,
-                };
-
-                let mut builder = self
-                    .superposition_client
-                    .get_resolved_config()
-                    .workspace_id(&self.workspace_id)
-                    .org_id(&self.org_id)
-                    .merge_strategy(strategy);
-
-                if let Some(p) = prefix {
-                    builder = builder.prefix(p);
-                }
-
-                for (key, value) in context {
-                    let doc = value_to_document(value);
-                    builder = builder.context(key, doc);
-                }
-
-                builder
-                    .send()
-                    .await
-                    .map(|output| {
-                        output
-                            .config()
-                            .map(|c| document_to_value(c))
-                            .unwrap_or(Value::Null)
-                    })
-                    .map_err(|e| format!("SDK error: {}", e).into())
-            }
-            "get_default_config" => {
-                let key = arguments["key"].as_str();
-                if let Some(k) = key {
-                    self.superposition_client
-                        .get_config()
-                        .workspace_id(&self.workspace_id)
-                        .org_id(&self.org_id)
-                        .prefix(k)
-                        .send()
-                        .await
-                        .map(|output| {
-                            if let Some(default_configs) = output.default_configs() {
-                                let mut result = serde_json::Map::new();
-                                for (key, doc) in default_configs {
-                                    result.insert(key.clone(), document_to_value(doc));
-                                }
-                                Value::Object(result)
-                            } else {
-                                Value::Null
-                            }
-                        })
-                        .map_err(|e| format!("SDK error: {}", e).into())
-                } else {
-                    self.superposition_client
-                        .list_default_configs()
-                        .workspace_id(&self.workspace_id)
-                        .org_id(&self.org_id)
-                        .all(true)
-                        .send()
-                        .await
-                        .map(|output| {
-                            let configs: Vec<Value> = output
-                                .data()
-                                .iter()
-                                .map(|config| {
-                                    json!({
-                                        "key": config.key(),
-                                        "value": document_to_value(config.value()),
-                                        "schema": document_to_value(config.schema()),
-                                        "description": config.description(),
-                                        "change_reason": config.change_reason(),
-                                        "function_name": config.function_name(),
-                                        "created_at": config.created_at().to_string(),
-                                        "created_by": config.created_by(),
-                                        "last_modified_at": config.last_modified_at().to_string(),
-                                        "last_modified_by": config.last_modified_by()
-                                    })
-                                })
-                                .collect();
-                            json!(configs)
-                        })
-                        .map_err(|e| format!("SDK error: {}", e).into())
-                }
-            }
-            // Add more tool implementations here...
-            _ => Err(format!("Unknown tool: {}", tool_name).into()),
-        }
+        crate::tools::execute_any_tool(self, tool_name, arguments).await
     }
 
     // Resource reading logic
