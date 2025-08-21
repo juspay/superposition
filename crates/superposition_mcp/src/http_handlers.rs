@@ -1,8 +1,8 @@
-use actix_web::{web, HttpResponse, Result, HttpRequest};
-use serde_json::{json, Value};
+use actix_web::{web, HttpResponse, Result};
+use serde_json::json;
 use std::sync::Arc;
 
-use crate::mcp_service::{McpService, JsonRpcRequest, JsonRpcResponse, JsonRpcError};
+use crate::mcp_service::{JsonRpcError, JsonRpcRequest, JsonRpcResponse, McpService};
 
 // Shared application state
 pub struct AppState {
@@ -40,7 +40,8 @@ pub async fn mcp_tools_call(
     data: web::Data<AppState>,
     payload: web::Json<JsonRpcRequest>,
 ) -> Result<HttpResponse> {
-    let response = data.mcp_service
+    let response = data
+        .mcp_service
         .handle_tools_call(payload.id.clone(), payload.params.clone())
         .await;
     Ok(HttpResponse::Ok().json(response))
@@ -51,7 +52,10 @@ pub async fn mcp_resources_list(
     data: web::Data<AppState>,
     payload: web::Json<JsonRpcRequest>,
 ) -> Result<HttpResponse> {
-    let response = data.mcp_service.handle_resources_list(payload.id.clone()).await;
+    let response = data
+        .mcp_service
+        .handle_resources_list(payload.id.clone())
+        .await;
     Ok(HttpResponse::Ok().json(response))
 }
 
@@ -60,7 +64,8 @@ pub async fn mcp_resources_read(
     data: web::Data<AppState>,
     payload: web::Json<JsonRpcRequest>,
 ) -> Result<HttpResponse> {
-    let response = data.mcp_service
+    let response = data
+        .mcp_service
         .handle_resources_read(payload.id.clone(), payload.params.clone())
         .await;
     Ok(HttpResponse::Ok().json(response))
@@ -88,7 +93,11 @@ pub async fn mcp_handler(
                 .handle_tools_call(payload.id.clone(), payload.params.clone())
                 .await
         }
-        "resources/list" => data.mcp_service.handle_resources_list(payload.id.clone()).await,
+        "resources/list" => {
+            data.mcp_service
+                .handle_resources_list(payload.id.clone())
+                .await
+        }
         "resources/read" => {
             data.mcp_service
                 .handle_resources_read(payload.id.clone(), payload.params.clone())
@@ -110,26 +119,15 @@ pub async fn mcp_handler(
     Ok(HttpResponse::Ok().json(response))
 }
 
-// Error handler for invalid JSON
-pub async fn handle_json_error() -> Result<HttpResponse> {
-    let error_response = JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: None,
-        result: None,
-        error: Some(JsonRpcError {
-            code: -32700,
-            message: "Parse error".to_string(),
-            data: None,
-        }),
-    };
-    Ok(HttpResponse::BadRequest().json(error_response))
-}
-
 // CORS preflight handler
 pub async fn cors_preflight() -> Result<HttpResponse> {
     Ok(HttpResponse::Ok()
         .insert_header(("Access-Control-Allow-Origin", "*"))
         .insert_header(("Access-Control-Allow-Methods", "POST, GET, OPTIONS"))
-        .insert_header(("Access-Control-Allow-Headers", "Content-Type, Authorization"))
+        .insert_header((
+            "Access-Control-Allow-Headers",
+            "Content-Type, Authorization",
+        ))
         .finish())
 }
+

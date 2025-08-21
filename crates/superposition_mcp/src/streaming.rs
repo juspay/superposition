@@ -1,9 +1,8 @@
 use actix_web::{web, HttpResponse, Result, HttpRequest};
-use futures_util::{Stream, StreamExt};
+use futures_util::Stream;
 use bytes::Bytes;
 use serde_json::json;
 use std::time::Duration;
-use std::sync::Arc;
 use async_stream::stream;
 
 use crate::http_handlers::AppState;

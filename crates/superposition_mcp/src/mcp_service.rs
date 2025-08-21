@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::error::Error;
-use superposition_sdk::types::{ExperimentType, MergeStrategy, Variant, VariantType};
+use superposition_sdk::types::MergeStrategy;
 use superposition_sdk::{Client, Config};
 
 // Utility function to convert Document to serde_json::Value
@@ -17,15 +17,17 @@ pub fn document_to_value(doc: &Document) -> Value {
             Value::Object(json_map)
         }
         Document::Array(arr) => Value::Array(arr.iter().map(document_to_value).collect()),
-        Document::Number(num) => {
-            match num {
-                aws_smithy_types::Number::PosInt(i) => Value::Number(serde_json::Number::from(*i)),
-                aws_smithy_types::Number::NegInt(i) => Value::Number(serde_json::Number::from(*i)),
-                aws_smithy_types::Number::Float(f) => Value::Number(
-                    serde_json::Number::from_f64(*f).unwrap_or(serde_json::Number::from(0)),
-                ),
+        Document::Number(num) => match num {
+            aws_smithy_types::Number::PosInt(i) => {
+                Value::Number(serde_json::Number::from(*i))
             }
-        }
+            aws_smithy_types::Number::NegInt(i) => {
+                Value::Number(serde_json::Number::from(*i))
+            }
+            aws_smithy_types::Number::Float(f) => Value::Number(
+                serde_json::Number::from_f64(*f).unwrap_or(serde_json::Number::from(0)),
+            ),
+        },
         Document::String(s) => Value::String(s.clone()),
         Document::Bool(b) => Value::Bool(*b),
         Document::Null => Value::Null,
@@ -64,17 +66,6 @@ pub fn value_to_document(value: &Value) -> Document {
         Value::String(s) => Document::String(s.clone()),
         Value::Bool(b) => Document::Bool(*b),
         Value::Null => Document::Null,
-    }
-}
-
-pub fn value_to_hashmap(value: Value) -> Option<HashMap<String, Document>> {
-    match value {
-        Value::Object(map) => Some(
-            map.into_iter()
-                .map(|(key, val)| (key, value_to_document(&val)))
-                .collect(),
-        ),
-        _ => None,
     }
 }
 
@@ -219,7 +210,11 @@ impl McpService {
         }
     }
 
-    pub async fn handle_tools_call(&self, id: Option<Value>, params: Option<Value>) -> JsonRpcResponse {
+    pub async fn handle_tools_call(
+        &self,
+        id: Option<Value>,
+        params: Option<Value>,
+    ) -> JsonRpcResponse {
         let params = match params {
             Some(p) => p,
             None => {
@@ -310,7 +305,11 @@ impl McpService {
         }
     }
 
-    pub async fn handle_resources_read(&self, id: Option<Value>, params: Option<Value>) -> JsonRpcResponse {
+    pub async fn handle_resources_read(
+        &self,
+        id: Option<Value>,
+        params: Option<Value>,
+    ) -> JsonRpcResponse {
         let params = match params {
             Some(p) => p,
             None => {
@@ -373,8 +372,9 @@ impl McpService {
             // Configuration Resolution
             Tool {
                 name: "get_resolved_config".to_string(),
-                description: "Get resolved configuration based on context using Superposition CAC"
-                    .to_string(),
+                description:
+                    "Get resolved configuration based on context using Superposition CAC"
+                        .to_string(),
                 input_schema: json!({
                     "type": "object",
                     "properties": {
@@ -445,13 +445,18 @@ impl McpService {
     }
 
     // Tool execution logic moved to separate method
-    async fn execute_tool(&self, tool_name: &str, arguments: &Value) -> Result<Value, Box<dyn Error>> {
+    async fn execute_tool(
+        &self,
+        tool_name: &str,
+        arguments: &Value,
+    ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "get_resolved_config" => {
                 let empty_map = serde_json::Map::new();
                 let context = arguments["context"].as_object().unwrap_or(&empty_map);
                 let prefix = arguments["prefix"].as_str();
-                let merge_strategy = arguments["merge_strategy"].as_str().unwrap_or("MERGE");
+                let merge_strategy =
+                    arguments["merge_strategy"].as_str().unwrap_or("MERGE");
 
                 let strategy = match merge_strategy {
                     "REPLACE" => MergeStrategy::Replace,
