@@ -4,4 +4,5 @@ CREATE TYPE public.dimension_type AS ENUM (
 );
 
 ALTER TABLE public.dimensions
-ADD COLUMN dimension_type DIMENSION_TYPE NOT NULL DEFAULT 'REGULAR';
+ADD COLUMN dimension_type DIMENSION_TYPE NOT NULL DEFAULT 'REGULAR',
+ADD COLUMN cohort_based_on TEXT;
