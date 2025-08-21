@@ -31,8 +31,8 @@ use web_sys::{Element, Event};
 
 use crate::{
     api::{
-        delete_context, fetch_context, fetch_default_config, fetch_dimensions,
-        get_context,
+        delete_context, dimensions::fetch_dimensions, fetch_context,
+        fetch_default_config, get_context,
     },
     components::{
         alert::AlertType,

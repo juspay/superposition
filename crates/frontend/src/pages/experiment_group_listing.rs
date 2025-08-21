@@ -22,8 +22,8 @@ use web_sys::MouseEvent;
 
 use crate::{
     api::{
+        dimensions::fetch_dimensions,
         experiment_groups::{delete, fetch_all},
-        fetch_dimensions,
     },
     components::{
         condition_pills::Condition as ConditionComponent,

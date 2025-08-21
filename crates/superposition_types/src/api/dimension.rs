@@ -9,7 +9,10 @@ use serde_json::Value;
 use crate::database::schema::dimensions;
 use crate::{
     database::models::{
-        cac::{deserialize_function_name, DependencyGraph, Dimension, Position},
+        cac::{
+            deserialize_function_name, DependencyGraph, Dimension, DimensionType,
+            Position,
+        },
         ChangeReason, Description,
     },
     RegexEnum,
@@ -32,6 +35,7 @@ pub struct DimensionResponse {
     pub description: Description,
     pub change_reason: ChangeReason,
     pub autocomplete_function_name: Option<String>,
+    pub dimension_type: DimensionType,
 }
 
 impl DimensionResponse {
@@ -52,6 +56,7 @@ impl DimensionResponse {
             description: value.description,
             change_reason: value.change_reason,
             autocomplete_function_name: value.autocomplete_function_name,
+            dimension_type: value.dimension_type,
         }
     }
 }
@@ -66,6 +71,9 @@ pub struct CreateRequest {
     pub description: Description,
     pub change_reason: ChangeReason,
     pub autocomplete_function_name: Option<String>,
+    #[serde(default)]
+    pub dimension_type: DimensionType,
+    pub cohort_based_on: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -81,6 +89,7 @@ pub struct UpdateRequest {
     pub dependencies: Option<Vec<String>>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
+    pub cohort_based_on: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into, Clone)]
