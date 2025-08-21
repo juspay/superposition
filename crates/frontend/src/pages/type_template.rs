@@ -5,6 +5,7 @@ use leptos_router::{use_navigate, use_params_map};
 use superposition_types::database::models::cac::TypeTemplate;
 
 use crate::api::get_type_template;
+use crate::components::description::ContentDescription;
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -19,60 +20,6 @@ use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorPro
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
-
-#[component]
-fn type_description(type_template: TypeTemplate) -> impl IntoView {
-    view! {
-        <div class="card bg-base-100 max-w-screen shadow">
-            <div class="card-body flex flex-row gap-2 flex-wrap">
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Description"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&type_template.description)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&type_template.description)}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created by"</div>
-                    <div class="stat-value text-sm">{type_template.created_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created at"</div>
-                    <div class="stat-value text-sm">
-                        {type_template.created_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified by"</div>
-                    <div class="stat-value text-sm">{type_template.last_modified_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified at"</div>
-                    <div class="stat-value text-sm">
-                        {type_template.last_modified_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Change Reason"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&type_template.change_reason)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&type_template.change_reason)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
 
 #[component]
 fn type_info(type_template: TypeTemplate) -> impl IntoView {
@@ -195,7 +142,14 @@ pub fn type_page() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                        <TypeDescription type_template=type_template.clone() />
+                        <ContentDescription
+                            description=type_template.description.clone()
+                            change_reason=type_template.change_reason.clone()
+                            created_by=type_template.created_by.clone()
+                            created_at=type_template.created_at
+                            last_modified_by=type_template.last_modified_by.clone()
+                            last_modified_at=type_template.last_modified_at
+                        />
                         <TypeInfo type_template=type_template.clone() />
                     </div>
                     {match action_rws.get() {

@@ -1,7 +1,10 @@
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
-        table::types::{default_column_formatter, Column, ColumnSortable, Expandable},
+        table::types::{
+            default_column_formatter, default_formatter, Column, ColumnSortable,
+            Expandable,
+        },
     },
     logic::Conditions,
 };
@@ -63,7 +66,7 @@ pub fn experiment_table_columns(
                                 </span>
                                 <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
                                 <Show when=move || copied.get()>
-                                    <div class="inline-block ml-2 px-2 bg-gray-600 rounded-xl">
+                                    <div class="w-fit ml-2 px-2 flex justify-center items-center bg-gray-600 rounded-xl">
                                         <span class="text-white text-xs font-semibold">
                                             "copied!"
                                         </span>
@@ -149,20 +152,6 @@ pub fn experiment_table_columns(
                 .into_view()
             },
         ),
-        Column::default_with_cell_formatter(
-            "experiment_group_id".to_string(),
-            |value: &str, _| {
-                let label = match value {
-                    "null" => "¯\\_(ツ)_/¯".to_string(),
-                    other => other.to_string(),
-                };
-
-                view! {
-                    <span>{label}</span>
-                }
-                .into_view()
-            },
-        ),
         Column::default_with_sort(
             "created_at".to_string(),
             ColumnSortable::Yes {
@@ -180,9 +169,10 @@ pub fn experiment_table_columns(
                 currently_sorted: current_sort_on == ExperimentSortOn::CreatedAt,
             },
         ),
-        Column::default("created_by".to_string()),
-        Column::default_with_sort(
+        Column::new(
             "last_modified".to_string(),
+            false,
+            default_formatter,
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();
@@ -197,6 +187,9 @@ pub fn experiment_table_columns(
                 sort_by: current_sort_by,
                 currently_sorted: current_sort_on == ExperimentSortOn::LastModifiedAt,
             },
+            Expandable::Enabled(100),
+            |_| default_column_formatter("Modified At"),
         ),
+        Column::default("last_modified_by".to_string()),
     ]
 }

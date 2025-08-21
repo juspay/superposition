@@ -9,12 +9,15 @@ use actix_web::http::header::ContentType;
 use actix_web::web::Data;
 use actix_web::{
     get, put, route,
-    web::{Json, Query},
+    web::{Json, Path, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{
+    dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl,
+    SelectableHelper,
+};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
@@ -30,12 +33,18 @@ use service_utils::service::types::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::{config::ContextPayload, context::PutRequest},
+    api::{
+        config::{ConfigVersionResponse, ContextPayload},
+        context::PutRequest,
+    },
     custom_query::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },
     database::{
-        models::{cac::ConfigVersion, ChangeReason, Description},
+        models::{
+            cac::{ConfigVersion, ConfigVersionListItem},
+            ChangeReason, Description,
+        },
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
         superposition_schema::superposition::workspaces,
     },
@@ -62,7 +71,8 @@ pub fn endpoints() -> Scope {
         .service(get_config)
         .service(get_resolved_config)
         .service(reduce_config)
-        .service(get_config_versions);
+        .service(list_config_versions)
+        .service(fetch_config_version);
     #[cfg(feature = "high-performance-mode")]
     let scope = scope.service(get_config_fast);
     scope
@@ -913,16 +923,17 @@ async fn get_resolved_config(
 }
 
 #[get("/versions")]
-async fn get_config_versions(
+async fn list_config_versions(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
     schema_name: SchemaName,
-) -> superposition::Result<Json<PaginatedResponse<ConfigVersion>>> {
+) -> superposition::Result<Json<PaginatedResponse<ConfigVersionListItem>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
-        let config_versions: Vec<ConfigVersion> = config_versions::config_versions
+        let config_versions = config_versions::config_versions
             .schema_name(&schema_name)
+            .select(ConfigVersionListItem::as_select())
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse::all(config_versions)));
     }
@@ -942,11 +953,29 @@ async fn get_config_versions(
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let config_versions: Vec<ConfigVersion> = builder.load(&mut conn)?;
+    let config_versions = builder
+        .select(ConfigVersionListItem::as_select())
+        .load(&mut conn)?;
     let total_pages = (n_version as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,
         total_items: n_version,
         data: config_versions,
     }))
+}
+
+#[get("/version/{version}")]
+async fn fetch_config_version(
+    db_conn: DbConnection,
+    version: Path<i64>,
+    schema_name: SchemaName,
+) -> superposition::Result<Json<ConfigVersionResponse>> {
+    let DbConnection(mut conn) = db_conn;
+
+    let config_version = config_versions::config_versions
+        .schema_name(&schema_name)
+        .find(version.into_inner())
+        .get_result::<ConfigVersion>(&mut conn)?;
+
+    Ok(Json(config_version.into()))
 }

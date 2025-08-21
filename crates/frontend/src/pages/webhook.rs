@@ -7,6 +7,7 @@ use superposition_types::database::models::others::Webhook;
 
 use crate::api::{delete_webhooks, get_webhook};
 use crate::components::badge::Badge;
+use crate::components::description::ContentDescription;
 use crate::components::input::Toggle;
 use crate::components::{
     alert::AlertType,
@@ -20,60 +21,6 @@ use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorPro
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
-
-#[component]
-fn webhook_description(webhook: Webhook) -> impl IntoView {
-    view! {
-        <div class="card bg-base-100 max-w-screen shadow">
-            <div class="card-body flex flex-row gap-2 flex-wrap">
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Description"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&webhook.description)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&webhook.description)}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created by"</div>
-                    <div class="stat-value text-sm">{webhook.created_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Created at"</div>
-                    <div class="stat-value text-sm">
-                        {webhook.created_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified by"</div>
-                    <div class="stat-value text-sm">{webhook.last_modified_by}</div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Last Modified at"</div>
-                    <div class="stat-value text-sm">
-                        {webhook.last_modified_at.format("%v %T").to_string()}
-                    </div>
-                </div>
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Change Reason"</div>
-                    <div
-                        class="tooltip tooltip-bottom w-[inherit] text-left"
-                        data-tip=String::from(&webhook.change_reason)
-                    >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {String::from(&webhook.change_reason)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
 
 #[component]
 fn webhook_info(webhook: Webhook) -> impl IntoView {
@@ -244,7 +191,14 @@ pub fn webhook() -> impl IntoView {
                                 />
                             </div>
                         </div>
-                        <WebhookDescription webhook=webhook.clone() />
+                        <ContentDescription
+                            description=webhook.description.clone()
+                            change_reason=webhook.change_reason.clone()
+                            created_by=webhook.created_by.clone()
+                            created_at=webhook.created_at
+                            last_modified_by=webhook.last_modified_by.clone()
+                            last_modified_at=webhook.last_modified_at
+                        />
                         <WebhookInfo webhook=webhook.clone() />
                     </div>
                     {match action_rws.get() {

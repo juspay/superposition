@@ -5,7 +5,7 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
-    database::models::cac::ConfigVersion,
+    database::models::cac::ConfigVersionListItem,
     PaginatedResponse,
 };
 
@@ -15,7 +15,9 @@ use crate::components::table::types::{ColumnSortable, Expandable, TablePaginatio
 use crate::components::table::{types::Column, Table};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Tenant};
-use crate::{api::fetch_snapshots, components::table::types::default_column_formatter};
+use crate::{
+    api::snapshots::fetch_all, components::table::types::default_column_formatter,
+};
 
 #[component]
 pub fn config_version_list() -> impl IntoView {
@@ -30,11 +32,11 @@ pub fn config_version_list() -> impl IntoView {
 
     let snapshots_resource: Resource<
         (String, PaginationParams, String),
-        PaginatedResponse<ConfigVersion>,
+        PaginatedResponse<ConfigVersionListItem>,
     > = create_blocking_resource(
         move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(current_tenant, pagination_params, org_id)| async move {
-            fetch_snapshots(&pagination_params, current_tenant.to_string(), org_id)
+            fetch_all(&pagination_params, current_tenant.to_string(), org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -73,7 +75,10 @@ pub fn config_version_list() -> impl IntoView {
                                         .data
                                         .into_iter()
                                         .map(|config_version| {
-                                            let mut map = Map::new();
+                                            let mut map = json!(config_version)
+                                                .as_object()
+                                                .unwrap()
+                                                .clone();
                                             map.insert(
                                                 "id".to_string(),
                                                 Value::String(config_version.id.to_string()),
@@ -82,7 +87,6 @@ pub fn config_version_list() -> impl IntoView {
                                                 "created_at".to_string(),
                                                 json!(config_version.created_at.format("%v %T").to_string()),
                                             );
-                                            map.insert("tags".to_string(), json!(config_version.tags));
                                             map
                                         })
                                         .collect();
@@ -131,6 +135,7 @@ pub fn snapshot_table_columns() -> Vec<Column> {
             Expandable::Disabled,
             default_column_formatter,
         ),
+        Column::default("description".to_string()),
         Column::default_no_collapse("created_at".to_string()),
         Column::default_with_cell_formatter(
             "tags".to_string(),

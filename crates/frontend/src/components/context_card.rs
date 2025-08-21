@@ -9,7 +9,7 @@ use superposition_types::{
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
-        description_icon::InfoDescription,
+        description::InfoDescription,
         table::{types::Column, Table},
     },
     logic::Conditions,
