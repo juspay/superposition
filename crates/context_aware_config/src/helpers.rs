@@ -13,6 +13,7 @@ use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
+use jsonlogic::validation as logic_validation;
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
@@ -174,6 +175,40 @@ pub fn validate_jsonschema(
             ))
         }
     }
+}
+
+pub fn validate_cohort_schema(cohort_schema: &Value) -> superposition::Result<()> {
+    let validation_config = logic_validation::ValidationConfig {
+        require_and_wrapper: Some(logic_validation::RequireAndWrapper {
+            allow_empty: false,
+        }),
+    };
+    let logic = match cohort_schema {
+        Value::Object(logic) if logic.is_empty() => {
+            log::error!("Empty JSON Logic object is not allowed");
+            return Err(validation_error!(
+                "Empty objet is not allowed as a schema, mention at least one cohort"
+            ));
+        }
+        Value::Object(logic) => logic,
+        _ => {
+            log::error!(
+                "Invalid JSON Logic schema: expected an object, found: {}",
+                cohort_schema
+            );
+            return Err(validation_error!(
+                "Invalid JSON Logic schema: expected an object, found: {}",
+                cohort_schema
+            ));
+        }
+    };
+    for (cohort, rules) in logic.iter() {
+        logic_validation::validate(rules, &validation_config).map_err(|e| {
+            log::error!("jsonlogic validation error for cohort {cohort}: {e:?}");
+            validation_error!("Invalid jsonlogic in cohort {cohort} : {e:?}")
+        })?;
+    }
+    Ok(())
 }
 
 #[cfg(not(feature = "jsonlogic"))]
