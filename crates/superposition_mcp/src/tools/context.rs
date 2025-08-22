@@ -116,6 +116,7 @@ impl ToolsModule for ContextTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "create_context" => {
+                let _context_id = arguments["context_id"].as_str().unwrap_or("");
                 let condition = arguments["condition"].clone();
                 let condition_doc = value_to_hashmap(condition);
                 let override_with_keys = value_to_hashmap(arguments["override_with_keys"].clone());
@@ -171,12 +172,13 @@ impl ToolsModule for ContextTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "delete_context" => {
-                let _context_id = arguments["context_id"].as_str().unwrap_or("");
+                let context_id = arguments["context_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .delete_context()
                     .workspace_id(&service.workspace_id)
                     .org_id(&service.org_id)
+                    .id(context_id)
                     .send()
                     .await
                     .map(|_| json!({"status": "deleted"}))

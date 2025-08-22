@@ -54,7 +54,8 @@ impl ToolsModule for WorkspaceTools {
         match tool_name {
             "create_workspace" => {
                 let workspace_name = arguments["workspace_name"].as_str().unwrap_or("");
-                let _change_reason = arguments["change_reason"].as_str().unwrap_or("");
+                let description = arguments["description"].as_str().unwrap_or("");
+                let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
                 service
                     .superposition_client
@@ -82,12 +83,24 @@ impl ToolsModule for WorkspaceTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_workspace" => {
-                let _change_reason = arguments["change_reason"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
+                let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
-                service
+                let mut builder = service
                     .superposition_client
                     .update_workspace()
+                    .workspace_name(workspace_id)
                     .org_id(&service.org_id)
+;
+                
+                if let Some(workspace_name) = arguments["workspace_name"].as_str() {
+                    builder = builder.workspace_name(workspace_name);
+                }
+                if let Some(description) = arguments["description"].as_str() {
+                    // builder = builder.description(description); // Method not available
+                }
+                
+                builder
                     .send()
                     .await
                     .map(|_| json!({"status": "updated"}))

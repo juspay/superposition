@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 use std::error::Error;
-use crate::mcp_service::{Tool, McpService};
+use crate::mcp_service::{Tool, McpService, value_to_hashmap};
 use super::ToolsModule;
 
 pub struct MiscTools;
@@ -82,63 +82,75 @@ impl ToolsModule for MiscTools {
     async fn execute_tool(
         service: &McpService,
         tool_name: &str,
-        _arguments: &Value,
+        arguments: &Value,
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "applicable_variants" => {
-                // This operation has complex parameter requirements, placeholder for now
-                Err(format!("applicable_variants operation needs SDK parameter mapping").into())
-            }
-            "bulk_operation" => {
+                let context = &arguments["context"];
+                let context_hashmap = if let Some(context_map) = value_to_hashmap(context.clone()) {
+                    context_map
+                } else {
+                    return Err("Invalid context format".into());
+                };
+                
                 service
                     .superposition_client
-                    .bulk_operation()
+                    .applicable_variants()
                     .workspace_id(&service.workspace_id)
                     .org_id(&service.org_id)
+                    .set_context(Some(context_hashmap))
                     .send()
                     .await
-                    .map(|_| json!({"status": "bulk operation completed"}))
+                    .map(|_| json!({"status": "variants found"}))
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
+            "bulk_operation" => {
+                // Complex type conversion needed for BulkOperationReq, placeholder for now
+                Err(format!("bulk_operation requires complex BulkOperationReq type conversion").into())
+            }
             "publish" => {
-                service
+                let mut builder = service
                     .superposition_client
                     .publish()
                     .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .org_id(&service.org_id);
+                
+                if let Some(comment) = arguments["comment"].as_str() {
+                    builder = builder.change_reason(comment);
+                }
+                
+                builder
                     .send()
                     .await
                     .map(|_| json!({"status": "published"}))
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "test" => {
-                service
-                    .superposition_client
-                    .test()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
-                    .send()
-                    .await
-                    .map(|_| json!({"status": "test completed"}))
-                    .map_err(|e| format!("SDK error: {}", e).into())
+                // Complex type conversion needed for FunctionExecutionRequest, placeholder for now
+                Err(format!("test requires complex FunctionExecutionRequest type conversion").into())
             }
             "update_override" => {
-                service
-                    .superposition_client
-                    .update_override()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
-                    .send()
-                    .await
-                    .map(|_| json!({"status": "override updated"}))
-                    .map_err(|e| format!("SDK error: {}", e).into())
+                // Complex type conversion needed for UpdateContextOverrideRequest, placeholder for now
+                Err(format!("update_override requires complex UpdateContextOverrideRequest type conversion").into())
             }
             "weight_recompute" => {
-                service
+                let mut builder = service
                     .superposition_client
                     .weight_recompute()
                     .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .org_id(&service.org_id);
+                
+                if let Some(config_keys_array) = arguments["config_keys"].as_array() {
+                    let config_keys: Vec<String> = config_keys_array
+                        .iter()
+                        .filter_map(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .collect();
+                    let config_keys_str = config_keys.join(",");
+                    builder = builder.config_tags(config_keys_str);
+                }
+                
+                builder
                     .send()
                     .await
                     .map(|_| json!({"status": "weights recomputed"}))

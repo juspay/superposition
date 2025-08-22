@@ -36,15 +36,29 @@ impl ToolsModule for AuditTools {
     async fn execute_tool(
         service: &McpService,
         tool_name: &str,
-        _arguments: &Value,
+        arguments: &Value,
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "list_audit_logs" => {
-                service
+                let builder = service
                     .superposition_client
                     .list_audit_logs()
                     .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .org_id(&service.org_id);
+                
+                // Note: from_date and to_date would need DateTime conversion, 
+                // and filters would need proper format - keeping simple for now
+                if let Some(_from_date) = arguments["from_date"].as_str() {
+                    // DateTime conversion would be needed here
+                }
+                if let Some(_to_date) = arguments["to_date"].as_str() {
+                    // DateTime conversion would be needed here  
+                }
+                if arguments.get("filters").is_some() {
+                    // Filter processing would be needed here
+                }
+                
+                builder
                     .send()
                     .await
                     .map(|output| {

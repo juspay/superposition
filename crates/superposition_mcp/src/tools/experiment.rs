@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 use std::error::Error;
-use crate::mcp_service::{Tool, McpService};
+use crate::mcp_service::{Tool, McpService, value_to_hashmap};
 use super::ToolsModule;
 
 pub struct ExperimentTools;
@@ -225,19 +225,20 @@ impl ToolsModule for ExperimentTools {
             }
             "create_experiment" => {
                 let name = arguments["name"].as_str().unwrap_or("");
+                let context = &arguments["context"];
+                let variants = &arguments["variants"];
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
-                service
-                    .superposition_client
-                    .create_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
-                    .name(name)
-                    .change_reason(change_reason)
-                    .send()
-                    .await
-                    .map(|_| json!({"status": "created"}))
-                    .map_err(|e| format!("SDK error: {}", e).into())
+                // Convert context to hashmap format expected by SDK
+                let context_hashmap = if let Some(context_map) = value_to_hashmap(context.clone()) {
+                    context_map
+                } else {
+                    return Err("Invalid context format".into());
+                };
+                
+                // Convert variants to the format expected by SDK
+                // Complex type conversion needed for Vec<Variant>, placeholder for now
+                Err(format!("create_experiment requires complex Variant type conversion for variants parameter").into())
             }
             "get_experiment" => {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");

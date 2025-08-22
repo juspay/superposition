@@ -65,7 +65,8 @@ impl ToolsModule for OrganisationTools {
         match tool_name {
             "create_organisation" => {
                 let name = arguments["name"].as_str().unwrap_or("");
-                let _change_reason = arguments["change_reason"].as_str().unwrap_or("");
+                let description = arguments["description"].as_str().unwrap_or("");
+                let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
                 service
                     .superposition_client
@@ -77,6 +78,7 @@ impl ToolsModule for OrganisationTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_organisation" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .get_organisation()
@@ -100,11 +102,21 @@ impl ToolsModule for OrganisationTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_organisation" => {
-                let _change_reason = arguments["change_reason"].as_str().unwrap_or("");
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
-                service
+                let mut builder = service
                     .superposition_client
-                    .update_organisation()
+                    .update_organisation();
+                
+                if let Some(name) = arguments["name"].as_str() {
+                    // builder = builder.name(name); // Method not available
+                }
+                if let Some(description) = arguments["description"].as_str() {
+                    // builder = builder.description(description); // Method not available
+                }
+                
+                builder
                     .send()
                     .await
                     .map(|_| json!({"status": "updated"}))
