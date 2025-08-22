@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.88.1 - 2025-08-22
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.41.1
+- frontend bumped to frontend-v0.41.1
+- superposition_types bumped to superposition_types-v0.31.1
+### Global changes
+#### Bug Fixes
+- Java.patch file - (ada7e8b) - ayush.jain@juspay.in
+- formatting checks on main (#676) - (21d0214) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.88.0 [skip ci] - (e23bb63) - Superposition Bot
+
+- - -
+
 ## v0.88.0 - 2025-08-19
 ### Package updates
 - experimentation_client bumped to experimentation_client-v0.18.0

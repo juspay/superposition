@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.41.1 - 2025-08-22
+#### Bug Fixes
+- add delay in backfill endpoint (#674) - (d505ce2) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.88.0 [skip ci] - (e23bb63) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.41.0 - 2025-08-19
 #### Features
 - Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in

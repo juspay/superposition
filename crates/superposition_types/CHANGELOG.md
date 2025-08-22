@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.31.1 - 2025-08-22
+#### Bug Fixes
+- add delay in backfill endpoint (#674) - (d505ce2) - Ankit Kumar Mahato
+- Make auto populate control backwards compatible - (7c62dbb) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.88.0 [skip ci] - (e23bb63) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.31.0 - 2025-08-19
 #### Features
 - Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in

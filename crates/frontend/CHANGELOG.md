@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.41.1 - 2025-08-22
+#### Bug Fixes
+- Base url used for redirection in organisation list page (#673) - (b7fcaf4) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.88.0 [skip ci] - (e23bb63) - Superposition Bot
+
+- - -
+
 ## frontend-v0.41.0 - 2025-08-19
 #### Features
 - Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in
