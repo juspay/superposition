@@ -1,7 +1,7 @@
+use super::ToolsModule;
+use crate::mcp_service::{McpService, Tool};
 use serde_json::{json, Value};
 use std::error::Error;
-use crate::mcp_service::{Tool, McpService};
-use super::ToolsModule;
 
 pub struct OrganisationTools;
 
@@ -65,13 +65,28 @@ impl ToolsModule for OrganisationTools {
         match tool_name {
             "create_organisation" => {
                 let name = arguments["name"].as_str().unwrap_or("");
-                let description = arguments["description"].as_str().unwrap_or("");
-                let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
-                service
+                let mut builder = service
                     .superposition_client
                     .create_organisation()
-                    .name(name)
+                    .name(name);
+
+                if let Some(contact_email) = arguments["contact_email"].as_str() {
+                    builder = builder.contact_email(contact_email);
+                }
+                if let Some(contact_phone) = arguments["contact_phone"].as_str() {
+                    builder = builder.contact_phone(contact_phone);
+                }
+                if let Some(admin_email) = arguments["admin_email"].as_str() {
+                    builder = builder.admin_email(admin_email);
+                }
+                if let Some(country_code) = arguments["country_code"].as_str() {
+                    builder = builder.country_code(country_code);
+                }
+                if let Some(sector) = arguments["sector"].as_str() {
+                    builder = builder.sector(sector);
+                }
+
+                builder
                     .send()
                     .await
                     .map(|_| json!({"status": "created"}))
@@ -82,40 +97,48 @@ impl ToolsModule for OrganisationTools {
                 service
                     .superposition_client
                     .get_organisation()
+                    .id(org_id)
                     .send()
                     .await
                     .map(|_| json!({"status": "found"}))
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
-            "list_organisation" => {
-                service
-                    .superposition_client
-                    .list_organisation()
-                    .send()
-                    .await
-                    .map(|output| {
-                        json!({
-                            "count": output.data().len(),
-                            "message": "Organisations found"
-                        })
+            "list_organisation" => service
+                .superposition_client
+                .list_organisation()
+                .send()
+                .await
+                .map(|output| {
+                    json!({
+                        "count": output.data().len(),
+                        "message": "Organisations found"
                     })
-                    .map_err(|e| format!("SDK error: {}", e).into())
-            }
+                })
+                .map_err(|e| format!("SDK error: {}", e).into()),
             "update_organisation" => {
                 let org_id = arguments["org_id"].as_str().unwrap_or("");
-                let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 let mut builder = service
                     .superposition_client
-                    .update_organisation();
-                
-                if let Some(name) = arguments["name"].as_str() {
-                    // builder = builder.name(name); // Method not available
+                    .update_organisation()
+                    .id(org_id);
+
+                if let Some(contact_email) = arguments["contact_email"].as_str() {
+                    builder = builder.contact_email(contact_email);
                 }
-                if let Some(description) = arguments["description"].as_str() {
-                    // builder = builder.description(description); // Method not available
+                if let Some(contact_phone) = arguments["contact_phone"].as_str() {
+                    builder = builder.contact_phone(contact_phone);
                 }
-                
+                if let Some(admin_email) = arguments["admin_email"].as_str() {
+                    builder = builder.admin_email(admin_email);
+                }
+                if let Some(country_code) = arguments["country_code"].as_str() {
+                    builder = builder.country_code(country_code);
+                }
+                if let Some(sector) = arguments["sector"].as_str() {
+                    builder = builder.sector(sector);
+                }
+
                 builder
                     .send()
                     .await

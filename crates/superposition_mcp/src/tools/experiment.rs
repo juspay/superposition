@@ -1,7 +1,8 @@
+use super::ToolsModule;
+use crate::mcp_service::{value_to_hashmap, value_to_document, McpService, Tool};
 use serde_json::{json, Value};
 use std::error::Error;
-use crate::mcp_service::{Tool, McpService, value_to_hashmap};
-use super::ToolsModule;
+use superposition_sdk::types::{Variant, VariantType};
 
 pub struct ExperimentTools;
 
@@ -226,23 +227,89 @@ impl ToolsModule for ExperimentTools {
             "create_experiment" => {
                 let name = arguments["name"].as_str().unwrap_or("");
                 let context = &arguments["context"];
-                let variants = &arguments["variants"];
+                let variants_array = arguments["variants"].as_array().ok_or("variants must be an array")?;
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 // Convert context to hashmap format expected by SDK
                 let context_hashmap = if let Some(context_map) = value_to_hashmap(context.clone()) {
                     context_map
                 } else {
                     return Err("Invalid context format".into());
                 };
+
+                // Convert variants JSON array to Vec<Variant>
+                let variants: Result<Vec<Variant>, Box<dyn Error>> = variants_array
+                    .iter()
+                    .map(|variant_value| {
+                        let variant_obj = variant_value.as_object()
+                            .ok_or("Each variant must be an object")?;
+                        
+                        let id = variant_obj.get("id")
+                            .and_then(|v| v.as_str())
+                            .ok_or("Variant must have an 'id' field")?;
+                        
+                        let variant_type_str = variant_obj.get("variant_type")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("EXPERIMENTAL");
+                        
+                        let variant_type = match variant_type_str.to_uppercase().as_str() {
+                            "CONTROL" => VariantType::Control,
+                            "EXPERIMENTAL" => VariantType::Experimental,
+                            _ => VariantType::Experimental, // Default fallback
+                        };
+                        
+                        let context_id = variant_obj.get("context_id")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                        
+                        let override_id = variant_obj.get("override_id")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                        
+                        let default_overrides = serde_json::json!({});
+                        let overrides = variant_obj.get("overrides")
+                            .unwrap_or(&default_overrides);
+                        let overrides_doc = value_to_document(overrides);
+                        
+                        let variant = Variant::builder()
+                            .id(id)
+                            .variant_type(variant_type)
+                            .set_context_id(context_id)
+                            .set_override_id(override_id)
+                            .overrides(overrides_doc)
+                            .build()
+                            .map_err(|e| format!("Failed to build variant: {}", e))?;
+                        
+                        Ok(variant)
+                    })
+                    .collect();
                 
-                // Convert variants to the format expected by SDK
-                // Complex type conversion needed for Vec<Variant>, placeholder for now
-                Err(format!("create_experiment requires complex Variant type conversion for variants parameter").into())
+                let variants = variants?;
+
+                // Build the experiment with all variants
+                let mut builder = service
+                    .superposition_client
+                    .create_experiment()
+                    .workspace_id(&service.workspace_id)
+                    .org_id(&service.org_id)
+                    .name(name)
+                    .change_reason(change_reason)
+                    .set_context(Some(context_hashmap));
+
+                // Add each variant to the builder
+                for variant in variants {
+                    builder = builder.variants(variant);
+                }
+
+                builder
+                    .send()
+                    .await
+                    .map(|_| json!({"status": "experiment_created"}))
+                    .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_experiment" => {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .get_experiment()
@@ -257,7 +324,7 @@ impl ToolsModule for ExperimentTools {
             "conclude_experiment" => {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .conclude_experiment()
@@ -273,7 +340,7 @@ impl ToolsModule for ExperimentTools {
             "discard_experiment" => {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .discard_experiment()
@@ -289,7 +356,7 @@ impl ToolsModule for ExperimentTools {
             "pause_experiment" => {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .pause_experiment()
@@ -305,7 +372,7 @@ impl ToolsModule for ExperimentTools {
             "resume_experiment" => {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .resume_experiment()
@@ -322,7 +389,7 @@ impl ToolsModule for ExperimentTools {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let ramp_percentage = arguments["ramp_percentage"].as_f64().unwrap_or(0.0);
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .ramp_experiment()
@@ -340,7 +407,7 @@ impl ToolsModule for ExperimentTools {
                 let name = arguments["name"].as_str().unwrap_or("");
                 let description = arguments["description"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .create_experiment_group()
@@ -356,7 +423,7 @@ impl ToolsModule for ExperimentTools {
             }
             "get_experiment_group" => {
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .get_experiment_group()
@@ -387,7 +454,7 @@ impl ToolsModule for ExperimentTools {
             "update_experiment_group" => {
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .update_experiment_group()
@@ -402,7 +469,7 @@ impl ToolsModule for ExperimentTools {
             }
             "delete_experiment_group" => {
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .delete_experiment_group()
@@ -419,13 +486,13 @@ impl ToolsModule for ExperimentTools {
                 let empty_vec = vec![];
                 let member_ids = arguments["member_ids"].as_array().unwrap_or(&empty_vec);
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 let member_strings: Vec<String> = member_ids
                     .iter()
                     .filter_map(|v| v.as_str())
                     .map(|s| s.to_string())
                     .collect();
-                
+
                 service
                     .superposition_client
                     .add_members_to_group()
@@ -444,13 +511,13 @@ impl ToolsModule for ExperimentTools {
                 let empty_vec = vec![];
                 let member_ids = arguments["member_ids"].as_array().unwrap_or(&empty_vec);
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 let member_strings: Vec<String> = member_ids
                     .iter()
                     .filter_map(|v| v.as_str())
                     .map(|s| s.to_string())
                     .collect();
-                
+
                 service
                     .superposition_client
                     .remove_members_from_group()
@@ -467,7 +534,7 @@ impl ToolsModule for ExperimentTools {
             "update_overrides_experiment" => {
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
-                
+
                 service
                     .superposition_client
                     .update_overrides_experiment()
