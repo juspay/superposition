@@ -15,12 +15,14 @@ Context Aware Config (abbreviated as CAC) is the foundational service of the Sup
     - [Dimensions](#dimensions)
     - [Context](#context)
     - [Overrides](#overrides)
+    - [Functions](#functions)
+    - [Type Templates](#type-templates)
   - [How CAC Works](#how-cac-works)
 
 ## Concepts
 ---
 
-Context-Aware-Config is made of 4 key abstractions - default-configs, dimensions, context and overrides.
+Context-Aware-Config is made of 6 key abstractions - default-configs, dimensions, context, overrides, functions, and type templates.
 
 
 ### Default Configs
@@ -42,7 +44,7 @@ surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
 
 ### Dimensions
 
-Dimensions are typically attributes of your domain which can potentially govern the values that a particular configuration can take.
+Dimensions are attributes of your domain that can potentially govern the values that a particular configuration can take. They define the segmentation criteria used to create different contexts for configuration overrides.
 
 In our example application, dimensions that could change the configuration values could be one or more of the following:
 
@@ -61,6 +63,96 @@ vehicle_type = { schema = { "type" = "string", "enum" = [
     "bike",
 ] } }
 hour_of_day = { schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
+```
+
+#### Dimension Properties
+
+Each dimension has several key properties that control its behavior:
+
+- **Schema**: JSON Schema definition that validates the values this dimension can accept
+- **Position**: Hierarchical ordering that determines evaluation precedence (position 0 is reserved for `variantIds`)
+- **Dependencies**: Other dimensions that this dimension depends on for evaluation
+- **Functions**: Optional validation and autocomplete functions for custom logic
+- **Description**: Human-readable explanation of the dimension's purpose
+
+#### Dimension Hierarchy and Dependencies
+
+Dimensions can have dependencies on other dimensions, creating a hierarchy that ensures proper evaluation order:
+
+```toml
+[dimensions]
+# Base dimension - no dependencies
+region = { schema = { "type" = "string", "enum" = ["north", "south"] } }
+
+# Depends on region
+city = { 
+    schema = { "type" = "string", "enum" = ["delhi", "mumbai", "bangalore", "hyderabad"] },
+    dependencies = ["region"]
+}
+
+# Depends on city
+zone = { 
+    schema = { "type" = "string" },
+    dependencies = ["city"]
+}
+```
+
+This hierarchy ensures that:
+- `region` is evaluated first (lowest position)
+- `city` is evaluated after `region` is available
+- `zone` is evaluated after both `region` and `city` are available
+
+#### Built-in Dimensions
+
+Every workspace automatically includes the `variantIds` dimension:
+
+- **variantIds**: Reserved dimension (position 0) used for experimentation and A/B testing
+- **Schema**: Array of strings representing experiment variant identifiers
+- **Usage**: Automatically populated during experiment evaluation
+
+#### Dimension Validation
+
+Dimensions support multiple validation approaches:
+
+1. **JSON Schema Validation**: Basic type checking, enums, ranges, patterns
+2. **Function Validation**: Custom JavaScript functions for complex business logic
+3. **Dependency Validation**: Ensures dependent dimensions have valid values
+
+**Example with Function Validation:**
+```toml
+[dimensions]
+user_tier = { 
+    schema = { "type" = "string", "enum" = ["bronze", "silver", "gold", "platinum"] },
+    function_name = "validate_user_tier"
+}
+```
+
+The `validate_user_tier` function could perform additional checks like verifying the user actually has the claimed tier based on external data.
+
+#### Advanced Dimension Features
+
+**Autocomplete Support:**
+```toml
+[dimensions]
+city_code = {
+    schema = { "type" = "string", "pattern" = "^[A-Z]{3}$" },
+    autocomplete_function_name = "suggest_city_codes"
+}
+```
+
+**Complex Schema Types:**
+```toml
+[dimensions]
+geo_location = {
+    schema = {
+        "type" = "object",
+        "properties" = {
+            "lat" = { "type" = "number", "minimum" = -90, "maximum" = 90 },
+            "lng" = { "type" = "number", "minimum" = -180, "maximum" = 180 }
+        },
+        "required" = ["lat", "lng"]
+    }
+}
 ```
 
 ### Context
@@ -117,6 +209,190 @@ surge_factor = 5.0
 [context."$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day <= 6"]
 surge_factor = 5.0
 ```
+
+### Functions
+
+Functions in Superposition are JavaScript code snippets that provide custom validation and autocomplete functionality for configuration dimensions and default configs. They enable dynamic validation rules and intelligent form suggestions that go beyond basic JSON Schema validation.
+
+#### Function Types
+
+Superposition supports two types of functions:
+
+1. **Validation Functions** - Provide custom validation logic for dimension values and configuration keys
+2. **Autocomplete Functions** - Generate dynamic suggestions for form fields based on context
+
+#### Validation Functions
+
+Validation functions allow you to implement complex business logic for validating dimension values or configuration values that cannot be expressed through JSON Schema alone.
+
+**Function Signature:**
+```javascript
+async function validate(key, value) {
+    // Custom validation logic here
+    // Return true if valid, false if invalid
+    return boolean;
+}
+```
+
+**Example - Validating City Codes:**
+```javascript
+async function validate(key, value) {
+    // Validate that city codes follow specific business rules
+    const validCities = ['BLR', 'DEL', 'MUM', 'HYD'];
+    if (key === 'city_code') {
+        return validCities.includes(value) && value.length === 3;
+    }
+    return true;
+}
+```
+
+#### Autocomplete Functions
+
+Autocomplete functions provide dynamic suggestions for form fields, enabling intelligent data entry and reducing errors.
+
+**Function Signature:**
+```javascript
+async function autocomplete(name, prefix, environment) {
+    // Generate suggestions based on name, prefix, and environment
+    // Return array of suggestion strings
+    return string[];
+}
+```
+
+**Example - City Suggestions:**
+```javascript
+async function autocomplete(name, prefix, environment) {
+    if (name === 'city' && prefix.length >= 2) {
+        const cities = ['Bangalore', 'Delhi', 'Mumbai', 'Hyderabad', 'Chennai'];
+        return cities.filter(city => 
+            city.toLowerCase().startsWith(prefix.toLowerCase())
+        );
+    }
+    return [];
+}
+```
+
+#### Function Lifecycle
+
+Functions have a draft and published lifecycle:
+
+- **Draft Stage**: Functions can be created, edited, and tested without affecting live configurations
+- **Testing**: Functions can be tested in both draft and published stages to verify behavior
+- **Publishing**: Draft functions can be published to become the active version used in validation
+- **Execution**: Functions run in a secure Node.js sandbox with controlled timeouts and limited system access
+
+#### Security and Sandboxing
+
+Functions execute in a secure environment with:
+- 10-second execution timeout limits
+- Isolated Node.js worker processes  
+- Limited environment variable access
+- No file system access beyond execution context
+- Access to HTTP libraries for external API calls (via axios)
+
+### Type Templates
+
+Type Templates are reusable JSON Schema definitions that serve as standardized data type specifications for configuration values. They provide a way to define and enforce consistent data types and validation rules across the entire configuration management system.
+
+#### Purpose and Benefits
+
+Type Templates enable:
+
+- **Reusability**: Define complex data types once and use them across multiple configurations
+- **Consistency**: Standardized type definitions across all configurations in your organization
+- **Validation**: Built-in JSON Schema validation prevents invalid data entry
+- **UI Generation**: Automatic form generation based on type definitions
+- **Maintainability**: Centralized type definitions make schema updates easier
+
+#### Built-in Type Templates
+
+Superposition comes with several predefined type templates:
+
+```json
+{
+  "Number": { "type": "integer" },
+  "Decimal": { "type": "number" },
+  "Boolean": { "type": "boolean" },
+  "Enum": { "type": "string", "enum": ["android", "ios"] },
+  "Pattern": { "type": "string", "pattern": ".*" }
+}
+```
+
+#### Creating Custom Type Templates
+
+You can create custom type templates for complex data validation requirements:
+
+**Email Template:**
+```json
+{
+  "type": "string",
+  "format": "email",
+  "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+}
+```
+
+**Geographic Coordinate Template:**
+```json
+{
+  "type": "object",
+  "properties": {
+    "latitude": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "type": "number", 
+      "minimum": -180,
+      "maximum": 180
+    }
+  },
+  "required": ["latitude", "longitude"]
+}
+```
+
+**Currency Amount Template:**
+```json
+{
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number",
+      "minimum": 0
+    },
+    "currency": {
+      "type": "string",
+      "enum": ["USD", "EUR", "INR", "GBP"]
+    }
+  },
+  "required": ["amount", "currency"]
+}
+```
+
+#### Usage in Configuration
+
+Type templates are used when defining:
+
+1. **Default Configurations**: Specify the data type and validation rules for configuration keys
+2. **Dimension Schemas**: Define the allowed values and validation for dimension attributes
+3. **Override Validation**: Ensure override values conform to the expected data types
+
+**Example Usage in Default Config:**
+```toml
+[default-config]
+per_km_rate = { "value" = 20.0, "schema" = { "$ref": "#/types/Decimal" } }
+user_location = { "value" = {"lat": 0.0, "lng": 0.0}, "schema" = { "$ref": "#/types/GeographicCoordinate" } }
+```
+
+#### Type Template Management
+
+Type templates support full lifecycle management:
+
+- **Creation**: Define new type templates with JSON Schema validation
+- **Versioning**: Track changes with audit trail (created_by, last_modified_by, change_reason)
+- **Updates**: Modify existing templates with automatic validation
+- **Dependencies**: Templates can reference other templates for composition
+- **Deletion**: Remove unused templates with dependency checking
 
 ## How CAC Works
 ---
