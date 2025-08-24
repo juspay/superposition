@@ -20,12 +20,12 @@ members = [
     "crates/superposition_macros",
     "crates/superposition_derives",
     "crates/superposition_core",
+    "crates/superposition_mcp",
     "crates/superposition_provider",
     "crates/superposition_sdk",
     "examples/experimentation_client_integration_example",
     "examples/cac_client_integration_example",
-    "examples/superposition-demo-app",
-    "crates/superposition_mcp"
+    "examples/superposition-demo-app"
 ]
 
 [[workspace.metadata.leptos]]
@@ -54,10 +54,11 @@ diesel = { version = "2.2.4", package = "juspay_diesel", features = [
     "chrono",
     "uuid",
     "postgres_backend",
-    "numeric",
+    "numeric"
 ] }
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
+getrandom = { version = "0.3", features = ["wasm_js", "js"] }
 itertools = { version = "0.10.5" }
 jsonlogic = { version = "0.5.5", package = "juspay_jsonlogic" }
 jsonschema = "~0.17"
@@ -73,13 +74,14 @@ strum = "0.25"
 strum_macros = "0.25"
 toml = { version = "0.8.8", features = ["preserve_order"] }
 url = "2.5.0"
-uuid = { version = "1.3.4", features = ["v4", "serde"] }
+uuid = { version = "1.3.4", features = ["v4", "serde", ""] }
 uniffi = { version = "0.29.3", features = [ "cli" ] }
 superposition = { path = "crates/superposition", version = "0.88.1" }
 superposition_types = { path = "crates/superposition_types", version = "0.88.1" }
 superposition_derives = { path = "crates/superposition_derives", version = "0.88.1" }
 superposition_macros = { path = "crates/superposition_macros", version = "0.88.1" }
 superposition_core = { path = "crates/superposition_core", version = "0.88.1" }
+superposition_mcp = { path = "crates/superposition_mcp" }
 superposition_provider = { path = "crates/superposition_provider", version = "0.88.1" }
 superposition_sdk = { path = "crates/superposition_sdk", version = "0.88.1" }
 service_utils = { path = "crates/service_utils", version = "0.88.1" }
