@@ -58,7 +58,6 @@ diesel = { version = "2.2.4", package = "juspay_diesel", features = [
 ] }
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
-getrandom = { version = "0.3", features = ["wasm_js", "js"] }
 itertools = { version = "0.10.5" }
 jsonlogic = { version = "0.5.5", package = "juspay_jsonlogic" }
 jsonschema = "~0.17"
