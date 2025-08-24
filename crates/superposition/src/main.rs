@@ -105,6 +105,9 @@ async fn main() -> Result<()> {
 
     let auth_n = AuthNHandler::init(&kms_client, &app_env, base.clone()).await;
 
+    // Initialize MCP service
+    let mcp_service = mcp::initialize_mcp_service(base.clone()).await;
+
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
@@ -195,7 +198,10 @@ async fn main() -> Result<()> {
                             .service(webhooks::endpoints()),
                     )
                     /***************************** MCP Routes ******************************/
-                    .service(mcp::create_mcp_routes())
+                    .service(match &mcp_service {
+                        Some(service) => mcp::create_mcp_routes(service.clone()),
+                        None => mcp::create_empty_mcp_routes(),
+                    })
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
                     // serve JS/WASM/CSS from `pkg`
