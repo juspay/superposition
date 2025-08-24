@@ -1,20 +1,44 @@
+// Macro definitions (must be declared before usage)
+pub mod macros;
+
+// New structured tool directories
 pub mod config;
+pub mod experiment;
+pub mod organisation;
 pub mod dimension;
 pub mod context;
-pub mod experiment;
 pub mod function;
-pub mod organisation;
 pub mod workspace;
 pub mod webhook;
 pub mod types;
 pub mod audit;
 pub mod misc;
 
+// Examples (can be removed once migration is complete)
+pub mod individual_tools;
+pub mod composed_config_tools;
+
 use serde_json::Value;
 use crate::mcp_service::{Tool, McpService};
 use std::error::Error;
 
-pub trait ToolsModule {
+/// Trait for individual MCP tools
+pub trait MCPTool {
+    /// Get the tool definition for this specific tool
+    fn get_definition() -> Tool;
+    
+    /// Execute this specific tool
+    async fn execute(
+        service: &McpService,
+        arguments: &Value,
+    ) -> Result<Value, Box<dyn Error>>;
+    
+    /// Get the tool name
+    fn name() -> &'static str;
+}
+
+/// Trait for groups of MCP tools (previously ToolsModule)
+pub trait ToolsGroup {
     fn get_tool_definitions() -> Vec<Tool>;
     async fn execute_tool(
         service: &McpService,
@@ -26,12 +50,15 @@ pub trait ToolsModule {
 pub fn get_all_tools() -> Vec<Tool> {
     let mut tools = Vec::new();
     
+    // New structured tools
     tools.extend(config::ConfigTools::get_tool_definitions());
+    tools.extend(experiment::ExperimentTools::get_tool_definitions());
+    tools.extend(organisation::OrganisationTools::get_tool_definitions());
+    
+    // Legacy tools (to be migrated)
     tools.extend(dimension::DimensionTools::get_tool_definitions());
     tools.extend(context::ContextTools::get_tool_definitions());
-    tools.extend(experiment::ExperimentTools::get_tool_definitions());
     tools.extend(function::FunctionTools::get_tool_definitions());
-    tools.extend(organisation::OrganisationTools::get_tool_definitions());
     tools.extend(workspace::WorkspaceTools::get_tool_definitions());
     tools.extend(webhook::WebhookTools::get_tool_definitions());
     tools.extend(types::TypeTools::get_tool_definitions());
@@ -46,11 +73,20 @@ pub async fn execute_any_tool(
     tool_name: &str,
     arguments: &Value,
 ) -> Result<Value, Box<dyn Error>> {
-    // Try each module until we find the tool
+    // Try new structured tools first
     if let Ok(result) = config::ConfigTools::execute_tool(service, tool_name, arguments).await {
         return Ok(result);
     }
     
+    if let Ok(result) = experiment::ExperimentTools::execute_tool(service, tool_name, arguments).await {
+        return Ok(result);
+    }
+    
+    if let Ok(result) = organisation::OrganisationTools::execute_tool(service, tool_name, arguments).await {
+        return Ok(result);
+    }
+    
+    // Try legacy tools
     if let Ok(result) = dimension::DimensionTools::execute_tool(service, tool_name, arguments).await {
         return Ok(result);
     }
@@ -59,15 +95,7 @@ pub async fn execute_any_tool(
         return Ok(result);
     }
     
-    if let Ok(result) = experiment::ExperimentTools::execute_tool(service, tool_name, arguments).await {
-        return Ok(result);
-    }
-    
     if let Ok(result) = function::FunctionTools::execute_tool(service, tool_name, arguments).await {
-        return Ok(result);
-    }
-    
-    if let Ok(result) = organisation::OrganisationTools::execute_tool(service, tool_name, arguments).await {
         return Ok(result);
     }
     
