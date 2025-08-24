@@ -214,6 +214,57 @@ Add to your Claude Desktop MCP configuration:
 }
 ```
 
+### Claude Code
+For Claude Code CLI integration, you have two options:
+
+#### Option 1: Using the integrated MCP server
+If your Superposition instance is running with MCP integration (recommended):
+
+```bash
+# Add to your Claude Code settings
+claude-code config set mcp.servers.superposition.url "http://localhost:8080/mcp"
+claude-code config set mcp.servers.superposition.transport "http"
+```
+
+#### Option 2: Using standalone MCP server
+Run the standalone MCP server and connect Claude Code to it:
+
+1. **Start the standalone MCP server:**
+```bash
+# Terminal 1: Start Superposition MCP server in HTTP mode
+cd /path/to/superposition
+MCP_TRANSPORT=http MCP_HTTP_PORT=8081 cargo run --package superposition_mcp --features standalone
+```
+
+2. **Configure Claude Code:**
+```bash
+# Add MCP server to Claude Code
+claude-code config set mcp.servers.superposition.url "http://localhost:8081"
+claude-code config set mcp.servers.superposition.transport "http"
+```
+
+3. **Verify connection:**
+```bash
+# Test MCP connection
+claude-code mcp list-tools superposition
+```
+
+#### Example Claude Code Usage
+Once configured, you can use Superposition tools directly in Claude Code:
+
+```bash
+# Create a feature flag
+claude-code "Create a feature flag called 'dark_mode' with a boolean value defaulting to false"
+
+# Set up an A/B test
+claude-code "Create an experiment to test two different button colors on the checkout page"
+
+# Query current configuration
+claude-code "What are the current payment method settings for users in India?"
+```
+
+The Claude Code integration allows you to manage Superposition configurations, feature flags, and experiments directly from your terminal using natural language commands.
+
 ### Other MCP Clients
 The server implements the standard MCP protocol and works with any MCP-compatible client.
 
