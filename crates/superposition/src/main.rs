@@ -1,11 +1,16 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
+mod mcp;
 mod organisation;
 mod webhooks;
 mod workspace;
 
 use idgenerator::{IdGeneratorOptions, IdInstance};
 use std::{io::Result, time::Duration};
+
+// Keep the superposition_mcp dependency for future use
+#[allow(unused_imports)]
+use superposition_mcp as _;
 
 use actix_files::Files;
 use actix_web::{
@@ -189,6 +194,8 @@ async fn main() -> Result<()> {
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(webhooks::endpoints()),
                     )
+                    /***************************** MCP Routes ******************************/
+                    .service(mcp::create_mcp_routes())
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
                     // serve JS/WASM/CSS from `pkg`

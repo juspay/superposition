@@ -5547,6 +5547,7 @@ dependencies = [
  "serde",
  "service_utils",
  "superposition_macros",
+ "superposition_mcp",
  "superposition_types",
 ]
 

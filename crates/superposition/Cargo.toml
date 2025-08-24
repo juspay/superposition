@@ -27,6 +27,7 @@ regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 serde = { workspace = true }
+<<<<<<< HEAD
 service_utils = { workspace = true }
 superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
@@ -34,6 +35,7 @@ superposition_types = { workspace = true, features = [
     "diesel_derives",
     "server",
 ] }
+superposition_mcp = { workspace = true }
 
 [features]
 high-performance-mode = [
