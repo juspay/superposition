@@ -14,11 +14,13 @@ impl ToolsModule for TypeTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "type_name": {"type": "string", "description": "Type template name"},
                         "type_schema": {"type": "object", "description": "Type schema definition"},
                         "change_reason": {"type": "string", "description": "Reason for creating type template"}
                     },
-                    "required": ["type_name", "type_schema", "change_reason"]
+                    "required": ["org_id", "workspace_id", "type_name", "type_schema", "change_reason"]
                 }),
             },
             Tool {
@@ -26,7 +28,11 @@ impl ToolsModule for TypeTools {
                 description: "Get list of type templates".to_string(),
                 input_schema: json!({
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"}
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
             Tool {
@@ -35,11 +41,13 @@ impl ToolsModule for TypeTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "type_name": {"type": "string", "description": "Type template name"},
                         "type_schema": {"type": "object", "description": "Updated type schema definition"},
                         "change_reason": {"type": "string", "description": "Reason for updating type template"}
                     },
-                    "required": ["type_name", "change_reason"]
+                    "required": ["org_id", "workspace_id", "type_name", "change_reason"]
                 }),
             },
             Tool {
@@ -48,9 +56,11 @@ impl ToolsModule for TypeTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "type_name": {"type": "string", "description": "Type template name"}
                     },
-                    "required": ["type_name"]
+                    "required": ["org_id", "workspace_id", "type_name"]
                 }),
             },
         ]
@@ -63,6 +73,8 @@ impl ToolsModule for TypeTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "create_type_templates" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let type_name = arguments["type_name"].as_str().unwrap_or("");
                 let type_schema = &arguments["type_schema"];
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
@@ -72,8 +84,8 @@ impl ToolsModule for TypeTools {
                 service
                     .superposition_client
                     .create_type_templates()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .type_name(type_name)
                     .type_schema(type_schema_doc)
                     .change_reason(change_reason)
@@ -83,11 +95,13 @@ impl ToolsModule for TypeTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_type_templates_list" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .get_type_templates_list()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .send()
                     .await
                     .map(|output| {
@@ -99,14 +113,16 @@ impl ToolsModule for TypeTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_type_templates" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let type_name = arguments["type_name"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
                 let mut builder = service
                     .superposition_client
                     .update_type_templates()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .type_name(type_name)
                     .change_reason(change_reason);
                 
@@ -122,13 +138,15 @@ impl ToolsModule for TypeTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "delete_type_templates" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let type_name = arguments["type_name"].as_str().unwrap_or("");
                 
                 service
                     .superposition_client
                     .delete_type_templates()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .type_name(type_name)
                     .send()
                     .await

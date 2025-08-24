@@ -13,7 +13,11 @@ impl ToolsModule for FunctionTools {
                 description: "List all custom validation functions".to_string(),
                 input_schema: json!({
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"}
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
             Tool {
@@ -22,12 +26,14 @@ impl ToolsModule for FunctionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "function_name": {"type": "string", "description": "Function name"},
                         "function": {"type": "string", "description": "Function code"},
                         "description": {"type": "string", "description": "Function description"},
                         "change_reason": {"type": "string", "description": "Reason for creating function"}
                     },
-                    "required": ["function_name", "function", "description", "change_reason"]
+                    "required": ["org_id", "workspace_id", "function_name", "function", "description", "change_reason"]
                 }),
             },
             Tool {
@@ -36,9 +42,11 @@ impl ToolsModule for FunctionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "function_name": {"type": "string", "description": "Function name"}
                     },
-                    "required": ["function_name"]
+                    "required": ["org_id", "workspace_id", "function_name"]
                 }),
             },
             Tool {
@@ -47,12 +55,14 @@ impl ToolsModule for FunctionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "function_name": {"type": "string", "description": "Function name"},
                         "function": {"type": "string", "description": "Updated function code"},
                         "description": {"type": "string", "description": "Updated function description"},
                         "change_reason": {"type": "string", "description": "Reason for updating function"}
                     },
-                    "required": ["function_name", "change_reason"]
+                    "required": ["org_id", "workspace_id", "function_name", "change_reason"]
                 }),
             },
             Tool {
@@ -61,9 +71,11 @@ impl ToolsModule for FunctionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "function_name": {"type": "string", "description": "Function name"}
                     },
-                    "required": ["function_name"]
+                    "required": ["org_id", "workspace_id", "function_name"]
                 }),
             },
         ]
@@ -76,11 +88,13 @@ impl ToolsModule for FunctionTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "list_function" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .list_function()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .send()
                     .await
                     .map(|output| {
@@ -92,6 +106,8 @@ impl ToolsModule for FunctionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "create_function" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let function_name = arguments["function_name"].as_str().unwrap_or("");
                 let function_code = arguments["function"].as_str().unwrap_or("");
                 let description = arguments["description"].as_str().unwrap_or("");
@@ -100,8 +116,8 @@ impl ToolsModule for FunctionTools {
                 service
                     .superposition_client
                     .create_function()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .function_name(function_name)
                     .function(function_code)
                     .description(description)
@@ -112,13 +128,15 @@ impl ToolsModule for FunctionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_function" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let function_name = arguments["function_name"].as_str().unwrap_or("");
                 
                 service
                     .superposition_client
                     .get_function()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .function_name(function_name)
                     .send()
                     .await
@@ -126,14 +144,16 @@ impl ToolsModule for FunctionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_function" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let function_name = arguments["function_name"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
                 let mut builder = service
                     .superposition_client
                     .update_function()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .function_name(function_name)
                     .change_reason(change_reason);
                 
@@ -151,13 +171,15 @@ impl ToolsModule for FunctionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "delete_function" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let function_name = arguments["function_name"].as_str().unwrap_or("");
                 
                 service
                     .superposition_client
                     .delete_function()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .function_name(function_name)
                     .send()
                     .await

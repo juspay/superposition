@@ -14,7 +14,11 @@ impl ToolsModule for ExperimentTools {
                 description: "List all experiments".to_string(),
                 input_schema: json!({
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"}
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
             Tool {
@@ -23,12 +27,14 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "name": {"type": "string", "description": "Experiment name"},
                         "context": {"type": "object", "description": "Experiment context"},
                         "variants": {"type": "array", "description": "Experiment variants"},
                         "change_reason": {"type": "string", "description": "Reason for creating experiment"}
                     },
-                    "required": ["name", "context", "variants", "change_reason"]
+                    "required": ["org_id", "workspace_id", "name", "context", "variants", "change_reason"]
                 }),
             },
             Tool {
@@ -37,9 +43,11 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "experiment_id": {"type": "string", "description": "Experiment ID"}
                     },
-                    "required": ["experiment_id"]
+                    "required": ["org_id", "workspace_id", "experiment_id"]
                 }),
             },
             Tool {
@@ -48,10 +56,12 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "experiment_id": {"type": "string", "description": "Experiment ID"},
                         "change_reason": {"type": "string", "description": "Reason for concluding experiment"}
                     },
-                    "required": ["experiment_id", "change_reason"]
+                    "required": ["org_id", "workspace_id", "experiment_id", "change_reason"]
                 }),
             },
             Tool {
@@ -60,10 +70,12 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "experiment_id": {"type": "string", "description": "Experiment ID"},
                         "change_reason": {"type": "string", "description": "Reason for discarding experiment"}
                     },
-                    "required": ["experiment_id", "change_reason"]
+                    "required": ["org_id", "workspace_id", "experiment_id", "change_reason"]
                 }),
             },
             Tool {
@@ -72,10 +84,12 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "experiment_id": {"type": "string", "description": "Experiment ID"},
                         "change_reason": {"type": "string", "description": "Reason for pausing experiment"}
                     },
-                    "required": ["experiment_id", "change_reason"]
+                    "required": ["org_id", "workspace_id", "experiment_id", "change_reason"]
                 }),
             },
             Tool {
@@ -84,10 +98,12 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "experiment_id": {"type": "string", "description": "Experiment ID"},
                         "change_reason": {"type": "string", "description": "Reason for resuming experiment"}
                     },
-                    "required": ["experiment_id", "change_reason"]
+                    "required": ["org_id", "workspace_id", "experiment_id", "change_reason"]
                 }),
             },
             Tool {
@@ -96,11 +112,13 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "experiment_id": {"type": "string", "description": "Experiment ID"},
                         "ramp_percentage": {"type": "number", "description": "Ramp percentage"},
                         "change_reason": {"type": "string", "description": "Reason for ramping experiment"}
                     },
-                    "required": ["experiment_id", "ramp_percentage", "change_reason"]
+                    "required": ["org_id", "workspace_id", "experiment_id", "ramp_percentage", "change_reason"]
                 }),
             },
             Tool {
@@ -109,11 +127,13 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "name": {"type": "string", "description": "Group name"},
                         "description": {"type": "string", "description": "Group description"},
                         "change_reason": {"type": "string", "description": "Reason for creating group"}
                     },
-                    "required": ["name", "description", "change_reason"]
+                    "required": ["org_id", "workspace_id", "name", "description", "change_reason"]
                 }),
             },
             Tool {
@@ -122,9 +142,11 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "group_id": {"type": "string", "description": "Group ID"}
                     },
-                    "required": ["group_id"]
+                    "required": ["org_id", "workspace_id", "group_id"]
                 }),
             },
             Tool {
@@ -132,7 +154,11 @@ impl ToolsModule for ExperimentTools {
                 description: "List all experiment groups".to_string(),
                 input_schema: json!({
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"}
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
             Tool {
@@ -141,12 +167,14 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "group_id": {"type": "string", "description": "Group ID"},
                         "name": {"type": "string", "description": "Updated group name"},
                         "description": {"type": "string", "description": "Updated group description"},
                         "change_reason": {"type": "string", "description": "Reason for updating group"}
                     },
-                    "required": ["group_id", "change_reason"]
+                    "required": ["org_id", "workspace_id", "group_id", "change_reason"]
                 }),
             },
             Tool {
@@ -155,9 +183,11 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "group_id": {"type": "string", "description": "Group ID"}
                     },
-                    "required": ["group_id"]
+                    "required": ["org_id", "workspace_id", "group_id"]
                 }),
             },
             Tool {
@@ -192,11 +222,13 @@ impl ToolsModule for ExperimentTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "experiment_id": {"type": "string", "description": "Experiment ID"},
                         "overrides": {"type": "object", "description": "Override configuration"},
                         "change_reason": {"type": "string", "description": "Reason for updating overrides"}
                     },
-                    "required": ["experiment_id", "overrides", "change_reason"]
+                    "required": ["org_id", "workspace_id", "experiment_id", "overrides", "change_reason"]
                 }),
             },
         ]
@@ -209,11 +241,13 @@ impl ToolsModule for ExperimentTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "list_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .list_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .send()
                     .await
                     .map(|output| {
@@ -225,6 +259,8 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "create_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let name = arguments["name"].as_str().unwrap_or("");
                 let context = &arguments["context"];
                 let variants_array = arguments["variants"].as_array().ok_or("variants must be an array")?;
@@ -290,8 +326,8 @@ impl ToolsModule for ExperimentTools {
                 let mut builder = service
                     .superposition_client
                     .create_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .name(name)
                     .change_reason(change_reason)
                     .set_context(Some(context_hashmap));
@@ -308,13 +344,15 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .get_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(experiment_id)
                     .send()
                     .await
@@ -322,14 +360,16 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "conclude_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .conclude_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(experiment_id)
                     .change_reason(change_reason)
                     .send()
@@ -338,14 +378,16 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "discard_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .discard_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(experiment_id)
                     .change_reason(change_reason)
                     .send()
@@ -354,14 +396,16 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "pause_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .pause_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(experiment_id)
                     .change_reason(change_reason)
                     .send()
@@ -370,14 +414,16 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "resume_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .resume_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(experiment_id)
                     .change_reason(change_reason)
                     .send()
@@ -386,6 +432,8 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "ramp_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let ramp_percentage = arguments["ramp_percentage"].as_f64().unwrap_or(0.0);
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
@@ -393,8 +441,8 @@ impl ToolsModule for ExperimentTools {
                 service
                     .superposition_client
                     .ramp_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(experiment_id)
                     .traffic_percentage(ramp_percentage as i32)
                     .change_reason(change_reason)
@@ -404,6 +452,8 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "create_experiment_group" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let name = arguments["name"].as_str().unwrap_or("");
                 let description = arguments["description"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
@@ -411,8 +461,8 @@ impl ToolsModule for ExperimentTools {
                 service
                     .superposition_client
                     .create_experiment_group()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .name(name)
                     .description(description)
                     .change_reason(change_reason)
@@ -422,13 +472,15 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_experiment_group" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .get_experiment_group()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(group_id)
                     .send()
                     .await
@@ -436,11 +488,13 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "list_experiment_groups" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .list_experiment_groups()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .send()
                     .await
                     .map(|output| {
@@ -452,14 +506,16 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_experiment_group" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .update_experiment_group()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(group_id)
                     .change_reason(change_reason)
                     .send()
@@ -468,13 +524,15 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "delete_experiment_group" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .delete_experiment_group()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(group_id)
                     .send()
                     .await
@@ -482,6 +540,8 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "add_members_to_group" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
                 let empty_vec = vec![];
                 let member_ids = arguments["member_ids"].as_array().unwrap_or(&empty_vec);
@@ -496,8 +556,8 @@ impl ToolsModule for ExperimentTools {
                 service
                     .superposition_client
                     .add_members_to_group()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(group_id)
                     .set_member_experiment_ids(Some(member_strings))
                     .change_reason(change_reason)
@@ -507,6 +567,8 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "remove_members_from_group" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let group_id = arguments["group_id"].as_str().unwrap_or("");
                 let empty_vec = vec![];
                 let member_ids = arguments["member_ids"].as_array().unwrap_or(&empty_vec);
@@ -521,8 +583,8 @@ impl ToolsModule for ExperimentTools {
                 service
                     .superposition_client
                     .remove_members_from_group()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(group_id)
                     .set_member_experiment_ids(Some(member_strings))
                     .change_reason(change_reason)
@@ -532,14 +594,16 @@ impl ToolsModule for ExperimentTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_overrides_experiment" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
 
                 service
                     .superposition_client
                     .update_overrides_experiment()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(experiment_id)
                     .change_reason(change_reason)
                     .send()

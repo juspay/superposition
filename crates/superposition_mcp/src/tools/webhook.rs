@@ -14,12 +14,14 @@ impl ToolsModule for WebhookTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "url": {"type": "string", "description": "Webhook URL"},
                         "headers": {"type": "object", "description": "Webhook headers"},
                         "events": {"type": "array", "items": {"type": "string"}, "description": "Event types"},
                         "change_reason": {"type": "string", "description": "Reason for creating webhook"}
                     },
-                    "required": ["url", "headers", "events", "change_reason"]
+                    "required": ["org_id", "workspace_id", "url", "headers", "events", "change_reason"]
                 }),
             },
             Tool {
@@ -28,9 +30,11 @@ impl ToolsModule for WebhookTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "webhook_id": {"type": "string", "description": "Webhook ID"}
                     },
-                    "required": ["webhook_id"]
+                    "required": ["org_id", "workspace_id", "webhook_id"]
                 }),
             },
             Tool {
@@ -38,7 +42,11 @@ impl ToolsModule for WebhookTools {
                 description: "List all webhooks".to_string(),
                 input_schema: json!({
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"}
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
             Tool {
@@ -47,13 +55,15 @@ impl ToolsModule for WebhookTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "webhook_id": {"type": "string", "description": "Webhook ID"},
                         "url": {"type": "string", "description": "Updated webhook URL"},
                         "headers": {"type": "object", "description": "Updated webhook headers"},
                         "events": {"type": "array", "items": {"type": "string"}, "description": "Updated event types"},
                         "change_reason": {"type": "string", "description": "Reason for updating webhook"}
                     },
-                    "required": ["webhook_id", "change_reason"]
+                    "required": ["org_id", "workspace_id", "webhook_id", "change_reason"]
                 }),
             },
         ]
@@ -66,6 +76,8 @@ impl ToolsModule for WebhookTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "create_webhook" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let url = arguments["url"].as_str().unwrap_or("");
                 let headers = &arguments["headers"];
                 let empty_vec = vec![];
@@ -84,8 +96,8 @@ impl ToolsModule for WebhookTools {
                 service
                     .superposition_client
                     .create_webhook()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .url(url)
                     .set_custom_headers(headers_hashmap)
                     .set_events(Some(event_strings))
@@ -96,12 +108,14 @@ impl ToolsModule for WebhookTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_webhook" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let webhook_id = arguments["webhook_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .get_webhook()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .name(webhook_id)
                     .send()
                     .await
@@ -109,11 +123,13 @@ impl ToolsModule for WebhookTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "list_webhook" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .list_webhook()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .send()
                     .await
                     .map(|output| {
@@ -125,14 +141,16 @@ impl ToolsModule for WebhookTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_webhook" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let webhook_id = arguments["webhook_id"].as_str().unwrap_or("");
                 let change_reason = arguments["change_reason"].as_str().unwrap_or("");
                 
                 let mut builder = service
                     .superposition_client
                     .update_webhook()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .name(webhook_id)
                     .change_reason(change_reason);
                 

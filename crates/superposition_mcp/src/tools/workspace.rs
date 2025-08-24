@@ -15,6 +15,7 @@ impl ToolsModule for WorkspaceTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
                         "workspace_name": {"type": "string", "description": "Workspace name"},
                         "workspace_admin_email": {"type": "string", "description": "Admin email for the workspace"},
                         "workspace_status": {"type": "string", "enum": ["ENABLED", "DISABLED"], "description": "Workspace status"},
@@ -22,7 +23,7 @@ impl ToolsModule for WorkspaceTools {
                         "metrics": {"type": "object", "description": "Metrics configuration"},
                         "allow_experiment_self_approval": {"type": "boolean", "description": "Allow experiment self approval"}
                     },
-                    "required": ["workspace_name", "workspace_admin_email", "strict_mode", "allow_experiment_self_approval"]
+                    "required": ["org_id", "workspace_name", "workspace_admin_email", "strict_mode", "allow_experiment_self_approval"]
                 }),
             },
             Tool {
@@ -31,10 +32,12 @@ impl ToolsModule for WorkspaceTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
                         "count": {"type": "integer", "description": "Number of items per page"},
                         "page": {"type": "integer", "description": "Page number"},
                         "all": {"type": "boolean", "description": "Fetch all results"}
-                    }
+                    },
+                    "required": ["org_id"]
                 }),
             },
             Tool {
@@ -43,6 +46,7 @@ impl ToolsModule for WorkspaceTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
                         "workspace_name": {"type": "string", "description": "Workspace name to update"},
                         "workspace_admin_email": {"type": "string", "description": "Updated admin email"},
                         "config_version": {"type": "string", "description": "Configuration version"},
@@ -52,7 +56,7 @@ impl ToolsModule for WorkspaceTools {
                         "allow_experiment_self_approval": {"type": "boolean", "description": "Allow experiment self approval"},
                         "auto_populate_control": {"type": "boolean", "description": "Auto populate control variant"}
                     },
-                    "required": ["workspace_name", "workspace_admin_email"]
+                    "required": ["org_id", "workspace_name", "workspace_admin_email"]
                 }),
             },
         ]
@@ -65,6 +69,7 @@ impl ToolsModule for WorkspaceTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "create_workspace" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
                 let workspace_name = arguments["workspace_name"].as_str().unwrap_or("");
                 let workspace_admin_email =
                     arguments["workspace_admin_email"].as_str().unwrap_or("");
@@ -77,7 +82,7 @@ impl ToolsModule for WorkspaceTools {
                 let mut builder = service
                     .superposition_client
                     .create_workspace()
-                    .org_id(&service.org_id)
+                    .org_id(org_id)
                     .workspace_name(workspace_name)
                     .workspace_admin_email(workspace_admin_email)
                     .strict_mode(strict_mode)
@@ -106,10 +111,11 @@ impl ToolsModule for WorkspaceTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "list_workspace" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
                 let mut builder = service
                     .superposition_client
                     .list_workspace()
-                    .org_id(&service.org_id);
+                    .org_id(org_id);
 
                 // Optional pagination parameters
                 if let Some(count) = arguments["count"].as_i64() {
@@ -134,6 +140,7 @@ impl ToolsModule for WorkspaceTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_workspace" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
                 let workspace_name = arguments["workspace_name"].as_str().unwrap_or("");
                 let workspace_admin_email =
                     arguments["workspace_admin_email"].as_str().unwrap_or("");
@@ -141,7 +148,7 @@ impl ToolsModule for WorkspaceTools {
                 let mut builder = service
                     .superposition_client
                     .update_workspace()
-                    .org_id(&service.org_id)
+                    .org_id(org_id)
                     .workspace_name(workspace_name)
                     .workspace_admin_email(workspace_admin_email);
 

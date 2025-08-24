@@ -14,6 +14,8 @@ impl ToolsModule for DimensionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "dimension": {
                             "type": "string",
                             "description": "Dimension name"
@@ -35,7 +37,7 @@ impl ToolsModule for DimensionTools {
                             "description": "Reason for creating this dimension"
                         }
                     },
-                    "required": ["dimension", "schema", "description", "change_reason"]
+                    "required": ["org_id", "workspace_id", "dimension", "schema", "description", "change_reason"]
                 }),
             },
             Tool {
@@ -44,12 +46,14 @@ impl ToolsModule for DimensionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "dimension": {
                             "type": "string",
                             "description": "Name of the dimension to retrieve"
                         }
                     },
-                    "required": ["dimension"]
+                    "required": ["org_id", "workspace_id", "dimension"]
                 }),
             },
             Tool {
@@ -57,7 +61,11 @@ impl ToolsModule for DimensionTools {
                 description: "List all dimensions".to_string(),
                 input_schema: json!({
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"}
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
             Tool {
@@ -66,6 +74,8 @@ impl ToolsModule for DimensionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "dimension": {
                             "type": "string",
                             "description": "Name of the dimension to update"
@@ -83,7 +93,7 @@ impl ToolsModule for DimensionTools {
                             "description": "Reason for updating this dimension"
                         }
                     },
-                    "required": ["dimension", "schema", "description", "change_reason"]
+                    "required": ["org_id", "workspace_id", "dimension", "schema", "description", "change_reason"]
                 }),
             },
             Tool {
@@ -92,12 +102,14 @@ impl ToolsModule for DimensionTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "dimension": {
                             "type": "string",
                             "description": "Name of the dimension to delete"
                         }
                     },
-                    "required": ["dimension"]
+                    "required": ["org_id", "workspace_id", "dimension"]
                 }),
             },
         ]
@@ -110,6 +122,8 @@ impl ToolsModule for DimensionTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "create_dimension" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let dimension = arguments["dimension"].as_str().unwrap_or("");
                 let schema = arguments["schema"].clone();
                 let description = arguments["description"].as_str().unwrap_or("no description");
@@ -122,8 +136,8 @@ impl ToolsModule for DimensionTools {
                 service
                     .superposition_client
                     .create_dimension()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .dimension(dimension)
                     .position(position)
                     .schema(schema_doc)
@@ -135,12 +149,14 @@ impl ToolsModule for DimensionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_dimension" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let dimension = arguments["dimension"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .get_dimension()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .dimension(dimension)
                     .send()
                     .await
@@ -159,11 +175,13 @@ impl ToolsModule for DimensionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "list_dimensions" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .list_dimensions()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .send()
                     .await
                     .map(|output| {
@@ -184,6 +202,8 @@ impl ToolsModule for DimensionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "update_dimension" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let dimension = arguments["dimension"].as_str().unwrap_or("");
                 let schema = arguments["schema"].clone();
                 let description = arguments["description"].as_str().unwrap_or("no description");
@@ -194,8 +214,8 @@ impl ToolsModule for DimensionTools {
                 service
                     .superposition_client
                     .update_dimension()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .dimension(dimension)
                     .schema(schema_doc)
                     .description(description)
@@ -206,12 +226,14 @@ impl ToolsModule for DimensionTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "delete_dimension" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let dimension = arguments["dimension"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .delete_dimension()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .dimension(dimension)
                     .send()
                     .await

@@ -14,9 +14,11 @@ impl ToolsModule for MiscTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "context": {"type": "object", "description": "Context to check variants for"}
                     },
-                    "required": ["context"]
+                    "required": ["org_id", "workspace_id", "context"]
                 }),
             },
             Tool {
@@ -25,10 +27,12 @@ impl ToolsModule for MiscTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "operations": {"type": "array", "description": "List of operations to perform"},
                         "change_reason": {"type": "string", "description": "Reason for bulk operation"}
                     },
-                    "required": ["operations", "change_reason"]
+                    "required": ["org_id", "workspace_id", "operations", "change_reason"]
                 }),
             },
             Tool {
@@ -37,8 +41,11 @@ impl ToolsModule for MiscTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "comment": {"type": "string", "description": "Comment for the publish operation"}
-                    }
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
             Tool {
@@ -47,9 +54,11 @@ impl ToolsModule for MiscTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "test_cases": {"type": "array", "description": "Test cases to execute"}
                     },
-                    "required": ["test_cases"]
+                    "required": ["org_id", "workspace_id", "test_cases"]
                 }),
             },
             Tool {
@@ -58,12 +67,14 @@ impl ToolsModule for MiscTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "context_id": {"type": "string", "description": "Context ID"},
                         "key": {"type": "string", "description": "Configuration key"},
                         "value": {"description": "Override value"},
                         "change_reason": {"type": "string", "description": "Reason for override update"}
                     },
-                    "required": ["context_id", "key", "value", "change_reason"]
+                    "required": ["org_id", "workspace_id", "context_id", "key", "value", "change_reason"]
                 }),
             },
             Tool {
@@ -72,8 +83,11 @@ impl ToolsModule for MiscTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "config_keys": {"type": "array", "items": {"type": "string"}, "description": "Configuration keys to recompute weights for"}
-                    }
+                    },
+                    "required": ["org_id", "workspace_id"]
                 }),
             },
         ]
@@ -86,6 +100,8 @@ impl ToolsModule for MiscTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "applicable_variants" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let context = &arguments["context"];
                 let context_hashmap = if let Some(context_map) = value_to_hashmap(context.clone()) {
                     context_map
@@ -96,8 +112,8 @@ impl ToolsModule for MiscTools {
                 service
                     .superposition_client
                     .applicable_variants()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .set_context(Some(context_hashmap))
                     .send()
                     .await
@@ -109,11 +125,13 @@ impl ToolsModule for MiscTools {
                 Err(format!("bulk_operation requires complex BulkOperationReq type conversion").into())
             }
             "publish" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let mut builder = service
                     .superposition_client
                     .publish()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id);
+                    .workspace_id(workspace_id)
+                    .org_id(org_id);
                 
                 if let Some(comment) = arguments["comment"].as_str() {
                     builder = builder.change_reason(comment);
@@ -134,11 +152,13 @@ impl ToolsModule for MiscTools {
                 Err(format!("update_override requires complex UpdateContextOverrideRequest type conversion").into())
             }
             "weight_recompute" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let mut builder = service
                     .superposition_client
                     .weight_recompute()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id);
+                    .workspace_id(workspace_id)
+                    .org_id(org_id);
                 
                 if let Some(config_keys_array) = arguments["config_keys"].as_array() {
                     let config_keys: Vec<String> = config_keys_array

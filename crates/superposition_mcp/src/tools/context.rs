@@ -14,6 +14,8 @@ impl ToolsModule for ContextTools {
                 input_schema: json!({
                     "type": "object",
                     "properties": {
+                        "org_id": {"type": "string", "description": "Organization ID"},
+                        "workspace_id": {"type": "string", "description": "Workspace ID"},
                         "context_id": {
                             "type": "string",
                             "description": "Unique identifier for the context"
@@ -35,7 +37,7 @@ impl ToolsModule for ContextTools {
                             "description": "Reason for creating this context"
                         }
                     },
-                    "required": ["context_id", "condition", "override_with_keys", "description", "change_reason"]
+                    "required": ["org_id", "workspace_id", "context_id", "condition", "override_with_keys", "description", "change_reason"]
                 }),
             },
             Tool {
@@ -116,6 +118,8 @@ impl ToolsModule for ContextTools {
     ) -> Result<Value, Box<dyn Error>> {
         match tool_name {
             "create_context" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let _context_id = arguments["context_id"].as_str().unwrap_or("");
                 let condition = arguments["condition"].clone();
                 let condition_doc = value_to_hashmap(condition);
@@ -126,8 +130,8 @@ impl ToolsModule for ContextTools {
                 service
                     .superposition_client
                     .create_context()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .description(description)
                     .change_reason(change_reason)
                     .set_context(condition_doc)
@@ -138,12 +142,14 @@ impl ToolsModule for ContextTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "get_context" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let context_id = arguments["context_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .get_context()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(context_id)
                     .send()
                     .await
@@ -156,11 +162,13 @@ impl ToolsModule for ContextTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "list_contexts" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .list_contexts()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .send()
                     .await
                     .map(|output| {
@@ -172,12 +180,14 @@ impl ToolsModule for ContextTools {
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
             "delete_context" => {
+                let org_id = arguments["org_id"].as_str().unwrap_or("");
+                let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
                 let context_id = arguments["context_id"].as_str().unwrap_or("");
                 service
                     .superposition_client
                     .delete_context()
-                    .workspace_id(&service.workspace_id)
-                    .org_id(&service.org_id)
+                    .workspace_id(workspace_id)
+                    .org_id(org_id)
                     .id(context_id)
                     .send()
                     .await
