@@ -2,37 +2,33 @@
 pub mod macros;
 
 // New structured tool directories
-pub mod config;
-pub mod experiment;
-pub mod organisation;
-pub mod dimension;
-pub mod context;
-pub mod function;
-pub mod workspace;
-pub mod webhook;
-pub mod types;
 pub mod audit;
+pub mod config;
+pub mod context;
+pub mod dimension;
+pub mod experiment;
+pub mod function;
 pub mod misc;
+pub mod organisation;
+pub mod types;
+pub mod webhook;
+pub mod workspace;
 
-// Examples (can be removed once migration is complete)
-pub mod individual_tools;
-pub mod composed_config_tools;
-
+use crate::mcp_service::{McpService, Tool};
 use serde_json::Value;
-use crate::mcp_service::{Tool, McpService};
 use std::error::Error;
 
 /// Trait for individual MCP tools
 pub trait MCPTool {
     /// Get the tool definition for this specific tool
     fn get_definition() -> Tool;
-    
+
     /// Execute this specific tool
     async fn execute(
         service: &McpService,
         arguments: &Value,
     ) -> Result<Value, Box<dyn Error>>;
-    
+
     /// Get the tool name
     fn name() -> &'static str;
 }
@@ -49,12 +45,12 @@ pub trait ToolsGroup {
 
 pub fn get_all_tools() -> Vec<Tool> {
     let mut tools = Vec::new();
-    
+
     // New structured tools
     tools.extend(config::ConfigTools::get_tool_definitions());
     tools.extend(experiment::ExperimentTools::get_tool_definitions());
     tools.extend(organisation::OrganisationTools::get_tool_definitions());
-    
+
     // Legacy tools (to be migrated)
     tools.extend(dimension::DimensionTools::get_tool_definitions());
     tools.extend(context::ContextTools::get_tool_definitions());
@@ -64,7 +60,7 @@ pub fn get_all_tools() -> Vec<Tool> {
     tools.extend(types::TypeTools::get_tool_definitions());
     tools.extend(audit::AuditTools::get_tool_definitions());
     tools.extend(misc::MiscTools::get_tool_definitions());
-    
+
     tools
 }
 
@@ -74,50 +70,72 @@ pub async fn execute_any_tool(
     arguments: &Value,
 ) -> Result<Value, Box<dyn Error>> {
     // Try new structured tools first
-    if let Ok(result) = config::ConfigTools::execute_tool(service, tool_name, arguments).await {
+    if let Ok(result) =
+        config::ConfigTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = experiment::ExperimentTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        experiment::ExperimentTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = organisation::OrganisationTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        organisation::OrganisationTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
+
     // Try legacy tools
-    if let Ok(result) = dimension::DimensionTools::execute_tool(service, tool_name, arguments).await {
+    if let Ok(result) =
+        dimension::DimensionTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = context::ContextTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        context::ContextTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = function::FunctionTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        function::FunctionTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = workspace::WorkspaceTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        workspace::WorkspaceTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = webhook::WebhookTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        webhook::WebhookTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = types::TypeTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        types::TypeTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = audit::AuditTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) =
+        audit::AuditTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
-    if let Ok(result) = misc::MiscTools::execute_tool(service, tool_name, arguments).await {
+
+    if let Ok(result) = misc::MiscTools::execute_tool(service, tool_name, arguments).await
+    {
         return Ok(result);
     }
-    
+
     Err(format!("Unknown tool: {}", tool_name).into())
 }
+
