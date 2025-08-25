@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Recalculates and updates the priority weights for all contexts in the workspace based on their
+ * dimensions.
+ */
 @SmithyGenerated
 public final class WeightRecompute implements ApiOperation<WeightRecomputeInput, WeightRecomputeOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#WeightRecompute");

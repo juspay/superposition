@@ -35,8 +35,7 @@ export interface MigrateWorkspaceSchemaCommandInput extends MigrateWorkspaceSche
 export interface MigrateWorkspaceSchemaCommandOutput extends WorkspaceResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Migrates the workspace database schema to the new version of the template
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -83,6 +82,7 @@ export interface MigrateWorkspaceSchemaCommandOutput extends WorkspaceResponse, 
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class MigrateWorkspaceSchemaCommand extends $Command.classBuilder<MigrateWorkspaceSchemaCommandInput, MigrateWorkspaceSchemaCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

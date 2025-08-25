@@ -35,8 +35,7 @@ export interface PublishCommandInput extends PublishInput {}
 export interface PublishCommandOutput extends FunctionResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -83,6 +82,7 @@ export interface PublishCommandOutput extends FunctionResponse, __MetadataBearer
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class PublishCommand extends $Command.classBuilder<PublishCommandInput, PublishCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

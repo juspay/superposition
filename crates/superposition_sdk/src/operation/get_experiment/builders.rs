@@ -19,6 +19,7 @@ impl crate::operation::get_experiment::builders::GetExperimentInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetExperiment`.
 /// 
+/// Retrieves detailed information about a specific experiment, including its config, variants, status, and metrics.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetExperimentFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

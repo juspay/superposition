@@ -35,8 +35,7 @@ export interface UpdateOverridesExperimentCommandInput extends UpdateOverrideReq
 export interface UpdateOverridesExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -108,6 +107,7 @@ export interface UpdateOverridesExperimentCommandOutput extends ExperimentRespon
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateOverridesExperimentCommand extends $Command.classBuilder<UpdateOverridesExperimentCommandInput, UpdateOverridesExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

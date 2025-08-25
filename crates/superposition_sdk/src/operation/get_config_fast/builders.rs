@@ -19,6 +19,7 @@ impl crate::operation::get_config_fast::builders::GetConfigFastInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetConfigFast`.
 /// 
+/// Retrieves the latest config with no processing for high-performance access.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetConfigFastFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

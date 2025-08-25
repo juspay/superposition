@@ -35,8 +35,7 @@ export interface UpdateDefaultConfigCommandInput extends UpdateDefaultConfigInpu
 export interface UpdateDefaultConfigCommandOutput extends DefaultConfigFull, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -85,6 +84,7 @@ export interface UpdateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateDefaultConfigCommand extends $Command.classBuilder<UpdateDefaultConfigCommandInput, UpdateDefaultConfigCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

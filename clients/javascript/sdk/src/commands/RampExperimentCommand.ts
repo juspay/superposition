@@ -35,8 +35,7 @@ export interface RampExperimentCommandInput extends RampExperimentInput {}
 export interface RampExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or rollback of experimental features.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -100,6 +99,7 @@ export interface RampExperimentCommandOutput extends ExperimentResponse, __Metad
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class RampExperimentCommand extends $Command.classBuilder<RampExperimentCommandInput, RampExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

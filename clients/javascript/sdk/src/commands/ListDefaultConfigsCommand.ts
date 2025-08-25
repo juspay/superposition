@@ -35,8 +35,7 @@ export interface ListDefaultConfigsCommandInput extends ListDefaultConfigsInput 
 export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -87,6 +86,7 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListDefaultConfigsCommand extends $Command.classBuilder<ListDefaultConfigsCommandInput, ListDefaultConfigsCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

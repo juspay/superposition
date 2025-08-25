@@ -21,6 +21,7 @@ resource Config {
     ]
 }
 
+@documentation("Retrieves the latest config with no processing for high-performance access.")
 @http(method: "GET", uri: "/config/fast")
 operation GetConfigFast {
     input := with [WorkspaceMixin] {}
@@ -44,14 +45,19 @@ operation GetConfigFast {
 structure ListVersionsMember for Config {
     @required
     id: String
+
     @required
     $config
+
     @required
     config_hash: String
+
     @required
     created_at: DateTime
+
     @required
     description: String
+
     tags: StringList
 }
 
@@ -59,6 +65,7 @@ list ListVersionsOut {
     member: ListVersionsMember
 }
 
+@documentation("Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes.")
 @readonly
 @http(method: "GET", uri: "/config/versions")
 operation ListVersions {
@@ -109,6 +116,7 @@ map OverridesMap {
     value: Overrides
 }
 
+@documentation("Retrieves config data with context evaluation, including applicable contexts, overrides, and default values based on provided conditions.")
 @http(method: "POST", uri: "/config")
 operation GetConfig {
     input := with [WorkspaceMixin] {
@@ -151,6 +159,7 @@ enum MergeStrategy {
     REPLACE
 }
 
+@documentation("Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration.")
 @http(method: "POST", uri: "/config/resolve")
 operation GetResolvedConfig {
     input := with [WorkspaceMixin] {

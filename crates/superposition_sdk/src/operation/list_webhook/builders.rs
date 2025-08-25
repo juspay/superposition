@@ -19,6 +19,7 @@ impl crate::operation::list_webhook::builders::ListWebhookInputBuilder {
                 }
 /// Fluent builder constructing a request to `ListWebhook`.
 /// 
+/// Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListWebhookFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

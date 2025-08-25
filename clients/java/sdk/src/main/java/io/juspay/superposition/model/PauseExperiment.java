@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment
+ * config for later resumption.
+ */
 @SmithyGenerated
 public final class PauseExperiment implements ApiOperation<PauseExperimentInput, PauseExperimentOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#PauseExperiment");

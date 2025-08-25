@@ -34,7 +34,12 @@ export interface ExperimentGroupResponse {
   name: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   traffic_percentage: number | undefined;
   member_experiment_ids: (string)[] | undefined;
   created_at: Date | undefined;
@@ -110,7 +115,12 @@ export class ResourceNotFound extends __BaseException {
 export interface ApplicableVariantsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   identifier: string | undefined;
 }
 
@@ -207,7 +217,12 @@ export interface AutocompleteFunctionRequest {
  */
 export interface ContextMove {
   id?: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   description?: string | undefined;
   change_reason: string | undefined;
 }
@@ -216,8 +231,18 @@ export interface ContextMove {
  * @public
  */
 export interface ContextPut {
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
+  /**
+   * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+   * @public
+   */
   override: Record<string, __DocumentType> | undefined;
+
   description?: string | undefined;
   change_reason: string | undefined;
 }
@@ -241,6 +266,10 @@ export namespace ContextIdentifier {
     $unknown?: never;
   }
 
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   export interface ContextMember {
     id?: never;
     context: Record<string, __DocumentType>;
@@ -278,7 +307,12 @@ export namespace ContextIdentifier {
  */
 export interface UpdateContextOverrideRequest {
   context: ContextIdentifier | undefined;
+  /**
+   * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+   * @public
+   */
   override: Record<string, __DocumentType> | undefined;
+
   description?: string | undefined;
   change_reason: string | undefined;
 }
@@ -384,10 +418,25 @@ export interface BulkOperationInput {
  */
 export interface ContextResponse {
   id: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   value?: Record<string, __DocumentType> | undefined;
+
+  /**
+   * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+   * @public
+   */
   override?: Record<string, __DocumentType> | undefined;
+
   override_id?: string | undefined;
+  /**
+   * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+   * @public
+   */
   weight?: string | undefined;
+
   description?: string | undefined;
   change_reason?: string | undefined;
   created_at?: Date | undefined;
@@ -543,7 +592,12 @@ export interface ExperimentResponse {
   override_keys: (string)[] | undefined;
   status: ExperimentStatusType | undefined;
   traffic_percentage: number | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   variants: (Variant)[] | undefined;
   last_modified_by: string | undefined;
   chosen_variant?: string | undefined;
@@ -577,7 +631,12 @@ export interface GetConfigInput {
  */
 export interface ContextPartial {
   id?: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   condition?: Record<string, __DocumentType> | undefined;
+
   priority?: number | undefined;
   weight?: number | undefined;
   override_with_keys?: (string)[] | undefined;
@@ -589,7 +648,12 @@ export interface ContextPartial {
 export interface GetConfigOutput {
   contexts?: (ContextPartial)[] | undefined;
   overrides?: Record<string, Record<string, __DocumentType>> | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
   default_configs?: Record<string, __DocumentType> | undefined;
+
   version?: string | undefined;
   last_modified?: Date | undefined;
   audit_id?: string | undefined;
@@ -692,9 +756,19 @@ export interface ListVersionsOutput {
 export interface CreateContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   config_tags?: string | undefined;
+  /**
+   * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+   * @public
+   */
   override: Record<string, __DocumentType> | undefined;
+
   description?: string | undefined;
   change_reason: string | undefined;
 }
@@ -738,7 +812,13 @@ export interface GetContextFromConditionInput {
  * @enum
  */
 export const SortBy = {
+  /**
+   * Ascending order (A-Z, oldest first)
+   */
   Asc: "asc",
+  /**
+   * Descending order (Z-A, newest first)
+   */
   Desc: "desc",
 } as const
 /**
@@ -770,7 +850,12 @@ export interface ListContextsInput {
   count?: number | undefined;
   prefix?: string | undefined;
   sort_on?: ContextFilterSortOn | undefined;
+  /**
+   * Sort order enumeration for list operations.
+   * @public
+   */
   sort_by?: SortBy | undefined;
+
   created_by?: string | undefined;
   last_modified_by?: string | undefined;
   plaintext?: string | undefined;
@@ -792,7 +877,12 @@ export interface MoveContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   id: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   description?: string | undefined;
   change_reason: string | undefined;
 }
@@ -821,8 +911,22 @@ export interface WeightRecomputeInput {
  */
 export interface WeightRecomputeResponse {
   id?: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   condition?: Record<string, __DocumentType> | undefined;
+
+  /**
+   * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+   * @public
+   */
   old_weight?: string | undefined;
+
+  /**
+   * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+   * @public
+   */
   new_weight?: string | undefined;
 }
 
@@ -907,7 +1011,12 @@ export interface DimensionExt {
   created_by: string | undefined;
   dependencies: (string)[] | undefined;
   dependents: (string)[] | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
   dependency_graph: Record<string, __DocumentType> | undefined;
+
   autocomplete_function_name?: string | undefined;
   mandatory?: boolean | undefined;
 }
@@ -920,7 +1029,12 @@ export interface CreateExperimentRequest {
   org_id: string | undefined;
   name: string | undefined;
   experiment_type?: ExperimentType | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   variants: (Variant)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
@@ -943,7 +1057,12 @@ export interface CreateExperimentGroupRequest {
    */
   change_reason: string | undefined;
 
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
   context: Record<string, __DocumentType> | undefined;
+
   traffic_percentage: number | undefined;
   /**
    * List of experiment IDs that are members of this group.
@@ -1110,7 +1229,12 @@ export interface CreateWebhookInput {
   url: string | undefined;
   method: HttpMethod | undefined;
   version?: Version | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
   custom_headers?: Record<string, __DocumentType> | undefined;
+
   events: (string)[] | undefined;
   change_reason: string | undefined;
 }
@@ -1125,7 +1249,12 @@ export interface WebhookResponse {
   url: string | undefined;
   method: HttpMethod | undefined;
   version: Version | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
   custom_headers?: Record<string, __DocumentType> | undefined;
+
   events: (string)[] | undefined;
   max_retries: number | undefined;
   last_triggered_at?: Date | undefined;
@@ -1548,6 +1677,10 @@ export interface ListExperimentInput {
   experiment_group_ids?: string | undefined;
   created_by?: string | undefined;
   sort_on?: ExperimentSortOn | undefined;
+  /**
+   * Sort order enumeration for list operations.
+   * @public
+   */
   sort_by?: SortBy | undefined;
 }
 
@@ -1905,7 +2038,12 @@ export interface UpdateWebhookInput {
   url: string | undefined;
   method: HttpMethod | undefined;
   version?: Version | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
   custom_headers?: Record<string, __DocumentType> | undefined;
+
   events: (string)[] | undefined;
   change_reason: string | undefined;
 }

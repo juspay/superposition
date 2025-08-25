@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant
+ * evaluation.
+ */
 @SmithyGenerated
 public final class ResumeExperiment implements ApiOperation<ResumeExperimentInput, ResumeExperimentOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ResumeExperiment");

@@ -35,8 +35,7 @@ export interface CreateOrganisationCommandInput extends CreateOrganisationReques
 export interface CreateOrganisationCommandOutput extends OrganisationResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new organisation with specified details including name, admin contact, and organisational information.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -81,6 +80,7 @@ export interface CreateOrganisationCommandOutput extends OrganisationResponse, _
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateOrganisationCommand extends $Command.classBuilder<CreateOrganisationCommandInput, CreateOrganisationCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

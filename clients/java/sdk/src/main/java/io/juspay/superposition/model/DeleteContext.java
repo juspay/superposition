@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Permanently removes a context from the workspace. This operation cannot be undone and will affect
+ * config resolution.
+ */
 @SmithyGenerated
 public final class DeleteContext implements ApiOperation<DeleteContextInput, DeleteContextOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#DeleteContext");

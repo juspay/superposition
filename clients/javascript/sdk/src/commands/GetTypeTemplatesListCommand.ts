@@ -35,8 +35,7 @@ export interface GetTypeTemplatesListCommandInput extends GetTypeTemplatesListIn
 export interface GetTypeTemplatesListCommandOutput extends GetTypeTemplatesListOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of all type templates in the workspace, including their schemas and metadata for type management.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -82,6 +81,7 @@ export interface GetTypeTemplatesListCommandOutput extends GetTypeTemplatesListO
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetTypeTemplatesListCommand extends $Command.classBuilder<GetTypeTemplatesListCommandInput, GetTypeTemplatesListCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

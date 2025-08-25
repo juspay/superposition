@@ -35,8 +35,7 @@ export interface ListOrganisationCommandInput extends ListOrganisationInput {}
 export interface ListOrganisationCommandOutput extends ListOrganisationOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of all organisations with their basic information and status details.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -84,6 +83,7 @@ export interface ListOrganisationCommandOutput extends ListOrganisationOutput, _
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListOrganisationCommand extends $Command.classBuilder<ListOrganisationCommandInput, ListOrganisationCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

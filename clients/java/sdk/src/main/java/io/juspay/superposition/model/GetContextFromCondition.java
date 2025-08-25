@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves context information by matching against provided conditions. Used to find contexts that
+ * would apply to specific scenarios.
+ */
 @SmithyGenerated
 public final class GetContextFromCondition implements ApiOperation<GetContextFromConditionInput, GetContextFromConditionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetContextFromCondition");

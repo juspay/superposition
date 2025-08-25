@@ -35,8 +35,7 @@ export interface ListExperimentCommandInput extends ListExperimentInput {}
 export interface ListExperimentCommandOutput extends ExperimentListResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of experiments with support for filtering by status, date range, name, creator, and experiment group.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -115,6 +114,7 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListExperimentCommand extends $Command.classBuilder<ListExperimentCommandInput, ListExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

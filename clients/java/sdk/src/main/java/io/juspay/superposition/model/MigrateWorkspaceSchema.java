@@ -12,6 +12,9 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Migrates the workspace database schema to the new version of the template
+ */
 @SmithyGenerated
 public final class MigrateWorkspaceSchema implements ApiOperation<MigrateWorkspaceSchemaInput, MigrateWorkspaceSchemaOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#MigrateWorkspaceSchema");

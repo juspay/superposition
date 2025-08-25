@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
+ * efficient batch processing.
+ */
 @SmithyGenerated
 public final class BulkOperation implements ApiOperation<BulkOperationInput, BulkOperationOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#BulkOperation");

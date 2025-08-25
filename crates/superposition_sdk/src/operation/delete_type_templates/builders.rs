@@ -19,6 +19,7 @@ impl crate::operation::delete_type_templates::builders::DeleteTypeTemplatesInput
                 }
 /// Fluent builder constructing a request to `DeleteTypeTemplates`.
 /// 
+/// Permanently removes a type template from the workspace. No checks performed while deleting
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct DeleteTypeTemplatesFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

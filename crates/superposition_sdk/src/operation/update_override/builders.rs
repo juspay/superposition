@@ -19,6 +19,7 @@ impl crate::operation::update_override::builders::UpdateOverrideInputBuilder {
                 }
 /// Fluent builder constructing a request to `UpdateOverride`.
 /// 
+/// Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateOverrideFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

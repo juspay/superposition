@@ -410,7 +410,8 @@ class Superposition:
 
     async def applicable_variants(self, input: ApplicableVariantsInput, plugins: list[Plugin] | None = None) -> ApplicableVariantsOutput:
         """
-        Invokes the ApplicableVariants operation.
+        Determines which experiment variants are applicable to a given context, used for
+        experiment evaluation and variant selection.
 
         :param input: The operation's input.
 
@@ -436,7 +437,8 @@ class Superposition:
 
     async def bulk_operation(self, input: BulkOperationInput, plugins: list[Plugin] | None = None) -> BulkOperationOutput:
         """
-        Invokes the BulkOperation operation.
+        Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single
+        atomic transaction for efficient batch processing.
 
         :param input: The operation's input.
 
@@ -462,7 +464,8 @@ class Superposition:
 
     async def conclude_experiment(self, input: ConcludeExperimentInput, plugins: list[Plugin] | None = None) -> ConcludeExperimentOutput:
         """
-        Invokes the ConcludeExperiment operation.
+        Concludes an inprogress experiment by selecting a winning variant and
+        transitioning the experiment to a concluded state.
 
         :param input: The operation's input.
 
@@ -488,7 +491,8 @@ class Superposition:
 
     async def create_context(self, input: CreateContextInput, plugins: list[Plugin] | None = None) -> CreateContextOutput:
         """
-        Invokes the CreateContext operation.
+        Creates a new context with specified conditions and overrides. Contexts define
+        conditional rules for config management.
 
         :param input: The operation's input.
 
@@ -514,7 +518,9 @@ class Superposition:
 
     async def create_default_config(self, input: CreateDefaultConfigInput, plugins: list[Plugin] | None = None) -> CreateDefaultConfigOutput:
         """
-        Invokes the CreateDefaultConfig operation.
+        Creates a new default config entry with specified key, value, schema, and
+        metadata. Default configs serve as fallback values when no specific context
+        matches.
 
         :param input: The operation's input.
 
@@ -540,7 +546,8 @@ class Superposition:
 
     async def create_dimension(self, input: CreateDimensionInput, plugins: list[Plugin] | None = None) -> CreateDimensionOutput:
         """
-        Invokes the CreateDimension operation.
+        Creates a new dimension with the specified json schema. Dimensions define
+        categorical attributes used for context-based config management.
 
         :param input: The operation's input.
 
@@ -566,7 +573,8 @@ class Superposition:
 
     async def create_experiment(self, input: CreateExperimentInput, plugins: list[Plugin] | None = None) -> CreateExperimentOutput:
         """
-        Invokes the CreateExperiment operation.
+        Creates a new experiment with variants, context and conditions. You can
+        optionally specify metrics and experiment group for tracking and analysis.
 
         :param input: The operation's input.
 
@@ -618,7 +626,8 @@ class Superposition:
 
     async def create_function(self, input: CreateFunctionInput, plugins: list[Plugin] | None = None) -> CreateFunctionOutput:
         """
-        Invokes the CreateFunction operation.
+        Creates a new custom function for validation or autocompletion with specified
+        code, runtime version, and function type.
 
         :param input: The operation's input.
 
@@ -644,7 +653,8 @@ class Superposition:
 
     async def create_organisation(self, input: CreateOrganisationInput, plugins: list[Plugin] | None = None) -> CreateOrganisationOutput:
         """
-        Invokes the CreateOrganisation operation.
+        Creates a new organisation with specified details including name, admin contact,
+        and organisational information.
 
         :param input: The operation's input.
 
@@ -670,7 +680,8 @@ class Superposition:
 
     async def create_type_templates(self, input: CreateTypeTemplatesInput, plugins: list[Plugin] | None = None) -> CreateTypeTemplatesOutput:
         """
-        Invokes the CreateTypeTemplates operation.
+        Creates a new type template with specified schema definition, providing reusable
+        type definitions for config validation.
 
         :param input: The operation's input.
 
@@ -696,7 +707,8 @@ class Superposition:
 
     async def create_webhook(self, input: CreateWebhookInput, plugins: list[Plugin] | None = None) -> CreateWebhookOutput:
         """
-        Invokes the CreateWebhook operation.
+        Creates a new webhook config to receive HTTP notifications when specified events
+        occur in the system.
 
         :param input: The operation's input.
 
@@ -722,7 +734,9 @@ class Superposition:
 
     async def create_workspace(self, input: CreateWorkspaceInput, plugins: list[Plugin] | None = None) -> CreateWorkspaceOutput:
         """
-        Invokes the CreateWorkspace operation.
+        Creates a new workspace within an organisation, including database schema setup
+        and isolated environment for config management with specified admin and
+        settings.
 
         :param input: The operation's input.
 
@@ -748,7 +762,8 @@ class Superposition:
 
     async def delete_context(self, input: DeleteContextInput, plugins: list[Plugin] | None = None) -> DeleteContextOutput:
         """
-        Invokes the DeleteContext operation.
+        Permanently removes a context from the workspace. This operation cannot be
+        undone and will affect config resolution.
 
         :param input: The operation's input.
 
@@ -774,7 +789,9 @@ class Superposition:
 
     async def delete_default_config(self, input: DeleteDefaultConfigInput, plugins: list[Plugin] | None = None) -> DeleteDefaultConfigOutput:
         """
-        Invokes the DeleteDefaultConfig operation.
+        Permanently removes a default config entry from the workspace. This operation
+        cannot be performed if it affects config resolution for contexts that rely on
+        this fallback value.
 
         :param input: The operation's input.
 
@@ -800,7 +817,9 @@ class Superposition:
 
     async def delete_dimension(self, input: DeleteDimensionInput, plugins: list[Plugin] | None = None) -> DeleteDimensionOutput:
         """
-        Invokes the DeleteDimension operation.
+        Permanently removes a dimension from the workspace. This operation will fail if
+        the dimension has active dependencies or is referenced by existing
+        configurations.
 
         :param input: The operation's input.
 
@@ -852,7 +871,8 @@ class Superposition:
 
     async def delete_function(self, input: DeleteFunctionInput, plugins: list[Plugin] | None = None) -> DeleteFunctionOutput:
         """
-        Invokes the DeleteFunction operation.
+        Permanently removes a function from the workspace, deleting both draft and
+        published versions along with all associated code. It fails if already in use
 
         :param input: The operation's input.
 
@@ -878,7 +898,8 @@ class Superposition:
 
     async def delete_type_templates(self, input: DeleteTypeTemplatesInput, plugins: list[Plugin] | None = None) -> DeleteTypeTemplatesOutput:
         """
-        Invokes the DeleteTypeTemplates operation.
+        Permanently removes a type template from the workspace. No checks performed
+        while deleting
 
         :param input: The operation's input.
 
@@ -904,7 +925,8 @@ class Superposition:
 
     async def discard_experiment(self, input: DiscardExperimentInput, plugins: list[Plugin] | None = None) -> DiscardExperimentOutput:
         """
-        Invokes the DiscardExperiment operation.
+        Discards an experiment without selecting a winner, effectively canceling the
+        experiment and removing its effects.
 
         :param input: The operation's input.
 
@@ -930,7 +952,8 @@ class Superposition:
 
     async def get_config(self, input: GetConfigInput, plugins: list[Plugin] | None = None) -> GetConfigOutput:
         """
-        Invokes the GetConfig operation.
+        Retrieves config data with context evaluation, including applicable contexts,
+        overrides, and default values based on provided conditions.
 
         :param input: The operation's input.
 
@@ -956,7 +979,7 @@ class Superposition:
 
     async def get_config_fast(self, input: GetConfigFastInput, plugins: list[Plugin] | None = None) -> GetConfigFastOutput:
         """
-        Invokes the GetConfigFast operation.
+        Retrieves the latest config with no processing for high-performance access.
 
         :param input: The operation's input.
 
@@ -982,7 +1005,8 @@ class Superposition:
 
     async def get_context(self, input: GetContextInput, plugins: list[Plugin] | None = None) -> GetContextOutput:
         """
-        Invokes the GetContext operation.
+        Retrieves detailed information about a specific context by its unique
+        identifier, including conditions, overrides, and metadata.
 
         :param input: The operation's input.
 
@@ -1008,7 +1032,8 @@ class Superposition:
 
     async def get_context_from_condition(self, input: GetContextFromConditionInput, plugins: list[Plugin] | None = None) -> GetContextFromConditionOutput:
         """
-        Invokes the GetContextFromCondition operation.
+        Retrieves context information by matching against provided conditions. Used to
+        find contexts that would apply to specific scenarios.
 
         :param input: The operation's input.
 
@@ -1034,7 +1059,8 @@ class Superposition:
 
     async def get_dimension(self, input: GetDimensionInput, plugins: list[Plugin] | None = None) -> GetDimensionOutput:
         """
-        Invokes the GetDimension operation.
+        Retrieves detailed information about a specific dimension, including its schema,
+        dependencies, and configuration metadata.
 
         :param input: The operation's input.
 
@@ -1060,7 +1086,8 @@ class Superposition:
 
     async def get_experiment(self, input: GetExperimentInput, plugins: list[Plugin] | None = None) -> GetExperimentOutput:
         """
-        Invokes the GetExperiment operation.
+        Retrieves detailed information about a specific experiment, including its
+        config, variants, status, and metrics.
 
         :param input: The operation's input.
 
@@ -1112,7 +1139,8 @@ class Superposition:
 
     async def get_function(self, input: GetFunctionInput, plugins: list[Plugin] | None = None) -> GetFunctionOutput:
         """
-        Invokes the GetFunction operation.
+        Retrieves detailed information about a specific function including its published
+        and draft versions, code, and metadata.
 
         :param input: The operation's input.
 
@@ -1138,7 +1166,8 @@ class Superposition:
 
     async def get_organisation(self, input: GetOrganisationInput, plugins: list[Plugin] | None = None) -> GetOrganisationOutput:
         """
-        Invokes the GetOrganisation operation.
+        Retrieves detailed information about a specific organisation including its
+        status, contact details, and administrative metadata.
 
         :param input: The operation's input.
 
@@ -1164,7 +1193,8 @@ class Superposition:
 
     async def get_resolved_config(self, input: GetResolvedConfigInput, plugins: list[Plugin] | None = None) -> GetResolvedConfigOutput:
         """
-        Invokes the GetResolvedConfig operation.
+        Resolves and merges config values based on context conditions, applying
+        overrides and merge strategies to produce the final configuration.
 
         :param input: The operation's input.
 
@@ -1190,7 +1220,8 @@ class Superposition:
 
     async def get_type_templates_list(self, input: GetTypeTemplatesListInput, plugins: list[Plugin] | None = None) -> GetTypeTemplatesListOutput:
         """
-        Invokes the GetTypeTemplatesList operation.
+        Retrieves a paginated list of all type templates in the workspace, including
+        their schemas and metadata for type management.
 
         :param input: The operation's input.
 
@@ -1216,7 +1247,8 @@ class Superposition:
 
     async def get_webhook(self, input: GetWebhookInput, plugins: list[Plugin] | None = None) -> GetWebhookOutput:
         """
-        Invokes the GetWebhook operation.
+        Retrieves detailed information about a specific webhook config, including its
+        events, headers, and trigger history.
 
         :param input: The operation's input.
 
@@ -1242,7 +1274,9 @@ class Superposition:
 
     async def list_audit_logs(self, input: ListAuditLogsInput, plugins: list[Plugin] | None = None) -> ListAuditLogsOutput:
         """
-        Invokes the ListAuditLogs operation.
+        Retrieves a paginated list of audit logs with support for filtering by date
+        range, table names, actions, and usernames for compliance and monitoring
+        purposes.
 
         :param input: The operation's input.
 
@@ -1268,7 +1302,8 @@ class Superposition:
 
     async def list_contexts(self, input: ListContextsInput, plugins: list[Plugin] | None = None) -> ListContextsOutput:
         """
-        Invokes the ListContexts operation.
+        Retrieves a paginated list of contexts with support for filtering by creation
+        date, modification date, weight, and other criteria.
 
         :param input: The operation's input.
 
@@ -1294,7 +1329,8 @@ class Superposition:
 
     async def list_default_configs(self, input: ListDefaultConfigsInput, plugins: list[Plugin] | None = None) -> ListDefaultConfigsOutput:
         """
-        Invokes the ListDefaultConfigs operation.
+        Retrieves a paginated list of all default config entries in the workspace,
+        including their values, schemas, and metadata.
 
         :param input: The operation's input.
 
@@ -1320,7 +1356,8 @@ class Superposition:
 
     async def list_dimensions(self, input: ListDimensionsInput, plugins: list[Plugin] | None = None) -> ListDimensionsOutput:
         """
-        Invokes the ListDimensions operation.
+        Retrieves a paginated list of all dimensions in the workspace. Dimensions are
+        returned with their details and metadata.
 
         :param input: The operation's input.
 
@@ -1346,7 +1383,8 @@ class Superposition:
 
     async def list_experiment(self, input: ListExperimentInput, plugins: list[Plugin] | None = None) -> ListExperimentOutput:
         """
-        Invokes the ListExperiment operation.
+        Retrieves a paginated list of experiments with support for filtering by status,
+        date range, name, creator, and experiment group.
 
         :param input: The operation's input.
 
@@ -1398,7 +1436,8 @@ class Superposition:
 
     async def list_function(self, input: ListFunctionInput, plugins: list[Plugin] | None = None) -> ListFunctionOutput:
         """
-        Invokes the ListFunction operation.
+        Retrieves a paginated list of all functions in the workspace with their basic
+        information and current status.
 
         :param input: The operation's input.
 
@@ -1424,7 +1463,8 @@ class Superposition:
 
     async def list_organisation(self, input: ListOrganisationInput, plugins: list[Plugin] | None = None) -> ListOrganisationOutput:
         """
-        Invokes the ListOrganisation operation.
+        Retrieves a paginated list of all organisations with their basic information and
+        status details.
 
         :param input: The operation's input.
 
@@ -1450,7 +1490,8 @@ class Superposition:
 
     async def list_versions(self, input: ListVersionsInput, plugins: list[Plugin] | None = None) -> ListVersionsOutput:
         """
-        Invokes the ListVersions operation.
+        Retrieves a paginated list of config versions with their metadata, hash values,
+        and creation timestamps for audit and rollback purposes.
 
         :param input: The operation's input.
 
@@ -1476,7 +1517,8 @@ class Superposition:
 
     async def list_webhook(self, input: ListWebhookInput, plugins: list[Plugin] | None = None) -> ListWebhookOutput:
         """
-        Invokes the ListWebhook operation.
+        Retrieves a paginated list of all webhook configs in the workspace, including
+        their status and config details.
 
         :param input: The operation's input.
 
@@ -1502,7 +1544,9 @@ class Superposition:
 
     async def list_workspace(self, input: ListWorkspaceInput, plugins: list[Plugin] | None = None) -> ListWorkspaceOutput:
         """
-        Invokes the ListWorkspace operation.
+        Retrieves a paginated list of all workspaces with optional filtering by
+        workspace name, including their status, config details, and administrative
+        information.
 
         :param input: The operation's input.
 
@@ -1528,7 +1572,7 @@ class Superposition:
 
     async def migrate_workspace_schema(self, input: MigrateWorkspaceSchemaInput, plugins: list[Plugin] | None = None) -> MigrateWorkspaceSchemaOutput:
         """
-        Invokes the MigrateWorkspaceSchema operation.
+        Migrates the workspace database schema to the new version of the template
 
         :param input: The operation's input.
 
@@ -1554,7 +1598,9 @@ class Superposition:
 
     async def move_context(self, input: MoveContextInput, plugins: list[Plugin] | None = None) -> MoveContextOutput:
         """
-        Invokes the MoveContext operation.
+        Updates the condition of the mentioned context, if a context with the new
+        condition already exists, it merges the override and effectively deleting the
+        old context
 
         :param input: The operation's input.
 
@@ -1580,7 +1626,8 @@ class Superposition:
 
     async def pause_experiment(self, input: PauseExperimentInput, plugins: list[Plugin] | None = None) -> PauseExperimentOutput:
         """
-        Invokes the PauseExperiment operation.
+        Temporarily pauses an inprogress experiment, suspending its effects while
+        preserving the experiment config for later resumption.
 
         :param input: The operation's input.
 
@@ -1606,7 +1653,8 @@ class Superposition:
 
     async def publish(self, input: PublishInput, plugins: list[Plugin] | None = None) -> PublishOutput:
         """
-        Invokes the Publish operation.
+        Publishes the draft version of a function, making it the active version used for
+        validation or autocompletion in the system.
 
         :param input: The operation's input.
 
@@ -1632,7 +1680,8 @@ class Superposition:
 
     async def ramp_experiment(self, input: RampExperimentInput, plugins: list[Plugin] | None = None) -> RampExperimentOutput:
         """
-        Invokes the RampExperiment operation.
+        Adjusts the traffic percentage allocation for an in-progress experiment,
+        allowing gradual rollout or rollback of experimental features.
 
         :param input: The operation's input.
 
@@ -1684,7 +1733,8 @@ class Superposition:
 
     async def resume_experiment(self, input: ResumeExperimentInput, plugins: list[Plugin] | None = None) -> ResumeExperimentOutput:
         """
-        Invokes the ResumeExperiment operation.
+        Resumes a previously paused experiment, restoring its in-progress state and
+        re-enabling variant evaluation.
 
         :param input: The operation's input.
 
@@ -1710,7 +1760,8 @@ class Superposition:
 
     async def test(self, input: TestInput, plugins: list[Plugin] | None = None) -> TestOutput:
         """
-        Invokes the Test operation.
+        Executes a function in test mode with provided input parameters to validate its
+        behavior before publishing or deployment.
 
         :param input: The operation's input.
 
@@ -1736,7 +1787,8 @@ class Superposition:
 
     async def update_default_config(self, input: UpdateDefaultConfigInput, plugins: list[Plugin] | None = None) -> UpdateDefaultConfigOutput:
         """
-        Invokes the UpdateDefaultConfig operation.
+        Updates an existing default config entry. Allows modification of value, schema,
+        function mappings, and description while preserving the key identifier.
 
         :param input: The operation's input.
 
@@ -1762,7 +1814,9 @@ class Superposition:
 
     async def update_dimension(self, input: UpdateDimensionInput, plugins: list[Plugin] | None = None) -> UpdateDimensionOutput:
         """
-        Invokes the UpdateDimension operation.
+        Updates an existing dimension's configuration. Allows modification of schema,
+        position, function mappings, and other properties while maintaining dependency
+        relationships.
 
         :param input: The operation's input.
 
@@ -1815,7 +1869,8 @@ class Superposition:
 
     async def update_function(self, input: UpdateFunctionInput, plugins: list[Plugin] | None = None) -> UpdateFunctionOutput:
         """
-        Invokes the UpdateFunction operation.
+        Updates the draft version of an existing function with new code, runtime
+        version, or description while preserving the published version.
 
         :param input: The operation's input.
 
@@ -1841,7 +1896,8 @@ class Superposition:
 
     async def update_organisation(self, input: UpdateOrganisationInput, plugins: list[Plugin] | None = None) -> UpdateOrganisationOutput:
         """
-        Invokes the UpdateOrganisation operation.
+        Updates an existing organisation's information including contact details,
+        status, and administrative properties.
 
         :param input: The operation's input.
 
@@ -1867,7 +1923,8 @@ class Superposition:
 
     async def update_override(self, input: UpdateOverrideInput, plugins: list[Plugin] | None = None) -> UpdateOverrideOutput:
         """
-        Invokes the UpdateOverride operation.
+        Updates the overrides for an existing context. Allows modification of override
+        values while maintaining the context's conditions.
 
         :param input: The operation's input.
 
@@ -1893,7 +1950,10 @@ class Superposition:
 
     async def update_overrides_experiment(self, input: UpdateOverridesExperimentInput, plugins: list[Plugin] | None = None) -> UpdateOverridesExperimentOutput:
         """
-        Invokes the UpdateOverridesExperiment operation.
+        Updates the overrides for specific variants within an experiment, allowing
+        modification of experiment behavior Updates the overrides for specific variants
+        within an experiment, allowing modification of experiment behavior while it is
+        in the created state.
 
         :param input: The operation's input.
 
@@ -1919,7 +1979,8 @@ class Superposition:
 
     async def update_type_templates(self, input: UpdateTypeTemplatesInput, plugins: list[Plugin] | None = None) -> UpdateTypeTemplatesOutput:
         """
-        Invokes the UpdateTypeTemplates operation.
+        Updates an existing type template's schema definition and metadata while
+        preserving its identifier and usage history.
 
         :param input: The operation's input.
 
@@ -1945,7 +2006,8 @@ class Superposition:
 
     async def update_webhook(self, input: UpdateWebhookInput, plugins: list[Plugin] | None = None) -> UpdateWebhookOutput:
         """
-        Invokes the UpdateWebhook operation.
+        Updates an existing webhook config, allowing modification of URL, events,
+        headers, and other webhook properties.
 
         :param input: The operation's input.
 
@@ -1971,7 +2033,9 @@ class Superposition:
 
     async def update_workspace(self, input: UpdateWorkspaceInput, plugins: list[Plugin] | None = None) -> UpdateWorkspaceOutput:
         """
-        Invokes the UpdateWorkspace operation.
+        Updates an existing workspace configuration, allowing modification of admin
+        settings, mandatory dimensions, and workspace properties. Validates config
+        version existence if provided.
 
         :param input: The operation's input.
 
@@ -1997,7 +2061,8 @@ class Superposition:
 
     async def weight_recompute(self, input: WeightRecomputeInput, plugins: list[Plugin] | None = None) -> WeightRecomputeOutput:
         """
-        Invokes the WeightRecompute operation.
+        Recalculates and updates the priority weights for all contexts in the workspace
+        based on their dimensions.
 
         :param input: The operation's input.
 

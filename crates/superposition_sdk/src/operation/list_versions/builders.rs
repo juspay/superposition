@@ -19,6 +19,7 @@ impl crate::operation::list_versions::builders::ListVersionsInputBuilder {
                 }
 /// Fluent builder constructing a request to `ListVersions`.
 /// 
+/// Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListVersionsFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

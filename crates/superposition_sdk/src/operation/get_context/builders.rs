@@ -19,6 +19,7 @@ impl crate::operation::get_context::builders::GetContextInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetContext`.
 /// 
+/// Retrieves detailed information about a specific context by its unique identifier, including conditions, overrides, and metadata.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetContextFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

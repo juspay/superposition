@@ -12,6 +12,9 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves a paginated list of all organisations with their basic information and status details.
+ */
 @SmithyGenerated
 public final class ListOrganisation implements ApiOperation<ListOrganisationInput, ListOrganisationOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListOrganisation");

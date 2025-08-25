@@ -19,6 +19,7 @@ impl crate::operation::publish::builders::PublishInputBuilder {
                 }
 /// Fluent builder constructing a request to `Publish`.
 /// 
+/// Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct PublishFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

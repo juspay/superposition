@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates an existing organisation's information including contact details, status, and administrative
+ * properties.
+ */
 @SmithyGenerated
 public final class UpdateOrganisation implements ApiOperation<UpdateOrganisationInput, UpdateOrganisationOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateOrganisation");

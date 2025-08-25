@@ -15,7 +15,7 @@ impl super::Client {
     ///   - [`name(String)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::name): (undocumented)
     ///   - [`description(String)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::change_reason): (undocumented)
-    ///   - [`context(HashMap::<String, Document>)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::context): (undocumented)
+    ///   - [`context(HashMap::<String, Document>)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::context): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     ///   - [`traffic_percentage(i32)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::traffic_percentage): (undocumented)
     ///   - [`member_experiment_ids(Vec::<String>)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::member_experiment_ids): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput::created_at): (undocumented)

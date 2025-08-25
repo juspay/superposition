@@ -19,6 +19,7 @@ impl crate::operation::get_type_templates_list::builders::GetTypeTemplatesListIn
                 }
 /// Fluent builder constructing a request to `GetTypeTemplatesList`.
 /// 
+/// Retrieves a paginated list of all type templates in the workspace, including their schemas and metadata for type management.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetTypeTemplatesListFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

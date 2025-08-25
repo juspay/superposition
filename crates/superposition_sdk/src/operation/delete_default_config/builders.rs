@@ -19,6 +19,7 @@ impl crate::operation::delete_default_config::builders::DeleteDefaultConfigInput
                 }
 /// Fluent builder constructing a request to `DeleteDefaultConfig`.
 /// 
+/// Permanently removes a default config entry from the workspace. This operation cannot be performed if it affects config resolution for contexts that rely on this fallback value.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct DeleteDefaultConfigFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

@@ -19,6 +19,7 @@ impl crate::operation::get_dimension::builders::GetDimensionInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetDimension`.
 /// 
+/// Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetDimensionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

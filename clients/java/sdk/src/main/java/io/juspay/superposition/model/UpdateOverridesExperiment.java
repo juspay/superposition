@@ -12,6 +12,11 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates the overrides for specific variants within an experiment, allowing modification of
+ * experiment behavior Updates the overrides for specific variants within an experiment, allowing
+ * modification of experiment behavior while it is in the created state.
+ */
 @SmithyGenerated
 public final class UpdateOverridesExperiment implements ApiOperation<UpdateOverridesExperimentInput, UpdateOverridesExperimentOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateOverridesExperiment");

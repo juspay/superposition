@@ -35,8 +35,7 @@ export interface UpdateTypeTemplatesCommandInput extends UpdateTypeTemplatesRequ
 export interface UpdateTypeTemplatesCommandOutput extends TypeTemplatesResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -79,6 +78,7 @@ export interface UpdateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateTypeTemplatesCommand extends $Command.classBuilder<UpdateTypeTemplatesCommandInput, UpdateTypeTemplatesCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

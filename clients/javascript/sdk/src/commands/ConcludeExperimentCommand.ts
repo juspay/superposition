@@ -35,8 +35,7 @@ export interface ConcludeExperimentCommandInput extends ConcludeExperimentInput 
 export interface ConcludeExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment to a concluded state.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -101,6 +100,7 @@ export interface ConcludeExperimentCommandOutput extends ExperimentResponse, __M
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ConcludeExperimentCommand extends $Command.classBuilder<ConcludeExperimentCommandInput, ConcludeExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

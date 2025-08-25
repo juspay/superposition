@@ -35,8 +35,7 @@ export interface DeleteDefaultConfigCommandInput extends DeleteDefaultConfigInpu
 export interface DeleteDefaultConfigCommandOutput extends DeleteDefaultConfigOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Permanently removes a default config entry from the workspace. This operation cannot be performed if it affects config resolution for contexts that rely on this fallback value.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -67,6 +66,7 @@ export interface DeleteDefaultConfigCommandOutput extends DeleteDefaultConfigOut
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class DeleteDefaultConfigCommand extends $Command.classBuilder<DeleteDefaultConfigCommandInput, DeleteDefaultConfigCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

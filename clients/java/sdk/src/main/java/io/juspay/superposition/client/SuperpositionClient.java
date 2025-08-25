@@ -169,6 +169,9 @@ public interface SuperpositionClient {
     AddMembersToGroupOutput addMembersToGroup(AddMembersToGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Determines which experiment variants are applicable to a given context, used for experiment
+     * evaluation and variant selection.
+     *
      * @throws InternalServerError
      */
     default ApplicableVariantsOutput applicableVariants(ApplicableVariantsInput input) {
@@ -176,11 +179,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Determines which experiment variants are applicable to a given context, used for experiment
+     * evaluation and variant selection.
+     *
      * @throws InternalServerError
      */
     ApplicableVariantsOutput applicableVariants(ApplicableVariantsInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
+     * efficient batch processing.
+     *
      * @throws InternalServerError
      */
     default BulkOperationOutput bulkOperation(BulkOperationInput input) {
@@ -188,11 +197,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
+     * efficient batch processing.
+     *
      * @throws InternalServerError
      */
     BulkOperationOutput bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment
+     * to a concluded state.
+     *
      * @throws InternalServerError
      */
     default ConcludeExperimentOutput concludeExperiment(ConcludeExperimentInput input) {
@@ -200,11 +215,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment
+     * to a concluded state.
+     *
      * @throws InternalServerError
      */
     ConcludeExperimentOutput concludeExperiment(ConcludeExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new context with specified conditions and overrides. Contexts define conditional rules for
+     * config management.
+     *
      * @throws InternalServerError
      */
     default CreateContextOutput createContext(CreateContextInput input) {
@@ -212,11 +233,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new context with specified conditions and overrides. Contexts define conditional rules for
+     * config management.
+     *
      * @throws InternalServerError
      */
     CreateContextOutput createContext(CreateContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new default config entry with specified key, value, schema, and metadata. Default configs
+     * serve as fallback values when no specific context matches.
+     *
      * @throws InternalServerError
      */
     default CreateDefaultConfigOutput createDefaultConfig(CreateDefaultConfigInput input) {
@@ -224,11 +251,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new default config entry with specified key, value, schema, and metadata. Default configs
+     * serve as fallback values when no specific context matches.
+     *
      * @throws InternalServerError
      */
     CreateDefaultConfigOutput createDefaultConfig(CreateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new dimension with the specified json schema. Dimensions define categorical attributes
+     * used for context-based config management.
+     *
      * @throws InternalServerError
      */
     default CreateDimensionOutput createDimension(CreateDimensionInput input) {
@@ -236,11 +269,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new dimension with the specified json schema. Dimensions define categorical attributes
+     * used for context-based config management.
+     *
      * @throws InternalServerError
      */
     CreateDimensionOutput createDimension(CreateDimensionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new experiment with variants, context and conditions. You can optionally specify metrics
+     * and experiment group for tracking and analysis.
+     *
      * @throws InternalServerError
      */
     default CreateExperimentOutput createExperiment(CreateExperimentInput input) {
@@ -248,6 +287,9 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new experiment with variants, context and conditions. You can optionally specify metrics
+     * and experiment group for tracking and analysis.
+     *
      * @throws InternalServerError
      */
     CreateExperimentOutput createExperiment(CreateExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -269,6 +311,9 @@ public interface SuperpositionClient {
     CreateExperimentGroupOutput createExperimentGroup(CreateExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new custom function for validation or autocompletion with specified code, runtime version,
+     * and function type.
+     *
      * @throws InternalServerError
      */
     default CreateFunctionOutput createFunction(CreateFunctionInput input) {
@@ -276,11 +321,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new custom function for validation or autocompletion with specified code, runtime version,
+     * and function type.
+     *
      * @throws InternalServerError
      */
     CreateFunctionOutput createFunction(CreateFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new organisation with specified details including name, admin contact, and organisational
+     * information.
+     *
      * @throws InternalServerError
      */
     default CreateOrganisationOutput createOrganisation(CreateOrganisationInput input) {
@@ -288,11 +339,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new organisation with specified details including name, admin contact, and organisational
+     * information.
+     *
      * @throws InternalServerError
      */
     CreateOrganisationOutput createOrganisation(CreateOrganisationInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new type template with specified schema definition, providing reusable type definitions
+     * for config validation.
+     *
      * @throws InternalServerError
      */
     default CreateTypeTemplatesOutput createTypeTemplates(CreateTypeTemplatesInput input) {
@@ -300,11 +357,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new type template with specified schema definition, providing reusable type definitions
+     * for config validation.
+     *
      * @throws InternalServerError
      */
     CreateTypeTemplatesOutput createTypeTemplates(CreateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new webhook config to receive HTTP notifications when specified events occur in the
+     * system.
+     *
      * @throws InternalServerError
      */
     default CreateWebhookOutput createWebhook(CreateWebhookInput input) {
@@ -312,11 +375,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new webhook config to receive HTTP notifications when specified events occur in the
+     * system.
+     *
      * @throws InternalServerError
      */
     CreateWebhookOutput createWebhook(CreateWebhookInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new workspace within an organisation, including database schema setup and isolated
+     * environment for config management with specified admin and settings.
+     *
      * @throws InternalServerError
      */
     default CreateWorkspaceOutput createWorkspace(CreateWorkspaceInput input) {
@@ -324,11 +393,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Creates a new workspace within an organisation, including database schema setup and isolated
+     * environment for config management with specified admin and settings.
+     *
      * @throws InternalServerError
      */
     CreateWorkspaceOutput createWorkspace(CreateWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Permanently removes a context from the workspace. This operation cannot be undone and will affect
+     * config resolution.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
@@ -337,12 +412,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Permanently removes a context from the workspace. This operation cannot be undone and will affect
+     * config resolution.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
     DeleteContextOutput deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Permanently removes a default config entry from the workspace. This operation cannot be performed if
+     * it affects config resolution for contexts that rely on this fallback value.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
@@ -351,12 +432,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Permanently removes a default config entry from the workspace. This operation cannot be performed if
+     * it affects config resolution for contexts that rely on this fallback value.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
     DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Permanently removes a dimension from the workspace. This operation will fail if the dimension has
+     * active dependencies or is referenced by existing configurations.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
@@ -365,6 +452,9 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Permanently removes a dimension from the workspace. This operation will fail if the dimension has
+     * active dependencies or is referenced by existing configurations.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
@@ -389,6 +479,9 @@ public interface SuperpositionClient {
     DeleteExperimentGroupOutput deleteExperimentGroup(DeleteExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Permanently removes a function from the workspace, deleting both draft and published versions along
+     * with all associated code. It fails if already in use
+     *
      * @throws InternalServerError
      * @throws FunctionNotFound
      */
@@ -397,12 +490,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Permanently removes a function from the workspace, deleting both draft and published versions along
+     * with all associated code. It fails if already in use
+     *
      * @throws InternalServerError
      * @throws FunctionNotFound
      */
     DeleteFunctionOutput deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Permanently removes a type template from the workspace. No checks performed while deleting
+     *
      * @throws TypeTemplatesNotFound
      * @throws InternalServerError
      */
@@ -411,12 +509,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Permanently removes a type template from the workspace. No checks performed while deleting
+     *
      * @throws TypeTemplatesNotFound
      * @throws InternalServerError
      */
     DeleteTypeTemplatesOutput deleteTypeTemplates(DeleteTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Discards an experiment without selecting a winner, effectively canceling the experiment and removing
+     * its effects.
+     *
      * @throws InternalServerError
      */
     default DiscardExperimentOutput discardExperiment(DiscardExperimentInput input) {
@@ -424,11 +527,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Discards an experiment without selecting a winner, effectively canceling the experiment and removing
+     * its effects.
+     *
      * @throws InternalServerError
      */
     DiscardExperimentOutput discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves config data with context evaluation, including applicable contexts, overrides, and default
+     * values based on provided conditions.
+     *
      * @throws InternalServerError
      */
     default GetConfigOutput getConfig(GetConfigInput input) {
@@ -436,11 +545,16 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves config data with context evaluation, including applicable contexts, overrides, and default
+     * values based on provided conditions.
+     *
      * @throws InternalServerError
      */
     GetConfigOutput getConfig(GetConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves the latest config with no processing for high-performance access.
+     *
      * @throws InternalServerError
      */
     default GetConfigFastOutput getConfigFast(GetConfigFastInput input) {
@@ -448,11 +562,16 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves the latest config with no processing for high-performance access.
+     *
      * @throws InternalServerError
      */
     GetConfigFastOutput getConfigFast(GetConfigFastInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific context by its unique identifier, including
+     * conditions, overrides, and metadata.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -461,12 +580,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves detailed information about a specific context by its unique identifier, including
+     * conditions, overrides, and metadata.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
     GetContextOutput getContext(GetContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves context information by matching against provided conditions. Used to find contexts that
+     * would apply to specific scenarios.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -475,12 +600,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves context information by matching against provided conditions. Used to find contexts that
+     * would apply to specific scenarios.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
     GetContextFromConditionOutput getContextFromCondition(GetContextFromConditionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific dimension, including its schema, dependencies, and
+     * configuration metadata.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -489,12 +620,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves detailed information about a specific dimension, including its schema, dependencies, and
+     * configuration metadata.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
     GetDimensionOutput getDimension(GetDimensionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific experiment, including its config, variants, status,
+     * and metrics.
+     *
      * @throws InternalServerError
      */
     default GetExperimentOutput getExperiment(GetExperimentInput input) {
@@ -502,6 +639,9 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves detailed information about a specific experiment, including its config, variants, status,
+     * and metrics.
+     *
      * @throws InternalServerError
      */
     GetExperimentOutput getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -525,6 +665,9 @@ public interface SuperpositionClient {
     GetExperimentGroupOutput getExperimentGroup(GetExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific function including its published and draft versions,
+     * code, and metadata.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
@@ -533,12 +676,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves detailed information about a specific function including its published and draft versions,
+     * code, and metadata.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
     GetFunctionOutput getFunction(GetFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific organisation including its status, contact details,
+     * and administrative metadata.
+     *
      * @throws OrganisationNotFound
      * @throws InternalServerError
      */
@@ -547,12 +696,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves detailed information about a specific organisation including its status, contact details,
+     * and administrative metadata.
+     *
      * @throws OrganisationNotFound
      * @throws InternalServerError
      */
     GetOrganisationOutput getOrganisation(GetOrganisationInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Resolves and merges config values based on context conditions, applying overrides and merge
+     * strategies to produce the final configuration.
+     *
      * @throws InternalServerError
      */
     default GetResolvedConfigOutput getResolvedConfig(GetResolvedConfigInput input) {
@@ -560,11 +715,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Resolves and merges config values based on context conditions, applying overrides and merge
+     * strategies to produce the final configuration.
+     *
      * @throws InternalServerError
      */
     GetResolvedConfigOutput getResolvedConfig(GetResolvedConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all type templates in the workspace, including their schemas and
+     * metadata for type management.
+     *
      * @throws InternalServerError
      */
     default GetTypeTemplatesListOutput getTypeTemplatesList(GetTypeTemplatesListInput input) {
@@ -572,11 +733,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of all type templates in the workspace, including their schemas and
+     * metadata for type management.
+     *
      * @throws InternalServerError
      */
     GetTypeTemplatesListOutput getTypeTemplatesList(GetTypeTemplatesListInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific webhook config, including its events, headers, and
+     * trigger history.
+     *
      * @throws InternalServerError
      */
     default GetWebhookOutput getWebhook(GetWebhookInput input) {
@@ -584,11 +751,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves detailed information about a specific webhook config, including its events, headers, and
+     * trigger history.
+     *
      * @throws InternalServerError
      */
     GetWebhookOutput getWebhook(GetWebhookInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of audit logs with support for filtering by date range, table names,
+     * actions, and usernames for compliance and monitoring purposes.
+     *
      * @throws InternalServerError
      */
     default ListAuditLogsOutput listAuditLogs(ListAuditLogsInput input) {
@@ -596,11 +769,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of audit logs with support for filtering by date range, table names,
+     * actions, and usernames for compliance and monitoring purposes.
+     *
      * @throws InternalServerError
      */
     ListAuditLogsOutput listAuditLogs(ListAuditLogsInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of contexts with support for filtering by creation date, modification
+     * date, weight, and other criteria.
+     *
      * @throws InternalServerError
      */
     default ListContextsOutput listContexts(ListContextsInput input) {
@@ -608,11 +787,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of contexts with support for filtering by creation date, modification
+     * date, weight, and other criteria.
+     *
      * @throws InternalServerError
      */
     ListContextsOutput listContexts(ListContextsInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all default config entries in the workspace, including their values,
+     * schemas, and metadata.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
@@ -621,12 +806,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of all default config entries in the workspace, including their values,
+     * schemas, and metadata.
+     *
      * @throws InternalServerError
      * @throws ResourceNotFound
      */
     ListDefaultConfigsOutput listDefaultConfigs(ListDefaultConfigsInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their
+     * details and metadata.
+     *
      * @throws InternalServerError
      */
     default ListDimensionsOutput listDimensions(ListDimensionsInput input) {
@@ -634,11 +825,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their
+     * details and metadata.
+     *
      * @throws InternalServerError
      */
     ListDimensionsOutput listDimensions(ListDimensionsInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of experiments with support for filtering by status, date range, name,
+     * creator, and experiment group.
+     *
      * @throws InternalServerError
      */
     default ListExperimentOutput listExperiment(ListExperimentInput input) {
@@ -646,6 +843,9 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of experiments with support for filtering by status, date range, name,
+     * creator, and experiment group.
+     *
      * @throws InternalServerError
      */
     ListExperimentOutput listExperiment(ListExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -667,6 +867,9 @@ public interface SuperpositionClient {
     ListExperimentGroupsOutput listExperimentGroups(ListExperimentGroupsInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all functions in the workspace with their basic information and
+     * current status.
+     *
      * @throws InternalServerError
      */
     default ListFunctionOutput listFunction(ListFunctionInput input) {
@@ -674,11 +877,16 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of all functions in the workspace with their basic information and
+     * current status.
+     *
      * @throws InternalServerError
      */
     ListFunctionOutput listFunction(ListFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all organisations with their basic information and status details.
+     *
      * @throws InternalServerError
      */
     default ListOrganisationOutput listOrganisation(ListOrganisationInput input) {
@@ -686,11 +894,16 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of all organisations with their basic information and status details.
+     *
      * @throws InternalServerError
      */
     ListOrganisationOutput listOrganisation(ListOrganisationInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of config versions with their metadata, hash values, and creation
+     * timestamps for audit and rollback purposes.
+     *
      * @throws InternalServerError
      */
     default ListVersionsOutput listVersions(ListVersionsInput input) {
@@ -698,11 +911,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of config versions with their metadata, hash values, and creation
+     * timestamps for audit and rollback purposes.
+     *
      * @throws InternalServerError
      */
     ListVersionsOutput listVersions(ListVersionsInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all webhook configs in the workspace, including their status and
+     * config details.
+     *
      * @throws InternalServerError
      */
     default ListWebhookOutput listWebhook(ListWebhookInput input) {
@@ -710,11 +929,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of all webhook configs in the workspace, including their status and
+     * config details.
+     *
      * @throws InternalServerError
      */
     ListWebhookOutput listWebhook(ListWebhookInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all workspaces with optional filtering by workspace name, including
+     * their status, config details, and administrative information.
+     *
      * @throws InternalServerError
      */
     default ListWorkspaceOutput listWorkspace(ListWorkspaceInput input) {
@@ -722,11 +947,16 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Retrieves a paginated list of all workspaces with optional filtering by workspace name, including
+     * their status, config details, and administrative information.
+     *
      * @throws InternalServerError
      */
     ListWorkspaceOutput listWorkspace(ListWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Migrates the workspace database schema to the new version of the template
+     *
      * @throws InternalServerError
      */
     default MigrateWorkspaceSchemaOutput migrateWorkspaceSchema(MigrateWorkspaceSchemaInput input) {
@@ -734,11 +964,16 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Migrates the workspace database schema to the new version of the template
+     *
      * @throws InternalServerError
      */
     MigrateWorkspaceSchemaOutput migrateWorkspaceSchema(MigrateWorkspaceSchemaInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates the condition of the mentioned context, if a context with the new condition already exists,
+     * it merges the override and effectively deleting the old context
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -747,12 +982,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates the condition of the mentioned context, if a context with the new condition already exists,
+     * it merges the override and effectively deleting the old context
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
     MoveContextOutput moveContext(MoveContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment
+     * config for later resumption.
+     *
      * @throws InternalServerError
      */
     default PauseExperimentOutput pauseExperiment(PauseExperimentInput input) {
@@ -760,11 +1001,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment
+     * config for later resumption.
+     *
      * @throws InternalServerError
      */
     PauseExperimentOutput pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Publishes the draft version of a function, making it the active version used for validation or
+     * autocompletion in the system.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
@@ -773,12 +1020,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Publishes the draft version of a function, making it the active version used for validation or
+     * autocompletion in the system.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
     PublishOutput publish(PublishInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or
+     * rollback of experimental features.
+     *
      * @throws InternalServerError
      */
     default RampExperimentOutput rampExperiment(RampExperimentInput input) {
@@ -786,6 +1039,9 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or
+     * rollback of experimental features.
+     *
      * @throws InternalServerError
      */
     RampExperimentOutput rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -809,6 +1065,9 @@ public interface SuperpositionClient {
     RemoveMembersFromGroupOutput removeMembersFromGroup(RemoveMembersFromGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant
+     * evaluation.
+     *
      * @throws InternalServerError
      */
     default ResumeExperimentOutput resumeExperiment(ResumeExperimentInput input) {
@@ -816,11 +1075,17 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant
+     * evaluation.
+     *
      * @throws InternalServerError
      */
     ResumeExperimentOutput resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Executes a function in test mode with provided input parameters to validate its behavior before
+     * publishing or deployment.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
@@ -829,12 +1094,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Executes a function in test mode with provided input parameters to validate its behavior before
+     * publishing or deployment.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
     TestOutput test(TestInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates an existing default config entry. Allows modification of value, schema, function mappings,
+     * and description while preserving the key identifier.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -843,12 +1114,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates an existing default config entry. Allows modification of value, schema, function mappings,
+     * and description while preserving the key identifier.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateDefaultConfigOutput updateDefaultConfig(UpdateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates an existing dimension's configuration. Allows modification of schema, position, function
+     * mappings, and other properties while maintaining dependency relationships.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -857,6 +1134,9 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates an existing dimension's configuration. Allows modification of schema, position, function
+     * mappings, and other properties while maintaining dependency relationships.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -881,6 +1161,9 @@ public interface SuperpositionClient {
     UpdateExperimentGroupOutput updateExperimentGroup(UpdateExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates the draft version of an existing function with new code, runtime version, or description
+     * while preserving the published version.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
@@ -889,12 +1172,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates the draft version of an existing function with new code, runtime version, or description
+     * while preserving the published version.
+     *
      * @throws FunctionNotFound
      * @throws InternalServerError
      */
     UpdateFunctionOutput updateFunction(UpdateFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates an existing organisation's information including contact details, status, and administrative
+     * properties.
+     *
      * @throws OrganisationNotFound
      * @throws InternalServerError
      */
@@ -903,12 +1192,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates an existing organisation's information including contact details, status, and administrative
+     * properties.
+     *
      * @throws OrganisationNotFound
      * @throws InternalServerError
      */
     UpdateOrganisationOutput updateOrganisation(UpdateOrganisationInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates the overrides for an existing context. Allows modification of override values while
+     * maintaining the context's conditions.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
@@ -917,12 +1212,19 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates the overrides for an existing context. Allows modification of override values while
+     * maintaining the context's conditions.
+     *
      * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateOverrideOutput updateOverride(UpdateOverrideInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates the overrides for specific variants within an experiment, allowing modification of
+     * experiment behavior Updates the overrides for specific variants within an experiment, allowing
+     * modification of experiment behavior while it is in the created state.
+     *
      * @throws InternalServerError
      */
     default UpdateOverridesExperimentOutput updateOverridesExperiment(UpdateOverridesExperimentInput input) {
@@ -930,11 +1232,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates the overrides for specific variants within an experiment, allowing modification of
+     * experiment behavior Updates the overrides for specific variants within an experiment, allowing
+     * modification of experiment behavior while it is in the created state.
+     *
      * @throws InternalServerError
      */
     UpdateOverridesExperimentOutput updateOverridesExperiment(UpdateOverridesExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates an existing type template's schema definition and metadata while preserving its identifier
+     * and usage history.
+     *
      * @throws TypeTemplatesNotFound
      * @throws InternalServerError
      */
@@ -943,12 +1252,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates an existing type template's schema definition and metadata while preserving its identifier
+     * and usage history.
+     *
      * @throws TypeTemplatesNotFound
      * @throws InternalServerError
      */
     UpdateTypeTemplatesOutput updateTypeTemplates(UpdateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook
+     * properties.
+     *
      * @throws WebhookNotFound
      * @throws InternalServerError
      */
@@ -957,12 +1272,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook
+     * properties.
+     *
      * @throws WebhookNotFound
      * @throws InternalServerError
      */
     UpdateWebhookOutput updateWebhook(UpdateWebhookInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates an existing workspace configuration, allowing modification of admin settings, mandatory
+     * dimensions, and workspace properties. Validates config version existence if provided.
+     *
      * @throws WorkspaceNotFound
      * @throws InternalServerError
      */
@@ -971,12 +1292,18 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Updates an existing workspace configuration, allowing modification of admin settings, mandatory
+     * dimensions, and workspace properties. Validates config version existence if provided.
+     *
      * @throws WorkspaceNotFound
      * @throws InternalServerError
      */
     UpdateWorkspaceOutput updateWorkspace(UpdateWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Recalculates and updates the priority weights for all contexts in the workspace based on their
+     * dimensions.
+     *
      * @throws InternalServerError
      */
     default WeightRecomputeOutput weightRecompute(WeightRecomputeInput input) {
@@ -984,6 +1311,9 @@ public interface SuperpositionClient {
     }
 
     /**
+     * Recalculates and updates the priority weights for all contexts in the workspace based on their
+     * dimensions.
+     *
      * @throws InternalServerError
      */
     WeightRecomputeOutput weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);

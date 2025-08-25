@@ -19,6 +19,7 @@ impl crate::operation::delete_dimension::builders::DeleteDimensionInputBuilder {
                 }
 /// Fluent builder constructing a request to `DeleteDimension`.
 /// 
+/// Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct DeleteDimensionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

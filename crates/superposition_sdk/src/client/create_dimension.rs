@@ -26,7 +26,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::create_dimension::CreateDimensionOutput::created_by): (undocumented)
     ///   - [`dependencies(Vec::<String>)`](crate::operation::create_dimension::CreateDimensionOutput::dependencies): (undocumented)
     ///   - [`dependents(Vec::<String>)`](crate::operation::create_dimension::CreateDimensionOutput::dependents): (undocumented)
-    ///   - [`dependency_graph(HashMap::<String, Document>)`](crate::operation::create_dimension::CreateDimensionOutput::dependency_graph): (undocumented)
+    ///   - [`dependency_graph(HashMap::<String, Document>)`](crate::operation::create_dimension::CreateDimensionOutput::dependency_graph): Generic key-value object structure used for flexible data representation throughout the API.
     ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::create_dimension::CreateDimensionOutput::autocomplete_function_name): (undocumented)
     ///   - [`mandatory(Option<bool>)`](crate::operation::create_dimension::CreateDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<CreateDimensionError>`](crate::operation::create_dimension::CreateDimensionError)

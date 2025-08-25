@@ -35,8 +35,7 @@ export interface GetContextCommandInput extends GetContextInput {}
 export interface GetContextCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves detailed information about a specific context by its unique identifier, including conditions, overrides, and metadata.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -83,6 +82,7 @@ export interface GetContextCommandOutput extends ContextResponse, __MetadataBear
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetContextCommand extends $Command.classBuilder<GetContextCommandInput, GetContextCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

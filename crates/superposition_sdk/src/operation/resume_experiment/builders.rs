@@ -19,6 +19,7 @@ impl crate::operation::resume_experiment::builders::ResumeExperimentInputBuilder
                 }
 /// Fluent builder constructing a request to `ResumeExperiment`.
 /// 
+/// Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant evaluation.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ResumeExperimentFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

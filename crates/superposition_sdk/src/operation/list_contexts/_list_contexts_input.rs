@@ -15,7 +15,7 @@ pub struct ListContextsInput  {
     pub prefix: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub sort_on: ::std::option::Option<crate::types::ContextFilterSortOn>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Sort order enumeration for list operations.
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
     #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::option::Option<::std::string::String>,
@@ -49,7 +49,7 @@ impl  ListContextsInput  {
     pub fn sort_on(&self) -> ::std::option::Option<&crate::types::ContextFilterSortOn> {
         self.sort_on.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Sort order enumeration for list operations.
     pub fn sort_by(&self) -> ::std::option::Option<&crate::types::SortBy> {
         self.sort_by.as_ref()
     }
@@ -169,16 +169,16 @@ impl ListContextsInputBuilder {
     pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::ContextFilterSortOn> {
         &self.sort_on
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Sort order enumeration for list operations.
     pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
         self.sort_by = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Sort order enumeration for list operations.
     pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
         self.sort_by = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Sort order enumeration for list operations.
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
         &self.sort_by
     }

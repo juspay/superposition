@@ -35,8 +35,7 @@ export interface CreateContextCommandInput extends CreateContextInput {}
 export interface CreateContextCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new context with specified conditions and overrides. Contexts define conditional rules for config management.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -89,6 +88,7 @@ export interface CreateContextCommandOutput extends ContextResponse, __MetadataB
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateContextCommand extends $Command.classBuilder<CreateContextCommandInput, CreateContextCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

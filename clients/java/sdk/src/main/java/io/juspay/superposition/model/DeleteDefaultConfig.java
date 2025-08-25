@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Permanently removes a default config entry from the workspace. This operation cannot be performed if
+ * it affects config resolution for contexts that rely on this fallback value.
+ */
 @SmithyGenerated
 public final class DeleteDefaultConfig implements ApiOperation<DeleteDefaultConfigInput, DeleteDefaultConfigOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#DeleteDefaultConfig");

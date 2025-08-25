@@ -35,8 +35,7 @@ export interface ResumeExperimentCommandInput extends ResumeExperimentInput {}
 export interface ResumeExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant evaluation.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -99,6 +98,7 @@ export interface ResumeExperimentCommandOutput extends ExperimentResponse, __Met
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ResumeExperimentCommand extends $Command.classBuilder<ResumeExperimentCommandInput, ResumeExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

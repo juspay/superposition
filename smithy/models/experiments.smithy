@@ -143,10 +143,11 @@ structure ExperimentResponse for Experiments {
     $started_at
 
     $started_by
-    
+
     $metrics_url
-    
+
     $metrics
+
     $experiment_group_id
 }
 
@@ -155,7 +156,7 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
     $name
 
     $experiment_type
-    
+
     @required
     $context
 
@@ -169,7 +170,7 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
     $change_reason
 
     $metrics
-    
+
     $experiment_group_id
 }
 
@@ -201,7 +202,7 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
     $change_reason
 
     $metrics
-    
+
     $experiment_group_id
 }
 
@@ -237,6 +238,7 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
 structure ExperimentNotFound {}
 
 // Operations
+@documentation("Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.")
 @http(method: "POST", uri: "/experiments")
 operation CreateExperiment {
     input: CreateExperimentRequest
@@ -244,12 +246,14 @@ operation CreateExperiment {
 }
 
 // Operations
+@documentation("Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.")
 @http(method: "PUT", uri: "/experiments/{id}/overrides")
 operation UpdateOverridesExperiment {
     input: UpdateOverrideRequest
     output: ExperimentResponse
 }
 
+@documentation("Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment to a concluded state.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/conclude")
 operation ConcludeExperiment {
@@ -270,6 +274,7 @@ operation ConcludeExperiment {
     output: ExperimentResponse
 }
 
+@documentation("Discards an experiment without selecting a winner, effectively canceling the experiment and removing its effects.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/discard")
 operation DiscardExperiment {
@@ -285,6 +290,7 @@ operation DiscardExperiment {
     output: ExperimentResponse
 }
 
+@documentation("Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or rollback of experimental features.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/ramp")
 operation RampExperiment {
@@ -303,6 +309,7 @@ operation RampExperiment {
     output: ExperimentResponse
 }
 
+@documentation("Retrieves detailed information about a specific experiment, including its config, variants, status, and metrics.")
 @readonly
 @http(method: "GET", uri: "/experiments/{id}")
 operation GetExperiment {
@@ -315,6 +322,7 @@ operation GetExperiment {
     output: ExperimentResponse
 }
 
+@documentation("Retrieves a paginated list of experiments with support for filtering by status, date range, name, creator, and experiment group.")
 @readonly
 @http(method: "GET", uri: "/experiments")
 operation ListExperiment {
@@ -359,23 +367,25 @@ operation ListExperiment {
         created_by: String
 
         @httpQuery("sort_on")
-        @notProperty        
-        sort_on: ExperimentSortOn,
+        @notProperty
+        sort_on: ExperimentSortOn
 
         @httpQuery("sort_by")
-        @notProperty     
+        @notProperty
         sort_by: SortBy
     }
 
     output: ExperimentListResponse
 }
 
+@documentation("Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection.")
 @http(method: "POST", uri: "/experiments/applicable-variants")
 operation ApplicableVariants {
     input: ApplicableVariantsInput
     output: ApplicableVariantsOutput
 }
 
+@documentation("Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment config for later resumption.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/pause")
 operation PauseExperiment {
@@ -391,6 +401,7 @@ operation PauseExperiment {
     output: ExperimentResponse
 }
 
+@documentation("Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant evaluation.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/resume")
 operation ResumeExperiment {

@@ -19,6 +19,7 @@ impl crate::operation::update_dimension::builders::UpdateDimensionInputBuilder {
                 }
 /// Fluent builder constructing a request to `UpdateDimension`.
 /// 
+/// Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateDimensionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves a paginated list of all webhook configs in the workspace, including their status and
+ * config details.
+ */
 @SmithyGenerated
 public final class ListWebhook implements ApiOperation<ListWebhookInput, ListWebhookOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListWebhook");

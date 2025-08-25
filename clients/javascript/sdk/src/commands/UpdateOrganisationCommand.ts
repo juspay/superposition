@@ -35,8 +35,7 @@ export interface UpdateOrganisationCommandInput extends UpdateOrganisationReques
 export interface UpdateOrganisationCommandOutput extends OrganisationResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates an existing organisation's information including contact details, status, and administrative properties.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -84,6 +83,7 @@ export interface UpdateOrganisationCommandOutput extends OrganisationResponse, _
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateOrganisationCommand extends $Command.classBuilder<UpdateOrganisationCommandInput, UpdateOrganisationCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

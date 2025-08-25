@@ -19,6 +19,7 @@ impl crate::operation::get_organisation::builders::GetOrganisationInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetOrganisation`.
 /// 
+/// Retrieves detailed information about a specific organisation including its status, contact details, and administrative metadata.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetOrganisationFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

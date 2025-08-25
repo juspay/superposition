@@ -35,8 +35,7 @@ export interface GetConfigFastCommandInput extends GetConfigFastInput {}
 export interface GetConfigFastCommandOutput extends GetConfigFastOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves the latest config with no processing for high-performance access.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -69,6 +68,7 @@ export interface GetConfigFastCommandOutput extends GetConfigFastOutput, __Metad
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetConfigFastCommand extends $Command.classBuilder<GetConfigFastCommandInput, GetConfigFastCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

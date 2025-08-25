@@ -19,6 +19,7 @@ impl crate::operation::list_default_configs::builders::ListDefaultConfigsInputBu
                 }
 /// Fluent builder constructing a request to `ListDefaultConfigs`.
 /// 
+/// Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListDefaultConfigsFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

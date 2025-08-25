@@ -35,8 +35,7 @@ export interface DiscardExperimentCommandInput extends DiscardExperimentInput {}
 export interface DiscardExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Discards an experiment without selecting a winner, effectively canceling the experiment and removing its effects.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -99,6 +98,7 @@ export interface DiscardExperimentCommandOutput extends ExperimentResponse, __Me
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class DiscardExperimentCommand extends $Command.classBuilder<DiscardExperimentCommandInput, DiscardExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

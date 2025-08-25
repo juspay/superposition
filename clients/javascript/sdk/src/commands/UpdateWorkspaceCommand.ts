@@ -35,8 +35,7 @@ export interface UpdateWorkspaceCommandInput extends UpdateWorkspaceRequest {}
 export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -94,6 +93,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateWorkspaceCommand extends $Command.classBuilder<UpdateWorkspaceCommandInput, UpdateWorkspaceCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

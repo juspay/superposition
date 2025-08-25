@@ -35,8 +35,7 @@ export interface GetConfigCommandInput extends GetConfigInput {}
 export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves config data with context evaluation, including applicable contexts, overrides, and default values based on provided conditions.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -94,6 +93,7 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetConfigCommand extends $Command.classBuilder<GetConfigCommandInput, GetConfigCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

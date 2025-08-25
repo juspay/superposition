@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new organisation with specified details including name, admin contact, and organisational
+ * information.
+ */
 @SmithyGenerated
 public final class CreateOrganisation implements ApiOperation<CreateOrganisationInput, CreateOrganisationOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateOrganisation");

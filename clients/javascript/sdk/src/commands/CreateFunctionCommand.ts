@@ -35,8 +35,7 @@ export interface CreateFunctionCommandInput extends CreateFunctionRequest {}
 export interface CreateFunctionCommandOutput extends FunctionResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -85,6 +84,7 @@ export interface CreateFunctionCommandOutput extends FunctionResponse, __Metadat
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateFunctionCommand extends $Command.classBuilder<CreateFunctionCommandInput, CreateFunctionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

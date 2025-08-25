@@ -19,6 +19,7 @@ impl crate::operation::update_function::builders::UpdateFunctionInputBuilder {
                 }
 /// Fluent builder constructing a request to `UpdateFunction`.
 /// 
+/// Updates the draft version of an existing function with new code, runtime version, or description while preserving the published version.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateFunctionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

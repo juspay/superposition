@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves a paginated list of audit logs with support for filtering by date range, table names,
+ * actions, and usernames for compliance and monitoring purposes.
+ */
 @SmithyGenerated
 public final class ListAuditLogs implements ApiOperation<ListAuditLogsInput, ListAuditLogsOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListAuditLogs");

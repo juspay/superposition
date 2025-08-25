@@ -19,6 +19,7 @@ impl crate::operation::list_organisation::builders::ListOrganisationInputBuilder
                 }
 /// Fluent builder constructing a request to `ListOrganisation`.
 /// 
+/// Retrieves a paginated list of all organisations with their basic information and status details.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListOrganisationFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

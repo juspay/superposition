@@ -19,6 +19,7 @@ impl crate::operation::create_context::builders::CreateContextInputBuilder {
                 }
 /// Fluent builder constructing a request to `CreateContext`.
 /// 
+/// Creates a new context with specified conditions and overrides. Contexts define conditional rules for config management.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateContextFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,
@@ -128,17 +129,17 @@ impl CreateContextFluentBuilder {
     /// 
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     /// 
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
                     self.inner = self.inner.context(k.into(), v);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
                     self.inner = self.inner.set_context(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
                     self.inner.get_context()
                 }
@@ -161,17 +162,17 @@ impl CreateContextFluentBuilder {
     /// 
     /// To override the contents of this collection use [`set_override`](Self::set_override).
     /// 
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn r#override(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
                     self.inner = self.inner.r#override(k.into(), v);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn set_override(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
                     self.inner = self.inner.set_override(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     pub fn get_override(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
                     self.inner.get_override()
                 }

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates the condition of the mentioned context, if a context with the new condition already exists,
+ * it merges the override and effectively deleting the old context
+ */
 @SmithyGenerated
 public final class MoveContext implements ApiOperation<MoveContextInput, MoveContextOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#MoveContext");

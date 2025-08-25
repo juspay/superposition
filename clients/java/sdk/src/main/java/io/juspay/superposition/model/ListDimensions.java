@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their
+ * details and metadata.
+ */
 @SmithyGenerated
 public final class ListDimensions implements ApiOperation<ListDimensionsInput, ListDimensionsOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListDimensions");

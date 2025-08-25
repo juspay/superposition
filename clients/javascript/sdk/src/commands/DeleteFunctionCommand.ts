@@ -35,8 +35,7 @@ export interface DeleteFunctionCommandInput extends DeleteFunctionInput {}
 export interface DeleteFunctionCommandOutput extends DeleteFunctionOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -67,6 +66,7 @@ export interface DeleteFunctionCommandOutput extends DeleteFunctionOutput, __Met
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class DeleteFunctionCommand extends $Command.classBuilder<DeleteFunctionCommandInput, DeleteFunctionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

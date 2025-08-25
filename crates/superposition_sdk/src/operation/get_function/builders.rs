@@ -19,6 +19,7 @@ impl crate::operation::get_function::builders::GetFunctionInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetFunction`.
 /// 
+/// Retrieves detailed information about a specific function including its published and draft versions, code, and metadata.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetFunctionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

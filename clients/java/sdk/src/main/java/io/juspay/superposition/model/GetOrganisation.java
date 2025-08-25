@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves detailed information about a specific organisation including its status, contact details,
+ * and administrative metadata.
+ */
 @SmithyGenerated
 public final class GetOrganisation implements ApiOperation<GetOrganisationInput, GetOrganisationOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetOrganisation");

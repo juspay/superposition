@@ -35,8 +35,7 @@ export interface CreateDefaultConfigCommandInput extends CreateDefaultConfigInpu
 export interface CreateDefaultConfigCommandOutput extends DefaultConfigFull, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -83,6 +82,7 @@ export interface CreateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateDefaultConfigCommand extends $Command.classBuilder<CreateDefaultConfigCommandInput, CreateDefaultConfigCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

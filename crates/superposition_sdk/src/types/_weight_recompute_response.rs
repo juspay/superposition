@@ -5,11 +5,11 @@
 pub struct WeightRecomputeResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub condition: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub old_weight: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub new_weight: ::std::option::Option<::std::string::String>,
 }
 impl  WeightRecomputeResponse  {
@@ -17,15 +17,15 @@ impl  WeightRecomputeResponse  {
     pub fn id(&self) -> ::std::option::Option<&str> {
         self.id.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn condition(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.condition.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn old_weight(&self) -> ::std::option::Option<&str> {
         self.old_weight.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn new_weight(&self) -> ::std::option::Option<&str> {
         self.new_weight.as_deref()
     }
@@ -64,43 +64,44 @@ impl WeightRecomputeResponseBuilder {
     ///
     /// To override the contents of this collection use [`set_condition`](Self::set_condition).
     ///
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn condition(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.condition.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.condition = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn set_condition(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.condition = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn get_condition(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.condition
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn old_weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.old_weight = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn set_old_weight(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.old_weight = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn get_old_weight(&self) -> &::std::option::Option<::std::string::String> {
         &self.old_weight
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn new_weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.new_weight = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn set_new_weight(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.new_weight = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn get_new_weight(&self) -> &::std::option::Option<::std::string::String> {
         &self.new_weight
     }

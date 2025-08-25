@@ -8,10 +8,10 @@ impl super::Client {
     ///   - [`id(impl Into<String>)`](crate::operation::get_context::builders::GetContextFluentBuilder::id) / [`set_id(Option<String>)`](crate::operation::get_context::builders::GetContextFluentBuilder::set_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetContextOutput`](crate::operation::get_context::GetContextOutput) with field(s):
     ///   - [`id(String)`](crate::operation::get_context::GetContextOutput::id): (undocumented)
-    ///   - [`value(Option<HashMap::<String, Document>>)`](crate::operation::get_context::GetContextOutput::value): (undocumented)
-    ///   - [`r#override(Option<HashMap::<String, Document>>)`](crate::operation::get_context::GetContextOutput::override): (undocumented)
+    ///   - [`value(Option<HashMap::<String, Document>>)`](crate::operation::get_context::GetContextOutput::value): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+    ///   - [`r#override(Option<HashMap::<String, Document>>)`](crate::operation::get_context::GetContextOutput::override): Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
     ///   - [`override_id(Option<String>)`](crate::operation::get_context::GetContextOutput::override_id): (undocumented)
-    ///   - [`weight(Option<String>)`](crate::operation::get_context::GetContextOutput::weight): (undocumented)
+    ///   - [`weight(Option<String>)`](crate::operation::get_context::GetContextOutput::weight): Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     ///   - [`description(Option<String>)`](crate::operation::get_context::GetContextOutput::description): (undocumented)
     ///   - [`change_reason(Option<String>)`](crate::operation::get_context::GetContextOutput::change_reason): (undocumented)
     ///   - [`created_at(Option<DateTime>)`](crate::operation::get_context::GetContextOutput::created_at): (undocumented)

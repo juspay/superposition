@@ -35,8 +35,7 @@ export interface BulkOperationCommandInput extends BulkOperationInput {}
 export interface BulkOperationCommandOutput extends BulkOperationOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -162,6 +161,7 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class BulkOperationCommand extends $Command.classBuilder<BulkOperationCommandInput, BulkOperationCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

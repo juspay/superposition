@@ -19,6 +19,7 @@ impl crate::operation::ramp_experiment::builders::RampExperimentInputBuilder {
                 }
 /// Fluent builder constructing a request to `RampExperiment`.
 /// 
+/// Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or rollback of experimental features.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct RampExperimentFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

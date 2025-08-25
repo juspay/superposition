@@ -49,7 +49,7 @@ structure DefaultConfigMixin for DefaultConfig {
 
     /// Optional
     $function_name
-    
+
     $autocomplete_function_name
 }
 
@@ -72,12 +72,14 @@ list ListDefaultConfigOut {
 }
 
 // Operations
+@documentation("Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.")
 @http(method: "POST", uri: "/default-config")
 operation CreateDefaultConfig {
     input := with [DefaultConfigMixin, WorkspaceMixin] {}
     output: DefaultConfigFull
 }
 
+@documentation("Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.")
 @readonly
 @http(method: "GET", uri: "/default-config")
 operation ListDefaultConfigs {
@@ -90,6 +92,7 @@ operation ListDefaultConfigs {
     ]
 }
 
+@documentation("Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.")
 @idempotent
 @http(method: "PUT", uri: "/default-config/{key}")
 operation UpdateDefaultConfig {
@@ -108,7 +111,7 @@ operation UpdateDefaultConfig {
         $function_name
 
         $description
-        
+
         $autocomplete_function_name
     }
 
@@ -119,6 +122,7 @@ operation UpdateDefaultConfig {
     ]
 }
 
+@documentation("Permanently removes a default config entry from the workspace. This operation cannot be performed if it affects config resolution for contexts that rely on this fallback value.")
 @idempotent
 @http(method: "DELETE", uri: "/default-config/{key}", code: 201)
 operation DeleteDefaultConfig {

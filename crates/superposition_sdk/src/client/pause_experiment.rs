@@ -17,7 +17,7 @@ impl super::Client {
     ///   - [`override_keys(Vec::<String>)`](crate::operation::pause_experiment::PauseExperimentOutput::override_keys): (undocumented)
     ///   - [`status(ExperimentStatusType)`](crate::operation::pause_experiment::PauseExperimentOutput::status): (undocumented)
     ///   - [`traffic_percentage(i32)`](crate::operation::pause_experiment::PauseExperimentOutput::traffic_percentage): (undocumented)
-    ///   - [`context(HashMap::<String, Document>)`](crate::operation::pause_experiment::PauseExperimentOutput::context): (undocumented)
+    ///   - [`context(HashMap::<String, Document>)`](crate::operation::pause_experiment::PauseExperimentOutput::context): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     ///   - [`variants(Vec::<Variant>)`](crate::operation::pause_experiment::PauseExperimentOutput::variants): (undocumented)
     ///   - [`last_modified_by(String)`](crate::operation::pause_experiment::PauseExperimentOutput::last_modified_by): (undocumented)
     ///   - [`chosen_variant(Option<String>)`](crate::operation::pause_experiment::PauseExperimentOutput::chosen_variant): (undocumented)

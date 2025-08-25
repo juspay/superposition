@@ -19,6 +19,7 @@ impl crate::operation::list_dimensions::builders::ListDimensionsInputBuilder {
                 }
 /// Fluent builder constructing a request to `ListDimensions`.
 /// 
+/// Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListDimensionsFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

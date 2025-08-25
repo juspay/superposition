@@ -15,7 +15,7 @@ pub struct CreateWebhookOutput  {
     pub method: crate::types::HttpMethod,
     #[allow(missing_docs)] // documentation missing in model
     pub version: crate::types::Version,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub custom_headers: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
     pub events: ::std::vec::Vec::<::std::string::String>,
@@ -59,7 +59,7 @@ impl  CreateWebhookOutput  {
     pub fn version(&self) -> &crate::types::Version {
         &self.version
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn custom_headers(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.custom_headers.as_ref()
     }
@@ -212,17 +212,18 @@ impl CreateWebhookOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_custom_headers`](Self::set_custom_headers).
     ///
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn custom_headers(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.custom_headers.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.custom_headers = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn set_custom_headers(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.custom_headers = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn get_custom_headers(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.custom_headers
     }

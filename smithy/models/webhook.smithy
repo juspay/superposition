@@ -9,20 +9,20 @@ resource Webhook {
         org_id: String
     }
     properties: {
-        description: String,
-        enabled: Boolean,
-        url: String,
-        method: HttpMethod,
-        version: Version,
-        custom_headers: Object,
-        events: Events,
-        max_retries: Integer,
-        last_triggered_at: DateTime,
-        change_reason: String,
-        created_by: String,
-        created_at: DateTime,
-        last_modified_by: String,
-        last_modified_at: DateTime,
+        description: String
+        enabled: Boolean
+        url: String
+        method: HttpMethod
+        version: Version
+        custom_headers: Object
+        events: Events
+        max_retries: Integer
+        last_triggered_at: DateTime
+        change_reason: String
+        created_by: String
+        created_at: DateTime
+        last_modified_by: String
+        last_modified_at: DateTime
     }
     list: ListWebhook
     put: UpdateWebhook
@@ -54,8 +54,8 @@ structure WebhookResponse for Webhook {
     $name
 
     @required
-    $description,
-        
+    $description
+
     @required
     $enabled
 
@@ -67,7 +67,7 @@ structure WebhookResponse for Webhook {
 
     @required
     $version
-    
+
     $custom_headers
 
     @required
@@ -114,6 +114,7 @@ structure WebhookListResponse for Webhook {
 structure WebhookNotFound {}
 
 // Operations
+@documentation("Creates a new webhook config to receive HTTP notifications when specified events occur in the system.")
 @http(method: "POST", uri: "/webhook")
 operation CreateWebhook {
     input := for Webhook with [WorkspaceMixin] {
@@ -142,9 +143,11 @@ operation CreateWebhook {
         @required
         change_reason: String
     }
+
     output: WebhookResponse
 }
 
+@documentation("Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook properties.")
 @idempotent
 @http(method: "PATCH", uri: "/webhook/{name}")
 operation UpdateWebhook {
@@ -175,12 +178,15 @@ operation UpdateWebhook {
         @required
         change_reason: String
     }
+
     output: WebhookResponse
+
     errors: [
         WebhookNotFound
     ]
 }
 
+@documentation("Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.")
 @readonly
 @http(method: "GET", uri: "/webhook")
 operation ListWebhook {
@@ -188,6 +194,7 @@ operation ListWebhook {
     output: WebhookListResponse
 }
 
+@documentation("Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history.")
 @readonly
 @http(method: "GET", uri: "/webhook/{name}")
 operation GetWebhook {
@@ -196,9 +203,11 @@ operation GetWebhook {
         @required
         $name
     }
+
     output: WebhookResponse
 }
 
+@documentation("Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint.")
 @idempotent
 @http(method: "DELETE", uri: "/webhook/{name}", code: 201)
 operation DeleteWebhook {

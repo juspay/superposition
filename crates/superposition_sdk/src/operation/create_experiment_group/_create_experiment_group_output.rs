@@ -14,7 +14,7 @@ pub struct CreateExperimentGroupOutput  {
     pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::string::String,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub context: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub traffic_percentage: i32,
@@ -54,7 +54,7 @@ impl  CreateExperimentGroupOutput  {
     pub fn change_reason(&self) -> &str {
         use std::ops::Deref; self.change_reason.deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn context(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
         &self.context
     }
@@ -192,17 +192,18 @@ impl CreateExperimentGroupOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.context = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.context = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.context
     }

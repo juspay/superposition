@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates the draft version of an existing function with new code, runtime version, or description
+ * while preserving the published version.
+ */
 @SmithyGenerated
 public final class UpdateFunction implements ApiOperation<UpdateFunctionInput, UpdateFunctionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateFunction");

@@ -19,6 +19,7 @@ impl crate::operation::update_workspace::builders::UpdateWorkspaceInputBuilder {
                 }
 /// Fluent builder constructing a request to `UpdateWorkspace`.
 /// 
+/// Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateWorkspaceFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

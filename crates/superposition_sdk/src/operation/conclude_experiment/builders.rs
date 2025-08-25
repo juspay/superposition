@@ -19,6 +19,7 @@ impl crate::operation::conclude_experiment::builders::ConcludeExperimentInputBui
                 }
 /// Fluent builder constructing a request to `ConcludeExperiment`.
 /// 
+/// Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment to a concluded state.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ConcludeExperimentFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

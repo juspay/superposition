@@ -35,8 +35,7 @@ export interface MoveContextCommandInput extends MoveContextInput {}
 export interface MoveContextCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates the condition of the mentioned context, if a context with the new condition already exists, it merges the override and effectively deleting the old context
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -88,6 +87,7 @@ export interface MoveContextCommandOutput extends ContextResponse, __MetadataBea
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class MoveContextCommand extends $Command.classBuilder<MoveContextCommandInput, MoveContextCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

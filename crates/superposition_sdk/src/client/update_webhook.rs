@@ -11,7 +11,7 @@ impl super::Client {
     ///   - [`url(impl Into<String>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::url) / [`set_url(Option<String>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::set_url):<br>required: **true**<br>(undocumented)<br>
     ///   - [`method(HttpMethod)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::method) / [`set_method(Option<HttpMethod>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::set_method):<br>required: **true**<br>(undocumented)<br>
     ///   - [`version(Version)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::version) / [`set_version(Option<Version>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::set_version):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`custom_headers(impl Into<String>, Document)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::custom_headers) / [`set_custom_headers(Option<HashMap::<String, Document>>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::set_custom_headers):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`custom_headers(impl Into<String>, Document)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::custom_headers) / [`set_custom_headers(Option<HashMap::<String, Document>>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::set_custom_headers):<br>required: **false**<br>Generic key-value object structure used for flexible data representation throughout the API.<br>
     ///   - [`events(impl Into<String>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::events) / [`set_events(Option<Vec::<String>>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::set_events):<br>required: **true**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::update_webhook::builders::UpdateWebhookFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateWebhookOutput`](crate::operation::update_webhook::UpdateWebhookOutput) with field(s):
@@ -21,7 +21,7 @@ impl super::Client {
     ///   - [`url(String)`](crate::operation::update_webhook::UpdateWebhookOutput::url): (undocumented)
     ///   - [`method(HttpMethod)`](crate::operation::update_webhook::UpdateWebhookOutput::method): (undocumented)
     ///   - [`version(Version)`](crate::operation::update_webhook::UpdateWebhookOutput::version): (undocumented)
-    ///   - [`custom_headers(Option<HashMap::<String, Document>>)`](crate::operation::update_webhook::UpdateWebhookOutput::custom_headers): (undocumented)
+    ///   - [`custom_headers(Option<HashMap::<String, Document>>)`](crate::operation::update_webhook::UpdateWebhookOutput::custom_headers): Generic key-value object structure used for flexible data representation throughout the API.
     ///   - [`events(Vec::<String>)`](crate::operation::update_webhook::UpdateWebhookOutput::events): (undocumented)
     ///   - [`max_retries(i32)`](crate::operation::update_webhook::UpdateWebhookOutput::max_retries): (undocumented)
     ///   - [`last_triggered_at(Option<DateTime>)`](crate::operation::update_webhook::UpdateWebhookOutput::last_triggered_at): (undocumented)

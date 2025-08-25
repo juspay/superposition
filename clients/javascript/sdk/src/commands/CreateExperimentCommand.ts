@@ -35,8 +35,7 @@ export interface CreateExperimentCommandInput extends CreateExperimentRequest {}
 export interface CreateExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -115,6 +114,7 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateExperimentCommand extends $Command.classBuilder<CreateExperimentCommandInput, CreateExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

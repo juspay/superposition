@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new custom function for validation or autocompletion with specified code, runtime version,
+ * and function type.
+ */
 @SmithyGenerated
 public final class CreateFunction implements ApiOperation<CreateFunctionInput, CreateFunctionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateFunction");

@@ -35,8 +35,7 @@ export interface CreateTypeTemplatesCommandInput extends CreateTypeTemplatesRequ
 export interface CreateTypeTemplatesCommandOutput extends TypeTemplatesResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new type template with specified schema definition, providing reusable type definitions for config validation.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -77,6 +76,7 @@ export interface CreateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateTypeTemplatesCommand extends $Command.classBuilder<CreateTypeTemplatesCommandInput, CreateTypeTemplatesCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

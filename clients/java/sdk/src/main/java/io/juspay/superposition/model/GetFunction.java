@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves detailed information about a specific function including its published and draft versions,
+ * code, and metadata.
+ */
 @SmithyGenerated
 public final class GetFunction implements ApiOperation<GetFunctionInput, GetFunctionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetFunction");

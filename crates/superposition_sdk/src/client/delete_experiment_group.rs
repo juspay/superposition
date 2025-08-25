@@ -12,7 +12,7 @@ impl super::Client {
     ///   - [`name(String)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::name): (undocumented)
     ///   - [`description(String)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::change_reason): (undocumented)
-    ///   - [`context(HashMap::<String, Document>)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::context): (undocumented)
+    ///   - [`context(HashMap::<String, Document>)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::context): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     ///   - [`traffic_percentage(i32)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::traffic_percentage): (undocumented)
     ///   - [`member_experiment_ids(Vec::<String>)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::member_experiment_ids): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::delete_experiment_group::DeleteExperimentGroupOutput::created_at): (undocumented)
