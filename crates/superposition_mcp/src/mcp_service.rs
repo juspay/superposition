@@ -276,12 +276,6 @@ impl McpService {
     pub async fn handle_resources_list(&self, id: Option<Value>) -> JsonRpcResponse {
         let resources = vec![
             Resource {
-                uri: "superposition://config".to_string(),
-                name: "Current Configuration".to_string(),
-                description: Some("Current resolved configuration state".to_string()),
-                mime_type: Some("application/json".to_string()),
-            },
-            Resource {
                 uri: "superposition://default-config".to_string(),
                 name: "Default Configuration".to_string(),
                 description: Some("All default configurations".to_string()),
@@ -303,6 +297,18 @@ impl McpService {
                 uri: "superposition://experiments".to_string(),
                 name: "Experiments".to_string(),
                 description: Some("All experiments".to_string()),
+                mime_type: Some("application/json".to_string()),
+            },
+            Resource {
+                uri: "superposition://functions".to_string(),
+                name: "Functions".to_string(),
+                description: Some("All functions".to_string()),
+                mime_type: Some("application/json".to_string()),
+            },
+            Resource {
+                uri: "superposition://type-templates".to_string(),
+                name: "Type Templates".to_string(),
+                description: Some("All type templates".to_string()),
                 mime_type: Some("application/json".to_string()),
             },
         ];
@@ -428,10 +434,82 @@ impl McpService {
                     .send()
                     .await
                     .map(|output| {
-                        json!({
-                            "count": output.data().len(),
-                            "message": "Experiments found (detailed data not available due to serialization constraints)"
-                        })
+                        let experiments: Vec<Value> = output.data().iter().map(|experiment| {
+                            json!({
+                                "id": experiment.id(),
+                                "name": experiment.name(),
+                                "description": experiment.description(),
+                                "experiment_type": format!("{:?}", experiment.experiment_type()),
+                                "status": format!("{:?}", experiment.status()),
+                                "traffic_percentage": experiment.traffic_percentage(),
+                                "override_keys": experiment.override_keys(),
+                                "context": experiment.context().iter().map(|(k, v)| (k.clone(), document_to_value(v))).collect::<std::collections::HashMap<_, _>>(),
+                                "chosen_variant": experiment.chosen_variant(),
+                                "created_at": experiment.created_at().to_string(),
+                                "created_by": experiment.created_by(),
+                                "last_modified": experiment.last_modified().to_string(),
+                                "last_modified_by": experiment.last_modified_by(),
+                                "started_at": experiment.started_at().map(|dt| dt.to_string()),
+                                "started_by": experiment.started_by(),
+                                "metrics_url": experiment.metrics_url(),
+                                "metrics": experiment.metrics().map(|m| document_to_value(m)),
+                                "experiment_group_id": experiment.experiment_group_id(),
+                                "change_reason": experiment.change_reason()
+                            })
+                        }).collect();
+                        json!(experiments)
+                    })
+                    .map_err(|e| format!("SDK error: {}", e).into())
+            }
+            "superposition://functions" => {
+                self.superposition_client
+                    .list_function()
+                    .workspace_id(&self.workspace_id)
+                    .org_id(&self.org_id)
+                    .send()
+                    .await
+                    .map(|output| {
+                        let functions: Vec<Value> = output.data().iter().map(|function| {
+                            json!({
+                                "function_name": function.function_name(),
+                                "description": function.description(),
+                                "published_code": function.published_code(),
+                                "draft_code": function.draft_code(),
+                                "published_runtime_version": function.published_runtime_version(),
+                                "draft_runtime_version": function.draft_runtime_version(),
+                                "published_at": function.published_at().map(|dt| dt.to_string()),
+                                "draft_edited_at": function.draft_edited_at().to_string(),
+                                "published_by": function.published_by(),
+                                "draft_edited_by": function.draft_edited_by(),
+                                "last_modified_at": function.last_modified_at().to_string(),
+                                "last_modified_by": function.last_modified_by(),
+                                "change_reason": function.change_reason(),
+                                "function_type": format!("{:?}", function.function_type())
+                            })
+                        }).collect();
+                        json!(functions)
+                    })
+                    .map_err(|e| format!("SDK error: {}", e).into())
+            }
+            "superposition://type-templates" => {
+                self.superposition_client
+                    .get_type_templates_list()
+                    .workspace_id(&self.workspace_id)
+                    .org_id(&self.org_id)
+                    .send()
+                    .await
+                    .map(|output| {
+                        let type_templates: Vec<Value> = output.data().iter().map(|template| {
+                            json!({
+                                "type_name": template.type_name(),
+                                "type_schema": document_to_value(template.type_schema()),
+                                "created_at": template.created_at().to_string(),
+                                "created_by": template.created_by(),
+                                "last_modified_at": template.last_modified_at().to_string(),
+                                "last_modified_by": template.last_modified_by()
+                            })
+                        }).collect();
+                        json!(type_templates)
                     })
                     .map_err(|e| format!("SDK error: {}", e).into())
             }
