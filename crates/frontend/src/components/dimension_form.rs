@@ -14,10 +14,13 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
-use utils::{create_dimension, try_update_payload, update_dimension};
+use utils::try_update_payload;
 use web_sys::MouseEvent;
 
-use crate::api::{fetch_dimensions, fetch_functions, fetch_types, get_dimension};
+use crate::api::{
+    dimensions::{create_dimension, fetch_dimensions, update_dimension},
+    fetch_functions, fetch_types, get_dimension,
+};
 use crate::components::{
     alert::AlertType,
     button::Button,
