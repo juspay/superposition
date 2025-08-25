@@ -34,7 +34,7 @@ pub trait MCPTool {
 }
 
 /// Trait for groups of MCP tools (previously ToolsModule)
-pub trait ToolsGroup {
+pub trait MCPToolsGroup {
     fn get_tool_definitions() -> Vec<Tool>;
     async fn execute_tool(
         service: &McpService,

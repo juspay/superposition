@@ -1,11 +1,11 @@
-/// Macro to help create ToolsGroup implementations from MCPTool implementations
+/// Macro to help create MCPToolsGroup implementations from MCPTool implementations
 /// This reduces boilerplate code when composing individual tools into groups
 #[macro_export]
 macro_rules! compose_tools_group {
     ($group_name:ident, $($tool:ty),*) => {
         pub struct $group_name;
 
-        impl $crate::tools::ToolsGroup for $group_name {
+        impl $crate::tools::MCPToolsGroup for $group_name {
             fn get_tool_definitions() -> Vec<$crate::mcp_service::Tool> {
                 vec![
                     $(<$tool>::get_definition(),)*
