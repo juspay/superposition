@@ -34,6 +34,7 @@ superposition_types = { workspace = true, features = [
     "diesel_derives",
     "server",
 ] }
+superposition_mcp = { workspace = true }
 
 [features]
 high-performance-mode = [
