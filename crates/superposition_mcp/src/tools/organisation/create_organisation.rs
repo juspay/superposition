@@ -28,12 +28,13 @@ impl MCPTool for CreateOrganisationTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let name = arguments["name"].as_str().unwrap_or("");
         let admin_email = arguments["admin_email"].as_str().unwrap_or("");
 
-        let mut builder = service
-            .superposition_client
+        let client = service.get_client(token);
+        let mut builder = client
             .create_organisation()
             .name(name)
             .admin_email(admin_email);

@@ -25,6 +25,7 @@ impl MCPTool for ApplicableVariantsTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
@@ -35,8 +36,8 @@ impl MCPTool for ApplicableVariantsTool {
             return Err("Invalid context format".into());
         };
         
-        service
-            .superposition_client
+        let client = service.get_client(token);
+        client
             .applicable_variants()
             .workspace_id(workspace_id)
             .org_id(org_id)

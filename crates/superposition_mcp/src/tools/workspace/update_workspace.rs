@@ -32,13 +32,14 @@ impl MCPTool for UpdateWorkspaceTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_name = arguments["workspace_name"].as_str().unwrap_or("");
         let workspace_admin_email = arguments["workspace_admin_email"].as_str().unwrap_or("");
 
-        let mut builder = service
-            .superposition_client
+        let client = service.get_client(token);
+        let mut builder = client
             .update_workspace()
             .org_id(org_id)
             .workspace_name(workspace_name)

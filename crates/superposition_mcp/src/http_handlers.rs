@@ -1,8 +1,17 @@
-use actix_web::{web, HttpResponse, Result};
+use actix_web::{web, HttpRequest, HttpResponse, Result};
 use serde_json::json;
 use std::sync::Arc;
 
 use crate::mcp_service::{JsonRpcError, JsonRpcRequest, JsonRpcResponse, McpService};
+
+/// Extract Bearer token from Authorization header
+fn extract_token_from_headers(req: &HttpRequest) -> Option<String> {
+    req.headers()
+        .get("Authorization")?
+        .to_str().ok()?
+        .strip_prefix("Bearer ")
+        .map(|token| token.to_string())
+}
 
 // Shared application state
 pub struct AppState {
@@ -37,12 +46,14 @@ pub async fn mcp_tools_list(
 
 // MCP Tools Call endpoint
 pub async fn mcp_tools_call(
+    req: HttpRequest,
     data: web::Data<AppState>,
     payload: web::Json<JsonRpcRequest>,
 ) -> Result<HttpResponse> {
+    let token = extract_token_from_headers(&req);
     let response = data
         .mcp_service
-        .handle_tools_call(payload.id.clone(), payload.params.clone())
+        .handle_tools_call(payload.id.clone(), payload.params.clone(), token.as_deref())
         .await;
     Ok(HttpResponse::Ok().json(response))
 }
@@ -82,15 +93,17 @@ pub async fn mcp_prompts_list(
 
 // Generic MCP handler that routes based on method
 pub async fn mcp_handler(
+    req: HttpRequest,
     data: web::Data<AppState>,
     payload: web::Json<JsonRpcRequest>,
 ) -> Result<HttpResponse> {
+    let token = extract_token_from_headers(&req);
     let response = match payload.method.as_str() {
         "initialize" => data.mcp_service.handle_initialize(payload.id.clone()),
         "tools/list" => data.mcp_service.handle_tools_list(payload.id.clone()).await,
         "tools/call" => {
             data.mcp_service
-                .handle_tools_call(payload.id.clone(), payload.params.clone())
+                .handle_tools_call(payload.id.clone(), payload.params.clone(), token.as_deref())
                 .await
         }
         "resources/list" => {

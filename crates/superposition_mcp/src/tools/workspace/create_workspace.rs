@@ -30,6 +30,7 @@ impl MCPTool for CreateWorkspaceTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_name = arguments["workspace_name"].as_str().unwrap_or("");
@@ -39,8 +40,8 @@ impl MCPTool for CreateWorkspaceTool {
             .as_bool()
             .unwrap_or(false);
 
-        let mut builder = service
-            .superposition_client
+        let client = service.get_client(token);
+        let mut builder = client
             .create_workspace()
             .org_id(org_id)
             .workspace_name(workspace_name)

@@ -156,6 +156,8 @@ pub struct McpService {
     pub server_info: HashMap<String, Value>,
     pub workspace_id: String,
     pub org_id: String,
+    pub host_url: String,
+    pub default_token: String,
 }
 
 impl McpService {
@@ -180,7 +182,26 @@ impl McpService {
             server_info,
             workspace_id: workspace,
             org_id: org,
+            host_url: host,
+            default_token: token,
         })
+    }
+
+    /// Create a temporary client with a different token for per-request authentication
+    pub fn create_client_with_token(&self, token: &str) -> Client {
+        let config = Config::builder()
+            .endpoint_url(&self.host_url)
+            .bearer_token(token.to_string().into())
+            .build();
+        Client::from_conf(config)
+    }
+
+    /// Get the appropriate client for the request (custom token or default)
+    pub fn get_client(&self, token: Option<&str>) -> Client {
+        match token {
+            Some(t) => self.create_client_with_token(t),
+            None => self.superposition_client.clone(),
+        }
     }
 
     pub fn handle_initialize(&self, id: Option<Value>) -> JsonRpcResponse {
@@ -224,6 +245,7 @@ impl McpService {
         &self,
         id: Option<Value>,
         params: Option<Value>,
+        token: Option<&str>,
     ) -> JsonRpcResponse {
         let params = match params {
             Some(p) => p,
@@ -244,7 +266,7 @@ impl McpService {
         let tool_name = params["name"].as_str().unwrap_or("");
         let arguments = &params["arguments"];
 
-        let result = self.execute_tool(tool_name, arguments).await;
+        let result = self.execute_tool(tool_name, arguments, token).await;
 
         match result {
             Ok(content) => JsonRpcResponse {
@@ -392,8 +414,9 @@ impl McpService {
         &self,
         tool_name: &str,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
-        crate::tools::execute_any_tool(self, tool_name, arguments).await
+        crate::tools::execute_any_tool(self, tool_name, arguments, token).await
     }
 
     // Resource reading logic

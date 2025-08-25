@@ -30,11 +30,12 @@ impl MCPTool for UpdateOrganisationTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let id = arguments["id"].as_str().unwrap_or("");
 
-        let mut builder = service
-            .superposition_client
+        let client = service.get_client(token);
+        let mut builder = client
             .update_organisation()
             .id(id);
 

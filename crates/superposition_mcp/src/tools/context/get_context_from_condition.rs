@@ -26,6 +26,7 @@ impl MCPTool for GetContextFromConditionTool {
     async fn execute(
         _service: &McpService,
         _arguments: &Value,
+        _token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         // This operation might not be available in the current SDK
         // Return a placeholder response

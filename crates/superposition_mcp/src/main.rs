@@ -161,7 +161,7 @@ async fn handle_stdio_request(
         "tools/list" => mcp_service.handle_tools_list(request.id).await,
         "tools/call" => {
             mcp_service
-                .handle_tools_call(request.id, request.params)
+                .handle_tools_call(request.id, request.params, None)
                 .await
         }
         "resources/list" => mcp_service.handle_resources_list(request.id).await,

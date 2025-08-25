@@ -28,14 +28,15 @@ impl MCPTool for UpdateFunctionTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
         let function_name = arguments["function_name"].as_str().unwrap_or("");
         let change_reason = arguments["change_reason"].as_str().unwrap_or("");
         
-        let mut builder = service
-            .superposition_client
+        let client = service.get_client(token);
+        let mut builder = client
             .update_function()
             .workspace_id(workspace_id)
             .org_id(org_id)

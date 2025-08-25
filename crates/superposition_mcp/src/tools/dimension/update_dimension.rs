@@ -40,6 +40,7 @@ impl MCPTool for UpdateDimensionTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
@@ -50,8 +51,8 @@ impl MCPTool for UpdateDimensionTool {
 
         let schema_doc = value_to_document(&schema);
 
-        service
-            .superposition_client
+        let client = service.get_client(token);
+        client
             .update_dimension()
             .workspace_id(workspace_id)
             .org_id(org_id)

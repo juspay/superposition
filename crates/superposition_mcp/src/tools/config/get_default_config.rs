@@ -25,14 +25,16 @@ impl MCPTool for GetDefaultConfigTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
         let key = arguments["key"].as_str();
         
+        let client = service.get_client(token);
+        
         if let Some(k) = key {
-            service
-                .superposition_client
+            client
                 .get_config()
                 .workspace_id(workspace_id)
                 .org_id(org_id)
@@ -52,8 +54,7 @@ impl MCPTool for GetDefaultConfigTool {
                 })
                 .map_err(|e| format!("SDK error: {}", e).into())
         } else {
-            service
-                .superposition_client
+            client
                 .list_default_configs()
                 .workspace_id(workspace_id)
                 .org_id(org_id)

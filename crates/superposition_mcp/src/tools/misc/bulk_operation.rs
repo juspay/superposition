@@ -26,6 +26,7 @@ impl MCPTool for BulkOperationTool {
     async fn execute(
         _service: &McpService,
         arguments: &Value,
+        _token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         // Complex type conversion needed for BulkOperationReq, placeholder for now
         let _org_id = arguments["org_id"].as_str().unwrap_or("");

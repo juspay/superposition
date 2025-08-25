@@ -27,6 +27,7 @@ impl MCPTool for CreateTypeTemplatesTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
@@ -36,8 +37,8 @@ impl MCPTool for CreateTypeTemplatesTool {
         
         let type_schema_doc = value_to_document(type_schema);
         
-        service
-            .superposition_client
+        let client = service.get_client(token);
+        client
             .create_type_templates()
             .workspace_id(workspace_id)
             .org_id(org_id)

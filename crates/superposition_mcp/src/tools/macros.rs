@@ -16,11 +16,12 @@ macro_rules! compose_tools_group {
                 service: &$crate::mcp_service::McpService,
                 tool_name: &str,
                 arguments: &serde_json::Value,
+                token: Option<&str>,
             ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
                 match tool_name {
                     $(
                         tool_name if tool_name == <$tool>::name() => {
-                            <$tool>::execute(service, arguments).await
+                            <$tool>::execute(service, arguments, token).await
                         }
                     )*
                     _ => Err(format!("Unknown tool: {}", tool_name).into()),

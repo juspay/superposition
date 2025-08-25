@@ -30,6 +30,7 @@ impl MCPTool for MoveContextTool {
     async fn execute(
         _service: &McpService,
         _arguments: &Value,
+        _token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         Err(format!("move_context implementation needs parameter verification").into())
     }

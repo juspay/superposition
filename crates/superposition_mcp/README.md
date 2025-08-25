@@ -114,12 +114,71 @@ The MCP server provides comprehensive access to Superposition functionality:
 
 ### And many more...
 
+## Authentication
+
+The MCP server supports two authentication mechanisms:
+
+### 1. Default Token Authentication
+Configure a default token for all requests using environment variables:
+
+```bash
+SUPERPOSITION_DEFAULT_TOKEN=your-default-api-token
+```
+
+### 2. Per-Request Token Authentication
+Override the default token on a per-request basis using the standard `Authorization` header:
+
+```bash
+# Using custom token for this request
+curl -X POST http://localhost:8080/mcp \
+  -H "Authorization: Bearer custom-user-token" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "method": "tools/call", ...}'
+
+# Using default token (no header)
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "method": "tools/call", ...}'
+```
+
+**Token Precedence:**
+1. **Authorization header** (if provided) - highest priority
+2. **Default service token** (from environment) - fallback
+
+This allows for flexible authentication scenarios:
+- **Multi-tenant support**: Different users can use their own tokens
+- **Service integration**: Background services can use default tokens
+- **Development**: Easy testing with personal tokens
+
 ## Usage Examples
 
 ### Creating a Feature Flag
 
 ```bash
-curl -X POST http://localhost:8080/mcp/tools/call \
+# With custom authentication token
+curl -X POST http://localhost:8080/mcp \
+  -H "Authorization: Bearer your-api-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "create_default_config",
+      "arguments": {
+        "org_id": "my-org",
+        "workspace_id": "production",
+        "key": "new_checkout_flow",
+        "value": false,
+        "schema": {"type": "boolean"},
+        "description": "Enable new checkout flow",
+        "change_reason": "Rolling out improved checkout UX"
+      }
+    }
+  }'
+
+# Using default token (no Authorization header)
+curl -X POST http://localhost:8080/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",

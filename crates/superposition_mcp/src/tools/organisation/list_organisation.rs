@@ -24,9 +24,10 @@ impl MCPTool for ListOrganisationTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
-        let mut builder = service
-            .superposition_client
+        let client = service.get_client(token);
+        let mut builder = client
             .list_organisation();
 
         // Optional pagination parameters

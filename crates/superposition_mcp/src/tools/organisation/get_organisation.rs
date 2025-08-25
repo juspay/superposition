@@ -23,11 +23,12 @@ impl MCPTool for GetOrganisationTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let id = arguments["id"].as_str().unwrap_or("");
         
-        service
-            .superposition_client
+        let client = service.get_client(token);
+        client
             .get_organisation()
             .id(id)
             .send()

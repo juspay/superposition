@@ -26,14 +26,15 @@ impl MCPTool for ConcludeExperimentTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>> {
         let org_id = arguments["org_id"].as_str().unwrap_or("");
         let workspace_id = arguments["workspace_id"].as_str().unwrap_or("");
         let experiment_id = arguments["experiment_id"].as_str().unwrap_or("");
         let change_reason = arguments["change_reason"].as_str().unwrap_or("");
         
-        service
-            .superposition_client
+        let client = service.get_client(token);
+        client
             .conclude_experiment()
             .workspace_id(workspace_id)
             .org_id(org_id)

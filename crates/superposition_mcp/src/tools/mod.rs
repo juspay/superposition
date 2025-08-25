@@ -27,6 +27,7 @@ pub trait MCPTool {
     async fn execute(
         service: &McpService,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>>;
 
     /// Get the tool name
@@ -40,6 +41,7 @@ pub trait MCPToolsGroup {
         service: &McpService,
         tool_name: &str,
         arguments: &Value,
+        token: Option<&str>,
     ) -> Result<Value, Box<dyn Error>>;
 }
 
@@ -68,70 +70,71 @@ pub async fn execute_any_tool(
     service: &McpService,
     tool_name: &str,
     arguments: &Value,
+    token: Option<&str>,
 ) -> Result<Value, Box<dyn Error>> {
     // Try new structured tools first
     if let Ok(result) =
-        config::ConfigTools::execute_tool(service, tool_name, arguments).await
+        config::ConfigTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        experiment::ExperimentTools::execute_tool(service, tool_name, arguments).await
+        experiment::ExperimentTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        organisation::OrganisationTools::execute_tool(service, tool_name, arguments).await
+        organisation::OrganisationTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     // Try legacy tools
     if let Ok(result) =
-        dimension::DimensionTools::execute_tool(service, tool_name, arguments).await
+        dimension::DimensionTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        context::ContextTools::execute_tool(service, tool_name, arguments).await
+        context::ContextTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        function::FunctionTools::execute_tool(service, tool_name, arguments).await
+        function::FunctionTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        workspace::WorkspaceTools::execute_tool(service, tool_name, arguments).await
+        workspace::WorkspaceTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        webhook::WebhookTools::execute_tool(service, tool_name, arguments).await
+        webhook::WebhookTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        types::TypeTools::execute_tool(service, tool_name, arguments).await
+        types::TypeTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
     if let Ok(result) =
-        audit::AuditTools::execute_tool(service, tool_name, arguments).await
+        audit::AuditTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
 
-    if let Ok(result) = misc::MiscTools::execute_tool(service, tool_name, arguments).await
+    if let Ok(result) = misc::MiscTools::execute_tool(service, tool_name, arguments, token).await
     {
         return Ok(result);
     }
