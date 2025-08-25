@@ -27,17 +27,39 @@ pub fn create_mcp_routes(mcp_service: Arc<McpService>) -> Scope {
         .route("/initialize", web::post().to(http_handlers::mcp_initialize))
         .route("/tools/list", web::post().to(http_handlers::mcp_tools_list))
         .route("/tools/call", web::post().to(http_handlers::mcp_tools_call))
-        .route("/resources/list", web::post().to(http_handlers::mcp_resources_list))
-        .route("/resources/read", web::post().to(http_handlers::mcp_resources_read))
-        .route("/prompts/list", web::post().to(http_handlers::mcp_prompts_list))
+        .route(
+            "/resources/list",
+            web::post().to(http_handlers::mcp_resources_list),
+        )
+        .route(
+            "/resources/read",
+            web::post().to(http_handlers::mcp_resources_read),
+        )
+        .route(
+            "/prompts/list",
+            web::post().to(http_handlers::mcp_prompts_list),
+        )
+        .route(
+            "/options",
+            web::method(http::Method::OPTIONS).to(http_handlers::cors_preflight),
+        )
+        // TODO: start: sample MCP streaming endpoints below.  Need to fixed with actual streams
         .route("/stream", web::get().to(streaming::mcp_stream))
-        .route("/stream/config", web::get().to(streaming::config_changes_stream))
-        .route("/stream/experiments", web::get().to(streaming::experiment_status_stream))
-        .route("/options", web::method(http::Method::OPTIONS).to(http_handlers::cors_preflight))
+        .route(
+            "/stream/config",
+            web::get().to(streaming::config_changes_stream),
+        )
+        .route(
+            "/stream/experiments",
+            web::get().to(streaming::experiment_status_stream),
+        )
+    // TODO: end
 }
 
 /// Create a standalone MCP HTTP server (for backward compatibility)
-pub async fn create_http_server(mcp_service: Arc<McpService>) -> Result<(), Box<dyn Error>> {
+pub async fn create_http_server(
+    mcp_service: Arc<McpService>,
+) -> Result<(), Box<dyn Error>> {
     let port = std::env::var("MCP_HTTP_PORT")
         .unwrap_or_else(|_| "8081".to_string())
         .parse::<u16>()
@@ -52,12 +74,11 @@ pub async fn create_http_server(mcp_service: Arc<McpService>) -> Result<(), Box<
             .allow_any_header()
             .supports_credentials();
 
-        App::new()
-            .wrap(cors)
-            .wrap(Logger::default())
-            .service(create_mcp_routes(mcp_service.clone()).configure(|cfg| {
+        App::new().wrap(cors).wrap(Logger::default()).service(
+            create_mcp_routes(mcp_service.clone()).configure(|cfg| {
                 cfg.route("/mcp", web::post().to(http_handlers::mcp_handler));
-            }))
+            }),
+        )
     })
     .bind(("0.0.0.0", port))?
     .keep_alive(Duration::from_secs(120))
@@ -78,7 +99,9 @@ pub async fn initialize_mcp_service() -> Result<Arc<McpService>, Box<dyn Error>>
     let token = std::env::var("SUPERPOSITION_DEFAULT_TOKEN")
         .unwrap_or_else(|_| "12345".to_string());
 
-    Ok(Arc::new(McpService::new(workspace, org, host, token).await?))
+    Ok(Arc::new(
+        McpService::new(workspace, org, host, token).await?,
+    ))
 }
 
 /// Initialize MCP service with custom configuration
@@ -88,5 +111,7 @@ pub async fn initialize_mcp_service_with_config(
     host: String,
     token: String,
 ) -> Result<Arc<McpService>, Box<dyn Error>> {
-    Ok(Arc::new(McpService::new(workspace, org, host, token).await?))
+    Ok(Arc::new(
+        McpService::new(workspace, org, host, token).await?,
+    ))
 }
