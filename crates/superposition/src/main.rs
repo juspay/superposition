@@ -115,21 +115,25 @@ async fn main() -> Result<()> {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
-        let app = App::new()
+        App::new()
+
             .wrap(Condition::new(matches!(app_env, AppEnv::PROD | AppEnv::SANDBOX), Compress::default()))
             .wrap(Logger::default())
             // Conditionally add request/response logging middleware for development
-            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger::default()));
-
-        app.app_data(app_state.clone())
-            .app_data(PathConfig::default().error_handler(|err, _| {
-                actix_web::error::ErrorBadRequest(err)
-            }))
+            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger::default()))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
                     .add(("Cache-Control", "no-store".to_string()))
             )
+            .wrap(auth_n.clone())
+
+            .app_data(app_state.clone())
+            .app_data(PathConfig::default().error_handler(|err, _| {
+                actix_web::error::ErrorBadRequest(err)
+            }))
+            .app_data(Data::new(leptos_options.to_owned()))
+
             .service(web::redirect("/", ui_redirect_path.to_string()))
             .service(web::redirect("/admin", ui_redirect_path.to_string()))
             .service(web::redirect("/admin/{tenant}/", "default-config"))
@@ -215,8 +219,6 @@ async fn main() -> Result<()> {
                 "/health",
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
-            .app_data(Data::new(leptos_options.to_owned()))
-            .wrap(auth_n.clone())
     })
     .bind(("0.0.0.0", cac_port))?
     .workers(5)
