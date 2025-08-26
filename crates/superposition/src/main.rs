@@ -120,7 +120,7 @@ async fn main() -> Result<()> {
             .wrap(Condition::new(matches!(app_env, AppEnv::PROD | AppEnv::SANDBOX), Compress::default()))
             .wrap(Logger::default())
             // Conditionally add request/response logging middleware for development
-            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger::default()))
+            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
