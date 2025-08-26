@@ -33,7 +33,6 @@ urlencoding = "~2.1.2"
 [features]
 high-performance-mode = ["dep:fred"]
 jsonlogic = ["superposition_types/jsonlogic"]
-request-response-logging = []
 
 [lints]
 workspace = true
