@@ -25,12 +25,14 @@ use snowflake::SnowflakeIdGenerator;
 
 pub async fn get(
     app_env: AppEnv,
+    port: u16,
     kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &str,
 ) -> AppState {
     let cac_host =
-        get_from_env_unsafe::<String>("CAC_HOST").expect("CAC host is not set") + base;
+        get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
+            + base;
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
