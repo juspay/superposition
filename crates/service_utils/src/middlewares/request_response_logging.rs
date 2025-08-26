@@ -6,7 +6,7 @@ use actix_web::web::Bytes;
 use actix_web::{error::PayloadError, http::StatusCode, Error};
 use futures_util::future::{ok, Ready};
 use futures_util::stream::{once, StreamExt};
-use log::{info, warn};
+use log::{trace, warn};
 use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
@@ -76,7 +76,7 @@ where
                         })
                     };
 
-                    info!(
+                    trace!(
                         "RESPONSE: {} headers=[{}] body={}",
                         this.status,
                         this.headers.join(", "),
@@ -174,7 +174,7 @@ where
                     })
                 };
 
-                info!(
+                trace!(
                     "REQUEST: {} {} query={} headers=[{}] body={}",
                     method,
                     uri,
@@ -208,7 +208,7 @@ where
                 res = service.call(new_req).await?;
             } else {
                 // For GET/DELETE etc, don't extract body
-                info!(
+                trace!(
                     "REQUEST: {} {} query={} headers=[{}]",
                     method,
                     uri,

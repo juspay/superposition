@@ -26,7 +26,8 @@ use service_utils::{
     service::types::AppEnv,
 };
 
-#[cfg(feature = "request-response-logging")]
+use log::{log_enabled, Level};
+
 use service_utils::middlewares::request_response_logging::RequestResponseLogger;
 
 #[actix_web::get("favicon.ico")]
@@ -116,11 +117,9 @@ async fn main() -> Result<()> {
         let leptos_envs = ui_envs.clone();
         let app = App::new()
             .wrap(Condition::new(matches!(app_env, AppEnv::PROD | AppEnv::SANDBOX), Compress::default()))
-            .wrap(Logger::default());
-
-        // Conditionally add request/response logging middleware for development
-        #[cfg(feature = "request-response-logging")]
-        let app = app.wrap(RequestResponseLogger::default());
+            .wrap(Logger::default())
+            // Conditionally add request/response logging middleware for development
+            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger::default()));
 
         app.app_data(app_state.clone())
             .app_data(PathConfig::default().error_handler(|err, _| {

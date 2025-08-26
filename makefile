@@ -193,6 +193,9 @@ build: frontend backend
 run: kill db localstack frontend superposition
 	@./target/debug/superposition
 
+%_run: kill db localstack frontend superposition
+	@RUST_LOG=$* ./target/debug/superposition
+
 run_legacy: kill build db localstack superposition_legacy
 	@./target/debug/superposition
 
