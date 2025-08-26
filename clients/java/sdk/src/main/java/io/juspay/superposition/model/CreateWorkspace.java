@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new workspace within an organisation, including database schema setup and isolated
+ * environment for config management with specified admin and settings.
+ */
 @SmithyGenerated
 public final class CreateWorkspace implements ApiOperation<CreateWorkspaceInput, CreateWorkspaceOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateWorkspace");

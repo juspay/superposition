@@ -36,13 +36,13 @@
 /// - The inner data `UnknownVariantValue` is opaque, and no further information can be extracted.
 /// - It might inadvertently shadow other intended match arms.
 /// 
-#[allow(missing_docs)] // documentation missing in model
+/// Sort order enumeration for list operations.
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
 pub enum SortBy {
-    #[allow(missing_docs)] // documentation missing in model
+    /// Ascending order (A-Z, oldest first)
     Asc,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Descending order (Z-A, newest first)
     Desc,
     /// `Unknown` contains new variants that have been added since this code was generated.
     #[deprecated(note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants.")]

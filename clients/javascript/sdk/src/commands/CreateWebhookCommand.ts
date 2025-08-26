@@ -35,8 +35,7 @@ export interface CreateWebhookCommandInput extends CreateWebhookInput {}
 export interface CreateWebhookCommandOutput extends WebhookResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new webhook config to receive HTTP notifications when specified events occur in the system.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -97,6 +96,7 @@ export interface CreateWebhookCommandOutput extends WebhookResponse, __MetadataB
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateWebhookCommand extends $Command.classBuilder<CreateWebhookCommandInput, CreateWebhookCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

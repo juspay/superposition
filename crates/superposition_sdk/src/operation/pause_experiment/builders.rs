@@ -19,6 +19,7 @@ impl crate::operation::pause_experiment::builders::PauseExperimentInputBuilder {
                 }
 /// Fluent builder constructing a request to `PauseExperiment`.
 /// 
+/// Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment config for later resumption.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct PauseExperimentFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or
+ * rollback of experimental features.
+ */
 @SmithyGenerated
 public final class RampExperiment implements ApiOperation<RampExperimentInput, RampExperimentOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#RampExperiment");

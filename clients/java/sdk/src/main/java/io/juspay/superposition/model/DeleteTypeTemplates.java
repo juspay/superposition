@@ -12,6 +12,9 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Permanently removes a type template from the workspace. No checks performed while deleting
+ */
 @SmithyGenerated
 public final class DeleteTypeTemplates implements ApiOperation<DeleteTypeTemplatesInput, DeleteTypeTemplatesOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#DeleteTypeTemplates");

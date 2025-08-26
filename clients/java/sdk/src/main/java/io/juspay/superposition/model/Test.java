@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Executes a function in test mode with provided input parameters to validate its behavior before
+ * publishing or deployment.
+ */
 @SmithyGenerated
 public final class Test implements ApiOperation<TestInput, TestOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#Test");

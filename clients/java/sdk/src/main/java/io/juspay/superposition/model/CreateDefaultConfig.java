@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new default config entry with specified key, value, schema, and metadata. Default configs
+ * serve as fallback values when no specific context matches.
+ */
 @SmithyGenerated
 public final class CreateDefaultConfig implements ApiOperation<CreateDefaultConfigInput, CreateDefaultConfigOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateDefaultConfig");

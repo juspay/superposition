@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new context with specified conditions and overrides. Contexts define conditional rules for
+ * config management.
+ */
 @SmithyGenerated
 public final class CreateContext implements ApiOperation<CreateContextInput, CreateContextOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateContext");

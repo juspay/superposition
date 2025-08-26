@@ -14,7 +14,7 @@ impl super::Client {
     ///   - [`name(String)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::name): (undocumented)
     ///   - [`description(String)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::change_reason): (undocumented)
-    ///   - [`context(HashMap::<String, Document>)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::context): (undocumented)
+    ///   - [`context(HashMap::<String, Document>)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::context): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     ///   - [`traffic_percentage(i32)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::traffic_percentage): (undocumented)
     ///   - [`member_experiment_ids(Vec::<String>)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::member_experiment_ids): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::add_members_to_group::AddMembersToGroupOutput::created_at): (undocumented)

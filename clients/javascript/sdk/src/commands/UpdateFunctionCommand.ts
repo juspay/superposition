@@ -35,8 +35,7 @@ export interface UpdateFunctionCommandInput extends UpdateFunctionRequest {}
 export interface UpdateFunctionCommandOutput extends FunctionResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates the draft version of an existing function with new code, runtime version, or description while preserving the published version.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -86,6 +85,7 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateFunctionCommand extends $Command.classBuilder<UpdateFunctionCommandInput, UpdateFunctionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

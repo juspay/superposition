@@ -27,7 +27,7 @@ pub struct GetDimensionOutput  {
     pub dependencies: ::std::vec::Vec::<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub dependents: ::std::vec::Vec::<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
@@ -83,7 +83,7 @@ impl  GetDimensionOutput  {
     pub fn dependents(&self) -> &[::std::string::String] {
         use std::ops::Deref; self.dependents.deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
         &self.dependency_graph
     }
@@ -303,17 +303,18 @@ impl GetDimensionOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_dependency_graph`](Self::set_dependency_graph).
     ///
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn dependency_graph(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
         let mut hash_map = self.dependency_graph.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.dependency_graph = ::std::option::Option::Some(hash_map);
                         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn set_dependency_graph(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.dependency_graph = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn get_dependency_graph(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.dependency_graph
     }

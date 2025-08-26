@@ -19,6 +19,7 @@ impl crate::operation::list_function::builders::ListFunctionInputBuilder {
                 }
 /// Fluent builder constructing a request to `ListFunction`.
 /// 
+/// Retrieves a paginated list of all functions in the workspace with their basic information and current status.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListFunctionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

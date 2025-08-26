@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Permanently removes a dimension from the workspace. This operation will fail if the dimension has
+ * active dependencies or is referenced by existing configurations.
+ */
 @SmithyGenerated
 public final class DeleteDimension implements ApiOperation<DeleteDimensionInput, DeleteDimensionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#DeleteDimension");

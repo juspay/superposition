@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Determines which experiment variants are applicable to a given context, used for experiment
+ * evaluation and variant selection.
+ */
 @SmithyGenerated
 public final class ApplicableVariants implements ApiOperation<ApplicableVariantsInput, ApplicableVariantsOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ApplicableVariants");

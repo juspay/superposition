@@ -19,6 +19,7 @@ impl crate::operation::weight_recompute::builders::WeightRecomputeInputBuilder {
                 }
 /// Fluent builder constructing a request to `WeightRecompute`.
 /// 
+/// Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct WeightRecomputeFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

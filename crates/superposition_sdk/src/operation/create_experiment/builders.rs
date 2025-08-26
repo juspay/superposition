@@ -19,6 +19,7 @@ impl crate::operation::create_experiment::builders::CreateExperimentInputBuilder
                 }
 /// Fluent builder constructing a request to `CreateExperiment`.
 /// 
+/// Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateExperimentFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,
@@ -156,17 +157,17 @@ impl CreateExperimentFluentBuilder {
     /// 
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     /// 
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
                     self.inner = self.inner.context(k.into(), v);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
                     self.inner = self.inner.set_context(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
                     self.inner.get_context()
                 }

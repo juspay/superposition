@@ -35,8 +35,7 @@ export interface UpdateDimensionCommandInput extends UpdateDimensionInput {}
 export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -98,6 +97,7 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateDimensionCommand extends $Command.classBuilder<UpdateDimensionCommandInput, UpdateDimensionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

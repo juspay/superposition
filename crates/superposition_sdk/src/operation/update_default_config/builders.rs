@@ -19,6 +19,7 @@ impl crate::operation::update_default_config::builders::UpdateDefaultConfigInput
                 }
 /// Fluent builder constructing a request to `UpdateDefaultConfig`.
 /// 
+/// Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateDefaultConfigFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

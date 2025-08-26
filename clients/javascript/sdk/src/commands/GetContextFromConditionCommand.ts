@@ -35,8 +35,7 @@ export interface GetContextFromConditionCommandInput extends GetContextFromCondi
 export interface GetContextFromConditionCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -83,6 +82,7 @@ export interface GetContextFromConditionCommandOutput extends ContextResponse, _
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class GetContextFromConditionCommand extends $Command.classBuilder<GetContextFromConditionCommandInput, GetContextFromConditionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

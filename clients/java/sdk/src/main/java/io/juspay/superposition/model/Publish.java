@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Publishes the draft version of a function, making it the active version used for validation or
+ * autocompletion in the system.
+ */
 @SmithyGenerated
 public final class Publish implements ApiOperation<PublishInput, PublishOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#Publish");

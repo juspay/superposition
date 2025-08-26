@@ -35,8 +35,7 @@ export interface DeleteTypeTemplatesCommandInput extends DeleteTypeTemplatesInpu
 export interface DeleteTypeTemplatesCommandOutput extends TypeTemplatesResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Permanently removes a type template from the workspace. No checks performed while deleting
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -76,6 +75,7 @@ export interface DeleteTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class DeleteTypeTemplatesCommand extends $Command.classBuilder<DeleteTypeTemplatesCommandInput, DeleteTypeTemplatesCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates an existing workspace configuration, allowing modification of admin settings, mandatory
+ * dimensions, and workspace properties. Validates config version existence if provided.
+ */
 @SmithyGenerated
 public final class UpdateWorkspace implements ApiOperation<UpdateWorkspaceInput, UpdateWorkspaceOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateWorkspace");

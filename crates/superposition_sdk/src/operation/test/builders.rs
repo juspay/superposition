@@ -19,6 +19,7 @@ impl crate::operation::test::builders::TestInputBuilder {
                 }
 /// Fluent builder constructing a request to `Test`.
 /// 
+/// Executes a function in test mode with provided input parameters to validate its behavior before publishing or deployment.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct TestFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

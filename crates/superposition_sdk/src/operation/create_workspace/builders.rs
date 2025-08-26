@@ -19,6 +19,7 @@ impl crate::operation::create_workspace::builders::CreateWorkspaceInputBuilder {
                 }
 /// Fluent builder constructing a request to `CreateWorkspace`.
 /// 
+/// Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateWorkspaceFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

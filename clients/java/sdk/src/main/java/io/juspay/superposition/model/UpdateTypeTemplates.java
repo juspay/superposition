@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates an existing type template's schema definition and metadata while preserving its identifier
+ * and usage history.
+ */
 @SmithyGenerated
 public final class UpdateTypeTemplates implements ApiOperation<UpdateTypeTemplatesInput, UpdateTypeTemplatesOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateTypeTemplates");

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates the overrides for an existing context. Allows modification of override values while
+ * maintaining the context's conditions.
+ */
 @SmithyGenerated
 public final class UpdateOverride implements ApiOperation<UpdateOverrideInput, UpdateOverrideOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateOverride");

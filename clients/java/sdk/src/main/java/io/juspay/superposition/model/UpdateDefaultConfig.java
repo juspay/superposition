@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Updates an existing default config entry. Allows modification of value, schema, function mappings,
+ * and description while preserving the key identifier.
+ */
 @SmithyGenerated
 public final class UpdateDefaultConfig implements ApiOperation<UpdateDefaultConfigInput, UpdateDefaultConfigOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#UpdateDefaultConfig");

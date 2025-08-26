@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new type template with specified schema definition, providing reusable type definitions
+ * for config validation.
+ */
 @SmithyGenerated
 public final class CreateTypeTemplates implements ApiOperation<CreateTypeTemplatesInput, CreateTypeTemplatesOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateTypeTemplates");

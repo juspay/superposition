@@ -35,8 +35,7 @@ export interface WeightRecomputeCommandInput extends WeightRecomputeInput {}
 export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -76,6 +75,7 @@ export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __M
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class WeightRecomputeCommand extends $Command.classBuilder<WeightRecomputeCommandInput, WeightRecomputeCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

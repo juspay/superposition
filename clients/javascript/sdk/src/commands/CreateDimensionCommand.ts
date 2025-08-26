@@ -35,8 +35,7 @@ export interface CreateDimensionCommandInput extends CreateDimensionInput {}
 export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -96,6 +95,7 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class CreateDimensionCommand extends $Command.classBuilder<CreateDimensionCommandInput, CreateDimensionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

@@ -19,6 +19,7 @@ impl crate::operation::create_organisation::builders::CreateOrganisationInputBui
                 }
 /// Fluent builder constructing a request to `CreateOrganisation`.
 /// 
+/// Creates a new organisation with specified details including name, admin contact, and organisational information.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateOrganisationFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

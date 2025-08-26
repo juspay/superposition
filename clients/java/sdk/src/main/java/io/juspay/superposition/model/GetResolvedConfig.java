@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Resolves and merges config values based on context conditions, applying overrides and merge
+ * strategies to produce the final configuration.
+ */
 @SmithyGenerated
 public final class GetResolvedConfig implements ApiOperation<GetResolvedConfigInput, GetResolvedConfigOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetResolvedConfig");

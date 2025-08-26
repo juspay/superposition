@@ -19,6 +19,7 @@ impl crate::operation::update_overrides_experiment::builders::UpdateOverridesExp
                 }
 /// Fluent builder constructing a request to `UpdateOverridesExperiment`.
 /// 
+/// Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateOverridesExperimentFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

@@ -35,8 +35,7 @@ export interface ListWebhookCommandInput extends ListWebhookInput {}
 export interface ListWebhookCommandOutput extends WebhookListResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -93,6 +92,7 @@ export interface ListWebhookCommandOutput extends WebhookListResponse, __Metadat
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class ListWebhookCommand extends $Command.classBuilder<ListWebhookCommandInput, ListWebhookCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

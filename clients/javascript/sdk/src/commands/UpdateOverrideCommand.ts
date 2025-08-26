@@ -35,8 +35,7 @@ export interface UpdateOverrideCommandInput extends UpdateOverrideInput {}
 export interface UpdateOverrideCommandOutput extends ContextResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -96,6 +95,7 @@ export interface UpdateOverrideCommandOutput extends ContextResponse, __Metadata
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class UpdateOverrideCommand extends $Command.classBuilder<UpdateOverrideCommandInput, UpdateOverrideCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

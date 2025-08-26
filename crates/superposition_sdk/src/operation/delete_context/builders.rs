@@ -19,6 +19,7 @@ impl crate::operation::delete_context::builders::DeleteContextInputBuilder {
                 }
 /// Fluent builder constructing a request to `DeleteContext`.
 /// 
+/// Permanently removes a context from the workspace. This operation cannot be undone and will affect config resolution.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct DeleteContextFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

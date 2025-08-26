@@ -12,6 +12,9 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves the latest config with no processing for high-performance access.
+ */
 @SmithyGenerated
 public final class GetConfigFast implements ApiOperation<GetConfigFastInput, GetConfigFastOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetConfigFast");

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Permanently removes a function from the workspace, deleting both draft and published versions along
+ * with all associated code. It fails if already in use
+ */
 @SmithyGenerated
 public final class DeleteFunction implements ApiOperation<DeleteFunctionInput, DeleteFunctionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#DeleteFunction");

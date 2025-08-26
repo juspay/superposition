@@ -35,8 +35,7 @@ export interface PauseExperimentCommandInput extends PauseExperimentInput {}
 export interface PauseExperimentCommandOutput extends ExperimentResponse, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment config for later resumption.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -99,6 +98,7 @@ export interface PauseExperimentCommandOutput extends ExperimentResponse, __Meta
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class PauseExperimentCommand extends $Command.classBuilder<PauseExperimentCommandInput, PauseExperimentCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

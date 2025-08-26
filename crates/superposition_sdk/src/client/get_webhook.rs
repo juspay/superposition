@@ -13,7 +13,7 @@ impl super::Client {
     ///   - [`url(String)`](crate::operation::get_webhook::GetWebhookOutput::url): (undocumented)
     ///   - [`method(HttpMethod)`](crate::operation::get_webhook::GetWebhookOutput::method): (undocumented)
     ///   - [`version(Version)`](crate::operation::get_webhook::GetWebhookOutput::version): (undocumented)
-    ///   - [`custom_headers(Option<HashMap::<String, Document>>)`](crate::operation::get_webhook::GetWebhookOutput::custom_headers): (undocumented)
+    ///   - [`custom_headers(Option<HashMap::<String, Document>>)`](crate::operation::get_webhook::GetWebhookOutput::custom_headers): Generic key-value object structure used for flexible data representation throughout the API.
     ///   - [`events(Vec::<String>)`](crate::operation::get_webhook::GetWebhookOutput::events): (undocumented)
     ///   - [`max_retries(i32)`](crate::operation::get_webhook::GetWebhookOutput::max_retries): (undocumented)
     ///   - [`last_triggered_at(Option<DateTime>)`](crate::operation::get_webhook::GetWebhookOutput::last_triggered_at): (undocumented)

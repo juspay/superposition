@@ -19,6 +19,7 @@ impl crate::operation::get_webhook::builders::GetWebhookInputBuilder {
                 }
 /// Fluent builder constructing a request to `GetWebhook`.
 /// 
+/// Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetWebhookFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

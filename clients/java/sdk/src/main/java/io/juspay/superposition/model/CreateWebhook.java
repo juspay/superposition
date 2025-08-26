@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Creates a new webhook config to receive HTTP notifications when specified events occur in the
+ * system.
+ */
 @SmithyGenerated
 public final class CreateWebhook implements ApiOperation<CreateWebhookInput, CreateWebhookOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#CreateWebhook");

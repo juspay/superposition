@@ -35,8 +35,7 @@ export interface DeleteDimensionCommandInput extends DeleteDimensionInput {}
 export interface DeleteDimensionCommandOutput extends DeleteDimensionOutput, __MetadataBearer {}
 
 /**
- * @public
- *
+ * Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -67,6 +66,7 @@ export interface DeleteDimensionCommandOutput extends DeleteDimensionOutput, __M
  * @throws {@link SuperpositionServiceException}
  * <p>Base exception class for all service exceptions from Superposition service.</p>
  *
+ * @public
  */
 export class DeleteDimensionCommand extends $Command.classBuilder<DeleteDimensionCommandInput, DeleteDimensionCommandOutput, SuperpositionClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes>()
       .m(function (this: any, Command: any, cs: any, config: SuperpositionClientResolvedConfig, o: any) {

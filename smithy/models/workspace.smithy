@@ -49,7 +49,7 @@ structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $workspace_name
 
     $workspace_status
-    
+
     @required
     $strict_mode
 
@@ -123,7 +123,7 @@ structure WorkspaceResponse for Workspace {
     $created_at
 
     $mandatory_dimensions
-    
+
     @required
     $strict_mode
 
@@ -156,12 +156,14 @@ structure WorkspaceListResponse for Workspace {
 structure WorkspaceNotFound {}
 
 // Operations
+@documentation("Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.")
 @http(method: "POST", uri: "/workspaces")
 operation CreateWorkspace {
     input: CreateWorkspaceRequest
     output: WorkspaceResponse
 }
 
+@documentation("Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.")
 @idempotent
 @http(method: "PUT", uri: "/workspaces/{workspace_name}")
 operation UpdateWorkspace {
@@ -172,6 +174,7 @@ operation UpdateWorkspace {
     ]
 }
 
+@documentation("Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.")
 @readonly
 @http(method: "GET", uri: "/workspaces")
 operation ListWorkspace {
@@ -179,6 +182,7 @@ operation ListWorkspace {
     output: WorkspaceListResponse
 }
 
+@documentation("Migrates the workspace database schema to the new version of the template")
 @readonly
 @http(method: "POST", uri: "/workspaces/{workspace_name}/db/migrate")
 operation MigrateWorkspaceSchema {

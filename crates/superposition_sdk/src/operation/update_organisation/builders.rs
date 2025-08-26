@@ -19,6 +19,7 @@ impl crate::operation::update_organisation::builders::UpdateOrganisationInputBui
                 }
 /// Fluent builder constructing a request to `UpdateOrganisation`.
 /// 
+/// Updates an existing organisation's information including contact details, status, and administrative properties.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateOrganisationFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

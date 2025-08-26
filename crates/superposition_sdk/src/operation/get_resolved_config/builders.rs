@@ -19,6 +19,7 @@ impl crate::operation::get_resolved_config::builders::GetResolvedConfigInputBuil
                 }
 /// Fluent builder constructing a request to `GetResolvedConfig`.
 /// 
+/// Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetResolvedConfigFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,

@@ -12,6 +12,10 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Retrieves a paginated list of all functions in the workspace with their basic information and
+ * current status.
+ */
 @SmithyGenerated
 public final class ListFunction implements ApiOperation<ListFunctionInput, ListFunctionOutput> {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListFunction");
