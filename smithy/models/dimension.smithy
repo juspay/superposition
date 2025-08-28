@@ -3,6 +3,11 @@ $version: "2.0"
 
 namespace io.superposition
 
+enum DimensionType {
+    Regular = "REGULAR"
+    Cohort = "COHORT"
+}
+
 resource Dimension {
     identifiers: {
         dimension: String
@@ -23,6 +28,8 @@ resource Dimension {
         last_modified_at: DateTime
         last_modified_by: String
         autocomplete_function_name: String
+        dimension_type: DimensionType
+        cohort_based_on: String
     }
     list: ListDimensions
     put: UpdateDimension
@@ -82,6 +89,11 @@ structure DimensionMixin for Dimension {
     $dependency_graph
 
     $autocomplete_function_name
+    
+    @required
+    $dimension_type
+    
+    $cohort_based_on
 }
 
 structure DimensionExt with [DimensionMixin] {
@@ -117,6 +129,11 @@ operation CreateDimension {
         $change_reason
 
         $autocomplete_function_name
+        
+        @required
+        $dimension_type
+        
+        $cohort_based_on
     }
 
     output: DimensionExt
@@ -171,6 +188,8 @@ operation UpdateDimension {
         $change_reason
 
         $autocomplete_function_name
+        
+        $cohort_based_on
     }
 
     output: DimensionExt

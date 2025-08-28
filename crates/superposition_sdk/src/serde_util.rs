@@ -71,6 +71,7 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
 if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = "no value was set".parse::<crate::types::DimensionType>().ok() }
                 builder
             }
 
@@ -253,6 +254,7 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
 if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = "no value was set".parse::<crate::types::DimensionType>().ok() }
                 builder
             }
 
@@ -511,6 +513,7 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
 if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = "no value was set".parse::<crate::types::DimensionType>().ok() }
                 builder
             }
 
@@ -664,6 +667,7 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
 if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = "no value was set".parse::<crate::types::DimensionType>().ok() }
                 builder
             }
 

@@ -9,6 +9,8 @@ module Io.Superposition.Model.CreateDimensionInput (
     setDescription,
     setChangeReason,
     setAutocompleteFunctionName,
+    setDimensionType,
+    setCohortBasedOn,
     build,
     CreateDimensionInputBuilder,
     CreateDimensionInput,
@@ -21,7 +23,9 @@ module Io.Superposition.Model.CreateDimensionInput (
     dependencies,
     description,
     change_reason,
-    autocomplete_function_name
+    autocomplete_function_name,
+    dimension_type,
+    cohort_based_on
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -33,6 +37,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionType
 
 data CreateDimensionInput = CreateDimensionInput {
     workspace_id :: Data.Text.Text,
@@ -44,7 +49,9 @@ data CreateDimensionInput = CreateDimensionInput {
     dependencies :: Data.Maybe.Maybe ([] Data.Text.Text),
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
-    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
+    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
+    cohort_based_on :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -62,7 +69,9 @@ instance Data.Aeson.ToJSON CreateDimensionInput where
         "dependencies" Data.Aeson..= dependencies a,
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
-        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a
+        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
+        "dimension_type" Data.Aeson..= dimension_type a,
+        "cohort_based_on" Data.Aeson..= cohort_based_on a
         ]
     
 
@@ -79,6 +88,8 @@ instance Data.Aeson.FromJSON CreateDimensionInput where
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
+        Control.Applicative.<*> (v Data.Aeson..: "cohort_based_on")
     
 
 
@@ -93,7 +104,9 @@ data CreateDimensionInputBuilderState = CreateDimensionInputBuilderState {
     dependenciesBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
+    cohort_based_onBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -109,7 +122,9 @@ defaultBuilderState = CreateDimensionInputBuilderState {
     dependenciesBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
-    autocomplete_function_nameBuilderState = Data.Maybe.Nothing
+    autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
+    dimension_typeBuilderState = Data.Maybe.Nothing,
+    cohort_based_onBuilderState = Data.Maybe.Nothing
 }
 
 newtype CreateDimensionInputBuilder a = CreateDimensionInputBuilder {
@@ -173,6 +188,14 @@ setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDimensio
 setAutocompleteFunctionName value =
    CreateDimensionInputBuilder (\s -> (s { autocomplete_function_nameBuilderState = value }, ()))
 
+setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> CreateDimensionInputBuilder ()
+setDimensionType value =
+   CreateDimensionInputBuilder (\s -> (s { dimension_typeBuilderState = Data.Maybe.Just value }, ()))
+
+setCohortBasedOn :: Data.Maybe.Maybe Data.Text.Text -> CreateDimensionInputBuilder ()
+setCohortBasedOn value =
+   CreateDimensionInputBuilder (\s -> (s { cohort_based_onBuilderState = value }, ()))
+
 build :: CreateDimensionInputBuilder () -> Data.Either.Either Data.Text.Text CreateDimensionInput
 build builder = do
     let (st, _) = runCreateDimensionInputBuilder builder defaultBuilderState
@@ -186,6 +209,8 @@ build builder = do
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
+    cohort_based_on' <- Data.Either.Right (cohort_based_onBuilderState st)
     Data.Either.Right (CreateDimensionInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -196,7 +221,9 @@ build builder = do
         dependencies = dependencies',
         description = description',
         change_reason = change_reason',
-        autocomplete_function_name = autocomplete_function_name'
+        autocomplete_function_name = autocomplete_function_name',
+        dimension_type = dimension_type',
+        cohort_based_on = cohort_based_on'
     })
 
 

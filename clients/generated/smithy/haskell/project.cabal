@@ -145,6 +145,7 @@ library
                         Io.Superposition.Model.CreateDefaultConfigInput,
                         Io.Superposition.Command.GetTypeTemplatesList,
                         Io.Superposition.Model.AddMembersToGroupInput,
+                        Io.Superposition.Model.DimensionType,
                         Io.Superposition.Model.ListWorkspaceInput,
                         Io.Superposition.Model.GetContextInput,
                         Io.Superposition.Model.CreateWorkspaceInput,

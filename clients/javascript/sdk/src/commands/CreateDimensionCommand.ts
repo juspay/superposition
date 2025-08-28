@@ -55,6 +55,8 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   autocomplete_function_name: "STRING_VALUE",
+ *   dimension_type: "REGULAR" || "COHORT", // required
+ *   cohort_based_on: "STRING_VALUE",
  * };
  * const command = new CreateDimensionCommand(input);
  * const response = await client.send(command);
@@ -79,6 +81,8 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
+ * //   dimension_type: "REGULAR" || "COHORT", // required
+ * //   cohort_based_on: "STRING_VALUE",
  * //   mandatory: true || false,
  * // };
  *
