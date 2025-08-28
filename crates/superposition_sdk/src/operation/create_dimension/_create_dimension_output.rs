@@ -32,6 +32,8 @@ pub struct CreateDimensionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub dimension_type: crate::types::DimensionType,
+    #[allow(missing_docs)] // documentation missing in model
     pub mandatory: ::std::option::Option<bool>,
 }
 impl  CreateDimensionOutput  {
@@ -92,6 +94,10 @@ impl  CreateDimensionOutput  {
         self.autocomplete_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn dimension_type(&self) -> &crate::types::DimensionType {
+        &self.dimension_type
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn mandatory(&self) -> ::std::option::Option<bool> {
         self.mandatory
     }
@@ -121,6 +127,7 @@ pub struct CreateDimensionOutputBuilder {
     pub(crate) dependents: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
     pub(crate) mandatory: ::std::option::Option<bool>,
 }
 impl CreateDimensionOutputBuilder {
@@ -332,6 +339,20 @@ impl CreateDimensionOutputBuilder {
         &self.autocomplete_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn dimension_type(mut self, input: crate::types::DimensionType) -> Self {
+        self.dimension_type = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_dimension_type(mut self, input: ::std::option::Option<crate::types::DimensionType>) -> Self {
+        self.dimension_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_dimension_type(&self) -> &::std::option::Option<crate::types::DimensionType> {
+        &self.dimension_type
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn mandatory(mut self, input: bool) -> Self {
         self.mandatory = ::std::option::Option::Some(input);
         self
@@ -358,6 +379,7 @@ impl CreateDimensionOutputBuilder {
     /// - [`dependencies`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::dependencies)
     /// - [`dependents`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::dependents)
     /// - [`dependency_graph`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::dependency_graph)
+    /// - [`dimension_type`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::dimension_type)
     pub fn build(self) -> ::std::result::Result<crate::operation::create_dimension::CreateDimensionOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::create_dimension::CreateDimensionOutput {
@@ -424,6 +446,11 @@ impl CreateDimensionOutputBuilder {
                     )?
                 ,
                 autocomplete_function_name: self.autocomplete_function_name
+                ,
+                dimension_type: self.dimension_type
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimension_type", "dimension_type was not specified but it is required when building CreateDimensionOutput")
+                    )?
                 ,
                 mandatory: self.mandatory
                 ,

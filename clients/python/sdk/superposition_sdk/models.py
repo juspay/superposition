@@ -4338,23 +4338,10 @@ CREATE_DEFAULT_CONFIG = APIOperation(
         ]
 )
 
-def _serialize_dependencies(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
-    member_schema = schema.members["member"]
-    with serializer.begin_list(schema, len(value)) as ls:
-        for e in value:
-            ls.write_string(member_schema, e)
-
-def _deserialize_dependencies(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
-    result: list[str] = []
-    member_schema = schema.members["member"]
-    def _read_value(d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result.append(d.read_string(member_schema))
-    deserializer.read_list(schema, _read_value)
-    return result
+class DimensionType(StrEnum):
+    REGULAR = "REGULAR"
+    LOCAL_COHORT = "LOCALCOHORT"
+    REMOTE_COHORT = "REMOTECOHORT"
 
 @dataclass(kw_only=True)
 class CreateDimensionInput:
@@ -4365,10 +4352,11 @@ class CreateDimensionInput:
     position: int | None = None
     schema: Document | None = None
     function_name: str | None = None
-    dependencies: list[str] | None = None
     description: str | None = None
     change_reason: str | None = None
     autocomplete_function_name: str | None = None
+    dimension_type: str | None = None
+    cohort_based_on: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_INPUT, self)
@@ -4386,9 +4374,6 @@ class CreateDimensionInput:
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["function_name"], self.function_name)
 
-        if self.dependencies is not None:
-            _serialize_dependencies(serializer, _SCHEMA_CREATE_DIMENSION_INPUT.members["dependencies"], self.dependencies)
-
         if self.description is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["description"], self.description)
 
@@ -4397,6 +4382,12 @@ class CreateDimensionInput:
 
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+
+        if self.dimension_type is not None:
+            serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["dimension_type"], self.dimension_type)
+
+        if self.cohort_based_on is not None:
+            serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["cohort_based_on"], self.cohort_based_on)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4427,22 +4418,43 @@ class CreateDimensionInput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["function_name"])
 
                 case 6:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_CREATE_DIMENSION_INPUT.members["dependencies"])
-
-                case 7:
                     kwargs["description"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["description"])
 
-                case 8:
+                case 7:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["change_reason"])
 
-                case 9:
+                case 8:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"])
+
+                case 9:
+                    kwargs["dimension_type"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["dimension_type"])
+
+                case 10:
+                    kwargs["cohort_based_on"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["cohort_based_on"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CREATE_DIMENSION_INPUT, consumer=_consumer)
         return kwargs
+
+def _serialize_dependencies(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+def _deserialize_dependencies(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+    deserializer.read_list(schema, _read_value)
+    return result
 
 def _serialize_dependents(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
     member_schema = schema.members["member"]
@@ -4496,6 +4508,8 @@ class CreateDimensionOutput:
 
     dependency_graph: dict[str, Document]
 
+    dimension_type: str
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
     mandatory: bool | None = None
@@ -4522,6 +4536,7 @@ class CreateDimensionOutput:
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
+        serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -4578,6 +4593,9 @@ class CreateDimensionOutput:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
 
                 case 14:
+                    kwargs["dimension_type"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension_type"])
+
+                case 15:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:
@@ -7206,6 +7224,8 @@ class GetDimensionOutput:
 
     dependency_graph: dict[str, Document]
 
+    dimension_type: str
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
     mandatory: bool | None = None
@@ -7232,6 +7252,7 @@ class GetDimensionOutput:
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
+        serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -7288,6 +7309,9 @@ class GetDimensionOutput:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"])
 
                 case 14:
+                    kwargs["dimension_type"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension_type"])
+
+                case 15:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:
@@ -7391,6 +7415,8 @@ class DimensionExt:
 
     dependency_graph: dict[str, Document]
 
+    dimension_type: str
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
     mandatory: bool | None = None
@@ -7417,6 +7443,7 @@ class DimensionExt:
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
+        serializer.write_string(_SCHEMA_DIMENSION_EXT.members["dimension_type"], self.dimension_type)
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_DIMENSION_EXT.members["mandatory"], self.mandatory)
 
@@ -7473,6 +7500,9 @@ class DimensionExt:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"])
 
                 case 14:
+                    kwargs["dimension_type"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["dimension_type"])
+
+                case 15:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_DIMENSION_EXT.members["mandatory"])
 
                 case _:
@@ -7567,7 +7597,6 @@ class UpdateDimensionInput:
     position: int | None = None
     function_name: str | None = None
     description: str | None = None
-    dependencies: list[str] | None = None
     change_reason: str | None = None
     autocomplete_function_name: str | None = None
 
@@ -7586,9 +7615,6 @@ class UpdateDimensionInput:
 
         if self.description is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["description"], self.description)
-
-        if self.dependencies is not None:
-            _serialize_dependencies(serializer, _SCHEMA_UPDATE_DIMENSION_INPUT.members["dependencies"], self.dependencies)
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"], self.change_reason)
@@ -7628,12 +7654,9 @@ class UpdateDimensionInput:
                     kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["description"])
 
                 case 7:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_UPDATE_DIMENSION_INPUT.members["dependencies"])
-
-                case 8:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"])
 
-                case 9:
+                case 8:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["autocomplete_function_name"])
 
                 case _:
@@ -7676,6 +7699,8 @@ class UpdateDimensionOutput:
 
     dependency_graph: dict[str, Document]
 
+    dimension_type: str
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
     mandatory: bool | None = None
@@ -7702,6 +7727,7 @@ class UpdateDimensionOutput:
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
+        serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.mandatory is not None:
             serializer.write_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -7758,6 +7784,9 @@ class UpdateDimensionOutput:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
 
                 case 14:
+                    kwargs["dimension_type"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension_type"])
+
+                case 15:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:

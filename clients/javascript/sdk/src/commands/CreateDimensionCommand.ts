@@ -49,12 +49,11 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  *   position: Number("int"), // required
  *   schema: "DOCUMENT_VALUE", // required
  *   function_name: "STRING_VALUE",
- *   dependencies: [ // Dependencies
- *     "STRING_VALUE",
- *   ],
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   autocomplete_function_name: "STRING_VALUE",
+ *   dimension_type: "REGULAR" || "LOCALCOHORT" || "REMOTECOHORT", // required
+ *   cohort_based_on: "STRING_VALUE",
  * };
  * const command = new CreateDimensionCommand(input);
  * const response = await client.send(command);
@@ -79,6 +78,7 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
+ * //   dimension_type: "REGULAR" || "LOCALCOHORT" || "REMOTECOHORT", // required
  * //   mandatory: true || false,
  * // };
  *

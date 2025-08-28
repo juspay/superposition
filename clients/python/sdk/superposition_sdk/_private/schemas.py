@@ -3519,13 +3519,35 @@ CREATE_DEFAULT_CONFIG = Schema(
 
 )
 
-DEPENDENCIES = Schema.collection(
-    id=ShapeID("io.superposition#Dependencies"),
-    shape_type=ShapeType.LIST,
+DIMENSION_TYPE = Schema.collection(
+    id=ShapeID("io.superposition#DimensionType"),
+    shape_type=ShapeType.ENUM,
     members={
-        "member": {
-            "target": STRING,
+        "Regular": {
+            "target": UNIT,
             "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="REGULAR"),
+
+            ],
+        },
+
+        "LocalCohort": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="LOCALCOHORT"),
+
+            ],
+        },
+
+        "RemoteCohort": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="REMOTECOHORT"),
+
+            ],
         },
 
     }
@@ -3592,14 +3614,9 @@ CREATE_DIMENSION_INPUT = Schema.collection(
             "index": 5,
         },
 
-        "dependencies": {
-            "target": DEPENDENCIES,
-            "index": 6,
-        },
-
         "description": {
             "target": STRING,
-            "index": 7,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3608,7 +3625,7 @@ CREATE_DIMENSION_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 8,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -3617,7 +3634,37 @@ CREATE_DIMENSION_INPUT = Schema.collection(
 
         "autocomplete_function_name": {
             "target": STRING,
+            "index": 8,
+        },
+
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
             "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "cohort_based_on": {
+            "target": STRING,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+    }
+)
+
+DEPENDENCIES = Schema.collection(
+    id=ShapeID("io.superposition#Dependencies"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": STRING,
+            "index": 0,
         },
 
     }
@@ -3762,9 +3809,18 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -6667,9 +6723,18 @@ GET_DIMENSION_OUTPUT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -6873,9 +6938,18 @@ DIMENSION_EXT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -6996,14 +7070,9 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
             "index": 6,
         },
 
-        "dependencies": {
-            "target": DEPENDENCIES,
-            "index": 7,
-        },
-
         "change_reason": {
             "target": STRING,
-            "index": 8,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7012,7 +7081,7 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
 
         "autocomplete_function_name": {
             "target": STRING,
-            "index": 9,
+            "index": 8,
         },
 
     }
@@ -7145,9 +7214,18 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 

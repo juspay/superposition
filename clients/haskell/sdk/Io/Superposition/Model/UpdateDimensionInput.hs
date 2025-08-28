@@ -6,7 +6,6 @@ module Io.Superposition.Model.UpdateDimensionInput (
     setPosition,
     setFunctionName,
     setDescription,
-    setDependencies,
     setChangeReason,
     setAutocompleteFunctionName,
     build,
@@ -19,7 +18,6 @@ module Io.Superposition.Model.UpdateDimensionInput (
     position,
     function_name,
     description,
-    dependencies,
     change_reason,
     autocomplete_function_name
 ) where
@@ -45,7 +43,6 @@ data UpdateDimensionInput = UpdateDimensionInput {
     position :: Data.Maybe.Maybe Data.Int.Int32,
     function_name :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Maybe.Maybe Data.Text.Text,
-    dependencies :: Data.Maybe.Maybe ([] Data.Text.Text),
     change_reason :: Data.Text.Text,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
@@ -63,7 +60,6 @@ instance Data.Aeson.ToJSON UpdateDimensionInput where
         "position" Data.Aeson..= position a,
         "function_name" Data.Aeson..= function_name a,
         "description" Data.Aeson..= description a,
-        "dependencies" Data.Aeson..= dependencies a,
         "change_reason" Data.Aeson..= change_reason a,
         "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a
         ]
@@ -80,7 +76,6 @@ instance Data.Aeson.FromJSON UpdateDimensionInput where
         Control.Applicative.<*> (v Data.Aeson..: "position")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
         Control.Applicative.<*> (v Data.Aeson..: "description")
-        Control.Applicative.<*> (v Data.Aeson..: "dependencies")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
     
@@ -95,7 +90,6 @@ data UpdateDimensionInputBuilderState = UpdateDimensionInputBuilderState {
     positionBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    dependenciesBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
@@ -111,7 +105,6 @@ defaultBuilderState = UpdateDimensionInputBuilderState {
     positionBuilderState = Data.Maybe.Nothing,
     function_nameBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
-    dependenciesBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
     autocomplete_function_nameBuilderState = Data.Maybe.Nothing
 }
@@ -146,10 +139,6 @@ setDescription :: Data.Maybe.Maybe Data.Text.Text -> UpdateDimensionInputBuilder
 setDescription value =
    Control.Monad.State.Strict.modify (\s -> (s { descriptionBuilderState = value }))
 
-setDependencies :: Data.Maybe.Maybe ([] Data.Text.Text) -> UpdateDimensionInputBuilder ()
-setDependencies value =
-   Control.Monad.State.Strict.modify (\s -> (s { dependenciesBuilderState = value }))
-
 setChangeReason :: Data.Text.Text -> UpdateDimensionInputBuilder ()
 setChangeReason value =
    Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
@@ -168,7 +157,6 @@ build builder = do
     position' <- Data.Either.Right (positionBuilderState st)
     function_name' <- Data.Either.Right (function_nameBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
-    dependencies' <- Data.Either.Right (dependenciesBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDimensionInput.UpdateDimensionInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
     Data.Either.Right (UpdateDimensionInput { 
@@ -179,7 +167,6 @@ build builder = do
         position = position',
         function_name = function_name',
         description = description',
-        dependencies = dependencies',
         change_reason = change_reason',
         autocomplete_function_name = autocomplete_function_name'
     })
@@ -201,5 +188,4 @@ instance Io.Superposition.Utility.IntoRequestBuilder UpdateDimensionInput where
         Io.Superposition.Utility.serField "function_name" (function_name self)
         Io.Superposition.Utility.serField "description" (description self)
         Io.Superposition.Utility.serField "position" (position self)
-        Io.Superposition.Utility.serField "dependencies" (dependencies self)
 

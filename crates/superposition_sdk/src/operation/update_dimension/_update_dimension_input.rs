@@ -18,8 +18,6 @@ pub struct UpdateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
@@ -54,13 +52,6 @@ impl  UpdateDimensionInput  {
         self.description.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
-    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.dependencies.is_none()`.
-    pub fn dependencies(&self) -> &[::std::string::String] {
-        self.dependencies.as_deref()
-        .unwrap_or_default()
-    }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
@@ -87,7 +78,6 @@ pub struct UpdateDimensionInputBuilder {
     pub(crate) position: ::std::option::Option<i32>,
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
-    pub(crate) dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
@@ -186,24 +176,6 @@ impl UpdateDimensionInputBuilder {
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
         &self.description
     }
-    /// Appends an item to `dependencies`.
-    ///
-    /// To override the contents of this collection use [`set_dependencies`](Self::set_dependencies).
-    ///
-    pub fn dependencies(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        let mut v = self.dependencies.unwrap_or_default();
-                        v.push(input.into());
-                        self.dependencies = ::std::option::Option::Some(v);
-                        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependencies(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.dependencies = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependencies(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-        &self.dependencies
-    }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -248,8 +220,6 @@ impl UpdateDimensionInputBuilder {
                 function_name: self.function_name
                 ,
                 description: self.description
-                ,
-                dependencies: self.dependencies
                 ,
                 change_reason: self.change_reason
                 ,

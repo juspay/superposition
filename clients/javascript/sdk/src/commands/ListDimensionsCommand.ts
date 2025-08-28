@@ -76,6 +76,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
  * //       autocomplete_function_name: "STRING_VALUE",
+ * //       dimension_type: "REGULAR" || "LOCALCOHORT" || "REMOTECOHORT", // required
  * //       mandatory: true || false,
  * //     },
  * //   ],

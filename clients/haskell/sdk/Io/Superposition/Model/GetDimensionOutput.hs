@@ -13,6 +13,7 @@ module Io.Superposition.Model.GetDimensionOutput (
     setDependents,
     setDependencyGraph,
     setAutocompleteFunctionName,
+    setDimensionType,
     setMandatory,
     build,
     GetDimensionOutputBuilder,
@@ -31,6 +32,7 @@ module Io.Superposition.Model.GetDimensionOutput (
     dependents,
     dependency_graph,
     autocomplete_function_name,
+    dimension_type,
     mandatory
 ) where
 import qualified Control.Applicative
@@ -46,6 +48,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionType
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
@@ -64,6 +67,7 @@ data GetDimensionOutput = GetDimensionOutput {
     dependents :: [] Data.Text.Text,
     dependency_graph :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
     mandatory :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
@@ -87,6 +91,7 @@ instance Data.Aeson.ToJSON GetDimensionOutput where
         "dependents" Data.Aeson..= dependents a,
         "dependency_graph" Data.Aeson..= dependency_graph a,
         "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
+        "dimension_type" Data.Aeson..= dimension_type a,
         "mandatory" Data.Aeson..= mandatory a
         ]
     
@@ -109,6 +114,7 @@ instance Data.Aeson.FromJSON GetDimensionOutput where
         Control.Applicative.<*> (v Data.Aeson..: "dependents")
         Control.Applicative.<*> (v Data.Aeson..: "dependency_graph")
         Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory")
     
 
@@ -129,6 +135,7 @@ data GetDimensionOutputBuilderState = GetDimensionOutputBuilderState {
     dependentsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     dependency_graphBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
     mandatoryBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
@@ -150,6 +157,7 @@ defaultBuilderState = GetDimensionOutputBuilderState {
     dependentsBuilderState = Data.Maybe.Nothing,
     dependency_graphBuilderState = Data.Maybe.Nothing,
     autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
+    dimension_typeBuilderState = Data.Maybe.Nothing,
     mandatoryBuilderState = Data.Maybe.Nothing
 }
 
@@ -211,6 +219,10 @@ setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> GetDimensionOu
 setAutocompleteFunctionName value =
    Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
 
+setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> GetDimensionOutputBuilder ()
+setDimensionType value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_typeBuilderState = Data.Maybe.Just value }))
+
 setMandatory :: Data.Maybe.Maybe Bool -> GetDimensionOutputBuilder ()
 setMandatory value =
    Control.Monad.State.Strict.modify (\s -> (s { mandatoryBuilderState = value }))
@@ -232,6 +244,7 @@ build builder = do
     dependents' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetDimensionOutput.GetDimensionOutput.dependents is a required property.") Data.Either.Right (dependentsBuilderState st)
     dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetDimensionOutput.GetDimensionOutput.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
     autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetDimensionOutput.GetDimensionOutput.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
     mandatory' <- Data.Either.Right (mandatoryBuilderState st)
     Data.Either.Right (GetDimensionOutput { 
         dimension = dimension',
@@ -248,6 +261,7 @@ build builder = do
         dependents = dependents',
         dependency_graph = dependency_graph',
         autocomplete_function_name = autocomplete_function_name',
+        dimension_type = dimension_type',
         mandatory = mandatory'
     })
 
@@ -267,15 +281,16 @@ instance Io.Superposition.Utility.FromResponseParser GetDimensionOutput where
         var8 <- Io.Superposition.Utility.deSerField "dependency_graph"
         var9 <- Io.Superposition.Utility.deSerField "autocomplete_function_name"
         var10 <- Io.Superposition.Utility.deSerField "change_reason"
-        var11 <- Io.Superposition.Utility.deSerField "function_name"
-        var12 <- Io.Superposition.Utility.deSerField "dependents"
-        var13 <- Io.Superposition.Utility.deSerField "position"
-        var14 <- Io.Superposition.Utility.deSerField "dimension"
+        var11 <- Io.Superposition.Utility.deSerField "dimension_type"
+        var12 <- Io.Superposition.Utility.deSerField "function_name"
+        var13 <- Io.Superposition.Utility.deSerField "dependents"
+        var14 <- Io.Superposition.Utility.deSerField "position"
+        var15 <- Io.Superposition.Utility.deSerField "dimension"
         pure $ GetDimensionOutput {
-            dimension = var14,
-            position = var13,
+            dimension = var15,
+            position = var14,
             schema = var0,
-            function_name = var11,
+            function_name = var12,
             description = var1,
             change_reason = var10,
             last_modified_at = var6,
@@ -283,9 +298,10 @@ instance Io.Superposition.Utility.FromResponseParser GetDimensionOutput where
             created_at = var2,
             created_by = var4,
             dependencies = var7,
-            dependents = var12,
+            dependents = var13,
             dependency_graph = var8,
             autocomplete_function_name = var9,
+            dimension_type = var11,
             mandatory = var5
         }
 
