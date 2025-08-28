@@ -111,6 +111,24 @@ pub(crate) fn de_dimension_ext<'a, I>(tokens: &mut ::std::iter::Peekable<I>) -> 
                                     ).transpose()?
                                 );
                             }
+                            "dimension_type" => {
+                                builder = builder.set_dimension_type(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            crate::types::DimensionType::from(u.as_ref())
+                                        )
+                                    ).transpose()?
+                                );
+                            }
+                            "cohort_based_on" => {
+                                builder = builder.set_cohort_based_on(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             "mandatory" => {
                                 builder = builder.set_mandatory(
                                     ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?

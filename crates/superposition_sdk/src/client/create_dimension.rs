@@ -13,6 +13,8 @@ impl super::Client {
     ///   - [`description(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_description):<br>required: **true**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
     ///   - [`autocomplete_function_name(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::autocomplete_function_name) / [`set_autocomplete_function_name(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_autocomplete_function_name):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`dimension_type(DimensionType)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::dimension_type) / [`set_dimension_type(Option<DimensionType>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_dimension_type):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`cohort_based_on(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::cohort_based_on) / [`set_cohort_based_on(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_cohort_based_on):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`CreateDimensionOutput`](crate::operation::create_dimension::CreateDimensionOutput) with field(s):
     ///   - [`dimension(String)`](crate::operation::create_dimension::CreateDimensionOutput::dimension): (undocumented)
     ///   - [`position(i32)`](crate::operation::create_dimension::CreateDimensionOutput::position): (undocumented)
@@ -28,6 +30,8 @@ impl super::Client {
     ///   - [`dependents(Vec::<String>)`](crate::operation::create_dimension::CreateDimensionOutput::dependents): (undocumented)
     ///   - [`dependency_graph(HashMap::<String, Document>)`](crate::operation::create_dimension::CreateDimensionOutput::dependency_graph): Generic key-value object structure used for flexible data representation throughout the API.
     ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::create_dimension::CreateDimensionOutput::autocomplete_function_name): (undocumented)
+    ///   - [`dimension_type(DimensionType)`](crate::operation::create_dimension::CreateDimensionOutput::dimension_type): (undocumented)
+    ///   - [`cohort_based_on(Option<String>)`](crate::operation::create_dimension::CreateDimensionOutput::cohort_based_on): (undocumented)
     ///   - [`mandatory(Option<bool>)`](crate::operation::create_dimension::CreateDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<CreateDimensionError>`](crate::operation::create_dimension::CreateDimensionError)
     pub fn create_dimension(&self) -> crate::operation::create_dimension::builders::CreateDimensionFluentBuilder {

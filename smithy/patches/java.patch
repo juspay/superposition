@@ -33,14 +33,15 @@ index f06fe61c..b7600b53 100644
      private static final List<Schema> $OPERATIONS = List.of(MoveContext.$SCHEMA,
          UpdateOverride.$SCHEMA,
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
-index 518d71c9..68775fc5 100644
+index 69c4e99e..55ff1d41 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
-@@ -16,19 +16,20 @@ public final class Dimension implements ApiResource {
-     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
-         "org_id", PreludeSchemas.STRING,
-         "dimension", PreludeSchemas.STRING);
+@@ -16,21 +16,21 @@ public final class Dimension implements ApiResource {
+    private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
+        "org_id", PreludeSchemas.STRING,
+        "dimension", PreludeSchemas.STRING);
 -    private static final Map<String, Schema> $PROPERTIES = Map.of("schema", PreludeSchemas.DOCUMENT,
+-        "cohort_based_on", PreludeSchemas.STRING,
 -        "description", PreludeSchemas.STRING,
 -        "created_at", SharedSchemas.DATE_TIME,
 -        "last_modified_by", PreludeSchemas.STRING,
@@ -50,11 +51,12 @@ index 518d71c9..68775fc5 100644
 -        "last_modified_at", SharedSchemas.DATE_TIME,
 -        "autocomplete_function_name", PreludeSchemas.STRING,
 -        "change_reason", PreludeSchemas.STRING,
+-        "dimension_type", DimensionType.$SCHEMA,
 -        "function_name", PreludeSchemas.STRING,
 -        "dependents", SharedSchemas.DEPENDENTS,
 -        "position", PreludeSchemas.INTEGER);
-+    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
-+        Map.entry("schema", PreludeSchemas.DOCUMENT),
++    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries("schema", PreludeSchemas.DOCUMENT,
++        Map.entry("cohort_based_on", PreludeSchemas.STRING),
 +        Map.entry("description", PreludeSchemas.STRING),
 +        Map.entry("created_at", SharedSchemas.DATE_TIME),
 +        Map.entry("last_modified_by", PreludeSchemas.STRING),
@@ -64,6 +66,7 @@ index 518d71c9..68775fc5 100644
 +        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
 +        Map.entry("autocomplete_function_name", PreludeSchemas.STRING),
 +        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("dimension_type", DimensionType.$)SCHEMA,
 +        Map.entry("function_name", PreludeSchemas.STRING),
 +        Map.entry("dependents", SharedSchemas.DEPENDENTS),
 +        Map.entry("position", PreludeSchemas.INTEGER));

@@ -16,8 +16,8 @@ public final class Dimension implements ApiResource {
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
         "org_id", PreludeSchemas.STRING,
         "dimension", PreludeSchemas.STRING);
-    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
-        Map.entry("schema", PreludeSchemas.DOCUMENT),
+    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries("schema", PreludeSchemas.DOCUMENT,
+        Map.entry("cohort_based_on", PreludeSchemas.STRING),
         Map.entry("description", PreludeSchemas.STRING),
         Map.entry("created_at", SharedSchemas.DATE_TIME),
         Map.entry("last_modified_by", PreludeSchemas.STRING),
@@ -27,6 +27,7 @@ public final class Dimension implements ApiResource {
         Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
         Map.entry("autocomplete_function_name", PreludeSchemas.STRING),
         Map.entry("change_reason", PreludeSchemas.STRING),
+        Map.entry("dimension_type", DimensionType.$)SCHEMA,
         Map.entry("function_name", PreludeSchemas.STRING),
         Map.entry("dependents", SharedSchemas.DEPENDENTS),
         Map.entry("position", PreludeSchemas.INTEGER));

@@ -22,6 +22,7 @@ import qualified Data.Text.Encoding
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionType
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.ResourceNotFound
 import qualified Io.Superposition.Model.UpdateDimensionInput
@@ -48,6 +49,7 @@ serUpdateDimensionPAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
         "schema" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.schema input,
         "autocomplete_function_name" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.autocomplete_function_name input,
+        "cohort_based_on" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.cohort_based_on input,
         "change_reason" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.change_reason input,
         "function_name" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.function_name input,
         "description" Data.Aeson..= Io.Superposition.Model.UpdateDimensionInput.description input,
@@ -133,6 +135,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    cohort_based_onDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "cohort_based_on") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     descriptionDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "description") responseObject
         Data.Function.& \case
@@ -203,6 +212,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    dimension_typeDocumentE :: Io.Superposition.Model.DimensionType.DimensionType <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "dimension_type") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     function_nameDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "function_name") responseObject
         Data.Function.& \case
@@ -233,6 +249,7 @@ deserializeResponse response = do
     
     Io.Superposition.Model.UpdateDimensionOutput.build $ do
         Io.Superposition.Model.UpdateDimensionOutput.setSchema schemaDocumentE
+        Io.Superposition.Model.UpdateDimensionOutput.setCohortBasedOn cohort_based_onDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setDescription descriptionDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setCreatedAt created_atDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setLastModifiedBy last_modified_byDocumentE
@@ -243,6 +260,7 @@ deserializeResponse response = do
         Io.Superposition.Model.UpdateDimensionOutput.setDependencyGraph dependency_graphDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setAutocompleteFunctionName autocomplete_function_nameDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setChangeReason change_reasonDocumentE
+        Io.Superposition.Model.UpdateDimensionOutput.setDimensionType dimension_typeDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setFunctionName function_nameDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setDependents dependentsDocumentE
         Io.Superposition.Model.UpdateDimensionOutput.setPosition positionDocumentE

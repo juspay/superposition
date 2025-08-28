@@ -13,6 +13,8 @@ module Io.Superposition.Model.DimensionExt (
     setDependents,
     setDependencyGraph,
     setAutocompleteFunctionName,
+    setDimensionType,
+    setCohortBasedOn,
     setMandatory,
     build,
     DimensionExtBuilder,
@@ -31,6 +33,8 @@ module Io.Superposition.Model.DimensionExt (
     dependents,
     dependency_graph,
     autocomplete_function_name,
+    dimension_type,
+    cohort_based_on,
     mandatory
 ) where
 import qualified Control.Applicative
@@ -45,6 +49,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionType
 
 data DimensionExt = DimensionExt {
     dimension :: Data.Text.Text,
@@ -61,6 +66,8 @@ data DimensionExt = DimensionExt {
     dependents :: [] Data.Text.Text,
     dependency_graph :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
+    cohort_based_on :: Data.Maybe.Maybe Data.Text.Text,
     mandatory :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
@@ -84,6 +91,8 @@ instance Data.Aeson.ToJSON DimensionExt where
         "dependents" Data.Aeson..= dependents a,
         "dependency_graph" Data.Aeson..= dependency_graph a,
         "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
+        "dimension_type" Data.Aeson..= dimension_type a,
+        "cohort_based_on" Data.Aeson..= cohort_based_on a,
         "mandatory" Data.Aeson..= mandatory a
         ]
     
@@ -105,6 +114,8 @@ instance Data.Aeson.FromJSON DimensionExt where
         Control.Applicative.<*> (v Data.Aeson..: "dependents")
         Control.Applicative.<*> (v Data.Aeson..: "dependency_graph")
         Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
+        Control.Applicative.<*> (v Data.Aeson..: "cohort_based_on")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory")
     
 
@@ -125,6 +136,8 @@ data DimensionExtBuilderState = DimensionExtBuilderState {
     dependentsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     dependency_graphBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
+    cohort_based_onBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     mandatoryBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
@@ -146,6 +159,8 @@ defaultBuilderState = DimensionExtBuilderState {
     dependentsBuilderState = Data.Maybe.Nothing,
     dependency_graphBuilderState = Data.Maybe.Nothing,
     autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
+    dimension_typeBuilderState = Data.Maybe.Nothing,
+    cohort_based_onBuilderState = Data.Maybe.Nothing,
     mandatoryBuilderState = Data.Maybe.Nothing
 }
 
@@ -226,6 +241,14 @@ setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionExtBu
 setAutocompleteFunctionName value =
    DimensionExtBuilder (\s -> (s { autocomplete_function_nameBuilderState = value }, ()))
 
+setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> DimensionExtBuilder ()
+setDimensionType value =
+   DimensionExtBuilder (\s -> (s { dimension_typeBuilderState = Data.Maybe.Just value }, ()))
+
+setCohortBasedOn :: Data.Maybe.Maybe Data.Text.Text -> DimensionExtBuilder ()
+setCohortBasedOn value =
+   DimensionExtBuilder (\s -> (s { cohort_based_onBuilderState = value }, ()))
+
 setMandatory :: Data.Maybe.Maybe Bool -> DimensionExtBuilder ()
 setMandatory value =
    DimensionExtBuilder (\s -> (s { mandatoryBuilderState = value }, ()))
@@ -247,6 +270,8 @@ build builder = do
     dependents' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dependents is a required property.") Data.Either.Right (dependentsBuilderState st)
     dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
     autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
+    cohort_based_on' <- Data.Either.Right (cohort_based_onBuilderState st)
     mandatory' <- Data.Either.Right (mandatoryBuilderState st)
     Data.Either.Right (DimensionExt { 
         dimension = dimension',
@@ -263,6 +288,8 @@ build builder = do
         dependents = dependents',
         dependency_graph = dependency_graph',
         autocomplete_function_name = autocomplete_function_name',
+        dimension_type = dimension_type',
+        cohort_based_on = cohort_based_on',
         mandatory = mandatory'
     })
 

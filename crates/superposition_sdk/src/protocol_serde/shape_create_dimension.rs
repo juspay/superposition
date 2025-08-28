@@ -107,6 +107,15 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                             ).transpose()?
                         );
                     }
+                    "cohort_based_on" => {
+                        builder = builder.set_cohort_based_on(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
                     "created_at" => {
                         builder = builder.set_created_at(
                             ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?
@@ -150,6 +159,15 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
                                     u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "dimension_type" => {
+                        builder = builder.set_dimension_type(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    crate::types::DimensionType::from(u.as_ref())
                                 )
                             ).transpose()?
                         );

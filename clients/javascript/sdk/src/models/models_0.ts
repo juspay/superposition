@@ -981,6 +981,19 @@ export interface DefaultConfigFull {
 
 /**
  * @public
+ * @enum
+ */
+export const DimensionType = {
+  Cohort: "COHORT",
+  Regular: "REGULAR",
+} as const
+/**
+ * @public
+ */
+export type DimensionType = typeof DimensionType[keyof typeof DimensionType]
+
+/**
+ * @public
  */
 export interface CreateDimensionInput {
   workspace_id: string | undefined;
@@ -993,6 +1006,8 @@ export interface CreateDimensionInput {
   description: string | undefined;
   change_reason: string | undefined;
   autocomplete_function_name?: string | undefined;
+  dimension_type: DimensionType | undefined;
+  cohort_based_on?: string | undefined;
 }
 
 /**
@@ -1018,6 +1033,8 @@ export interface DimensionExt {
   dependency_graph: Record<string, __DocumentType> | undefined;
 
   autocomplete_function_name?: string | undefined;
+  dimension_type: DimensionType | undefined;
+  cohort_based_on?: string | undefined;
   mandatory?: boolean | undefined;
 }
 
@@ -1493,6 +1510,7 @@ export interface UpdateDimensionInput {
   dependencies?: (string)[] | undefined;
   change_reason: string | undefined;
   autocomplete_function_name?: string | undefined;
+  cohort_based_on?: string | undefined;
 }
 
 /**

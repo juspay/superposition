@@ -1,6 +1,6 @@
-module Io.Superposition.Command.GetDimension (
-    GetDimensionError(..),
-    getDimension
+module Io.Superposition.Command.UpdateWorkspaceDatabase (
+    UpdateWorkspaceDatabaseError(..),
+    updateWorkspaceDatabase
 ) where
 import qualified Control.Exception
 import qualified Data.Aeson
@@ -15,18 +15,16 @@ import qualified Data.Either
 import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.List
-import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.DimensionType
-import qualified Io.Superposition.Model.GetDimensionInput
-import qualified Io.Superposition.Model.GetDimensionOutput
 import qualified Io.Superposition.Model.InternalServerError
-import qualified Io.Superposition.Model.ResourceNotFound
+import qualified Io.Superposition.Model.UpdateWorkspaceDatabaseInput
+import qualified Io.Superposition.Model.UpdateWorkspaceDatabaseOutput
+import qualified Io.Superposition.Model.WorkspaceStatus
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Client
@@ -34,51 +32,45 @@ import qualified Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
-data GetDimensionError =
-    ResourceNotFound Io.Superposition.Model.ResourceNotFound.ResourceNotFound
-    | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
+data UpdateWorkspaceDatabaseError =
+    InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
        deriving (GHC.Generics.Generic, GHC.Show.Show)
 
-instance Data.Aeson.ToJSON GetDimensionError
-instance Data.Aeson.FromJSON GetDimensionError
+instance Data.Aeson.ToJSON UpdateWorkspaceDatabaseError
+instance Data.Aeson.FromJSON UpdateWorkspaceDatabaseError
 
-serGetDimensionHEADER :: Io.Superposition.Model.GetDimensionInput.GetDimensionInput -> Network.HTTP.Types.Header.RequestHeaders
-serGetDimensionHEADER input =
+serUpdateWorkspaceDatabaseHEADER :: Io.Superposition.Model.UpdateWorkspaceDatabaseInput.UpdateWorkspaceDatabaseInput -> Network.HTTP.Types.Header.RequestHeaders
+serUpdateWorkspaceDatabaseHEADER input =
     let 
-        workspace_idHeader = (Io.Superposition.Model.GetDimensionInput.workspace_id input
-                    Data.Function.& Io.Superposition.Utility.toRequestSegment)
-        
-                    Data.Function.& \x -> [("x-tenant", Data.Text.Encoding.encodeUtf8 x)]
-                    Data.Function.& Data.Maybe.Just
-        
-        org_idHeader = (Io.Superposition.Model.GetDimensionInput.org_id input
+        org_idHeader = (Io.Superposition.Model.UpdateWorkspaceDatabaseInput.org_id input
                     Data.Function.& Io.Superposition.Utility.toRequestSegment)
         
                     Data.Function.& \x -> [("x-org-id", Data.Text.Encoding.encodeUtf8 x)]
                     Data.Function.& Data.Maybe.Just
         
         in Data.List.concat $ Data.Maybe.catMaybes [
-            workspace_idHeader,
             org_idHeader
             ]
         
     
 
-serGetDimensionLABEL :: Io.Superposition.Model.GetDimensionInput.GetDimensionInput -> Data.ByteString.ByteString
-serGetDimensionLABEL input = 
+serUpdateWorkspaceDatabaseLABEL :: Io.Superposition.Model.UpdateWorkspaceDatabaseInput.UpdateWorkspaceDatabaseInput -> Data.ByteString.ByteString
+serUpdateWorkspaceDatabaseLABEL input = 
     Data.ByteString.toStrict $ Data.ByteString.Builder.toLazyByteString $ Network.HTTP.Types.URI.encodePathSegmentsRelative [
-        "dimension",
-        (Io.Superposition.Model.GetDimensionInput.dimension input
+        "workspaces",
+        (Io.Superposition.Model.UpdateWorkspaceDatabaseInput.workspace_name input
                     Data.Function.& Io.Superposition.Utility.toRequestSegment)
-        
+        ,
+        "db",
+        "update"
         ]
     
 
-getDimension :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.GetDimensionInput.GetDimensionInputBuilder () -> IO (Data.Either.Either GetDimensionError Io.Superposition.Model.GetDimensionOutput.GetDimensionOutput)
-getDimension client inputB = do
-    let inputE = Io.Superposition.Model.GetDimensionInput.build inputB
+updateWorkspaceDatabase :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.UpdateWorkspaceDatabaseInput.UpdateWorkspaceDatabaseInputBuilder () -> IO (Data.Either.Either UpdateWorkspaceDatabaseError Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.UpdateWorkspaceDatabaseOutput)
+updateWorkspaceDatabase client inputB = do
+    let inputE = Io.Superposition.Model.UpdateWorkspaceDatabaseInput.build inputB
         baseUri = Io.Superposition.SuperpositionClient.endpointUri client
         httpManager = Io.Superposition.SuperpositionClient.httpManager client
         requestE = Network.HTTP.Client.requestFromURI @(Data.Either.Either Control.Exception.SomeException) baseUri
@@ -92,19 +84,19 @@ getDimension client inputB = do
         
     
     where
-        method = Network.HTTP.Types.Method.methodGet
+        method = Network.HTTP.Types.Method.methodPost
         token = Data.Text.Encoding.encodeUtf8 $ Io.Superposition.SuperpositionClient.token client
         toRequest input req =
             req {
-                Network.HTTP.Client.path = serGetDimensionLABEL input
+                Network.HTTP.Client.path = serUpdateWorkspaceDatabaseLABEL input
                 , Network.HTTP.Client.method = method
-                , Network.HTTP.Client.requestHeaders = (serGetDimensionHEADER input) ++ [("Authorization", "Bearer " <> token)]
+                , Network.HTTP.Client.requestHeaders = (serUpdateWorkspaceDatabaseHEADER input) ++ [("Authorization", "Bearer " <> token)]
             }
         
     
 
 
-deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Io.Superposition.Model.GetDimensionOutput.GetDimensionOutput
+deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.UpdateWorkspaceDatabaseOutput
 deserializeResponse response = do
     
     responseObject :: Data.Aeson.Object <-
@@ -113,22 +105,15 @@ deserializeResponse response = do
                 Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
         
     
-    schemaDocumentE :: Data.Aeson.Value <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "schema") responseObject
+    workspace_admin_emailDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_admin_email") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    cohort_based_onDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "cohort_based_on") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
-    descriptionDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "description") responseObject
+    auto_populate_controlDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "auto_populate_control") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -136,6 +121,13 @@ deserializeResponse response = do
     
     created_atDocumentE :: Data.Time.UTCTime <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "created_at") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    organisation_nameDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "organisation_name") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -155,8 +147,22 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
-    mandatoryDocumentE :: Data.Maybe.Maybe Bool <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "mandatory") responseObject
+    config_versionDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "config_version") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    mandatory_dimensionsDocumentE :: Data.Maybe.Maybe ([] Data.Text.Text) <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "mandatory_dimensions") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
+    workspace_statusDocumentE :: Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_status") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
@@ -169,87 +175,65 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
-    dependenciesDocumentE :: [] Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "dependencies") responseObject
+    organisation_idDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "organisation_id") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    dependency_graphDocumentE :: Data.Map.Map Data.Text.Text Data.Aeson.Value <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "dependency_graph") responseObject
+    allow_experiment_self_approvalDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "allow_experiment_self_approval") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    autocomplete_function_nameDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "autocomplete_function_name") responseObject
+    workspace_schema_nameDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_schema_name") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    change_reasonDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "change_reason") responseObject
+    strict_modeDocumentE :: Bool <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "strict_mode") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    dimension_typeDocumentE :: Io.Superposition.Model.DimensionType.DimensionType <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "dimension_type") responseObject
+    metricsDocumentE :: Data.Maybe.Maybe Data.Aeson.Value <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "metrics") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    function_nameDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "function_name") responseObject
+    workspace_nameDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "workspace_name") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    dependentsDocumentE :: [] Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "dependents") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
-    positionDocumentE :: Integer <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "position") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
-    dimensionDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "dimension") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
-    
-    Io.Superposition.Model.GetDimensionOutput.build $ do
-        Io.Superposition.Model.GetDimensionOutput.setSchema schemaDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setCohortBasedOn cohort_based_onDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setDescription descriptionDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setCreatedAt created_atDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setLastModifiedBy last_modified_byDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setCreatedBy created_byDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setMandatory mandatoryDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setLastModifiedAt last_modified_atDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setDependencies dependenciesDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setDependencyGraph dependency_graphDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setAutocompleteFunctionName autocomplete_function_nameDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setChangeReason change_reasonDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setDimensionType dimension_typeDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setFunctionName function_nameDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setDependents dependentsDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setPosition positionDocumentE
-        Io.Superposition.Model.GetDimensionOutput.setDimension dimensionDocumentE
+    Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.build $ do
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setWorkspaceAdminEmail workspace_admin_emailDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setAutoPopulateControl auto_populate_controlDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setCreatedAt created_atDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setOrganisationName organisation_nameDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setLastModifiedBy last_modified_byDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setCreatedBy created_byDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setConfigVersion config_versionDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setMandatoryDimensions mandatory_dimensionsDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setWorkspaceStatus workspace_statusDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setLastModifiedAt last_modified_atDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setOrganisationId organisation_idDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setAllowExperimentSelfApproval allow_experiment_self_approvalDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setWorkspaceSchemaName workspace_schema_nameDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setStrictMode strict_modeDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setMetrics metricsDocumentE
+        Io.Superposition.Model.UpdateWorkspaceDatabaseOutput.setWorkspaceName workspace_nameDocumentE
     
     where
         headers = Network.HTTP.Client.responseHeaders response

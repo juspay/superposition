@@ -13,6 +13,7 @@ impl super::Client {
     ///   - [`dependencies(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::dependencies) / [`set_dependencies(Option<Vec::<String>>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_dependencies):<br>required: **false**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
     ///   - [`autocomplete_function_name(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::autocomplete_function_name) / [`set_autocomplete_function_name(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_autocomplete_function_name):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`cohort_based_on(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::cohort_based_on) / [`set_cohort_based_on(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_cohort_based_on):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateDimensionOutput`](crate::operation::update_dimension::UpdateDimensionOutput) with field(s):
     ///   - [`dimension(String)`](crate::operation::update_dimension::UpdateDimensionOutput::dimension): (undocumented)
     ///   - [`position(i32)`](crate::operation::update_dimension::UpdateDimensionOutput::position): (undocumented)
@@ -28,6 +29,8 @@ impl super::Client {
     ///   - [`dependents(Vec::<String>)`](crate::operation::update_dimension::UpdateDimensionOutput::dependents): (undocumented)
     ///   - [`dependency_graph(HashMap::<String, Document>)`](crate::operation::update_dimension::UpdateDimensionOutput::dependency_graph): Generic key-value object structure used for flexible data representation throughout the API.
     ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::update_dimension::UpdateDimensionOutput::autocomplete_function_name): (undocumented)
+    ///   - [`dimension_type(DimensionType)`](crate::operation::update_dimension::UpdateDimensionOutput::dimension_type): (undocumented)
+    ///   - [`cohort_based_on(Option<String>)`](crate::operation::update_dimension::UpdateDimensionOutput::cohort_based_on): (undocumented)
     ///   - [`mandatory(Option<bool>)`](crate::operation::update_dimension::UpdateDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateDimensionError>`](crate::operation::update_dimension::UpdateDimensionError)
     pub fn update_dimension(&self) -> crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder {

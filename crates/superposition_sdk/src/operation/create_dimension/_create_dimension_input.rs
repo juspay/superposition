@@ -23,6 +23,10 @@ pub struct CreateDimensionInput  {
     pub change_reason: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub dimension_type: ::std::option::Option<crate::types::DimensionType>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub cohort_based_on: ::std::option::Option<::std::string::String>,
 }
 impl  CreateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -68,6 +72,14 @@ impl  CreateDimensionInput  {
     pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
         self.autocomplete_function_name.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dimension_type(&self) -> ::std::option::Option<&crate::types::DimensionType> {
+        self.dimension_type.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn cohort_based_on(&self) -> ::std::option::Option<&str> {
+        self.cohort_based_on.as_deref()
+    }
 }
 impl CreateDimensionInput {
     /// Creates a new builder-style object to manufacture [`CreateDimensionInput`](crate::operation::create_dimension::CreateDimensionInput).
@@ -90,6 +102,8 @@ pub struct CreateDimensionInputBuilder {
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
+    pub(crate) cohort_based_on: ::std::option::Option<::std::string::String>,
 }
 impl CreateDimensionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -234,6 +248,33 @@ impl CreateDimensionInputBuilder {
     pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.autocomplete_function_name
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn dimension_type(mut self, input: crate::types::DimensionType) -> Self {
+        self.dimension_type = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_dimension_type(mut self, input: ::std::option::Option<crate::types::DimensionType>) -> Self {
+        self.dimension_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_dimension_type(&self) -> &::std::option::Option<crate::types::DimensionType> {
+        &self.dimension_type
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn cohort_based_on(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.cohort_based_on = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_cohort_based_on(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.cohort_based_on = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_cohort_based_on(&self) -> &::std::option::Option<::std::string::String> {
+        &self.cohort_based_on
+    }
     /// Consumes the builder and constructs a [`CreateDimensionInput`](crate::operation::create_dimension::CreateDimensionInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_dimension::CreateDimensionInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -257,6 +298,10 @@ impl CreateDimensionInputBuilder {
                 change_reason: self.change_reason
                 ,
                 autocomplete_function_name: self.autocomplete_function_name
+                ,
+                dimension_type: self.dimension_type
+                ,
+                cohort_based_on: self.cohort_based_on
                 ,
             }
         )
