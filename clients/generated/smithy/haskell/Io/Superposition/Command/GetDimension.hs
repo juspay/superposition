@@ -22,6 +22,7 @@ import qualified Data.Text.Encoding
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionType
 import qualified Io.Superposition.Model.GetDimensionInput
 import qualified Io.Superposition.Model.GetDimensionOutput
 import qualified Io.Superposition.Model.InternalServerError
@@ -119,6 +120,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    cohort_based_onDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "cohort_based_on") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     descriptionDocumentE :: Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "description") responseObject
         Data.Function.& \case
@@ -189,6 +197,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    dimension_typeDocumentE :: Io.Superposition.Model.DimensionType.DimensionType <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "dimension_type") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     function_nameDocumentE :: Data.Maybe.Maybe Data.Text.Text <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "function_name") responseObject
         Data.Function.& \case
@@ -219,6 +234,7 @@ deserializeResponse response = do
     
     Io.Superposition.Model.GetDimensionOutput.build $ do
         Io.Superposition.Model.GetDimensionOutput.setSchema schemaDocumentE
+        Io.Superposition.Model.GetDimensionOutput.setCohortBasedOn cohort_based_onDocumentE
         Io.Superposition.Model.GetDimensionOutput.setDescription descriptionDocumentE
         Io.Superposition.Model.GetDimensionOutput.setCreatedAt created_atDocumentE
         Io.Superposition.Model.GetDimensionOutput.setLastModifiedBy last_modified_byDocumentE
@@ -229,6 +245,7 @@ deserializeResponse response = do
         Io.Superposition.Model.GetDimensionOutput.setDependencyGraph dependency_graphDocumentE
         Io.Superposition.Model.GetDimensionOutput.setAutocompleteFunctionName autocomplete_function_nameDocumentE
         Io.Superposition.Model.GetDimensionOutput.setChangeReason change_reasonDocumentE
+        Io.Superposition.Model.GetDimensionOutput.setDimensionType dimension_typeDocumentE
         Io.Superposition.Model.GetDimensionOutput.setFunctionName function_nameDocumentE
         Io.Superposition.Model.GetDimensionOutput.setDependents dependentsDocumentE
         Io.Superposition.Model.GetDimensionOutput.setPosition positionDocumentE

@@ -13,7 +13,7 @@ use superposition_types::{
 use types::{ComparisonTable, ContextList, PageParams};
 
 use crate::{
-    api::{fetch_dimensions, resolve_config},
+    api::{dimensions::fetch_dimensions, resolve_config},
     components::{
         alert::AlertType,
         button::Button,

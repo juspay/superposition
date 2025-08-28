@@ -23,6 +23,8 @@ pub struct UpdateDimensionInput  {
     pub change_reason: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub cohort_based_on: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -68,6 +70,10 @@ impl  UpdateDimensionInput  {
     pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
         self.autocomplete_function_name.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn cohort_based_on(&self) -> ::std::option::Option<&str> {
+        self.cohort_based_on.as_deref()
+    }
 }
 impl UpdateDimensionInput {
     /// Creates a new builder-style object to manufacture [`UpdateDimensionInput`](crate::operation::update_dimension::UpdateDimensionInput).
@@ -90,6 +96,7 @@ pub struct UpdateDimensionInputBuilder {
     pub(crate) dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) cohort_based_on: ::std::option::Option<::std::string::String>,
 }
 impl UpdateDimensionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -231,6 +238,19 @@ impl UpdateDimensionInputBuilder {
     pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.autocomplete_function_name
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn cohort_based_on(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.cohort_based_on = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_cohort_based_on(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.cohort_based_on = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_cohort_based_on(&self) -> &::std::option::Option<::std::string::String> {
+        &self.cohort_based_on
+    }
     /// Consumes the builder and constructs a [`UpdateDimensionInput`](crate::operation::update_dimension::UpdateDimensionInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_dimension::UpdateDimensionInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -254,6 +274,8 @@ impl UpdateDimensionInputBuilder {
                 change_reason: self.change_reason
                 ,
                 autocomplete_function_name: self.autocomplete_function_name
+                ,
+                cohort_based_on: self.cohort_based_on
                 ,
             }
         )

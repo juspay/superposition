@@ -3531,6 +3531,31 @@ DEPENDENCIES = Schema.collection(
     }
 )
 
+DIMENSION_TYPE = Schema.collection(
+    id=ShapeID("io.superposition#DimensionType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "Regular": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="REGULAR"),
+
+            ],
+        },
+
+        "Cohort": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="COHORT"),
+
+            ],
+        },
+
+    }
+)
+
 CREATE_DIMENSION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#CreateDimensionInput"),
 
@@ -3618,6 +3643,20 @@ CREATE_DIMENSION_INPUT = Schema.collection(
         "autocomplete_function_name": {
             "target": STRING,
             "index": 9,
+        },
+
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "cohort_based_on": {
+            "target": STRING,
+            "index": 11,
         },
 
     }
@@ -3762,9 +3801,23 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "cohort_based_on": {
+            "target": STRING,
+            "index": 15,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -6667,9 +6720,23 @@ GET_DIMENSION_OUTPUT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "cohort_based_on": {
+            "target": STRING,
+            "index": 15,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -6873,9 +6940,23 @@ DIMENSION_EXT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "cohort_based_on": {
+            "target": STRING,
+            "index": 15,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -7015,6 +7096,11 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
             "index": 9,
         },
 
+        "cohort_based_on": {
+            "target": STRING,
+            "index": 10,
+        },
+
     }
 )
 
@@ -7145,9 +7231,23 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
             "index": 13,
         },
 
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "cohort_based_on": {
+            "target": STRING,
+            "index": 15,
+        },
+
         "mandatory": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 

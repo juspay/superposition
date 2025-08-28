@@ -509,9 +509,11 @@ export const se_CreateDimensionCommand = async(
   body = JSON.stringify(take(input, {
     'autocomplete_function_name': [],
     'change_reason': [],
+    'cohort_based_on': [],
     'dependencies': _ => _json(_),
     'description': [],
     'dimension': [],
+    'dimension_type': [],
     'function_name': [],
     'position': [],
     'schema': _ => se_Document(_, context),
@@ -1719,6 +1721,7 @@ export const se_UpdateDimensionCommand = async(
   body = JSON.stringify(take(input, {
     'autocomplete_function_name': [],
     'change_reason': [],
+    'cohort_based_on': [],
     'dependencies': _ => _json(_),
     'description': [],
     'function_name': [],
@@ -2174,6 +2177,7 @@ export const de_CreateDimensionCommand = async(
   const doc = take(data, {
     'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
+    'cohort_based_on': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'dependencies': _json,
@@ -2181,6 +2185,7 @@ export const de_CreateDimensionCommand = async(
     'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': __expectString,
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2728,6 +2733,7 @@ export const de_GetDimensionCommand = async(
   const doc = take(data, {
     'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
+    'cohort_based_on': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'dependencies': _json,
@@ -2735,6 +2741,7 @@ export const de_GetDimensionCommand = async(
     'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': __expectString,
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -3545,6 +3552,7 @@ export const de_UpdateDimensionCommand = async(
   const doc = take(data, {
     'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
+    'cohort_based_on': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'dependencies': _json,
@@ -3552,6 +3560,7 @@ export const de_UpdateDimensionCommand = async(
     'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': __expectString,
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -4520,6 +4529,7 @@ const de_CommandError = async(
     return take(output, {
       'autocomplete_function_name': __expectString,
       'change_reason': __expectString,
+      'cohort_based_on': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
       'dependencies': _json,
@@ -4527,6 +4537,7 @@ const de_CommandError = async(
       'dependents': _json,
       'description': __expectString,
       'dimension': __expectString,
+      'dimension_type': __expectString,
       'function_name': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,

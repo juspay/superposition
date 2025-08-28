@@ -70,6 +70,8 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
+ * //   dimension_type: "REGULAR" || "COHORT", // required
+ * //   cohort_based_on: "STRING_VALUE",
  * //   mandatory: true || false,
  * // };
  *

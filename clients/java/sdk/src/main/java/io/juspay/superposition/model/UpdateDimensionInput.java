@@ -45,6 +45,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("autocomplete_function_name", PreludeSchemas.STRING)
+        .putMember("cohort_based_on", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -57,6 +58,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
     private static final Schema $SCHEMA_DEPENDENCIES = $SCHEMA.member("dependencies");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
+    private static final Schema $SCHEMA_COHORT_BASED_ON = $SCHEMA.member("cohort_based_on");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -68,6 +70,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
     private final transient List<String> dependencies;
     private final transient String changeReason;
     private final transient String autocompleteFunctionName;
+    private final transient String cohortBasedOn;
 
     private UpdateDimensionInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -80,6 +83,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         this.dependencies = builder.dependencies == null ? null : Collections.unmodifiableList(builder.dependencies);
         this.changeReason = builder.changeReason;
         this.autocompleteFunctionName = builder.autocompleteFunctionName;
+        this.cohortBasedOn = builder.cohortBasedOn;
     }
 
     public String workspaceId() {
@@ -129,6 +133,10 @@ public final class UpdateDimensionInput implements SerializableStruct {
         return autocompleteFunctionName;
     }
 
+    public String cohortBasedOn() {
+        return cohortBasedOn;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -152,12 +160,13 @@ public final class UpdateDimensionInput implements SerializableStruct {
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.dependencies, that.dependencies)
                && Objects.equals(this.changeReason, that.changeReason)
-               && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName);
+               && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName)
+               && Objects.equals(this.cohortBasedOn, that.cohortBasedOn);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, dimension, schemaMember, position, functionName, description, dependencies, changeReason, autocompleteFunctionName);
+        return Objects.hash(workspaceId, orgId, dimension, schemaMember, position, functionName, description, dependencies, changeReason, autocompleteFunctionName, cohortBasedOn);
     }
 
     @Override
@@ -189,6 +198,9 @@ public final class UpdateDimensionInput implements SerializableStruct {
         if (autocompleteFunctionName != null) {
             serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
         }
+        if (cohortBasedOn != null) {
+            serializer.writeString($SCHEMA_COHORT_BASED_ON, cohortBasedOn);
+        }
     }
 
     @Override
@@ -205,6 +217,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCIES, member, dependencies);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_COHORT_BASED_ON, member, cohortBasedOn);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -228,6 +241,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         builder.dependencies(this.dependencies);
         builder.changeReason(this.changeReason);
         builder.autocompleteFunctionName(this.autocompleteFunctionName);
+        builder.cohortBasedOn(this.cohortBasedOn);
         return builder;
     }
 
@@ -254,6 +268,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         private List<String> dependencies;
         private String changeReason;
         private String autocompleteFunctionName;
+        private String cohortBasedOn;
 
         private Builder() {}
 
@@ -349,6 +364,14 @@ public final class UpdateDimensionInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder cohortBasedOn(String cohortBasedOn) {
+            this.cohortBasedOn = cohortBasedOn;
+            return this;
+        }
+
         @Override
         public UpdateDimensionInput build() {
             tracker.validate();
@@ -369,6 +392,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
                 case 7 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 8 -> dependencies((List<String>) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCIES, member, value));
                 case 9 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
+                case 10 -> cohortBasedOn((String) SchemaUtils.validateSameMember($SCHEMA_COHORT_BASED_ON, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -418,6 +442,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
                     case 7 -> builder.description(de.readString(member));
                     case 8 -> builder.dependencies(SharedSerde.deserializeDependencies(member, de));
                     case 9 -> builder.autocompleteFunctionName(de.readString(member));
+                    case 10 -> builder.cohortBasedOn(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

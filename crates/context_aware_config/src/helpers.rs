@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-#[cfg(not(feature = "jsonlogic"))]
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
@@ -10,9 +8,12 @@ use bigdecimal::{BigDecimal, Num};
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{
+    ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
+};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
+use jsonlogic::validation as logic_validation;
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
@@ -25,11 +26,15 @@ use superposition_macros::{bad_argument, db_error, unexpected_error, validation_
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     database::{
-        models::{cac::ConfigVersion, Description, Workspace},
+        models::{
+            cac::{ConfigVersion, Dimension},
+            Description, Workspace,
+        },
         schema::{
             config_versions,
             contexts::dsl::{self as ctxt},
             default_configs::dsl as def_conf,
+            dimensions::{self},
         },
         superposition_schema::superposition::workspaces,
     },
@@ -174,6 +179,113 @@ pub fn validate_jsonschema(
             ))
         }
     }
+}
+
+pub fn validate_cohort_schema(
+    cohort_schema: &Value,
+    cohort_based_on: Option<String>,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<()> {
+    let derived_dimension = cohort_based_on.ok_or_else(|| {
+        validation_error!("the cohort_based_on field is mandatory for creating cohorts",)
+    })?;
+
+    // Validate the JSON Logic schema
+    let validation_config = logic_validation::ValidationConfig {
+        require_and_wrapper: Some(logic_validation::RequireAndWrapper {
+            allow_empty: false,
+        }),
+    };
+    let logic = match cohort_schema {
+        Value::Object(logic) if logic.is_empty() => {
+            log::error!("Empty JSON Logic object is not allowed");
+            return Err(validation_error!(
+                "Empty object is not allowed as a schema, mention at least one cohort"
+            ));
+        }
+        Value::Object(logic) => logic,
+        _ => {
+            log::error!(
+                "Invalid JSON Logic schema: expected an object, found: {}",
+                cohort_schema
+            );
+            return Err(validation_error!(
+                "Invalid JSON Logic schema: expected an object, found: {}",
+                cohort_schema
+            ));
+        }
+    };
+
+    // check if only one dimension is used across all cohort enums
+    let mut dimensions_used: HashSet<String> = HashSet::new();
+
+    for (cohort, expression) in logic.iter() {
+        let ast =
+            jsonlogic::expression::Expression::from_json(expression).map_err(|e| {
+                validation_error!(
+                    "Invalid JSON Logic schema for cohort {cohort}, found: {}",
+                    e
+                )
+            })?;
+
+        let dims = ast.get_variable_names().map_err(|e| {
+            log::error!("Error while parsing variable names for cohort {cohort}: {e}");
+            validation_error!(
+                "Invalid JSON Logic in cohort {cohort}, error while parsing variable names: {e}"
+            )
+        })?;
+        dimensions_used.extend(dims);
+
+        logic_validation::validate(expression, &validation_config).map_err(|e| {
+            log::error!("jsonlogic validation error for cohort {cohort}: {e:?}");
+            validation_error!("Invalid jsonlogic in cohort {cohort} : {e:?}")
+        })?;
+    }
+    
+    if dimensions_used.is_empty() {
+        log::error!("No dimensions used in cohort schema");
+        return Err(validation_error!(
+            "No dimensions used in cohort schema, one dimension is required"
+        ));
+    }
+    
+    if dimensions_used.len() > 1 {
+        log::error!(
+            "Multiple dimensions used in cohort schema: {:?}",
+            dimensions_used
+        );
+        return Err(validation_error!(
+            "Multiple dimensions used in cohort schema and that is not allowed: {:?}",
+            dimensions_used
+        ));
+    }
+
+    // check if the single dimension used exists in the dimensions table
+    for dim in dimensions_used.iter() {
+        if let Some(validated_dim) = dimensions::dsl::dimensions
+            .filter(dimensions::dsl::dimension.eq(dim))
+            .schema_name(schema_name)
+            .get_result::<Dimension>(conn)
+            .optional()?
+        {
+            if validated_dim.dimension != derived_dimension {
+                log::error!("Dimension {} used in cohort schema does not match the cohort_based_on field", dim);
+                return Err(validation_error!(
+                    "Dimension {} used in cohort schema does not match the cohort_based_on field",
+                    dim
+                ));
+            }
+        } else {
+            log::error!("Dimension {dim} used in cohort schema does not exist in dimensions table");
+            return Err(validation_error!(
+                "Dimension {} used in cohort schema does not exist in dimensions table",
+                dim
+            ));
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(not(feature = "jsonlogic"))]

@@ -31,31 +31,6 @@ use superposition_types::{
     Config, PaginatedResponse,
 };
 
-// #[server(GetDimensions, "/fxn", "GetJson")]
-pub async fn fetch_dimensions(
-    filters: &PaginationParams,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<DimensionResponse>, ServerFnError> {
-    let client = reqwest::Client::new();
-    let host = use_host_server();
-
-    let url = format!("{}/dimension?{}", host, filters);
-    let response: PaginatedResponse<DimensionResponse> = client
-        .get(url)
-        .header("x-tenant", &tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-
-    Ok(response)
-}
-
-// #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
     pagination: &PaginationParams,
     filters: &DefaultConfigFilters,
@@ -310,24 +285,116 @@ pub async fn delete_default_config(
 
     Ok(())
 }
+pub mod dimensions {
+    use superposition_types::{
+        api::dimension::{CreateRequest, DimensionName, UpdateRequest},
+        database::models::cac::{DimensionType, Position},
+    };
 
-pub async fn delete_dimension(
-    name: String,
-    tenant: String,
-    org_id: String,
-) -> Result<(), String> {
-    let host = get_host();
-    let url = format!("{host}/dimension/{name}");
+    use super::*;
 
-    request(
-        url,
-        reqwest::Method::DELETE,
-        None::<serde_json::Value>,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
-    )
-    .await?;
+    pub async fn fetch_dimensions(
+        filters: &PaginationParams,
+        tenant: String,
+        org_id: String,
+    ) -> Result<PaginatedResponse<DimensionResponse>, ServerFnError> {
+        let client = reqwest::Client::new();
+        let host = use_host_server();
 
-    Ok(())
+        let url = format!("{}/dimension?{}", host, filters);
+        let response: PaginatedResponse<DimensionResponse> = client
+            .get(url)
+            .header("x-tenant", &tenant)
+            .header("x-org-id", org_id)
+            .send()
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?
+            .json()
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+        Ok(response)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn create_dimension(
+        dimension: String,
+        position: u32,
+        schema: Value,
+        dependencies: Vec<String>,
+        validation_fn_name: Option<String>,
+        autocomplete_fn_name: Option<String>,
+        description: String,
+        change_reason: String,
+        tenant: String,
+        org_id: String,
+    ) -> Result<DimensionResponse, String> {
+        let payload = CreateRequest {
+            dimension: DimensionName::try_from(dimension)?,
+            position: Position::from(position),
+            schema,
+            dependencies: Some(dependencies),
+            function_name: validation_fn_name,
+            autocomplete_function_name: autocomplete_fn_name,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+            // TODO: change this
+            dimension_type: DimensionType::Regular,
+            cohort_based_on: None,
+        };
+
+        let host = get_host();
+        let url = format!("{host}/dimension");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update_dimension(
+        tenant: String,
+        dimension_name: String,
+        payload: UpdateRequest,
+        org_id: String,
+    ) -> Result<DimensionResponse, String> {
+        let host = get_host();
+        let url = format!("{host}/dimension/{dimension_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::PUT,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete_dimension(
+        name: String,
+        tenant: String,
+        org_id: String,
+    ) -> Result<(), String> {
+        let host = get_host();
+        let url = format!("{host}/dimension/{name}");
+
+        request(
+            url,
+            reqwest::Method::DELETE,
+            None::<serde_json::Value>,
+            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        )
+        .await?;
+
+        Ok(())
+    }
 }
 
 pub async fn fetch_organisations() -> Result<Vec<String>, ServerFnError> {

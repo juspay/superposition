@@ -241,5 +241,19 @@ impl UpdateDimensionFluentBuilder {
     pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_autocomplete_function_name()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn cohort_based_on(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.cohort_based_on(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_cohort_based_on(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_cohort_based_on(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_cohort_based_on(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_cohort_based_on()
+                }
 }
 
