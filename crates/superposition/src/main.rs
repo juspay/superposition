@@ -19,10 +19,14 @@ use frontend::app::*;
 use frontend::types::Envs as UIEnvs;
 use leptos::*;
 use leptos_actix::{generate_route_list, LeptosRoutes};
+use log::{log_enabled, Level};
 use service_utils::{
     aws::kms,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
-    middlewares::{auth_n::AuthNHandler, tenant::OrgWorkspaceMiddlewareFactory},
+    middlewares::{
+        auth_n::AuthNHandler, request_response_logging::RequestResponseLogger,
+        tenant::OrgWorkspaceMiddlewareFactory,
+    },
     service::types::AppEnv,
 };
 
@@ -114,6 +118,8 @@ async fn main() -> Result<()> {
         App::new()
             .wrap(Condition::new(matches!(app_env, AppEnv::PROD | AppEnv::SANDBOX), Compress::default()))
             .wrap(Logger::default())
+            // Conditionally add request/response logging middleware for development
+            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger))
             .app_data(app_state.clone())
             .app_data(PathConfig::default().error_handler(|err, _| {
                 actix_web::error::ErrorBadRequest(err)

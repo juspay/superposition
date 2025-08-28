@@ -99,7 +99,7 @@ async fn put_handler(
                 false,
             )
             .map_err(|err: superposition::AppError| {
-                log::info!("context put failed with error: {:?}", err);
+                log::error!("context put failed with error: {:?}", err);
                 err
             })?;
 
@@ -149,7 +149,7 @@ async fn update_override_handler(
                 &schema_name,
             )
             .map_err(|err: superposition::AppError| {
-                log::info!("context update failed with error: {:?}", err);
+                log::error!("context update failed with error: {:?}", err);
                 err
             })?;
             let version_id = add_config_version(
@@ -211,7 +211,7 @@ async fn move_handler(
                 &schema_name,
             )
             .map_err(|err| {
-                log::info!("move api failed with error: {:?}", err);
+                log::error!("move api failed with error: {:?}", err);
                 err
             })?;
             let version_id = add_config_version(
