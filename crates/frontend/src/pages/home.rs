@@ -14,7 +14,7 @@ use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Tenant};
 use crate::{
-    api::{fetch_config, fetch_dimensions, resolve_config},
+    api::{dimensions::fetch_dimensions, fetch_config, resolve_config},
     components::{button::Button, context_form::ContextForm},
     utils::{check_url_and_return_val, get_element_by_id},
 };

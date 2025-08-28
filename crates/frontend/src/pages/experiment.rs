@@ -12,7 +12,7 @@ use superposition_types::{
 };
 
 use crate::{
-    api::{fetch_default_config, fetch_dimensions, fetch_experiment},
+    api::{dimensions::fetch_dimensions, fetch_default_config, fetch_experiment},
     components::{
         experiment::Experiment,
         experiment_action_form::ExperimentActionForm,

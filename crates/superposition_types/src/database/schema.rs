@@ -20,6 +20,10 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "group_type"))]
     pub struct GroupType;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "dimension_type"))]
+    pub struct DimensionType;
 }
 
 diesel::table! {
@@ -69,6 +73,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::DimensionType;
+
     dimensions (dimension) {
         dimension -> Varchar,
         created_at -> Timestamptz,
@@ -85,6 +92,8 @@ diesel::table! {
         dependents -> Array<Text>,
         dependencies -> Array<Text>,
         autocomplete_function_name -> Nullable<Text>,
+        dimension_type -> DimensionType,
+        cohort_based_on -> Nullable<Text>,
     }
 }
 
