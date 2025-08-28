@@ -14,11 +14,8 @@ use std::task::{Context, Poll};
 
 pub struct RequestResponseLogger;
 
-impl Default for RequestResponseLogger {
-    fn default() -> Self {
-        RequestResponseLogger
-    }
-}
+#[derive(Default)]
+pub struct RequestResponseLogger;
 
 // Custom body wrapper for logging response bodies
 pub struct LoggingBody<B> {
