@@ -201,7 +201,7 @@ pub fn validate_jsonschema(
     })
 }
 
-fn validate_cohort_jsonschema(schema: &Value) -> superposition::Result<()> {
+fn validate_cohort_jsonschema(schema: &Value) -> superposition::Result<Vec<String>> {
     let meta_schema = get_cohort_meta_schema();
     JSONSchema::options()
         .with_draft(Draft::Draft7)
@@ -215,7 +215,42 @@ fn validate_cohort_jsonschema(schema: &Value) -> superposition::Result<()> {
                 .first()
                 .unwrap_or(&String::new())
         )
-    })
+    })?;
+    let enum_options = schema
+        .get("enum")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| {
+            validation_error!("Cohort schema must have an 'enum' field of type array")
+        })?
+        .iter()
+        .filter_map(|v| v.as_str().map(str::to_string))
+        .collect::<Vec<String>>();
+    Ok(enum_options)
+}
+
+pub fn does_dimension_exist_for_cohorting(
+    dim: &str,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<()> {
+    if dimensions::dsl::dimensions
+        .filter(dimensions::dsl::dimension.eq(dim))
+        .schema_name(schema_name)
+        .get_result::<Dimension>(conn)
+        .optional()?
+        .is_some()
+    {
+        log::info!("Dimension {} exists in DB and is valid", dim);
+    } else {
+        log::error!(
+            "Dimension {dim} used in cohort schema does not exist in dimensions table"
+        );
+        return Err(validation_error!(
+                 "Dimension {} used in cohort schema has not been created or does not exist. Please create the dimension first before using it in cohort schema.",
+                 dim
+             ));
+    }
+    Ok(())
 }
 
 pub fn validate_cohort_schema(
@@ -229,8 +264,8 @@ pub fn validate_cohort_schema(
             "Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples",
         ));
     }
-    
-    validate_cohort_jsonschema(cohort_schema)?;
+
+    let enum_options = validate_cohort_jsonschema(cohort_schema)?;
 
     let cohort_schema = cohort_schema.get("definitions").ok_or(validation_error!(
         "Local cohorts require the jsonlogic rules to be written in the `definitions` field. Refer our API docs for examples",
@@ -243,7 +278,34 @@ pub fn validate_cohort_schema(
                 "Empty object is not allowed as a schema, mention at least one cohort"
             ));
         }
-        Value::Object(logic) => logic,
+        Value::Object(logic) => {
+            let cohorts = logic.keys();
+            if cohorts.len() != enum_options.len() - 1 {
+                log::error!(
+                    "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found {} cohorts and {} enum options (not including otherwise)",
+                    cohorts.len(),
+                    enum_options.len() - 1
+                );
+                return Err(validation_error!(
+                    "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found {} cohorts and {} enum options (not including otherwise)",
+                    cohorts.len(),
+                    enum_options.len() - 1
+                ));
+            }
+            for cohort in cohorts {
+                if !enum_options.contains(cohort) {
+                    log::error!(
+                        "Cohort {} does not have a corresponding enum option",
+                        cohort
+                    );
+                    return Err(validation_error!(
+                        "Cohort {} does not have a corresponding enum option",
+                        cohort
+                    ));
+                }
+            }
+            logic
+        }
         _ => {
             log::error!(
                 "Invalid JSON Logic schema: expected an object, found: {}",
@@ -298,25 +360,18 @@ pub fn validate_cohort_schema(
         }
         [ref dim] => {
             // check if the single dimension used exists in the dimensions table
-            if let Some(validated_dim) = dimensions::dsl::dimensions
-                .filter(dimensions::dsl::dimension.eq(dim))
-                .schema_name(schema_name)
-                .get_result::<Dimension>(conn)
-                .optional()?
-            {
-                if validated_dim.dimension != *cohort_based_on {
-                    log::error!("Dimension {} used in cohort schema does not match the cohort_based_on field", dim);
-                    return Err(validation_error!(
-                             "Dimension {} used in cohort schema does not match the cohort_based_on field",
-                             dim
-                         ));
-                }
-            } else {
-                log::error!("Dimension {dim} used in cohort schema does not exist in dimensions table");
+            does_dimension_exist_for_cohorting(dim, schema_name, conn)?;
+            if dim != cohort_based_on {
+                log::error!(
+                    "Dimension used in cohort schema ({}) does not match the dimension specified in cohort_based_on ({})",
+                    dim,
+                    cohort_based_on
+                );
                 return Err(validation_error!(
-                         "Dimension {} used in cohort schema does not exist in dimensions table",
-                         dim
-                     ));
+                    "Dimension used in cohort schema ({}) does not match the dimension specified in cohort_based_on ({})",
+                    dim,
+                    cohort_based_on
+                ));
             }
             Ok(())
         }

@@ -173,6 +173,9 @@ pub fn remove_connections_with_dependents(
         dim.dependency_graph.remove(deleted_dimension_name);
         if let Some(current_deps) = dim.dependency_graph.get_mut(cohorted_dimension) {
             current_deps.retain(|d| d != deleted_dimension_name);
+            if current_deps.is_empty() {
+                dim.dependency_graph.remove(cohorted_dimension);
+            }
             to_be_updated = true;
         }
         if to_be_updated {

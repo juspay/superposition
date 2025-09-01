@@ -3,6 +3,7 @@ use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
+use superposition_types::database::models::cac::DimensionType;
 
 use crate::api::dimensions;
 use crate::components::button::Button;
@@ -20,7 +21,7 @@ use crate::components::{
     },
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{DimensionTypeOptions, OrganisationId, Tenant};
 
 #[derive(Clone)]
 enum Action {
@@ -69,6 +70,18 @@ pub fn dimensions() -> impl IntoView {
             default_column_formatter,
         ),
         Column::default("position".to_string()),
+        Column::default_with_cell_formatter(
+            "dimension_type".to_string(),
+            move |dimension_type: &str, _| {
+                let dim_type = serde_json::from_str::<DimensionType>(dimension_type)
+                    .unwrap_or_default();
+                let dimension_type = DimensionTypeOptions::from_dimension_type(&dim_type);
+                view! {
+                    <span>{dimension_type.to_string()}</span>
+                }
+                .into_view()
+            },
+        ),
         Column::default("created_at".to_string()),
         Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
             default_column_formatter("Modified At")

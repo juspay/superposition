@@ -31,7 +31,10 @@ use crate::{
         create_connections_with_dependents, get_dimension_usage_context_ids,
         remove_connections_with_dependents, validate_dimension_position,
     },
-    helpers::{get_workspace, validate_cohort_schema, validate_jsonschema},
+    helpers::{
+        does_dimension_exist_for_cohorting, get_workspace, validate_cohort_schema,
+        validate_jsonschema,
+    },
 };
 
 pub fn endpoints() -> Scope {
@@ -69,12 +72,28 @@ async fn create(
         create_req.position,
         num_rows,
     )?;
-    #[cfg(not(feature = "jsonlogic"))]
-    allow_primitive_types(&schema_value)?;
-    validate_jsonschema(&state.meta_schema, &schema_value)?;
 
-    if let DimensionType::LocalCohort(ref cohort_based_on) = create_req.dimension_type {
-        validate_cohort_schema(&schema_value, cohort_based_on, &schema_name, &mut conn)?
+    match create_req.dimension_type {
+        DimensionType::Regular | DimensionType::RemoteCohort(_) => {
+            #[cfg(not(feature = "jsonlogic"))]
+            allow_primitive_types(&schema_value)?;
+            validate_jsonschema(&state.meta_schema, &schema_value)?;
+            if let DimensionType::RemoteCohort(ref cohort_based_on) =
+                create_req.dimension_type
+            {
+                does_dimension_exist_for_cohorting(
+                    cohort_based_on,
+                    &schema_name,
+                    &mut conn,
+                )?;
+            }
+        }
+        DimensionType::LocalCohort(ref cohort_based_on) => validate_cohort_schema(
+            &schema_value,
+            cohort_based_on,
+            &schema_name,
+            &mut conn,
+        )?,
     }
 
     let dimension_data = Dimension {
@@ -211,9 +230,28 @@ async fn update(
     let update_req = req.into_inner();
 
     if let Some(schema_value) = update_req.schema.clone() {
-        #[cfg(not(feature = "jsonlogic"))]
-        allow_primitive_types(&schema_value)?;
-        validate_jsonschema(&state.meta_schema, &schema_value)?;
+        match dimension_data.dimension_type {
+            DimensionType::Regular | DimensionType::RemoteCohort(_) => {
+                #[cfg(not(feature = "jsonlogic"))]
+                allow_primitive_types(&schema_value)?;
+                validate_jsonschema(&state.meta_schema, &schema_value)?;
+                if let DimensionType::RemoteCohort(ref cohort_based_on) =
+                    dimension_data.dimension_type
+                {
+                    does_dimension_exist_for_cohorting(
+                        cohort_based_on,
+                        &schema_name,
+                        &mut conn,
+                    )?;
+                }
+            }
+            DimensionType::LocalCohort(ref cohort_based_on) => validate_cohort_schema(
+                &schema_value,
+                cohort_based_on,
+                &schema_name,
+                &mut conn,
+            )?,
+        }
     }
 
     let result =
