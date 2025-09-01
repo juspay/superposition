@@ -278,6 +278,11 @@ pub fn context_form(
     let insert_dimension =
         move |context: &mut Conditions, dimension: &DimensionResponse| {
             if !context.includes(&dimension.dimension) {
+                logging::log!(
+                    "Inserting dimension {:?} with schema {:?}",
+                    dimension.dimension,
+                    dimension.schema
+                );
                 context.push(Condition::new_with_default_expression(
                     dimension.dimension.clone(),
                     SchemaType::try_from(dimension.schema.clone()).unwrap(),
@@ -354,7 +359,7 @@ pub fn context_form(
             } else {
                 context.push(Condition::new_with_default_expression(
                     selected_dimension.dimension.clone(),
-                    SchemaType::try_from(selected_dimension.schema.clone()).unwrap(),
+                    SchemaType::try_from(selected_dimension.schema).unwrap(),
                 ));
             }
             context_ws.update(|v| {
@@ -448,9 +453,10 @@ pub fn context_form(
                                 .with_value(|v| {
                                     v.get(&condition.variable)
                                         .map(|d| {
+                                            let dimension_schema = d.schema.clone();
                                             (
-                                                SchemaType::try_from(d.schema.clone()),
-                                                EnumVariants::try_from(d.schema.clone()),
+                                                SchemaType::try_from(dimension_schema.clone()),
+                                                EnumVariants::try_from(dimension_schema),
                                             )
                                         })
                                         .unwrap_or((Err("".to_string()), Err("".to_string())))
