@@ -1228,6 +1228,8 @@ dependencies = [
  "clap 4.3.4",
  "pest",
  "pest_derive",
+ "superposition_core",
+ "superposition_types",
  "toml 0.8.8",
 ]
 
