@@ -132,7 +132,7 @@ async fn create(
 
             if cohorted_dimension.dimension_type == DimensionType::LocalCohort {
                 return Err(bad_argument!(
-                    "Cohort dimension cannot be based on another local cohort dimension {}",
+                    "Cohort dimension cannot be based on a local cohort dimension {}",
                     cohorted_dimension.dimension
                 ));
             }
@@ -438,8 +438,8 @@ async fn delete_dimension(
                     .filter(|dep| **dep != dimension_data.dimension)
                     .cloned()
                     .collect::<Vec<_>>();
-                
-                
+
+
                 // Remove dependency between the cohort and the dimension it is based on
                 validate_and_update_dimension_hierarchy(
                     &cohorted_dimension,

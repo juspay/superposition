@@ -80,7 +80,6 @@ impl Overridden<Cac<Overrides>> for Context {
     Default,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(diesel_derive_enum::DbEnum, QueryId)
@@ -93,7 +92,9 @@ impl Overridden<Cac<Overrides>> for Context {
 pub enum DimensionType {
     #[default]
     Regular,
+    #[strum(serialize = "Local Cohort")]
     LocalCohort,
+    #[strum(serialize = "Remote Cohort")]
     RemoteCohort,
 }
 
