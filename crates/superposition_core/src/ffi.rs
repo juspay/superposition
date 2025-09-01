@@ -32,6 +32,7 @@ type EvalFn = fn(
     &[Context],
     &HashMap<String, Overrides>,
     &Map<String, Value>,
+    &Map<String, Value>,
     MergeStrategy,
     Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String>;
@@ -41,6 +42,7 @@ fn ffi_eval_logic(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
+    cohort_dimensions: HashMap<String, String>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -50,6 +52,8 @@ fn ffi_eval_logic(
     let _d = json_from_map(default_config)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
     let mut _q = json_from_map(query_data)
+        .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+    let _cohort_dimensions = json_from_map(cohort_dimensions)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
     if let Some(e_args) = experimentation {
@@ -74,6 +78,7 @@ fn ffi_eval_logic(
         _d,
         contexts,
         &overrides,
+        &_cohort_dimensions,
         &_q,
         merge_strategy,
         filter_prefixes,
@@ -88,6 +93,7 @@ fn ffi_eval_config(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
+    cohort_dimensions: HashMap<String, String>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -97,6 +103,7 @@ fn ffi_eval_config(
         default_config,
         contexts,
         overrides,
+        cohort_dimensions,
         query_data,
         merge_strategy,
         filter_prefixes,
@@ -110,6 +117,7 @@ fn ffi_eval_config_with_reasoning(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
+    cohort_dimensions: HashMap<String, String>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -119,6 +127,7 @@ fn ffi_eval_config_with_reasoning(
         default_config,
         contexts,
         overrides,
+        cohort_dimensions,
         query_data,
         merge_strategy,
         filter_prefixes,

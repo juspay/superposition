@@ -35,7 +35,10 @@ use superposition_types::{
         self as superposition_query, CustomQuery, PaginationParams, QueryMap,
     },
     database::{
-        models::{cac::ConfigVersion, ChangeReason, Description},
+        models::{
+            cac::{ConfigVersion, DimensionType},
+            ChangeReason, Description,
+        },
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
         superposition_schema::superposition::workspaces,
     },
@@ -610,10 +613,22 @@ async fn reduce_config_key(
         }
     }
 
+    let cohort_dimensions: Map<String, Value> = dimension_schema_map
+        .iter()
+        .filter_map(|(dim_name, dim_data)| {
+            if dim_data.dimension_type == DimensionType::Cohort {
+                Some((dim_name.clone(), dim_data.schema.clone()))
+            } else {
+                None
+            }
+        })
+        .collect();
+
     Ok(Config {
         contexts: og_contexts,
         overrides: og_overrides,
         default_configs: default_config,
+        cohort_dimensions,
     })
 }
 
