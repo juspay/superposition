@@ -12,6 +12,7 @@ module Client
 , cacStartPolling
 , getDefaultConfig
 , getResolvedConfigWithStrategy
+, MergeStrategy (..)
 ) where
 
 import           Data.Aeson
