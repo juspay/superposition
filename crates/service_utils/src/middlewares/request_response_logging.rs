@@ -12,8 +12,6 @@ use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
 
-pub struct RequestResponseLogger;
-
 #[derive(Default)]
 pub struct RequestResponseLogger;
 
@@ -185,19 +183,13 @@ where
                 );
 
                 // Reconstruct the request with the body
+                #[rustfmt::skip]
                 let new_payload = if body_bytes.is_empty() {
                     Payload::None
                 } else {
                     let bytes = Bytes::from(body_bytes);
                     let stream = once(async move { Ok::<Bytes, PayloadError>(bytes) });
-                    Payload::from(Box::pin(stream)
-                        as Pin<
-                            Box<
-                                dyn futures_util::Stream<
-                                    Item = Result<Bytes, PayloadError>,
-                                >,
-                            >,
-                        >)
+                    Payload::from(Box::pin(stream) as Pin< Box< dyn futures_util::Stream< Item = Result<Bytes, PayloadError> > > >)
                 };
                 let new_req = ServiceRequest::from_parts(http_req, new_payload);
 
