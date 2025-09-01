@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 use superposition_types::{
     api::dimension::DimensionResponse,
     database::models::{
-        cac::{DefaultConfig, TypeTemplate},
+        cac::{DefaultConfig, DimensionType, TypeTemplate},
         experimentation::{Variant, VariantType},
         others::{HttpMethod, PayloadVersion, WebhookEvent},
     },
@@ -217,5 +217,15 @@ impl DropdownOption for Option<String> {
             Some(id) => id.clone(),
             None => "None".to_string(),
         }
+    }
+}
+
+impl DropdownOption for DimensionType {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+
+    fn label(&self) -> String {
+        self.to_string()
     }
 }

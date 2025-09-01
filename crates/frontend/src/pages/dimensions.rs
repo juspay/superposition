@@ -4,7 +4,7 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
-use crate::api::fetch_dimensions;
+use crate::api::dimensions::fetch_dimensions;
 use crate::components::button::Button;
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::PortalDrawer;
@@ -69,6 +69,7 @@ pub fn dimensions() -> impl IntoView {
             default_column_formatter,
         ),
         Column::default("position".to_string()),
+        Column::default("dimension_type".to_string()),
         Column::default("created_at".to_string()),
         Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
             default_column_formatter("Modified At")

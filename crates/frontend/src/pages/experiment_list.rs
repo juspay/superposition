@@ -21,7 +21,7 @@ use superposition_types::{
 use utils::experiment_table_columns;
 
 use crate::{
-    api::{fetch_default_config, fetch_dimensions, fetch_experiments},
+    api::{dimensions::fetch_dimensions, fetch_default_config, fetch_experiments},
     components::{
         drawer::{close_drawer, Drawer, DrawerBtn},
         experiment_form::ExperimentForm,

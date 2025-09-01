@@ -6,7 +6,7 @@ use superposition_types::{
     api::dimension::DimensionResponse, database::models::cac::DependencyGraph,
 };
 
-use crate::api::{delete_dimension, get_dimension};
+use crate::api::{dimensions::delete_dimension, get_dimension};
 use crate::components::badge::Badge;
 use crate::components::description::ContentDescription;
 use crate::components::{
@@ -96,6 +96,10 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                         <div class="h-fit w-[250px] flex gap-4">
                             <div class="stat-title">"Position"</div>
                             <div class="stat-value text-base">{*dimension.position}</div>
+                        </div>
+                        <div class="h-fit w-[250px] flex gap-4">
+                            <div class="stat-title">"Dimension Type"</div>
+                            <div class="stat-value text-base">{dimension.dimension_type.to_string()}</div>
                         </div>
                         <div class="h-fit w-[250px] flex gap-4">
                             <div class="stat-title">"Mandatory"</div>
@@ -345,6 +349,10 @@ pub fn dimension_page() -> impl IntoView {
                                         position=dimension_st.with_value(|d| *d.position as u32)
                                         dimension_name=dimension_st
                                             .with_value(|d| d.dimension.clone())
+                                        dimension_type=dimension_st
+                                            .with_value(|d| d.dimension_type)
+                                        cohort_based_on=dimension_st
+                                            .with_value(|d| d.cohort_based_on.clone())
                                         dimension_schema=dimension_st
                                             .with_value(|d| d.schema.clone())
                                         dependencies=dimension_st
