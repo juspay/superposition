@@ -4,48 +4,19 @@ use std::fmt;
 use std::fs;
 use std::path::Path;
 use std::string::String;
-
-use pest::iterators::Pair;
-use pest::Parser;
-use pest_derive::Parser;
+use superposition_types::{Condition, Context, Overrides};
 use toml::Value;
-
-// the grammar for context expressions written using PEST
-#[derive(Parser)]
-#[grammar_inline = r###"
-expression = { SOI ~ whitespace* ~ logical ~ whitespace* ~ EOI }
-
-logical = _{ logical_or }
-logical_or = { logical_and ~ (whitespace* ~ "||" ~ whitespace* ~ logical_and)* }
-logical_and = { comparison ~ (whitespace* ~ "&&" ~ whitespace* ~ comparison)* }
-
-comparison = { term ~ whitespace* ~ comparison_operator ~ whitespace* ~ term }
-comparison_operator = { ">=" | "<=" | "<" | ">" | "==" | "!=" }
-term = { bool_literal | string_literal | float | integer | dimension }
-
-string_literal = @{ "'" ~ char+ ~ "'" }
-bool_literal = @{ "true" | "false" }
-integer = @{ ASCII_DIGIT+ }
-float = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
-char = { ASCII_ALPHANUMERIC | "." | "_" }
-dimension = @{ "$" ~ char+ }
-
-whitespace = _{ " " | "\t" | "\n" }
-"###]
-struct CACParser;
 
 #[derive(Debug)]
 struct ContextualOverride {
-    expression: String,
-    extracted_dimensions: Vec<String>,
+    context: HashMap<String, Value>,
     overrides: Value,
     priority: i64,
 }
 
 impl PartialEq for ContextualOverride {
     fn eq(&self, other: &Self) -> bool {
-        (self.extracted_dimensions == other.extracted_dimensions)
-            && (self.expression == other.expression)
+        self.context == other.context
     }
 }
 
@@ -68,6 +39,8 @@ pub struct ContextAwareConfig {
     file: String,
     dimension_priority: HashMap<String, i64>,
     default_config: HashMap<String, Value>,
+    contexts: Vec<Context>,
+    overrides: HashMap<String, Overrides>,
     toml_value: Value,
 }
 
@@ -95,17 +68,19 @@ impl ContextAwareConfig {
         let mut cac: ContextAwareConfig = ContextAwareConfig {
             file: String::from(file),
             dimension_priority: HashMap::new(),
+            contexts: Vec::new(),
+            overrides: HashMap::new(),
             default_config: HashMap::new(),
             toml_value,
         };
 
-        match cac.check() {
+        match cac.parse_and_load() {
             true => Ok(cac),
             false => Err(CACParseError),
         }
     }
 
-    fn check(&mut self) -> bool {
+    fn parse_and_load(&mut self) -> bool {
         if let Some(default_config) = self.toml_value.get("default-config") {
             // Check if it's a Table type
             if let Value::Table(table) = default_config {
@@ -161,17 +136,32 @@ impl ContextAwareConfig {
             return false;
         }
 
-        // check sanity of overrides
+        // check sanity of contexts, overrides and load them
         if let Some(overrides) = self.toml_value.get("context") {
             // Check if it's a Table type
             if let Value::Table(table) = overrides {
                 // Iterate over the table
                 for (context_expression, _override) in table {
-                    let parsed = CACParser::parse(Rule::expression, context_expression);
+                    let parsed = self.parse_string_to_condition(&context_expression);
                     // println!("{:?}", parsed);
                     match parsed {
-                        Ok(_parsed) => {
-                            // nothing to do CAC override expressions parsed correctly
+                        Ok(context) => {
+                            // pub struct Context {
+                            //     pub id: String,
+                            //     pub condition: Condition,
+                            //     pub priority: i32,
+                            //     pub weight: i32,
+                            //     pub override_with_keys: OverrideWithKeys,
+                            // }
+
+                            let priority = self.compute_priority(context);
+                            self.contexts.push(Context {
+                                condition: context,
+                                id: String::from("123"),
+                                priority,
+                                weight: priority,
+                                override_with_keys: [],
+                            });
                         }
                         Err(e) => {
                             eprintln!(
@@ -197,6 +187,7 @@ impl ContextAwareConfig {
                             }
                         }
                     }
+                    //
                 }
             } else {
                 eprintln!("'overrides' is not a table in file:{}", self.file);
@@ -210,6 +201,49 @@ impl ContextAwareConfig {
         true
     }
 
+    fn parse_string_to_condition(
+        &self,
+        input: &str,
+    ) -> Result<Condition, Box<dyn std::error::Error>> {
+        let mut map = HashMap::new();
+
+        // Split by semicolon and process each key-value pair
+        for pair in input.split(';') {
+            let trimmed = pair.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+
+            // Split by '=' to get key and value
+            let parts: Vec<&str> = trimmed.splitn(2, '=').collect();
+            if parts.len() != 2 {
+                return Err(format!("Invalid key-value pair: '{}'", trimmed).into());
+            }
+
+            let key = parts[0].trim().to_string();
+            let value_str = parts[1].trim();
+
+            // Try to parse as different types and convert to toml::Value
+            let value = if let Ok(int_val) = value_str.parse::<i64>() {
+                Value::Integer(int_val)
+            } else if let Ok(float_val) = value_str.parse::<f64>() {
+                Value::Float(float_val)
+            } else if let Ok(bool_val) = value_str.parse::<bool>() {
+                Value::Boolean(bool_val)
+            } else {
+                Value::String(value_str.to_string())
+            };
+
+            if self.dimension_priority.contains_key(&key) {
+                map.insert(key, value);
+            } else {
+                return Err(format!("un-declared dimension: {}", key).into()); // &str
+            }
+        }
+
+        Ok(map)
+    }
+
     pub fn get_resolved_config(
         &self,
         dimensions: &HashMap<String, Value>,
@@ -220,17 +254,11 @@ impl ContextAwareConfig {
             if let Value::Table(table) = overrides {
                 // Iterate over the table
                 for (context_expression, overrides) in table {
-                    let parsed = CACParser::parse(Rule::expression, context_expression);
+                    let parsed = self.parse_string_to_hashmap(&context_expression);
                     // println!("{:?}", parsed);
                     match parsed {
-                        Ok(_parsed) => {
-                            let expression = _parsed.into_iter().next().unwrap();
-                            let mut extracted_dimensions: Vec<String> = Vec::new();
-                            let result = evaluate_context_expression(
-                                expression,
-                                dimensions,
-                                &mut extracted_dimensions,
-                            );
+                        Ok(context) => {
+                            let result = evaluate_context(context, dimensions);
                             match result {
                                 Value::Boolean(true) => {
                                     // compute priority of override and insert into matching overrides
@@ -241,9 +269,8 @@ impl ContextAwareConfig {
                                     // println!("expression: {:#?}, extracted_dimensions: {:#?}, priority: {:#?}, override: {:#?}",
                                     // context_expression, extracted_dimensions, priority, overrides);
                                     chosen_overrides.push(ContextualOverride {
-                                        expression: context_expression.to_string(),
+                                        context,
                                         overrides: overrides.clone(),
-                                        extracted_dimensions,
                                         priority,
                                     });
                                 }
@@ -293,187 +320,21 @@ impl ContextAwareConfig {
 
         merged_data
     }
-}
 
-fn compute_priority(
-    dimensions: &[String],
-    allowed_dimensions: &HashMap<String, i64>,
-) -> i64 {
-    let mut priority = 0;
+    fn compute_priority(&self, dimensions: &[String]) -> i64 {
+        let mut priority = 0;
 
-    for dimension in dimensions.iter() {
-        priority += allowed_dimensions.get(dimension).unwrap();
+        for dimension in dimensions.iter() {
+            priority += self.dimension_priority.get(dimension).unwrap();
+        }
+
+        priority
     }
-
-    priority
 }
 
-fn evaluate_context_expression(
-    pair: Pair<Rule>,
+fn evaluate_context(
+    context: &HashMap<String, Value>,
     dimensions: &HashMap<String, Value>,
-    extracted_dimensions: &mut Vec<String>,
-) -> Value {
-    // println!("pair: {:?}", pair.as_rule());
-    match pair.as_rule() {
-        Rule::expression => {
-            // For the 'expression' rule, just evaluate its inner logical expression
-            evaluate_context_expression(
-                pair.into_inner().next().unwrap(),
-                dimensions,
-                extracted_dimensions,
-            )
-        }
-        // Rule::logical => {
-        //     // For the 'logical' rule, just evaluate its inner logical expression
-        //     evaluate_context_expression(pair.into_inner().next().unwrap())
-        // }
-        Rule::logical_or => {
-            let mut pairs = pair.into_inner();
-            let mut result = evaluate_context_expression(
-                pairs.next().unwrap(),
-                dimensions,
-                extracted_dimensions,
-            );
-            for pair in pairs {
-                let next_value =
-                    evaluate_context_expression(pair, dimensions, extracted_dimensions);
-                if let (Value::Boolean(lhs), Value::Boolean(rhs)) = (result, next_value) {
-                    result = Value::Boolean(lhs || rhs);
-                } else {
-                    panic!("OR operation requires boolean values");
-                }
-            }
-            result
-        }
-        Rule::logical_and => {
-            let mut pairs = pair.into_inner();
-            let mut result = evaluate_context_expression(
-                pairs.next().unwrap(),
-                dimensions,
-                extracted_dimensions,
-            );
-            for pair in pairs {
-                let next_value =
-                    evaluate_context_expression(pair, dimensions, extracted_dimensions);
-                if let (Value::Boolean(lhs), Value::Boolean(rhs)) = (result, next_value) {
-                    // println!("lhs: {}, rhs: {}", lhs, rhs);
-                    result = Value::Boolean(lhs && rhs);
-                } else {
-                    panic!("AND operation requires boolean values");
-                }
-            }
-            result
-        }
-        // Rule::logical_not => {
-        //     let inner = evaluate_context_expression(pair.into_inner().next().unwrap());
-        //     if let Value::Bool(val) = inner {
-        //         Value::Bool(!val)
-        //     } else {
-        //         panic!("NOT operation requires a boolean value");
-        //     }
-        // }
-        Rule::comparison => {
-            let mut pairs = pair.into_inner();
-            let left = evaluate_context_expression(
-                pairs.next().unwrap(),
-                dimensions,
-                extracted_dimensions,
-            );
-            if let Some(op_pair) = pairs.next() {
-                let operator = op_pair.as_str();
-                let right = evaluate_context_expression(
-                    pairs.next().unwrap(),
-                    dimensions,
-                    extracted_dimensions,
-                );
-                // println!("operator:: {:?}", operator);
-
-                match (left, right) {
-                    (Value::Integer(lhs), Value::Integer(rhs)) => match operator {
-                        "<" => Value::Boolean(lhs < rhs),
-                        ">" => Value::Boolean(lhs > rhs),
-                        "==" => Value::Boolean(lhs == rhs),
-                        "!=" => Value::Boolean(lhs != rhs),
-                        ">=" => Value::Boolean(lhs >= rhs),
-                        "<=" => Value::Boolean(lhs <= rhs),
-                        _ => panic!("Invalid comparison operator"),
-                    },
-                    (Value::String(lhs), Value::String(rhs)) => match operator {
-                        "<" => Value::Boolean(lhs < rhs),
-                        ">" => Value::Boolean(lhs > rhs),
-                        "==" => Value::Boolean(lhs == rhs),
-                        "!=" => Value::Boolean(lhs != rhs),
-                        ">=" => Value::Boolean(lhs >= rhs),
-                        "<=" => Value::Boolean(lhs <= rhs),
-                        _ => panic!("Invalid comparison operator"),
-                    },
-                    (Value::Float(lhs), Value::Float(rhs)) => match operator {
-                        "<" => Value::Boolean(lhs < rhs),
-                        ">" => Value::Boolean(lhs > rhs),
-                        "==" => Value::Boolean(lhs == rhs),
-                        "!=" => Value::Boolean(lhs != rhs),
-                        ">=" => Value::Boolean(lhs >= rhs),
-                        "<=" => Value::Boolean(lhs <= rhs),
-                        _ => panic!("Invalid comparison operator"),
-                    },
-                    (Value::String(lhs), Value::Integer(rhs)) => {
-                        let converted_lhs = lhs.parse::<i64>().unwrap_or_default();
-                        match operator {
-                            "<" => Value::Boolean(converted_lhs < rhs),
-                            ">" => Value::Boolean(converted_lhs > rhs),
-                            "==" => Value::Boolean(converted_lhs == rhs),
-                            "!=" => Value::Boolean(converted_lhs != rhs),
-                            ">=" => Value::Boolean(converted_lhs >= rhs),
-                            "<=" => Value::Boolean(converted_lhs <= rhs),
-                            _ => panic!("Invalid comparison operator"),
-                        }
-                    }
-                    (Value::String(lhs), Value::Float(rhs)) => {
-                        let converted_lhs = lhs.parse::<f64>().unwrap_or_default();
-                        match operator {
-                            "<" => Value::Boolean(converted_lhs < rhs),
-                            ">" => Value::Boolean(converted_lhs > rhs),
-                            "==" => Value::Boolean(converted_lhs == rhs),
-                            "!=" => Value::Boolean(converted_lhs != rhs),
-                            ">=" => Value::Boolean(converted_lhs >= rhs),
-                            "<=" => Value::Boolean(converted_lhs <= rhs),
-                            _ => panic!("Invalid comparison operator"),
-                        }
-                    }
-                    (Value::Boolean(false), _) => Value::Boolean(false),
-                    (Value::Boolean(true), _) => Value::Boolean(true),
-                    _ => panic!("Comparison between non-numeric values"),
-                }
-            } else {
-                left
-            }
-        }
-        Rule::dimension => {
-            let dimension = pair.as_str();
-            let dont_care = &Value::Boolean(false);
-            extracted_dimensions.push((dimension[1..]).to_string());
-            dimensions.get(&dimension[1..]).unwrap_or(dont_care).clone()
-        }
-        Rule::term => evaluate_context_expression(
-            pair.into_inner().next().unwrap(),
-            dimensions,
-            extracted_dimensions,
-        ),
-        Rule::bool_literal => {
-            let bool_literal = pair.as_str();
-            match bool_literal {
-                "true" => Value::Boolean(true),
-                "false" => Value::Boolean(false),
-                _ => panic!("Unknown identifier: {}", bool_literal),
-            }
-        }
-        Rule::string_literal => {
-            let string_literal = String::from(pair.as_str());
-            let len = string_literal.len();
-            Value::String(string_literal[1..(len - 1)].to_string())
-        }
-        Rule::integer => Value::Integer(pair.as_str().parse().unwrap()),
-        Rule::float => Value::Float(pair.as_str().parse().unwrap()),
-        _ => panic!("Unexpected rule: {:?}", pair.as_rule()),
-    }
+) -> bool {
+    return true;
 }

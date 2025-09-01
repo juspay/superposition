@@ -18,3 +18,5 @@ clap = { version = "4.3.0", features = ["derive"] }
 pest = "2.6"
 pest_derive = "2.6"
 toml = { workspace = true }
+superposition_core = { workspace = true }
+superposition_types = { workspace = true }
