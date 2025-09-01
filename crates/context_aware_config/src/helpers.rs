@@ -27,7 +27,7 @@ use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     database::{
         models::{
-            cac::{ConfigVersion, Dimension},
+            cac::{ConfigVersion, Dimension, DimensionType},
             Description, Workspace,
         },
         schema::{
@@ -47,8 +47,9 @@ use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct DimensionData {
-    pub schema: JSONSchema,
+    pub schema: Value,
     pub position: i32,
+    pub dimension_type: DimensionType,
 }
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
@@ -90,8 +91,18 @@ pub fn get_meta_schema() -> JSONSchema {
 pub fn validate_context_jsonschema(
     #[cfg(feature = "jsonlogic")] object_key: &str,
     dimension_value: &Value,
-    dimension_schema: &JSONSchema,
+    dimension_schema: &Value,
 ) -> superposition::Result<()> {
+    let dimension_schema = JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(dimension_schema)
+        .map_err(|e| {
+            log::error!(
+                "Failed to compile as a Draft-7 JSON schema: {}",
+                e.to_string()
+            );
+            bad_argument!("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
+        })?;
     match dimension_value {
         #[cfg(feature = "jsonlogic")]
         Value::Array(val_arr) if object_key == "in" => {
@@ -242,14 +253,14 @@ pub fn validate_cohort_schema(
             validation_error!("Invalid jsonlogic in cohort {cohort} : {e:?}")
         })?;
     }
-    
+
     if dimensions_used.is_empty() {
         log::error!("No dimensions used in cohort schema");
         return Err(validation_error!(
             "No dimensions used in cohort schema, one dimension is required"
         ));
     }
-    
+
     if dimensions_used.len() > 1 {
         log::error!(
             "Multiple dimensions used in cohort schema: {:?}",
@@ -425,10 +436,24 @@ pub fn generate_cac(
                 acc
             });
 
+    let cohort_dimensions: Map<String, Value> = dimensions::dsl::dimensions
+        .filter(dimensions::dsl::dimension_type.eq(DimensionType::Cohort))
+        .select((dimensions::dsl::dimension, dimensions::dsl::schema))
+        .order_by(dimensions::dsl::position.asc())
+        .schema_name(schema_name)
+        .load::<(String, Value)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch cohort dimensions with error: {}", err);
+            db_error!(err)
+        })?
+        .into_iter()
+        .collect();
+
     Ok(Config {
         contexts,
         overrides,
         default_configs,
+        cohort_dimensions,
     })
 }
 
@@ -549,10 +574,6 @@ mod tests {
             "type": "string",
             "pattern": ".*"
         });
-        let test_jsonschema = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&test_schema)
-        .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.");
 
         let str_dimension_val = json!("string1".to_owned());
         #[cfg(feature = "jsonlogic")]
@@ -561,7 +582,7 @@ mod tests {
             #[cfg(feature = "jsonlogic")]
             "in",
             &str_dimension_val,
-            &test_jsonschema,
+            &test_schema,
         );
         #[cfg(feature = "jsonlogic")]
         let ok_arr_context =

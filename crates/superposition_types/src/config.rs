@@ -344,6 +344,7 @@ pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
     pub default_configs: Map<String, Value>,
+    pub cohort_dimensions: Map<String, Value>,
 }
 
 impl Config {
@@ -365,6 +366,7 @@ impl Config {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: self.default_configs.clone(),
+            cohort_dimensions: self.cohort_dimensions.clone(),
         }
     }
 
@@ -405,6 +407,7 @@ impl Config {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: filtered_default_config,
+            cohort_dimensions: self.cohort_dimensions.clone(),
         }
     }
 }
@@ -1023,6 +1026,7 @@ pub(crate) mod tests {
                 contexts: Vec::new(),
                 overrides: HashMap::new(),
                 default_configs: Map::new(),
+                cohort_dimensions: Map::new(),
             }
         );
     }

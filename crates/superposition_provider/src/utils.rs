@@ -99,10 +99,25 @@ impl ConversionUtils {
             })
             .collect::<Result<Vec<Context>>>()?;
 
+        // Convert cohort dimensions - these are already Value types
+        let cohort_dimensions = response
+            .cohort_dimensions()
+            .map(|dim| {
+                dim.iter()
+                    .map(|(key, doc)| {
+                        // Convert Document to serde_json::Value
+                        let value = Self::document_to_value(doc)?;
+                        Ok((key.clone(), value))
+                    })
+                    .collect::<Result<Map<String, Value>>>()
+            })
+            .unwrap_or_else(|| Ok(Map::new()))?;
+
         let config = Config {
             contexts,
             overrides,
             default_configs,
+            cohort_dimensions,
         };
 
         debug!("Successfully converted config with {} contexts, {} overrides, {} default configs", 
@@ -256,10 +271,22 @@ impl ConversionUtils {
             })?
             .clone();
 
+        // Extract cohort_dimensions object
+        let cohort_dimensions = map
+            .get("cohort_dimensions")
+            .and_then(|v| v.as_object())
+            .ok_or_else(|| {
+                SuperpositionError::ConfigError(
+                    "Missing or invalid 'cohort_dimensions' field".to_string(),
+                )
+            })?
+            .clone();
+
         Ok(Config {
             contexts,
             overrides,
             default_configs,
+            cohort_dimensions,
         })
     }
     /// Convert list_experiment SDK response to structured experiment data

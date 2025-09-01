@@ -36,6 +36,7 @@ fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
         contexts,
         overrides,
         default_configs,
+        cohort_dimensions,
     } = config;
     let rows = |m: &Map<String, Value>, striked: bool| {
         m.iter()

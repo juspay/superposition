@@ -25,6 +25,7 @@ pub fn eval_config(
     default_config: Map<String, Value>,
     contexts: &[Context],
     overrides: &HashMap<String, Overrides>,
+    cohort_dimensions: &Map<String, Value>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -34,6 +35,7 @@ pub fn eval_config(
         default_configs: default_config,
         contexts: contexts.to_vec(),
         overrides: overrides.clone(),
+        cohort_dimensions: cohort_dimensions.clone(),
     };
 
     // Apply prefix filtering if keys are provided (using existing superposition_types logic)
@@ -62,6 +64,7 @@ pub fn eval_config_with_reasoning(
     default_config: Map<String, Value>,
     contexts: &[Context],
     overrides: &HashMap<String, Overrides>,
+    cohort_dimensions: &Map<String, Value>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
@@ -72,6 +75,7 @@ pub fn eval_config_with_reasoning(
         default_configs: default_config,
         contexts: contexts.to_vec(),
         overrides: overrides.clone(),
+        cohort_dimensions: cohort_dimensions.clone(),
     };
 
     if let Some(prefixes) = filter_prefixes {
