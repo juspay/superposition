@@ -98,6 +98,10 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                             <div class="stat-value text-base">{*dimension.position}</div>
                         </div>
                         <div class="h-fit w-[250px] flex gap-4">
+                            <div class="stat-title">"Dimension Type"</div>
+                            <div class="stat-value text-base">{dimension.dimension_type.to_string()}</div>
+                        </div>
+                        <div class="h-fit w-[250px] flex gap-4">
                             <div class="stat-title">"Mandatory"</div>
                             <div class="stat-value text-base">
                                 <Toggle value=dimension.mandatory disabled=true on_change=|_| {} />
@@ -345,10 +349,12 @@ pub fn dimension_page() -> impl IntoView {
                                         position=dimension_st.with_value(|d| *d.position as u32)
                                         dimension_name=dimension_st
                                             .with_value(|d| d.dimension.clone())
+                                        dimension_type=dimension_st
+                                            .with_value(|d| d.dimension_type)
+                                        cohort_based_on=dimension_st
+                                            .with_value(|d| d.dependents.first().cloned())
                                         dimension_schema=dimension_st
                                             .with_value(|d| d.schema.clone())
-                                        dependencies=dimension_st
-                                            .with_value(|d| d.dependencies.clone())
                                         validation_function_name=dimension_st
                                             .with_value(|d| d.function_name.clone())
                                         autocomplete_function_name=dimension_st

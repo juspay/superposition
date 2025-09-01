@@ -69,6 +69,17 @@ pub fn dimensions() -> impl IntoView {
             default_column_formatter,
         ),
         Column::default("position".to_string()),
+        Column::default_with_cell_formatter(
+            "dimension_type".to_string(),
+            move |dimension_type: &str, _| {
+                let dimension_type =
+                    dimension_type.to_string().replace('_', " ").to_lowercase();
+                view! {
+                    <span>{dimension_type}</span>
+                }
+                .into_view()
+            },
+        ),
         Column::default("created_at".to_string()),
         Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
             default_column_formatter("Modified At")

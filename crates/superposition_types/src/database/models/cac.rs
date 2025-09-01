@@ -79,8 +79,6 @@ impl Overridden<Cac<Overrides>> for Context {
     uniffi::Enum,
     Default,
 )]
-#[serde(rename_all = "UPPERCASE")]
-#[strum(serialize_all = "UPPERCASE")]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(diesel_derive_enum::DbEnum, QueryId)
@@ -91,10 +89,16 @@ impl Overridden<Cac<Overrides>> for Context {
     ExistingTypePath = "crate::database::schema::sql_types::DimensionType"
 )]
 pub enum DimensionType {
+    #[strum(serialize = "Regular")]
+    #[serde(rename = "REGULAR")]
     #[default]
     Regular,
+    #[strum(serialize = "Local Cohort")]
+    #[serde(rename = "LOCAL_COHORT")]
     #[cfg_attr(feature = "diesel_derives", db_rename = "LOCAL_COHORT")]
     LocalCohort,
+    #[strum(serialize = "Remote Cohort")]
+    #[serde(rename = "REMOTE_COHORT")]
     #[cfg_attr(feature = "diesel_derives", db_rename = "REMOTE_COHORT")]
     RemoteCohort,
 }

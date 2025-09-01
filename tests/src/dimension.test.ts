@@ -54,7 +54,7 @@ describe("Dimension API", () => {
             },
         },
         cohort_based_on: dimension,
-        dimension_type: "LOCALCOHORT",
+        dimension_type: "LOCAL_COHORT",
         description: "Test cohort for automated testing",
         change_reason: "Creating test cohort",
     };
@@ -66,7 +66,7 @@ describe("Dimension API", () => {
             "type": "string"
         },
         cohort_based_on: dimension,
-        dimension_type: "REMOTECOHORT",
+        dimension_type: "REMOTE_COHORT",
         description: "Test cohort for automated testing",
         change_reason: "Creating test cohort",
     };
@@ -639,7 +639,7 @@ describe("Dimension API", () => {
                     ],
                 },
             },
-            dimension_type: "LOCALCOHORT",
+            dimension_type: "LOCAL_COHORT",
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
         };
@@ -673,7 +673,7 @@ describe("Dimension API", () => {
                     ],
                 },
             },
-            dimension_type: "LOCALCOHORT",
+            dimension_type: "LOCAL_COHORT",
             cohort_based_on: "wrong-dimension",
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -708,7 +708,7 @@ describe("Dimension API", () => {
                     ],
                 },
             },
-            dimension_type: "LOCALCOHORT",
+            dimension_type: "LOCAL_COHORT",
             cohort_based_on: "sds",
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -757,7 +757,7 @@ describe("Dimension API", () => {
                     ],
                 },
             },
-            dimension_type: "LOCALCOHORT",
+            dimension_type: "LOCAL_COHORT",
             cohort_based_on: dimension,
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -816,7 +816,7 @@ describe("Dimension API", () => {
                 "type": "string"
             },
             cohort_based_on: testLocalCohort.dimension,
-            dimension_type: "REMOTECOHORT",
+            dimension_type: "REMOTE_COHORT",
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
         };

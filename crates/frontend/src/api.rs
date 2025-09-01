@@ -372,13 +372,14 @@ pub mod dimensions {
         dimension: String,
         position: u32,
         schema: Value,
-        _dependencies: Vec<String>,
         validation_fn_name: Option<String>,
         autocomplete_fn_name: Option<String>,
         description: String,
         change_reason: String,
         tenant: String,
         org_id: String,
+        dimension_type: DimensionType,
+        cohort_based_on: Option<String>,
     ) -> Result<DimensionResponse, String> {
         let payload = CreateRequest {
             dimension: DimensionName::try_from(dimension)?,
@@ -388,9 +389,8 @@ pub mod dimensions {
             autocomplete_function_name: autocomplete_fn_name,
             description: Description::try_from(description)?,
             change_reason: ChangeReason::try_from(change_reason)?,
-            // TODO: change this
-            dimension_type: DimensionType::Regular,
-            cohort_based_on: None,
+            dimension_type,
+            cohort_based_on,
         };
 
         let host = get_host();

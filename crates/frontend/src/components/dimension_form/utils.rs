@@ -12,8 +12,6 @@ pub fn try_update_payload(
     autocomplete_fn_name: Option<String>,
     description: String,
     change_reason: String,
-    _dependencies: Vec<String>,
-    _cohort_based_on: Option<String>,
 ) -> Result<UpdateRequest, String> {
     Ok(UpdateRequest {
         position: Some(Position::from(position)),
