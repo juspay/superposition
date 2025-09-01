@@ -36,6 +36,7 @@ pub struct DimensionResponse {
     pub change_reason: ChangeReason,
     pub autocomplete_function_name: Option<String>,
     pub dimension_type: DimensionType,
+    pub cohort_based_on: Option<String>,
 }
 
 impl DimensionResponse {
@@ -57,6 +58,7 @@ impl DimensionResponse {
             change_reason: value.change_reason,
             autocomplete_function_name: value.autocomplete_function_name,
             dimension_type: value.dimension_type,
+            cohort_based_on: value.cohort_based_on,
         }
     }
 }

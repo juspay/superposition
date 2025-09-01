@@ -242,14 +242,14 @@ pub fn validate_cohort_schema(
             validation_error!("Invalid jsonlogic in cohort {cohort} : {e:?}")
         })?;
     }
-    
+
     if dimensions_used.is_empty() {
         log::error!("No dimensions used in cohort schema");
         return Err(validation_error!(
             "No dimensions used in cohort schema, one dimension is required"
         ));
     }
-    
+
     if dimensions_used.len() > 1 {
         log::error!(
             "Multiple dimensions used in cohort schema: {:?}",
