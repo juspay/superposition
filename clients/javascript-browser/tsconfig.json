@@ -1,16 +1,16 @@
 {
-    "compilerOptions": {
-      "target": "es5",
-      "module": "commonjs",
-      "lib": ["es6"],
-      "allowJs": false,
-      "outDir": "./dist",
-      "rootDir": "src",
-      "strict": true,
-      "noImplicitAny": true,
-      "esModuleInterop": true,
-      "resolveJsonModule": true
-    },
-    "include": ["./src/**/*"],
-    "exclude": ["node_modules"]
-  }
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "lib": ["es6"],
+    "allowJs": false,
+    "outDir": "./dist",
+    "rootDir": "src",
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  },
+  "include": ["./src/**/*", "test-logic.js"],
+  "exclude": ["node_modules"]
+}
