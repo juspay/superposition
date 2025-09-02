@@ -1,36 +1,39 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  entry: './dist/index.js',
-  output: {
-    path: path.resolve(__dirname),
-    filename: "index.js",
-    library : {
-        name : "Context-Aware-Config",
-        type: "umd"
+    entry: {
+        index: "./dist/index.js",
+        indexJsonlogic: "./dist/indexJsonlogic.js",
     },
-    environment: {
-      arrowFunction: false,
-      bigIntLiteral: false,
-      const: true,
-      destructuring: false,
-      dynamicImport: false,
-      forOf: true,
-      module: true
-    }
-  },
-  module: {
-    rules: [
-      { test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
-          }
-        }
-      },
-    ]
-  }
+    output: {
+        path: path.resolve(__dirname),
+        filename: "[name].js",
+        library: {
+            name: "[name]-Context-AwareConfig",
+            type: "umd",
+        },
+        environment: {
+            arrowFunction: false,
+            bigIntLiteral: false,
+            const: true,
+            destructuring: false,
+            dynamicImport: false,
+            forOf: true,
+            module: true,
+        },
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "babel-loader",
+                    options: {
+                        presets: ["@babel/preset-env"],
+                    },
+                },
+            },
+        ],
+    },
 };
-

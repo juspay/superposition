@@ -1,5 +1,13 @@
+import * as jsonLogic from "json-logic-js";
 import { deepMerge } from "./utils/deepMerge";
-import logic from "./logic";
+import {
+    isJPVersionEqual,
+    isJPVersionGreater,
+    isJPVersionGreaterEqual,
+    isJPVersionLesser,
+    isJPVersionLesserEqual,
+    matchRegex,
+} from "./utils/operations";
 import {
     IObject,
     Dimension,
@@ -20,6 +28,15 @@ export class CacReader {
     overrides: IObject;
     defaultConfig: IObject;
 
+    static {
+        jsonLogic.add_operation("match", matchRegex);
+        jsonLogic.add_operation("jp_ver_eq", isJPVersionEqual);
+        jsonLogic.add_operation("jp_ver_gt", isJPVersionGreater);
+        jsonLogic.add_operation("jp_ver_ge", isJPVersionGreaterEqual);
+        jsonLogic.add_operation("jp_ver_lt", isJPVersionLesser);
+        jsonLogic.add_operation("jp_ver_le", isJPVersionLesserEqual);
+    }
+
     constructor(completeConfig: DataFromCacApi) {
         this.contexts = completeConfig.contexts;
         this.overrides = completeConfig.overrides;
@@ -30,7 +47,7 @@ export class CacReader {
         const requiredOverrides: Array<IObject> = [];
         for (let i = 0; i < this.contexts.length; i++) {
             try {
-                if (logic.apply(this.contexts[i].condition, data)) {
+                if (jsonLogic.apply(this.contexts[i].condition, data)) {
                     requiredOverrides.push(
                         ...this.contexts[i].override_with_keys.map(
                             (x) => this.overrides[x]
@@ -74,8 +91,10 @@ export class ExperimentReader {
     }
 
     getSatisfiedExperiments(data: IObject): Experiments {
-        return this.experiments.filter((exp) =>
-            logic.apply(exp.context as any, data)
+        return this.experiments.filter(
+            (exp) =>
+                Object.keys(exp.context).length === 0 ||
+                jsonLogic.apply(exp.context, data)
         );
     }
 
