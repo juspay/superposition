@@ -292,5 +292,19 @@ impl ListExperimentFluentBuilder {
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
                     self.inner.get_sort_by()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn global_experiments_only(mut self, input: bool) -> Self {
+                    self.inner = self.inner.global_experiments_only(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_global_experiments_only(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_global_experiments_only(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_global_experiments_only(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_global_experiments_only()
+                }
 }
 

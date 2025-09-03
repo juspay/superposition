@@ -195,6 +195,11 @@ fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mu
             query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_12));
         }
     }
+    if let ::std::option::Option::Some(inner_13) = &_input.global_experiments_only {
+         {
+            query.push_kv("global_experiments_only", ::aws_smithy_types::primitive::Encoder::from(*inner_13).encode());
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

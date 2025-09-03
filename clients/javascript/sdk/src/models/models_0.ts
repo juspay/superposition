@@ -1682,6 +1682,8 @@ export interface ListExperimentInput {
    * @public
    */
   sort_by?: SortBy | undefined;
+
+  global_experiments_only?: boolean | undefined;
 }
 
 /**

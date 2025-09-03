@@ -173,7 +173,7 @@ fn parse_input(
 #[component]
 pub fn toggle(
     value: bool,
-    #[prop(into)] on_change: Callback<Value, ()>,
+    #[prop(into)] on_change: Callback<bool, ()>,
     #[prop(into, default = String::new())] class: String,
     #[prop(default = false)] disabled: bool,
     #[prop(into, default = String::new())] name: String,
@@ -181,10 +181,7 @@ pub fn toggle(
     view! {
         <input
             disabled=disabled
-            on:click=move |e| {
-                on_change.call(Value::Bool(event_target_checked(&e)));
-            }
-
+            on:click=move |e| on_change.call(event_target_checked(&e))
             type="checkbox"
             name=name
             class=format!("toggle toggle-primary !w-[3rem] {class}")
@@ -622,9 +619,17 @@ pub fn input(
     match r#type {
         InputType::Toggle => match value.as_bool() {
             Some(ref v) => {
-                view! { <Toggle value=*v on_change class name disabled /> }.into_view()
+                view! { <Toggle value=*v on_change=move |v| on_change.call(Value::Bool(v)) class name disabled /> }.into_view()
             }
-            None => view! { <Toggle value=false on_change class name disabled /> }.into_view(),
+            None => view! {
+                <Toggle
+                    value=false
+                    on_change=move |v| on_change.call(Value::Bool(v))
+                    class
+                    name
+                    disabled
+                />
+            }.into_view(),
         },
         InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone() /> }
         .into_view(),

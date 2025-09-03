@@ -19,9 +19,9 @@ pub fn metrics_form(
 
     Effect::new(move |_| on_change.call(metrics_rws.get()));
 
-    let toggle_enabled = Callback::new(move |_| {
+    let toggle_enabled = Callback::new(move |v| {
         metrics_rws.update(|m| {
-            m.enabled = !m.enabled;
+            m.enabled = v;
             if m.enabled
                 && (m.source.is_none()
                     || !matches!(m.source, Some(MetricSource::Grafana { .. })))
