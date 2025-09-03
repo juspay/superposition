@@ -56,6 +56,8 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpQueryTrait("sort_on"))
         .putMember("sort_by", SortBy.$SCHEMA,
                 new HttpQueryTrait("sort_by"))
+        .putMember("global_experiments_only", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("global_experiments_only"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -72,6 +74,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
+    private static final Schema $SCHEMA_GLOBAL_EXPERIMENTS_ONLY = $SCHEMA.member("global_experiments_only");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -87,6 +90,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private final transient String createdBy;
     private final transient ExperimentSortOn sortOn;
     private final transient SortBy sortBy;
+    private final transient Boolean globalExperimentsOnly;
 
     private ListExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -103,6 +107,7 @@ public final class ListExperimentInput implements SerializableStruct {
         this.createdBy = builder.createdBy;
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
+        this.globalExperimentsOnly = builder.globalExperimentsOnly;
     }
 
     public String workspaceId() {
@@ -161,6 +166,10 @@ public final class ListExperimentInput implements SerializableStruct {
         return sortBy;
     }
 
+    public Boolean globalExperimentsOnly() {
+        return globalExperimentsOnly;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -188,12 +197,13 @@ public final class ListExperimentInput implements SerializableStruct {
                && Objects.equals(this.experimentGroupIds, that.experimentGroupIds)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.sortOn, that.sortOn)
-               && Objects.equals(this.sortBy, that.sortBy);
+               && Objects.equals(this.sortBy, that.sortBy)
+               && Objects.equals(this.globalExperimentsOnly, that.globalExperimentsOnly);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, page, count, all, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy);
+        return Objects.hash(workspaceId, orgId, page, count, all, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly);
     }
 
     @Override
@@ -241,6 +251,9 @@ public final class ListExperimentInput implements SerializableStruct {
         if (sortBy != null) {
             serializer.writeString($SCHEMA_SORT_BY, sortBy.value());
         }
+        if (globalExperimentsOnly != null) {
+            serializer.writeBoolean($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, globalExperimentsOnly);
+        }
     }
 
     @Override
@@ -261,6 +274,7 @@ public final class ListExperimentInput implements SerializableStruct {
             case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
             case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
             case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, globalExperimentsOnly);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -288,6 +302,7 @@ public final class ListExperimentInput implements SerializableStruct {
         builder.createdBy(this.createdBy);
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
+        builder.globalExperimentsOnly(this.globalExperimentsOnly);
         return builder;
     }
 
@@ -318,6 +333,7 @@ public final class ListExperimentInput implements SerializableStruct {
         private String createdBy;
         private ExperimentSortOn sortOn;
         private SortBy sortBy;
+        private Boolean globalExperimentsOnly;
 
         private Builder() {}
 
@@ -441,6 +457,14 @@ public final class ListExperimentInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder globalExperimentsOnly(boolean globalExperimentsOnly) {
+            this.globalExperimentsOnly = globalExperimentsOnly;
+            return this;
+        }
+
         @Override
         public ListExperimentInput build() {
             tracker.validate();
@@ -465,6 +489,7 @@ public final class ListExperimentInput implements SerializableStruct {
                 case 11 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
                 case 12 -> sortOn((ExperimentSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 case 13 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 14 -> globalExperimentsOnly((boolean) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -512,6 +537,7 @@ public final class ListExperimentInput implements SerializableStruct {
                     case 11 -> builder.createdBy(de.readString(member));
                     case 12 -> builder.sortOn(ExperimentSortOn.builder().deserializeMember(de, member).build());
                     case 13 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 14 -> builder.globalExperimentsOnly(de.readBoolean(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

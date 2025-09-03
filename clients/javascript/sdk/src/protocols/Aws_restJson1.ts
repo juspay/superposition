@@ -1299,6 +1299,7 @@ export const se_ListExperimentCommand = async(
     [_cb]: [,input[_cb]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
+    [_geo]: [() => input.global_experiments_only !== void 0, () => (input[_geo]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -5018,6 +5019,7 @@ const de_CommandError = async(
   const _ei = "experiment_ids";
   const _en = "experiment_name";
   const _fd = "from_date";
+  const _geo = "global_experiments_only";
   const _gt = "group_type";
   const _lm = "last-modified";
   const _lm_ = "last_modified";

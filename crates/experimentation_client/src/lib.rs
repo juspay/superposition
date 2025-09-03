@@ -372,6 +372,7 @@ async fn get_experiments(
         created_by: None,
         sort_on: None,
         sort_by: None,
+        global_experiments_only: None,
     };
     let pagination_params = PaginationParams::all_entries();
     let endpoint = format!(

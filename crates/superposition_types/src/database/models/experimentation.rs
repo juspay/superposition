@@ -14,7 +14,7 @@ use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
 
-use crate::{Condition, Exp, Overridden, Overrides};
+use crate::{Condition, Contextual, Exp, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::*;
@@ -299,6 +299,12 @@ pub struct Experiment {
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
     pub experiment_group_id: Option<i64>,
+}
+
+impl Contextual for Experiment {
+    fn get_condition(&self) -> Condition {
+        self.context.clone()
+    }
 }
 
 pub type Experiments = Vec<Experiment>;

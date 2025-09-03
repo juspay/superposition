@@ -77,6 +77,12 @@ serListExperimentQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("experiment_ids", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
+        global_experiments_onlyQuery = Io.Superposition.Model.ListExperimentInput.global_experiments_only input
+                    Data.Functor.<&> (\x -> [x])
+                    Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
+                    Data.Functor.<&> Data.List.map (\x -> toQueryItem ("global_experiments_only", x))
+                    Data.Function.& Data.Maybe.maybe [] (id)
+        
         sort_byQuery = Io.Superposition.Model.ListExperimentInput.sort_by input
                     Data.Functor.<&> (\x -> [x])
                     Data.Functor.<&> Data.List.map (Io.Superposition.Utility.toRequestSegment)
@@ -119,7 +125,7 @@ serListExperimentQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("status", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        m = staticParams ++ all'Query ++ experiment_nameQuery ++ from_dateQuery ++ countQuery ++ experiment_idsQuery ++ sort_byQuery ++ experiment_group_idsQuery ++ created_byQuery ++ sort_onQuery ++ to_dateQuery ++ pageQuery ++ statusQuery
+        m = staticParams ++ all'Query ++ experiment_nameQuery ++ from_dateQuery ++ countQuery ++ experiment_idsQuery ++ global_experiments_onlyQuery ++ sort_byQuery ++ experiment_group_idsQuery ++ created_byQuery ++ sort_onQuery ++ to_dateQuery ++ pageQuery ++ statusQuery
         in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
     
     where

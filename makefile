@@ -310,7 +310,7 @@ grafana-local:
 	cd grafana && $(COMPOSE) up
 
 local-docs-view: smithy-api-docs
-	cd docs && npm ci && npm start
+	cd docs && npm start
 
 default: dev-build frontend
 

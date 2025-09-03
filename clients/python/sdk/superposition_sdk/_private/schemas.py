@@ -8971,6 +8971,16 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "global_experiments_only": {
+            "target": BOOLEAN,
+            "index": 14,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="global_experiments_only"),
+
+            ],
+        },
+
     }
 )
 

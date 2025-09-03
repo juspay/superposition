@@ -1444,6 +1444,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:
         query_params.append(("sort_by", input.sort_by))
+    if input.global_experiments_only is not None:
+        query_params.append(("global_experiments_only", ('true' if input.global_experiments_only else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
