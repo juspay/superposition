@@ -1,0 +1,71 @@
+---
+id: list-webhook
+title: "ListWebhook"
+description: "Retrieves a paginated list of all webhook configs in the workspace, including their status and config details."
+sidebar_label: "ListWebhook"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vktv4zYQ/ivEnFqATtwUufiW7hqbAFtskGR3D0Zg0NJYYkKR2uEwiWHovxfUw5YcOZsWbS8xonnPN/xmtpCiT0iXrJ2FGdwgk8Yn9EKJUmXaKsZUGO1ZuLVQxohnXOXOPYrE2bXOvNBWcI7i2dGjL1WCUmibmJBqm0WBJuFZcfBC2bQ1Eimy0safgARXIqkY/CqFGXzWnr83AUBCqUgVyEgeZostWFUgzCBxwTJI0DHfHwFpAxJ8kmOhYLYF3pRRy4ZihQRVJXeGpcrwn9gpY35qtnLOoLIDu5eJo2yi0844R5UijVl7Jm0zkJDiWgXDMIOH4Eu1gUoC4Y+gCVOYMQUc+Ge0at+Ln/p/7ew+fvGlsx591D+bTuPPcCZ6oIiz6VR0FiAhcZbRcrRRZWl0UkN5+uCj4fZ1Im71gElMuKQIPOsmLDtWZhnx8SNQyFauGYtxeaq4H0URqYjSocGR6E07R5o1aMOIHK1amdjL12MgIZAZNSqQc5eOgY82FDBbwKf5HUi4/nJb/3yt/17cfbgECR/nn+d3c5BwOb/4CPcSWLOJTi6Zyz8bz5WEJyQ/mvQ+yLff+ubfWoNKQhI8u2LZDNNo91Sa6tgTZa77fTxsGHxCi6QT8YibyZMyAUXjQnimkHAgFMFjKtaOxNrgi14ZFBFKQVgSerRcj5PgnFzIche4ppqL66vIHF3uX5q8Ih5PaNm/YxA6NCIc6mVJNemNj5ZRnpdMOsuQMF0qHmvq2lERJXEQccK6wLqTubIZLgmVPzJACWHk1+Vq86b47wSt8y1cqtf6uOOh0vvdDwhkcVDgIN9BbcPB2L+bHWIjGY1UMgRr95Jk84CbF7ef/d50t+R10/FWdVhIzR9DmpEDUuo567Fh5/BDy4JV7fh8jEOvLCNZZW6RnpDmRI7E+X/CpQV6Hxfd6LR3RYykM1ZMj64gwzqW4hxmcPq8W9Iek0CaN/WK9oXmfHOiSn2SM5d/oCKkixBtFvdx23Tat7GaJuE3bHYlRAEc8svl3d21aNSFCpyj5bZp3Q6sKblWqKvXdu1qp20XbkOJVDqvW5sdbcLZ9Ox8Mv19Mj2Pz6V0ngtl97uiHgKxP1QOFsUOyf//nGr7xfjCp6VRur+KGuwW0GF3LyF3nuOn7XalPH4lU1Xxc3PmREBT7dsdt1bGo4RH3PRusJrWYQYQz5Ijuu3Z9R7V5tLaa97Hf0hH1XqAZHfjjKZ2FIVfbtq3/qs41qImfu9iezvdfyPU7ngbhGqkF0mCZV/2ihFib3ZvM14MVfUXrNoPxg==
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListWebhook"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/webhook"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListWebhook 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"description":{"type":"string"},"enabled":{"type":"boolean"},"url":{"type":"string"},"method":{"type":"string","enum":["GET","POST","PUT","PATCH","DELETE","HEAD"],"title":"HttpMethod"},"version":{"type":"string","enum":["V1"],"title":"Version"},"custom_headers":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"events":{"type":"array","items":{"type":"string"}},"max_retries":{"type":"number"},"last_triggered_at":{"type":"string","format":"date-time"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","enabled","events","last_modified_at","last_modified_by","max_retries","method","name","url","version"],"title":"WebhookResponse"}}},"required":["data","total_items","total_pages"],"title":"ListWebhookResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

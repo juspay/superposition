@@ -1,0 +1,71 @@
+---
+id: list-organisation
+title: "ListOrganisation"
+description: "Retrieves a paginated list of all organisations with their basic information and status details."
+sidebar_label: "ListOrganisation"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9VctuE0sQ/ZVWrTuJFZSNd7kI3RuBBCK5q8iKyjMVT0NPd1NdY7Cs+XdUPbbxOJOAkGDlR59Tj1OvLdSUK3ZJXAwwh48k7GhN2aBJuHIBhWrjXRYTHw16byKvMLiMSsjmq5PGSEOOzRKzq4wLj5Hb8mow1CYLSpdNTYLO53OwEBNxeb+pYQ7vXJb3RybBQkLGloQ4w/x+CwFbgjlUsQsCFpyG+aUj3oCFXDXUIsy3IJukqNC1S2Loe3sgJlzR7/DQ+5/SljF6wgB9v7DAlFMMmbICLmcz/Rire5qsuZzNzJ4GFqoYhIIoEVPyriqoi09Z2dun7uPyE1UqSmJVVdzgW6Kgf9C880SKdvfuhNrp9xrl2Asyo2Z/SnjGu6uPMFnYhZUaHVSdeCiF5c1DFevnAEGwkgdq0fkXEamJ4RkbTNrJD8vN5DPWrQsvOBi6+OmTBQpdC/N7uK7ErbWGNwH3Xz9QqF1Yvd0sYWFBnHilvufV7WBODVMlkV8MGWXK7zBlMNdi0Zm4lpTTpfq3OZPS9NrWXzrHVGuWxzqNIhwpbLUHdhU/aDcKbuR1rM1hOD7u56LXKPaI0xHao17vRqcv6Kup6bsJQhzQ3xKvid8wRzZXf2QAW8pZt86knvtMJsKZSqa30JI0UZflioovlAbmcJG7RJxidiXG0V6G0lkdO9mUHZpbJ83mHJM7b0TSP4RMfN2pnfuF7q49+lYzHJJ4gXNISx/Anuj8393dBzPADXbSUJCdkPsVWlZnARRF9GYUoztlbo8TAwtr4jyYvpxdXp3NXp3NrrRzU8zSYqnMbmdrd5iTczIKbvujxH/j1u1kEvomF8mjC2XguCyZoYz3kE+yHRdyYaGJWRS43S4x0//s+17/Ho6SVrd2GZdeJ/QRfSYLn2lzdDHX6DuNAvS4PYPdHclfgQ538QdyoT/YKbR0k4WGsCYuoQ2U66qidBzKk+FSK4c2//fNHfT9d2PX/5Y=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListOrganisation"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/superposition/organisations"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all organisations with their basic information and status details.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListOrganisation 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"country_code":{"type":"string"},"contact_email":{"type":"string"},"contact_phone":{"type":"string"},"created_by":{"type":"string"},"admin_email":{"type":"string"},"status":{"type":"string","enum":["Active","Inactive","PendingKyb"],"title":"OrgStatus"},"sector":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"updated_at":{"type":"string","format":"date-time"},"updated_by":{"type":"string"}},"required":["admin_email","created_at","created_by","id","name","status","updated_at","updated_by"],"title":"OrganisationResponse"}}},"title":"ListOrganisationResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: applicable-variants
+title: "ApplicableVariants"
+description: "Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection."
+sidebar_label: "ApplicableVariants"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVktv20YQ/iuLOTUAZQsufOHNcQXEaBobsloEEIRgxB2J65LLze5QFiHwvxdDUiL1iN1Dg+oiYnee33wzszvQFBJvHJvCQgy/EZPPjaWgXlOTpIq2jrzJybLaoDdoOSj0pNC5zCS4zEhxoVCtzYasSgrLtOVIlYG0WhV+qE8bzEoURwqt3ptTgTJK5PQKIigc+UbkQUMMdwcnf3W+IQJP30sK/LHQFcQ7aFxals8uJlG/fgmSzw5CklKO8sWVI4ihWL5QwhCB8+KMDYWDmS1fEkStjdjE7GmoUkcn2E3JeQokCCWF3euoxBsmb7DHpPOlcuQkNXZ9pX6nKihNK2NJaUErCEoWcwodVllJQQVHiVlVilPqzXKKrPIysFqSyokFRjacSQ73+zigjsBosmxWhvwgy8De2DXUdQus8aQhnh/gONJa9IbPKzNty3LflaM+tsi+pDoChx5zoViAeL4DSRBi2I4Kvx4ZLd4EyJRQk4fovHhdtIL8CsuMIYaXMjis4IK3gX0mi5b/tf1zYws5Ca6woaXLzXgsf8cEOAdF3YzHaq8I0X9FVo08lELvsZLkmPLwvrbRFzPu+vFbe3EOOdkyF2rcP36ZTR8/QwSTr0+T6cMfky+zu89DcnTZz8RAHe259O0HfosNeW80vXff9NwJTRvO9AInSZyHdErLeQvlO8Ruyzdgdh3B7SUCPFgmbzF7Jr8hP/G+8Or2pzAgpxBwfaFOEts+lwvhXEqmjiAnTguZuK4IjTPkFGK47qd3uO4n/mjTT+NASekNV00/h9xwWl2hM1cps/tI6MnflWJrvpAe2ks/S5ptJm/oHHKTCzgdt59msyfViissOZUx1aK572xRXTYCDSyC8bRfHpMt5i6j4+F/MiYHNDR2VTQhdeA+l468K4LpPG7Ihzawm/HN7Wj862h8K3qCaI5Ncbtx1FNMDdbaUXKDtfa/r+SuBmLk2mVoml1S+kyibHkyhwFPZGFeYMoiglS4Fc9ht1tioD99Vtdy/L0kL/RZdN27FHjnizraz2lhljZBLjTEK8wCvQHXL9Ouuz+oHwX/N1XHW6dZrxADyNL4Ka4OC+jIVXvb9eKomZe9xNl46DXukoQcvym7GDT10+PzDCJYdi+mvNCi4/FVXlP4KtHIy0u0m5ZsznaQoV2XzZCB1qb8/gEwiZUI
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ApplicableVariants"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/experiments/applicable-variants"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"identifier":{"type":"string"}},"required":["context","identifier"],"title":"ApplicableVariantsRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ApplicableVariants 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"variant_type":{"type":"string","enum":["CONTROL","EXPERIMENTAL"],"title":"VariantType"},"context_id":{"type":"string"},"override_id":{"type":"string"},"overrides":{}},"required":["id","overrides","variant_type"],"title":"Variant"}}},"required":["data"],"title":"ApplicableVariantsResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: get-experiment
+title: "GetExperiment"
+description: "Retrieves detailed information about a specific experiment, including its config, variants, status, and metrics."
+sidebar_label: "GetExperiment"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVttu4zYQ/RVinlqASYwUedGba6up0TQJZGdRwDAMWhxbzEqUlhwZEQz9e0FdbCmWk12giz75Qs6Zy5k5nANItKFRGalUgwcBklG4R8skklAxSqb0NjWJcBeY2KQ5McFshqHaqpDhW4ZGJaiJM6XDOJdK75giy8JUb9WOs70wSmiynFkSlFvOhJYscX5Cew0c0gxNhT6T4ME9kn/EBA6ZMCJBQmPBWx5AiwTBAyWBg3IBZ4Ii4GDDCBMB3gGoyNwNS0bpHZQcDH7LlUEJHpkcS34EebtKze7qBBWhkGg+AOMgcSvymMCD19xmovgEn1CLKovvwz8HW7l/bJZqi9bdvx2N3Eefs17J2O1oxFob4BCmmlwlvQOILItVWJX65tU608N5KOnmFcOq8MYRQ6p2rORguKFBQSjXgoaqVfcNeCAF4RWpBLs2m2IQMhaW1kkq1VbhgNNLqHXNB/BOHbquz84RUecJeEuY+n+MXx4WwGHqP/gLf/30xQ+C2dSfw4oDKYqd2anWC4dTckj3aIySuP6Khe04EMaIwrFPmNiB4EoO9Ux8FNQk8McLfwocJk+Pk4eXafV99vgcPN0H/nzuop3NJ+OgPngev8z96XC888pZGzUZsd2qcJ2hCVGT2HVro/Nkg6aiyzXQGw21iJBSuW4S8XO3WUp+JiqZQYu6VoXWhoVGERolWG5Rsm1qWOOLJYLCSOndNfsLCydFW6WRSZeEdTLkyLaVjuxFnKNt9KhgFOEJliJBLMktsQ06wXFi0xZl0sbhUmwl6juo+7HxaIA/bbzJ0+MieHoADv4/z34w+9t/XIwfuiR+qZFa7ppCrS/4PTbkJ+cVWz3VWdbSerrwLonzkKo27g3tpckOo9SiXjd4g1d6fTMIIfQO1waFvXDDkjA/qkitzYW4m7dqnZv4o/O68ztyszNpng1T8K7m/bROM9cT2J5y9kt1rnK85rEvpgM8NcL5XsOOwjQoE52J6fRD7xkKmhdo0jw/Zelyvht6vmaa0GgRz9Hs0fjGpIbd/ZRHLEFr+zLX4aNNYyCcoWRq3qPU7Sw7rDcVisCDmxMV9uagZOmKiWFuFBXVCmMTRVFxLTJ1HRFlv6MwaMa5M16u3Ivf3p67tOrIP7A55uIO4L30/rlYPLP6OhM5RaipqV67hzjTTXWhKoPb9irQphzzPEOTpVY1Nns0toa+Hd3eXY1+uxrduSHIUkuJqOho1p97JNZb5d4N95HU/2PpbGrmpuwmi4Wq3oFmwGsil52ZcnPgKem6PUotucPDYSMsvpi4LN3f33I0jt5VMxsbV7zlAaSy7rsEbytiix8U4ZegEYRf2aX42rdJF9UIxrn7BRy+YlHvxOWq5O2a+Z97r710luZjBG7n/Smujvtzz1V9Og5DzLpnZ8rgZuk4o/f+AsryX2hQe6M=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetExperiment"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/experiments/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific experiment, including its config, variants, status, and metrics.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetExperiment 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified":{"type":"string","format":"date-time"},"name":{"type":"string"},"experiment_type":{"type":"string","enum":["DEFAULT","DELETE_OVERRIDES"],"title":"ExperimentType"},"override_keys":{"type":"array","items":{"type":"string"}},"status":{"type":"string","enum":["CREATED","CONCLUDED","INPROGRESS","DISCARDED","PAUSED"],"title":"ExperimentStatusType"},"traffic_percentage":{"type":"number"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"variants":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"variant_type":{"type":"string","enum":["CONTROL","EXPERIMENTAL"],"title":"VariantType"},"context_id":{"type":"string"},"override_id":{"type":"string"},"overrides":{}},"required":["id","overrides","variant_type"],"title":"Variant"}},"last_modified_by":{"type":"string"},"chosen_variant":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"started_at":{"type":"string","format":"date-time"},"started_by":{"type":"string"},"metrics_url":{"type":"string"},"metrics":{},"experiment_group_id":{"type":"string"}},"required":["change_reason","context","created_at","created_by","description","experiment_type","id","last_modified","last_modified_by","name","override_keys","status","traffic_percentage","variants"],"title":"GetExperimentResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

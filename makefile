@@ -262,6 +262,7 @@ smithy-clients: smithy-build
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
 	git apply smithy/patches/*.patch
+	cd docs && npx docusaurus gen-api-docs superposition
 
 
 
@@ -301,8 +302,12 @@ amend-no-edit: amend
 grafana-local:
 	cd grafana && $(COMPOSE) up
 
-local-docs-view:
+local-docs-view: api-docs-generate
 	cd docs && npm ci && npm start
+
+# API Documentation targets
+api-docs-generate: smithy-build
+	cd docs && npx docusaurus gen-api-docs superposition
 
 default: dev-build frontend
 

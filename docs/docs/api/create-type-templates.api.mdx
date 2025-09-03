@@ -1,0 +1,71 @@
+---
+id: create-type-templates
+title: "CreateTypeTemplates"
+description: "Creates a new type template with specified schema definition, providing reusable type definitions for config validation."
+sidebar_label: "CreateTypeTemplates"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVk1v2zAM/SsCTxugtEGHXnzrigLraUWbnYKgYGwmVmdLqkSnDQL/94G2kziplw0bimG5xJb48Ug+kt5ARjENxrNxFhK4DoRMUaGy9KJ47Ukxlb5AJvViOFfRU2oWhjIV05xKVBktjDWirpUPbmUyY5cqUBVxXlBrYi8T1cIFlTq7MEu1wsJkKMdnoMF5Cs3LbbYDMll7mnT+I2gI9FxR5M8uW0OygdRZJsvyiN4XJm30z5+ixLKBFqE8CQpIwM2fKGXQ4IN4Y0Nxe/tosaSeaORg7BJq3d7uTNX6MGMDCmmOdkmPgTAOStRtHCZQBsn0SPzQvO5hO0Qy08CGCxpO1X2bp+suP/WhTw4V1Ro8BiyJKURIphtoEwCvIxeWI5OBBiOMyAkzCqDfZrOLRxAvsCoYEniqosc1DHjr2WeyaPm37b81NpOT6J2Nbf0uxmP5G2LyQVbUxXistpqg/1P6aEib0LLH+frkNfJQsRYulHIDGTKN2JQkOgVGfixd1rT2X2gOQvoF4Xt4D2I7boU3GAec/3nDtKzodUyt4XKIWLeWKVgsHiisKNyE4IK6fBdilRQjLodoVe+DGYAzFEytoSTOncxW72LjDDmHBM7FtgzXSGkVDK+baRBLw/n6DL05y5n9Z8JA4aoSjelMOnAr/SDBtHhP6OwikIujyibwZTK5U624wopzstzlbDsXRHXeCDTBSybv97vg5hVLX9BRM+6Ze7oH93JHrdfrKWMXrjHfZf2h8hS8i6YDuaIQW2MX44vL0fjTaHwpepLqEpuqd6Ba8ilhn+qvtqOxsKPQv1zJXc2YXvncF2ishFSFQgC27JlCy56ZhlxYlUxhs5ljpG+hqGs5fq4oCKVmGlYYjCBoKKS3k1/YlpkGWgbJAotIJ7Lx4b6bJB/VzwB+p/XhHlthUYkYyBp6F1e7lXbgqr3tunAkFe9JvBkMe42rNCXPJ2VnvXa++/owAQ3z7qOodJnoBHyRDyZ8ETTyddXUWgSasw0UaJdVM16gtSm/H8I3in4=
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateTypeTemplates"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/types"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new type template with specified schema definition, providing reusable type definitions for config validation.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"type_name":{"type":"string"},"type_schema":{},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","description","type_name","type_schema"],"title":"CreateTypeTemplatesRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateTypeTemplates 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"type_name":{"type":"string"},"type_schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","type_name","type_schema"],"title":"CreateTypeTemplatesResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: get-webhook
+title: "GetWebhook"
+description: "Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history."
+sidebar_label: "GetWebhook"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVktv20YQ/iuLObXAylZd+MKbmwi2gRYxbCU5CIIwIkfi2uQuMzurWBD434slKUqyaTcFGvQiAprXN69vdgcZ+ZRNJcZZSOCehA1tyKuMBE1BmTJ25bjEqKBw6YIoVL6i1KxMqr7TMnfuSaXOrsxaK2PTImTGrpURr2hDVrxWOWFG7LVCmylhs14Tq9x4cbw9Aw2uIm4C3GaQwDXJ19YtaKiQsSQh9pDMdmCxJEjajwYTIVcoOWjwaU4lQrID2VZRxwsbu4ZaA9O3YJgySIQD1bp38zxyvB6ZbO+qxfmOMw0ZrTAUAgk8Bl/h9h/8C1m08sP+Xzubx3985awnH/UvxuP4Oe3aoWLqYjxWewPQkDorZCWaYFUVJm3KfP7oo93uNQ63fKQ04q04NkVMG7XNZwDtCY4BOVlcFjGZXrZ0riC0URi4GDQqSXKXDVWfbCghmcH1ZAoa7j49NJ/Pze/V9MMNaPg4+XMynYCGm8nVR5hrECNFdHIjUv3Veq41bIj9IOhDkC+/HZt/6QxqDWnw4spFN9VD1cMsM7EmWNwd1/FlweCaLLFJ1RNtRxssAqnWhfLCIZXApIKnTK0cq1VBz2ZZkMpQUDFVTJ6stIspObuwzuN2Sk7q6u427tUe+6cWV+xHs5FHkJEZt3E+hUo/0I3YDnxecMMLxwo2lEvi6LNAL4tuqylboAwVteUQSCBDoZGYkppK5mjXtGBC/8YApUwolC2W23fF/yZog7d0mVmZtx2fKv24+5MNnr1I8ATvSW6ng3HYm75jA4gGMjltVr9Jek+YceMOs3803QcGue/I40PHHHUdc7ocop1bK8QWiwfiDfGE2bG6/Cn8U5L3uB6ioPqQwwCcoWSOCAbW1MSKFySB8+6Yne9itepI05QGNrJtTo8vjeTbM6zMWS5S/UHIxFchms7mkaf32g8xqRb3OzZ9JlEAL4nhZjq9U626wiA5Welqt78eDZc2Ck0R4pVunHbFeAgVceW86Wx6voOL8cXlaPz7aHwZ57xyXkq0B5KPo6AO9/cFwff9/J9eCl3NhJ7lvCrQHN+Rto0z+N6DT5qU5hpy5yWKdrslevrMRV3Hv78F4tjcuYYNsokr17Q6M747WyssPL1ThV/uu2X/Vb2Fbk+0Nq5nQ/KQAGh4ou3+JVPPa71/HPzn8ds4R0+dHkN8qfyUUP2r5yRUK71KU6qOZa94Ie5Sv6Hx0tf134GXrXY=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetWebhook"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/webhook/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetWebhook 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"description":{"type":"string"},"enabled":{"type":"boolean"},"url":{"type":"string"},"method":{"type":"string","enum":["GET","POST","PUT","PATCH","DELETE","HEAD"],"title":"HttpMethod"},"version":{"type":"string","enum":["V1"],"title":"Version"},"custom_headers":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"events":{"type":"array","items":{"type":"string"}},"max_retries":{"type":"number"},"last_triggered_at":{"type":"string","format":"date-time"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","enabled","events","last_modified_at","last_modified_by","max_retries","method","name","url","version"],"title":"GetWebhookResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: list-workspace
+title: "ListWorkspace"
+description: "Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information."
+sidebar_label: "ListWorkspace"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv4zYQ/ivEnFqATowUufiW7QZtgEVRxCl6MAJhLI1tZimSS46cGIb+ezGUX0rkJrtADz3pwXl+M99wtlBRKqMJbLyDCdwTR0NrSgpVwKVxyFQpaxIrv1BorXr28WsKWFJSz4ZXymdVtGphLFM0bqnmm6OUcliTVsaVtqnkkFdkokqM3CStSu8WZqkqYjQ2aYWuUljVxpnEEdmsSRm38LFG8XIBGnygmD/uKpjAF5P4770v0BAwYk1MMcFktgVxDhMofeMYNBhJ8VtDcQMaUrmiGmGyBd4EkXJNPacIbasPigGX9CN6aO27anPvLaHr6b2MfFyOTLVXXhFWFIe0EwvUoKGiBTaWYQJPTQq4gVZDpG+NiVTBhGND7aP8ScG7RElMXI3H8uhXvoekuhqP1V4HNJTeMTkWLQzBmjJX4PIpier2bXR+/kSlIB6i1ItN55g9oy0E1DSAn96dG6Z6+LxCPvWCMaJA+1rhjPdDTxYd2q+xbDX4uERnUs6uMNX7MmctHZ114HxIMpNiqMjkmhomM7j94+bTl9vPoOHz3bR7fdTAhq2IH8o37Qz1jGdWFVSjsYNhdEws1hST6ar6ViSSjINivhk8tpi4qH1lFuajQshD2XZ8h4nUm0Zsajr1/j06NboK2cdNUZmanGSWPtBA+3BbnV/LHDENcVdDLROzFO1WC+/9c0EvgaL44yKRXRQYQvRrtMMGsGFfBB8ai0yFMC36QdEesWfv+TpnuAdkr6YDxRko6luSDFGiD9y5PtSvOXmONwMsGer7+/3Eal+DlSdHf8Do3jg6MdebhHuTv+4mYJtNXw9N0DvHFB3aKcU1xdsYfVTX/8kcrSkluZkGO3afxkA4Q8l0LbzycpsuKftCXsEELo83vZSTyiYa3uRrNdWGV5sLDOZixRw+EUaKN42ozR7lutlLTyWhLuZ/0TlkIQf5SjuF9feHhz9VJ66w4RU53uG2vxczS7JABkAWhmx0B8S0CRSDT2ancxhxcDW+uh6NfxmNr4WIwSeuMRdidx1LJ6jT9aIX2fZYzv/B3rSDmOmFL4NFk2dPE/Ok6So+g5OKP2pY+cTyd7udY6K/om1b+d0tNNIGlUk4t0KwBdpEGr7S5mTbWqNtxCXIgnNGdrdgfUS026mOko/yEY2I5rbT+21pMLSzlfvpfjcmflbnUOr8n+xmvXC705uypHCa9Rt+S8AHpv12+wBt+w8r2gyq
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListWorkspace"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/workspaces"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListWorkspace 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"workspace_name":{"type":"string"},"organisation_id":{"type":"string"},"organisation_name":{"type":"string"},"workspace_schema_name":{"type":"string"},"workspace_status":{"type":"string","enum":["ENABLED","DISABLED"],"title":"WorkspaceStatus"},"workspace_admin_email":{"type":"string"},"config_version":{"type":"string"},"created_by":{"type":"string"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"created_at":{"type":"string","format":"date-time"},"mandatory_dimensions":{"type":"array","items":{"type":"string"}},"strict_mode":{"type":"boolean"},"metrics":{},"allow_experiment_self_approval":{"type":"boolean"},"auto_populate_control":{"type":"boolean"}},"required":["allow_experiment_self_approval","auto_populate_control","created_at","created_by","last_modified_at","last_modified_by","organisation_id","organisation_name","strict_mode","workspace_admin_email","workspace_name","workspace_schema_name","workspace_status"],"title":"WorkspaceResponse"}}},"required":["data","total_items","total_pages"],"title":"ListWorkspaceResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
