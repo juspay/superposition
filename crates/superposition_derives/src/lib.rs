@@ -196,3 +196,95 @@ pub fn derive_is_empty(input: TokenStream) -> TokenStream {
 
     TokenStream::from(expanded)
 }
+
+/// Implements `QueryParam` trait for the struct, allowing it to be used as a query string
+///
+#[proc_macro_derive(QueryParam, attributes(query_param))]
+pub fn derive_query_param(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let struct_name = input.ident;
+
+    let fields = if let Data::Struct(data) = input.data {
+        match data.fields {
+            Fields::Named(fields) => fields.named,
+            Fields::Unnamed(_) | Fields::Unit => {
+                return syn::Error::new_spanned(
+                    struct_name,
+                    "QueryParam can only be derived for structs with named fields",
+                )
+                .to_compile_error()
+                .into()
+            }
+        }
+    } else {
+        return syn::Error::new_spanned(
+            struct_name,
+            "QueryParam can only be derived for structs",
+        )
+        .to_compile_error()
+        .into();
+    };
+
+    let mut query_parts = Vec::new();
+
+    for field in fields {
+        let field_name = field.ident.unwrap();
+        let field_str = field_name.to_string();
+
+        // detect if field has #[query_param(skip_if_empty)]
+        let mut skip_if_empty = false;
+        for attr in &field.attrs {
+            if attr.path().is_ident("query_param") {
+                let ident: syn::Ident = match attr.parse_args() {
+                    Ok(v) => v,
+                    Err(_) => continue,
+                };
+                if ident == "skip_if_empty" {
+                    skip_if_empty = true;
+                }
+            }
+        }
+
+        // check if the type is Option<_>
+        let is_option = matches!(&field.ty, Type::Path(type_path) if type_path.path.segments.first().is_some_and(|seg| seg.ident == "Option"));
+
+        if is_option && skip_if_empty {
+            query_parts.push(quote! {
+                if let Some(value) = &self.#field_name {
+                    if !value.is_empty() {
+                        query_params.push(format!("{}={}", #field_str, value));
+                    }
+                }
+            });
+        } else if is_option && !skip_if_empty {
+            query_parts.push(quote! {
+                if let Some(value) = &self.#field_name {
+                    query_params.push(format!("{}={}", #field_str, value));
+                }
+            });
+        } else if skip_if_empty {
+            query_parts.push(quote! {
+                if !self.#field_name.is_empty() {
+                    query_params.push(format!("{}={}", #field_str, self.#field_name));
+                }
+            });
+        } else {
+            query_parts.push(quote! {
+                query_params.push(format!("{}={}", #field_str, self.#field_name));
+            });
+        }
+    }
+
+    let expanded = quote! {
+        impl QueryParam for #struct_name {
+            fn to_query_param(&self) -> String {
+                let mut query_params = Vec::new();
+                #(#query_parts)*
+
+                query_params.join("&")
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
+}

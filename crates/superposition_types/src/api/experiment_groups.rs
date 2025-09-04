@@ -1,10 +1,7 @@
-use core::fmt;
-use std::fmt::Display;
-
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::experiment_groups;
 use crate::{
-    custom_query::CommaSeparatedQParams,
+    custom_query::{CommaSeparatedQParams, QueryParam},
     database::models::{
         experimentation::{
             i64_vec_deserialize, i64_vec_formatter, GroupType, TrafficPercentage,
@@ -16,7 +13,7 @@ use crate::{
 #[cfg(feature = "diesel_derives")]
 use diesel::query_builder::AsChangeset;
 use serde::{Deserialize, Serialize};
-use superposition_derives::IsEmpty;
+use superposition_derives::{IsEmpty, QueryParam};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExpGroupCreateRequest {
@@ -66,13 +63,14 @@ pub enum SortOn {
     LastModifiedAt,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, IsEmpty)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, IsEmpty, QueryParam)]
 pub struct ExpGroupFilters {
     pub name: Option<String>,
     pub created_by: Option<String>,
     pub last_modified_by: Option<String>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
+    #[query_param(skip_if_empty)]
     pub group_type: Option<CommaSeparatedQParams<GroupType>>,
 }
 
@@ -89,32 +87,5 @@ impl Default for ExpGroupFilters {
                 vec![GroupType::UserCreated].into_iter().collect(),
             )),
         }
-    }
-}
-
-impl Display for ExpGroupFilters {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut query_params = vec![];
-        if let Some(key_name) = &self.name {
-            query_params.push(format!("name={}", key_name));
-        }
-        if let Some(created_by) = &self.created_by {
-            query_params.push(format!("created_by={}", created_by));
-        }
-        if let Some(last_modified_by) = &self.last_modified_by {
-            query_params.push(format!("last_modified_by={}", last_modified_by));
-        }
-        if let Some(sort_on) = &self.sort_on {
-            query_params.push(format!("sort_on={}", sort_on));
-        }
-        if let Some(sort_by) = &self.sort_by {
-            query_params.push(format!("sort_by={}", sort_by));
-        }
-        if let Some(group_type) = &self.group_type {
-            if !group_type.is_empty() {
-                query_params.push(format!("group_type={}", group_type));
-            }
-        }
-        write!(f, "{}", query_params.join("&"))
     }
 }

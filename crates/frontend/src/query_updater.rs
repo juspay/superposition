@@ -1,17 +1,16 @@
-use std::fmt::Display;
-
 use leptos::*;
 use leptos_router::{use_location, use_navigate, use_query_map, NavigateOptions};
+use superposition_types::custom_query::QueryParam;
 
 use crate::utils::use_service_prefix;
 
-pub trait DisplayDefault: Display {
+pub trait DisplayDefault: QueryParam {
     fn default(&self) -> String;
 }
 
-impl<T: Display + Default> DisplayDefault for T {
+impl<T: QueryParam + Default> DisplayDefault for T {
     fn default(&self) -> String {
-        T::default().to_string()
+        T::default().to_query_param()
     }
 }
 
@@ -23,7 +22,7 @@ pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn DisplayDefault>> + 'st
     Effect::new(move |_| {
         let desired_query = source()
             .into_iter()
-            .map(|s| s.to_string())
+            .map(|s| s.to_query_param())
             .filter(|s| !s.is_empty())
             .collect::<Vec<_>>()
             .join("&");

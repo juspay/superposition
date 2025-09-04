@@ -1,13 +1,11 @@
-use core::fmt;
-use std::fmt::Display;
-
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
-use superposition_derives::IsEmpty;
+use superposition_derives::{IsEmpty, QueryParam};
 
+use crate::custom_query::QueryParam;
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::default_configs;
 use crate::{
@@ -15,19 +13,11 @@ use crate::{
     IsEmpty, RegexEnum,
 };
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, IsEmpty)]
+#[derive(
+    Debug, Clone, PartialEq, Serialize, Deserialize, Default, QueryParam, IsEmpty,
+)]
 pub struct DefaultConfigFilters {
     pub name: Option<String>,
-}
-
-impl Display for DefaultConfigFilters {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut query_params = vec![];
-        if let Some(key_name) = &self.name {
-            query_params.push(format!("name={}", key_name));
-        }
-        write!(f, "{}", query_params.join("&"))
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
