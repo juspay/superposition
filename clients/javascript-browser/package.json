@@ -1,6 +1,6 @@
 {
-    "name": "cac-client",
-    "version": "0.0.1",
+    "name": "superposition_browser_client",
+    "version": "0.1.0",
     "description": "",
     "main": "index.js",
     "scripts": {
