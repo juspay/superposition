@@ -1,0 +1,63 @@
+cabal-version:      3.0
+name:               sdk-it
+-- https://pvp.haskell.org
+-- PVP summary:     +-+------- breaking API changes
+--                  | | +----- non-breaking API additions
+--                  | | | +--- code changes with no API change
+version:            0.1.0.0
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Superposition
+maintainer:         superposition@juspay.in
+category:           Testing
+build-type:         Simple
+-- extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+common warnings
+    ghc-options: -Wall
+
+test-suite sdk-it-test
+    -- Import common warning flags.
+    import:           warnings
+
+    -- Base language which the package is written in.
+    default-language: GHC2021
+    default-extensions: OverloadedStrings
+
+    -- Modules included in this executable, other than Main.
+    other-modules: Dimension,
+                   Utils,
+                   Config,
+                   DefaultConfig
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+
+    -- The interface type and version of the test suite.
+    type:             exitcode-stdio-1.0
+
+    -- Directories containing source files.
+    hs-source-dirs:   test
+
+    -- The entrypoint to the test suite.
+    main-is:          Main.hs
+
+    -- Test dependencies.
+    build-depends:  aeson,
+                    aeson,
+                    bytestring,
+                    bytestring,
+                    containers,
+                    HUnit,
+                    hspec,
+                    http-client,
+                    text,
+                    network-uri,
+                    base ^>=4.18.2.0,
+                    SuperpositionSDK
