@@ -16,7 +16,7 @@ use superposition_types::{
     api::experiments::ExperimentListFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams, QueryParam},
     database::models::experimentation::{
-        Bucket, ExperimentGroup, ExperimentStatusType, Variant,
+        Bucket, ExperimentGroup, ExperimentStatusType, GroupType, Variant,
     },
     Overridden, PaginatedResponse,
 };
@@ -271,6 +271,12 @@ pub fn get_applicable_buckets_from_group(
         .iter()
         .filter_map(|exp_group| {
             let hashed_percentage = calculate_bucket_index(identifier, &exp_group.id);
+            log::info!(
+                "Identifier: {}, Experiment Group ID: {}, Hashed Percentage: {}",
+                identifier,
+                exp_group.id,
+                hashed_percentage
+            );
             let exp_context = &exp_group.context;
 
             cfg_if::cfg_if! {
@@ -297,10 +303,14 @@ pub fn get_applicable_buckets_from_group(
             )
             .flatten()
             .and_then(|b| {
-                (*exp_group.traffic_percentage > 0).then_some((
-                    (hashed_percentage * 100) / *exp_group.traffic_percentage as usize,
-                    b,
-                ))
+                if exp_group.group_type == GroupType::SystemGenerated {
+                    Some((hashed_percentage, b))
+                } else {
+                    (*exp_group.traffic_percentage > 0).then_some((
+                        (hashed_percentage * 100) / *exp_group.traffic_percentage as usize,
+                        b,
+                    ))
+                }
             })
         })
         .collect()
