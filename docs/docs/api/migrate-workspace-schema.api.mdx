@@ -1,0 +1,71 @@
+---
+id: migrate-workspace-schema
+title: "MigrateWorkspaceSchema"
+description: "Migrates the workspace database schema to the new version of the template"
+sidebar_label: "MigrateWorkspaceSchema"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VkuP2zYQ/ivCnFqAjo0t9qLbplmgC/QRxFv0YBjCWBrb3EgkQ468awj678VQ8ivmblIgPVkmZ76Z+ebFDioKpdeOtTWQwx9645EpZLyl7Nn6z8FhSVmFjCsMlIVySw1mbKOAoedsRz5oazK7jkdMjauRCRRYRx4F96E6If9zwJxHJFDg0GNDTD5AvujAYEOQw9F2EQ8UaHHPIW9BweAF5B3w3ol0YK/NBnoFnr602lMFOfuWenUEfJlYv5no6gC1JazIvwGmoKI1tjVDDk9tcLhP4C/lJDhrAgWBuJnN5CdJ6lehZzezWXZQBgWlNUyGRR2dq3UZuZs+BcHort20qycqWQj0wjTrwYOviEtxZP0GjQ4Rv9DVt2VeRToZG9z7LklGbkOKbzJtA/kC7v+8e//7/QdQ8OFhPnwuFbDmWsRPNA5AF+BYNdoU1KCuk26U1qz1phiLNi3iCZmqYrVPXtcYuGhspdf6e4WQU9GurW/kBipkmrBu6Nz6f9Fp0FTI1u+LSjdkJLJzftF73EvZMzUJ3vtexc8yenyevZW1NaGJJkgkRLtXgHVtnwt6ceTFHheB6nWBznm7wzoNgC3bwlnXynAopNa9TYpe9NjiW7ZeA74g8iKnieQkknrdJKmWuCTutTpU18Ms3TeJLjmr+/QU+TQOkF/H6dH3wuBtagw9GCZvsJ6T35G/99767PZ/mUENhYCb1CDoT/Ek3EkFMxTf1soOcTZEY7IFcpge2QrT7pLiflqtps1AmGSJytZr3scFExrN2/07dPrdltm9J/Tk71qBXCxloB+kI8FDQG/oHEOUi7g0zjn/7fHxYzaIZ9jylgyPpB42Tyz+KBDZ0WZtI+jI0rx15J0NetQ5Ti64md3cTma/TGa30l9CTYMxS+PCG+slOxZMdly5Fz52p6z/0PU/0sL0wlNXo45joPWx6YcMLk71HkBBftUm1QoUHNK4VLCV/OcL6Drx5m9f970cf2nJS26XCnboNa6EuUUHlQ7yXUG+xjrQG3H/9GkcOT9nr3l+GKZGhsMO61b+gYLPtL9+rvTLXh1eGD/ck8Hi2Xvm6I08d4bbu7Ikx2d3V+0slX5srI9/zR+h7/8FRPyOMA==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"MigrateWorkspaceSchema"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/workspaces/{workspace_name}/db/migrate"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Migrates the workspace database schema to the new version of the template
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"workspace_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"MigrateWorkspaceSchema 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"workspace_name":{"type":"string"},"organisation_id":{"type":"string"},"organisation_name":{"type":"string"},"workspace_schema_name":{"type":"string"},"workspace_status":{"type":"string","enum":["ENABLED","DISABLED"],"title":"WorkspaceStatus"},"workspace_admin_email":{"type":"string"},"config_version":{"type":"string"},"created_by":{"type":"string"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"created_at":{"type":"string","format":"date-time"},"mandatory_dimensions":{"type":"array","items":{"type":"string"}},"strict_mode":{"type":"boolean"},"metrics":{},"allow_experiment_self_approval":{"type":"boolean"},"auto_populate_control":{"type":"boolean"}},"required":["allow_experiment_self_approval","auto_populate_control","created_at","created_by","last_modified_at","last_modified_by","organisation_id","organisation_name","strict_mode","workspace_admin_email","workspace_name","workspace_schema_name","workspace_status"],"title":"MigrateWorkspaceSchemaResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: delete-type-templates
+title: "DeleteTypeTemplates"
+description: "Permanently removes a type template from the workspace. No checks performed while deleting"
+sidebar_label: "DeleteTypeTemplates"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VU1v20gM/SsDnrbAOBGyyUW37jbFBlgUReM9GUZAS3Q0iTQz4VBuDUP/fUFZdqJETQu0OVkeko9vHj9mByWlgl0UFzzk8Jm4QU9e6q1hasKGkkEj20hGqIk1Cpk1h8ZIReZr4PsUsaAT8ymYoqLiPplIvA7cUGm+Vq4mU1JN4vwtWAiRGDXRVQk5fFADzbeR5gNyAgsRGRsS4gT5YgceG4IclMBN/23BKc+IUoGFVFTUIOS73gNySMKaq7PA9NA6phJy4ZY6e8T6Ngt8O3PlAaoiLIlfAbNQ0hrbWiCHuzZF3P4AX8ijl5/Gfwm21JMUg0+U1P8sy/RnXKoJ/cxZlplDJFgoghfyorEYY+2KXv3Tu6QAu5eEwuqOCiUeWWslbp/+Uf0p7r31CNXZMc2JgKJCf0s3TJi+58GEQuXNavuqGWWqWNp9aoEShWbiGtKYGpPcNKF0a/dLkZOURhVcPLvgiO/obmOpJjhOJLejWXiq/dKCOKlpujW+DF3x99ASXaesz7Pzl401ivsU5GNofWnOs/PH1uosXEz15JUXYo/1NfGG+JI5sLl4k55sKCW8nerI7lGHCTpTOnQWGpIq6Fbq1xX1i0gqyOFU0dPp7qh6p5NMRctOtv2KSo2TanuC0Z1UIvEvQiZ+32r0YqmjfPC+1qvt2b8Sc7yPGp61SA7/zOefzd7dYCsVeRkUPCwYDV31Dr0Uzq9DDzpIct1G4hiSG2I2xGkPfZadXcyyP2fZhZY3hiQN9iUZ9tq+qYx2h3m6sZ+N+7G+b/uWDCIJfZPTWKPzSrrlWinsS7fofZRh/jgySwtVSKLW3W6Fif7juuv0+KEl1oIuLWyQHa5UrsUOSpf0u4R8jXWiV+77x5dhB7wz3yM4HKLXQd5g3eo/sHBP29Er1y07e3g4fjuJfbInz+CRiL5ib5Lq+CKOUu2t74uC4lPbi7WgQ3Qc0A+X/17OL6Hr/gfieAt1
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteTypeTemplates"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/types/{type_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently removes a type template from the workspace. No checks performed while deleting
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"type_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"DeleteTypeTemplates 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"type_name":{"type":"string"},"type_schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","type_name","type_schema"],"title":"DeleteTypeTemplatesResponseContent"}}}},"404":{"description":"TypeTemplatesNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

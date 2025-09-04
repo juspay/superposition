@@ -1,0 +1,71 @@
+---
+id: update-workspace
+title: "UpdateWorkspace"
+description: "Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided."
+sidebar_label: "UpdateWorkspace"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV99v4zYM/lcMPm2A0gZd+5K3dtdhBYbDoT+2hyAwGJtJ1LMlnSS3DQL/7wMlJ3YaNXeH63BYXqJIJEV+JD8xGyjJFVYaL7WCCTyYEj25DFVGL9J5qZbZs7afncGCskKrhVw2FllaZFhV+pklal3KhSzCdqYXGZa1VJkjz/pOZDWqEr2266yUNSkntXIiQ1UObBurDVkvyZ1kf2Mlox/xxuyJLCtFn0gVlMkFazzJksoTEMC64fqbchfFP1vbIMDSl4acv9LlGiYbKLTypDwv0Ziqc/300TEIG3DFimrklV8bggno+SMVHgT0XvLpzvs8RJxTjbIaqDlvpVpCKyDGkXdxJEV2IOU9SANBtBbXIEB6ql3CQCsG7jiPvklICSDV1DCZwvXHy6u/rj+AgA83d3E5E+Clr1h8B91dNMTukbeyYJutgJD5nF4MWfbV546qRY6GU4JDBOZaV4SKDWDjdW60aSr0lHMGrE6KtjFd0lLJnqZBHjj7Ktu3MdW/dylu9+1521ArwKDFmjxZB5PpBhTWbKm/KmwIkNwTBv0KxGFR9Kl7bX5n8GWk7XIky62pFWFJ9ogxASUtsKk8TOCxcQbXCfsz3nFGKxfL8Gw85q9UJ+9Qyc7G42yrBeL9OyBGnABH2yUq6YL9XJZfl3nT0qC+g3vfJPn+nfCuXV9YQk9lPl8njyt0Po/0+q1C6FPRLrSt+QS4KkZe1jS8/Xt0fpyneFkEjylNFT+Na75y11uG94Dcy2kiOYmkHjZJqiX2gXurDsUhi6X7JtElx0g1MseAVVsB5+PzQ+LZ6XzU/g/dqDI7H5/31NMKuEjx1Y3yZBVWd2SfyF5bq2128Z9wVk3O4TJFHG0ff8KdFAaxWFeapw7ThLv4tZjA6Q5cd7rZz0jLmaSisdKvw+vjaulX6xM08mTlvbkitGQvG7YznTHbb6XvOMIYxBGdXVh8EF6UIc5/3t9/yqJ4ho1fkfIdkNtnKTRIEAiIMLy3/fh0/YK1qejI+NMTyGv+60/SJDLdCsxSFD5g6u8iCH4z36SEbh6QaqEDcl367xpD1mgnO2D6EM7GZxej8W+j8QWXstHO1xjKr3vyY+Nkw+FzLwGD4fN/O2139eXpxZ+aCmXg3MYGho31PxjbHAiYvOKkmYCVdp7lNps5OnqwVdvy9peGLHfFTMATWolzTsd0A6V0vC5hssDK0RFQf7ntCP3X7C1Xt0+VYup9wqrhXyDgM60Pp8B21ort4PbunsQbB2PizhueIuNpxzejezbQSxxQYK9xWRRk/FHZ2YC4Pj3cg4B5998oPstg8Zn/N+FzhEaH+AL1hL0NVKiWTeBRiCb58y8xeRqa
+sidebar_class_name: "put api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateWorkspace"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/workspaces/{workspace_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"workspace_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"workspace_admin_email":{"type":"string"},"config_version":{"type":"string"},"mandatory_dimensions":{"type":"array","items":{"type":"string"}},"workspace_status":{"type":"string","enum":["ENABLED","DISABLED"],"title":"WorkspaceStatus"},"metrics":{},"allow_experiment_self_approval":{"type":"boolean"},"auto_populate_control":{"type":"boolean"}},"required":["workspace_admin_email"],"title":"UpdateWorkspaceRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateWorkspace 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"workspace_name":{"type":"string"},"organisation_id":{"type":"string"},"organisation_name":{"type":"string"},"workspace_schema_name":{"type":"string"},"workspace_status":{"type":"string","enum":["ENABLED","DISABLED"],"title":"WorkspaceStatus"},"workspace_admin_email":{"type":"string"},"config_version":{"type":"string"},"created_by":{"type":"string"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"created_at":{"type":"string","format":"date-time"},"mandatory_dimensions":{"type":"array","items":{"type":"string"}},"strict_mode":{"type":"boolean"},"metrics":{},"allow_experiment_self_approval":{"type":"boolean"},"auto_populate_control":{"type":"boolean"}},"required":["allow_experiment_self_approval","auto_populate_control","created_at","created_by","last_modified_at","last_modified_by","organisation_id","organisation_name","strict_mode","workspace_admin_email","workspace_name","workspace_schema_name","workspace_status"],"title":"UpdateWorkspaceResponseContent"}}}},"404":{"description":"WorkspaceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: get-organisation
+title: "GetOrganisation"
+description: "Retrieves detailed information about a specific organisation including its status, contact details, and administrative metadata."
+sidebar_label: "GetOrganisation"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVU1v00AQ/SurOYG0ba3SXnwrqJQKCVBbTlFUTbzTeMHeXXbHEZHl/47Gdts4dXNAQuIUx/P95s1zC4ZSEW1g6x3kcEMcLW0oKUOMtiKjrHvwsUZxULjyDStUKVBhH2yhfFyjs2mwWldUjbFurSwnlRi5SVoV3jEWPCZMWqEzCk1tnU0cke2GVE2MBhmPQYMPFPt81wZyuCL+ulMDNASMWBNTTJAvWnBYE+RgDWiwMkJALkFDKkqqEfIWeBvEI3G0bg2dhki/GhvJQM6xoW4pb1LwLlES/9Msk58pMHt9qNMsU49RoEGGJMcShyFUtui9Tn4kCW5fNuNXP6hgmSbKvGyH0tbMNjzMOGMofOM4bu8Lb15z6MG/pxptddAjlN69kiMSMpn71XbW3K/yQIGBBy9NGsg1NeQLuCiEBKDh2uHj4zdywqTP2xUsNbDlSkK/xvXtkE4SU8E+HmwZea7uwGfIwSDTEduaJKYJ5q9jZqGZMG0xwWnS4QRhPTC53/gTdpPmJlV3sNlj6M1Izg8jM7tOGjrLzl5yezfsi+ePvnFGnWVnzwTvNJzPXcW1Y4oOq1uKG4qXMfqozv/JZdSUEq7nCNo9QzDTzhwMnYaauPSiL2vqa4lm5HCSmkAx+GT7HnfFLZ201nTQs66Jlre9+KTacrk9xmCPS+bwnjBSvGgk2WIpwvLofStjDpMciHmaTQyg98D+dHf3TQ3uChsuyfGI5qPcSeiqd+hhEeXuk47w3O5OBxo2FNOQ+jQ7PT/K3h1l57Lq4BPX2K9nVNcrYrUnw5Pe2uc1/w+fkBFFpt98Eiq0rr/V2OvTsOoFpD0wJssGDbk1cl2lTyzubbvCRN9j1XXy+ldDUSiw1LDBaHElAC9aMDbJs4H8AatEB2B6czNqw1v1WsfjS3QiCxusGvkHGn7SdvjidctOQ0loKPbVB8NFUVDgnZAXdyfMfLqAq8s76Lo/Ad7RFQ==
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetOrganisation"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/superposition/organisations/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific organisation including its status, contact details, and administrative metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetOrganisation 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"country_code":{"type":"string"},"contact_email":{"type":"string"},"contact_phone":{"type":"string"},"created_by":{"type":"string"},"admin_email":{"type":"string"},"status":{"type":"string","enum":["Active","Inactive","PendingKyb"],"title":"OrgStatus"},"sector":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"updated_at":{"type":"string","format":"date-time"},"updated_by":{"type":"string"}},"required":["admin_email","created_at","created_by","id","name","status","updated_at","updated_by"],"title":"GetOrganisationResponseContent"}}}},"404":{"description":"OrganisationNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

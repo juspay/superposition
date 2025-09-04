@@ -1,0 +1,71 @@
+---
+id: create-dimension
+title: "CreateDimension"
+description: "Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management."
+sidebar_label: "CreateDimension"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV01v2zgQ/SvEnLaAnBhZ5OJb2i26OTVIsifDMMbiyGIqkepwlMQw/N8XI8m2bCvuZosCuz4ZnE++eXyk1mAppuwqccHDBD4xoVA0aDy9GOtK8tEFb16c5EZyMrGi1GWOrHmKwZuY5lTihflj6xmNpcx5MikKLQO7FAuDIuwWtSauI1mTBTZp8EKvMlqgrqTBZ25pSvS4pJK8XEACoSJGbezW7lrbFYIEmL7XFOVjsCuYrKHJ6EX/YlUVLm1iL7VPXWtb1X+yqggmEBZPlAokULFWEkdRrbtN91yjsPNL2CRQhejk0OjrckGsxl2JTQJZ7VN1nHssaTCVpYq8JZ92hTsHZMYVJOCEyjgQ2ET2ZjaQOc3RL2nOhPEND6wlpKGsChKa/6jVTQu1Y7IwmR5lP+wm6cHXA2sHzSwBcVLQ6Tzv22F+6oa4OawqXJOij4wlCXGEyXQNbb/wOgq8HDmroCmJc0JLDMnpyLsdac8Z1oXABJ7qWOEKBqr18gt59PKP858mm+lKrIKP7ayvxuOGawOHb4eIuRqPzTYKkv8hv3+WpQVGmZfBNoIzRxmaZBa4VAtYFBqJK+k0crEabqDB+32JtzFvpPyZM91Gyr+MS1fzJWOVDxEArW2GisVdnwrHM4Iv5Ildar7RavSMRU2mTWGicJ1KzbTX76ygV7coyFgUNEwVUyQvDSeN5BzqZR5qaS6Nm7tb1fPtyf/a9vVeGUqgRG9RAvexX4RQEPofqlRv2AdTPJrZAKAHszkndyd0HeDhe0WxPf09VdwkcD0kHrdeiD0WD8TPxJ+ZA5vrXyIgJcWIyzcuiu1GBtoZ2owOlSQPesFXITbFUHKYwGUf2UhpzU5WjerH0km+usDKXeQi1UdCJr6pNWo6U6Xdej/ohtqez8TsdqEGOD4Sfz4+3pnW3WAtOXnpcNvOryFh49AAoGje7x8mn19R6X0kvHuV2evt+Ky+9q+uvsRMt4bZcee7gCOd3RvOnb7eqXM+Cw1M3Wgf6oq4x+Jn4m5XV+Or69H499H4urtKpMSGWl3Olt2m/4Y7uiR2FP1vvUQ7hqjbZVWg87q/mgttueXrtDfeWQK5cnkyhfVas/7FxWajy99rUvGazhJ4Rna4UECns02yfVMov62LarAwybCIdAaj3+47wftg3mryG60OX0iNrsMEQB84v6TU7rF0UKq1dmd/9KgJ9h4ncrSPuElTquSs76wnIndfHx4hgUX3TVAGqzGML/q9gC/ajX5YaHQjDM3aGgr0y7oRNWhz6u9vtx+fTw==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateDimension"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/dimension"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"dimension":{"type":"string"},"position":{"type":"number"},"schema":{},"function_name":{"type":"string"},"dependencies":{"type":"array","items":{"type":"string"}},"description":{"type":"string"},"change_reason":{"type":"string"},"autocomplete_function_name":{"type":"string"}},"required":["change_reason","description","dimension","position","schema"],"title":"CreateDimensionRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateDimension 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"dimension":{"type":"string"},"position":{"type":"number"},"schema":{},"function_name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"dependencies":{"type":"array","items":{"type":"string"}},"dependents":{"type":"array","items":{"type":"string"}},"dependency_graph":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"autocomplete_function_name":{"type":"string"},"mandatory":{"type":"boolean"}},"required":["change_reason","created_at","created_by","dependencies","dependency_graph","dependents","description","dimension","last_modified_at","last_modified_by","position","schema"],"title":"CreateDimensionResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

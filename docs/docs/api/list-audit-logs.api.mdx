@@ -1,0 +1,71 @@
+---
+id: list-audit-logs
+title: "ListAuditLogs"
+description: "Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes."
+sidebar_label: "ListAuditLogs"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVktv20YQ/iuLObUAZQsufNHNDZI2QA6F7Z4MwxiRI2nd5e5mduhEEPjfi1lRMhlTsmK4QE8Sd+ab92sDFaWSbRQbPMzgmoQtPVEyaCIurUehyjibxISFwaayYlxYJvPNysqkJsbAYhaBzcI6IbZ+aeZrU6GQYfRLKozg3JHxWFMqDJaqSP/4yjSJOL9nAWWoo7PoS8rEOngrIQuMDceQKJ1BASESo8r4XMEMvtgkV2rUl7BMUEBExpqEOMHsbgMqHGZQhsYLFGDVw68N8RoKSOWKaoTZBmQdlcs39ZwY2rbYAyMu6S04dO5V2DwER+gHuAWH+kFj9yo6iUYGClgErlFgBgqbiK1pIFHCO8vTZP4obVhCH0Jdo0nEmox+9WRsTuJh9T8pahD0XFpvtK2ry3cxbi+rb92u1k/NRB/7fRJ4ObHVDrsirIhfMXWBjdM8PjYp4hraApi+NpapgplwQwP5Qh6fW+RV+S+F3etLisEnSsp/MZ3qzzBig241F9Op2WGggDJ4IS+KwhidLXOXnz8mhW5emhLmj1SqyZF1JojdKpYg6B60cdNIjxYd3QrV4/QKpa8FmVHT9CPgkHaty4dtWEeCpkVwmKrNlgTreGpfFruaH5MW2Or4dg+dR20Bnr71vrYVOFZ4IFacPu2S9alxDto+ZZDK6y6LH7oUtpn1cqwEPnvRPnA3xE/EH5kDm8v/pBBqSknH91EHR8wZc6YtoCZZBV05S8q6UFYwg/O8EbVTqGzYyjqvnVRbWa3PMNqzlUj8nZCJrxpF3N1rq+y4b9SXrblHMHsHlPBiDP15e/uX2bIbbGRFXrqQ7Ro4b5vMkH23fhGy0C4GN00k3a+2wzwRp63oi+nF5WT622R6qQUVQ5Iacw66uaFFYHIVmG7/DkzbPKfy/39XdCEW+i7n0aH1uV/ZqRvbZN/BNtn3BaxCEn3YbOaY6G92bavPXUfdbaCySa2rYLZAl6iAf2jdO0Se0DWqDXQIH+Dtbo9TWLfnximc/QPjFP7n8+E498G8n3AMjEa+U99dG++tvLftj2jfHxSnRKq335/Z7/WDbfZCW7/YrdbRGjnoxy/X3bL91Ry3uHcovDFkP6FqfzMMVG2pV2VJsU97Mck1NvuZ+sfHW2jbfwENFFCE
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListAuditLogs"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/audit"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}},{"name":"from_date","in":"query","schema":{"type":"string","format":"date-time"}},{"name":"to_date","in":"query","schema":{"type":"string","format":"date-time"}},{"name":"table","in":"query","description":"Comma serparated list of tables.","schema":{"type":"string","description":"Comma serparated list of tables."}},{"name":"action","in":"query","description":"Comma serparated list of actions.","schema":{"type":"string","description":"Comma serparated list of actions."}},{"name":"username","in":"query","schema":{"type":"string"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListAuditLogs 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"table_name":{"type":"string"},"user_name":{"type":"string"},"timestamp":{"type":"string","format":"date-time"},"action":{"type":"string"},"original_data":{},"new_data":{},"query":{"type":"string"}},"title":"AuditLogFull"}}},"title":"ListAuditLogsResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: create-workspace
+title: "CreateWorkspace"
+description: "Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings."
+sidebar_label: "CreateWorkspace"
+hide_title: true
+hide_table_of_contents: true
+api: eJzdV1Fv4zYM/isCnzZAaYMOfclbe1dgBYbt0HTYQxAYjMUk6tmSTpKTBoH/+0DZSZzGSXvDhmHLSwyLFMmPHz/JW1AUcq9d1NbACD55wkhBoDC0FmvrvwaHOYm1jkttBBph/QKNDsgOUmiTF5XSZiEURpxhIBHyJZUoAsXKCTRK6GALjKQEmZX21pRkophbL3Jr5nohSjS4oPSWw4jgKNdzTUqgKlNQxbtFbRbhCiRYRz6Ff1T7jP/YZQoSPH2rKMR7qzYw2kJuTSQT+RGdK3SefK9fAhe8hSZdfoobRzACO3uhPIIE5zlS1BR4dY9FlrLKqERddNxC9NosoJYdS4MlvWMSIsYqnBpJIFOVMJrAw6939788fAYJnx/HzeNUQtSxYPN94eNmo1qmHfKYlVZ1g8+sLQgNG5TEFhy0loBFYdcZvTrymnuQBSrmGTrn7QqL/g2wijZz1lXc14wB9rbXtG66oT0pLuWdWOc2Pi5JnmnFCfAdlN6Q5KlhyKeWGfVxntFXVEtw6LGkSD7AaLKFppfwOrB+MdAKJGgemCWhIs8pvuXRvpGK5lgVEUbwUgWHGziNNuU3wVkTGrLdDIf81zeb+yLEzXAodl4g/36en2VvVwIyrd63+cgcpPT+pYn5+Gw3kpWtyAfd4Hpqktqkstmmd7nAkIicFO5jRhj7qp1bX/IKKIw0iLqkbvTv8SnRKIzWbzLFY8mVdfFF73HDfI9U9uBe/z8lpwPkUU97mtPT1NMh6RuJvyhs5+amZ0ouaWCjHB0RrCXc9gnPo4nkDRZj8ivyD95bL27/EfEpKQRc9ClAfSikJ52+YhrWLS1fEpwNKRjGJYzgeg9T4BZQXnkdN0nlQ6njcnOFTl8tY3T3hJ78XcVukynL9M56zBU1SV/w2ZfBC+ko6OL68/PzF9GYC6zikkxsgdudJ4nZySAhwHA+HW43D69YuoIu3E4Ok/9W1vtWdsraEdCjweaj6jtHuXE5M7ztQavN3Cao2v6OK0fe2aBbJPZiCzfDm9vB8KfB8JYlgZtaYuJXW1NDcdG9DB4h3rkM/iduui15Ir3Ga1egTkpY+aR7DZcn0OHyVMKSiT6awHbLGf7ui7rm198q8kzwqYQVeo0zBnoyreXu/sLcVzrwgoLRHItAF7D74alV2B/FuSy/0ub4trTComIzqOW2XW2ndfDMGxwsTgTk4HGX5+TiRdtpZ+y//DZ+Bgmz9kugYTF4XPNXAq45G/6ciLsDL73bQoFmUSUZgmZP/v0JNS+0MQ==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateWorkspace"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/workspaces"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"workspace_admin_email":{"type":"string"},"workspace_name":{"type":"string"},"workspace_status":{"type":"string","enum":["ENABLED","DISABLED"],"title":"WorkspaceStatus"},"strict_mode":{"type":"boolean"},"metrics":{},"allow_experiment_self_approval":{"type":"boolean"},"auto_populate_control":{"type":"boolean"}},"required":["allow_experiment_self_approval","auto_populate_control","strict_mode","workspace_admin_email","workspace_name"],"title":"CreateWorkspaceRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateWorkspace 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"workspace_name":{"type":"string"},"organisation_id":{"type":"string"},"organisation_name":{"type":"string"},"workspace_schema_name":{"type":"string"},"workspace_status":{"type":"string","enum":["ENABLED","DISABLED"],"title":"WorkspaceStatus"},"workspace_admin_email":{"type":"string"},"config_version":{"type":"string"},"created_by":{"type":"string"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"created_at":{"type":"string","format":"date-time"},"mandatory_dimensions":{"type":"array","items":{"type":"string"}},"strict_mode":{"type":"boolean"},"metrics":{},"allow_experiment_self_approval":{"type":"boolean"},"auto_populate_control":{"type":"boolean"}},"required":["allow_experiment_self_approval","auto_populate_control","created_at","created_by","last_modified_at","last_modified_by","organisation_id","organisation_name","strict_mode","workspace_admin_email","workspace_name","workspace_schema_name","workspace_status"],"title":"CreateWorkspaceResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

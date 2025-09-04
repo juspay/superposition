@@ -1,0 +1,71 @@
+---
+id: create-experiment-group
+title: "CreateExperimentGroup"
+description: "Creates a new experiment group."
+sidebar_label: "CreateExperimentGroup"
+hide_title: true
+hide_table_of_contents: true
+api: eJztV0tv4kgQ/iutOu1KJmGzyoVbkkGz0b4iYA4rhFBhF7gzdrunu5wERfz3UbUx2MZks5qdPS0XwF3v+uqr9isk5GOnLevCwAjuHCGTV6gMPSt6seR0TobVxhWlvYAICksORfo+OciPD3IfRQwicPSlJM+3RbKF0SvEhWEyLD/R2kzHwcLloxenr+DjlHKUX7y1BCMoVo8UM0Sd6O6NLVl5dmXMpSO1LpyKJQJtNm+EbJ0EzZq8uDCYU8OVZ6fNBnYdXz3ncYpmQ0tH6PskusFOglw7Rk617wlRjEuFXrivBpgkWmxi9tBMpBsxTMg68mTYq7gwtY6KnWZyGlXpKanCqXypHDlOtdlcqF9p61VCa21IJRKa14VRUimv0CTqCbOSvPKWYr3eKk7paJZTZJWXntWKVE4sFWfNmeRwV8chKbLD9VrHS0suJsO4abbBlPmKHESQ44vOyxxGPw2HEeTaVP+GuwhyEpnlsX5LnfiGDXQOtxCBZsr937cYftOeVbFuNuT+g68SQifJiD8vIqFxdbd2Fb61owRG8w4ujq1su4sq4PWWYdGoWN9ATapputtP0a4dAbuSdhFYdJgTk/Mwmtcwh5dB4TYDnUhZJOeUMAl1Ppm5BozXWGYMI3gsvcUt9Hhr2GcyaPjd9k+NLeSJt4Xx1YBeDYfy1UdMnbqoq+FQ1bp15b+dZqaMJkGXHEx3KAfNO2hGJ/0kUoFjmaJPewW+Fz39zzH/CcdImQNUkyVy33StC5fLCSTINGCdEzR0VtvezmXoeZkXiV7rf2i4rXnG/KqMPxO/J80DYNpgb5Wr18UTOo3njjuE2rbW0m0w5W0IOiiHEVxWRk8LQ0aaO4dP0/FkeTcZ38zGHyCC6V/T2fj35cfxH+NJeNSwHdhlJna6sdWl6s5bk/ZbM97CQ6vR3f3QyCKCkPhJ23v6eQ6y37ZvKt5rLJxdBNd9vHxvmJzBbEruidzYucKp63+JldsYy8n79jw34FOn0xNOXzJh0Dkt5AprCx+cIacwgstjGQehIVJJT3HpNG/DYvW55nR7gVZfpMz2ltCRuylFe76QZVZLTyWxKvY3dA7ZyMHJKvplNntQlbjCklMyvK9fvWJFdRUEQiGkqpPj5Xv8grnN6HjvPXdbPTzurJHGwWF7nOHZ4Vn2nNdWFju5JqyLkPa+ZdPSkrOF1/usnsj5Kqar4dX1YPjzYHgtDCJ9ytE0Uqmwq47gVfXrR2dXHhD4jvebfTck1UuboQ5rpXSZ2Kkw0iSoGiOLCFLB0WgOr68r9PTJZbudPP5SkhPgLPY8tpKk51KI/VVJMJVoLwcJjNaYeXojgR8mezL6UZ0L9jNt2xe/sFlhBCD3tu/i6nAHbLmqTvdzN5hVxFZLnFDBUeMmjsnym7KLxgA//DmdQQSr/btmXiSi4/BZ3kPxWaKR11bRDsMYnr1ChmZTBuBCZVM+XwGXnk17
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateExperimentGroup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/experiment-groups"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new experiment group.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","description":"Input structure for creating a new experiment group.","properties":{"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string","description":"Reason for creating this experiment group."},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"},"description":"List of experiment IDs that are members of this group."}},"required":["change_reason","context","description","name","traffic_percentage"],"title":"CreateExperimentGroupRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateExperimentGroup 200 response","content":{"application/json":{"schema":{"type":"object","description":"Standard response structure for an experiment group.","properties":{"id":{"type":"string"},"context_hash":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"}},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"buckets":{"type":"array","items":{"type":"object","properties":{"experiment_id":{"type":"string"},"variant_id":{"type":"string"}},"required":["experiment_id","variant_id"],"title":"Bucket"}},"group_type":{"type":"string","enum":["USER_CREATED","SYSTEM_GENERATED"],"title":"GroupType"}},"required":["buckets","change_reason","context","context_hash","created_at","created_by","description","group_type","id","last_modified_at","last_modified_by","member_experiment_ids","name","traffic_percentage"],"title":"CreateExperimentGroupResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

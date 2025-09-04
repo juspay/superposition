@@ -1,0 +1,71 @@
+---
+id: list-versions
+title: "ListVersions"
+description: "Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes."
+sidebar_label: "ListVersions"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVU1v20gM/SsDnrbAODFS5KJbd1G0BVqgSNK9BEZAS7Q1qTQz5VBuDUP/fUFJdixHbhdFC/TkD/Lx4z0OuYOCUs4uigseMrghYUcbSgZNxLXzKFSYyiUxYWXy4FdubTbEyQWfzFcnpZGSHJuaBAsUtKbEVJoNVg0la9AXJmdCDW/E1ZQE65jMKrDBpnDSeXCoqiXmn01sOIZE6QIshEjc4d4VkMF7l+TfIS9YiMhYkxAnyO534LEmyCAPjRew4LSVLw3xFiykvKQaIduBbKN6+aZeEkPb2gMw4pp+BvdtFng9c8UeWxIWxFPgJOz8GiwUtMKmEsjgsUkRt9BaYPrSOKYCMuGGRvGFPD719MP4z4Mt9J8Ug0+U1P9qPtePsezH7Jqr+dzsIWAhD17Ii4IwxsrlnSiXj0mRu+eVhOUj5VpxZJVQXJ9XgmD1oESnCU7tYHdC9bRdh+vIgMyoKp0CzmR3xSRX/UBDtjt8f9DxnfbVMabiAWVK1lXgWi1aJ8100ruij1meiCm4Tv+jqT2gHcl7vy9/XPuo0nEJVnlYWBAnFZ3I/oGG6T7J0fE+lseOxDwT72aYoH+G8Wm7yNdT0/fOC7HH6pZ4Q/yaObC5/i1DWFNK+tQnqH3qYqKcqWZaCzVJGXQ7ranLhVJCBpe9Gpebp3WVKG/YybZbVql2Um4vMLqLUiT+TcjErxrF3i/0ve69b7WrvvDvYA6tqOFE8Aze3t19NL27wUZK8jKQt98iCl12Dh0Lzq9CF3Rg47aJpEvZDZihK8jgan51PZu/nM2vdZRjSFJjp8awvHQazNHOPnkMB0n/pKMzUCn0TS5jhc5raw1XWnAv79GrOwi8sFCGJGrc7ZaY6BNXbat/98dEVS9cwmWlb2qFVSILn2l7dLK62iED0O1/xne4Uk+uC/3BTn272bH7AzGZ8Cz/f90M7/2FOUdBX8DRuft+vb8i1eHyjVL11ld5TvHY9mwpKDeH5/nm9R207X+y3hfw
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListVersions"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/config/versions"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListVersions 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"config":{},"config_hash":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"description":{"type":"string"},"tags":{"type":"array","items":{"type":"string"}}},"required":["config","config_hash","created_at","description","id"],"title":"ListVersionsMember"}}},"required":["data","total_items","total_pages"],"title":"ListVersionsResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: add-members-to-group
+title: "AddMembersToGroup"
+description: "Adds members to an existing experiment group."
+sidebar_label: "AddMembersToGroup"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1V91v4jgQ/1csP91JoeV67QtvtMvtVne7qoB9OCGETDwQdxM7a4+7RSj/+2mcBBIS2K7U44V8eL5+M/ObyZ5LcLFVOSqj+YiPpXQsg2wN1jE0TGgGr8qh0lsGrzlYlYFGtrXG51c84iYHK0j2UZbSn0vZuflIR3jELXz34PDeyB0f7XlsNIJGuhR5nqo4SF8/OzK/5y5OIBN0hbsc+Iib9TPEyKMTPx917pE5tD5Gb4FtjGVCSnLz1Puu07klt1GBCx4lQm9hZUFUPlSWHVqltx3L03CuaRATcFCbveJFxMvr1dH2SknXUC2sFTsecYWQua7J4tTmP8ohM5tmMI8fygilpD9MlKvjK4oSdGVB8tHiJL5zzi0jjgpT6MvitEzhQ5W6om0BrYci4rmwIgME6/hosedaZKRLSQqTYsgFJjzqJvgY86nKg5LXgbHbwVFVAkKCvaCM8NsInyIf8WfvcrH7iX4ELTS+WX9X2ZKeuNxoVxbVzXBIf53magPLboZDVsvx6L2aY4ZCS2HlQfVpo7ylLZTsjTu4+IqrRLik90CJ6c9Kuk/z5T482u4DgFqRNIv0qRlFp5OmkFtwoNGx2OhahsVWIVglmHcgA0aVLZYJjBOlt1fsb9g5JmGjNDBJ0DllNKNwHRNasheRenDM5RCrzY5Y4agWE4Es8w7ZmpgCCe663R5qPyhEtGKzUfEqBxuDRrFtYqk9FQ+1sHhVmc/46I/hMOKZ0uXd8B2oh2C2IBDkSmBfZ22MzegNlwJhgCoD3pBZ73ozlwqHq8xItVG/qLgteUb92sffAN8S5qFg2sXegqvXxIuwSpx7fcK4bW0t2QbN3geng3BowVWptAsMaErugn+dTaarh+lkPJ984BGf/TubTz6vPk6+TKbhUUN3YJc56Tn1rYbqtN+O3XXS4616aCW63VutKKKS+Dtp78nnuZKtmKS3JS4Pq5LzGtOqiPjt8LbLx1NwxtsYvhj8y3gt2e3w9kjHRcTv+lj8USNYLdIZ2BewE2uNZXfvxOPtqszAuTYDNAquBqDHnT4IAjVgYmQ5imNKbBjJI359RH4Qcuiu90oW10LKQbXV0CyE2FuFuzDdXaYw2V2JXF0liPk9CAt27EndYknDsD49o1DLaC7IHOKjF51x9mk+f2LlcSY8JqCxQrQe0SS6DgcCNITz9Lh2Tl5FlqfQs+sde+wMbS7qE8uCdoONCb5WyM98DjY3TlWuvIB1pcc3w5u7wfDPwfCOqig3DjMRMl8tHGMpWVW1bG5YvSqfTMhDFf3yVl6hSU18nadChdHibUpay6Q3SapKOo/4KHRtM+/LiCfGIQns92vh4KtNi4Ief/dgqRiWFb+tCZPFnkvl6Fry0UakDi5E9du04qXf2TmfazbXu0Cjqac7HvFvsCuXy4ISU+1r7269tNLYPg8e0PL4v5g6LKItU+Xbqp0H85Jh6xMdhjlKjOMYcrx4dtnghafx/OETj/i6+lbLjCQhK37Qd5z4UWJvQoShpcOzPU+F3vpAVLxUSr//ACcTBHw=
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"AddMembersToGroup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/experiment-groups/{id}/add-members"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Adds members to an existing experiment group.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","description":"Input structure for adding members to an experiment group.","properties":{"change_reason":{"type":"string","description":"Reason for adding these members."},"member_experiment_ids":{"type":"array","items":{"type":"string"},"description":"List of experiment IDs to add to this group."}},"required":["change_reason","member_experiment_ids"],"title":"AddMembersToGroupRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"AddMembersToGroup 200 response","content":{"application/json":{"schema":{"type":"object","description":"Standard response structure for an experiment group.","properties":{"id":{"type":"string"},"context_hash":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"}},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"buckets":{"type":"array","items":{"type":"object","properties":{"experiment_id":{"type":"string"},"variant_id":{"type":"string"}},"required":["experiment_id","variant_id"],"title":"Bucket"}},"group_type":{"type":"string","enum":["USER_CREATED","SYSTEM_GENERATED"],"title":"GroupType"}},"required":["buckets","change_reason","context","context_hash","created_at","created_by","description","group_type","id","last_modified_at","last_modified_by","member_experiment_ids","name","traffic_percentage"],"title":"AddMembersToGroupResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

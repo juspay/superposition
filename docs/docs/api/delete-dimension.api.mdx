@@ -1,0 +1,71 @@
+---
+id: delete-dimension
+title: "DeleteDimension"
+description: "Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations."
+sidebar_label: "DeleteDimension"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVMFu2zAM/RWBpw1wEjdLLr51a4YVGIaizU5BDopNx2ptSaXotIbhfx9kO06ydNkO22G+2Jb4nsjHJ9aQoItJWVZGQwR3SIXUqDmvBGFhduiEFIkqUDtltEjJFIIzFC+GnpyVMY7FMlNOGIskPYl4UXkuUqlyodI29IDOpBMyZrVDkaBFnaCOFTphSCgnCFMk1DEmYlMJfFWOld6K2OhUbcuO3Y0hgOGs2wQiuMEcGW/2h0AAVpIskJEcRKsatCwQIkiOIpSv1UrOIAAXZ1hIiGrgyvpAx6T0FpoACJ9LRZhAxFRiEwxcryND25FK9lQZygTpAlkACaayzBkieCydldVv+Bm11PzH/Odka7/irNEOnY+fhlf+ddrun7QT0/BK7FGecxbOzkH36ExJMX4z/NmUOhGzcHaCmofhOepWM5KW+QPSDmlBZEjMw/AADCA2mlGzx0prcxW3TZ48Ok9Qn9duNo8Ye40seUuw6iot0Dm5xTdEagJgxTm+nc59n8mnPo3GPwEUyJnxRktasVp/cQYRTAZHTerhs/FNwrgkxVXrPlcozqqxtGqcMduPKAnpuvQMq7Xv0j76wZfXVXABM9TkN1pbHYv8Zbm8E124kCVnqLlXce8dD920Aa0cSqemJe1leSgtkjVO9Zgdkuuop+F0Pgo/jMK5b7E1jgvZtqW3bGclcXwPT3KrD+39P6ZMrzPjK09sLpX2dZeU+1I6B6xOZkp0+FkHkBnHPqKuN9Lhd8qbxi8/l0jeF+sAdpKU3HjVVzUkyvnvBKJU5g4vaPfuvr/n78WvkuwXpa58B2Ve+j8I4AmrkznYrJtgP1r+ehLdYUeDckjEz7l/ctQwM0+O6nav4xjt8d7ZhPF3cbjrN4uvi+UCmuYHn3t7iQ==
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteDimension"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/dimension/{dimension}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"dimension","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"DeleteDimension 201 response"},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

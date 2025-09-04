@@ -1,0 +1,71 @@
+---
+id: remove-members-from-group
+title: "RemoveMembersFromGroup"
+description: "Removes members from an existing experiment group."
+sidebar_label: "RemoveMembersFromGroup"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1V1Fv2zgM/iuCnu4Ap8312pe8tV22FXcbhiR7OARBoFh0rM6WPInqGgT+7wNlO7Edp+sden1JYosfyY/kJ3bPJbjYqgKV0XzCZ5CbJ3Ash3wD1rHEmpwJzeBZOVR6y+C5AKty0Mi21vjigkfcFGAFATzIA8SnCuC9NfkHOscjbuG7B4d3Ru74ZM9joxE00ldRFJmKA8Tlo6NA9tzFKeSCvuGuAD7hZvMIMfKoF/GDLjwyh9bH6C2wxFgmpKRYmyTQVCmcRl5Yih0VuBBRKvQW1hZEHUPt2aFVenvieRbOtR1iCg4atxe8jHj1fX30vVbStaCFtWLHI64Qcnfqsuz7/Fs5ZCZpJ/PwrspQSvrAVLkmv7KsSFcWJJ8se/mdC24VcVSYwdlSzqo63tf1K7tu0HooI14IK3JAsI5PlnuuRU6ASlKulEghMOXRaZWPifchDyDPI2O3oyNUCkKCfQGMSEyEz5BP+KN3hdj9Ah9BC42vxj8FW9ETVxjtqs66Go/pY2jW+uyyq/GYNcY8eqsxmaPQUlh5gO6PzGsGRMnB5EOIz7hOhUsHD1TE/qq5h5Bfnsij7yECaCgJWWRf2lmczNQMCgsONDoWG93YsNgqBKsE8w5k4Kj2xXKBcar09oL9BTvHJCRKA5NEnVNGM0rXMaElexKZB8dcAbFKdqQPR1hMBbLcO2Qb0gwkupvBu2/ioBTRiiRR8boAG4NGsW1zqT21Dw2zeFa5z/nkj/E44rnS1a/xG4gQ0WxBIMi1wKHxSozN6Q2XAmGEKgfestnsBiuXCYfr3EiVqH8J3LU8A7/x8TfA16R5aJhus3foGnTxJKwS5173tLeL1rFtCe5dCDoYhxFcV6CnxICm4i751/l0tr6fTW8X03c84vN/5ovpp/WH6efpLDxqYQd1WRBOP7aGqv68HaerN+OdfugUujtbnSyiSv1Pyj5Qz3MtWyvJ4Ei84tqqhK91b5URvx5fDymzM97G8Nnge+O1ZNfj66MmlxG/GdLzB41gtcjmYJ/ATq01lt28kZh3WzMH57oy0Oq6hoWBcIYoCPqAqZHVpRxTdcPlPOGXR/pHoZDucq9keWkDv6N6z6GLEWJvFe7CVe9yhenuQhTqIkUs7kBYsLeeEJcruhmb03PKtkroBZtDivTi5Fr7uFh8YdVxJjymoLEmtbmvyXQTDgR2iOrZcRGdPou8yGBg+zvO2hn5XDYnViUtCokJsdbkz30BtjBO1aE8gXVVxFfjq5vR+M/R+IYaqTAOcxGKX28fVfOyunsZtS9rNujedXnopv+2tte80lhfFplQ4bLxNiPoqgPaslV3AI/4JMxxrwlWEU+NQ7LZ7zfCwVeblSU9/u7BUmesatHbEEHLPZfK0XfJJ4nIHLyQ3W+zWqx+Z+fCbiRe74K2Zp5+8Yh/g121dpZUpXqTe3PvlZfWXnqIgNbK/8XVYUXtuKre1uM9WlSy25w4UZyjxW0cQ4Evnl21dOLL7eL+I4/4pv5XLjeSjKz4QY0hflTcm5BhmO/wbM8zobc+CBevQOnvJ3YgFsA=
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"RemoveMembersFromGroup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/experiment-groups/{id}/remove-members"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Removes members from an existing experiment group.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","description":"Input structure for adding members to an experiment group.","properties":{"change_reason":{"type":"string","description":"Reason for adding these members."},"member_experiment_ids":{"type":"array","items":{"type":"string"},"description":"List of experiment IDs to add to this group."}},"required":["change_reason","member_experiment_ids"],"title":"RemoveMembersFromGroupRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"RemoveMembersFromGroup 200 response","content":{"application/json":{"schema":{"type":"object","description":"Standard response structure for an experiment group.","properties":{"id":{"type":"string"},"context_hash":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"}},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"buckets":{"type":"array","items":{"type":"object","properties":{"experiment_id":{"type":"string"},"variant_id":{"type":"string"}},"required":["experiment_id","variant_id"],"title":"Bucket"}},"group_type":{"type":"string","enum":["USER_CREATED","SYSTEM_GENERATED"],"title":"GroupType"}},"required":["buckets","change_reason","context","context_hash","created_at","created_by","description","group_type","id","last_modified_at","last_modified_by","member_experiment_ids","name","traffic_percentage"],"title":"RemoveMembersFromGroupResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: get-function
+title: "GetFunction"
+description: "Retrieves detailed information about a specific function including its published and draft versions, code, and metadata."
+sidebar_label: "GetFunction"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVt9v2zYQ/leIe9oAOhGy5EVvXpdmAbqmSNy+GIZxFs8WM4liyZNRw9D/PlCWZCuSvRZYsSdbvLvv7r77Qe5BkU+ctqwLAzE8EztNW/JCEaPOSAlt1oXLMSgIXBUlCxTeUqLXOhHr0iS1RJskK5U2G6HZC1uuMu1TUgKNEsrhmsWWnNeF8VIkhSJZS3JiVMh4BRIKS6728qgghgfi9w02SLDoMCcm5yGe78FgThBD63xZf0vQIQOLnIIEn6SUI8R74J0Nyp6dNhuoJDj6WmpHCmJ2JVWyw/s2KdxmolULlRIqchfAJChaY5kxxPBaeou7f8FnMmj4u/GHYItw4m1hPPmgfxNF4adfxBPuxE0UidYCJCSFYTIcbNDaTCc149evPhjuh4EUq1dKQsDWhfqwPrjtMz8Wd9cBy1DtUZW6Lc6LjwiuNKxzWjYddAHsezSPuMhjJT10O8SgkGkS4I74pDT/oOHR3Wp3IfIG+YxOhp6XeaH0Wv+g+77lGfgkRbOhpSP05+g9bbARedcQB8kwOjJlDvEcvkw/PP4xnT0+fQQJ08+zp3dPf336cD+7h4UE1pwFq7Z7ZztLHqreGMzfRNuPrddVw6oN2T7XOXKwXfopjtRkhOyTnE6G8rmZx3fNMFZVSPE2uh2OcmvyseD3RWmUuI1uj/NcSbgbWwCPhskZzF7IbcndO1c4cfdTFkFO3uNmbICrY+oj4YxRUEnIidMirP8N1b7CLo/huqX+et8rShVWJyWl07yr7wWfa053V2j1Vcpsfyd05KZlAJkvwu5stV9CeocMLth0OQXBm0aL4c/Z7JM4qAssOSXDDYvtRg+mq1qhpiNcpDVoQ8tLacnZwuvGpltacBPd3E2i3ybRXb1BCs851mVpLpIHYnFyO74Zzq60/+dt3jDH9I2vbYbahExKl4UAD2WddxMFEuL+tC0kpIXnoLTfr9DTZ5dVVTj+WpILxV5I2KLTuApUzvegtA//FcRrzDxdIOWX52aX/CrOxdkcogn7YYtZGb5Awt+0Gzw7qkUl25v8Pw/k4PDkXdIFE54VP8VV90TpuTpIp0lC9lQ2WB1hyLohfrifQVX9A5pzomU=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetFunction"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/function/{function_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific function including its published and draft versions, code, and metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetFunction 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"function_name":{"type":"string"},"published_code":{"type":"string"},"draft_code":{"type":"string"},"published_runtime_version":{"type":"string"},"draft_runtime_version":{"type":"string"},"published_at":{"type":"string","format":"date-time"},"draft_edited_at":{"type":"string","format":"date-time"},"published_by":{"type":"string"},"draft_edited_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"change_reason":{"type":"string"},"description":{"type":"string"},"function_type":{"type":"string","enum":["VALIDATION","AUTOCOMPLETE"],"title":"FunctionTypes"}},"required":["change_reason","description","draft_code","draft_edited_at","draft_edited_by","draft_runtime_version","function_name","function_type","last_modified_at","last_modified_by"],"title":"GetFunctionResponseContent"}}}},"404":{"description":"FunctionNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

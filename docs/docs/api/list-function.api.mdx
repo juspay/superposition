@@ -1,0 +1,71 @@
+---
+id: list-function
+title: "ListFunction"
+description: "Retrieves a paginated list of all functions in the workspace with their basic information and current status."
+sidebar_label: "ListFunction"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vktv20YQ/iuLObUAZQsOfOFNTd3GgFMHttKLYAgjciSuQ+5udodOBIH/vRg+JEoinaRIexLE+b5578zsIKWQeO1YWwMxPBB7TS8UFCqHG22QKVW5DqzsWmGeq3VpEgEHpY3ijNQX6z8FhwmpL5oz+aS9WmHQidJmbX2BAldoUpWU3pNhFRi5DBcQgXXka/ltCjHc6cB/tPohAoceC2LyAeLFDgwWBDEktjQMEWjx93NJfgsRhCSjAiHeAW+doExZrMhDVUV7osMN/Rse5vk3aStrc0JzxPs6sX4z0WlHzghT8kPswF6bDUSQ0hrLnCGG5zI43EIVgafPpfaUQsy+pCP9TAYPufim/nNlT/IlOGsCBcFfTafyc9wT/aqoq+lUdRSIILGGybCQ0LlcJ3UxL5+DMHfnntjVMyXisfNSetaNXbaM+VIKFAZqEbVyzVQMy1PkvhX0HqVMp4QR611LL5vEDqTNlatch4zSZWLTYUjqcc3j4oMGXxrWBS1fyAfdpGlE2fcgD3qRhzqqeYAQS4poIuoO+inV/IPEg7nV9hXPW80jmBwDLwub6rX+QfPHzBH1SYZmQ0tPGMbS2+/vAfm+IRrJuXdkygLiBfw9u7v9fTa/vf8LIph9nN+/vX//4e5mfgNPEbDmXFjd25lvHQWZEL1XuDjx9ti3o646r9p5tsc6Jzrp8dMQB2oykOyBmB66UVBJXJ20PzE6xNt2UlQ18npo0NwaJm8wfyT/Qv7Ge+vV9X8ybwoKQbbBefF7UQy4MxRMFUFBnFlZYBuqbSFnEMPl+rDKAiWl17ytF1koNGfbC3T6ImN2vxF68rNSSIsnmckd+lHCaTx+hbOPQQQnHRTDu/n8g2rgCkvOyHCbtW5T1PurBtThy9KulbZpeCwdeWeDbjn7aQRX06vryfTNZHpdjwYbuMC6DO2CkjZQvX1+8uz2tfzfr442X0xf+dLlqI34X/pcvGqKt9g/EOn6zAaWb7vdCgN99HlVyefmGpCKpjrgKpcHvcY8UASfaNs7VV4wL8UgyPYewbbXyfdAm4PkgHySP14LtO6gqDsFBl0brcIvD+1Y+lWN5aix3ztsXnf3Z5ja3zhHphrpLEnI9WVnM0Fys3+df97Moar+AZdJz44=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListFunction"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/function"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all functions in the workspace with their basic information and current status.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListFunction 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"function_name":{"type":"string"},"published_code":{"type":"string"},"draft_code":{"type":"string"},"published_runtime_version":{"type":"string"},"draft_runtime_version":{"type":"string"},"published_at":{"type":"string","format":"date-time"},"draft_edited_at":{"type":"string","format":"date-time"},"published_by":{"type":"string"},"draft_edited_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"change_reason":{"type":"string"},"description":{"type":"string"},"function_type":{"type":"string","enum":["VALIDATION","AUTOCOMPLETE"],"title":"FunctionTypes"}},"required":["change_reason","description","draft_code","draft_edited_at","draft_edited_by","draft_runtime_version","function_name","function_type","last_modified_at","last_modified_by"],"title":"FunctionResponse"}}},"title":"ListFunctionResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

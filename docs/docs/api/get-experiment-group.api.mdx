@@ -1,0 +1,71 @@
+---
+id: get-experiment-group
+title: "GetExperimentGroup"
+description: "Retrieves an existing experiment group by its ID."
+sidebar_label: "GetExperimentGroup"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VsFu40YM/ZUBTy0gJ2qaXHzLZt00KLpY2N5DEQTGWENbk5VGsxwqiGDo3wtKsi3ZSrottqfEGvKRfCTfzA4MhoSsZ1s4mMIcmSy+YFDaKXy1ga3bKnz1SDZHx2pLRenVulKWg3r4eAERFB5Ji/+DgSncI88O5vdiDRF4TTpHRgowfdyB0znCFKyBCKyE9ZpTiCAkKeYapjvgyotFYLJuC3UEhN9KS2hgylRiHR1AXicFbSdHqBS1QXoHLAKDG11mDFN4LoPX1T/gMzrt+Lvxz8Ge5EvwhQsYxP4qjuXPkPlz3tRVHKu9I0SQFI7Rsbhq7zObNKRfPgfx353nU6yfMeGm3n6gBWtnNJkDtApMZcIlodoU1DZ+2G/psifpM9u2BGtGC29SfOVVqkM6atCSOnIwyHEMOdVuiytCHd6yaGOPEaCNsYKss8/9Kk7Dwhw9YUDHQSWF2/uohCwjWa3KgKbhqIulcs1Jat32Qv2BVVAGN9ahMkJdsIVTUq6sklEvOisxqOAxsZtKcYpHWE41q7wMrNaocmShmy1nUsPdPg8pkUlvNjZZeaQEHettn0tX5utmMHP9avMyh+kvcRxBbl37K64jyFFsVsf+rqwJPQxNpCuZdMY8jLAsNBNqRrPSPLZam4JyOQGjGSdsc4Sez7oa7VymA6/ywtiN/ZfAQ8834Ndl8hX5e8o8DMxw2Ad0jYZ40WT1W8cDQXg8QRv4Ph37/qFJunFuVnDVgp4Tg06a+whfFrP56m4+u13OPkIEi78Wy9mfq/vZp9m8+dTDbtRlKTinue2pOt2343ad7PhgHgaNHu7WoIqoVf6zto/0862R7ZRkdCX6lZ6J6rwTvbtOTOtaOLiOr88VeY6hKCnBTwX/VpTOqOv4+qjHdQQ3Yzr+4BjJ6WyB9II0IypI3fwgIR+OZY4hDCWgN3F7BkbSGaOg0QZOC7nBt9jEkit5CpdH4idNC8Plzppa7j9MSrJcNTd6yC2n1YX29iJl9h9QE9JtKRCPT3IB7q0XUlyb/zs+h4rk4OwG+325/Kxac6VLTtFxx+H+WhbXdWPQkGHdpmhAO1IWpUfyRbCdzwtSaKGv4qubSfzrJL6RBvsicK6bpnSvgXtkdZwotX/fnNxehwb/p/dUV7os2aXPtG2kv6RMkNuu9EWk6wpEMG0VJC0Ci8lut9YBv1BW1/L5W4kkvXrqFGctTDzuwNgg/xuYbnQW8J1afpp3SvGzeivLvb66qhG2rJRfEMFXrNr3Xv1UR/sn1A+P3kbpPQgPGch77n8JdXgbDkK1p7dJgr5/drbsshiHtbufLaGu/wZIHQcC
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetExperimentGroup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/experiment-groups/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves an existing experiment group by its ID.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetExperimentGroup 200 response","content":{"application/json":{"schema":{"type":"object","description":"Standard response structure for an experiment group.","properties":{"id":{"type":"string"},"context_hash":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"}},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"buckets":{"type":"array","items":{"type":"object","properties":{"experiment_id":{"type":"string"},"variant_id":{"type":"string"}},"required":["experiment_id","variant_id"],"title":"Bucket"}},"group_type":{"type":"string","enum":["USER_CREATED","SYSTEM_GENERATED"],"title":"GroupType"}},"required":["buckets","change_reason","context","context_hash","created_at","created_by","description","group_type","id","last_modified_at","last_modified_by","member_experiment_ids","name","traffic_percentage"],"title":"GetExperimentGroupResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: test
+title: "Test"
+description: "Executes a function in test mode with provided input parameters to validate its behavior before publishing or deployment."
+sidebar_label: "Test"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVk1v4zgM/SsCT7uA2wTd9uJbZiaDLTA7LdrMXIJgoNhMrK4taSQqbWD4vy8o2/loPtrD7G4vdWSKfHwkH11Djj5zypIyGlIYv2AWCL2QYhF0xqdCaUHoSVQmR/GsqBDWmZXKMRdK20DCSicrJHRekBErWapcEgpFXsyxkCtlnJjjwjgUNsxL5Qull8I4kaMtzbpCTZeQgLHoJEe8zSGFCXqCBBz+DOjpg8nXkNaQGU2oiR+ltaXK4oXBk2f0NfiswEryk9F4t4B0WgOtLUIKZv6EGXskRSUffO9wfu7yfGgjQQLWMRRS6NnTKbv00PX+xb9xvWPkySm9hCaBlSwDQlo3zdtg2IYpUA5zSKcn7WZNcjrTUSCTmcqW+Ha252zfzFjLCo+mbB0u1MvRV6hXyhldtVXd5eQclNe8nLOdNbOt0/5l2+h7HvdckgvIwDetHXupTRD60fgRfyegeHSspAKSnRY8SPW1940/T3L5Xj/MWKg459zJRaxBO1OYw06ej9HluaAvF8YtL1Texy1Q5ujORs5xIUNJkMJT8Fau3/BPqKWmd/s/dDbjE2+N9m1/XQ2H/G9fslgoxNVwKHpTSN4vE+f7eaF/mEA2xM5MwFNuAh0FvumI9s3pon0ffbn9NJrc3n2FBEbfJncf7/66/zKejOFIk07WFv1Br29RvY67gbjji+l56Jj52NHSxGa/Hl4fstmH/mroswk6F9fD6y2zTQI3x2pwqwmdluUjuhW6sXPGiZt/pSQVes+dfViEHeU4AucYBU0CFVJheN1Y04ohD18Kg57XQb03682gjrPaDKgVT49ZcIrWUR18pahYX0qrLgsi+wGlQzcK7HEaRai3fuRk23zO3NlkyC/i9O1S/udkci9acyEDFaip47QfMb46jwaRHGb6YbtNxy+S5fKNDRd32LaLt6ur4alemIiyl5xg0VnjVQdihc63WK+GVzcXwz8uhjdxGRhPldTbhdHv+r0Ed3b9//pV0tWA8IUGtpRKcwrBlYyw7ZbpZgohgfT1bkh7cY8dM0ug4E5Lp1DXc+nxmyubho9/BnTcRjNm2Sk5Z06nNeTK83MO6UKWHs+w9NtDJxK/i1O4u0Op19tiAiRdmfehs5T/h8FbmppZk/Sb4pdn3wba2XsbEL881z7UZgXuhWrfdlJ0MWmlu7c4UMftjVGWoaWztrMdTbu/e5xAAvPu25knBVJw8pm/q+Vzy76JCUYtimc1lFIvQ9RYaH3y3z+rKUB4
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Test"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/function/{function_name}/{stage}/test"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Executes a function in test mode with provided input parameters to validate its behavior before publishing or deployment.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"stage","in":"path","schema":{"type":"string","enum":["draft","published"],"title":"Stage"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"oneOf":[{"type":"object","title":"ValidateFunctionRequest","properties":{"ValidateFunctionRequest":{"type":"object","properties":{"key":{"type":"string"},"value":{}},"title":"ValidateFunctionRequest"}},"required":["ValidateFunctionRequest"]},{"type":"object","title":"AutocompleteFunctionRequest","properties":{"AutocompleteFunctionRequest":{"type":"object","properties":{"name":{"type":"string"},"prefix":{"type":"string"},"environment":{}},"title":"AutocompleteFunctionRequest"}},"required":["AutocompleteFunctionRequest"]}],"title":"FunctionExecutionRequest"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Test 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"fn_output":{},"stdout":{"type":"string"},"function_type":{"type":"string","enum":["VALIDATION","AUTOCOMPLETE"],"title":"FunctionTypes"}},"required":["fn_output","function_type","stdout"],"title":"TestResponseContent"}}}},"404":{"description":"FunctionNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

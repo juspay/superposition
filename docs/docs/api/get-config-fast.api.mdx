@@ -1,0 +1,71 @@
+---
+id: get-config-fast
+title: "GetConfigFast"
+description: "Retrieves the latest config with no processing for high-performance access."
+sidebar_label: "GetConfigFast"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VMtu20AM/JUFTy0gxYYLX3RLgzTNqUGSngwfaImyNpV2N1zKjWHo3wtKsms3j+bQngSIjx3ODLmDgmLONoj1DjK4JWFLG4pGKjI1CkUxuXelXZufVirjvAnsc4rRurUpPZvKrqs0EJeeG3Q5Gcw1fAYJ+ECM2vm6gAyuSC76Tl8wCiQQkLEhIY6QLXbgsCHI4Cn1vE5tAQlYRVQRFsSQQMwrahCyHcg2aGYUtm4NCRRUYlsLZPDQxoBb6BJgemwtUwGZcEtdctRfyKGTd/d/3mypf2LwLlLU/Nl0qp9TJk+mNbPp1OxrIBkf7YtrjJI2vrCl1Qd2r+PoEnhKsS2sKD1/zRxUSzfEsUf0Vn6XQO6dkBONYgi1zXvhJg/xWa2Vmv4c8FsroZUb3NYeC23YJTB/iZZrJ8QO6zviDfEls2czPyXn/UiGKfzqgfLeUKyGEzuo0lCMuKaX6dkP8QKc2xHJxQijG6ZpSCqvNl7TYF6pIIPJwPKkHCwdKW/ZyrY3dGysVNszDPasEgmfCZn4vNW6xVJNtM++04kG0G/UHMbQQO/6Y16/3t/fmCHdYCsVORmJ21tbS1d9Qs+AdaU/lvOuDcTBRzvWHHwDs+lsnk4/pdO57kLwURrslRg36orEDE4w42afQNv9FvQfn5eRD6EnmYQarVN8Ldf65qDPAobmkECv0DKBykfRwG63wkjfue46/f3YEqtsywQ2yBZXSspi2e13tVe0sFEDBWQl1pHeGPTD7XgyPprXgP6g7em522DdahrotfovTx0u38lTQ/Q8zykcx57tnlr2sAVXl/fQdb8A+KQqgg==
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetConfigFast"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/config/fast"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves the latest config with no processing for high-performance access.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetConfigFast 200 response","headers":{"last-modified":{"schema":{"type":"string"}},"x-audit-id":{"schema":{"type":"string"}},"x-config-version":{"schema":{"type":"string"}}},"content":{"application/json":{"schema":{"title":"GetConfigFastOutputPayload"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

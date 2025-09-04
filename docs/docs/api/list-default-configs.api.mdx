@@ -1,0 +1,71 @@
+---
+id: list-default-configs
+title: "ListDefaultConfigs"
+description: "Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata."
+sidebar_label: "ListDefaultConfigs"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVttu20YQ/ZXFPDUAZROO/cK3NM0NCNrCdp8MQRiRI3Gd5e5md9aNIPDfiyGpCy0qbosUfbKsmTMze85ctIWKYhm0Z+0sFHBLHDQ9UVSoPK61RaZKGR1ZuZVCY1RFK0yGVensSq8VWQFEpa3imtSfLnyJHkvKlLalSZW2azHooJ7QJIqZimVNDcZMoa1UQ4wVMl5ABs5TQKnjUwUFfNaRf+lzve1SRcjAY8CGmEKE4mELFhuCAkqXLEMGWl7wNVHYQAZ9Gii2wBsvXjY1SwrQttke6HFN/waHxrwIWzpnCO0I923mwnqmqx24JqwoTKEjB23XkMFANxTwmKLHDbQZBPqadKAKCg6JRvGZLB64eDH+abC5fBO9s5Gi+F/lufwZd8mpNuoqz9UOCBmUzjJZFih6b3TZCXv5GAW/Pa3HLR+plLp9kDZg3Wdnx2gWIlOcUCQb7JqpmbZLax0ZMAQUsZ4DzmT/QptJyrpOhmLbHhEryY45moCVNdo1LQJhPOOxSrYU+KLXc6objmX4rfuARqCY2JWu8YaYFi/EkVoCyWQvkKfSrFxoxCL80Yx1Q8eY5TQrBiMvGlfplf6HgcfIyfCjRn14RuXoOaM6x4xlnaITlU6UsJd2J/c8A9ZspKhR679PxkArBe7Mp9NxOwzG22Eq2s7/Or8+Ha1bii6Fkn51/N4lW6nr/PowWG0GN1MD+ckyBYvmjsIThXchuKBu/pOJbChG2ZqTEu0YmChnioI2g4a4drLu19TlQq6hgMth6836IyNiUJmC5k239mOjud5coNcXNbP/mTBQeJME+jCXDbbzvpNH9XV/B7N/iRhOhuzj/f3vqndXmLgmywN3ux7ptn3n0JGg7cp1QQcy7pKn4F3UA+aJQuxDX+VXN7P89Sy/EWG9i9xgJ8awzqWR1NBJ6nAEn+2ZvbD/6/EeKGT6xpfeoLbypBSMVNir+gDPVJ1nULvIYtlulxjpj2DaVr7uj6pIXemISyNDv0ITqZ/gw8UfNjGAHMEzvsOR/zuu/V0/eM7ln6DFtWutbHdRJ0s7q8tPt8PqeqXOMdXnP/p98P1yf0Sq/U+FUare+qYsyR/bTlaGcLMf3g/v7qFt/wLCa5Dp
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListDefaultConfigs"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/default-config"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListDefaultConfigs 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"key":{"type":"string"},"value":{},"schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"function_name":{"type":"string","description":"Optional"},"autocomplete_function_name":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","key","last_modified_at","last_modified_by","schema","value"],"title":"DefaultConfigFull"}}},"title":"ListDefaultConfigsResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

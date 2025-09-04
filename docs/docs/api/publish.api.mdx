@@ -1,0 +1,71 @@
+---
+id: publish
+title: "Publish"
+description: "Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system."
+sidebar_label: "Publish"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVktv2zgQ/ivCnHYBOjbS5KKbm03RAG0TJO5eDMOgxbHFVCJZcuTGMPTfF6RediQ7LdBic4lMznzz/jh7EOgSKw1JrSCGh2KVSZeiiyjFSFi+pmiL1kmtIr2OeLQuVOJlWZTzb1JtIklBlCckt9jKFg5FtNY22vJMCk5B30a8IJ3o3GQYTqQKum7nCPMLYKAN2iB8JzpngIHF7wU6eq/FDuI9JFoRKvKf3JhMJkFn/Ox8DHtwSYo591+0Mwgx6NUzJgQMjPUWSKILMClXG1xa5LViLe7ISrWBsqwMS4sC4vkr8QUDkpRh5+dj5eRN7Vx5rE+2wJKB4ZbnSGgdxPM9KJ57hCary/CbgfS1MJx87L1oGvf66C3ey0jbzUiKBipFLtCeAWMgcM2LjCCG58IZvnsDn1BxRT+N3wdb+BNntHJVMS4nE/9vsB2jy8kkaqSB/a76H2d9yGdTj4NYJloMi4QZOX3dIdhCkcxxWY/IGbCfkexwOQ2Vc61t7m9AcMKRh+vwUUj6RcXO3Gp3xvMa+YRMxh0tcy3kWv6i+WPNE/BvjTM7bq6B+7Yhqpu+d6iK3FPBv9NPd/9MZ3f3X4DB9Ovs/ub+88On29ntIS18qNFmO4PuDTY59u2oq/pV62f7VOewHrMchzhQk4FkD1FdNYsHXFcyuJpc9Ue4ycIXTR90oUR0NbnqZrlkcD00+HeK0CqePaHdor21Vtvo+o+QQI7O8c3Q8JZd2APuDKWgZJAjpVpU7J14+g4sHsO4Sfx4f1SScmzaV85hUlhJu/AyuFxSurvgRl6kROY9cot2Wniw+cKzZyP95AOtYjmj00bnL161WwwfZ7OHqBL3b3SKiup8NpzuVVdBICTGZ/mxe5RvX7h/1Ace1YPpkmqtgyN1Up8Kg9ZoJ2s7Ld3B5eTyejR5N5pcB+7RjnIeilo/P91i8Gqi2574vxeZOtmELzQ2GZfKB1LYzDtZdcS8HUVgEL8e06YpFgxS7ciL7/cr7vCrzcrSH38v0PpOWTDYciv5yud0vgchnf8WEK955vBMiv56rOno7+iUx/UhV55itjwr/C9g8A13va2lXJSsWQR+uyOVwYO1pnXGbyV/xFS74RyZqm7roR/NKhJtJHo81GlMkwQNnZVdHLDHw3R28xEYrOqNNw/7BVj+w2/D/EdVBh0iDKMfzvaQcbUpAp1BBer//gNiiyr0
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Publish"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/function/{function_name}/publish"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"change_reason":{"type":"string"}},"required":["change_reason"],"title":"PublishRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Publish 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"function_name":{"type":"string"},"published_code":{"type":"string"},"draft_code":{"type":"string"},"published_runtime_version":{"type":"string"},"draft_runtime_version":{"type":"string"},"published_at":{"type":"string","format":"date-time"},"draft_edited_at":{"type":"string","format":"date-time"},"published_by":{"type":"string"},"draft_edited_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"change_reason":{"type":"string"},"description":{"type":"string"},"function_type":{"type":"string","enum":["VALIDATION","AUTOCOMPLETE"],"title":"FunctionTypes"}},"required":["change_reason","description","draft_code","draft_edited_at","draft_edited_by","draft_runtime_version","function_name","function_type","last_modified_at","last_modified_by"],"title":"PublishResponseContent"}}}},"404":{"description":"FunctionNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

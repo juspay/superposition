@@ -1,0 +1,71 @@
+---
+id: create-default-config
+title: "CreateDefaultConfig"
+description: "Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches."
+sidebar_label: "CreateDefaultConfig"
+hide_title: true
+hide_table_of_contents: true
+api: eJztVstu2zoQ/RViVi1AJ0YustGuTQu0qxZJ7sowjLE0tphIFEuO4hiG/r0YSrYlW3l0UeAurjcWyHnPOTPcQUYh9caxqSwkcOMJmYJCZWmjMlphXbBKK7sya0WW/VZtDOcqOErNylCmHmmr1RMWNWkV0pxK1AptpkpizJDxQn0ZWAkqkH8ihUGtsCiWmD626kFtcrLKVnvjqWgwPbMqkdOcwgVoqBx5lGC/Z4dwOwc30T5o8PSrpsCfq2wLyQ6iFcvyic4VJo36lw9BMt5BG7R88dYRJFAtHyhl0OC8eGNDQW4fadsTCuyNXUOjIQYPya7RR1ONHtZ1RC3N0a5p4QnDCxKr2qaivrBY0rnEiQv4ET+wEFWsuUqr0hXEtHjDTtO0FTOeMkhmJ4ENvehYhUOi++TnGthwQeMduW3bcdO1oRk6ZF9To8Ghx5KYfIBktoM2VHieVH49MRloMJJjTpiRB33etF5RomtI4KEODrcw4q1nn8mi5XfbPzc2l5PgKhtamFxNp/I3RqtBVdTVdKr2mqD/R+kbKNWQxiJmC+QxN6vKl3IDGTJN2JTU11mOV6XAwIuyyuIo+yPDQ81R82/wqpfOIM5xxp1FOhLCH/OyBV+PmI2G6zH8frdM3mJxJ6Pbf/W+8ur6r+C3pBBw/cKY2iczEs5YMo2GkjivZFO4KkRnyDkkcNlNiUm63xmB0tob3sbpE0rD+fYCnbnImd1nQk/+Uy2qs7kwfi99J1m1gb+ic0hFLs4Y8e3+/qdqxRXWnJPlrnj7horqMgrEKkhJb48r7uszCoUO5D8i9z2cP0qfUL1HgCEzjxev8bdHMmNXVSxC17272pF3VTBdjk/kQxvL1fTqejL9ZzK9Fj1pWYkRPZ3NFsSHB8Vh4Z9MsQMU//vPmQ4YcnzpCjRWEq99IWm0WJ3BCVbnGnIBczKD3W6Jgf71RdPI8a+avAB4Lq33BpdS7tm80fu9JtjOTJCLDJIVFoFeKd6H2256fVQvRdoCrrelO8gByJL9K64OC3vgqr3tyD+5FwNHibN5dNT4lKbk+FXZeW+K/Pxxdw8alt3Lsqwy0fG4kVcnbiQaeaKKdhwK8WwHBdp1HacatDbl9xtDlAah
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateDefaultConfig"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/default-config"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"key":{"type":"string"},"value":{},"schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"function_name":{"type":"string","description":"Optional"},"autocomplete_function_name":{"type":"string"}},"required":["change_reason","description","key","schema","value"],"title":"CreateDefaultConfigRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateDefaultConfig 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"key":{"type":"string"},"value":{},"schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"function_name":{"type":"string","description":"Optional"},"autocomplete_function_name":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","key","last_modified_at","last_modified_by","schema","value"],"title":"CreateDefaultConfigResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

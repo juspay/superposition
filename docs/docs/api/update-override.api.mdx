@@ -1,0 +1,71 @@
+---
+id: update-override
+title: "UpdateOverride"
+description: "Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions."
+sidebar_label: "UpdateOverride"
+hide_title: true
+hide_table_of_contents: true
+api: eJzlV01v4zYQ/SsEL20B2THS5OJbNthigwLdIB+nwAjG4thiIpHa4SiJYei/F0N9WLGVNMV2gaL1xYLIeZx5M/M42mqDISVbsvVOz/VtaYAxKM5Q+ScksgaDWnlS4BS+2MDWrVXqHeMLT9VZnvvnoApv7MqmICDKr3pL9QR5hUE9ZzZHVYB1DNYJguC3KD8FeTJWjMNUJ9qXSBHqwvQefW0RdaIJv1UY+JM3Gz3f6ojiWB6hLPPWi6OHIPFsdUgzLECeeFOinmu/fMCUdaJLkoPYYuhhXiKMd/h1ped3hyZsOZcX1hzYWzM4IzBZt9Z13XhrCY2e38meRZ28Ddv58I5v+6ZgGuIgvxya1MleXq+wJAzoeEA25Coly0gWVBXQxDS3Z6kCOM2sW0/V77gJyuDKOlTGFuiCZNlBgUGBM12OQ4mpXW2azHawnAGrogqslqgK5Okg2vPOjwOeungX9eLVdnl5YdCxXVkkXSe6K7Tvoebcu5VdV9RWb1/00XfCMocUJX6oct4VNLqeql31KqAmzIY06kiXLYMzHmVxQJ1YDRtOGWAYUtVVf9D73h+UXKLTDNwa7wkhjO7YJ/vV9mRQhD25gyw03djmonPrqulIXb/GZqqwTnQJBAUyUog9JYWj5/pl0nAyYVgHnWgrqcgQDJJODrt25/wAwdN6ElvxY8ZCXcyinuuHKpSw0SP+DvAZHTj+uHMHYAt5E0rvQtPIx7OZ/I1JbselOp7NVGfUpeP75W1UnhIdC/C/qyv/T4Hodt2/kfRntOuMx/tjGPclWU+WN6oxaHLJXhlp5kLSFn0igySXfhctitMxjqn6YtcZUgsQFMMjqpIwRYNOSKuoHScGwRMGn1fR/p+Qu0SnhMBo7mE05pWnQla0dOGEbYFDm+VmFDKHwPfN1PM3gV9bjsKPTA37ArxT3kYozluVqKMEn8xODmXmCoOvKMU/PP/mK2fUyexkJzR1ok/HxOnCMZKD/BrpCekzkSd1+kMUqsAQYI3jfHTRj7gzRkGd6AI58zI/llU8CzjTc33UFulR38Wi55hWUufxegqF5WwzhdJOM+byEwIhnVVifRfnkW73tcTVuP6OTR+MLBx02Jebm0vVbFdQcSajTUNfd82I6TJuiDwIqVe7+ffzCxRljnszorT9oFYHEnggbX2x7nXRwNy6lY9xtCm4rkqk0gfbuvmEFBqw49nx6WT262R2KnalD1xALIH2Qm1KVw1G+b3e7ivpX/EZ0iYulkuZg433SUW5eNqU093IsBSkWTMfWJa32yUEvKW8ruX1twpJqmwhFy9ZWAqhd4s66WYLKUBjgywYPV9BHvAdkt7y8RE3IwNWe9VrLSPOxw/5+aqVol/UX53Xj2M//qh+Mnt1VLPaCsHkRgB2Ow60aWdxlqZY8rt7FwNFuby90Ylett+fhZfW0gTP8m0Kz01ifIwvqkN8t9U5uHUVBU43kPL7E8aYfCU=
+sidebar_class_name: "put api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateOverride"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/context/overrides"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-config-tags","in":"header","schema":{"type":"string"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"oneOf":[{"type":"object","title":"id","properties":{"id":{"type":"string"}},"required":["id"]},{"type":"object","title":"context","properties":{"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"}},"required":["context"]}],"title":"ContextIdentifier"},"override":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","context","override"],"title":"UpdateContextOverrideRequest"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateOverride 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"value":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"override":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"override_id":{"type":"string"},"weight":{"type":"string","description":"Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution."},"description":{"type":"string"},"change_reason":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["id"],"title":"UpdateOverrideResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

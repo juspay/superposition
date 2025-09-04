@@ -1,0 +1,71 @@
+---
+id: update-type-templates
+title: "UpdateTypeTemplates"
+description: "Updates an existing type template's schema definition and metadata while preserving its identifier and usage history."
+sidebar_label: "UpdateTypeTemplates"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVktv2zgQ/ivEXLYF6ERIk4tu7aKL9lIUiXMyjGAsjS1mJZIlR04MQ/99MZL8kKM6u9gU9cU0OY9vvnl5CznFLBjPxllI4d7nyBQVWkXPJrKxK8UbT4qp8iUy/RFVzAqqUOW0NNaInkKbq4oYc2RUT4UpSflAkcJa9A1HZXKybJaGQitcR1yRKkxkFzYXoMF5Cii2vuZ7FNONp2nvNoKGQD9qivzJ5RtIt5A5y2RZjuh9abJW//IxSiBb6FDKSfBDCm7xSBmDBh/EGxuKu9eHvXCjh4TstSMHY1fQaMgKtCt6CIRxVKLpkJpAOaSzE3E98DfXwIZLGg/5tov3zz7OZmiZQ02NBo8BK2IKEdLZFixWYq110p41GMmrRy5AvyTlENap5b2t54kLq4nJd6YKwpzCGWNC4RLrkiGFxzp63Lxin8mi5X9t/6WxudxE72zscnqVJPI1VtoDhtVVkqidJug3LakuuhHsb15wGrJAyJQ/LDZnn5HHkrV0oZIXEHombCoSnRIjP1Qul579P5qjkF5pkSO8g9iGVI1gHHGuB73wX5qvq4qj7ms0XCfXLwtroPfN8V+utrm6Tq4PpdVouBmrya+WKVgs7yisKXwOwQV180tqsqIoM3c8GTseRuCM8dBoqIgLJ6Pa160vGS8pXIrpeLndU95IG1NWB8Obdj7FynCxuUBvLgpm/4kwUPhYi/ZsLn28k76TuDroZ3T2wcjDSX2k8GU6/a46cYU1F7KCOvp200VUF61Ay4OQenvYMp+fsfIlvb4lDi1x0qtHTWjs0rWWeq7vak/Bu2h6PGsKsTN2lVzdTJIPk+RG9LyLXGGb635gdtWqpOzU8X48mSP7wvltS73PDdMzX/oSjZV46lAKuq5iZq2MgE8PbTrXULjI8rrdLjDSfSibRq5/1BSkjuYa1hgMLoTJ2RZyE+WcQ7rEMtIZKt7d9nPnvfoZwP4SrQyPNZa1/AINf9NmsFmbeaN3y+rNQXTOjlbvHohszl/iar+FB6661777J1JzRxIvBtJB42OWkeezsvOjMfL9fgoaFv1fu8rlohLwSf724VOXANfG146E9m4LJdpV3U416EzK5x9Ta8xD
+sidebar_class_name: "put api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateTypeTemplates"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/types/{type_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"type_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"type_schema":{},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","type_schema"],"title":"UpdateTypeTemplatesRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateTypeTemplates 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"type_name":{"type":"string"},"type_schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","type_name","type_schema"],"title":"UpdateTypeTemplatesResponseContent"}}}},"404":{"description":"TypeTemplatesNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

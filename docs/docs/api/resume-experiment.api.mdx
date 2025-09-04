@@ -1,0 +1,71 @@
+---
+id: resume-experiment
+title: "ResumeExperiment"
+description: "Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant evaluation."
+sidebar_label: "ResumeExperiment"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9V99v4jgQ/lcsP91JoUU99YU3FnK36HotAro6qULIJANxN7G94wnbCOV/P9lJIEDK7kq7xwshnvnm9+dhz2OwEUpDUis+4DOweQaWCWYQdlLnNi2YEbmFmMGbAZQZKAoYgiWNUm2ZJMuk6hnUWwRrmSVBwISKGUIPlFinTmonUApFDHYizYUzdsMDrg2g/zGJD7bDgxUecIQvOVj6oOOCD/Y80orcwWDPhTGpjLzy7at1vu+5jRLIhHuiwgAfcL1+hcjhGHSmSIL1MIlQW1ghiFqxFrfkIuJlWRmWCDEfvJyJLwNOklLocHhWeTuqvSxPgQhzKANuBIoMCNDywcueK5E5KBnzgEtXASMo4cFlLI1zl5AHkLeexm3vCJWAiAGvgAU8ho3IU+ID/ppbI4pv4BMo4QvzffiXYEv3xhqtbFWKu37ffXU14TGv7K7fZ40aD35WG8i40+MIQRDEK0FdCdtozNwJjwVBj2QGbZ110QmZCkurTMdyI6HD6HuoVdo78I6TuKrOLhFB5Zlr3nH45/D5YcEDPg4fwkW4evoUzmaTcThvd/Ix1wuHUwZc7wBRxrD6DIVtGRCIonANQJDZ7tlxDJB3nB2dGs3C4SIc84CPnh5HD89j/zx5nM6e/pqF87nzdjIfDWfVwXT4PA/H3f7OvbHGa0Kx2choZQAjUCS27dyoPFsD+nK5BnqjrhYRcSxdN4l02m6WMrjoUYNgQZFlkVaNDotQEqAUzDPmRiOrbbFMUJRItb1hf0NhWQwbqYDFLggrtWKu2NbzpqNIsMwaiOSmYJTAEZYSQSzLLbE1sAzIsWiTlFHjhwuxJtzvKd2PjUcN/M3GGz09LmZPDzzg4b/TcDb5J3xcDB/aRfxUITW1qxO1esfuoSG/ce6rdcbgnhKPAmdBXLrk2/hkaN+b7CjRFtSqxusUOembTojrt5EfKPxRRmp03vE7A0IZ2VWO6bXzqvNbdLNFnZvuEly9NY8zd0KwJ8x5mqpLlguqOp6SaUedauI857ADMXXSRGtirt7w1SXUuuLLgN93XWITRYBKpHPAHWCIqJHd/5J7LANrT5muVZImkg53uoKpSp/ouNpEIreK+I1kwG+P9bC3exmXt+iz4xILUY6SCr/R2ExSUtwII28SIvMBBAIOc4fxsnQLQCM9d/FVIVzROQTlDvg5DX9cLKasEmcipwQU1Wls1hKnuvYCPh8uubPjVhm+icyk0LEVtoZBqo32jtS5nOcG0Ggrazs7QFu5c9e/u+/1/+j1752e0ZYy4WtZb1BVP7GTHfeMHw5N8T/v4nWW3YzemlRIf4vU9FB1wEtrIt0UDfw41k2wDHiiLTmp/X4tLDxjWpbu9Zcc0HXGsh6xtcvhy57H0rrnmA82IrVwJRG/zWpe+Z2952hzxanCT3Kau1884J+hqLbrclkGzcL6061XVlrr98EDtz3/ElOHTfzEVHVaD3RvUbFmI3HBMUeNYRSBoauyyxYzTIeL0Uce8HX9vyzTsVNC8dU1hPha5V77CP18+3d7ngq1zT1V8QrUff4DxyoNqQ==
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ResumeExperiment"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/experiments/{id}/resume"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant evaluation.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"change_reason":{"type":"string"}},"required":["change_reason"],"title":"ResumeExperimentRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ResumeExperiment 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified":{"type":"string","format":"date-time"},"name":{"type":"string"},"experiment_type":{"type":"string","enum":["DEFAULT","DELETE_OVERRIDES"],"title":"ExperimentType"},"override_keys":{"type":"array","items":{"type":"string"}},"status":{"type":"string","enum":["CREATED","CONCLUDED","INPROGRESS","DISCARDED","PAUSED"],"title":"ExperimentStatusType"},"traffic_percentage":{"type":"number"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"variants":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"variant_type":{"type":"string","enum":["CONTROL","EXPERIMENTAL"],"title":"VariantType"},"context_id":{"type":"string"},"override_id":{"type":"string"},"overrides":{}},"required":["id","overrides","variant_type"],"title":"Variant"}},"last_modified_by":{"type":"string"},"chosen_variant":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"started_at":{"type":"string","format":"date-time"},"started_by":{"type":"string"},"metrics_url":{"type":"string"},"metrics":{},"experiment_group_id":{"type":"string"}},"required":["change_reason","context","created_at","created_by","description","experiment_type","id","last_modified","last_modified_by","name","override_keys","status","traffic_percentage","variants"],"title":"ResumeExperimentResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

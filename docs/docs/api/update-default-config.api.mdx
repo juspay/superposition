@@ -1,0 +1,71 @@
+---
+id: update-default-config
+title: "UpdateDefaultConfig"
+description: "Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier."
+sidebar_label: "UpdateDefaultConfig"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVk1v2zgQ/SvEnLoAnRjZ5KJb2u2ivXSLfJwMw6ClscVEIllylEQQ9N+LEWXZjhW7AVpgfbFAct7MPL4ZTgMZhtRrR9oaSODeZYowCGUEvuhA2qxFhitVFSRSa1Z6LdCQr8/EdVHY5yBKm+mVThXbC7sST6qoUIqQ5lgqKVaVSbutUjmnzTpIoUwmdpyK51wXKJzHgP6J/VGO4hFroTM0pFca/RlIsA595+VrNsT5T4zsUxcYSPD4o8JAH21WQ9JAag2hIf5UzhV9lOcPgVNtIMbIX1Q7hATs8gFTAgnOszfSGDqYXJk1Ljyq3rA/Hshrs4ZWQpc0JE0rt6CthE3yC6NKHDXcI39kX1VkU1u6AgkXp+DaSID2mEEyexX2XAJpKnCcu5tI3KeesHYfi3yFrQSnvCqR0AdIZg3EKOARa5CgWTxOUQ7ykNdtPq8xB5SXifXric42UDmqDP0RMOauSwASeKiCU/UJfEKjDP0y/iHYnFeCsyZEWVxMp/w3Vj973IqL6VRsLEH+LlUy7+/Q4imlnRb5Cfm9cgH/dR+qeLeMJaQeFWG2UDTmZmV9yTvATE9Il7hrsxxnpVCBFrFXvRN433IU/mjh7aWzF+c+Y7KvpINIR0IYrnZz3aeqO4pvp7xbCZfTy0P93mCwlU/xm6V/bWUycTm93Iq3lXA1pvqvhtAbVdyif0L/2XvrxdUfUX2JIaj1G91vQ8FIOGMUtBJKpNzye+Kqzhc3sATO+9YyiS/eefOIdcukY1p5TXXX/kKpKa/PlNNnOZH7iMqjv64YYDbnZrE5fcupxeiP2Az58MZBMX25u/su4nGhKsr5YYwMbrTApsvuQEcF83qzfQ0/vyiuvpHXbCv/X3vE3ir3YflYre8UpDYr22Xd39lt5dA7G3Sf1BP6EJEvphdXk+nfk+kV2zkbqFSdZnrMKHjRK14Mw8CrjjcI8H884/QSIHyhc1cobTjjyhccf9TmDPa1CRIS7htzCbkNxAeaZqkC3vuibXn5R4WeFTvnG/ZaLZnuWQOZDvydQbJSRcAjfH246ZvbX+KtGPtFZeqtkKBvaXFEaOet3Ly6v919dLMzQwwh8AjwR1wN48Seq7jbN5nJHQNsTxz0va3FdZqio6Nn5zvd6vv9HUhY9mNuaTM28eqZR2D1HKm3XX5d2+nWGiiUWVdd84QIyb+fNmA1XA==
+sidebar_class_name: "put api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateDefaultConfig"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/default-config/{key}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"key","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"change_reason":{"type":"string"},"value":{},"schema":{},"function_name":{"type":"string"},"description":{"type":"string"},"autocomplete_function_name":{"type":"string"}},"required":["change_reason"],"title":"UpdateDefaultConfigRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateDefaultConfig 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"key":{"type":"string"},"value":{},"schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"function_name":{"type":"string","description":"Optional"},"autocomplete_function_name":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","key","last_modified_at","last_modified_by","schema","value"],"title":"UpdateDefaultConfigResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

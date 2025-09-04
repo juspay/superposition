@@ -1,0 +1,71 @@
+---
+id: move-context
+title: "MoveContext"
+description: "Updates the condition of the mentioned context, if a context with the new condition already exists, it merges the override and effectively deleting the old context"
+sidebar_label: "MoveContext"
+hide_title: true
+hide_table_of_contents: true
+api: eJzdV0tvIzcM/iuCTi0wTow0ufi2G2yxi6JtkMcpMAJ6xPEomZG0FMfOwPB/Lzgvjx9JW+zuoc0ltkRS/D5Sn+iNNhhTsoGtd3qmH4IBxqg4R5V6Z6ysK581CyU6+YpGthhfOVE2U9B/U2vLeWPocD3yhoIQTK3w1UaOibKsSqRld4pfIZE1qMAZhVmGKdsVFrUyWCBbt2ytiuFQnWgfkEBifzF6pn/3K7we9gi/Vhj5oze1nm104+RYPkIIhU0bv/PnKHA3OqY5liCfuA6oZ9ovnjGVOIHkFLYYhzCvfMoQTIsTipuxyzY5oPYWA2FEx3HHDRQqJctIFlQV0ajM00BnCZzm1i3P1G9YR2Uwsw6VsSW6KLw6KDE2tK2gqDCqGDC1Wd0Wrw/LObAqq8hqIRXkM51otlwIhus+D32Y7QAzMlm3lP00B7fEJ0KIJy22LfeW0OjZ44F5MjA43x0/KtxtW7Xrrlrb/WhMFW4THYCgREaKeva40YJfz7Q1OtFWGA7AuU6Oa7rDcBhyCPI68bSc7ELlCAbpnWDCVwZVwXqmn6sYoP6b+IwOHP/j+MfB5rISg3exbcmL6VT+7TfZiFJ1MZ2q3qMvwLffBGtOJtu04P/5evQ69S0Yr73L7LJqtWtQvtgmQRgKSFF1fdVnvc7RDZgHZqICavNt0VPPnpiMzniRzREH4rWnugYYxpj/7JMaY356o+hrtMucT1+OMe4bsp4s16p1aGvJXhm5zKWUrcmJDJK8NT1alKQbHGfqs13mSF2AqBheUAXCFA06Ia2Sgw/AE0ZfVI3/9xC4RKeEwGie4CTmzFMpO1qe0AnbEsc+i/pkyAIiP5Xe2Mz+y8D7nifDH0iyNW+qb6sSI/ndJvpyenksMLcYfUUp/uH5V185oy6nlzuV2Sb66pQsfXGM5KC4Q1ohfSLypK5+iDyVGCMs8TQZPfQT6ZyiYJvoEjn3MmSEqjlLXpiZPu869Lz0KzzfWLMVJce0kiZv3qZYWs7rMwj2LGcOHxEI6UMl3o9zkfLe+k5wtam/4zOAkY2j6/X5/v5GteYKKs5lTGvp6x8YcV00Bg0PQurtbk769AplKHB/zjkSr6EdD+7JqJmty3yTbMfzXRWQgo+2y2WFFNtgF9OLq8n0l8n0SvyCj1xCU+fuvZTmVLuh7uDqDr3yH5lXu+I1LRMKsM2DUlEhWNqWetQ7a2kqnehZe11zH1n2N5sFRHygYruV5a8VkrTaXJ5esrAQwh832tgon42eZVBEfIe6n247afhZvZVitwiu1sMLr3WiX7BuB6/tfJv0s8x3P709ZTSZDRnIYPVDjhqGtL2j2t1OGSb3EmBncSRWO48PaYqB37WdjyTm5uFeJ3rR/XApvcwammAtP2pg3TLvG3yNXDRrG12AW1aN4uk2pPz9BZt/4h8=
+sidebar_class_name: "put api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"MoveContext"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/context/move/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates the condition of the mentioned context, if a context with the new condition already exists, it merges the override and effectively deleting the old context
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","context"],"title":"MoveContextRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"MoveContext 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"value":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"override":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"override_id":{"type":"string"},"weight":{"type":"string","description":"Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution."},"description":{"type":"string"},"change_reason":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["id"],"title":"MoveContextResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

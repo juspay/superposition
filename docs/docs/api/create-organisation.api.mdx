@@ -1,0 +1,71 @@
+---
+id: create-organisation
+title: "CreateOrganisation"
+description: "Creates a new organisation with specified details including name, admin contact, and organisational information."
+sidebar_label: "CreateOrganisation"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVk1v2zAM/SsCz2obdOjFt24YsGKHFk13CoKCsdlYnS2rEt02CPzfB0pOY7dehhX7yCW2+CG+x0fJWygo5N44No2FDD55QqagUFl6Uo1fozUBxaieDJcqOMrNnaFCFcRoqqCMzau2MHatLNakFRa1sSpvLGPOWqEtRmmwUsbeNb6Ob8egoXHk48tF8VLA5SACNHh6aCnwx6bYQLYFSU6W5RGdq0we/U7ug0DYQshLqlGeeOMIMmhW95QzaHBeNmNDIaVpLfvNbd4UNPAO7I1dQ6ehB3FLNZrqoIcrGzudI9JxIEOgnBs/aRI+Jwxd4sN4KiBbjDboY5Ya2HBFk3ReJy4/9Rx243zsW4oLwTU2JJ5OZzP5mxLKMLE6nc3ULhD0n+qSKX6HHP1vuppH9MXtavO+pjNyG96aNJBta+nqec7mUVi8sLh7vCIrc/Z1sxp2+NKv5yndYTXtSkae2jdNJGRQINMRm5okpnXFu2MmqTmo3UGFI4a1aKDv+At3o+JGu/5C/UmfA/l3Gs6mFH5hmbzFak7+kfxn7xuvzv6KxGsKAdc/mfUdlolypsB0GmrispGz1DUhboZcQgYnoXXkXRNMLHJ4KAudgfLWG95AtthCqA2Xm2N05rhkdh8JPfnzVvIslt1y7z0XiAnFgZgXXGIA/YroLzc3Vyq5K2y5JMs9k1JW3AAyWEWHSInwe72/Ej4/Y+0qenuk76X6aubfGvpR3xtGI7xf3g3YfiUdRINBk+stQu4bNx/SDhoeyYcE/HR2enY0+3A0O5M46VaNUTh9ziRf9eoyHJE3uAz/x93dt5XpmU9chcbGE8DHUy/JbgHhFf6x8JYaSpFptoDtdoWBvvmq62T5oSUvalxqeERvcCVsLpadhpKwIB+F+p02gjxxcHQj5Yh71UpZb2ay07uI8zwnxwd9l4NJurqc34CGVf8BUid5eXySjxN8ggzih0yClG3T2hYqtOs2TjaknPL7AX7PVDs=
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateOrganisation"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/superposition/organisations"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new organisation with specified details including name, admin contact, and organisational information.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"country_code":{"type":"string"},"contact_email":{"type":"string"},"contact_phone":{"type":"string"},"admin_email":{"type":"string"},"sector":{"type":"string"},"name":{"type":"string"}},"required":["admin_email","name"],"title":"CreateOrganisationRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateOrganisation 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"country_code":{"type":"string"},"contact_email":{"type":"string"},"contact_phone":{"type":"string"},"created_by":{"type":"string"},"admin_email":{"type":"string"},"status":{"type":"string","enum":["Active","Inactive","PendingKyb"],"title":"OrgStatus"},"sector":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"updated_at":{"type":"string","format":"date-time"},"updated_by":{"type":"string"}},"required":["admin_email","created_at","created_by","id","name","status","updated_at","updated_by"],"title":"CreateOrganisationResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

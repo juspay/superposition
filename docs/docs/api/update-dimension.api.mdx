@@ -1,0 +1,71 @@
+---
+id: update-dimension
+title: "UpdateDimension"
+description: "Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships."
+sidebar_label: "UpdateDimension"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV0tz4zYM/iscXNrOyIknTS6+ZbfbNpc2k8fJ4/HAEmwxK5FcEEzi8ei/d6iHLdty0t3uHppLFBIAgQ/AB2QDGfmUtRNtDUzg0WUo5BUaRa/aizYrlemSjNfW/ORVas1SrwJjlD9T10VhX7wqbaaXOq0PlV0qn+ZUYqKc9TqeJWoZTFrfluicNiufKDSZspITK8fWEYsmr15yXZAqURtBberXyZHJyKRrxVTUT/hcO38GCUS1+uQm2/r+W+ctJMD0JZCXDzZbw2QDqTVCRuInOle0Dp8/+Rj6Bhqv45esHcEE7OKJUoEEdg7uyVUJdBH2tEwoF8RQJdAFPTdYUk/CC2uzihJ74A/et8G3T7cCyIxrSEALlX5AsUogzdGsaM6E/oRtDGJTW7qChObvuVo1YGqmDCbTA+uzBERLQcc5uGsS8LEFvtq3IxwoYoiMJQmxh8l0A40HkPXyqGNpOpQckuMs7SI6tLy19TqyvBrprDOVE2bEbxiLyC8xFAITeAre4fod+0IGjfxr+8fGZvHEO2t8k+mL8Tj+GurOLbrqYjxWnRYk36u+d8gP+f1mxfdb479X//s1XKCXecM+lM1RhjK5tFzGG4jYjUSXdKy5WA87wITylYY7nRMmv72jO035Rr10PV8xunyoADDL6qRicdsvhcMcwR9kiHWqPtN69IxFINWYUF44pBKYVPCUqaVltSzoVS8KUhkKKibH5MlIMyQkZxtWuQ2iJCd1fXsT+bxjkb8bv76WpBIo0WQolvvYL6wtCM07HLaX7L0sHuRsANC93OxDluzx2FG5DtRhr8O2/fQWwTbd32PYKoHL8eUxedyRt4FT+svK7zaYTF2OL3fsUSVwNUQ5N0aIDRb3xM/En5gtq6sfQjsleY+rE8OnC3/AnSEIYimQ5DauBS7Ub8XpMYHzbTrON9vPKiJNaWAt63oE+VJLvj5Dp89yEfeBkImvQ7QwnUWq7qTvY2ztVnBaZxtQvIDDnvrz4eFWNeIKg+RkpIWwK4C6imuBGosI7N1us/n0irE/Tm8m4yMu7o+5viu94z5LTbuL2REn71Te6tReh2qztDUibULvgyPuVfwzcTN64GJ8cTUa/zoaX7VjR0qsC6q12XSC6u97BwNlW5j/s7W2rRahVzl3BWoTAQhcxJiaOp7u0cpk98csgdx6iRKbzQI9PXJRVfH4S6BIi9NZAs/IGhcR/mmc9j5+ZzBZYuHpDRB/vmvZ8xd1ysluKpnIY/WAgAlAAp9pvbfSVbMq6bak7+5E81hv59s6Ele2H/LUdv3be6q5bXlp9BAN7CSOqHKncZ2m5ORN2VmP4G4fHyCBRftPTmmzqML4Ev8BwpcmAbaOryaq+mwDBZpVqPkWGpPx5x9x//U7
+sidebar_class_name: "put api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateDimension"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/dimension/{dimension}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"dimension","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"schema":{},"position":{"type":"number"},"function_name":{"type":"string"},"description":{"type":"string"},"dependencies":{"type":"array","items":{"type":"string"}},"change_reason":{"type":"string"},"autocomplete_function_name":{"type":"string"}},"required":["change_reason"],"title":"UpdateDimensionRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateDimension 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"dimension":{"type":"string"},"position":{"type":"number"},"schema":{},"function_name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"dependencies":{"type":"array","items":{"type":"string"}},"dependents":{"type":"array","items":{"type":"string"}},"dependency_graph":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"autocomplete_function_name":{"type":"string"},"mandatory":{"type":"boolean"}},"required":["change_reason","created_at","created_by","dependencies","dependency_graph","dependents","description","dimension","last_modified_at","last_modified_by","position","schema"],"title":"UpdateDimensionResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

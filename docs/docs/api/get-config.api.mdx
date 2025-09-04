@@ -1,0 +1,71 @@
+---
+id: get-config
+title: "GetConfig"
+description: "Retrieves config data with context evaluation, including applicable contexts, overrides, and default values based on provided conditions."
+sidebar_label: "GetConfig"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNV0tPIzkQ/iuWT7tSB7KsuPSNQSMWrUaDgD2xCDnt6rSZbttTrg6Jovz3Vdn9CgTmxWFzSeKu51eur6q3UkMo0HgyzspcXgOhgRUEUThbmqXQipR4MlTxAcGaBKxU3SqWz4SxRd1qY5dCeV+bQi1q6AVDJtwKEI2GkAlltdBQqrYmwQYgiIUKoIWzwqNbGQ2aNbVhy+FIZtJ5wOjnUstcXgCdx5BkJhG+thDog9MbmW9ldGiJf3ZhsNbxY+CUtjIUFTSKf9HGg8ylWzxCQTKTHtkHGQiDmTUdElQ6xaXqq6nKLnsG3yflBYJHCGCJYaFqwOPoX/s3bBhYRAjeWS3IRQGrGgjClfGPNg3Y0GNAhmqO5DzZ+KS83O3G4wGU64TIeYfEbsdSXqFqgACDzO+2kt3IXHqE0qxlJg1H/LUF3MjsJUiB0Nglexs0V4Ac2M+ormcOlzOje90KlAZ8Q5mRjbdF5vKxDV5t5C4V3iBomRO2sGefwCpL323/pbF7PuG6hHQdTuZz/tov8AC4OJnPRS8vs85hVKxVoFnjtCkNGz9wAUeA5HqmWm2IofmmZGrJWV+GN+V32Tu3RZhIKkTFlTcETfi2hZTbC/yHbv+Vjrvuuy2M7KFqUaAhQKNEyxxTOhzoq1FUVMYuj0TsRg2lsZOu65qR6aqjqeChMOUmtXJvlipFomkDiQWIBuhZr3Z5cQ+icWhoM8nRts0CkB8+gVlWdPBRT50PzL0PX2DzPfiP2DZqfZke/jHli45GrhSSUXW8VgNH/0AVfrpaqXfaROvjeEhwIvhaFfB8TDxVYIfqjRNCKEzIpzoOrNsNrt4HIzetJmtxJXvfccBNq/d5wGN34DAS8MBND8nXL0FyARbQFBzoLMYokgkRCNuCWoTxDpc1rA2P2DiVh5RTplSha5eVaykmeHZ1uZdWiuuV4ZFobH96nB7iv0tLgFbVN4ArwI+IDsXpPhO+E+00EIJawmEu7FM4EM6hZLghgCrHe4R3ITpTVMlcHhf9ThGgaFOj3m1laAxVmyPlzVFF5D+AQsCzllXu7nlS9NI3nE0K+A2dIQV+IJ/fgL9ub69EEheqpYpXhwRaP79YdREFYvYM5fW4An1cq8bXsL/CsJyxpYvOO7RuWg/oXTCd7WGQyJP5yels/udsfho5ywVqVKxWN14vgMSwfe1FP9m+/lfLYwc42zr2tTKRjFusOeJU+zvZ1f4+kxVfivxObrds9x+sdzs+ThsOXwhtAoenZV6qOkAmv8BmukvFqGQuJe8krwiP69Mofc9/0LB4vFr9InHY6avI/3bd7TK/i9dyTzFM9rC3Q34PV8NKtucqPe3ac3bLBkaJF4wxapwVBXh6U/Z+0udXn29uZSYX3TtC4zTroHri9wf1xNHwK0a8MCwQz3h5s8s28o5MNvnzH8HFoXo=
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetConfig"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/config"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves config data with context evaluation, including applicable contexts, overrides, and default values based on provided conditions.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"prefix","in":"query","schema":{"type":"string"}},{"name":"version","in":"query","schema":{"type":"string"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"type":"object","additionalProperties":{},"description":"Map representing the context.\nKeys correspond to the names of the dimensions.","title":"ContextMap"}},"title":"GetConfigRequestContent"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetConfig 200 response","headers":{"last-modified":{"schema":{"type":"string"}},"x-audit-id":{"schema":{"type":"string"}},"x-config-version":{"schema":{"type":"string"}}},"content":{"application/json":{"schema":{"type":"object","properties":{"contexts":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"condition":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"priority":{"type":"number"},"weight":{"type":"number"},"override_with_keys":{"type":"array","items":{"type":"string"},"maxItems":1}},"title":"ContextPartial"}},"overrides":{"type":"object","additionalProperties":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"title":"OverridesMap"},"default_configs":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"}},"title":"GetConfigResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

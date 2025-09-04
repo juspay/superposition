@@ -1,0 +1,71 @@
+---
+id: create-experiment
+title: "CreateExperiment"
+description: "Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis."
+sidebar_label: "CreateExperiment"
+hide_title: true
+hide_table_of_contents: true
+api: eJztWEtv4zYQ/ivEnFpATowUufjmtdXWaJoYsrNoYRjGWBpbTCRKS1JJBMP/fUE9LEqRkxSLbXvYXCKI8575vhF9gICUL3mqeSJgBBNJqEkxZIKeGb2kJHlMQrNnrkP2hJKj0MphfiI0vWiGIjDPATf66oL9nWTMR8GSwiBGUc5USj7f5SwmLbmvChXL8F4mWcp2iWRaov/Ixb6QQIFRrri6AAeSlCQae7PgFKJ7sgAOSPqSkdKfkiCH0QGK4IQ2j5imEfcL5csHZVI8gPJDitE86TwlGEGyfSDf2EmlcaU5KXMqMCZLSmnJxR6ODjTRb8qzrowDJLIYRiuYur+O72+W4MDUvXGX7ubus+t5s6m7gLUDmuvIqDXJLI2dowNVffuCxKCsNkZzO9yj02mlR6kkRUKrpkMYMV9yTZIjyxQFRd3rXsao/ZCL/QX7g3LFAtpxQSwwcSmeCGbqUbbvCaOM1KmzOqTGrA5RszhTmm3J9Nw0sM5zUsdhUqyHycoRpcQcHOCaYvV+g3jQ257K8Lu9mdzdLr27G3DA/WvuerM/3dvl+Mbuy+fSUqcpmzN+kyeSkgf03nnRrWM5tVxSYGLhAdgCnSRehwTHbr97HPohij1tJKE6I1Fhshwfa6wLUPbn0Qm87aMZ3HZ0Tgkmq+lWSl1AeyWaJxWKj22XWmZ0dCBFiTFpkgpGqxqr8DJI5H5QFJMbDISEAUlwXmP+NA0B7TCLNIzgIVMp5tDjzbKvSWDBOR+z/9rY2rxRaSJUOcRXw6H510fDTUnY1XDIarW6yt/OcGcG1S+8BxvUfQXbJTI2JxCgpoHmMdk627zXZIRKb+Ik4DtOPU7PWf0vKfgE50fKP0JSFkCURp31nFnc47njpTsFx7DQ5OZ+WjzPbufe3W+eu1iYaGeLydgrD+bj+4U77Y93UTiro9YSdzvub1KSPgmNe7s2Iou3JH/slx/75UP7pQXac8j2w0SR2FT2ekW+fU8pjfKfMlKtcybuavVtMhn966vRItgWc3aXZpflnLKPbTLt6dNp3bY57ERMvTTx0eVcLiFrOx8duO5bYjOhSQqMFiSfSLpSJpJdf5c9FpNSbaazWlJn0hNOXzJl68PEXDXSRBXOUIcwgsumHUUtyc8k13nx/aFirsP8AlN+EWqdfiKUJMeZ0Vutzc6vpRcmpTLqN3ROeZgD6DLv78vlnJXiDDMdktBV5eovEaO6LQSKEph6es0dyX3BOI2oueNY3NXdq9b6bHZGi11XJVE2Ntr8aNGgzW+NeIvWXr8u2WzdrcFJrkMezcH7ALbQzsUuKcpeDcsiS0mmieJVVZ9IqtLx1fDqejD8ZTC8NnpmQmIUVilLwLDW/bRDgKep/39et6u+GYeXaYS82KYVTZZQWIENhbUDoQHKaAWHwxYV3cvoeDSvv2QkDT7W1VBsTW1X66NTfzib4Qm4MgcBjHYYKXqjWj95Fbv+zM6F+Uh5+xpQfErACMB8xX8XV6cbQctVeVoRy2BZsnct8YrrGo2x71Oq35RdWww1v1sYaG6rXz7iJDA6Ep/NryL4bKIxv58U42IEincHiFDss4IxobRp/r4CL6FM0w==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateExperiment"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/experiments"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"experiment_type":{"type":"string","enum":["DEFAULT","DELETE_OVERRIDES"],"title":"ExperimentType"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"variants":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"variant_type":{"type":"string","enum":["CONTROL","EXPERIMENTAL"],"title":"VariantType"},"context_id":{"type":"string"},"override_id":{"type":"string"},"overrides":{}},"required":["id","overrides","variant_type"],"title":"Variant"}},"description":{"type":"string"},"change_reason":{"type":"string"},"metrics":{},"experiment_group_id":{"type":"string"}},"required":["change_reason","context","description","name","variants"],"title":"CreateExperimentRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateExperiment 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified":{"type":"string","format":"date-time"},"name":{"type":"string"},"experiment_type":{"type":"string","enum":["DEFAULT","DELETE_OVERRIDES"],"title":"ExperimentType"},"override_keys":{"type":"array","items":{"type":"string"}},"status":{"type":"string","enum":["CREATED","CONCLUDED","INPROGRESS","DISCARDED","PAUSED"],"title":"ExperimentStatusType"},"traffic_percentage":{"type":"number"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"variants":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"variant_type":{"type":"string","enum":["CONTROL","EXPERIMENTAL"],"title":"VariantType"},"context_id":{"type":"string"},"override_id":{"type":"string"},"overrides":{}},"required":["id","overrides","variant_type"],"title":"Variant"}},"last_modified_by":{"type":"string"},"chosen_variant":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"started_at":{"type":"string","format":"date-time"},"started_by":{"type":"string"},"metrics_url":{"type":"string"},"metrics":{},"experiment_group_id":{"type":"string"}},"required":["change_reason","context","created_at","created_by","description","experiment_type","id","last_modified","last_modified_by","name","override_keys","status","traffic_percentage","variants"],"title":"CreateExperimentResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
