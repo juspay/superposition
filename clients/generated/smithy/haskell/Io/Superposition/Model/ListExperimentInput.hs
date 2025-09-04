@@ -13,6 +13,7 @@ module Io.Superposition.Model.ListExperimentInput (
     setCreatedBy,
     setSortOn,
     setSortBy,
+    setGlobalExperimentsOnly,
     build,
     ListExperimentInputBuilder,
     ListExperimentInput,
@@ -29,7 +30,8 @@ module Io.Superposition.Model.ListExperimentInput (
     experiment_group_ids,
     created_by,
     sort_on,
-    sort_by
+    sort_by,
+    global_experiments_only
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -61,7 +63,8 @@ data ListExperimentInput = ListExperimentInput {
     experiment_group_ids :: Data.Maybe.Maybe Data.Text.Text,
     created_by :: Data.Maybe.Maybe Data.Text.Text,
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
-    sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
+    sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
+    global_experiments_only :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -83,7 +86,8 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "experiment_group_ids" Data.Aeson..= experiment_group_ids a,
         "created_by" Data.Aeson..= created_by a,
         "sort_on" Data.Aeson..= sort_on a,
-        "sort_by" Data.Aeson..= sort_by a
+        "sort_by" Data.Aeson..= sort_by a,
+        "global_experiments_only" Data.Aeson..= global_experiments_only a
         ]
     
 
@@ -104,6 +108,7 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "sort_on")
         Control.Applicative.<*> (v Data.Aeson..: "sort_by")
+        Control.Applicative.<*> (v Data.Aeson..: "global_experiments_only")
     
 
 
@@ -122,7 +127,8 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     experiment_group_idsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
-    sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
+    sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
+    global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -142,7 +148,8 @@ defaultBuilderState = ListExperimentInputBuilderState {
     experiment_group_idsBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     sort_onBuilderState = Data.Maybe.Nothing,
-    sort_byBuilderState = Data.Maybe.Nothing
+    sort_byBuilderState = Data.Maybe.Nothing,
+    global_experiments_onlyBuilderState = Data.Maybe.Nothing
 }
 
 newtype ListExperimentInputBuilder a = ListExperimentInputBuilder {
@@ -222,6 +229,10 @@ setSortBy :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy -> ListExperi
 setSortBy value =
    ListExperimentInputBuilder (\s -> (s { sort_byBuilderState = value }, ()))
 
+setGlobalExperimentsOnly :: Data.Maybe.Maybe Bool -> ListExperimentInputBuilder ()
+setGlobalExperimentsOnly value =
+   ListExperimentInputBuilder (\s -> (s { global_experiments_onlyBuilderState = value }, ()))
+
 build :: ListExperimentInputBuilder () -> Data.Either.Either Data.Text.Text ListExperimentInput
 build builder = do
     let (st, _) = runListExperimentInputBuilder builder defaultBuilderState
@@ -239,6 +250,7 @@ build builder = do
     created_by' <- Data.Either.Right (created_byBuilderState st)
     sort_on' <- Data.Either.Right (sort_onBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
+    global_experiments_only' <- Data.Either.Right (global_experiments_onlyBuilderState st)
     Data.Either.Right (ListExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -253,7 +265,8 @@ build builder = do
         experiment_group_ids = experiment_group_ids',
         created_by = created_by',
         sort_on = sort_on',
-        sort_by = sort_by'
+        sort_by = sort_by',
+        global_experiments_only = global_experiments_only'
     })
 
 

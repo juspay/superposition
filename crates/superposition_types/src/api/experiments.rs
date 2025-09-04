@@ -241,6 +241,7 @@ pub struct ExperimentListFilters {
     pub created_by: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
+    pub global_experiments_only: Option<bool>,
 }
 
 impl Default for ExperimentListFilters {
@@ -264,6 +265,7 @@ impl Default for ExperimentListFilters {
             created_by: None,
             sort_on: None,
             sort_by: Some(SortBy::Desc),
+            global_experiments_only: None,
         }
     }
 }

@@ -223,7 +223,7 @@ pub fn webhook_form(
                 <Toggle
                     name="Enable Webhook"
                     value=enabled_rs.get_untracked()
-                    on_change=move |_| enabled_ws.update(|v| *v = !*v)
+                    on_change=move |v| enabled_ws.set(v)
                 />
                 <Label title="Enable Webhook" />
             </div>

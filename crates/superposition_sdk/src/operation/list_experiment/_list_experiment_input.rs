@@ -31,6 +31,8 @@ pub struct ListExperimentInput  {
     pub sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     /// Sort order enumeration for list operations.
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub global_experiments_only: ::std::option::Option<bool>,
 }
 impl  ListExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -89,6 +91,10 @@ impl  ListExperimentInput  {
     pub fn sort_by(&self) -> ::std::option::Option<&crate::types::SortBy> {
         self.sort_by.as_ref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn global_experiments_only(&self) -> ::std::option::Option<bool> {
+        self.global_experiments_only
+    }
 }
 impl ListExperimentInput {
     /// Creates a new builder-style object to manufacture [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
@@ -115,6 +121,7 @@ pub struct ListExperimentInputBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
+    pub(crate) global_experiments_only: ::std::option::Option<bool>,
 }
 impl ListExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -301,6 +308,19 @@ impl ListExperimentInputBuilder {
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
         &self.sort_by
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn global_experiments_only(mut self, input: bool) -> Self {
+        self.global_experiments_only = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_global_experiments_only(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.global_experiments_only = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_global_experiments_only(&self) -> &::std::option::Option<bool> {
+        &self.global_experiments_only
+    }
     /// Consumes the builder and constructs a [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment::ListExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -332,6 +352,8 @@ impl ListExperimentInputBuilder {
                 sort_on: self.sort_on
                 ,
                 sort_by: self.sort_by
+                ,
+                global_experiments_only: self.global_experiments_only
                 ,
             }
         )

@@ -128,7 +128,7 @@ pub fn workspace_form(
                             <Toggle
                                 name="workspace-strict-mode"
                                 value=strict_mode_rs.get_untracked()
-                                on_change=move |_| strict_mode_ws.update(|v| *v = !*v)
+                                on_change=move |v| strict_mode_ws.set(v)
                             />
                             <Label
                                 title="Strict Mode"
@@ -218,8 +218,7 @@ pub fn workspace_form(
                     <Toggle
                         name="workspace-status"
                         value=workspace_status_rs.get_untracked() == WorkspaceStatus::ENABLED
-                        on_change=move |flag: serde_json::Value| {
-                            let flag = flag.as_bool().unwrap();
+                        on_change=move |flag| {
                             if flag {
                                 workspace_status_ws.set(WorkspaceStatus::ENABLED)
                             } else {
@@ -234,7 +233,7 @@ pub fn workspace_form(
                     <Toggle
                         name="workspace-self-approval"
                         value=allow_experiment_self_approval_rs.get_untracked()
-                        on_change=move |_| allow_experiment_self_approval_rs.update(|v| *v = !*v)
+                        on_change=move |v| allow_experiment_self_approval_rs.set(v)
                     />
                     <Label title="Allow self approval for Experiments" />
                 </div>
@@ -245,7 +244,7 @@ pub fn workspace_form(
                     <Toggle
                         name="workspace-auto-populate-control"
                         value=auto_populate_control_rs.get_untracked()
-                        on_change=move |_| auto_populate_control_ws.update(|v| *v = !*v)
+                        on_change=move |v| auto_populate_control_ws.set(v)
                     />
                     <Label
                         title="Auto-populate Control"

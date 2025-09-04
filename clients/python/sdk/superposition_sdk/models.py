@@ -9276,6 +9276,7 @@ class ListExperimentInput:
     created_by: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
+    global_experiments_only: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_INPUT, self)
@@ -9334,6 +9335,9 @@ class ListExperimentInput:
 
                 case 13:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_by"])
+
+                case 14:
+                    kwargs["global_experiments_only"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["global_experiments_only"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

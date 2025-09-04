@@ -373,6 +373,10 @@ operation ListExperiment {
         @httpQuery("sort_by")
         @notProperty
         sort_by: SortBy
+
+        @httpQuery("global_experiments_only")
+        @notProperty
+        global_experiments_only: Boolean
     }
 
     output: ExperimentListResponse
