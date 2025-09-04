@@ -4,6 +4,8 @@ title: Quick Start Guide
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { VERSIONS } from '@site/src/constants/versions';
+import CodeBlock from '@theme/CodeBlock';
 
 # Quick Start Guide
 
@@ -42,16 +44,16 @@ Install the provider for your language of choice. The provider will allow you to
 
 <Tabs groupId="languages">
   <TabItem value="java" label="Java" default>
-      ```gradle title="app/build.gradle"
-      implementation "dev.openfeature:sdk:1.15.1"
-      implementation "io.juspay.superposition:openfeature-provider:0.87.0"
-      ```
+      <CodeBlock language="java" title="app/build.gradle">
+        {`implementation "dev.openfeature:sdk:${VERSIONS.openfeature}"
+implementation "io.juspay.superposition:openfeature-provider:${VERSIONS.superposition}"`}
+      </CodeBlock>
   </TabItem>
   <TabItem value="kotlin" label="Kotlin" default>
-      ```kotlin title="app/build.gradle.kts"
-      implementation("dev.openfeature:sdk:1.15.1")
-      implementation("io.juspay.superposition:openfeature-provider:0.87.0")
-      ```
+      <CodeBlock language="kotlin" title="app/build.gradle.kts">
+        {`implementation("dev.openfeature:sdk:${VERSIONS.openfeature}")
+implementation("io.juspay.superposition:openfeature-provider:${VERSIONS.superposition}")`}
+      </CodeBlock>
   </TabItem>
   <TabItem value="python" label="Python">
       ```bash
@@ -65,11 +67,11 @@ Install the provider for your language of choice. The provider will allow you to
       ```
   </TabItem>
   <TabItem value="rust" label="Rust">
-      ```toml title="Cargo.toml"
-      [dependencies]
-      open-feature = "0.2"
-      superposition_provider = "0.85.0"
-      ```
+      <CodeBlock language="rust" title="Cargo.toml">
+      {`[dependencies]
+open-feature = "0.2"
+superposition_provider = "${VERSIONS.superposition}"`}
+      </CodeBlock>
   </TabItem>
 </Tabs>
 

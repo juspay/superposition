@@ -65,6 +65,7 @@ jobs:
                   cargo upgrade --package superposition_provider@${{ steps.git_tag.outputs.version }}
                   cargo upgrade --package superposition_sdk@${{ steps.git_tag.outputs.version }}
                   cargo upgrade --package service_utils@${{ steps.git_tag.outputs.version }}
+                  sed -i "s/superposition: '[0-9]\+\.[0-9]\+\.[0-9]\+',/superposition: '${steps.git_tag.outputs.version}',/" docs/src/constants/versions.js
                   git add .
                   git commit --amend --no-edit
 
