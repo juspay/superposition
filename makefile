@@ -262,9 +262,6 @@ smithy-clients: smithy-build
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
 	git apply smithy/patches/*.patch
-	cd docs && npx docusaurus gen-api-docs superposition
-
-
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
@@ -306,8 +303,8 @@ local-docs-view: api-docs-generate
 	cd docs && npm ci && npm start
 
 # API Documentation targets
-api-docs-generate: smithy-build
-	cd docs && npx docusaurus gen-api-docs superposition
+api-docs-generate:
+	cd docs && npm run gen-api-docs
 
 default: dev-build frontend
 
