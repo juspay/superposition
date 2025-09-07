@@ -303,7 +303,7 @@ local-docs-view: api-docs-generate
 	cd docs && npm ci && npm start
 
 # API Documentation targets
-api-docs-generate:
+api-docs-generate: smithy-build
 	cd docs && npm run gen-api-docs
 
 default: dev-build frontend
