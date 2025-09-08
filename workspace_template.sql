@@ -683,12 +683,12 @@ ALTER COLUMN created_at SET NOT NULL;
 DO $$ BEGIN
     CREATE TYPE public.dimension_type AS ENUM (
         'REGULAR',
-        'COHORT'
+        'LOCAL_COHORT',
+        'REMOTE_COHORT'
     );
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
 ALTER TABLE {replaceme}.dimensions
-ADD COLUMN IF NOT EXISTS dimension_type public.DIMENSION_TYPE NOT NULL DEFAULT 'REGULAR',
-ADD COLUMN IF NOT EXISTS cohort_based_on TEXT;
+ADD COLUMN IF NOT EXISTS dimension_type public.DIMENSION_TYPE NOT NULL DEFAULT 'REGULAR';

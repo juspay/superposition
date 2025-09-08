@@ -183,13 +183,13 @@ pub fn validate_jsonschema(
 
 pub fn validate_cohort_schema(
     cohort_schema: &Value,
-    cohort_based_on: Option<String>,
+    cohort_based_on: &Option<String>,
     schema_name: &SchemaName,
     conn: &mut DBConnection,
 ) -> superposition::Result<()> {
-    let derived_dimension = cohort_based_on.ok_or_else(|| {
-        validation_error!("the cohort_based_on field is mandatory for creating cohorts",)
-    })?;
+    let dependent_dimension = cohort_based_on.clone().ok_or(validation_error!(
+        "the cohort_based_on field is mandatory for creating cohorts",
+    ))?;
 
     // Validate the JSON Logic schema
     let validation_config = logic_validation::ValidationConfig {
@@ -224,7 +224,8 @@ pub fn validate_cohort_schema(
         let ast =
             jsonlogic::expression::Expression::from_json(expression).map_err(|e| {
                 validation_error!(
-                    "Invalid JSON Logic schema for cohort {cohort}, found: {}",
+                    "Invalid JSON Logic schema for cohort {}, found: {}",
+                    cohort,
                     e
                 )
             })?;
@@ -232,24 +233,26 @@ pub fn validate_cohort_schema(
         let dims = ast.get_variable_names().map_err(|e| {
             log::error!("Error while parsing variable names for cohort {cohort}: {e}");
             validation_error!(
-                "Invalid JSON Logic in cohort {cohort}, error while parsing variable names: {e}"
+                "Invalid JSON Logic in cohort {}, error while parsing variable names: {}",
+                cohort,
+                e
             )
         })?;
         dimensions_used.extend(dims);
 
         logic_validation::validate(expression, &validation_config).map_err(|e| {
             log::error!("jsonlogic validation error for cohort {cohort}: {e:?}");
-            validation_error!("Invalid jsonlogic in cohort {cohort} : {e:?}")
+            validation_error!("Invalid jsonlogic in cohort {} : {:?}", cohort, e)
         })?;
     }
-    
+
     if dimensions_used.is_empty() {
         log::error!("No dimensions used in cohort schema");
         return Err(validation_error!(
             "No dimensions used in cohort schema, one dimension is required"
         ));
     }
-    
+
     if dimensions_used.len() > 1 {
         log::error!(
             "Multiple dimensions used in cohort schema: {:?}",
@@ -269,7 +272,7 @@ pub fn validate_cohort_schema(
             .get_result::<Dimension>(conn)
             .optional()?
         {
-            if validated_dim.dimension != derived_dimension {
+            if validated_dim.dimension != dependent_dimension {
                 log::error!("Dimension {} used in cohort schema does not match the cohort_based_on field", dim);
                 return Err(validation_error!(
                     "Dimension {} used in cohort schema does not match the cohort_based_on field",

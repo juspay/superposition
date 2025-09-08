@@ -67,7 +67,6 @@ pub struct CreateRequest {
     pub position: Position,
     pub schema: Value,
     pub function_name: Option<String>,
-    pub dependencies: Option<Vec<String>>,
     pub description: Description,
     pub change_reason: ChangeReason,
     pub autocomplete_function_name: Option<String>,
@@ -86,10 +85,8 @@ pub struct UpdateRequest {
     pub function_name: Option<Option<String>>,
     #[serde(default, deserialize_with = "deserialize_function_name")]
     pub autocomplete_function_name: Option<Option<String>>,
-    pub dependencies: Option<Vec<String>>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
-    pub cohort_based_on: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into, Clone)]

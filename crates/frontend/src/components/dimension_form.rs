@@ -171,11 +171,11 @@ pub fn dimension_form(
                         let request_payload = try_update_payload(
                             function_position,
                             function_schema,
-                            dependencies,
                             validation_fn_name,
                             autocomplete_fn_name,
                             description_rs.get_untracked(),
                             change_reason_rs.get_untracked(),
+                            dependencies,
                             None,
                         );
                         match request_payload {
@@ -563,17 +563,7 @@ pub fn change_log_summary(
                                                 "Position".to_string(),
                                                 Value::Number((*position).into()),
                                             )),
-                                            Some((
-                                                "Dependencies".to_string(),
-                                                Value::Array(
-                                                    update_request
-                                                        .dependencies
-                                                        .unwrap_or_else(|| dim.dependencies.clone())
-                                                        .into_iter()
-                                                        .map(Value::String)
-                                                        .collect(),
-                                                ),
-                                            )),
+                                            None,
                                             valdiate_fn
                                                 .map(|f| (
                                                     "Validation Function".to_string(),

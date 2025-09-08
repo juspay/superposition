@@ -93,7 +93,10 @@ impl Overridden<Cac<Overrides>> for Context {
 pub enum DimensionType {
     #[default]
     Regular,
-    Cohort,
+    #[cfg_attr(feature = "diesel_derives", db_rename = "LOCAL_COHORT")]
+    LocalCohort,
+    #[cfg_attr(feature = "diesel_derives", db_rename = "REMOTE_COHORT")]
+    RemoteCohort,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -120,7 +123,6 @@ pub struct Dimension {
     pub dependencies: Vec<String>,
     pub autocomplete_function_name: Option<String>,
     pub dimension_type: DimensionType,
-    pub cohort_based_on: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

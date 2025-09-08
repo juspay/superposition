@@ -93,7 +93,6 @@ diesel::table! {
         dependencies -> Array<Text>,
         autocomplete_function_name -> Nullable<Text>,
         dimension_type -> DimensionType,
-        cohort_based_on -> Nullable<Text>,
     }
 }
 

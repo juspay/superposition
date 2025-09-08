@@ -1432,7 +1432,8 @@ UPDATE superposition.workspaces SET auto_populate_control = FALSE;
 
 CREATE TYPE public.dimension_type AS ENUM (
     'REGULAR',
-    'COHORT'
+    'LOCAL_COHORT',
+    'REMOTE_COHORT'
 );
 
 ALTER TABLE localorg_dev.dimensions
