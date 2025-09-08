@@ -49,19 +49,23 @@ LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
 .PHONY:
-	db-init
-	setup
-	kill
-	run
+	cac
 	ci-test
 	clients
+	db-init
+	grafana-local
+	kill
+	local-docs-view
+	node-dependencies
+	run
+	schema-file
+	setup
 	setup-clients
+	smithy-build
+	smithy-api-docs
+	smithy-updates
 	validate-aws-connection
 	validate-psql-connection
-	cac
-	schema-file
-	node-dependencies
-	grafana-local
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -263,7 +267,11 @@ smithy-clients: smithy-build
 	done
 	git apply smithy/patches/*.patch
 
+# API Documentation targets
+smithy-api-docs: smithy-build
+	cd docs && npm ci && npm run openapi-docs
 
+smithy-updates: smithy-clients smithy-api-docs
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
@@ -301,7 +309,7 @@ amend-no-edit: amend
 grafana-local:
 	cd grafana && $(COMPOSE) up
 
-local-docs-view:
+local-docs-view: smithy-api-docs
 	cd docs && npm ci && npm start
 
 default: dev-build frontend

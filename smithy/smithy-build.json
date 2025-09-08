@@ -55,6 +55,21 @@
       "edition": "2010",
       "version": "0.0.1",
       "service": "io.superposition#Superposition"
+    },
+    "openapi": {
+      "service": "io.superposition#Superposition",
+      "protocol": "aws.protocols#restJson1",
+      "version": "3.0.2",
+      "tags": true,
+      "supportedTags": ["deprecated"],
+      "defaultBlobFormat": "byte",
+      "keepUnusedComponents": false,
+      "substitutions": {
+        "io.superposition#Superposition": {
+          "title": "Superposition API",
+          "description": "API documentation for Superposition"
+        }
+      }
     }
   }
 }

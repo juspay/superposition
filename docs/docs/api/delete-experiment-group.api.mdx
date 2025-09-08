@@ -1,0 +1,71 @@
+---
+id: delete-experiment-group
+title: "DeleteExperimentGroup"
+description: "Deletes an experiment group."
+sidebar_label: "DeleteExperimentGroup"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1Vt9v2zYQ/leIe9oAOdGy5MVvaaJ1xbaisN2HwQgMWjxbTCWKPR6DGIb+94L6YUu2nHZA95RYvPvu7ru7j9yDQpeStqxLA1N4xBwZnZBG4KtF0gUaFlsqvb2CCEqLJIPpB3UwTg5274MZRGAlyQIZycF0uQcjC4QpaAUR6BDESs4gApdmWEiY7oF3Nlg4Jm22UEVA+NVrQgVTJo9VdAB5nZS0nRyhMpQK6Q2wCBRupM8ZpvDsnZW77+AzGmn4h/HPwZ7CF2dL49AF+5s4Dn/GeD6hTtzEseh8IYK0NIyGg7e0NtdpTf31swsQ+/OUyvUzplyX3I81Z2mUJHWAFo7Jp+wJxaakS722FLrNuqlCq9Ha6xRfeZVJl40aNLyOHAxyHEPOpNniilC6SxZN7DECpFI6IMv8U7+K07AwQ0vo0LATaWk6H5GSZiQthXeoao7aWKKQnGbabK/EX7hzQuFGGxQqUOd0aUQoN2yPEi8y9+iEs5jqzU5whkdYziSLwjsWaxQFcqCbNeehhocuj1Aik9xsdLqySCkalts+l8YX63o2C/mqC1/A9Lc4jqDQpvkVVxEUGGxWx/6utHI9DEkkd2HYGQs3wnKgmVAyqpXkse3alFSEE1CSccK6QOj5rHejncul41VRKr3R/xF46HkBfu3TL8g/UuZhYIbDPqBrNMSLJC0vHQ80YXmCNvB9Ovb9XZ107Vyv4KoBPScGTWjuEj7Pk9nqYZbcL5JHiGD+73yR/LN6n3xMZvWnHnatLouAc5pbR9Xpvh2362THB/MwaPRwtwZVRI34n7V9pJ+XRrZVktGV6FU6qquzVvceWj2tqkDDbXx7rsszdKWnFD+W/EfpjRK38e1RkqsI7sbU/INhJCPzOdILUkJUkrj7SVo+nMwCnRuqQG/oOhJG0hmjoJYHzspwlauat/ru5gymcH2kf1I30l3vtarCRYipJ827+mp3heZsdyWtvsqY7TuUhHTvA8TyKdyEnfU81NeU8IbPoahwcHaP/blYfBKNuZCeMzTc0tjdz8F1XRvUfGizKWvQlpe5t0i2dLr1eUFyDfRNfHM3iX+fxHehx7Z0XMi6L+2zoBkrcZwr0b11Tq6xQ5u/95JqCw2LdW1zqWu595QHkKYHfeFoewARTBvVyErHwWS/X0uHnymvqvD5q0cKnXlqVWYd6l7uQWkX/lcw3cjc4Rtp/zJr1eFXcSnLTlPNrhaz3IdfEMEX3DXPvOqpirqX00+P3kTpvQMPGYRn3P8S6vAkHIRqTu/TFG3/7Gy7wxoc9uwx+TtZJFBV3wCS//6Z
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteExperimentGroup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/experiment-groups/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Deletes an experiment group.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"DeleteExperimentGroup 200 response","content":{"application/json":{"schema":{"type":"object","description":"Standard response structure for an experiment group.","properties":{"id":{"type":"string"},"context_hash":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"}},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"buckets":{"type":"array","items":{"type":"object","properties":{"experiment_id":{"type":"string"},"variant_id":{"type":"string"}},"required":["experiment_id","variant_id"],"title":"Bucket"}},"group_type":{"type":"string","enum":["USER_CREATED","SYSTEM_GENERATED"],"title":"GroupType"}},"required":["buckets","change_reason","context","context_hash","created_at","created_by","description","group_type","id","last_modified_at","last_modified_by","member_experiment_ids","name","traffic_percentage"],"title":"DeleteExperimentGroupResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

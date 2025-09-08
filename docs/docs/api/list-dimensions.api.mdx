@@ -1,0 +1,71 @@
+---
+id: list-dimensions
+title: "ListDimensions"
+description: "Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata."
+sidebar_label: "ListDimensions"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVk1vIzcM/SsCTy0wTowUufiWtsE2QIEGSXoKAoMe0R4lGklLUdkYxvz3QjP+mHHGm3axi54MD/koio984gY0xZJNEOMdzOCOhA29UlSoAq6MQyGtrImi/FKhtUqbmlw03kVlnJKK1BfPLzFgSWfq94MRmRSTJHak1RcjVfY1rDQJGhsVOq1qEtQoeAYF+ECMOYsbDTP400Q5BIMCAjLWJMQRZo8bcFgTzKD0yQkUYHLunxPxGgqIZUU1wmwDsg7Zy6V6QQxNU+yBAVf0LTi09kPYwntL6Aa4t4nn1cToHbgi1MRj6Chs3AoK0LTEZAVm8JxiwDU0BTB9ToZJw0w40SC+kMNDLT6M/z7YU/4Sg3eRYva/mE7zz7A/hryoi+lU7UBQQOmdkJMMwxCsKVtCz59jxm7e5+IXz1TmnANn+sV0J4sXtPNMURxho9jajVA9bs8t1TMgM2aijgEnTt83+GjRgo9GhsbDwfsLNgUskyuz47xjaCTUoLIj9rJCt6I5E8YTHhajzGuvzdKQnqOMtdHSc50tuSo0EVPTe+RiPZ4AUx7//xR4hzkRUlMgp8mVZsDtKYp2wB5SvhFXrucrxlCNNQBq3ZKK9rbfCsccwSdyxKZUL7SevKJNpLoQKgqnUhKTSpG0WnpWS0tvZmFJ5W5UTIEpkpN2IpRU7NOq8klaBb26vckSKEZszuuvLq+mAEziS18HS0LzjzuqRqdRPK/H1ag38Y9H3TUge8DiEWcjBR1wMyxZ0ZumkXYd6cPehO3n6elQmr32XL8JNPlOO8tQme62ovTbVpGa1vdyTNJunBA7tPfEr8TXzJ7V5Q/RtZpizO/OaJ/u7jGSzthlMtsklc+P5Yras1AqmMF5v+KRysRG1u2bGWsj1foMgzmrRMKvhEx8lTLq8SnL/877Pt+nS/krmP0lsgGOR+WPh4db1bkrTFKRk23Zdry2zdk6tPc3bunboNs63KdA3OuFV+JOlOFienE5mf4ymV5uBVlqbHnYvoW5E9RgeThS2j2d/+O6s62d0JucB4vG5bsktjm/jsnH3uw8FVD5KPnjZrPASH+zbZr8udtCMr3aRFzYPNxLtJEKeKF1b0Vq9QpmAHlrOOG73Yr+jWu3CB08n/IfNtm1badit4KMpnaSkJ/uthL1szpVpO783kL19XS/x1H73WpwVGe9KksKfds7hci12c/qp+sHaJp/AEmO/kY=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListDimensions"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/dimension"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListDimensions 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"dimension":{"type":"string"},"position":{"type":"number"},"schema":{},"function_name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"dependencies":{"type":"array","items":{"type":"string"}},"dependents":{"type":"array","items":{"type":"string"}},"dependency_graph":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"autocomplete_function_name":{"type":"string"},"mandatory":{"type":"boolean"}},"required":["change_reason","created_at","created_by","dependencies","dependency_graph","dependents","description","dimension","last_modified_at","last_modified_by","position","schema"],"title":"DimensionExt"}}},"title":"ListDimensionsResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: get-context-from-condition
+title: "GetContextFromCondition"
+description: "Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios."
+sidebar_label: "GetContextFromCondition"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVktv20gM/isDnnYB2TGyycW3NugjKLANkvRkGAGtoa1JpBmVQzkVDP33BfWwlcTJbrEoUF8szJAfXx/J2YGlmLIrxQUPc7gmYUdbiiYNXuiHGOfXgQvUe7OqTYGSZs5vDG7Q+Sim5LB1lqwqWKdicWq+RbJGglk7bwekaCRDMY+hyq3BssxrlYglpW7tUhNT8sguxCkkEEri1uSlhTl8IrnoMD5yKC4GO5AA0/eKorwPtob5DlpLXvRTDbi0xTi5jxrbDmKaUYH6JU5yeh350peVXGGdB7TQNE2TQImMBQlxhPliBx4L1f8xCbyZOAsJOE1fRmiJIRmbqkuVjMLObyABS2uscoE53FexxBqaLgzHZGEuXFGTjPCFPHr5z/gvwZZ6EsvgI0WVP53N9O9p2V/JgzmdzcygDclP5LdzKqzuKVXnS9aKiutccPao41vMKzqmjbZzB/OrMU6TvCBvyRTJSzyQEXOTshNih6ZSVq4D77k9kHlqvlAdjaW182SsK8hHDV+rEA16a1rfYs/W2khGB9iW1kUVxazIFCRK4IFgB7I2CYQtMTv7v2K8CH7tNlXXHWZA7HuLqcwxJdNzbPD6MSO/j/nQpga587eLnofsqcjIxoNejnKgWhr/YNtYFBzH/HVwahzz3StFfyS3yeR4o4zjvmIX2EltOoWulhKM1Z4stGytT2yJTVjvoyV1uo1jaj67TUbcA0Qj+ECmZErJktekVWr4WfBMMeRVqw/Pa3EkmjRDv6E7JoyvSTChkL3DozF3oxbmYFFoIq6gsc6qPgqZY5S7Ili3dj8J/FTzKPyTgbLQ1l0m/zY+r/uJcdGPi26Cns3OXg6ea4qh4pT+DvIxVN6as9nZYeI0CZwfG1eXXog95jfEW+IPzIHN+S8ZVQXFiBs6npghDUfcOZaCJoGCJAu60soQW2MoGczhpKfryYb0NFJaKdfbTRMLJ1k9xdJNM5HyPSETv6tUb7HU6T5I32hInddv6Ozj0IsXXfb59vbKdOIGK8nIS5+5Yeeo6qoVaFOgr4PxQr2pSuIyxGFBb4ljB306Oz2fzP6azM61rBp/gW0p+lX3icT0ZDLKJjPe88/6bl/c3+W90ue0rWGZo2vHfcW5OtvVeAE9LCSgVV4mkCkH5gvY7VYY6RvnTaPH3ytiLf1SNyI7XGliF8smGba/ssK6qBcW5mvMI72RoT+u+/b907zm6APVT98y/SYG0KfILzG1f9Y8MdXd9j0zuVWAg8SLNj5ovEtTKuVN2eWo+a6+3txCAqv+1VgEXcnA+KgvSnxUb/QJ2nJDBdqzHeToN1U7DKDD1N8/I6b79A==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetContextFromCondition"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/context/get"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"title":"GetContextFromConditionInputPayload"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetContextFromCondition 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"value":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"override":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"override_id":{"type":"string"},"weight":{"type":"string","description":"Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution."},"description":{"type":"string"},"change_reason":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["id"],"title":"GetContextFromConditionResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

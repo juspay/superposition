@@ -1,0 +1,71 @@
+---
+id: conclude-experiment
+title: "ConcludeExperiment"
+description: "Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment to a concluded state."
+sidebar_label: "ConcludeExperiment"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFV99v4jgQ/lcsP91JoUU99YU3FnK36HptBXR1UoWQiQfibmJnx063EeJ/X42dQIC03ZV27/rSkPF88/vzZMsl2ARV4ZTRfMBHRidZKcEyoZnSBZoNgrUMXgpAlYN2bFUxCxkkTukNE+yr0pqengUqoR0TWjKHQltFkCRxKbT1nWGCJbUdyawTDi54xE0BKEhnIluOxHtFHnGELyVY98HIig+2PDHakWCw5aIoMpV49csnS6FsuU1SyAU9uaoAPuBm9QQJ4RRIxpwC62FSY0Ev6wBa561DpTd8Fx0nqUOepEJvYIkgbOeJXfBdIUg+eDw5Hp16sIi4Uy6DzjRMQw5Gdey7Y2yHJewiXggUOThAywePW65FTmBK8ogrKnMhXMqj8wwdIjqF3IO89AxuegeoFIQEfAOMsrcWZeb4gD+VthDVO/gOtPDl/j78c7AFvbGF0TYU+Krfp3/dnX7ILLvq91mjSFX5Oe2lZHfLIAgHcik6Oi7ia4M5SbgUDnpO5dDWWVWdkJmwbpkbqdYKOoy+hhoS34F3GNplkJ0jgi5z6uhx/Ofw4WbOIz6Ob+J5vLz7FE+nk3E8a3fzIddzwtlF3DwDopKw/AyVbRkQiKKiFnCQ2+6BIuIoO2QHp0bTeDiPxzzio7vb0c3D2D9Pbu+nd39N49mMvJ3MRsNpENwPH2bxuNvfmTfWeO1QrNcqWRaACWgnNu3c6DJfAfpyUQO9uK4WEVJ6fhTZfbtZTqmGT6FAsKCdJcpsdFiCygEqwUoLkq0NstoWy4VLUqU3F+xvqCyTsFYamKQgrDKaUbGtJ+lnkZVgmS0gUevKs/Qe1qXCsby0jq2A5eCIn1uUFPygEGvK+p7S/dh41MDvNt7o7nY+vbvhEY//vY+nk3/i2/nwpl3ETwGpqV2dqOUrdvcN+Y7cV+uE1j0pHg6cBHHukm/jo6F9bbL/gyvKDxT+KCM1Oq/4nYNDldhlidlb8tD5LbrZoCmL7hK8d5XWM3dEsEfMeZyqc5aLQh2PybSjTjVxnnLYnpg6aaI1Me/c8uEaal3zu4hfd11kE+0AtchmgM+AMaJBdv1LbrIcrD3mulZRmlg63OkKJhQ/NTJsIwmtI34rGfDLQ0Xs5VbJ3WWzLVJyISlRucrvNTZXLq0uRKEuUueKDyAQcFgSyuOC1oDm9IwiDEG8obMPiwT8lIo/zuf3LBxnonQpaFcnsllOSHXlD/iMUHqnh401fhF5kUHXxtleldom969Phrc1QUqvjfe8Tv+sLAALE7ZvajdAG8Cu+lfXvf4fvf416RXGulz48teLV9OE7GjlPqGVfSf9n18KdZVozi+LTCh/E9UUE3rosTXVNIkDP9L7NlpEPDXW0bntdiUsPGC229HrLyUg9daiHtQVJfVxy6Wy9Cz5YC0yC2/k5bdpzU6/s9dcbS5KXXk+yEr6xSP+Gaqwpe8Wu6hZfH+69WCltcbvPaAt/JeY2m/0R6aCtCaF3jxwb3PijKcOGsMkgcK9eXbRYpf74Xz0kUd8VX815kaSEoqv9EUpvobcGx+hZwj/bsszoTelpzseQOnvGwg6S/U=
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ConcludeExperiment"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/experiments/{id}/conclude"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment to a concluded state.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"chosen_variant":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","chosen_variant"],"title":"ConcludeExperimentRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ConcludeExperiment 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified":{"type":"string","format":"date-time"},"name":{"type":"string"},"experiment_type":{"type":"string","enum":["DEFAULT","DELETE_OVERRIDES"],"title":"ExperimentType"},"override_keys":{"type":"array","items":{"type":"string"}},"status":{"type":"string","enum":["CREATED","CONCLUDED","INPROGRESS","DISCARDED","PAUSED"],"title":"ExperimentStatusType"},"traffic_percentage":{"type":"number"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"variants":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"variant_type":{"type":"string","enum":["CONTROL","EXPERIMENTAL"],"title":"VariantType"},"context_id":{"type":"string"},"override_id":{"type":"string"},"overrides":{}},"required":["id","overrides","variant_type"],"title":"Variant"}},"last_modified_by":{"type":"string"},"chosen_variant":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"started_at":{"type":"string","format":"date-time"},"started_by":{"type":"string"},"metrics_url":{"type":"string"},"metrics":{},"experiment_group_id":{"type":"string"}},"required":["change_reason","context","created_at","created_by","description","experiment_type","id","last_modified","last_modified_by","name","override_keys","status","traffic_percentage","variants"],"title":"ConcludeExperimentResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

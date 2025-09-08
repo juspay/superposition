@@ -1,0 +1,71 @@
+---
+id: create-function
+title: "CreateFunction"
+description: "Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type."
+sidebar_label: "CreateFunction"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVktv2zgQ/ivCnHYBOjGyyEU3N5tFA3SbIHH3YhgGLY0tphLJkiMnhqH/XowelmzJTnrotr7Y5rw/znycHcToI6csKaMhhBuHktAHMtD4EkS5J5MFq1xHLA9WxgUbmapYln+NC2ROJjKZTbE8eVGUBN5ipFYK4yAyMYrA5ZpUhsEGnVdGi0DquPVJW4sXIMBYdKXbu3ifxz+1Eghw+C1HTx9MvIVwB5HRhJr4p7Q2VVFpevnsuYod+CjBTPIvdg8hmOUzRgQCrONApNCztMlioWWGHXVPTuk1FOIQngF5lEi9xoVD6U9oNDEGhTU2ixqbsw4WleRYQwDqPINwBv9NPt39PZne3X8GAZMv0/ub+38fPt1Ob2EugBSlbNVgOt1a9FAUFbTKYcwuDss5LL9TijhC7jjJfmGdDA7v9rG62Jv6QovDjMjlWAiw0skMCZ2HcLaD6rbgdWTceqRiEKC4eROUMToQ/evfQxXjSuYpQQjPubdyCwPROv4JtdT0bv99Z3M+8dZoXzXc1XjMX0ND1wASXI3HQWME4v9rdZsvU+UTjBc8t8PT4OSKTotbD+/p68rZezRbv5KGbnVlXMYSiCXhiN21/jFW9IOGbbjl9kzmtecTOqn0tMhMXDLhD4U/tDzh/m3eeYu5fh9a6XRV/9b6aJ/qnLdJqXcnA2CfIapqJDtMVQi4HhroO03otEyf0G3Q3TpnXHD9U6Y6Q+/lemgai7aOgXSGiikEZEiJ4ffXGl8Gk5RACJcd4vcY5U7RtiRinylKthfSqouEyH5A6dBNcjaazZn8Gu0nrqdK+YzNvggWHLVJCB+n04egUue9I0FNNWwNJbPpslQo62cwH9u94fZV8qIyQIbd96EbcX98NG2dCd4/7u1Zj9H66vXMdUer4EdmZUoQ6nt7yi06a7yqa2wdXo2vrkfjv0bj65KvjKdMln1T11N1btDZn47YYN9+v3DjqzEgfKVLm0qluZbcpZxf1XizFt+5gIR7MpzBbreUHr+4tCj4+FuOjrtxLmAjnZJLxm42L0TzXnOjxsqzIIZwJVOPZ/D447HmrT+DUzl+xe3h9rGRac5qwMvDTwm1X0QOQlXSeoZH04rkGo0erbQWkyhCS2d15x0yeLh/moKAZb17Z+XzD06+cLPLF86G93e2Lie8PNtBKvU6L8kJKp/8+Q7P2F9s
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateFunction"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/function"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"function_name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"function":{"type":"string"},"runtime_version":{"type":"string"},"function_type":{"type":"string","enum":["VALIDATION","AUTOCOMPLETE"],"title":"FunctionTypes"}},"required":["change_reason","description","function","function_name","function_type","runtime_version"],"title":"CreateFunctionRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateFunction 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"function_name":{"type":"string"},"published_code":{"type":"string"},"draft_code":{"type":"string"},"published_runtime_version":{"type":"string"},"draft_runtime_version":{"type":"string"},"published_at":{"type":"string","format":"date-time"},"draft_edited_at":{"type":"string","format":"date-time"},"published_by":{"type":"string"},"draft_edited_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"change_reason":{"type":"string"},"description":{"type":"string"},"function_type":{"type":"string","enum":["VALIDATION","AUTOCOMPLETE"],"title":"FunctionTypes"}},"required":["change_reason","description","draft_code","draft_edited_at","draft_edited_by","draft_runtime_version","function_name","function_type","last_modified_at","last_modified_by"],"title":"CreateFunctionResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

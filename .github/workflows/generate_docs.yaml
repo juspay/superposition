@@ -26,7 +26,7 @@ jobs:
             - name: Build website
               run: |
                 cd docs
-                bun run build
+                bun run build-all
 
             - name: Upload Build Artifact
               uses: actions/upload-pages-artifact@v3
@@ -38,7 +38,7 @@ jobs:
         needs: build
 
         permissions:
-            pages: write 
+            pages: write
             id-token: write
 
         # Deploy to the github-pages environment

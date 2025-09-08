@@ -1,0 +1,71 @@
+---
+id: update-experiment-group
+title: "UpdateExperimentGroup"
+description: "Updates an existing experiment group. Allows partial updates to specified fields."
+sidebar_label: "UpdateExperimentGroup"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1V1Fv4jgQ/ivWPN1JgXK99oW3tsftVqfbq4A+nCqETDwQdxPba4/bIpT/vrKTAIFA93TdvjTE9jcz38x842xAoEutNCS1giE8GsEJHeOK4Zt0JNWK4ZtBKwtUxFZWe9NnN3muXx0z3JLkOfP1IdLMGUzlUqJgS4m5cH1IQBu0PODfi62F0RbzU4CEBCx+8+joVos1DDeQakWoKDxyY3KZRoSLZxfc3IBLMyx4eKK1QRiCXjxjSpAcxHOvjCfmyPqUvEW21LZyNwR2NkhIwNjgOkl00aOMqxXOLfLah9qyIyvV6sjyOO6LBimTriapD+XBxvdw/okPPGcKX9neUo2MjbtlAmT5cinTuUGboiK+wj145YsFWkig4G+y8AUMfxsMEiikqn4NzhquodkO+sh+WeVQWhQwfDqga5YAScrxVAGMq+zf1Vkv22hkPZYJGG55gYTWwfBpA4oXAU8KSEAGjw2nDJLj2qiZ7YDcgrz1tF31dlAZchHZOgUW2FpynxMM4dk7w9fv4BMqruiH8Y/BZuGNM1q5qh4vB4Pwr6t/D8hll4MBa85C8lG9NSGuBLdiC33QZ7G93usqKTpjjy6+0TzjLuvcUPHasXC2uQLy+Tbe2e4igAshq6542I/i0CyM0Vh0qMixVKvmDEutJLSSM++CQmrLalus4JRmUq367C9cOyZwKRUyEahzodlDuEGVBXvhuUdXC+06duAWljJOrPCO2AJZgRTobtrurvHj/ytFmUCBYc98l9+5FG4Pg1vL16HYCQvXwXKg2SInFHNOXd211LYIKxDquUeyQNg7s1h3Zi7njuaFFnEC/Sfg9skT8AuffkX6kTC3BdMu9hZdnSZeuJX81PKBwrbRWmf35PY2Oh0PxxacV6DHxKAKyX2Cx8loPL8bj26moz8ggcm/k+no7/mn0ZfROL7aw47qMg04h741VB322667Dnq8VQ+tRLd7qxVFUon/Udo78nmqZGsl6WyJ94dWpXt7U6tM4GpwdazLY3Ta2xS/aPpTeyXY1eBqJ8llAtddan6vCK3i+QTtC9qRtdqy6w/S8nZlFuhcWwX2iq4hocOdLgqiPFCmRTWS05DcOJqHcLFjvxfz6C42UpRhDmLqraR1nOyukJSt+9zIfkZkbpFbtDc+QDzNwiBsdk9CeFUEZ85sYwoLR2Ps83T6wKrtjHvKUFHNYjOew9FF3BDpCNyOd7fV0RsvTI4dV8RTV7rt6y4ZDuoq1VJHt2viJ96gNdrJ2qsXtK6CuhxcXvcGv/cG16GIjHZU8Jj4+t5R1S3bFS5r7tsHc3JbRz/lE6DmP7T7hcm5jEPI2zxYrkpjX87q0oAEhpWWZdpR2LLZLLjDR5uXZXj9zaMNBTOrtW8RyHragJAuPAsYLnnu8Eysv4xrzfqVnfKyUXq1jhKb+/ALEviK6+ryWc7KpLnPfbj1ysre7XTrQbhc/hRT24tqy1S1Wrd5b1qpb7PjSHl2J27SFA2d3Tvb04uHm+ndZ0hgUX8GFlqEQ5a/hk9E/lpxr2OEse3juw3kXK187B+oQMPfd4+gNtE=
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateExperimentGroup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/experiment-groups/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates an existing experiment group. Allows partial updates to specified fields.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","description":"Input structure for updating an existing experiment group.","properties":{"change_reason":{"type":"string","description":"Reason for this update."},"description":{"type":"string","description":"Optional new description for the group."},"traffic_percentage":{"type":"number","maximum":100,"minimum":0,"description":"Optional new traffic percentage for the group."}},"required":["change_reason"],"title":"UpdateExperimentGroupRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateExperimentGroup 200 response","content":{"application/json":{"schema":{"type":"object","description":"Standard response structure for an experiment group.","properties":{"id":{"type":"string"},"context_hash":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"}},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"buckets":{"type":"array","items":{"type":"object","properties":{"experiment_id":{"type":"string"},"variant_id":{"type":"string"}},"required":["experiment_id","variant_id"],"title":"Bucket"}},"group_type":{"type":"string","enum":["USER_CREATED","SYSTEM_GENERATED"],"title":"GroupType"}},"required":["buckets","change_reason","context","context_hash","created_at","created_by","description","group_type","id","last_modified_at","last_modified_by","member_experiment_ids","name","traffic_percentage"],"title":"UpdateExperimentGroupResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

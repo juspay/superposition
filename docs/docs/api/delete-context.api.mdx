@@ -1,0 +1,71 @@
+---
+id: delete-context
+title: "DeleteContext"
+description: "Permanently removes a context from the workspace. This operation cannot be undone and will affect config resolution."
+sidebar_label: "DeleteContext"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVE1v2kAQ/SurObWSIQ6Fi29pQtVIVRUl9BRxWOwBb2LvbmbHJMjyf6/GNhBKPlqpVbkAu/PevJl5OzVkGFIyno2zkMAVUqktWi42irB0awxKq9RZxidWS3Kl4hzVo6P74HWKQzXLTVDOI2mhUKm21rFaoKps5iwqbTP1aIpC6eUSUxaupVkpwuCKSiBDiGCHv8wggQsskPG8SwoReE26REYKkNzWYHWJkIDJIAIjor3mHCIIaY6lhqQG3niJCEzGrqCJgPChMoQZJEwVNtGO5GnQ6RmwXoUtX446Q3qL8YDB0WqwF/MuOIIMl7oqGBK4q4LXm3cUMlpt+ffFHZHN5SR4ZwMGiR/Fp/J1OPmDpqtRfKq2GGEcx+NjyDUGV1GK3x1/cZXN1DgeH6AmcXyMurSMZHVxg7RGmhI5UpM43gMjaP1mWbDa+8KkrTdO7oIQ1MeVu8Udpq1TSJzEpquzxBD0Cl+cH7DhAl+Wc90rOe9lNPKJoETOnfgza1vVGpNzSOCkfx8ntckamQymFRnetG4NpeF8M9TeDHNm/xk1IZ1VArydy2i20TdSVSf8DcyuFLlovfS8t19nsyvVhStdcY6W++ZtDSPQRRvQdsHYpWtJ+27cVB7Ju2B6zBopdNSjeDQZxJ8G8UQm613gUrfT6H3a+UftX+2Bsno/0/+1Y/q+tYPyhTZW6qioEHHdIG8h3alPTAbzCHIXWC7qeqED/qCiaeT4oUKS8c4jWGsyeiHNu60hM0F+Z5AsdRHwjSZ8uO7f6Ef1mrb+UNuNDEIXlfyDCO5x062/Zt5E233wZ9lfS9lR/7oUd7llLf3VErf5div036fabdODVN3tWZqif353tH3kwe72wMX023Q2hab5CTW1gN8=
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteContext"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/context/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently removes a context from the workspace. This operation cannot be undone and will affect config resolution.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-config-tags","in":"header","schema":{"type":"string"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"DeleteContext 201 response"},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

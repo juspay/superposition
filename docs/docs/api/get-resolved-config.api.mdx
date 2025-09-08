@@ -1,0 +1,71 @@
+---
+id: get-resolved-config
+title: "GetResolvedConfig"
+description: "Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration."
+sidebar_label: "GetResolvedConfig"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVk1v4zYQ/SvEnFpATowUueiWDYx00QZr2OnJNRa0OLaYSiR3SDkWDP33YkTZstcfSRct0FxsyTNvZh4f32QLCn1G2gVtDaQwQW+LNXohjRIl0gq9yKxZ6pVYy6JCLxbSoxLW8OuAm8CfSnO6T4R0rqi1WQm7RiKtDoGEDyQDrjR6EaxwZFWVoQg5iqU2sujqVCQZ7AYSsA7jw2cFKTxh6LpTj20kJED4rUIfPllVQ7qFtiUT+Ct3orM2+/bV82xb8FmOpeRvoXYIKdjFK2YBEnDEtYJGv4fZhHOBUsVZZTE+TGmS73h8lk4QOkKPJjAhPGaHe/On+Q1r5pUIvbNGMR8cYGSJXthl+6B0icYzr8xF0KHgTh4jxrN00DT96xNyJpGZx46RpuFoJ0mWGJA8pLMtcDlIwREu9QYS0Nz5twqphuSULB9ImxVX3WeukbjBH0n1uX37Sii9NfzTewgLawuU5giio/OrVj/SwGbQqnLQqbLeYeQoFdIVkATQVCWkM3geTZ5GkMBkNP794XEE8/48nhl7uoM+rmtpNeh7/kA9hUtZFQFSeK28kzU0UfmaUEEaqMIj/IBGmvBh/FOwOb9hYfp4H+6GQ/44VviJ4sTdcCh2eZB0hVuAQvowKK3SS81FztzE/oBgM5CV0oEpejcyWsZgp8Or8U3yD/zh0rX6UgVXhbGsCytVd6vuz9Hz2QQkI4sp0hppRGRJ3B8T9C+5VYneyxWep2g3yJl2Jl0nhxbRJFBiyC37rbO+LSZDDincRqpvKdLBesKsIh3q1kp8qUNe30inb/IQ3CeUhPRQcepszoLaRU95qtj4lZz9KPwDfG+uv768jEUMF7IKOVtsJG8n89Yy2oCWBaZ00q+K0UaWrsBjq+c4bZb28PinlUNy1usOe68zuBve3Q+GvwyG93x/mKpStqfW3cInDGKnHLFfV0djHKyr/9fa7ajnKreukNrwiBUV3HJUwwyyfgNHPcwTyFkw6Qy2W272Dyqahl9HU2aRKO3lomAHWMrCYwJ/YX24f9pRIQVgO7sQ3K+cj0SfbJmPJB3tlT5hzg+kOaMV9c7hzo928agvERxrn9lK11u+WOenSWfqP4v3Su4X0n9far+bjkrFXzsjGrwwQB9x4o19xkOWoQtXY+cHjjb+Mn2BBBbdf4ulVZxD8o11LN/i4dh2wNag2ne8vcyqah0WIib//Q3LSeaU
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetResolvedConfig"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/config/resolve"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"prefix","in":"query","schema":{"type":"string"}},{"name":"version","in":"query","schema":{"type":"string"}},{"name":"show_reasoning","in":"query","schema":{"type":"boolean"}},{"name":"context_id","in":"query","schema":{"type":"string"}},{"name":"x-merge-strategy","in":"header","schema":{"type":"string","enum":["MERGE","REPLACE"],"title":"MergeStrategy"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"type":"object","additionalProperties":{},"description":"Map representing the context.\nKeys correspond to the names of the dimensions.","title":"ContextMap"}},"title":"GetResolvedConfigRequestContent"}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetResolvedConfig 200 response","headers":{"last-modified":{"schema":{"type":"string"}},"x-audit-id":{"schema":{"type":"string"}},"x-config-version":{"schema":{"type":"string"}}},"content":{"application/json":{"schema":{"title":"GetResolvedConfigOutputPayload"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

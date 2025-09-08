@@ -1,0 +1,71 @@
+---
+id: get-type-templates-list
+title: "GetTypeTemplatesList"
+description: "Retrieves a paginated list of all type templates in the workspace, including their schemas and metadata for type management."
+sidebar_label: "GetTypeTemplatesList"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVU1v20YQ/SuLObUAZQsufOEtDQI3QA+FrZ4MQRiRI3Gd5e5mduhGEPjfi+GHItqUUzQNehLEmTdf7+3MEUpKBdsoNnjI4Z6ELT1TMmgi7q1HodI4m8SEnUHnjBwiGaE6OhRKxnojFZm/An9KEQvKjPWFa0rr92qwbFJRUY3JoC9NTYIlCppd4D5SjR73VJOXK8ggRGLUUj6WkMMdyeoQaTUm+90mgQwiMtYkxAnyxyN4rAlyKELj1Wq1jc8N8QEy6HNDfgRNBjn4pt4SQ9tmJ2DEPf0bHDr3Tdg2BEfoJ7gvi8D7hS1HcEVYEs+hk7D1e8igpB02TiCHpyZFPECbAdPnxjKVkAs3NIkv5PHrLL4Z/3WwtX5JMfhESf1vlkv9mUpljh1zs1yaEQoZFMELeVEwxuhs0ZF7/ZQ0wvF1RWH7REXHMasUxPb5JQi6jRKVZjjJBrsVquftKrkzAzKj0vUScCn7IdKmH+7M6DrrqRFNdj6lGUBRod/ThgnTJQ8mfXab7eFNM8qcVnaBa7Vo07QQW5NiHCbZ1KG0O/tdyNmSJgJ6fNHgpN5Jb9NRzdQ4kzw7Y2M6+3UGYsVpXRNZ3o9qbLXO0WVOvKPn+0G0bYe4ndP+Ry/EHt0D8TPxB+bA5vaHSL+mlHRBzU597GamnLlm2gxqkirobt1Tv0qlghyuNXTSFUFFw1YO3WJNtZXqcIXRXlUi8VdCJn7XKOJxrTti9H7QXvpy38CcGlDDC/Jz+G21+sP07gYbqcjLMLJxc3X7tHPoerd+F7qgwwwemkgcQ7ID5pk49aFvlje3i+Uvi+Wt6jmGJDV2HAwL847EqBjMSQ1muDQvnvKJ0v/7TA6DFPoi19Gh9dpYw06L7Cl9hJ7SdQZVSKIfjsctJvqTXdvq5/5mKc+lTbh1+nZ36BJl8IkOZwf1GV2j2UBvzAXf4Yb+E9f+bH71XOsftura6SobD9ZsaRcZ+el+2EA/m0sD6vOfnd+3y/0vUp0u8SRVb31XFBTPba/WhM7m9GDvPqygbf8GN7tdEg==
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetTypeTemplatesList"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/types"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all type templates in the workspace, including their schemas and metadata for type management.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","schema":{"type":"number"}},{"name":"page","in":"query","schema":{"type":"number"}},{"name":"all","in":"query","schema":{"type":"boolean"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetTypeTemplatesList 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"type_name":{"type":"string"},"type_schema":{},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","type_name","type_schema"],"title":"TypeTemplatesResponse"}}},"title":"GetTypeTemplatesListResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

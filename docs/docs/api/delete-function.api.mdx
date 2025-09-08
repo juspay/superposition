@@ -1,0 +1,71 @@
+---
+id: delete-function
+title: "DeleteFunction"
+description: "Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use"
+sidebar_label: "DeleteFunction"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVMFu2zAM/RWBpw1wGiNLLr51a4oVGIai7U5FMDA2E6uVJVWi0waG/32gY2cJ0nU7bMB8sS2Rj4/kIxsoKOZBe9bOQgbXFCq0ZNlsVaDKbSgqVKva5mKgVsFViktSzy48Ro85JaogQ6ztWi0dl6oIuGKFtlC+XhodSyrUhkLUzkaFxtm1etZcKjRGYYwu18hUqNwVdKauWK1Qm6j0SqEJhMVWaavqSJCA8xRQWFwVkMGFRKXLnhgk4DFgRUwhQnbfgMWKIIOB+ffuPwEtSXrkEhKIeUkVQtYAb70YRw7arqFNINBTrQMVkHGoqU32eC8jF9YjXQxQJWFB4Q2wBApaYW0YMnioo8ftb/CZLFr+Y/xTsIWcRO9spCj2kzSV13Gfj8unJmmqBieBnKbTU5/B+qvjS1fbQk3T6ZHX7LVIV5YpWDS3FDYU5iG4oGaH4RLInWWyLL7ovdF51+bxQxSA5jR1t3ygXErkg4iC9S7RimLENb1SozYB1mzodTo3PZNPPY1WngQq4tKJ1DqBUycxLiGD8SCqcXMkr1baRHkdNG87DcZKc7k9Q6/PSmb/kTBQOK8F5H4hfRqsbyXDXRJv+OzTkotOWId1/nx3d6125gprLslyX8hBPeK67Ay6imi7ch1oX5nb2lPwLurep59ayGCSTmaj9MMonUmXvYtcYdeZXrQ7MamDYTyi1vxs8P+8X/riMr3w2BvUVpKtg5EEdp2/368TSCA7Xi2LBEoXWYyaZomRvgXTtnL8VFMQPSwS2GDQuJRq3zdQ6CjfBWQrNJHeKNq7m37C36tf8ewP0W6lc2hq+YMEHml7sgXbRZsMi+WvE9kFPFiTezKy5f5JqP3GPAq1uz3Pc/KHdycLRuZwP+oX8y/zuzm07Q/29nbr
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteFunction"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/function/{function_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"DeleteFunction 200 response"},"404":{"description":"FunctionNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

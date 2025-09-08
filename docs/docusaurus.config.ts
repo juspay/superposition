@@ -1,6 +1,7 @@
 import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
+import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -19,7 +20,7 @@ const config: Config = {
     url: "https://juspay.io/",
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
-    baseUrl: "/superposition/",
+    baseUrl: "/superposition/docs",
 
     // GitHub pages deployment config.
     organizationName: "juspay",
@@ -33,13 +34,35 @@ const config: Config = {
         locales: ["en"],
     },
 
+    plugins: [
+        [
+            'docusaurus-plugin-openapi-docs',
+            {
+                id: "superposition-api",
+                docsPluginId: "classic",
+                config: {
+                    superposition: {
+                        specPath: "../smithy/output/source/openapi/Superposition.openapi.json",
+                        outputDir: "docs/api",
+                        downloadUrl: "../smithy/output/source/openapi/Superposition.openapi.json",
+                        sidebarOptions: {
+                            groupPathsBy: "tag",
+                            categoryLinkSource: "tag"
+                        },
+                    } satisfies OpenApiPlugin.Options,
+                },
+            },
+        ],
+    ],
+
     presets: [
         [
             "classic",
             {
                 docs: {
-                    routeBasePath: '/docs',
+                    routeBasePath: '',
                     sidebarPath: "./sidebars.ts",
+                    docItemComponent: "@theme/ApiItem", // Derived from docusaurus-theme-openapi
                     // Please change this to your repo.
                     // Remove this to remove the "edit this page" links.
                     // editUrl:
@@ -52,6 +75,8 @@ const config: Config = {
             } satisfies Preset.Options,
         ],
     ],
+
+    themes: ["docusaurus-theme-openapi-docs"], // export theme components
 
     themeConfig: {
         image: "img/logo.jpg",

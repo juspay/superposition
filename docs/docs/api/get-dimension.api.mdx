@@ -1,0 +1,71 @@
+---
+id: get-dimension
+title: "GetDimension"
+description: "Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata."
+sidebar_label: "GetDimension"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVk1v4zYQ/SvEnFpATow0ueiWbbdpLm2QpCfDMMbi2GJWIrnDYRDD0H8vKPlDspVsW3TRk2VyZjh8b+YNt6ApFGy8GGchh0cSNvRKQWkSNBVpZezKcY3JQOHSRVGogqfCrEyhtKnJBuNspowtqqiNXSsjQYWipBozpcmT1WQLQyFTaLUqnF2ZdeQuYk2CGgUvIAPnqVu915DDHckv++iQgUfGmoQ4QD7bgsWaIAfdszDpAh6lhAy64yHfgmx8MgzCxq6hyYDpazRMGnLhSE12iPU2cbyeGL0PVRJq4g+CZaBphbESyOElBo+bb8QXsmjlb8c/DzZPK8E7Gygk+6vpNP0MOewDp66mU7V3gQwKZ4WsJCf0vjJFi/flS0ie2/NM3PKFipSx58SOmO7cI+xjSXsXjAw3bayXxGnzcESTwSraIhkuOoRGQg1uNrJflGjXtGDC8I5FhUEWtdNmZUgvUMZo7Ao8lRMKTcTUdO653IwnwITyDwPvfd4J2W+ZngEy4ybVjlAdRhx7nvIv/YrNYs3oy7ECQK1bUrF66JfCKUdwR5bYFOoLbSavWEVSXQgVhGMhkUnFQFqtHKtVRW9mWZFKCqCYPFMgK50ySMkursskOFKSun24TxohRqqU1x9dXk0GGMUVrvYVCS2+XVE1Wo3iuI/90rmK0LZYHDtudlJdA7IHLJ5wNgLogJshZNlAxM7KdaQOex126Kf5EZp+/z/uWv/nXd83Tbrj9fT6XDYeKbjIBf3u5FcXrVbX0+ujdDQZ3IyJzb0VYovVE/Er8Wdmx+rmu2hOTSHgeozU5nj3kXTGIEh1QFK6NGfW1J6V5kYOlwcuLreHzybBTEVkI5t2+ITaSLm5QG8uShH/iZCJb2OKMJsnkd5bP6W7del/4HO4UNqA04b67fn5QXXmCqOUZGUH4Z79toRbgxaLNLDboDtMnqIn7lXMK3En3XA1vbqZTH+aTG92si01tpzsJtYdierP4BM1PhD7/z4bduAJvcmlr9DYdJnIVUqxo3U2aLH8+GeeQemCJIvtdomB/uSqadLy10hJImbzDF6RDS4TlLM0+UL61pCvsAr0ASY/PO6U5Ef1XpJ7hbapp1uxhBwggy+0GbxtmnmT7Z8L/3kS3WG9x88hkfR2+S5HHd5Bg6O63duiIN/fO9OM1GCH7r37/AxN8xdcY8YZ
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetDimension"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/dimension/{dimension}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"dimension","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetDimension 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"dimension":{"type":"string"},"position":{"type":"number"},"schema":{},"function_name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"dependencies":{"type":"array","items":{"type":"string"}},"dependents":{"type":"array","items":{"type":"string"}},"dependency_graph":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"autocomplete_function_name":{"type":"string"},"mandatory":{"type":"boolean"}},"required":["change_reason","created_at","created_by","dependencies","dependency_graph","dependents","description","dimension","last_modified_at","last_modified_by","position","schema"],"title":"GetDimensionResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

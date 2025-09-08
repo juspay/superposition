@@ -1,0 +1,71 @@
+---
+id: list-contexts
+title: "ListContexts"
+description: "Retrieves a paginated list of contexts with support for filtering by creation date, modification date, weight, and other criteria."
+sidebar_label: "ListContexts"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVk1v2zgQ/SsET7uA4hhZ5OJbG7TbYhdokGRPQWCMpZHFRCLZ4SiJYPi/L4aSbDmWEzdFgZ4Mi/OGM+9xPlY6w5CS8Wyc1TN9hUwGHzEoUB6WxgJjpkoTWLlcpc4yPnNQT4YLFWrvHbHKHanclIxk7FItGpUSgvhTGTAmqnKZyU06/PSEZllwosBmynGBpFIy4gAmOtHOI0Xrr5me6X9N4IvuYp1oDwQVMlLQs9uVtlChnmkPS9SJNpLD9xqp0YkOaYEV6NlKc+PFyNbVAkmv18kGl7ra8nuAnjA3z28iAwspO8jgiOfOHgtNNNq60rNbXULgeUsmZnOQsCPT/Z+WVH2XaDZciouOts9RnGtH/M3uh7JoXoay+yQEpxxlSEoi6aSJqrfvolcrTF5N42e89hSID51oCOkwTfH1sdnVtSNmP7ljJNpl+n0+fAkmsv8e8POJo+WJyXpsgZAhvUFvDnXJeqbv6+Ch0etEE36vDWGmZ0w17vhntLB9+W/633d2J1+CdzZgEPuz6VR+dlUe1q46m05VD5G3K98tCwi8L7sGcXofBLnaj8Qt7jGViD3J42DT3suOoZxL/YeRik26c8NYjZ9nwMNbgAii3i8AB2432ShXj1DWOIaGLDOSJpSXQz/rl+VxhZ4woOUgTbfHbLqkqgNmsVi6lqwq4LQwdjlR/2ATVIa5sagyU6ENUlgifIj9NsYWVPCYmrxRXODWLRfAqqoDqwWqCllqb9BM2jgkQfeIRCb7qRwvnM3Nsu4qv/cY2iAIfQkpqu5Z91E/FWg3OW+YCQqojbfNnnr2xGRwx4McDjgQlOTf3y3TCYY5f+uDGuY8PyB613/fbH2XZBwZbrop2GrJTmUy1SqRLcYUe+N26CqUoGMeE/XFLGVotg6CYnhA5QlTzNAKaXUcxbvJEwZX1hGvX2oxkk1agF3inBDCIYvt8BnJOXdUyYkUGJ6wqXCIWTSjLvdG3NGO91r2WH8d9LBbKd39UXnV96e1mPeHwzbWW1x07WsdLc/Hut9Xy0gWymukR6RPRI7U+S9pghWGIBvQaNJ9FiPhjCWzTnSFXDjZvZYY7wIu9Eyfdi/xVAa0zApMa3nHcQ8LleGimYA3k4LZf0QgpA+1AG/vZFj01teSUhv1K5hNHnKwV0Ffbm4uVWuuoOYCLXfM9SNMoItoECkwNnfRab8x1B7Ju2A6zCNSaF2fTc/OT6Z/nUzP5VV5F7iCKEU3OeUpqME6+qKMNnr+Hpt0R2JULS4kklRNpYTaqnqru1B0oqOud4kuXGA5Wa0WEPA/Ktdr+dwuMCJ2ZgIsSimjHMqAiX7AZruEd8NPa1k4Dpj2e/cxtptV+xjj7Xb9uvVB3X5sMR0leBBJ3B2PImS4sB4DGNlRjyJzsJZu7e/kDxkBxHpN+o1wVO2D3P1x1fXXP9Xr3Az223fK9ANXbVbdnava0w9pin54tteFhZtNP/z7041er/8HGJJNTQ==
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListContexts"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/context/list"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of contexts with support for filtering by creation date, modification date, weight, and other criteria.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"page","in":"query","schema":{"type":"number"}},{"name":"count","in":"query","schema":{"type":"number"}},{"name":"prefix","in":"query","schema":{"type":"string"}},{"name":"sort_on","in":"query","schema":{"type":"string","enum":["last_modified_at","created_at","weight"],"title":"ContextFilterSortOn"}},{"name":"sort_by","in":"query","description":"Sort order enumeration for list operations.","schema":{"type":"string","description":"Sort order enumeration for list operations.","enum":["desc","asc"],"title":"SortBy"}},{"name":"created_by","in":"query","schema":{"type":"string"}},{"name":"last_modified_by","in":"query","schema":{"type":"string"}},{"name":"plaintext","in":"query","schema":{"type":"string"}},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListContexts 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"value":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"override":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"override_id":{"type":"string"},"weight":{"type":"string","description":"Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution."},"description":{"type":"string"},"change_reason":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["id"],"title":"ContextResponse"}}},"title":"ListContextsResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

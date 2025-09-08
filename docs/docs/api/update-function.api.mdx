@@ -1,0 +1,71 @@
+---
+id: update-function
+title: "UpdateFunction"
+description: "Updates the draft version of an existing function with new code, runtime version, or description while preserving the published version."
+sidebar_label: "UpdateFunction"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVk1v2zgQ/SvEnHYBOjGyyUU3N5uiAbpNkDi9GIZBS2OLqUSy5MiJYei/L6hvW7LdAi1Qn2Rx5s3M48zT7CBCF1ppSGoFAbyYSBA6RjGyyIoVsQ1aJ7ViesWEYvguHUm1ZqtMhd6HvUmKmcI3FuoIObOZIpli7caZtqwTgr3FMkFmLDq0Gw/kI5lsmUgXY1S7XQAHbdAK73MfNYl9rKICB4vfM3T0QUdbCHYQakWoyD8KYxIZFq6Xr86XtQMXxpgK/0RbgxCAXr5iSMDBWB+IJDp/usdGY+zISrWGnEMYC7XGhUXhjljUxAweVuwsqjIHbPKyMmkxgmB2EK+D3seacyBJCfbIeiqZuq0YyvdjkM0w52CEFSkSWgfBbAdKpB6oDrco/nOQvkeMoBh4n9JOmQfoDd77SNv1SEY1VIwiQnsCjEOEK5ElBAG8Zs6I7Rl8QiUU/TB+H2zu3zijlSs74mo87jXGAcHsajxmtRPwX9WL++QPpd7MzcIP36BJMcTHj1uE861Zg/2IZYsraOhWV9qm/gQ8jyMP1+JjJOknHdtwy+2JzCvkIzaJcLRIdSRX8ifD73segT8vHefEp2mI8qSfHaos9arxdfL5/t/J9P7hC3CYvEwfbh/+e/x8N73rikTdvdOtQXdWeLq57XVV/9b6bB/rHN4TmP0SB+5kgOwTwleOZEf5cg7X4+v+QNcuXzR91JmK2PX4uh3pnMPNkAzcK0KrRPKMdoP2zlpt2c1v0YIUnRProRnO2+oH0hmiIOeQIsU6KrU89GJeaHoAlzX/l7u9m8m9hGKYWUnb4vvgUknx9kIYeRETmQ8oLNpJ5kFmc6+htfWzL7Cs4YRPU5U/OOi2AD5Np4+sNGcioxgVVTzWyu5dl4VBQYhn96ndD+7eRWoS7N9fMzgHs9mZ9+Zr3r7r6V9nRKVa6aKc6kqeM4PWaCerbFufq/HVzWj8z2h8UwiYdpSKoiWqT1nZyqyz8RzIQ9NZf9LSVl0j4TtdmkRI5YvLbOITLnts1t1hgv35n3OItSNvtNsthcMXm+S5f/09Q+s7b85hI6wUS8/ubAeRdP45gmAlEocnSPrrqVK3v9mxPKuXQnnF2ogk8/+Awzfc9nahfJ7zer345YmUATvLUpOM33V+S6hmb9oLVZ5W4jGalppcW/T0rPWYhCEaOmk776jQ42R6+wk4LKtlPi3WFbDizY+beCuvQRcVFlJSvNtBItQ6K2QRSlD/+x8QW4Lo
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateFunction"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/function/{function_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates the draft version of an existing function with new code, runtime version, or description while preserving the published version.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"description":{"type":"string"},"change_reason":{"type":"string"},"function":{"type":"string"},"runtime_version":{"type":"string"}},"required":["change_reason","function","runtime_version"],"title":"UpdateFunctionRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateFunction 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"function_name":{"type":"string"},"published_code":{"type":"string"},"draft_code":{"type":"string"},"published_runtime_version":{"type":"string"},"draft_runtime_version":{"type":"string"},"published_at":{"type":"string","format":"date-time"},"draft_edited_at":{"type":"string","format":"date-time"},"published_by":{"type":"string"},"draft_edited_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"change_reason":{"type":"string"},"description":{"type":"string"},"function_type":{"type":"string","enum":["VALIDATION","AUTOCOMPLETE"],"title":"FunctionTypes"}},"required":["change_reason","description","draft_code","draft_edited_at","draft_edited_by","draft_runtime_version","function_name","function_type","last_modified_at","last_modified_by"],"title":"UpdateFunctionResponseContent"}}}},"404":{"description":"FunctionNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
