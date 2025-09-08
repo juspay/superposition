@@ -55,12 +55,15 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	db-init
 	grafana-local
 	kill
+	local-docs-view
 	node-dependencies
 	run
 	schema-file
 	setup
 	setup-clients
 	smithy-build
+	smithy-api-docs
+	smithy-updates
 	validate-aws-connection
 	validate-psql-connection
 
