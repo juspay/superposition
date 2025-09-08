@@ -264,6 +264,12 @@ smithy-clients: smithy-build
 	done
 	git apply smithy/patches/*.patch
 
+# API Documentation targets
+smithy-api-docs: smithy-build
+	cd docs && npm ci && npm run openapi-docs
+
+smithy-updates: smithy-clients smithy-api-docs
+
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
 
@@ -300,12 +306,8 @@ amend-no-edit: amend
 grafana-local:
 	cd grafana && $(COMPOSE) up
 
-local-docs-view: openapi-docs-generate
+local-docs-view: smithy-api-docs
 	cd docs && npm ci && npm start
-
-# API Documentation targets
-openapi-docs-generate: smithy-build
-	cd docs && npm ci && npm run openapi-docs
 
 default: dev-build frontend
 
