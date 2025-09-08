@@ -300,12 +300,12 @@ amend-no-edit: amend
 grafana-local:
 	cd grafana && $(COMPOSE) up
 
-local-docs-view: api-docs-generate
+local-docs-view: openapi-docs-generate
 	cd docs && npm ci && npm start
 
 # API Documentation targets
-api-docs-generate: smithy-build
-	cd docs && npm run gen-api-docs
+openapi-docs-generate: smithy-build
+	cd docs && npm ci && npm run openapi-docs
 
 default: dev-build frontend
 
