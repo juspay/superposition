@@ -22,7 +22,7 @@ use web_sys::MouseEvent;
 
 use crate::{
     api::{
-        dimensions::fetch_dimensions,
+        dimensions,
         experiment_groups::{delete, fetch_all},
     },
     components::{
@@ -253,7 +253,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                 .await
                 .unwrap_or_default();
             let dimensions =
-                fetch_dimensions(&PaginationParams::all_entries(), tenant, org_id)
+                dimensions::fetch(&PaginationParams::all_entries(), tenant, org_id)
                     .await
                     .unwrap_or_default()
                     .data

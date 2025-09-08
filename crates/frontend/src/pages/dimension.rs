@@ -6,7 +6,7 @@ use superposition_types::{
     api::dimension::DimensionResponse, database::models::cac::DependencyGraph,
 };
 
-use crate::api::{dimensions::delete_dimension, get_dimension};
+use crate::api::dimensions;
 use crate::components::badge::Badge;
 use crate::components::description::ContentDescription;
 use crate::components::{
@@ -187,7 +187,7 @@ pub fn dimension_page() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (dimension_name.get(), workspace.get().0, org.get().0),
         |(dimension_name, workspace, org_id)| async move {
-            get_dimension(&dimension_name, &workspace, &org_id)
+            dimensions::get(&dimension_name, &workspace, &org_id)
                 .await
                 .ok()
         },
@@ -196,7 +196,7 @@ pub fn dimension_page() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         delete_inprogress_rws.set(true);
         spawn_local(async move {
-            let result = delete_dimension(
+            let result = dimensions::delete(
                 dimension_name.get_untracked(),
                 workspace.get_untracked().0,
                 org.get_untracked().0,

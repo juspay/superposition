@@ -17,10 +17,7 @@ use superposition_types::{
 use utils::try_update_payload;
 use web_sys::MouseEvent;
 
-use crate::api::{
-    dimensions::{create_dimension, fetch_dimensions, update_dimension},
-    fetch_functions, fetch_types, get_dimension,
-};
+use crate::api::{dimensions, fetch_functions, fetch_types};
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -85,7 +82,7 @@ pub fn dimension_form(
         |(dimensions, tenant, org_id)| async move {
             let dimensions_future = async {
                 match dimensions {
-                    None => fetch_dimensions(
+                    None => dimensions::fetch(
                         &PaginationParams::all_entries(),
                         tenant.clone(),
                         org_id.clone(),
@@ -158,7 +155,7 @@ pub fn dimension_form(
             async move {
                 let result = match (edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => {
-                        let future = update_dimension(
+                        let future = dimensions::update(
                             workspace.get_untracked().0,
                             dimension_name,
                             update_payload,
@@ -171,12 +168,10 @@ pub fn dimension_form(
                         let request_payload = try_update_payload(
                             function_position,
                             function_schema,
-                            dependencies,
                             validation_fn_name,
                             autocomplete_fn_name,
                             description_rs.get_untracked(),
                             change_reason_rs.get_untracked(),
-                            None,
                         );
                         match request_payload {
                             Ok(payload) => {
@@ -186,7 +181,7 @@ pub fn dimension_form(
                             Err(e) => Err(e),
                         }
                     }
-                    _ => create_dimension(
+                    _ => dimensions::create(
                         dimension_name,
                         function_position,
                         function_schema,
@@ -490,7 +485,7 @@ pub fn change_log_summary(
     let dimension = create_local_resource(
         move || (dimension_name.clone(), workspace.get().0, org.get().0),
         |(dimension_name, workspace, org)| async move {
-            get_dimension(&dimension_name, &workspace, &org).await
+            dimensions::get(&dimension_name, &workspace, &org).await
         },
     );
 
@@ -563,17 +558,7 @@ pub fn change_log_summary(
                                                 "Position".to_string(),
                                                 Value::Number((*position).into()),
                                             )),
-                                            Some((
-                                                "Dependencies".to_string(),
-                                                Value::Array(
-                                                    update_request
-                                                        .dependencies
-                                                        .unwrap_or_else(|| dim.dependencies.clone())
-                                                        .into_iter()
-                                                        .map(Value::String)
-                                                        .collect(),
-                                                ),
-                                            )),
+                                            None,
                                             valdiate_fn
                                                 .map(|f| (
                                                     "Validation Function".to_string(),
