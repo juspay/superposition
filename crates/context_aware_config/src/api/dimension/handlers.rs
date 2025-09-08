@@ -29,12 +29,10 @@ use crate::helpers::allow_primitive_types;
 use crate::{
     api::dimension::utils::{
         get_dimension_usage_context_ids, validate_and_update_dimension_hierarchy,
-        validate_dimension_deletability, validate_dimension_position,
+        validate_dimension_position,
     },
     helpers::{get_workspace, validate_cohort_schema, validate_jsonschema},
 };
-
-use super::utils::validate_and_initialize_dimension_hierarchy;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -72,19 +70,19 @@ async fn create(
         num_rows,
     )?;
     match create_req.dimension_type {
-        DimensionType::Regular => {
+        DimensionType::Regular | DimensionType::RemoteCohort => {
             #[cfg(not(feature = "jsonlogic"))]
             allow_primitive_types(&schema_value)?;
-            validate_jsonschema(&state.meta_schema, &schema_value)?
+            validate_jsonschema(&state.meta_schema, &schema_value)?;
         }
-        DimensionType::Cohort => validate_cohort_schema(
+        DimensionType::LocalCohort => validate_cohort_schema(
             &schema_value,
-            create_req.cohort_based_on.clone(),
+            &create_req.cohort_based_on,
             &schema_name,
             &mut conn,
         )?,
-    };
-    let mut dimension_data = Dimension {
+    }
+    let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
         position: create_req.position,
         schema: schema_value,
@@ -97,10 +95,9 @@ async fn create(
         change_reason: create_req.change_reason,
         dependency_graph: DependencyGraph::default(),
         dependents: Vec::new(),
-        dependencies: create_req.dependencies.unwrap_or_default(),
+        dependencies: Vec::new(),
         autocomplete_function_name: create_req.autocomplete_function_name,
         dimension_type: create_req.dimension_type,
-        cohort_based_on: create_req.cohort_based_on,
     };
 
     conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -115,19 +112,59 @@ async fn create(
             .schema_name(&schema_name)
             .execute(transaction_conn)?;
 
-        dimension_data.dependency_graph = validate_and_initialize_dimension_hierarchy(
-            &dimension_data.dimension,
-            &dimension_data.dependencies,
-            &user.get_email(),
-            &schema_name,
-            transaction_conn,
-        )?;
-
         let insert_resp = diesel::insert_into(dimensions::table)
             .values(&dimension_data)
             .returning(Dimension::as_returning())
             .schema_name(&schema_name)
             .get_result(transaction_conn);
+
+        if dimension_data.dimension_type != DimensionType::Regular {
+            let Some(cohort_based_on) = create_req.cohort_based_on else {
+                return Err(bad_argument!(
+                    "cohort_based_on is a required field for cohort dimensions"
+                ));
+            };
+            // the dimension the cohort is wrapping
+            let cohorted_dimension: Dimension = dimensions::dsl::dimensions
+                .filter(dimensions::dimension.eq(&cohort_based_on))
+                .schema_name(&schema_name)
+                .get_result::<Dimension>(transaction_conn)?;
+
+            if cohorted_dimension.dimension_type == DimensionType::LocalCohort {
+                return Err(bad_argument!(
+                    "Cohort dimension cannot be based on another local cohort dimension {}",
+                    cohorted_dimension.dimension
+                ));
+            }
+
+            let mut deps = cohorted_dimension.dependencies.clone();
+            deps.push(dimension_data.dimension.clone());
+            // create dependency between the cohort and the dimension it is based on
+            // Direction of this is Dimension depends on cohort
+            // Dimension -> Cohort
+
+            validate_and_update_dimension_hierarchy(
+                &cohorted_dimension,
+                &deps,
+                &user.get_email(),
+                &schema_name,
+                transaction_conn,
+            )?;
+
+            diesel::update(dimensions::dsl::dimensions)
+                .filter(dimensions::dsl::dimension.eq(&cohorted_dimension.dimension))
+                .set((
+                    dimensions::dsl::change_reason.eq(format!(
+                        "System added new dependent cohort dimension: {}",
+                        dimension_data.dimension
+                    )),
+                    dimensions::dsl::last_modified_at.eq(Utc::now()),
+                    dimensions::dsl::last_modified_by.eq(user.get_email()),
+                    dimensions::dsl::dependencies.eq(deps),
+                ))
+                .schema_name(&schema_name)
+                .get_result::<Dimension>(transaction_conn)?;
+        }
 
         match insert_resp {
             Ok(inserted_dimension) => {
@@ -213,14 +250,16 @@ async fn update(
 
     if let Some(schema_value) = update_req.schema.clone() {
         match dimension_data.dimension_type {
-            DimensionType::Regular => {
+            DimensionType::Regular | DimensionType::RemoteCohort => {
                 #[cfg(not(feature = "jsonlogic"))]
                 allow_primitive_types(&schema_value)?;
                 validate_jsonschema(&state.meta_schema, &schema_value)?
             }
-            DimensionType::Cohort => validate_cohort_schema(
+            DimensionType::LocalCohort => validate_cohort_schema(
                 &schema_value,
-                update_req.cohort_based_on.clone(),
+                // if in the future we support multiple dimensions
+                // per cohort, we will need to change this
+                &dimension_data.dependents.first().cloned(),
                 &schema_name,
                 &mut conn,
             )?,
@@ -274,16 +313,6 @@ async fn update(
                         .schema_name(&schema_name)
                         .execute(transaction_conn)?
                 };
-            }
-
-            if let Some(dependent_dimension) = &update_req.dependencies {
-                validate_and_update_dimension_hierarchy(
-                    &dimension_data,
-                    dependent_dimension,
-                    &user.get_email(),
-                    &schema_name,
-                    transaction_conn,
-                )?;
             }
 
             diesel::update(dimensions)
@@ -375,23 +404,65 @@ async fn delete_dimension(
     let DbConnection(mut conn) = db_conn;
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
-        .select(Dimension::as_select())
         .schema_name(&schema_name)
         .get_result(&mut conn)?;
 
     let context_ids = get_dimension_usage_context_ids(&name, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
+
+    if !dimension_data.dependencies.is_empty() {
+        return Err(bad_argument!(
+            "The dimension is currently used in a cohort: {}. Please remove the cohort before deleting this dimension.",
+            dimension_data.dependencies.join(", ")
+        ));
+    }
+
     if context_ids.is_empty() {
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             use dimensions::dsl;
 
-            validate_dimension_deletability(
-                &name,
-                &dimension_data,
-                &user.get_email(),
-                transaction_conn,
-                &schema_name,
-            )?;
+            if dimension_data.dimension_type != DimensionType::Regular {
+                let Some(cohort_based_on) = dimension_data.dependents.first() else {
+                    return Err(unexpected_error!(
+                        "The cohort dimension does depend on another dimension, this is unexpected and needs manual intervention"
+                    ));
+                };
+                // the dimension the cohort is wrapping
+                let cohorted_dimension: Dimension = dimensions::dsl::dimensions
+                    .filter(dimensions::dimension.eq(&cohort_based_on))
+                    .schema_name(&schema_name)
+                    .get_result::<Dimension>(transaction_conn)?;
+
+                let deps = cohorted_dimension.dependencies
+                    .iter()
+                    .filter(|dep| **dep != dimension_data.dimension)
+                    .cloned()
+                    .collect::<Vec<_>>();
+                
+                
+                // Remove dependency between the cohort and the dimension it is based on
+                validate_and_update_dimension_hierarchy(
+                    &cohorted_dimension,
+                    &deps,
+                    &user.get_email(),
+                    &schema_name,
+                    transaction_conn,
+                )?;
+
+                diesel::update(dimensions::dsl::dimensions)
+                    .filter(dimensions::dsl::dimension.eq(&cohorted_dimension.dimension))
+                    .set((
+                        dimensions::dsl::change_reason.eq(format!(
+                            "System removed cohort dimension: {}",
+                            dimension_data.dimension
+                        )),
+                        dimensions::dsl::last_modified_at.eq(Utc::now()),
+                        dimensions::dsl::last_modified_by.eq(user.get_email()),
+                        dimensions::dsl::dependencies.eq(deps),
+                    ))
+                    .schema_name(&schema_name)
+                    .get_result::<Dimension>(transaction_conn)?;
+            }
 
             diesel::update(dsl::dimensions)
                 .filter(dsl::dimension.eq(&name))

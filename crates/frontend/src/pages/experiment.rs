@@ -12,7 +12,7 @@ use superposition_types::{
 };
 
 use crate::{
-    api::{dimensions::fetch_dimensions, fetch_default_config, fetch_experiment},
+    api::{dimensions, fetch_default_config, fetch_experiment},
     components::{
         experiment::Experiment,
         experiment_action_form::ExperimentActionForm,
@@ -67,8 +67,11 @@ pub fn experiment_page() -> impl IntoView {
             let experiments_future =
                 fetch_experiment(exp_id.to_string(), tenant.to_string(), org_id.clone());
             let empty_list_filters = PaginationParams::all_entries();
-            let dimensions_future =
-                fetch_dimensions(&empty_list_filters, tenant.to_string(), org_id.clone());
+            let dimensions_future = dimensions::fetch(
+                &empty_list_filters,
+                tenant.to_string(),
+                org_id.clone(),
+            );
             let config_future = fetch_default_config(
                 &empty_list_filters,
                 &default_config_filters,

@@ -4,7 +4,7 @@ use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
-use crate::api::dimensions::fetch_dimensions;
+use crate::api::dimensions;
 use crate::components::button::Button;
 use crate::components::dimension_form::DimensionForm;
 use crate::components::drawer::PortalDrawer;
@@ -42,7 +42,7 @@ pub fn dimensions() -> impl IntoView {
     let dimensions_resource = create_blocking_resource(
         move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(current_tenant, pagination_params, org_id)| async move {
-            fetch_dimensions(&pagination_params, current_tenant, org_id)
+            dimensions::fetch(&pagination_params, current_tenant, org_id)
                 .await
                 .unwrap_or_default()
         },
