@@ -130,7 +130,7 @@ dev-tenant: tenant
 node-dependencies:
 	npm ci
 
-SETUP_DEPS = env-file db localstack
+SETUP_DEPS = env-file db
 ifdef CI
 	SETUP_DEPS += test-tenant
 endif
@@ -194,17 +194,17 @@ backend:
 
 build: frontend backend
 
-run: kill db localstack frontend superposition
+run: kill db frontend superposition
 	@./target/debug/superposition
 
-%_run: kill db localstack frontend superposition
+%_run: kill db frontend superposition
 	@RUST_LOG=$* ./target/debug/superposition
 
-run_legacy: kill build db localstack superposition_legacy
+run_legacy: kill build db superposition_legacy
 	@./target/debug/superposition
 
 run_jsonlogic: FE_FEATURES += jsonlogic
-run_jsonlogic: kill build db localstack superposition_jsonlogic
+run_jsonlogic: kill build db superposition_jsonlogic
 	@./target/debug/superposition
 
 test: WASM_PACK_MODE=--profiling
