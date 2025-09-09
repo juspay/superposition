@@ -42,9 +42,9 @@ const config: Config = {
                 docsPluginId: "classic",
                 config: {
                     superposition: {
-                        specPath: "../smithy/output/source/openapi/Superposition.openapi.json",
+                        specPath: "docs/api/Superposition.openapi.json",
                         outputDir: "docs/api",
-                        downloadUrl: "../smithy/output/source/openapi/Superposition.openapi.json",
+                        downloadUrl: "docs/api/Superposition.openapi.json",
                         sidebarOptions: {
                             groupPathsBy: "tag",
                             categoryLinkSource: "tag"

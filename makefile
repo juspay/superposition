@@ -269,6 +269,7 @@ smithy-clients: smithy-build
 
 # API Documentation targets
 smithy-api-docs: smithy-build
+	cp $(SMITHY_BUILD_SRC)/openapi/Superposition.openapi.json docs/docs/api/
 	cd docs && npm ci && npm run openapi-docs
 
 smithy-updates: smithy-clients smithy-api-docs
@@ -310,7 +311,7 @@ grafana-local:
 	cd grafana && $(COMPOSE) up
 
 local-docs-view: smithy-api-docs
-	cd docs && npm ci && npm start
+	cd docs && npm start
 
 default: dev-build frontend
 
