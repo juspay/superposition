@@ -19,7 +19,7 @@ use crate::{
         context_form::ContextForm,
         drawer::{close_drawer, Drawer, DrawerBtn},
         form::label::Label,
-        input::DateInput,
+        input::{DateInput, Toggle},
     },
     logic::{Condition, Conditions, Expression},
     providers::condition_collapse_provider::ConditionCollapseProvider,
@@ -91,7 +91,20 @@ pub(super) fn filter_summary(
                     )
                 }>
                     {move || {
-                        if !dimension_params_rws.with(|d| d.is_empty()) {
+                        if filters_rws.with(|f| f.global_experiments_only.unwrap_or_default()) {
+                            view! {
+                                <div class="flex gap-2 items-center">
+                                    <span class="text-xs">"Global Experiments Only"</span>
+                                    <GrayPill
+                                        text="Enabled"
+                                        on_delete=move |_| {
+                                            filters_rws.update(|f| f.global_experiments_only = None)
+                                        }
+                                    />
+                                </div>
+                            }
+                                .into_view()
+                        } else if !dimension_params_rws.with(|d| d.is_empty()) {
                             let dimension_params = dimension_params_rws.get();
                             let conditions = dimension_params
                                 .clone()
@@ -255,8 +268,6 @@ pub(super) fn experiment_table_filter_widget(
             .collect::<Conditions>(),
     );
 
-    let dim = combined_resource.dimensions;
-
     let fn_environment = create_memo(move |_| {
         let context = context_rws.get();
         json!({
@@ -280,29 +291,54 @@ pub(super) fn experiment_table_filter_widget(
             handle_close=move || close_drawer("experiment_filter_drawer")
         >
             <div class="flex flex-col gap-5">
-                <ContextForm
-                    dimensions=dim
-                    context=context_rws.get_untracked()
-                    on_context_change=move |context: Conditions| {
-                        context_rws.set(context.clone());
-                        let map = context
-                            .iter()
-                            .filter_map(|condition| {
-                                match condition.expression.clone() {
-                                    Expression::Is(value) => {
-                                        Some((condition.variable.clone(), value))
-                                    }
-                                    _ => None,
-                                }
-                            })
-                            .collect::<Map<_, _>>();
-                        dimension_buffer_rws.set(DimensionQuery::from(map));
+                {move || {
+                    view! {
+                        <ContextForm
+                            dimensions=combined_resource.dimensions.clone()
+                            context=context_rws.get_untracked()
+                            on_context_change=move |context: Conditions| {
+                                context_rws.set(context.clone());
+                                let map = context
+                                    .iter()
+                                    .filter_map(|condition| {
+                                        match condition.expression.clone() {
+                                            Expression::Is(value) => {
+                                                Some((condition.variable.clone(), value))
+                                            }
+                                            _ => None,
+                                        }
+                                    })
+                                    .collect::<Map<_, _>>();
+                                dimension_buffer_rws.set(DimensionQuery::from(map));
+                            }
+                            heading_sub_text="Search By Context"
+                            resolve_mode=true
+                            fn_environment
+                            disabled=filters_buffer_rws
+                                .with(|f| f.global_experiments_only.unwrap_or_default())
+                        />
                     }
-                    heading_sub_text="Search By Context"
-                    resolve_mode=true
-                    fn_environment
-                />
-                <div class="w-full flex flex-row justify-start items-end gap-10">
+                }} <div class="w-fit flex items-center gap-2">
+                    <Toggle
+                        name="workspace-strict-mode"
+                        value=filters_buffer_rws
+                            .with(|f| f.global_experiments_only.unwrap_or_default())
+                        on_change=move |flag| {
+                            filters_buffer_rws
+                                .update(|f| {
+                                    f.global_experiments_only = if flag {
+                                        Some(true)
+                                    } else {
+                                        None
+                                    };
+                                });
+                        }
+                    />
+                    <Label
+                        title="Fetch global experiments only"
+                        extra_info="Enabling this will disable context filter"
+                    />
+                </div> <div class="w-full flex flex-row justify-start items-end gap-10">
                     <div class="form-control">
                         <Label title="Last Modified From" />
                         <DateInput
@@ -345,7 +381,6 @@ pub(super) fn experiment_table_filter_widget(
                         />
                     </div>
                 </div>
-
                 <GlassyPills
                     selected=Signal::derive(move || {
                         filters_buffer_rws
@@ -355,9 +390,7 @@ pub(super) fn experiment_table_filter_widget(
                     on_click=move |items| {
                         filters_buffer_rws.update(|f| f.status = Some(CommaSeparatedQParams(items)))
                     }
-                />
-
-                <div class="form-control">
+                /> <div class="form-control">
                     <Label title="Experiment Name" />
                     <input
                         type="text"
@@ -375,8 +408,7 @@ pub(super) fn experiment_table_filter_widget(
                             filters_buffer_rws.update(|f| f.experiment_name = experiment_name);
                         }
                     />
-                </div>
-                <div class="form-control">
+                </div> <div class="form-control">
                     <Label
                         title="Experiment ID"
                         info="(any of)"
@@ -399,8 +431,7 @@ pub(super) fn experiment_table_filter_widget(
                             filters_buffer_rws.update(|filter| filter.experiment_ids = ids);
                         }
                     />
-                </div>
-                <div class="form-control">
+                </div> <div class="form-control">
                     <Label
                         title="Created By"
                         info="(any of)"
@@ -420,8 +451,7 @@ pub(super) fn experiment_table_filter_widget(
                             filters_buffer_rws.update(|filter| filter.created_by = user_names);
                         }
                     />
-                </div>
-                <div class="flex justify-end gap-2">
+                </div> <div class="flex justify-end gap-2">
                     <Button
                         class="h-12 w-48"
                         text="Submit"

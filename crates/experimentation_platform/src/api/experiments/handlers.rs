@@ -1,4 +1,5 @@
 use std::{
+    cmp::min,
     collections::{HashMap, HashSet},
     vec,
 };
@@ -11,9 +12,7 @@ use actix_web::{
 };
 use chrono::{DateTime, Duration, Utc};
 use diesel::{
-    dsl::sql,
     r2d2::{ConnectionManager, PooledConnection},
-    sql_types::{Bool, Text},
     BoolExpressionMethods, Connection, ExpressionMethods, PgConnection, QueryDsl,
     RunQueryDsl, SelectableHelper, TextExpressionMethods,
 };
@@ -21,7 +20,7 @@ use experimentation_client::{
     get_applicable_buckets_from_group, get_applicable_variants_from_group_response,
 };
 use reqwest::{Method, StatusCode};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
         construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
@@ -64,7 +63,7 @@ use superposition_types::{
             experiments::dsl as experiments,
         },
     },
-    result as superposition, Cac, Condition, Exp, ListResponse, Overrides,
+    result as superposition, Cac, Condition, Contextual, Exp, ListResponse, Overrides,
     PaginatedResponse, SortBy, User,
 };
 
@@ -953,7 +952,7 @@ async fn list_experiments(
 
     let dimension_params = dimension_params.into_inner();
 
-    let query_builder = |filters: &ExperimentListFilters, query_map: &QueryMap| {
+    let query_builder = |filters: &ExperimentListFilters| {
         let mut builder = experiments::experiments
             .schema_name(&schema_name)
             .into_boxed();
@@ -963,12 +962,6 @@ async fn list_experiments(
         if let Some(ref experiment_name) = filters.experiment_name {
             builder =
                 builder.filter(experiments::name.like(format!("%{}%", experiment_name)));
-        }
-        for (key, value) in query_map.iter() {
-            let c = json!({"==": [{"var": key}, value]});
-            builder = builder.filter(
-                sql::<Bool>("context::text LIKE ").bind::<Text, _>(format!("%{}%", c)),
-            );
         }
         if let Some(ref created_by) = filters.created_by {
             builder =
@@ -1002,7 +995,7 @@ async fn list_experiments(
     };
 
     let filters = filters.into_inner();
-    let base_query = query_builder(&filters, &dimension_params);
+    let base_query = query_builder(&filters);
 
     let sort_by = filters.sort_by.clone().unwrap_or(SortBy::Desc);
     let sort_on = filters.sort_on.unwrap_or_default();
@@ -1016,29 +1009,71 @@ async fn list_experiments(
     };
 
     let pagination_params = pagination_params.into_inner();
-    if let Some(true) = pagination_params.all {
-        let result = base_query.load::<Experiment>(&mut conn)?;
-        return Ok(HttpResponse::Ok().json(PaginatedResponse::all(
-            result.into_iter().map(ExperimentResponse::from).collect(),
-        )));
-    }
-
-    let count_query = query_builder(&filters, &dimension_params);
-    let number_of_experiments = count_query.count().get_result(&mut conn)?;
+    let show_all = pagination_params.all.unwrap_or_default();
     let limit = pagination_params.count.unwrap_or(10);
     let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
 
-    let query = base_query.limit(limit).offset(offset);
-    let experiment_list = query.load::<Experiment>(&mut conn)?;
-    let total_pages = (number_of_experiments as f64 / limit as f64).ceil() as i64;
-    Ok(HttpResponse::Ok().json(PaginatedResponse {
-        total_pages,
-        total_items: number_of_experiments,
-        data: experiment_list
+    let perform_in_memory_filter = !dimension_params.is_empty()
+        || filters.global_experiments_only.unwrap_or_default();
+
+    let paginated_response = if perform_in_memory_filter {
+        let all_experiments: Vec<Experiment> = base_query.load(&mut conn)?;
+        let filtered_experiments = if filters.global_experiments_only.unwrap_or_default()
+        {
+            all_experiments
+                .into_iter()
+                .filter(|experiment| experiment.context.is_empty())
+                .collect()
+        } else {
+            let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
+            let dimension_filter_experiments =
+                Experiment::filter_by_dimension(all_experiments, &dimension_keys);
+
+            Experiment::filter_by_eval(dimension_filter_experiments, &dimension_params)
+        };
+
+        let experiments = filtered_experiments
             .into_iter()
             .map(ExperimentResponse::from)
-            .collect(),
-    }))
+            .collect::<Vec<_>>();
+
+        if show_all {
+            PaginatedResponse::all(experiments)
+        } else {
+            let total_items = experiments.len();
+            let start = offset as usize;
+            let end = min((offset + limit) as usize, total_items);
+            let data = experiments
+                .get(start..end)
+                .map(|slice| slice.to_vec())
+                .unwrap_or_default();
+
+            PaginatedResponse {
+                total_pages: (total_items as f64 / limit as f64).ceil() as i64,
+                total_items: total_items as i64,
+                data,
+            }
+        }
+    } else if show_all {
+        let result = base_query.load::<Experiment>(&mut conn)?;
+        PaginatedResponse::all(result.into_iter().map(ExperimentResponse::from).collect())
+    } else {
+        let count_query = query_builder(&filters);
+        let number_of_experiments = count_query.count().get_result(&mut conn)?;
+        let query = base_query.limit(limit).offset(offset);
+        let experiment_list = query.load::<Experiment>(&mut conn)?;
+
+        PaginatedResponse {
+            total_pages: (number_of_experiments as f64 / limit as f64).ceil() as i64,
+            total_items: number_of_experiments,
+            data: experiment_list
+                .into_iter()
+                .map(ExperimentResponse::from)
+                .collect(),
+        }
+    };
+
+    Ok(HttpResponse::Ok().json(paginated_response))
 }
 
 #[get("/{id}")]
