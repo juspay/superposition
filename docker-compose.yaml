@@ -11,17 +11,17 @@ services:
       - ./docker-compose/postgres/data:/var/lib/postgresql/data
     restart: on-failure
 
-  localstack:
-    build: ./docker-compose/localstack/
-    container_name: superposition_localstack
-    ports:
-      - "4510-4559:4510-4559"  # external service port range
-      - "4566:4566"            # LocalStack Edge Proxy
-      - "4571:4571"
-    environment:
-      LOCALSTACK_SERVICES: s3, sns, sqs, logs, cloudwatch, kms
-      AWS_DEFAULT_REGION: ap-south-1
-      EDGE_PORT: 4566
+  # localstack:
+  #   build: ./docker-compose/localstack/
+  #   container_name: superposition_localstack
+  #   ports:
+  #     - "4510-4559:4510-4559"  # external service port range
+  #     - "4566:4566"            # LocalStack Edge Proxy
+  #     - "4571:4571"
+  #   environment:
+  #     LOCALSTACK_SERVICES: s3, sns, sqs, logs, cloudwatch, kms
+  #     AWS_DEFAULT_REGION: ap-south-1
+  #     EDGE_PORT: 4566
 
 #   redis:
 #     image: redis:7
