@@ -20,7 +20,7 @@ const config: Config = {
     url: "https://juspay.io/",
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
-    baseUrl: "/superposition/docs",
+    baseUrl: "/superposition/",
 
     // GitHub pages deployment config.
     organizationName: "juspay",
@@ -60,7 +60,7 @@ const config: Config = {
             "classic",
             {
                 docs: {
-                    routeBasePath: '',
+                    routeBasePath: '/docs',
                     sidebarPath: "./sidebars.ts",
                     docItemComponent: "@theme/ApiItem", // Derived from docusaurus-theme-openapi
                     // Please change this to your repo.
