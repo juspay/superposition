@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.32.0 - 2025-09-09
+#### Bug Fixes
+- Snapshot page and apis - (36fd9b6) - ayush.jain@juspay.in
+#### Features
+- Add option to fetch global experiments only (#691) - (c65dd9a) - Ayush Jain
+- Add QueryString proc_macro_derive (#656) - (30b4584) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.88.1 [skip ci] - (09863b1) - Superposition Bot
+#### Refactoring
+- Context Form page - (7672b04) - ayush.jain@juspay.in
+
+- - -
+
 ## superposition_types-v0.31.1 - 2025-08-22
 #### Bug Fixes
 - add delay in backfill endpoint (#674) - (d505ce2) - Ankit Kumar Mahato

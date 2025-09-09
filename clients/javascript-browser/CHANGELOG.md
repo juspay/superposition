@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## js_client-v0.4.0 - 2025-09-09
+#### Features
+- Add map support for js-browser client (#688) - (cf25282) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps-dev)** bump webpack in /clients/javascript-browser (#601) - (f7e0311) - dependabot[bot]
+- **(deps-dev)** bump @babel/traverse in /clients/javascript-browser (#602) - (ca6559d) - dependabot[bot]
+#### Refactoring
+- move tests folder to sdk, rename js client to javascript-browser (#596) - (2e3f37d) - sauraww
+
+- - -
+
 ## js_client-v0.3.0 - 2025-02-14
 #### Features
 - Discard experiment - (42ac967) - ayush.jain@juspay.in

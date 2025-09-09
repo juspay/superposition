@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.33.1 - 2025-09-09
+#### Bug Fixes
+- use log_level to decide req/resp logging - (24e2545) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.88.0 [skip ci] - (e23bb63) - Superposition Bot
+- address review comments - (ae5f24a) - Natarajan Kannan
+- simplify Default - (9a39bd8) - Natarajan Kannan
+- remove re-orders and keep rest of code intact - (e2e44b2) - Natarajan Kannan
+- make res type explicit - (d9161ac) - Natarajan Kannan
+- address review comments and PR check issues - (4b7af6e) - Natarajan Kannan
+- add response body logging - (434b451) - Natarajan Kannan
+- add request body logging - (4eff98b) - Natarajan Kannan
+- add request/response middleware - (502fbfe) - Natarajan Kannan
+
+- - -
+
 ## service_utils-v0.33.0 - 2025-08-19
 #### Features
 - Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in

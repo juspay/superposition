@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.60.1 - 2025-09-09
+#### Bug Fixes
+- Snapshot page and apis - (36fd9b6) - ayush.jain@juspay.in
+#### Miscellaneous Chores
+- **(version)** v0.88.0 [skip ci] - (e23bb63) - Superposition Bot
+#### Refactoring
+- use log::error for all error flows - (d186525) - Natarajan Kannan
+- Context Form page - (7672b04) - ayush.jain@juspay.in
+
+- - -
+
 ## context_aware_config-v0.60.0 - 2025-08-19
 #### Features
 - Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in

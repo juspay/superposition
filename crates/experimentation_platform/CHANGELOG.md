@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.42.0 - 2025-09-09
+#### Features
+- Add option to fetch global experiments only (#691) - (c65dd9a) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.88.1 [skip ci] - (09863b1) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.41.1 - 2025-08-22
 #### Bug Fixes
 - add delay in backfill endpoint (#674) - (d505ce2) - Ankit Kumar Mahato

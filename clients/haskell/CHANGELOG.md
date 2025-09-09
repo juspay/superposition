@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.4.1 - 2025-09-09
+#### Bug Fixes
+- **(legacy-haskell-client)** Export MergeStrategy type (#685) - (c9208d1) - Ayush Jain
+
+- - -
+
 ## haskell_client-v0.4.0 - 2025-07-30
 #### Features
 - experiment bucketing - (274afdf) - Ankit.Mahato

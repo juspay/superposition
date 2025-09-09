@@ -2,6 +2,47 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.89.0 - 2025-09-09
+### Package updates
+- service_utils bumped to service_utils-v0.33.1
+- experimentation_platform bumped to experimentation_platform-v0.42.0
+- haskell_client bumped to haskell_client-v0.4.1
+- frontend bumped to frontend-v0.42.0
+- js_client bumped to js_client-v0.4.0
+- superposition_derives bumped to superposition_derives-v0.7.0
+- superposition_sdk bumped to superposition_sdk-v0.6.0
+- context_aware_config bumped to context_aware_config-v0.60.1
+- experimentation_client bumped to experimentation_client-v0.19.0
+- superposition_types bumped to superposition_types-v0.32.0
+### Global changes
+#### Bug Fixes
+- Make host related ENVs non mandatory (#667) - (c1b697a) - Ayush Jain
+- use log_level to decide req/resp logging - (24e2545) - Natarajan Kannan
+- use log_level to decide req/resp logging - (4c401dc) - Natarajan Kannan
+- fix sed regex in release.yaml - (595d581) - Ayush Jain
+#### Documentation
+- add README.md for examples - (73d27b6) - Natarajan Kannan
+- added documnetation for all the operations in smithy (#672) - (b51c486) - sauraww
+- add docusaurus docs for examples (#686) - (a44c8b3) - Natarajan Kannan
+- added api doc generation inside docusaurus via smithy and openapi (#690) - (44e1ca1) - sauraww
+- commit smithy generated openapi spec (#693) - (cd7e19d) - Natarajan Kannan
+- revert routeBasePath change (#695) - (18dac7a) - Natarajan Kannan
+#### Features
+- Add map support for js-browser client (#688) - (cf25282) - Ayush Jain
+- Add option to fetch global experiments only (#691) - (c65dd9a) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump tracing-subscriber from 0.3.19 to 0.3.20 (#683) - (9527650) - dependabot[bot]
+- **(version)** v0.88.1 [skip ci] - (09863b1) - Superposition Bot
+- add request/response middleware - (502fbfe) - Natarajan Kannan
+- add request body logging - (4eff98b) - Natarajan Kannan
+- remove makefile changes - (7c695b8) - Natarajan Kannan
+- address review comments and PR check issues - (4b7af6e) - Natarajan Kannan
+- remove default call for unit struct - (29206fb) - Natarajan Kannan
+- remove re-orders and keep rest of code intact - (e2e44b2) - Natarajan Kannan
+- Remove localstack as a mandatory requirement for local setup (#694) - (0b3e4a4) - Ayush Jain
+
+- - -
+
 ## v0.88.1 - 2025-08-22
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.41.1
