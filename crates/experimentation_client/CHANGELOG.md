@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.19.0 - 2025-09-09
+#### Bug Fixes
+- Experiment applicable group resolution for system generated (#692) - (fa1c5a6) - Ayush Jain
+#### Features
+- Add option to fetch global experiments only (#691) - (c65dd9a) - Ayush Jain
+- Add QueryString proc_macro_derive (#656) - (30b4584) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.88.0 [skip ci] - (e23bb63) - Superposition Bot
+
+- - -
+
 ## experimentation_client-v0.18.0 - 2025-08-19
 #### Features
 - Move jsonlogic behind compile time flag - (328671c) - ayush.jain@juspay.in

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.6.0 - 2025-09-09
+#### Documentation
+- added documnetation for all the operations in smithy (#672) - (b51c486) - sauraww
+#### Features
+- Add option to fetch global experiments only (#691) - (c65dd9a) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.87.0 [skip ci] - (87e0763) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.5.0 - 2025-08-13
 #### Bug Fixes
 - show proper license in crates.io (#657) - (9406a0d) - Datron
