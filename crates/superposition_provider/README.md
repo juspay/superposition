@@ -6,10 +6,10 @@ Superposition provider is an openfeature provider that works with [Superposition
 
 The Superposition Provider integrates with OpenFeature to provide:
 
-- **Context Aware Configuration (CAC)**: Dynamic configuration management based on context
-- **Experimentation**: A/B testing and feature experimentation capabilities
-- **Real-time Updates**: Support for polling and on-demand refresh strategies
-- **Caching**: Built-in caching for improved performance
+-   **Context Aware Configuration (CAC)**: Dynamic configuration management based on context
+-   **Experimentation**: A/B testing and feature experimentation capabilities
+-   **Real-time Updates**: Support for polling and on-demand refresh strategies
+-   **Caching**: Built-in caching for improved performance
 
 ## Installation
 
@@ -223,7 +223,7 @@ let timeout: i64 = client.get_int_value("request_timeout", None, None).await?;
 let ratio: f64 = client.get_float_value("success_ratio", None, None).await?;
 
 // Complex objects (StructValue)
-let config: open_feature::StructValue = client.get_object_value("complex_config", None, None).await?;
+let config: open_feature::StructValue = client.get_struct_value("complex_config", None, None).await?;
 ```
 
 ## Error Handling
@@ -249,10 +249,10 @@ match client.get_string_value("my_flag", None, None).await {
 
 ## Performance Considerations
 
-- **Caching**: Enable evaluation caching for frequently accessed flags
-- **Refresh Strategy**: Choose polling for real-time updates or on-demand for better performance
-- **Fallback Config**: Always provide fallback configuration for critical features
-- **Context Size**: Keep evaluation context minimal for better performance
+-   **Caching**: Enable evaluation caching for frequently accessed flags
+-   **Refresh Strategy**: Choose polling for real-time updates or on-demand for better performance
+-   **Fallback Config**: Always provide fallback configuration for critical features
+-   **Context Size**: Keep evaluation context minimal for better performance
 
 ## Logging
 
