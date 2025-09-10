@@ -1206,6 +1206,7 @@ export const se_ListContextsCommand = async(
   const query: any = map({
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_p]: [,input[_p]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],

@@ -153,6 +153,20 @@ impl ListContextsFluentBuilder {
                     self.inner.get_count()
                 }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn all(mut self, input: bool) -> Self {
+                    self.inner = self.inner.all(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_all(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_all()
+                }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.prefix(input.into());
                     self

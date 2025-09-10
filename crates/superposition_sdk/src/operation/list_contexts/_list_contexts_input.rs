@@ -12,6 +12,8 @@ pub struct ListContextsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub count: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
+    pub all: ::std::option::Option<bool>,
+    #[allow(missing_docs)] // documentation missing in model
     pub prefix: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub sort_on: ::std::option::Option<crate::types::ContextFilterSortOn>,
@@ -40,6 +42,10 @@ impl  ListContextsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(&self) -> ::std::option::Option<bool> {
+        self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn prefix(&self) -> ::std::option::Option<&str> {
@@ -81,6 +87,7 @@ pub struct ListContextsInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) page: ::std::option::Option<i32>,
     pub(crate) count: ::std::option::Option<i32>,
+    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) prefix: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ContextFilterSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
@@ -142,6 +149,19 @@ impl ListContextsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_count(&self) -> &::std::option::Option<i32> {
         &self.count
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn all(mut self, input: bool) -> Self {
+        self.all = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.all = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+        &self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -232,6 +252,8 @@ impl ListContextsInputBuilder {
                 page: self.page
                 ,
                 count: self.count
+                ,
+                all: self.all
                 ,
                 prefix: self.prefix
                 ,

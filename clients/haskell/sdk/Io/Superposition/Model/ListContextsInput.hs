@@ -3,6 +3,7 @@ module Io.Superposition.Model.ListContextsInput (
     setOrgId,
     setPage,
     setCount,
+    setAll',
     setPrefix,
     setSortOn,
     setSortBy,
@@ -16,6 +17,7 @@ module Io.Superposition.Model.ListContextsInput (
     org_id,
     page,
     count,
+    all',
     prefix,
     sort_on,
     sort_by,
@@ -44,6 +46,7 @@ data ListContextsInput = ListContextsInput {
     org_id :: Data.Text.Text,
     page :: Data.Maybe.Maybe Data.Int.Int32,
     count :: Data.Maybe.Maybe Data.Int.Int32,
+    all' :: Data.Maybe.Maybe Bool,
     prefix :: Data.Maybe.Maybe Data.Text.Text,
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ContextFilterSortOn.ContextFilterSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
@@ -62,6 +65,7 @@ instance Data.Aeson.ToJSON ListContextsInput where
         "org_id" Data.Aeson..= org_id a,
         "page" Data.Aeson..= page a,
         "count" Data.Aeson..= count a,
+        "all" Data.Aeson..= all' a,
         "prefix" Data.Aeson..= prefix a,
         "sort_on" Data.Aeson..= sort_on a,
         "sort_by" Data.Aeson..= sort_by a,
@@ -79,6 +83,7 @@ instance Data.Aeson.FromJSON ListContextsInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "page")
         Control.Applicative.<*> (v Data.Aeson..: "count")
+        Control.Applicative.<*> (v Data.Aeson..: "all")
         Control.Applicative.<*> (v Data.Aeson..: "prefix")
         Control.Applicative.<*> (v Data.Aeson..: "sort_on")
         Control.Applicative.<*> (v Data.Aeson..: "sort_by")
@@ -94,6 +99,7 @@ data ListContextsInputBuilderState = ListContextsInputBuilderState {
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     pageBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     countBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
+    all'BuilderState :: Data.Maybe.Maybe Bool,
     prefixBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ContextFilterSortOn.ContextFilterSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
@@ -110,6 +116,7 @@ defaultBuilderState = ListContextsInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
     pageBuilderState = Data.Maybe.Nothing,
     countBuilderState = Data.Maybe.Nothing,
+    all'BuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
     sort_onBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing,
@@ -135,6 +142,10 @@ setPage value =
 setCount :: Data.Maybe.Maybe Data.Int.Int32 -> ListContextsInputBuilder ()
 setCount value =
    Control.Monad.State.Strict.modify (\s -> (s { countBuilderState = value }))
+
+setAll' :: Data.Maybe.Maybe Bool -> ListContextsInputBuilder ()
+setAll' value =
+   Control.Monad.State.Strict.modify (\s -> (s { all'BuilderState = value }))
 
 setPrefix :: Data.Maybe.Maybe Data.Text.Text -> ListContextsInputBuilder ()
 setPrefix value =
@@ -167,6 +178,7 @@ build builder = do
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListContextsInput.ListContextsInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     page' <- Data.Either.Right (pageBuilderState st)
     count' <- Data.Either.Right (countBuilderState st)
+    all'' <- Data.Either.Right (all'BuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
     sort_on' <- Data.Either.Right (sort_onBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
@@ -178,6 +190,7 @@ build builder = do
         org_id = org_id',
         page = page',
         count = count',
+        all' = all'',
         prefix = prefix',
         sort_on = sort_on',
         sort_by = sort_by',
@@ -194,6 +207,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListContextsInput where
             "context",
             "list"
             ]
+        Io.Superposition.Utility.serQuery "all" (all' self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "count" (count self)

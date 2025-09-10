@@ -211,6 +211,10 @@ operation ListContexts {
         @httpQuery("count")
         @notProperty
         count: Integer
+        
+        @httpQuery("all")
+        @notProperty
+        all: Boolean
 
         @httpQuery("prefix")
         @notProperty

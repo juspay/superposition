@@ -2788,9 +2788,19 @@ LIST_CONTEXTS_INPUT = Schema.collection(
             ],
         },
 
+        "all": {
+            "target": BOOLEAN,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
         "prefix": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -2800,7 +2810,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "sort_on": {
             "target": CONTEXT_FILTER_SORT_ON,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -2810,7 +2820,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -2820,7 +2830,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
@@ -2830,7 +2840,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
@@ -2840,7 +2850,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "plaintext": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="plaintext"),

@@ -3470,6 +3470,7 @@ class ListContextsInput:
     org_id: str = "juspay"
     page: int | None = None
     count: int | None = None
+    all: bool | None = None
     prefix: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
@@ -3506,21 +3507,24 @@ class ListContextsInput:
                     kwargs["count"] = de.read_integer(_SCHEMA_LIST_CONTEXTS_INPUT.members["count"])
 
                 case 4:
-                    kwargs["prefix"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_CONTEXTS_INPUT.members["all"])
 
                 case 5:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_on"])
+                    kwargs["prefix"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
 
                 case 6:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_on"])
 
                 case 7:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_by"])
 
                 case 8:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
 
                 case 9:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
+
+                case 10:
                     kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
 
                 case _:
