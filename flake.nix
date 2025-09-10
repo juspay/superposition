@@ -46,8 +46,8 @@
           packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix { };
           devShells.default = pkgs.mkShell {
             inputsFrom = [
-              self'.devShells.rust
               # self'.devShells.haskell
+              self'.devShells.rust
               config.pre-commit.devShell
             ];
             # Add your devShell tools here
@@ -68,7 +68,6 @@
               leptosfmt
               wasm-pack
               yq
-              openapi-generator-cli
               jdk21_headless
               gradle_jdk17
               uv
