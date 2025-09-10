@@ -1,0 +1,27 @@
+cabal-version:      3.4
+name:               open-feature
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Shrey Bana
+maintainer:         shrey.bana@juspay.in
+-- copyright:
+category:           Development
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+library
+    import:           warnings
+    exposed-modules:  Data.OpenFeature.Provider
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    text >= 2.0 && < 2.2, containers >= 0.6.0.1 && <= 0.9, aeson >= 2.2.2.0 && < 2.3.0, base ^>=4.18.0.0
+    hs-source-dirs:   lib
+    default-language: GHC2021
+    default-extensions: OverloadedStrings
