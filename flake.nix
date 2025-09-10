@@ -46,7 +46,7 @@
           packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix { };
           devShells.default = pkgs.mkShell {
             inputsFrom = [
-              # self'.devShells.haskell
+              self'.devShells.haskell
               self'.devShells.rust
               config.pre-commit.devShell
             ];
