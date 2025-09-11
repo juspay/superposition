@@ -194,25 +194,6 @@ impl UpdateDimensionFluentBuilder {
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_description()
                 }
-    /// 
-    /// Appends an item to `dependencies`.
-    /// 
-    /// To override the contents of this collection use [`set_dependencies`](Self::set_dependencies).
-    /// 
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn dependencies(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.dependencies(input.into());
-                        self
-                    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependencies(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_dependencies(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependencies(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_dependencies()
-                }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.change_reason(input.into());

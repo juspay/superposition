@@ -50,9 +50,6 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  *   position: Number("int"),
  *   function_name: "STRING_VALUE",
  *   description: "STRING_VALUE",
- *   dependencies: [ // Dependencies
- *     "STRING_VALUE",
- *   ],
  *   change_reason: "STRING_VALUE", // required
  *   autocomplete_function_name: "STRING_VALUE",
  * };
@@ -79,6 +76,7 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
+ * //   dimension_type: "REGULAR" || "LOCALCOHORT" || "REMOTECOHORT", // required
  * //   mandatory: true || false,
  * // };
  *

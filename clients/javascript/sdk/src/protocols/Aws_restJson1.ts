@@ -509,9 +509,10 @@ export const se_CreateDimensionCommand = async(
   body = JSON.stringify(take(input, {
     'autocomplete_function_name': [],
     'change_reason': [],
-    'dependencies': _ => _json(_),
+    'cohort_based_on': [],
     'description': [],
     'dimension': [],
+    'dimension_type': [],
     'function_name': [],
     'position': [],
     'schema': _ => se_Document(_, context),
@@ -1720,7 +1721,6 @@ export const se_UpdateDimensionCommand = async(
   body = JSON.stringify(take(input, {
     'autocomplete_function_name': [],
     'change_reason': [],
-    'dependencies': _ => _json(_),
     'description': [],
     'function_name': [],
     'position': [],
@@ -2182,6 +2182,7 @@ export const de_CreateDimensionCommand = async(
     'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': __expectString,
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2736,6 +2737,7 @@ export const de_GetDimensionCommand = async(
     'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': __expectString,
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -3553,6 +3555,7 @@ export const de_UpdateDimensionCommand = async(
     'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': __expectString,
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -4171,8 +4174,6 @@ const de_CommandError = async(
     });
   }
 
-  // se_Dependencies omitted.
-
   // se_Events omitted.
 
   /**
@@ -4528,6 +4529,7 @@ const de_CommandError = async(
       'dependents': _json,
       'description': __expectString,
       'dimension': __expectString,
+      'dimension_type': __expectString,
       'function_name': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,

@@ -1430,4 +1430,17 @@ ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT TRUE;
 
 UPDATE superposition.workspaces SET auto_populate_control = FALSE;
 
+CREATE TYPE public.dimension_type AS ENUM (
+    'REGULAR',
+    'LOCAL_COHORT',
+    'REMOTE_COHORT'
+);
+
+ALTER TABLE localorg_dev.dimensions
+ADD COLUMN dimension_type DIMENSION_TYPE NOT NULL DEFAULT 'REGULAR';
+
+ALTER TABLE localorg_test.dimensions
+ADD COLUMN dimension_type DIMENSION_TYPE NOT NULL DEFAULT 'REGULAR';
+
+
 COMMIT;

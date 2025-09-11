@@ -154,6 +154,15 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                             ).transpose()?
                         );
                     }
+                    "dimension_type" => {
+                        builder = builder.set_dimension_type(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    crate::types::DimensionType::from(u.as_ref())
+                                )
+                            ).transpose()?
+                        );
+                    }
                     "function_name" => {
                         builder = builder.set_function_name(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

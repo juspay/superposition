@@ -180,25 +180,6 @@ impl CreateDimensionFluentBuilder {
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_function_name()
                 }
-    /// 
-    /// Appends an item to `dependencies`.
-    /// 
-    /// To override the contents of this collection use [`set_dependencies`](Self::set_dependencies).
-    /// 
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn dependencies(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.dependencies(input.into());
-                        self
-                    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependencies(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_dependencies(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependencies(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_dependencies()
-                }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.description(input.into());
@@ -240,6 +221,34 @@ impl CreateDimensionFluentBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_autocomplete_function_name()
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dimension_type(mut self, input: crate::types::DimensionType) -> Self {
+                    self.inner = self.inner.dimension_type(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_dimension_type(mut self, input: ::std::option::Option<crate::types::DimensionType>) -> Self {
+                    self.inner = self.inner.set_dimension_type(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_dimension_type(&self) -> &::std::option::Option<crate::types::DimensionType> {
+                    self.inner.get_dimension_type()
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn cohort_based_on(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.cohort_based_on(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_cohort_based_on(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_cohort_based_on(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_cohort_based_on(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_cohort_based_on()
                 }
 }
 

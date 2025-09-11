@@ -267,7 +267,7 @@ smithy-clients: smithy-build
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
-	git apply smithy/patches/*.patch
+	git apply --ignore-space-change --ignore-whitespace smithy/patches/*.patch
 
 # API Documentation targets
 smithy-api-docs: smithy-build
