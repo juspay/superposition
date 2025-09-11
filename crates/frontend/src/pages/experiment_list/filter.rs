@@ -4,7 +4,10 @@ use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
 use serde_json::{json, Map, Value};
 use superposition_types::{
-    api::{experiments::ExperimentListFilters, workspace::WorkspaceResponse},
+    api::{
+        experiments::ExperimentListFilters, workspace::WorkspaceResponse,
+        DimensionMatchStrategy,
+    },
     custom_query::{
         CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
     },
@@ -132,6 +135,23 @@ pub(super) fn filter_summary(
                                         />
                                     </ConditionCollapseProvider>
                                 </div>
+                                <Show when=move || {
+                                    filters_rws
+                                        .with(|f| {
+                                            f.dimension_match_strategy.unwrap_or_default()
+                                                == DimensionMatchStrategy::Exact
+                                        })
+                                }>
+                                    <div class="flex gap-2 items-center">
+                                        <span class="text-xs">"Exact match context"</span>
+                                        <GrayPill
+                                            text="Enabled"
+                                            on_delete=move |_| {
+                                                filters_rws.update(|f| f.dimension_match_strategy = None)
+                                            }
+                                        />
+                                    </div>
+                                </Show>
                             }
                                 .into_view()
                         } else {
@@ -318,11 +338,42 @@ pub(super) fn experiment_table_filter_widget(
                                 .with(|f| f.global_experiments_only.unwrap_or_default())
                         />
                     }
+                }}
+                {move || {
+                    view! {
+                        <div class="w-fit flex items-center gap-2">
+                            <Toggle
+                                name="workspace-strict-mode"
+                                disabled=dimension_buffer_rws.with(|d| d.is_empty())
+                                    || filters_buffer_rws
+                                        .with(|f| f.global_experiments_only.unwrap_or_default())
+                                value=filters_buffer_rws
+                                    .with(|f| {
+                                        f.dimension_match_strategy.unwrap_or_default()
+                                            == DimensionMatchStrategy::Exact
+                                    })
+                                on_change=move |flag| {
+                                    filters_buffer_rws
+                                        .update(|f| {
+                                            f.dimension_match_strategy = if flag
+                                                && !dimension_buffer_rws.with(|d| d.is_empty())
+                                            {
+                                                Some(DimensionMatchStrategy::Exact)
+                                            } else {
+                                                None
+                                            };
+                                        });
+                                }
+                            />
+                            <Label title="Exact match context" />
+                        // extra_info="Enabling this will disable context filter"
+                        </div>
+                    }
                 }} <div class="w-fit flex items-center gap-2">
                     <Toggle
                         name="workspace-strict-mode"
                         value=filters_buffer_rws
-                            .with(|f| f.global_experiments_only.unwrap_or_default())
+                            .with_untracked(|f| f.global_experiments_only.unwrap_or_default())
                         on_change=move |flag| {
                             filters_buffer_rws
                                 .update(|f| {
@@ -346,9 +397,11 @@ pub(super) fn experiment_table_filter_widget(
                             name="experiment_from_date"
                             min="2020-01-01"
                             value=filters_buffer_rws
-                                .with(|f| f.from_date)
-                                .map(|s| s.format("%Y-%m-%d").to_string())
-                                .unwrap_or_default()
+                                .with_untracked(|f| {
+                                    f.from_date
+                                        .map(|s| s.format("%Y-%m-%d").to_string())
+                                        .unwrap_or_default()
+                                })
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
                                 filters_buffer_rws.update(|f| f.from_date = Some(new_date));
                             })
@@ -364,9 +417,11 @@ pub(super) fn experiment_table_filter_widget(
                             id="experiment_to_date_input"
                             name="experiment_to_date"
                             value=filters_buffer_rws
-                                .with(|f| f.to_date)
-                                .map(|s| s.format("%Y-%m-%d").to_string())
-                                .unwrap_or_default()
+                                .with_untracked(|f| {
+                                    f.to_date
+                                        .map(|s| s.format("%Y-%m-%d").to_string())
+                                        .unwrap_or_default()
+                                })
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
                                 filters_buffer_rws
                                     .update(|f| {

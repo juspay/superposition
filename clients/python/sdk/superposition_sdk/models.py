@@ -3436,6 +3436,22 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
         ]
 )
 
+class DimensionMatchStrategy(StrEnum):
+    """
+    Strategy to follow while filter items based on the context
+
+    """
+    EXACT = "exact"
+    """
+    Match the overrides which have the exact context
+
+    """
+    SUBSET = "subset"
+    """
+    Match the overrides which have the given context as subset
+
+    """
+
 class SortBy(StrEnum):
     """
     Sort order enumeration for list operations.
@@ -3464,6 +3480,9 @@ class ListContextsInput:
     :param sort_by:
          Sort order enumeration for list operations.
 
+    :param dimension_match_strategy:
+         Strategy to follow while filter items based on the context
+
     """
 
     workspace_id: str | None = None
@@ -3477,6 +3496,7 @@ class ListContextsInput:
     created_by: str | None = None
     last_modified_by: str | None = None
     plaintext: str | None = None
+    dimension_match_strategy: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_CONTEXTS_INPUT, self)
@@ -3526,6 +3546,9 @@ class ListContextsInput:
 
                 case 10:
                     kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
+
+                case 11:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_match_strategy"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9264,6 +9287,9 @@ class ListExperimentInput:
     :param sort_by:
          Sort order enumeration for list operations.
 
+    :param dimension_match_strategy:
+         Strategy to follow while filter items based on the context
+
     """
 
     workspace_id: str | None = None
@@ -9281,6 +9307,7 @@ class ListExperimentInput:
     sort_on: str | None = None
     sort_by: str | None = None
     global_experiments_only: bool | None = None
+    dimension_match_strategy: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_INPUT, self)
@@ -9342,6 +9369,9 @@ class ListExperimentInput:
 
                 case 14:
                     kwargs["global_experiments_only"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["global_experiments_only"])
+
+                case 15:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_match_strategy"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

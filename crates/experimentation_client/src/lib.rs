@@ -373,6 +373,7 @@ async fn get_experiments(
         sort_on: None,
         sort_by: None,
         global_experiments_only: None,
+        dimension_match_strategy: None,
     };
     let pagination_params = PaginationParams::all_entries();
     let endpoint = format!(

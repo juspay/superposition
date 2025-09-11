@@ -10,6 +10,7 @@ module Io.Superposition.Model.ListContextsInput (
     setCreatedBy,
     setLastModifiedBy,
     setPlaintext,
+    setDimensionMatchStrategy,
     build,
     ListContextsInputBuilder,
     ListContextsInput,
@@ -23,7 +24,8 @@ module Io.Superposition.Model.ListContextsInput (
     sort_by,
     created_by,
     last_modified_by,
-    plaintext
+    plaintext,
+    dimension_match_strategy
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -37,6 +39,7 @@ import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Io.Superposition.Model.ContextFilterSortOn
+import qualified Io.Superposition.Model.DimensionMatchStrategy
 import qualified Io.Superposition.Model.SortBy
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
@@ -52,7 +55,8 @@ data ListContextsInput = ListContextsInput {
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     created_by :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_by :: Data.Maybe.Maybe Data.Text.Text,
-    plaintext :: Data.Maybe.Maybe Data.Text.Text
+    plaintext :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -71,7 +75,8 @@ instance Data.Aeson.ToJSON ListContextsInput where
         "sort_by" Data.Aeson..= sort_by a,
         "created_by" Data.Aeson..= created_by a,
         "last_modified_by" Data.Aeson..= last_modified_by a,
-        "plaintext" Data.Aeson..= plaintext a
+        "plaintext" Data.Aeson..= plaintext a,
+        "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a
         ]
     
 
@@ -90,6 +95,7 @@ instance Data.Aeson.FromJSON ListContextsInput where
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
         Control.Applicative.<*> (v Data.Aeson..: "plaintext")
+        Control.Applicative.<*> (v Data.Aeson..: "dimension_match_strategy")
     
 
 
@@ -105,7 +111,8 @@ data ListContextsInputBuilderState = ListContextsInputBuilderState {
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    plaintextBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    plaintextBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
   GHC.Generics.Generic
   )
@@ -122,7 +129,8 @@ defaultBuilderState = ListContextsInputBuilderState {
     sort_byBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_byBuilderState = Data.Maybe.Nothing,
-    plaintextBuilderState = Data.Maybe.Nothing
+    plaintextBuilderState = Data.Maybe.Nothing,
+    dimension_match_strategyBuilderState = Data.Maybe.Nothing
 }
 
 type ListContextsInputBuilder = Control.Monad.State.Strict.State ListContextsInputBuilderState
@@ -171,6 +179,10 @@ setPlaintext :: Data.Maybe.Maybe Data.Text.Text -> ListContextsInputBuilder ()
 setPlaintext value =
    Control.Monad.State.Strict.modify (\s -> (s { plaintextBuilderState = value }))
 
+setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy -> ListContextsInputBuilder ()
+setDimensionMatchStrategy value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
+
 build :: ListContextsInputBuilder () -> Data.Either.Either Data.Text.Text ListContextsInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -185,6 +197,7 @@ build builder = do
     created_by' <- Data.Either.Right (created_byBuilderState st)
     last_modified_by' <- Data.Either.Right (last_modified_byBuilderState st)
     plaintext' <- Data.Either.Right (plaintextBuilderState st)
+    dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
     Data.Either.Right (ListContextsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -196,7 +209,8 @@ build builder = do
         sort_by = sort_by',
         created_by = created_by',
         last_modified_by = last_modified_by',
-        plaintext = plaintext'
+        plaintext = plaintext',
+        dimension_match_strategy = dimension_match_strategy'
     })
 
 
@@ -208,6 +222,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListContextsInput where
             "list"
             ]
         Io.Superposition.Utility.serQuery "all" (all' self)
+        Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "count" (count self)

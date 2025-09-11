@@ -14,6 +14,7 @@ module Io.Superposition.Model.ListExperimentInput (
     setSortOn,
     setSortBy,
     setGlobalExperimentsOnly,
+    setDimensionMatchStrategy,
     build,
     ListExperimentInputBuilder,
     ListExperimentInput,
@@ -31,7 +32,8 @@ module Io.Superposition.Model.ListExperimentInput (
     created_by,
     sort_on,
     sort_by,
-    global_experiments_only
+    global_experiments_only,
+    dimension_match_strategy
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -45,6 +47,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionMatchStrategy
 import qualified Io.Superposition.Model.ExperimentSortOn
 import qualified Io.Superposition.Model.ExperimentStatusType
 import qualified Io.Superposition.Model.SortBy
@@ -66,7 +69,8 @@ data ListExperimentInput = ListExperimentInput {
     created_by :: Data.Maybe.Maybe Data.Text.Text,
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    global_experiments_only :: Data.Maybe.Maybe Bool
+    global_experiments_only :: Data.Maybe.Maybe Bool,
+    dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -89,7 +93,8 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "created_by" Data.Aeson..= created_by a,
         "sort_on" Data.Aeson..= sort_on a,
         "sort_by" Data.Aeson..= sort_by a,
-        "global_experiments_only" Data.Aeson..= global_experiments_only a
+        "global_experiments_only" Data.Aeson..= global_experiments_only a,
+        "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a
         ]
     
 
@@ -112,6 +117,7 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "sort_on")
         Control.Applicative.<*> (v Data.Aeson..: "sort_by")
         Control.Applicative.<*> (v Data.Aeson..: "global_experiments_only")
+        Control.Applicative.<*> (v Data.Aeson..: "dimension_match_strategy")
     
 
 
@@ -131,7 +137,8 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool
+    global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool,
+    dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
   GHC.Generics.Generic
   )
@@ -152,7 +159,8 @@ defaultBuilderState = ListExperimentInputBuilderState {
     created_byBuilderState = Data.Maybe.Nothing,
     sort_onBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing,
-    global_experiments_onlyBuilderState = Data.Maybe.Nothing
+    global_experiments_onlyBuilderState = Data.Maybe.Nothing,
+    dimension_match_strategyBuilderState = Data.Maybe.Nothing
 }
 
 type ListExperimentInputBuilder = Control.Monad.State.Strict.State ListExperimentInputBuilderState
@@ -217,6 +225,10 @@ setGlobalExperimentsOnly :: Data.Maybe.Maybe Bool -> ListExperimentInputBuilder 
 setGlobalExperimentsOnly value =
    Control.Monad.State.Strict.modify (\s -> (s { global_experiments_onlyBuilderState = value }))
 
+setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy -> ListExperimentInputBuilder ()
+setDimensionMatchStrategy value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
+
 build :: ListExperimentInputBuilder () -> Data.Either.Either Data.Text.Text ListExperimentInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -235,6 +247,7 @@ build builder = do
     sort_on' <- Data.Either.Right (sort_onBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     global_experiments_only' <- Data.Either.Right (global_experiments_onlyBuilderState st)
+    dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
     Data.Either.Right (ListExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -250,7 +263,8 @@ build builder = do
         created_by = created_by',
         sort_on = sort_on',
         sort_by = sort_by',
-        global_experiments_only = global_experiments_only'
+        global_experiments_only = global_experiments_only',
+        dimension_match_strategy = dimension_match_strategy'
     })
 
 
@@ -269,6 +283,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "sort_by" (sort_by self)
         Io.Superposition.Utility.serQuery "experiment_group_ids" (experiment_group_ids self)
         Io.Superposition.Utility.serQuery "created_by" (created_by self)
+        Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "page" (page self)

@@ -1,6 +1,8 @@
 use serde_json::{Map, Value};
 
 use crate::config::Condition;
+#[cfg(not(feature = "jsonlogic"))]
+use crate::logic;
 
 pub trait Contextual: Clone {
     fn get_condition(&self) -> Condition;
@@ -34,6 +36,48 @@ pub trait Contextual: Clone {
             .into_iter()
             .filter(|context| {
                 crate::partial_apply(&context.get_condition().into(), dimension_data)
+            })
+            .collect()
+    }
+
+    #[cfg(feature = "jsonlogic")]
+    fn filter_exact_match(
+        contexts: Vec<Self>,
+        dimension_data: &Map<String, Value>,
+    ) -> Vec<Self> {
+        contexts
+            .into_iter()
+            .filter(|context| {
+                let condition: Map<String, Value> = context.get_condition().into();
+                jsonlogic::apply(
+                    &Value::Object(condition.clone()),
+                    &Value::Object(dimension_data.clone()),
+                ) == Ok(Value::Bool(true))
+                    && {
+                        let condition_dimensions =
+                            jsonlogic::expression::Expression::from_json(&Value::Object(
+                                condition,
+                            ))
+                            .and_then(|ast| ast.get_variable_names())
+                            .map(|hs| hs.into_iter().collect::<Vec<_>>())
+                            .unwrap_or_default();
+                        condition_dimensions.len() == dimension_data.len()
+                    }
+            })
+            .collect()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    fn filter_exact_match(
+        contexts: Vec<Self>,
+        dimension_data: &Map<String, Value>,
+    ) -> Vec<Self> {
+        contexts
+            .into_iter()
+            .filter(|context| {
+                let condition = context.get_condition().into();
+                logic::apply(&condition, dimension_data)
+                    && condition.len() == dimension_data.len()
             })
             .collect()
     }

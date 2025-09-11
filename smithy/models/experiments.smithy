@@ -377,6 +377,10 @@ operation ListExperiment {
         @httpQuery("global_experiments_only")
         @notProperty
         global_experiments_only: Boolean
+
+        @httpQuery("dimension_match_strategy")
+        @notProperty
+        dimension_match_strategy: DimensionMatchStrategy
     }
 
     output: ExperimentListResponse

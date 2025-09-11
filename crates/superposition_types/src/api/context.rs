@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::{
+    api::DimensionMatchStrategy,
     custom_query::{CommaSeparatedStringQParams, QueryParam},
     database::models::{cac::Context, ChangeReason, Description},
     Cac, Condition, IsEmpty, Overrides, SortBy,
@@ -46,6 +47,7 @@ pub struct ContextListFilters {
     #[query_param(skip_if_empty)]
     pub last_modified_by: Option<CommaSeparatedStringQParams>,
     pub plaintext: Option<String>,
+    pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]

@@ -34,10 +34,13 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::context::{
-        BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-        ContextListFilters, ContextValidationRequest, MoveRequest, PutRequest, SortOn,
-        UpdateRequest, WeightRecomputeResponse,
+    api::{
+        context::{
+            BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
+            ContextListFilters, ContextValidationRequest, MoveRequest, PutRequest,
+            SortOn, UpdateRequest, WeightRecomputeResponse,
+        },
+        DimensionMatchStrategy,
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
@@ -351,10 +354,15 @@ async fn list_contexts(
                 .collect()
         }
         let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-        let dimension_filter_contexts =
+        let dimension_filtered_contexts =
             Context::filter_by_dimension(all_contexts, &dimension_keys);
+
+        let filter_fn = match filter_params.dimension_match_strategy.unwrap_or_default() {
+            DimensionMatchStrategy::Exact => Context::filter_exact_match,
+            DimensionMatchStrategy::Subset => Context::filter_by_eval,
+        };
         let eval_filter_contexts =
-            Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
+            filter_fn(dimension_filtered_contexts, &dimension_params);
 
         if show_all {
             PaginatedResponse::all(eval_filter_contexts)
