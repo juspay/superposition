@@ -10,6 +10,7 @@ module Io.Superposition.Model.ListContextsInput (
     setCreatedBy,
     setLastModifiedBy,
     setPlaintext,
+    setFilterExactMatch,
     build,
     ListContextsInputBuilder,
     ListContextsInput,
@@ -23,7 +24,8 @@ module Io.Superposition.Model.ListContextsInput (
     sort_by,
     created_by,
     last_modified_by,
-    plaintext
+    plaintext,
+    filter_exact_match
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -52,7 +54,8 @@ data ListContextsInput = ListContextsInput {
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     created_by :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_by :: Data.Maybe.Maybe Data.Text.Text,
-    plaintext :: Data.Maybe.Maybe Data.Text.Text
+    plaintext :: Data.Maybe.Maybe Data.Text.Text,
+    filter_exact_match :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -71,7 +74,8 @@ instance Data.Aeson.ToJSON ListContextsInput where
         "sort_by" Data.Aeson..= sort_by a,
         "created_by" Data.Aeson..= created_by a,
         "last_modified_by" Data.Aeson..= last_modified_by a,
-        "plaintext" Data.Aeson..= plaintext a
+        "plaintext" Data.Aeson..= plaintext a,
+        "filter_exact_match" Data.Aeson..= filter_exact_match a
         ]
     
 
@@ -90,6 +94,7 @@ instance Data.Aeson.FromJSON ListContextsInput where
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
         Control.Applicative.<*> (v Data.Aeson..: "plaintext")
+        Control.Applicative.<*> (v Data.Aeson..: "filter_exact_match")
     
 
 
@@ -105,7 +110,8 @@ data ListContextsInputBuilderState = ListContextsInputBuilderState {
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    plaintextBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    plaintextBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    filter_exact_matchBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -122,7 +128,8 @@ defaultBuilderState = ListContextsInputBuilderState {
     sort_byBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_byBuilderState = Data.Maybe.Nothing,
-    plaintextBuilderState = Data.Maybe.Nothing
+    plaintextBuilderState = Data.Maybe.Nothing,
+    filter_exact_matchBuilderState = Data.Maybe.Nothing
 }
 
 type ListContextsInputBuilder = Control.Monad.State.Strict.State ListContextsInputBuilderState
@@ -171,6 +178,10 @@ setPlaintext :: Data.Maybe.Maybe Data.Text.Text -> ListContextsInputBuilder ()
 setPlaintext value =
    Control.Monad.State.Strict.modify (\s -> (s { plaintextBuilderState = value }))
 
+setFilterExactMatch :: Data.Maybe.Maybe Bool -> ListContextsInputBuilder ()
+setFilterExactMatch value =
+   Control.Monad.State.Strict.modify (\s -> (s { filter_exact_matchBuilderState = value }))
+
 build :: ListContextsInputBuilder () -> Data.Either.Either Data.Text.Text ListContextsInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -185,6 +196,7 @@ build builder = do
     created_by' <- Data.Either.Right (created_byBuilderState st)
     last_modified_by' <- Data.Either.Right (last_modified_byBuilderState st)
     plaintext' <- Data.Either.Right (plaintextBuilderState st)
+    filter_exact_match' <- Data.Either.Right (filter_exact_matchBuilderState st)
     Data.Either.Right (ListContextsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -196,7 +208,8 @@ build builder = do
         sort_by = sort_by',
         created_by = created_by',
         last_modified_by = last_modified_by',
-        plaintext = plaintext'
+        plaintext = plaintext',
+        filter_exact_match = filter_exact_match'
     })
 
 
@@ -208,6 +221,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListContextsInput where
             "list"
             ]
         Io.Superposition.Utility.serQuery "all" (all' self)
+        Io.Superposition.Utility.serQuery "filter_exact_match" (filter_exact_match self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "count" (count self)

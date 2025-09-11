@@ -22,6 +22,7 @@ use crate::{
         context_form::ContextForm,
         drawer::{close_drawer, Drawer},
         form::label::Label,
+        input::Toggle,
     },
     logic::{Condition, Conditions, Expression},
     providers::condition_collapse_provider::ConditionCollapseProvider,
@@ -143,6 +144,19 @@ pub fn context_filter_summary(
                             ().into_view()
                         }
                     }}
+                    <Show when=move || {
+                        context_filters_rws.with(|f| f.filter_exact_match.unwrap_or_default())
+                    }>
+                        <div class="flex gap-2 items-center">
+                            <span class="text-xs">"Exact match context"</span>
+                            <GrayPill
+                                text="Enabled"
+                                on_delete=move |_| {
+                                    context_filters_rws.update(|f| f.filter_exact_match = None)
+                                }
+                            />
+                        </div>
+                    </Show>
                     {move || {
                         view! {
                             <ListPills
@@ -269,6 +283,32 @@ pub fn context_filter_drawer(
                     heading_sub_text="Get matching overrides based on the context, this search ensures that the failing conditions are filtered out, and the shown overrides may contain conditions which are not matching but are not in conflict with the context"
                         .to_string()
                 />
+                {move || {
+                    view! {
+                        <div class="w-fit flex items-center gap-2">
+                            <Toggle
+                                name="workspace-strict-mode"
+                                disabled=dimension_buffer_rws.with(|d| d.is_empty())
+                                value=filters_buffer_rws
+                                    .with(|f| f.filter_exact_match.unwrap_or_default())
+                                on_change=move |flag| {
+                                    filters_buffer_rws
+                                        .update(|f| {
+                                            f.filter_exact_match = if flag
+                                                && !dimension_buffer_rws.with(|d| d.is_empty())
+                                            {
+                                                Some(true)
+                                            } else {
+                                                None
+                                            };
+                                        });
+                                }
+                            />
+                            <Label title="Exact match context" />
+                        // extra_info="Enabling this will disable context filter"
+                        </div>
+                    }
+                }}
                 <div class="form-control">
                     <Label
                         title="Free text search inside overrides"

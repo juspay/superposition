@@ -58,6 +58,7 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  *   sort_on: "last_modified_at" || "created_at",
  *   sort_by: "desc" || "asc",
  *   global_experiments_only: true || false,
+ *   filter_exact_match: true || false,
  * };
  * const command = new ListExperimentCommand(input);
  * const response = await client.send(command);

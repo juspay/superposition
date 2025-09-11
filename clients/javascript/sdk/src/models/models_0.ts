@@ -860,6 +860,7 @@ export interface ListContextsInput {
   created_by?: string | undefined;
   last_modified_by?: string | undefined;
   plaintext?: string | undefined;
+  filter_exact_match?: boolean | undefined;
 }
 
 /**
@@ -1685,6 +1686,7 @@ export interface ListExperimentInput {
   sort_by?: SortBy | undefined;
 
   global_experiments_only?: boolean | undefined;
+  filter_exact_match?: boolean | undefined;
 }
 
 /**

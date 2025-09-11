@@ -14,6 +14,7 @@ module Io.Superposition.Model.ListExperimentInput (
     setSortOn,
     setSortBy,
     setGlobalExperimentsOnly,
+    setFilterExactMatch,
     build,
     ListExperimentInputBuilder,
     ListExperimentInput,
@@ -31,7 +32,8 @@ module Io.Superposition.Model.ListExperimentInput (
     created_by,
     sort_on,
     sort_by,
-    global_experiments_only
+    global_experiments_only,
+    filter_exact_match
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -66,7 +68,8 @@ data ListExperimentInput = ListExperimentInput {
     created_by :: Data.Maybe.Maybe Data.Text.Text,
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    global_experiments_only :: Data.Maybe.Maybe Bool
+    global_experiments_only :: Data.Maybe.Maybe Bool,
+    filter_exact_match :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -89,7 +92,8 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "created_by" Data.Aeson..= created_by a,
         "sort_on" Data.Aeson..= sort_on a,
         "sort_by" Data.Aeson..= sort_by a,
-        "global_experiments_only" Data.Aeson..= global_experiments_only a
+        "global_experiments_only" Data.Aeson..= global_experiments_only a,
+        "filter_exact_match" Data.Aeson..= filter_exact_match a
         ]
     
 
@@ -112,6 +116,7 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "sort_on")
         Control.Applicative.<*> (v Data.Aeson..: "sort_by")
         Control.Applicative.<*> (v Data.Aeson..: "global_experiments_only")
+        Control.Applicative.<*> (v Data.Aeson..: "filter_exact_match")
     
 
 
@@ -131,7 +136,8 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool
+    global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool,
+    filter_exact_matchBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -152,7 +158,8 @@ defaultBuilderState = ListExperimentInputBuilderState {
     created_byBuilderState = Data.Maybe.Nothing,
     sort_onBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing,
-    global_experiments_onlyBuilderState = Data.Maybe.Nothing
+    global_experiments_onlyBuilderState = Data.Maybe.Nothing,
+    filter_exact_matchBuilderState = Data.Maybe.Nothing
 }
 
 type ListExperimentInputBuilder = Control.Monad.State.Strict.State ListExperimentInputBuilderState
@@ -217,6 +224,10 @@ setGlobalExperimentsOnly :: Data.Maybe.Maybe Bool -> ListExperimentInputBuilder 
 setGlobalExperimentsOnly value =
    Control.Monad.State.Strict.modify (\s -> (s { global_experiments_onlyBuilderState = value }))
 
+setFilterExactMatch :: Data.Maybe.Maybe Bool -> ListExperimentInputBuilder ()
+setFilterExactMatch value =
+   Control.Monad.State.Strict.modify (\s -> (s { filter_exact_matchBuilderState = value }))
+
 build :: ListExperimentInputBuilder () -> Data.Either.Either Data.Text.Text ListExperimentInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -235,6 +246,7 @@ build builder = do
     sort_on' <- Data.Either.Right (sort_onBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     global_experiments_only' <- Data.Either.Right (global_experiments_onlyBuilderState st)
+    filter_exact_match' <- Data.Either.Right (filter_exact_matchBuilderState st)
     Data.Either.Right (ListExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -250,7 +262,8 @@ build builder = do
         created_by = created_by',
         sort_on = sort_on',
         sort_by = sort_by',
-        global_experiments_only = global_experiments_only'
+        global_experiments_only = global_experiments_only',
+        filter_exact_match = filter_exact_match'
     })
 
 
@@ -269,6 +282,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "sort_by" (sort_by self)
         Io.Superposition.Utility.serQuery "experiment_group_ids" (experiment_group_ids self)
         Io.Superposition.Utility.serQuery "created_by" (created_by self)
+        Io.Superposition.Utility.serQuery "filter_exact_match" (filter_exact_match self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "page" (page self)

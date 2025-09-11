@@ -46,6 +46,7 @@ pub struct ContextListFilters {
     #[query_param(skip_if_empty)]
     pub last_modified_by: Option<CommaSeparatedStringQParams>,
     pub plaintext: Option<String>,
+    pub filter_exact_match: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]

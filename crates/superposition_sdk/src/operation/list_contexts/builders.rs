@@ -250,5 +250,19 @@ impl ListContextsFluentBuilder {
     pub fn get_plaintext(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_plaintext()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn filter_exact_match(mut self, input: bool) -> Self {
+                    self.inner = self.inner.filter_exact_match(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_filter_exact_match(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_filter_exact_match(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_filter_exact_match(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_filter_exact_match()
+                }
 }
 

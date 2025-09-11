@@ -204,7 +204,7 @@ run_legacy: kill build db superposition_legacy
 	@./target/debug/superposition
 
 run_jsonlogic: FE_FEATURES += jsonlogic
-run_jsonlogic: kill build db superposition_jsonlogic
+run_jsonlogic: kill db frontend superposition_jsonlogic
 	@./target/debug/superposition
 
 test: WASM_PACK_MODE=--profiling

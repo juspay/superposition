@@ -54,6 +54,7 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   created_by: "STRING_VALUE",
  *   last_modified_by: "STRING_VALUE",
  *   plaintext: "STRING_VALUE",
+ *   filter_exact_match: true || false,
  * };
  * const command = new ListContextsCommand(input);
  * const response = await client.send(command);

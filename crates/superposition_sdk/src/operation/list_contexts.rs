@@ -180,6 +180,11 @@ fn uri_query(_input: &crate::operation::list_contexts::ListContextsInput, mut ou
             query.push_kv("plaintext", &::aws_smithy_http::query::fmt_string(inner_9));
         }
     }
+    if let ::std::option::Option::Some(inner_10) = &_input.filter_exact_match {
+         {
+            query.push_kv("filter_exact_match", ::aws_smithy_types::primitive::Encoder::from(*inner_10).encode());
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

@@ -239,6 +239,10 @@ operation ListContexts {
         @httpQuery("plaintext")
         @notProperty
         plaintext: String
+        
+        @httpQuery("filter_exact_match")
+        @notProperty
+        filter_exact_match: Boolean
     }
 
     output := {
