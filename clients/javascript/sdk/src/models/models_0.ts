@@ -848,6 +848,7 @@ export interface ListContextsInput {
   org_id: string | undefined;
   page?: number | undefined;
   count?: number | undefined;
+  all?: boolean | undefined;
   prefix?: string | undefined;
   sort_on?: ContextFilterSortOn | undefined;
   /**

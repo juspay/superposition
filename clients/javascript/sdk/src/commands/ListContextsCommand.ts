@@ -47,6 +47,7 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   org_id: "STRING_VALUE", // required
  *   page: Number("int"),
  *   count: Number("int"),
+ *   all: true || false,
  *   prefix: "STRING_VALUE",
  *   sort_on: "last_modified_at" || "created_at" || "weight",
  *   sort_by: "desc" || "asc",

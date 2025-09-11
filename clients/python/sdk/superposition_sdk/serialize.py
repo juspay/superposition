@@ -1303,6 +1303,8 @@ async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> 
         query_params.append(("page", str(input.page)))
     if input.count is not None:
         query_params.append(("count", str(input.count)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
     if input.prefix is not None:
         query_params.append(("prefix", input.prefix))
     if input.sort_on is not None:

@@ -20,27 +20,3 @@ index 500df093..253b75ca 100644
      },
      "main": "./dist-cjs/index.js",
      "types": "./dist-types/index.d.ts",
-diff --git a/clients/javascript/sdk/src/runtimeConfig.browser.ts b/clients/javascript/sdk/src/runtimeConfig.browser.ts
-index 1e58eb05..561025ef 100644
---- a/clients/javascript/sdk/src/runtimeConfig.browser.ts
-+++ b/clients/javascript/sdk/src/runtimeConfig.browser.ts
-@@ -1,6 +1,6 @@
- // smithy-typescript generated code
- // @ts-ignore: package.json will be imported from dist folders
--import packageInfo from "../package.json"; // eslint-disable-line
-+import packageInfo from "../package.json" with {type: json}; // eslint-disable-line
- 
- import { Sha256 } from "@aws-crypto/sha256-browser";
- import { createDefaultUserAgentProvider } from "@aws-sdk/util-user-agent-browser";
-diff --git a/clients/javascript/sdk/src/runtimeConfig.ts b/clients/javascript/sdk/src/runtimeConfig.ts
-index a12da561..b13a3dfb 100644
---- a/clients/javascript/sdk/src/runtimeConfig.ts
-+++ b/clients/javascript/sdk/src/runtimeConfig.ts
-@@ -1,6 +1,6 @@
- // smithy-typescript generated code
- // @ts-ignore: package.json will be imported from dist folders
--import packageInfo from "../package.json"; // eslint-disable-line
-+import packageInfo from "../package.json" with {type: json}; // eslint-disable-line
- 
- import {
-   NODE_APP_ID_CONFIG_OPTIONS,
