@@ -200,6 +200,11 @@ fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mu
             query.push_kv("global_experiments_only", ::aws_smithy_types::primitive::Encoder::from(*inner_13).encode());
         }
     }
+    if let ::std::option::Option::Some(inner_14) = &_input.filter_exact_match {
+         {
+            query.push_kv("filter_exact_match", ::aws_smithy_types::primitive::Encoder::from(*inner_14).encode());
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

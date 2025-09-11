@@ -3477,6 +3477,7 @@ class ListContextsInput:
     created_by: str | None = None
     last_modified_by: str | None = None
     plaintext: str | None = None
+    filter_exact_match: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_CONTEXTS_INPUT, self)
@@ -3526,6 +3527,9 @@ class ListContextsInput:
 
                 case 10:
                     kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
+
+                case 11:
+                    kwargs["filter_exact_match"] = de.read_boolean(_SCHEMA_LIST_CONTEXTS_INPUT.members["filter_exact_match"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9281,6 +9285,7 @@ class ListExperimentInput:
     sort_on: str | None = None
     sort_by: str | None = None
     global_experiments_only: bool | None = None
+    filter_exact_match: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_INPUT, self)
@@ -9342,6 +9347,9 @@ class ListExperimentInput:
 
                 case 14:
                     kwargs["global_experiments_only"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["global_experiments_only"])
+
+                case 15:
+                    kwargs["filter_exact_match"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["filter_exact_match"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

@@ -2858,6 +2858,16 @@ LIST_CONTEXTS_INPUT = Schema.collection(
             ],
         },
 
+        "filter_exact_match": {
+            "target": BOOLEAN,
+            "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="filter_exact_match"),
+
+            ],
+        },
+
     }
 )
 
@@ -8987,6 +8997,16 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="global_experiments_only"),
+
+            ],
+        },
+
+        "filter_exact_match": {
+            "target": BOOLEAN,
+            "index": 15,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="filter_exact_match"),
 
             ],
         },

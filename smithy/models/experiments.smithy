@@ -377,6 +377,10 @@ operation ListExperiment {
         @httpQuery("global_experiments_only")
         @notProperty
         global_experiments_only: Boolean
+
+        @httpQuery("filter_exact_match")
+        @notProperty
+        filter_exact_match: Boolean
     }
 
     output: ExperimentListResponse

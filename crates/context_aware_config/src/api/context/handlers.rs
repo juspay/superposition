@@ -351,10 +351,15 @@ async fn list_contexts(
                 .collect()
         }
         let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-        let dimension_filter_contexts =
+        let dimension_filtered_contexts =
             Context::filter_by_dimension(all_contexts, &dimension_keys);
-        let eval_filter_contexts =
-            Context::filter_by_eval(dimension_filter_contexts, &dimension_params);
+
+        let eval_filter_contexts = if filter_params.filter_exact_match.unwrap_or_default()
+        {
+            Context::filter_exact_match(dimension_filtered_contexts, &dimension_params)
+        } else {
+            Context::filter_by_eval(dimension_filtered_contexts, &dimension_params)
+        };
 
         if show_all {
             PaginatedResponse::all(eval_filter_contexts)

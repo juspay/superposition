@@ -25,6 +25,8 @@ pub struct ListContextsInput  {
     pub last_modified_by: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub plaintext: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub filter_exact_match: ::std::option::Option<bool>,
 }
 impl  ListContextsInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -71,6 +73,10 @@ impl  ListContextsInput  {
     pub fn plaintext(&self) -> ::std::option::Option<&str> {
         self.plaintext.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn filter_exact_match(&self) -> ::std::option::Option<bool> {
+        self.filter_exact_match
+    }
 }
 impl ListContextsInput {
     /// Creates a new builder-style object to manufacture [`ListContextsInput`](crate::operation::list_contexts::ListContextsInput).
@@ -94,6 +100,7 @@ pub struct ListContextsInputBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) plaintext: ::std::option::Option<::std::string::String>,
+    pub(crate) filter_exact_match: ::std::option::Option<bool>,
 }
 impl ListContextsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -241,6 +248,19 @@ impl ListContextsInputBuilder {
     pub fn get_plaintext(&self) -> &::std::option::Option<::std::string::String> {
         &self.plaintext
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn filter_exact_match(mut self, input: bool) -> Self {
+        self.filter_exact_match = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_filter_exact_match(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.filter_exact_match = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_filter_exact_match(&self) -> &::std::option::Option<bool> {
+        &self.filter_exact_match
+    }
     /// Consumes the builder and constructs a [`ListContextsInput`](crate::operation::list_contexts::ListContextsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_contexts::ListContextsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -266,6 +286,8 @@ impl ListContextsInputBuilder {
                 last_modified_by: self.last_modified_by
                 ,
                 plaintext: self.plaintext
+                ,
+                filter_exact_match: self.filter_exact_match
                 ,
             }
         )

@@ -58,6 +58,8 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpQueryTrait("sort_by"))
         .putMember("global_experiments_only", PreludeSchemas.BOOLEAN,
                 new HttpQueryTrait("global_experiments_only"))
+        .putMember("filter_exact_match", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("filter_exact_match"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -75,6 +77,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
     private static final Schema $SCHEMA_GLOBAL_EXPERIMENTS_ONLY = $SCHEMA.member("global_experiments_only");
+    private static final Schema $SCHEMA_FILTER_EXACT_MATCH = $SCHEMA.member("filter_exact_match");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -91,6 +94,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private final transient ExperimentSortOn sortOn;
     private final transient SortBy sortBy;
     private final transient Boolean globalExperimentsOnly;
+    private final transient Boolean filterExactMatch;
 
     private ListExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -108,6 +112,7 @@ public final class ListExperimentInput implements SerializableStruct {
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
         this.globalExperimentsOnly = builder.globalExperimentsOnly;
+        this.filterExactMatch = builder.filterExactMatch;
     }
 
     public String workspaceId() {
@@ -170,6 +175,10 @@ public final class ListExperimentInput implements SerializableStruct {
         return globalExperimentsOnly;
     }
 
+    public Boolean filterExactMatch() {
+        return filterExactMatch;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -198,12 +207,13 @@ public final class ListExperimentInput implements SerializableStruct {
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy)
-               && Objects.equals(this.globalExperimentsOnly, that.globalExperimentsOnly);
+               && Objects.equals(this.globalExperimentsOnly, that.globalExperimentsOnly)
+               && Objects.equals(this.filterExactMatch, that.filterExactMatch);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, page, count, all, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly);
+        return Objects.hash(workspaceId, orgId, page, count, all, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly, filterExactMatch);
     }
 
     @Override
@@ -254,6 +264,9 @@ public final class ListExperimentInput implements SerializableStruct {
         if (globalExperimentsOnly != null) {
             serializer.writeBoolean($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, globalExperimentsOnly);
         }
+        if (filterExactMatch != null) {
+            serializer.writeBoolean($SCHEMA_FILTER_EXACT_MATCH, filterExactMatch);
+        }
     }
 
     @Override
@@ -275,6 +288,7 @@ public final class ListExperimentInput implements SerializableStruct {
             case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
             case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, globalExperimentsOnly);
+            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_FILTER_EXACT_MATCH, member, filterExactMatch);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -303,6 +317,7 @@ public final class ListExperimentInput implements SerializableStruct {
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
         builder.globalExperimentsOnly(this.globalExperimentsOnly);
+        builder.filterExactMatch(this.filterExactMatch);
         return builder;
     }
 
@@ -334,6 +349,7 @@ public final class ListExperimentInput implements SerializableStruct {
         private ExperimentSortOn sortOn;
         private SortBy sortBy;
         private Boolean globalExperimentsOnly;
+        private Boolean filterExactMatch;
 
         private Builder() {}
 
@@ -465,6 +481,14 @@ public final class ListExperimentInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder filterExactMatch(boolean filterExactMatch) {
+            this.filterExactMatch = filterExactMatch;
+            return this;
+        }
+
         @Override
         public ListExperimentInput build() {
             tracker.validate();
@@ -490,6 +514,7 @@ public final class ListExperimentInput implements SerializableStruct {
                 case 12 -> sortOn((ExperimentSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 case 13 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 case 14 -> globalExperimentsOnly((boolean) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, value));
+                case 15 -> filterExactMatch((boolean) SchemaUtils.validateSameMember($SCHEMA_FILTER_EXACT_MATCH, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -538,6 +563,7 @@ public final class ListExperimentInput implements SerializableStruct {
                     case 12 -> builder.sortOn(ExperimentSortOn.builder().deserializeMember(de, member).build());
                     case 13 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     case 14 -> builder.globalExperimentsOnly(de.readBoolean(member));
+                    case 15 -> builder.filterExactMatch(de.readBoolean(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

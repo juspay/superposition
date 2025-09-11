@@ -49,6 +49,8 @@ public final class ListContextsInput implements SerializableStruct {
                 new HttpQueryTrait("last_modified_by"))
         .putMember("plaintext", PreludeSchemas.STRING,
                 new HttpQueryTrait("plaintext"))
+        .putMember("filter_exact_match", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("filter_exact_match"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -62,6 +64,7 @@ public final class ListContextsInput implements SerializableStruct {
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
     private static final Schema $SCHEMA_PLAINTEXT = $SCHEMA.member("plaintext");
+    private static final Schema $SCHEMA_FILTER_EXACT_MATCH = $SCHEMA.member("filter_exact_match");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -74,6 +77,7 @@ public final class ListContextsInput implements SerializableStruct {
     private final transient String createdBy;
     private final transient String lastModifiedBy;
     private final transient String plaintext;
+    private final transient Boolean filterExactMatch;
 
     private ListContextsInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -87,6 +91,7 @@ public final class ListContextsInput implements SerializableStruct {
         this.createdBy = builder.createdBy;
         this.lastModifiedBy = builder.lastModifiedBy;
         this.plaintext = builder.plaintext;
+        this.filterExactMatch = builder.filterExactMatch;
     }
 
     public String workspaceId() {
@@ -133,6 +138,10 @@ public final class ListContextsInput implements SerializableStruct {
         return plaintext;
     }
 
+    public Boolean filterExactMatch() {
+        return filterExactMatch;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -157,12 +166,13 @@ public final class ListContextsInput implements SerializableStruct {
                && Objects.equals(this.sortBy, that.sortBy)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
-               && Objects.equals(this.plaintext, that.plaintext);
+               && Objects.equals(this.plaintext, that.plaintext)
+               && Objects.equals(this.filterExactMatch, that.filterExactMatch);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, page, count, all, prefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext);
+        return Objects.hash(workspaceId, orgId, page, count, all, prefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext, filterExactMatch);
     }
 
     @Override
@@ -201,6 +211,9 @@ public final class ListContextsInput implements SerializableStruct {
         if (plaintext != null) {
             serializer.writeString($SCHEMA_PLAINTEXT, plaintext);
         }
+        if (filterExactMatch != null) {
+            serializer.writeBoolean($SCHEMA_FILTER_EXACT_MATCH, filterExactMatch);
+        }
     }
 
     @Override
@@ -218,6 +231,7 @@ public final class ListContextsInput implements SerializableStruct {
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, plaintext);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_FILTER_EXACT_MATCH, member, filterExactMatch);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -242,6 +256,7 @@ public final class ListContextsInput implements SerializableStruct {
         builder.createdBy(this.createdBy);
         builder.lastModifiedBy(this.lastModifiedBy);
         builder.plaintext(this.plaintext);
+        builder.filterExactMatch(this.filterExactMatch);
         return builder;
     }
 
@@ -269,6 +284,7 @@ public final class ListContextsInput implements SerializableStruct {
         private String createdBy;
         private String lastModifiedBy;
         private String plaintext;
+        private Boolean filterExactMatch;
 
         private Builder() {}
 
@@ -368,6 +384,14 @@ public final class ListContextsInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder filterExactMatch(boolean filterExactMatch) {
+            this.filterExactMatch = filterExactMatch;
+            return this;
+        }
+
         @Override
         public ListContextsInput build() {
             tracker.validate();
@@ -389,6 +413,7 @@ public final class ListContextsInput implements SerializableStruct {
                 case 8 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
                 case 9 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 10 -> plaintext((String) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, value));
+                case 11 -> filterExactMatch((boolean) SchemaUtils.validateSameMember($SCHEMA_FILTER_EXACT_MATCH, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -433,6 +458,7 @@ public final class ListContextsInput implements SerializableStruct {
                     case 8 -> builder.createdBy(de.readString(member));
                     case 9 -> builder.lastModifiedBy(de.readString(member));
                     case 10 -> builder.plaintext(de.readString(member));
+                    case 11 -> builder.filterExactMatch(de.readBoolean(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

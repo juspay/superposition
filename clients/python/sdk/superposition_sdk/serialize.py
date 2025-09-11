@@ -1317,6 +1317,8 @@ async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> 
         query_params.append(("last_modified_by", input.last_modified_by))
     if input.plaintext is not None:
         query_params.append(("plaintext", input.plaintext))
+    if input.filter_exact_match is not None:
+        query_params.append(("filter_exact_match", ('true' if input.filter_exact_match else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1448,6 +1450,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         query_params.append(("sort_by", input.sort_by))
     if input.global_experiments_only is not None:
         query_params.append(("global_experiments_only", ('true' if input.global_experiments_only else 'false')))
+    if input.filter_exact_match is not None:
+        query_params.append(("filter_exact_match", ('true' if input.filter_exact_match else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 

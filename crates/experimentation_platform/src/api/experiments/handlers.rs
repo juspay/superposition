@@ -1026,10 +1026,20 @@ async fn list_experiments(
                 .collect()
         } else {
             let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-            let dimension_filter_experiments =
+            let dimension_filtered_experiments =
                 Experiment::filter_by_dimension(all_experiments, &dimension_keys);
 
-            Experiment::filter_by_eval(dimension_filter_experiments, &dimension_params)
+            if filters.filter_exact_match.unwrap_or_default() {
+                Experiment::filter_exact_match(
+                    dimension_filtered_experiments,
+                    &dimension_params,
+                )
+            } else {
+                Experiment::filter_by_eval(
+                    dimension_filtered_experiments,
+                    &dimension_params,
+                )
+            }
         };
 
         let experiments = filtered_experiments

@@ -1213,6 +1213,7 @@ export const se_ListContextsCommand = async(
     [_cb]: [,input[_cb]!],
     [_lmb]: [,input[_lmb]!],
     [_pl]: [,input[_pl]!],
+    [_fem]: [() => input.filter_exact_match !== void 0, () => (input[_fem]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -1301,6 +1302,7 @@ export const se_ListExperimentCommand = async(
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
     [_geo]: [() => input.global_experiments_only !== void 0, () => (input[_geo]!.toString())],
+    [_fem]: [() => input.filter_exact_match !== void 0, () => (input[_fem]!.toString())],
   });
   let body: any;
   b.m("GET")
@@ -5020,6 +5022,7 @@ const de_CommandError = async(
   const _ei = "experiment_ids";
   const _en = "experiment_name";
   const _fd = "from_date";
+  const _fem = "filter_exact_match";
   const _geo = "global_experiments_only";
   const _gt = "group_type";
   const _lm = "last-modified";

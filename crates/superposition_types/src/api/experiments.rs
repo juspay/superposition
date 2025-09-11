@@ -242,6 +242,7 @@ pub struct ExperimentListFilters {
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
     pub global_experiments_only: Option<bool>,
+    pub filter_exact_match: Option<bool>,
 }
 
 impl Default for ExperimentListFilters {
@@ -266,6 +267,7 @@ impl Default for ExperimentListFilters {
             sort_on: None,
             sort_by: Some(SortBy::Desc),
             global_experiments_only: None,
+            filter_exact_match: None,
         }
     }
 }
