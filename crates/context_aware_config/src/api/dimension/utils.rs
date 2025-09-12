@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use chrono::Utc;
 use diesel::{query_dsl::methods::SchemaNameDsl, ExpressionMethods, RunQueryDsl};
-use jsonschema::{Draft, JSONSchema};
 #[cfg(not(feature = "jsonlogic"))]
 use serde_json::{Map, Value};
 #[cfg(feature = "jsonlogic")]
@@ -38,16 +37,13 @@ pub fn get_dimension_data_map(
     let dimension_schema_map = dimensions_vec
         .iter()
         .filter_map(|item| {
-            let compiled_schema = JSONSchema::options()
-                .with_draft(Draft::Draft7)
-                .compile(&item.schema)
-                .ok()?;
-
             Some((
                 item.dimension.clone(),
                 DimensionData {
-                    schema: compiled_schema,
+                    schema: item.schema.clone(),
                     position: item.position.into(),
+                    dimension_type: item.dimension_type.clone(),
+                    dependencies: item.dependencies.clone(),
                 },
             ))
         })

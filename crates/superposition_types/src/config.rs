@@ -11,7 +11,10 @@ use serde_json::{Map, Value};
 use superposition_derives::{JsonFromSql, JsonToSql};
 use uniffi::deps::anyhow;
 
-use crate::{overridden::filter_config_keys_by_prefix, Cac, Contextual, Exp};
+use crate::{
+    database::models::cac::DimensionType, overridden::filter_config_keys_by_prefix, Cac,
+    Contextual, Exp,
+};
 
 macro_rules! impl_try_from_map {
     ($wrapper:ident, $type:ident, $validate:expr) => {
@@ -344,6 +347,7 @@ pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
     pub default_configs: Map<String, Value>,
+    pub dimensions: HashMap<String, DimensionInfo>,
 }
 
 impl Config {
@@ -365,6 +369,7 @@ impl Config {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: self.default_configs.clone(),
+            dimensions: self.dimensions.clone(),
         }
     }
 
@@ -405,8 +410,17 @@ impl Config {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: filtered_default_config,
+            dimensions: self.dimensions.clone(),
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DimensionInfo {
+    pub schema: Value,
+    pub dependencies: Vec<String>,
+    pub dimension_type: DimensionType,
 }
 
 #[cfg(test)]
@@ -565,6 +579,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
 
@@ -643,6 +681,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
 
@@ -692,6 +754,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
 
@@ -731,6 +817,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
 
@@ -765,6 +875,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
 
@@ -781,6 +915,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
 
@@ -816,6 +974,30 @@ pub(crate) mod tests {
             "default_configs": {
                 "test.test.test1": 1,
                 "test.test1": 12
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
         from_value(config_json).unwrap()
@@ -845,6 +1027,30 @@ pub(crate) mod tests {
             "default_configs": {
                 "test.test.test1": 1,
                 "test.test1": 12
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
         from_value(config_json).unwrap()
@@ -902,6 +1108,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
         from_value(config_json).unwrap()
@@ -949,6 +1179,30 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dependencies": [],
+                    "dimension_type": "REGULAR"
+                }
             }
         });
         from_value(config_json).unwrap()
@@ -1023,6 +1277,7 @@ pub(crate) mod tests {
                 contexts: Vec::new(),
                 overrides: HashMap::new(),
                 default_configs: Map::new(),
+                dimensions: config.dimensions.clone(),
             }
         );
     }

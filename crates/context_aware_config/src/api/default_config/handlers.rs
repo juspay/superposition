@@ -392,7 +392,7 @@ async fn delete(
     let context_ids = get_key_usage_context_ids(&key, &mut conn, &schema_name)
         .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
-        let resp =
+        let resp: Result<HttpResponse, superposition::AppError> =
             conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
                 diesel::update(dsl::default_configs)
                     .filter(dsl::key.eq(&key))

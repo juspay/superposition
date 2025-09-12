@@ -46,7 +46,7 @@ use superposition_types::{
         superposition_schema::superposition::workspaces,
     },
     result as superposition, Cac, Condition, Config, Context, DBConnection,
-    OverrideWithKeys, Overrides, PaginatedResponse, User,
+    DimensionInfo, OverrideWithKeys, Overrides, PaginatedResponse, User,
 };
 use uuid::Uuid;
 
@@ -617,10 +617,25 @@ async fn reduce_config_key(
         }
     }
 
+    let dimensions: HashMap<String, DimensionInfo> = dimension_schema_map
+        .iter()
+        .map(|(dim_name, dim_data)| {
+            (
+                dim_name.clone(),
+                DimensionInfo {
+                    schema: dim_data.schema.clone(),
+                    dependencies: dim_data.dependencies.clone(),
+                    dimension_type: dim_data.dimension_type.clone(),
+                },
+            )
+        })
+        .collect();
+
     Ok(Config {
         contexts: og_contexts,
         overrides: og_overrides,
         default_configs: default_config,
+        dimensions,
     })
 }
 
