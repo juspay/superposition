@@ -5,7 +5,9 @@ use std::collections::HashMap;
 
 use crate::{utils::core::MapError, Context, MergeStrategy};
 use serde_json::{json, Map, Value};
-use superposition_types::Overrides;
+use superposition_types::{
+    database::models::cac::DimensionType, Config, DimensionInfo, Overrides,
+};
 
 pub fn merge(doc: &mut Value, patch: &Value) {
     if !patch.is_object() {
@@ -114,18 +116,94 @@ fn merge_overrides_on_default_config(
     })
 }
 
+fn evaluate_cohort(
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+) -> Result<Map<String, Value>, String> {
+    let mut cohort_context = Map::new();
+
+    for (dimension_key, dimension_value) in query_data {
+        let dimension_info = match dimensions.get(dimension_key) {
+            Some(info) => info,
+            None => {
+                log::error!("CAC: dimension {dimension_key} not found in dimensions");
+                return Err(format!(
+                    "CAC: dimension {dimension_key} not found in dimensions"
+                ));
+            }
+        };
+
+        if dimension_info.dimension_type != DimensionType::Regular {
+            continue;
+        }
+
+        for dependency in &dimension_info.dependencies {
+            let dependency_info = match dimensions.get(dependency) {
+                Some(info) => info,
+                None => {
+                    log::error!(
+                        "CAC: dependency dimension {dependency} not found in dimensions"
+                    );
+                    return Err(format!(
+                        "CAC: dependency dimension {dependency} not found in dimensions"
+                    ));
+                }
+            };
+
+            if dependency_info.dimension_type != DimensionType::LocalCohort {
+                continue;
+            }
+
+            let schema_object = match &dependency_info.schema {
+                Value::Object(logic) => logic,
+                _ => {
+                    log::error!("CAC: failed to parse schema for dimension {dependency}");
+                    return Err(format!(
+                        "CAC: failed to parse schema for dimension {dependency}"
+                    ));
+                }
+            };
+
+            for (cohort_name, expression) in schema_object.iter() {
+                let evaluation_data = json!({dimension_key: dimension_value});
+
+                match jsonlogic::apply(expression, &evaluation_data) {
+                    Ok(Value::Bool(true)) => {
+                        cohort_context.insert(
+                            dependency.clone(),
+                            Value::String(cohort_name.clone()),
+                        );
+                        break; // stop at the first match
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    let modified_query_data = query_data
+        .clone()
+        .into_iter()
+        .chain(cohort_context.clone().into_iter())
+        .collect::<Map<String, Value>>();
+
+    Ok(modified_query_data)
+}
+
 pub fn eval_cac(
-    mut default_config: Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
+    config: &Config,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {
+    let mut default_config = config.default_configs.clone();
     let on_override_select: Option<&mut dyn FnMut(Context)> = None;
+
+    let modified_query_data = evaluate_cohort(&config.dimensions, query_data)?;
+
     let overrides: Map<String, Value> = get_overrides(
-        query_data,
-        contexts,
-        overrides,
+        &modified_query_data,
+        &config.contexts,
+        &config.overrides,
         &merge_strategy,
         on_override_select,
     )
@@ -137,18 +215,19 @@ pub fn eval_cac(
 }
 
 pub fn eval_cac_with_reasoning(
-    mut default_config: Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
+    config: &Config,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {
+    let mut default_config = config.default_configs.clone();
     let mut reasoning: Vec<Value> = vec![];
 
+    let modified_query_data = evaluate_cohort(&config.dimensions, query_data)?;
+
     let applied_overrides: Map<String, Value> = get_overrides(
-        query_data,
-        contexts,
-        overrides,
+        &modified_query_data,
+        &config.contexts,
+        &config.overrides,
         &merge_strategy,
         Some(&mut |context| {
             reasoning.push(json!({

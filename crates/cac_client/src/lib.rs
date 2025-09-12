@@ -227,13 +227,7 @@ impl Client {
             if let Some(keys) = filter_keys {
                 config = config.filter_by_prefix(&HashSet::from_iter(keys));
             }
-            let evaled_cac = eval::eval_cac(
-                config.default_configs.to_owned(),
-                &config.contexts,
-                &config.overrides,
-                &query_data,
-                merge_strategy,
-            )?;
+            let evaled_cac = eval::eval_cac(&config, &query_data, merge_strategy)?;
             self.config_cache.insert(hash_key, evaled_cac.clone());
             Ok(evaled_cac)
         }
