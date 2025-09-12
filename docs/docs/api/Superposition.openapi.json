@@ -641,6 +641,13 @@
                         }
                     },
                     {
+                        "name": "all",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
                         "name": "prefix",
                         "in": "query",
                         "schema": {
@@ -2149,6 +2156,13 @@
                         "description": "Sort order enumeration for list operations.",
                         "schema": {
                             "$ref": "#/components/schemas/SortBy"
+                        }
+                    },
+                    {
+                        "name": "global_experiments_only",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
                         }
                     },
                     {
