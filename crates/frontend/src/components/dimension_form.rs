@@ -14,10 +14,13 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::models::cac::{Function, FunctionType, TypeTemplate},
 };
-use utils::{create_dimension, try_update_payload, update_dimension};
+use utils::try_update_payload;
 use web_sys::MouseEvent;
 
-use crate::api::{fetch_dimensions, fetch_functions, fetch_types, get_dimension};
+use crate::api::{
+    dimensions::{create_dimension, fetch_dimensions, update_dimension},
+    fetch_functions, fetch_types, get_dimension,
+};
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -168,11 +171,12 @@ pub fn dimension_form(
                         let request_payload = try_update_payload(
                             function_position,
                             function_schema,
-                            dependencies,
                             validation_fn_name,
                             autocomplete_fn_name,
                             description_rs.get_untracked(),
                             change_reason_rs.get_untracked(),
+                            dependencies,
+                            None,
                         );
                         match request_payload {
                             Ok(payload) => {
@@ -559,17 +563,7 @@ pub fn change_log_summary(
                                                 "Position".to_string(),
                                                 Value::Number((*position).into()),
                                             )),
-                                            Some((
-                                                "Dependencies".to_string(),
-                                                Value::Array(
-                                                    update_request
-                                                        .dependencies
-                                                        .unwrap_or_else(|| dim.dependencies.clone())
-                                                        .into_iter()
-                                                        .map(Value::String)
-                                                        .collect(),
-                                                ),
-                                            )),
+                                            None,
                                             valdiate_fn
                                                 .map(|f| (
                                                     "Validation Function".to_string(),
