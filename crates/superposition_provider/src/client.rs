@@ -221,6 +221,7 @@ impl CacConfig {
                     cached_config.default_configs.clone(),
                     &cached_config.contexts,
                     &cached_config.overrides,
+                    &cached_config.dimensions,
                     query_data,
                     MergeStrategy::MERGE,
                     prefix_filter.map(|p| p.to_vec()),
