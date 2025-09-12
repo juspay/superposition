@@ -178,16 +178,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                         <Route ssr=SsrMode::Async path="webhooks" view=Webhooks />
                         <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
-
-                        <Route ssr=SsrMode::Async path="/admin/:org_id/:tenant/audit-log"
-                                view=move || {
-                                    view! {
-                                        <Layout>
-                                            <AuditLog />
-                                        </Layout>
-                                    }
-                                }
-                        />
+                        <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
 
                     </Route>
                 // <Route
