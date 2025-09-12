@@ -1,0 +1,6 @@
+language = "C"
+header = "/* Headers for my-api-crate */"
+namespace = "superposition_core"
+
+[parse]
+parse_deps = false

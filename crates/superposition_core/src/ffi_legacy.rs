@@ -19,14 +19,12 @@ thread_local! {
 // Helper functions for FFI
 fn set_last_error(err: String) {
     log::error!("FFI core error: {}", err);
-    LAST_ERROR.with(|prev| {
-        *prev.borrow_mut() = Some(err);
-    })
+    LAST_ERROR.set(Some(err))
 }
 
 fn c_str_to_string(s: *const c_char) -> Result<String, String> {
     if s.is_null() {
-        return Err("Null pointer provided".into());
+        return Err("Null pointer encountered while converting".into());
     }
 
     unsafe {
@@ -70,7 +68,7 @@ pub extern "C" fn core_get_resolved_config(
         || query_data_json.is_null()
         || merge_strategy_str.is_null()
     {
-        set_last_error("Null pointer provided".into());
+        set_last_error("Null pointer provided in required value".into());
         return ptr::null_mut();
     }
 
@@ -357,13 +355,13 @@ pub unsafe extern "C" fn core_free_string(s: *mut c_char) {
 
 #[no_mangle]
 pub extern "C" fn core_last_error_message() -> *const c_char {
-    LAST_ERROR.with(|prev| match prev.borrow().clone() {
+    match LAST_ERROR.take() {
         Some(err) => match CString::new(err) {
             Ok(c_str) => c_str.into_raw(),
             Err(_) => ptr::null(),
         },
         None => ptr::null(),
-    })
+    }
 }
 
 #[no_mangle]
