@@ -1,6 +1,6 @@
 pub mod filter;
 
-pub use filter::{AuditLogFilters, AuditLogFilterWidget, FilterSummary};
+pub use filter::{AuditLogFilterWidget, AuditLogFilters, FilterSummary};
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -17,7 +17,13 @@ use crate::{
     components::{
         skeleton::Skeleton,
         stat::Stat,
-        table::{types::{default_column_formatter, Column, ColumnSortable, Expandable, TablePaginationProps}, Table},
+        table::{
+            types::{
+                default_column_formatter, Column, ColumnSortable, Expandable,
+                TablePaginationProps,
+            },
+            Table,
+        },
     },
     query_updater::{use_param_updater, use_signal_from_query},
     types::{OrganisationId, Tenant},
@@ -74,7 +80,8 @@ fn audit_log_table_columns() -> Vec<Column> {
                     "DELETE" => "badge-error",
                     _ => "badge-info",
                 };
-                view! { <span class=format!("badge {}", badge_class)>{action}</span> }.into_view()
+                view! { <span class=format!("badge {}", badge_class)>{action}</span> }
+                    .into_view()
             },
             ColumnSortable::No,
             Expandable::Disabled,
@@ -110,11 +117,11 @@ pub fn AuditLog() -> impl IntoView {
     let _workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    
+
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<AuditLogFilters>::extract_non_empty(&query_string).into_inner()
     });
-    
+
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -132,13 +139,14 @@ pub fn AuditLog() -> impl IntoView {
                 org.get().0,
             )
         },
-        |(current_tenant, filters, pagination_params, org_id)| async move {
+        |(workspace, filters, pagination_params, org_id)| async move {
             let audit_logs_result = fetch_audit_logs(
                 &filters,
                 &pagination_params,
-                current_tenant.to_string(),
+                workspace.to_string(),
                 org_id.clone(),
-            ).await;
+            )
+            .await;
 
             AuditLogResource {
                 audit_logs: audit_logs_result.unwrap_or_default(),
@@ -151,8 +159,8 @@ pub fn AuditLog() -> impl IntoView {
     });
 
     view! {
-        <div class="p-8 flex flex-col gap-4">
-            <Suspense fallback=move || view! { <Skeleton /> }>
+        <Suspense fallback=move || view! { <Skeleton /> }>
+            <div class="h-full flex flex-col gap-4">
                 {move || {
                     let value = audit_log_resource.get();
                     let total_items = match value {
@@ -176,13 +184,13 @@ pub fn AuditLog() -> impl IntoView {
                     }
                 }}
                 <FilterSummary filters_rws />
-                <div class="card rounded-xl w-full bg-base-100 shadow">
-                    <div class="card-body">
+                <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                    <div class="card-body overflow-y-auto overflow-x-visible">
                         {move || {
                             let value = audit_log_resource.get();
                             let pagination_params = pagination_params_rws.get();
                             let table_columns = audit_log_table_columns();
-                            
+
                             match value {
                                 Some(v) => {
                                     let data = v
@@ -205,15 +213,16 @@ pub fn AuditLog() -> impl IntoView {
                                         .to_owned();
                                     let pagination_props = TablePaginationProps {
                                         enabled: true,
-                                        count: pagination_params.count.unwrap_or(10),
-                                        current_page: pagination_params.page.unwrap_or(1),
+                                        count: pagination_params.count.unwrap_or_default(),
+                                        current_page: pagination_params.page.unwrap_or_default(),
                                         total_pages: v.audit_logs.total_pages,
                                         on_page_change: handle_page_change,
                                     };
                                     view! {
                                         <Table
+                                            class="!overflow-y-auto"
                                             rows=data
-                                            key_column="id".to_string()
+                                            key_column="id"
                                             columns=table_columns
                                             pagination=pagination_props
                                         />
@@ -225,7 +234,8 @@ pub fn AuditLog() -> impl IntoView {
                         }}
                     </div>
                 </div>
-            </Suspense>
-        </div>
+            </div>
+        </Suspense>
     }
 }
+
