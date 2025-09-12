@@ -1,7 +1,7 @@
 use rand::Rng;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
-use superposition_types::{Context, Overrides};
+use superposition_types::{Context, DimensionInfo, Overrides};
 use thiserror::Error;
 
 use crate::{
@@ -31,6 +31,7 @@ type EvalFn = fn(
     Map<String, Value>,
     &[Context],
     &HashMap<String, Overrides>,
+    &HashMap<String, DimensionInfo>,
     &Map<String, Value>,
     MergeStrategy,
     Option<Vec<String>>,
@@ -41,6 +42,7 @@ fn ffi_eval_logic(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
+    dimensions: HashMap<String, String>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -51,6 +53,14 @@ fn ffi_eval_logic(
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
     let mut _q = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+    let _dimensions: HashMap<String, DimensionInfo> = dimensions
+        .iter()
+        .map(|(k, v)| {
+            let dim_info: DimensionInfo = serde_json::from_str(v)
+                .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+            Ok((k.clone(), dim_info))
+        })
+        .collect::<Result<HashMap<String, DimensionInfo>, OperationError>>()?;
 
     if let Some(e_args) = experimentation {
         // NOTE Parsing to allow for testing. This has to be migrated to the new
@@ -74,6 +84,7 @@ fn ffi_eval_logic(
         _d,
         contexts,
         &overrides,
+        &_dimensions,
         &_q,
         merge_strategy,
         filter_prefixes,
@@ -88,6 +99,7 @@ fn ffi_eval_config(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
+    dimensions: HashMap<String, String>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -97,6 +109,7 @@ fn ffi_eval_config(
         default_config,
         contexts,
         overrides,
+        dimensions,
         query_data,
         merge_strategy,
         filter_prefixes,
@@ -110,6 +123,7 @@ fn ffi_eval_config_with_reasoning(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
+    dimensions: HashMap<String, String>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -119,6 +133,7 @@ fn ffi_eval_config_with_reasoning(
         default_config,
         contexts,
         overrides,
+        dimensions,
         query_data,
         merge_strategy,
         filter_prefixes,
