@@ -11,7 +11,6 @@ pub use experiment::{
 };
 pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
-    core_last_error_length, core_last_error_message,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

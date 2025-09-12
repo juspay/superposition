@@ -1,7 +1,7 @@
 // src/ffi.rs
 use rand::Rng;
 use serde_json::{Map, Value};
-use std::cell::RefCell;
+// use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr, CString};
 use std::ptr;
@@ -11,22 +11,14 @@ use crate::experiment::ExperimentationArgs;
 use crate::{get_applicable_variants, Experiments};
 use superposition_types::{Context, DimensionInfo, Overrides};
 // Thread-local storage for error handling
-thread_local! {
-    static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
-    static ERROR_DETAILS: RefCell<Option<String>> = const {RefCell::new(None)};
-}
-
-// Helper functions for FFI
-fn set_last_error(err: String) {
-    log::error!("FFI core error: {}", err);
-    LAST_ERROR.with(|prev| {
-        *prev.borrow_mut() = Some(err);
-    })
-}
+// thread_local! {
+//     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
+//     static ERROR_DETAILS: RefCell<Option<String>> = const {RefCell::new(None)};
+// }
 
 fn c_str_to_string(s: *const c_char) -> Result<String, String> {
     if s.is_null() {
-        return Err("Null pointer provided".into());
+        return Err("Null pointer encountered while converting".into());
     }
 
     unsafe {
@@ -43,18 +35,23 @@ fn parse_json<T: serde::de::DeserializeOwned>(s: *const c_char) -> Result<T, Str
 }
 
 fn string_to_c_str(s: String) -> *mut c_char {
-    match CString::new(s) {
-        Ok(c_str) => c_str.into_raw(),
-        Err(e) => {
-            set_last_error(format!("Failed to create C string: {}", e));
-            ptr::null_mut()
-        }
-    }
+    CString::new(s).unwrap().into_raw()
 }
 
-// Core config resolution - no client logic
+unsafe fn copy_string(to: *mut c_char, from: impl AsRef<str>) {
+    let from = from.as_ref();
+    let cstr = CString::new(from).unwrap();
+    let src = cstr.as_ptr();
+    // REVIEW Truncate to 256 chars?
+    ptr::copy_nonoverlapping(src, to, from.len() + 1 /*+1 for null byte.*/);
+}
+
+/// # Safety
+///
+/// Caller ensures that `ebuf` is a sufficiently long buffer to store the
+/// error message.
 #[no_mangle]
-pub extern "C" fn core_get_resolved_config(
+pub unsafe extern "C" fn core_get_resolved_config(
     default_config_json: *const c_char,
     contexts_json: *const c_char,
     overrides_json: *const c_char,
@@ -63,6 +60,7 @@ pub extern "C" fn core_get_resolved_config(
     merge_strategy_str: *const c_char,
     filter_prefixes_json: *const c_char,
     experimentation_json: *const c_char,
+    ebuf: *mut c_char,
 ) -> *mut c_char {
     // Parameter validation
     if default_config_json.is_null()
@@ -72,7 +70,7 @@ pub extern "C" fn core_get_resolved_config(
         || query_data_json.is_null()
         || merge_strategy_str.is_null()
     {
-        set_last_error("Null pointer provided".into());
+        copy_string(ebuf, "Null pointer provided in required value");
         return ptr::null_mut();
     }
 
@@ -80,7 +78,7 @@ pub extern "C" fn core_get_resolved_config(
     let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
         Ok(config) => config,
         Err(e) => {
-            set_last_error(format!("Failed to parse default_config: {}", e));
+            copy_string(ebuf, format!("Failed to parse default_config: {}", e));
             return ptr::null_mut();
         }
     };
@@ -88,7 +86,7 @@ pub extern "C" fn core_get_resolved_config(
     let contexts = match parse_json::<Vec<Context>>(contexts_json) {
         Ok(contexts) => contexts,
         Err(e) => {
-            set_last_error(format!("Failed to parse contexts: {}", e));
+            copy_string(ebuf, format!("Failed to parse contexts: {}", e));
             return ptr::null_mut();
         }
     };
@@ -96,7 +94,7 @@ pub extern "C" fn core_get_resolved_config(
     let overrides = match parse_json::<HashMap<String, Overrides>>(overrides_json) {
         Ok(overrides) => overrides,
         Err(e) => {
-            set_last_error(format!("Failed to parse overrides: {}", e));
+            copy_string(ebuf, format!("Failed to parse overrides: {}", e));
             return ptr::null_mut();
         }
     };
@@ -104,7 +102,7 @@ pub extern "C" fn core_get_resolved_config(
     let mut query_data = match parse_json::<Map<String, Value>>(query_data_json) {
         Ok(data) => data,
         Err(e) => {
-            set_last_error(format!("Failed to parse query_data: {}", e));
+            copy_string(ebuf, format!("Failed to parse query_data: {}", e));
             return ptr::null_mut();
         }
     };
@@ -116,7 +114,7 @@ pub extern "C" fn core_get_resolved_config(
             _ => MergeStrategy::default(),
         },
         Err(e) => {
-            set_last_error(format!("Failed to parse merge_strategy: {}", e));
+            copy_string(ebuf, format!("Failed to parse merge_strategy: {}", e));
             return ptr::null_mut();
         }
     };
@@ -126,7 +124,7 @@ pub extern "C" fn core_get_resolved_config(
         match parse_json::<Vec<String>>(filter_prefixes_json) {
             Ok(prefixes) => Some(prefixes),
             Err(e) => {
-                set_last_error(format!("Failed to parse filter_prefixes: {}", e));
+                copy_string(ebuf, format!("Failed to parse filter_prefixes: {}", e));
                 return ptr::null_mut();
             }
         }
@@ -138,7 +136,7 @@ pub extern "C" fn core_get_resolved_config(
         match parse_json::<ExperimentationArgs>(experimentation_json) {
             Ok(exp_args) => Some(exp_args),
             Err(e) => {
-                set_last_error(format!("Failed to parse experimentation: {}", e));
+                copy_string(ebuf, format!("Failed to parse experimentation: {}", e));
                 return ptr::null_mut();
             }
         }
@@ -147,7 +145,7 @@ pub extern "C" fn core_get_resolved_config(
     let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
         Ok(dimensions) => dimensions,
         Err(e) => {
-            set_last_error(format!("Failed to parse dimensions: {}", e));
+            copy_string(ebuf, format!("Failed to parse dimensions: {}", e));
             return ptr::null_mut();
         }
     };
@@ -170,7 +168,7 @@ pub extern "C" fn core_get_resolved_config(
                 query_data.insert("variantIds".to_string(), variants.into());
             }
             Err(e) => {
-                set_last_error(format!("Failed to get applicable variants: {}", e));
+                copy_string(ebuf, format!("Failed to get applicable variants: {}", e));
                 return ptr::null_mut();
             }
         }
@@ -189,19 +187,23 @@ pub extern "C" fn core_get_resolved_config(
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
             Err(e) => {
-                set_last_error(format!("Failed to serialize result: {}", e));
+                copy_string(ebuf, format!("Failed to serialize result: {}", e));
                 ptr::null_mut()
             }
         },
         Err(e) => {
-            set_last_error(e);
+            copy_string(ebuf, e);
             ptr::null_mut()
         }
     }
 }
 
+/// # Safety
+///
+/// Caller ensures that `ebuf` is a sufficiently long buffer to store the
+/// error message.
 #[no_mangle]
-pub extern "C" fn core_get_resolved_config_with_reasoning(
+pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
     default_config_json: *const c_char,
     contexts_json: *const c_char,
     overrides_json: *const c_char,
@@ -210,6 +212,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     merge_strategy_str: *const c_char,
     filter_prefixes_json: *const c_char,
     experimentation_json: *const c_char,
+    ebuf: *mut c_char,
 ) -> *mut c_char {
     // Same parameter validation as above...
     if default_config_json.is_null()
@@ -219,7 +222,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
         || query_data_json.is_null()
         || merge_strategy_str.is_null()
     {
-        set_last_error("Null pointer provided".into());
+        copy_string(ebuf, "Null pointer provided");
         return ptr::null_mut();
     }
 
@@ -227,7 +230,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
         Ok(config) => config,
         Err(e) => {
-            set_last_error(format!("Failed to parse default_config: {}", e));
+            copy_string(ebuf, format!("Failed to parse default_config: {}", e));
             return ptr::null_mut();
         }
     };
@@ -235,7 +238,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     let contexts = match parse_json::<Vec<Context>>(contexts_json) {
         Ok(contexts) => contexts,
         Err(e) => {
-            set_last_error(format!("Failed to parse contexts: {}", e));
+            copy_string(ebuf, format!("Failed to parse contexts: {}", e));
             return ptr::null_mut();
         }
     };
@@ -243,7 +246,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     let overrides = match parse_json::<HashMap<String, Overrides>>(overrides_json) {
         Ok(overrides) => overrides,
         Err(e) => {
-            set_last_error(format!("Failed to parse overrides: {}", e));
+            copy_string(ebuf, format!("Failed to parse overrides: {}", e));
             return ptr::null_mut();
         }
     };
@@ -251,7 +254,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     let mut query_data = match parse_json::<Map<String, Value>>(query_data_json) {
         Ok(data) => data,
         Err(e) => {
-            set_last_error(format!("Failed to parse query_data: {}", e));
+            copy_string(ebuf, format!("Failed to parse query_data: {}", e));
             return ptr::null_mut();
         }
     };
@@ -263,7 +266,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
             _ => MergeStrategy::default(),
         },
         Err(e) => {
-            set_last_error(format!("Failed to parse merge_strategy: {}", e));
+            copy_string(ebuf, format!("Failed to parse merge_strategy: {}", e));
             return ptr::null_mut();
         }
     };
@@ -274,7 +277,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
         match parse_json::<Vec<String>>(filter_prefixes_json) {
             Ok(prefixes) => Some(prefixes),
             Err(e) => {
-                set_last_error(format!("Failed to parse filter_prefixes: {}", e));
+                copy_string(ebuf, format!("Failed to parse filter_prefixes: {}", e));
                 return ptr::null_mut();
             }
         }
@@ -286,7 +289,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
         match parse_json::<ExperimentationArgs>(experimentation_json) {
             Ok(exp_args) => Some(exp_args),
             Err(e) => {
-                set_last_error(format!("Failed to parse experimentation: {}", e));
+                copy_string(ebuf, format!("Failed to parse experimentation: {}", e));
                 return ptr::null_mut();
             }
         }
@@ -295,7 +298,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
         Ok(dimensions) => dimensions,
         Err(e) => {
-            set_last_error(format!("Failed to parse dimensions: {}", e));
+            copy_string(ebuf, format!("Failed to parse dimensions: {}", e));
             return ptr::null_mut();
         }
     };
@@ -318,7 +321,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
                 query_data.insert("variantIds".to_string(), variants.into());
             }
             Err(e) => {
-                set_last_error(format!("Failed to get applicable variants: {}", e));
+                copy_string(ebuf, format!("Failed to get applicable variants: {}", e));
                 return ptr::null_mut();
             }
         }
@@ -337,12 +340,12 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
             Err(e) => {
-                set_last_error(format!("Failed to serialize result: {}", e));
+                copy_string(ebuf, format!("Failed to serialize result: {}", e));
                 ptr::null_mut()
             }
         },
         Err(e) => {
-            set_last_error(e);
+            copy_string(ebuf, e);
             ptr::null_mut()
         }
     }
@@ -354,16 +357,16 @@ pub extern "C" fn core_test_connection() -> i32 {
     1 // Return 1 for success
 }
 
-#[no_mangle]
-pub extern "C" fn core_get_error_details() -> *mut c_char {
-    ERROR_DETAILS.with(|details| match details.borrow().clone() {
-        Some(details_str) => match CString::new(details_str) {
-            Ok(c_str) => c_str.into_raw(),
-            Err(_) => ptr::null_mut(),
-        },
-        None => ptr::null_mut(),
-    })
-}
+// #[no_mangle]
+// pub extern "C" fn core_get_error_details() -> *mut c_char {
+//     ERROR_DETAILS.with(|details| match details.borrow().clone() {
+//         Some(details_str) => match CString::new(details_str) {
+//             Ok(c_str) => c_str.into_raw(),
+//             Err(_) => ptr::null_mut(),
+//         },
+//         None => ptr::null_mut(),
+//     })
+// }
 
 /// # Safety
 ///
@@ -379,42 +382,47 @@ pub unsafe extern "C" fn core_free_string(s: *mut c_char) {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn core_last_error_message() -> *const c_char {
-    LAST_ERROR.with(|prev| match prev.borrow().clone() {
-        Some(err) => match CString::new(err) {
-            Ok(c_str) => c_str.into_raw(),
-            Err(_) => ptr::null(),
-        },
-        None => ptr::null(),
-    })
-}
+// #[no_mangle]
+// pub extern "C" fn core_last_error_message() -> *const c_char {
+//     match LAST_ERROR.take() {
+//         Some(err) => match CString::new(err) {
+//             Ok(c_str) => c_str.into_raw(),
+//             Err(_) => ptr::null(),
+//         },
+//         None => ptr::null(),
+//     }
+// }
 
-#[no_mangle]
-pub extern "C" fn core_last_error_length() -> i32 {
-    LAST_ERROR.with(|prev| match *prev.borrow() {
-        Some(ref err) => err.len() as i32 + 1,
-        None => 0,
-    })
-}
+// #[no_mangle]
+// pub extern "C" fn core_last_error_length() -> i32 {
+//     LAST_ERROR.with(|prev| match *prev.borrow() {
+//         Some(ref err) => err.len() as i32 + 1,
+//         None => 0,
+//     })
+// }
 
+/// # Safety
+///
+/// Caller ensures that `ebuf` is a sufficiently long buffer to store the
+/// error message.
 #[no_mangle]
-pub extern "C" fn core_get_applicable_variants(
+pub unsafe extern "C" fn core_get_applicable_variants(
     experiments_json: *const c_char,
     dimensions: *const c_char,
     query_data_json: *const c_char,
     toss: i8,
     filter_prefixes_json: *const c_char,
+    ebuf: *mut c_char,
 ) -> *mut c_char {
     if experiments_json.is_null() || query_data_json.is_null() || dimensions.is_null() {
-        set_last_error("Null pointer provided".into());
+        copy_string(ebuf, "Null pointer provided");
         return ptr::null_mut();
     }
 
     let experiments = match parse_json::<Experiments>(experiments_json) {
         Ok(experiments) => experiments,
         Err(e) => {
-            set_last_error(format!("Failed to parse experiments: {}", e));
+            copy_string(ebuf, format!("Failed to parse experiments: {}", e));
             return ptr::null_mut();
         }
     };
@@ -422,7 +430,7 @@ pub extern "C" fn core_get_applicable_variants(
     let query_data = match parse_json::<Map<String, Value>>(query_data_json) {
         Ok(data) => data,
         Err(e) => {
-            set_last_error(format!("Failed to parse query_data: {}", e));
+            copy_string(ebuf, format!("Failed to parse query_data: {}", e));
             return ptr::null_mut();
         }
     };
@@ -430,7 +438,7 @@ pub extern "C" fn core_get_applicable_variants(
     let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
         Ok(dimensions) => dimensions,
         Err(e) => {
-            set_last_error(format!("Failed to parse dimensions: {}", e));
+            copy_string(ebuf, format!("Failed to parse dimensions: {}", e));
             return ptr::null_mut();
         }
     };
@@ -441,7 +449,7 @@ pub extern "C" fn core_get_applicable_variants(
         match parse_json::<Vec<String>>(filter_prefixes_json) {
             Ok(prefixes) => Some(prefixes),
             Err(e) => {
-                set_last_error(format!("Failed to parse filter_prefixes: {}", e));
+                copy_string(ebuf, format!("Failed to parse filter_prefixes: {}", e));
                 return ptr::null_mut();
             }
         }
@@ -458,12 +466,12 @@ pub extern "C" fn core_get_applicable_variants(
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
             Err(e) => {
-                set_last_error(format!("Failed to serialize result: {}", e));
+                copy_string(ebuf, format!("Failed to serialize result: {}", e));
                 ptr::null_mut()
             }
         },
         Err(e) => {
-            set_last_error(e);
+            copy_string(ebuf, e);
             ptr::null_mut()
         }
     }
