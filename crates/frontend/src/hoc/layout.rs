@@ -34,7 +34,7 @@ pub fn use_org() -> Signal<OrganisationId> {
 }
 
 #[component]
-pub fn common_layout(children: Children) -> impl IntoView {
+pub fn CommonLayout(children: Children) -> impl IntoView {
     view! {
         <main class="relative h-full w-full p-8 overflow-x-hidden transition-all duration-200 ease-soft-in-out">
             {children()}
@@ -51,7 +51,7 @@ pub fn common_layout(children: Children) -> impl IntoView {
 }
 
 #[component]
-pub fn layout() -> impl IntoView {
+pub fn Layout() -> impl IntoView {
     let workspace = use_tenant();
     let org = use_org();
     provide_context(workspace);
