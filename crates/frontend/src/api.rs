@@ -25,13 +25,12 @@ use superposition_types::{
     database::{
         models::{
             cac::{
-                ConfigVersion, Context, DefaultConfig, EventLog, Function, TypeTemplate,
+                Context, DefaultConfig, EventLog, Function, TypeTemplate,
             },
             experimentation::ExperimentGroup,
             others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
             ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus
         },
-        types::DimensionWithMandatory,
     },
     Config, PaginatedResponse,
 };

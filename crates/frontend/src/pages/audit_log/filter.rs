@@ -4,24 +4,28 @@ use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use superposition_types::{
-    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
+    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams, QueryParam},
     IsEmpty,
 };
+use superposition_derives::QueryParam;
 
 use crate::components::{
     badge::{GrayPill, ListPills},
-    button::Button,
-    drawer::{close_drawer, Drawer, DrawerBtn, DrawerButtonStyle},
+    button::{Button, ButtonStyle},
+    drawer::{close_drawer, Drawer, DrawerBtn},
     form::label::Label,
     input::DateInput,
 };
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, QueryParam)]
 pub struct AuditLogFilters {
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
+    #[query_param(skip_if_empty)]
     pub table: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty)]
     pub action: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty)]
     pub username: Option<String>,
 }
 
@@ -269,12 +273,11 @@ pub fn audit_log_filter_widget(
     view! {
         <DrawerBtn
             drawer_id="audit_log_filter_drawer"
+            text="Filters"
+            icon_class="ri-filter-3-line"
             class="!h-9 !min-h-[32px] !w-fit px-2"
-            style=DrawerButtonStyle::Outline
-        >
-            Filters
-            <i class="ri-filter-3-line"></i>
-        </DrawerBtn>
+            style=ButtonStyle::Outline
+        />
         <Drawer
             id="audit_log_filter_drawer"
             header="Audit Log Filters"
@@ -421,7 +424,7 @@ pub fn audit_log_filter_widget(
                         class="h-12 w-48"
                         text="Submit"
                         icon_class="ri-send-plane-line"
-                        on_click=move |event| {
+                        on_click=move |event: web_sys::MouseEvent| {
                             event.prevent_default();
                             let filters = filters_buffer_rws.get();
                             close_drawer("audit_log_filter_drawer");
@@ -435,7 +438,7 @@ pub fn audit_log_filter_widget(
                         class="h-12 w-48"
                         text="Reset"
                         icon_class="ri-restart-line"
-                        on_click=move |event| {
+                        on_click=move |event: web_sys::MouseEvent| {
                             event.prevent_default();
                             close_drawer("audit_log_filter_drawer");
                             batch(|| {
