@@ -16,34 +16,25 @@ use crate::components::{
     input::DateInput,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+)]
+#[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum AuditAction {
     INSERT,
     UPDATE,
     DELETE,
-}
-
-impl Display for AuditAction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AuditAction::INSERT => write!(f, "INSERT"),
-            AuditAction::UPDATE => write!(f, "UPDATE"),
-            AuditAction::DELETE => write!(f, "DELETE"),
-        }
-    }
-}
-
-impl FromStr for AuditAction {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "INSERT" => Ok(AuditAction::INSERT),
-            "UPDATE" => Ok(AuditAction::UPDATE),
-            "DELETE" => Ok(AuditAction::DELETE),
-            _ => Err(format!("Unknown audit action: {}", s)),
-        }
-    }
 }
 
 #[component]
