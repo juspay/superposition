@@ -11,7 +11,7 @@ use actix_web::{
     web::{self, Data, Json, Path, Query},
     Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     BoolExpressionMethods, Connection, ExpressionMethods, PgConnection, QueryDsl,
@@ -40,7 +40,7 @@ use superposition_types::{
         default_config::DefaultConfigUpdateRequest,
         experiment_groups::ExpGroupMemberRequest,
         experiments::{
-            ApplicableVariantsQuery, ApplicableVariantsRequest, AuditQueryFilters,
+            ApplicableVariantsQuery, ApplicableVariantsRequest,
             ConcludeExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
             ExperimentResponse, ExperimentSortOn, ExperimentStateChangeRequest,
             OverrideKeysUpdateRequest, RampRequest,
@@ -54,8 +54,8 @@ use superposition_types::{
     database::{
         models::{
             experimentation::{
-                EventLog, Experiment, ExperimentGroup, ExperimentStatusType,
-                ExperimentType, TrafficPercentage, Variant, VariantType, Variants,
+                Experiment, ExperimentGroup, ExperimentStatusType, ExperimentType,
+                TrafficPercentage, Variant, VariantType, Variants,
             },
             others::WebhookEvent,
             ChangeReason,
@@ -99,7 +99,6 @@ use super::{
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
-        .service(get_audit_logs)
         .service(create)
         .service(conclude_handler)
         .service(discard_handler)
@@ -1646,57 +1645,6 @@ async fn update_overrides(
     };
     add_config_version_to_header(&config_version_id, &mut http_resp);
     Ok(http_resp.json(experiment_response))
-}
-
-#[get("/audit")]
-async fn get_audit_logs(
-    filters: Query<AuditQueryFilters>,
-    db_conn: DbConnection,
-    schema_name: SchemaName,
-) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
-    let DbConnection(mut conn) = db_conn;
-
-    let query_builder = |filters: &AuditQueryFilters| {
-        let mut builder = event_log::event_log.schema_name(&schema_name).into_boxed();
-        if let Some(tables) = filters.table.clone() {
-            builder = builder.filter(event_log::table_name.eq_any(tables.0));
-        }
-        if let Some(actions) = filters.action.clone() {
-            builder = builder.filter(event_log::action.eq_any(actions.0));
-        }
-        if let Some(username) = filters.username.clone() {
-            builder = builder.filter(event_log::user_name.eq(username));
-        }
-        let now = Utc::now();
-        builder
-            .filter(
-                event_log::timestamp
-                    .ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
-            )
-            .filter(event_log::timestamp.le(filters.to_date.unwrap_or(now)))
-    };
-    let filters = filters.into_inner();
-    let base_query = query_builder(&filters);
-    let count_query = query_builder(&filters);
-
-    let limit = filters.count.unwrap_or(10);
-    let offset = (filters.page.unwrap_or(1) - 1) * limit;
-    let query = base_query
-        .order(event_log::timestamp.desc())
-        .limit(limit)
-        .offset(offset);
-
-    let log_count: i64 = count_query.count().get_result(&mut conn)?;
-
-    let logs: Vec<EventLog> = query.load(&mut conn)?;
-
-    let total_pages = (log_count as f64 / limit as f64).ceil() as i64;
-
-    Ok(Json(PaginatedResponse {
-        total_items: log_count,
-        total_pages,
-        data: logs,
-    }))
 }
 
 #[patch("/{experiment_id}/pause")]
