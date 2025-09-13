@@ -2,7 +2,7 @@ use crate::{
     custom_query::{CommaSeparatedStringQParams, QueryParam},
     IsEmpty,
 };
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
@@ -28,27 +28,36 @@ pub struct ResolveConfigQuery {
     pub prefix: Option<CommaSeparatedStringQParams>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, QueryParam)]
 pub struct AuditQueryFilters {
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
+    #[query_param(skip_if_empty)]
     pub table: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty)]
     pub action: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty)]
     pub username: Option<String>,
-    pub count: Option<i64>,
-    pub page: Option<i64>,
 }
 
 impl Default for AuditQueryFilters {
     fn default() -> Self {
         Self {
             action: Some("INSERT,UPDATE,DELETE".parse().unwrap()),
-            from_date: Some(Utc::now() - Duration::days(30)),
+            from_date: None,
             to_date: None,
             table: None,
-            count: Some(10),
-            page: Some(1),
             username: None,
         }
+    }
+}
+
+impl IsEmpty for AuditQueryFilters {
+    fn is_empty(&self) -> bool {
+        self.from_date.is_none()
+            && self.to_date.is_none()
+            && self.table.is_none()
+            && self.action.is_none()
+            && self.username.is_none()
     }
 }
