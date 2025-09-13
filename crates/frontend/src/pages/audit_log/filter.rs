@@ -3,10 +3,9 @@ use std::{collections::HashSet, fmt::Display, str::FromStr};
 use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use superposition_derives::QueryParam;
 use superposition_types::{
-    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams, QueryParam},
-    IsEmpty,
+    api::config::AuditQueryFilters,
+    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
 };
 
 use crate::components::{
@@ -16,52 +15,6 @@ use crate::components::{
     form::label::Label,
     input::DateInput,
 };
-
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, QueryParam)]
-pub struct AuditLogFilters {
-    pub from_date: Option<DateTime<Utc>>,
-    pub to_date: Option<DateTime<Utc>>,
-    #[query_param(skip_if_empty)]
-    pub table: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
-    pub action: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
-    pub username: Option<String>,
-}
-
-impl Display for AuditLogFilters {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut parts = Vec::new();
-
-        if let Some(from_date) = &self.from_date {
-            parts.push(format!("from_date={}", from_date));
-        }
-        if let Some(to_date) = &self.to_date {
-            parts.push(format!("to_date={}", to_date));
-        }
-        if let Some(username) = &self.username {
-            parts.push(format!("username={}", username));
-        }
-        if let Some(table) = &self.table {
-            parts.push(format!("table={}", table));
-        }
-        if let Some(action) = &self.action {
-            parts.push(format!("action={}", action));
-        }
-
-        write!(f, "{}", parts.join("&"))
-    }
-}
-
-impl IsEmpty for AuditLogFilters {
-    fn is_empty(&self) -> bool {
-        self.from_date.is_none()
-            && self.to_date.is_none()
-            && self.table.is_none()
-            && self.action.is_none()
-            && self.username.is_none()
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AuditAction {
@@ -94,7 +47,7 @@ impl FromStr for AuditAction {
 }
 
 #[component]
-pub fn filter_summary(filters_rws: RwSignal<AuditLogFilters>) -> impl IntoView {
+pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
 
     fn filter_index<T: Display + FromStr + Clone>(
@@ -245,8 +198,7 @@ pub fn filter_summary(filters_rws: RwSignal<AuditLogFilters>) -> impl IntoView {
 
 #[component]
 pub fn audit_log_filter_widget(
-    pagination_params_rws: RwSignal<superposition_types::custom_query::PaginationParams>,
-    filters_rws: RwSignal<AuditLogFilters>,
+    filters_rws: RwSignal<AuditQueryFilters>,
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
 
@@ -428,10 +380,7 @@ pub fn audit_log_filter_widget(
                             event.prevent_default();
                             let filters = filters_buffer_rws.get();
                             close_drawer("audit_log_filter_drawer");
-                            batch(|| {
-                                filters_rws.set(filters);
-                                pagination_params_rws.update(|f| f.reset_page());
-                            });
+                            filters_rws.set(filters);
                         }
                     />
                     <Button
@@ -441,11 +390,9 @@ pub fn audit_log_filter_widget(
                         on_click=move |event: web_sys::MouseEvent| {
                             event.prevent_default();
                             close_drawer("audit_log_filter_drawer");
-                            batch(|| {
-                                filters_rws.set(AuditLogFilters::default());
-                                filters_buffer_rws.set(AuditLogFilters::default());
-                                pagination_params_rws.update(|f| f.reset_page());
-                            });
+                            let default_filters = AuditQueryFilters::default();
+                            filters_rws.set(default_filters.clone());
+                            filters_buffer_rws.set(default_filters);
                         }
                     />
                 </div>

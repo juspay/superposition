@@ -1,12 +1,12 @@
 pub mod filter;
 
-pub use filter::{AuditLogFilterWidget, AuditLogFilters, FilterSummary};
+pub use filter::{AuditLogFilterWidget, FilterSummary};
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
-    api::workspace::WorkspaceResponse,
+    api::{config::AuditQueryFilters, workspace::WorkspaceResponse},
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::cac::EventLog,
     PaginatedResponse,
@@ -119,7 +119,7 @@ pub fn AuditLog() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let filters_rws = use_signal_from_query(move |query_string| {
-        Query::<AuditLogFilters>::extract_non_empty(&query_string).into_inner()
+        Query::<AuditQueryFilters>::extract_non_empty(&query_string).into_inner()
     });
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {
@@ -155,7 +155,7 @@ pub fn AuditLog() -> impl IntoView {
     );
 
     let handle_page_change = Callback::new(move |page: i64| {
-        pagination_params_rws.update(|f| f.page = Some(page));
+        pagination_params_rws.update(|p| p.page = Some(page));
     });
 
     view! {
@@ -176,7 +176,6 @@ pub fn AuditLog() -> impl IntoView {
                             />
                             <div class="flex items-end gap-4">
                                 <AuditLogFilterWidget
-                                    pagination_params_rws
                                     filters_rws
                                 />
                             </div>
@@ -238,4 +237,3 @@ pub fn AuditLog() -> impl IntoView {
         </Suspense>
     }
 }
-
