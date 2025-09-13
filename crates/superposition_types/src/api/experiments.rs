@@ -257,14 +257,3 @@ pub struct OverrideKeysUpdateRequest {
     #[serde(default, deserialize_with = "deserialize_option_i64")]
     pub experiment_group_id: Option<I64Update>,
 }
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct AuditQueryFilters {
-    pub from_date: Option<DateTime<Utc>>,
-    pub to_date: Option<DateTime<Utc>>,
-    pub table: Option<CommaSeparatedStringQParams>,
-    pub action: Option<CommaSeparatedStringQParams>,
-    pub username: Option<String>,
-    pub count: Option<i64>,
-    pub page: Option<i64>,
-}
