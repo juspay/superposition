@@ -7,11 +7,11 @@ use chrono::{Duration, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_types::{
+    api::config::AuditQueryFilters,
+    custom_query::PaginationParams,
     database::{models::cac::EventLog, schema::event_log::dsl as event_log},
     result as superposition, PaginatedResponse,
 };
-
-use crate::api::audit_log::types::AuditQueryFilters;
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(get_audit_logs)
@@ -20,6 +20,7 @@ pub fn endpoints() -> Scope {
 #[get("")]
 async fn get_audit_logs(
     filters: Query<AuditQueryFilters>,
+    pagination_params: Query<PaginationParams>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
@@ -40,16 +41,17 @@ async fn get_audit_logs(
         builder
             .filter(
                 event_log::timestamp
-                    .ge(filters.from_date.unwrap_or(now - Duration::hours(24))),
+                    .ge(filters.from_date.unwrap_or(now - Duration::days(30))),
             )
             .filter(event_log::timestamp.le(filters.to_date.unwrap_or(now)))
     };
     let filters = filters.into_inner();
+    let pagination_params = pagination_params.into_inner();
     let base_query = query_builder(&filters);
     let count_query = query_builder(&filters);
 
-    let limit = filters.count.unwrap_or(10);
-    let offset = (filters.page.unwrap_or(1) - 1) * limit;
+    let limit = pagination_params.count.unwrap_or(10);
+    let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
     let query = base_query
         .order(event_log::timestamp.desc())
         .limit(limit)
