@@ -23,15 +23,11 @@ use superposition_types::{
         workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
-    database::{
-        models::{
-            cac::{
-                Context, DefaultConfig, EventLog, Function, TypeTemplate,
-            },
-            experimentation::ExperimentGroup,
-            others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-            ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus
-        },
+    database::models::{
+        cac::{Context, DefaultConfig, EventLog, Function, TypeTemplate},
+        experimentation::ExperimentGroup,
+        others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
+        ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
     },
     Config, PaginatedResponse,
 };
@@ -1122,7 +1118,7 @@ pub mod experiment_groups {
 }
 
 pub async fn fetch_audit_logs(
-    filters: &crate::pages::audit_log::filter::AuditLogFilters,
+    filters: &superposition_types::api::config::AuditQueryFilters,
     pagination: &PaginationParams,
     tenant: String,
     org_id: String,
@@ -1130,43 +1126,12 @@ pub async fn fetch_audit_logs(
     let client = reqwest::Client::new();
     let host = use_host_server();
 
-    let mut query_params = vec![];
-
-    // Add pagination params
-    if let Some(page) = pagination.page {
-        query_params.push(format!("page={}", page));
-    }
-    if let Some(count) = pagination.count {
-        query_params.push(format!("count={}", count));
-    }
-
-    // Add filter params
-    if let Some(from_date) = filters.from_date {
-        query_params.push(format!("from_date={}", from_date.to_rfc3339()));
-    }
-    if let Some(to_date) = filters.to_date {
-        query_params.push(format!("to_date={}", to_date.to_rfc3339()));
-    }
-    if let Some(username) = &filters.username {
-        query_params.push(format!("username={}", username));
-    }
-    if let Some(tables) = &filters.table {
-        for table in &tables.0 {
-            query_params.push(format!("table={}", table));
-        }
-    }
-    if let Some(actions) = &filters.action {
-        for action in &actions.0 {
-            query_params.push(format!("action={}", action));
-        }
-    }
-
-    let query_string = query_params.join("&");
-    let url = if query_string.is_empty() {
-        format!("{}/audit", host)
-    } else {
-        format!("{}/audit?{}", host, query_string)
-    };
+    let url = format!(
+        "{}/audit?{}&{}",
+        host,
+        filters.to_query_param(),
+        pagination.to_query_param(),
+    );
 
     let response: PaginatedResponse<EventLog> = client
         .get(url)
