@@ -1225,9 +1225,12 @@ dependencies = [
 name = "cac_toml"
 version = "0.95.1"
 dependencies = [
+ "blake3",
  "clap 4.3.4",
+ "itertools 0.10.5",
  "pest",
  "pest_derive",
+ "serde_json",
  "superposition_core",
  "superposition_types",
  "toml 0.8.8",

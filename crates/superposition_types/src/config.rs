@@ -94,6 +94,12 @@ impl IntoIterator for Overrides {
     }
 }
 
+impl From<Map<String, Value>> for Overrides {
+    fn from(map: Map<String, Value>) -> Self {
+        Overrides(map)
+    }
+}
+
 impl_try_from_map!(Cac, Overrides, Overrides::validate_data);
 impl_try_from_map!(Exp, Overrides, Overrides::validate_data);
 
@@ -131,7 +137,7 @@ uniffi::custom_type!(VariantOverrides, Overrides);
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
-pub struct Condition(Map<String, Value>);
+pub struct Condition(pub Map<String, Value>);
 uniffi::custom_type!(Condition, HashMap<String, String>, {
     lower: |v| {
         v.iter().map(|(k, v)| (
@@ -255,6 +261,10 @@ impl Condition {
             }
         }
         Ok(true)
+    }
+
+    pub fn get_map(&self) -> Map<String, Value> {
+        return self.0.clone();
     }
 }
 
