@@ -14,9 +14,12 @@ name = "cac"
 path = "src/bin.rs"
 
 [dependencies]
+blake3 = "1.3.3"
 clap = { version = "4.3.0", features = ["derive"] }
+itertools = { workspace = true }
 pest = "2.6"
 pest_derive = "2.6"
-toml = { workspace = true }
+serde_json = { workspace = true }
 superposition_core = { workspace = true }
 superposition_types = { workspace = true }
+toml = { workspace = true }
