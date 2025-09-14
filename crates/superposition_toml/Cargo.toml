@@ -1,16 +1,16 @@
 [package]
-name = "cac_toml"
+name = "superposition_toml"
 version.workspace = true
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "cac_toml"
+name = "superposition_toml"
 path = "src/lib.rs"
 
 [[bin]]
-name = "cac"
+name = "superposition_toml_bin"
 path = "src/bin.rs"
 
 [dependencies]
