@@ -1,47 +1,22 @@
-use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashMap};
+use itertools::{self, Itertools};
+use serde_json::{Map, Value as SerdeValue};
+use std::collections::HashMap;
 use std::fmt;
 use std::fs;
 use std::path::Path;
 use std::string::String;
-use superposition_types::{Condition, Context, Overrides};
-use toml::Value;
-
-#[derive(Debug)]
-struct ContextualOverride {
-    context: HashMap<String, Value>,
-    overrides: Value,
-    priority: i64,
-}
-
-impl PartialEq for ContextualOverride {
-    fn eq(&self, other: &Self) -> bool {
-        self.context == other.context
-    }
-}
-
-impl Eq for ContextualOverride {}
-
-impl Ord for ContextualOverride {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.priority.cmp(&self.priority)
-    }
-}
-
-impl PartialOrd for ContextualOverride {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
+use superposition_core::eval_config;
+use superposition_types::{Cac, Condition, Context, OverrideWithKeys, Overrides};
+use toml::{Table, Value as TomlValue};
 
 #[derive(Clone, Debug)]
 pub struct ContextAwareConfig {
     file: String,
     dimension_priority: HashMap<String, i64>,
-    default_config: HashMap<String, Value>,
+    default_config: Map<String, SerdeValue>,
     contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
-    toml_value: Value,
+    toml_value: TomlValue,
 }
 
 #[derive(Debug, Clone)]
@@ -70,7 +45,7 @@ impl ContextAwareConfig {
             dimension_priority: HashMap::new(),
             contexts: Vec::new(),
             overrides: HashMap::new(),
-            default_config: HashMap::new(),
+            default_config: Map::new(),
             toml_value,
         };
 
@@ -83,10 +58,10 @@ impl ContextAwareConfig {
     fn parse_and_load(&mut self) -> bool {
         if let Some(default_config) = self.toml_value.get("default-config") {
             // Check if it's a Table type
-            if let Value::Table(table) = default_config {
+            if let TomlValue::Table(table) = default_config {
                 // Iterate over the table
                 for (key, value) in table {
-                    // println!("{:?}, {:?}", key, value);
+                    // println!("default_config: {:?}, {:?}", key, value);
                     if value.get("value").is_none() {
                         eprintln!(
                             "configuration: {:?} does not have default value set",
@@ -99,8 +74,10 @@ impl ContextAwareConfig {
                         return false;
                     }
 
-                    self.default_config
-                        .insert(key.to_string(), value.get("value").unwrap().clone());
+                    self.default_config.insert(
+                        key.to_string(),
+                        toml_value_to_serde_value(value.get("value").unwrap().clone()),
+                    );
                 }
             } else {
                 eprintln!("'default-config' is not a section in file:{}", self.file);
@@ -114,11 +91,11 @@ impl ContextAwareConfig {
         // check sanity of dimensions
         if let Some(dimensions) = self.toml_value.get("dimensions") {
             // Check if it's a Table type
-            if let Value::Table(table) = dimensions {
+            if let TomlValue::Table(table) = dimensions {
                 // Iterate over the table
                 let mut index = 1;
                 for (key, value) in table {
-                    // println!("{:?}, {:?}", key, value);
+                    // println!("dimension: {:?}, {:?}", key, value);
                     if value.get("schema").is_none() {
                         eprintln!("dimension: {:?} does not have schema set", key);
                         return false;
@@ -139,30 +116,12 @@ impl ContextAwareConfig {
         // check sanity of contexts, overrides and load them
         if let Some(overrides) = self.toml_value.get("context") {
             // Check if it's a Table type
-            if let Value::Table(table) = overrides {
+            if let TomlValue::Table(table) = overrides {
                 // Iterate over the table
-                for (context_expression, _override) in table {
+                for (context_expression, overrides) in table {
                     let parsed = self.parse_string_to_condition(&context_expression);
-                    // println!("{:?}", parsed);
+                    // println!("context: {:?}", parsed);
                     match parsed {
-                        Ok(context) => {
-                            // pub struct Context {
-                            //     pub id: String,
-                            //     pub condition: Condition,
-                            //     pub priority: i32,
-                            //     pub weight: i32,
-                            //     pub override_with_keys: OverrideWithKeys,
-                            // }
-
-                            let priority = self.compute_priority(context);
-                            self.contexts.push(Context {
-                                condition: context,
-                                id: String::from("123"),
-                                priority,
-                                weight: priority,
-                                override_with_keys: [],
-                            });
-                        }
                         Err(e) => {
                             eprintln!(
                                 "Could not parse expression for override: {}, Error: {}",
@@ -170,8 +129,9 @@ impl ContextAwareConfig {
                             );
                             return false;
                         }
+                        _ => {}
                     }
-                    if let Some(contextual_overrides) = _override.as_table() {
+                    if let Some(contextual_overrides) = overrides.as_table() {
                         for (key, _value) in contextual_overrides {
                             match self.default_config.get(key) {
                                 None => {
@@ -187,6 +147,33 @@ impl ContextAwareConfig {
                             }
                         }
                     }
+
+                    let override_hash = hash(&toml_value_to_serde_value(
+                        TomlValue::Table(overrides.as_table().unwrap().clone()),
+                    ));
+                    let condition = parsed.unwrap();
+
+                    let priority = self.compute_priority(condition.clone()) as i32;
+                    // println!(
+                    //     "adding context with priority: {}, override_hash: {}",
+                    //     priority, override_hash
+                    // );
+                    self.contexts.push(Context {
+                        condition: condition.clone(),
+                        id: hash(&SerdeValue::Object(condition.get_map())),
+                        priority,
+                        weight: priority,
+                        override_with_keys: OverrideWithKeys::new(override_hash.clone()),
+                    });
+                    self.overrides.insert(
+                        override_hash,
+                        Overrides::from(
+                            toml_table_to_serde_map(
+                                overrides.as_table().unwrap().clone(),
+                            )
+                            .clone(),
+                        ),
+                    );
                     //
                 }
             } else {
@@ -205,7 +192,7 @@ impl ContextAwareConfig {
         &self,
         input: &str,
     ) -> Result<Condition, Box<dyn std::error::Error>> {
-        let mut map = HashMap::new();
+        let mut map: Map<String, SerdeValue> = Map::new();
 
         // Split by semicolon and process each key-value pair
         for pair in input.split(';') {
@@ -223,15 +210,15 @@ impl ContextAwareConfig {
             let key = parts[0].trim().to_string();
             let value_str = parts[1].trim();
 
-            // Try to parse as different types and convert to toml::Value
+            // Try to parse as different types and convert to serde::Value
             let value = if let Ok(int_val) = value_str.parse::<i64>() {
-                Value::Integer(int_val)
+                SerdeValue::from(int_val)
             } else if let Ok(float_val) = value_str.parse::<f64>() {
-                Value::Float(float_val)
+                SerdeValue::from(float_val)
             } else if let Ok(bool_val) = value_str.parse::<bool>() {
-                Value::Boolean(bool_val)
+                SerdeValue::from(bool_val)
             } else {
-                Value::String(value_str.to_string())
+                SerdeValue::from(value_str.to_string())
             };
 
             if self.dimension_priority.contains_key(&key) {
@@ -241,100 +228,168 @@ impl ContextAwareConfig {
             }
         }
 
-        Ok(map)
+        Cac::<Condition>::try_from(map)
+            .or_else(|e| {
+                return Err(
+                    format!("un-parseable string: {} with error: {}", input, e).into()
+                ); // &str
+            })
+            .map(|a| a.into_inner())
     }
 
     pub fn get_resolved_config(
         &self,
-        dimensions: &HashMap<String, Value>,
-    ) -> HashMap<String, Value> {
-        let mut chosen_overrides = BinaryHeap::new();
-        if let Some(overrides) = self.toml_value.get("context") {
-            // Check if it's a Table type
-            if let Value::Table(table) = overrides {
-                // Iterate over the table
-                for (context_expression, overrides) in table {
-                    let parsed = self.parse_string_to_hashmap(&context_expression);
-                    // println!("{:?}", parsed);
-                    match parsed {
-                        Ok(context) => {
-                            let result = evaluate_context(context, dimensions);
-                            match result {
-                                Value::Boolean(true) => {
-                                    // compute priority of override and insert into matching overrides
-                                    let priority = compute_priority(
-                                        &extracted_dimensions,
-                                        &self.dimension_priority,
-                                    );
-                                    // println!("expression: {:#?}, extracted_dimensions: {:#?}, priority: {:#?}, override: {:#?}",
-                                    // context_expression, extracted_dimensions, priority, overrides);
-                                    chosen_overrides.push(ContextualOverride {
-                                        context,
-                                        overrides: overrides.clone(),
-                                        priority,
-                                    });
-                                }
-                                Value::Boolean(false) => {
-                                    // println!("expression: {:#?}, did not match", context_expression);
-                                }
-                                _ => {
-                                    eprintln!(
-                                        "did not get a true/false value for override: {}",
-                                        context_expression
-                                    );
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            eprintln!(
-                                "Could not parse expression for Key: {}, Error: {}",
-                                context_expression, e
-                            );
-                        }
-                    }
-                }
-            } else {
-                eprintln!("'overrides' is not a table");
-            }
-        } else {
-            eprintln!("No 'overrides' table found");
-        }
-
-        let mut merged_data: HashMap<String, Value> = self.default_config.clone();
-        while let Some(item) = chosen_overrides.pop() {
-            for (key, _value) in self.default_config.iter() {
-                match item.overrides.get(key) {
-                    None => {
-                        // do nothing
-                    }
-                    _ => {
-                        // println!("expression: {:?}, key: {:?}, value: {:?}", item.expression, key, item.overrides.get(key).unwrap());
-                        merged_data.insert(
-                            key.to_string(),
-                            item.overrides.get(key).unwrap().clone(),
-                        );
-                    }
-                }
-            }
-        }
-
-        merged_data
+        dimensions: &Map<String, SerdeValue>,
+    ) -> Result<Map<String, SerdeValue>, String> {
+        eval_config(
+            self.default_config.clone(),
+            &self.contexts,
+            &self.overrides,
+            &dimensions,
+            superposition_core::MergeStrategy::MERGE,
+            None,
+        )
     }
 
-    fn compute_priority(&self, dimensions: &[String]) -> i64 {
+    fn compute_priority(&self, condition: Condition) -> i64 {
         let mut priority = 0;
 
-        for dimension in dimensions.iter() {
-            priority += self.dimension_priority.get(dimension).unwrap();
+        for dimension in condition.iter() {
+            priority += self.dimension_priority.get(dimension.0).unwrap();
         }
 
         priority
     }
 }
 
-fn evaluate_context(
-    context: &HashMap<String, Value>,
-    dimensions: &HashMap<String, Value>,
-) -> bool {
-    return true;
+pub fn toml_table_to_serde_map(table: Table) -> Map<String, SerdeValue> {
+    table
+        .into_iter()
+        .map(|(key, toml_value)| (key, toml_value_to_serde_value(toml_value)))
+        .collect()
+}
+
+/// Converts a toml::Value to a serde_json::Value
+pub fn toml_value_to_serde_value(toml_value: toml::Value) -> serde_json::Value {
+    match toml_value {
+        toml::Value::String(s) => serde_json::Value::String(s),
+        toml::Value::Integer(i) => serde_json::Value::Number(serde_json::Number::from(i)),
+        toml::Value::Float(f) => {
+            // Handle potential NaN/Infinity cases that JSON doesn't support
+            if f.is_finite() {
+                serde_json::Number::from_f64(f)
+                    .map(serde_json::Value::Number)
+                    .unwrap_or(serde_json::Value::Null)
+            } else {
+                serde_json::Value::Null
+            }
+        }
+        toml::Value::Boolean(b) => serde_json::Value::Bool(b),
+        toml::Value::Datetime(dt) => serde_json::Value::String(dt.to_string()),
+        toml::Value::Array(arr) => {
+            let json_array: Vec<serde_json::Value> =
+                arr.into_iter().map(toml_value_to_serde_value).collect();
+            serde_json::Value::Array(json_array)
+        }
+        toml::Value::Table(table) => {
+            let mut json_object = serde_json::Map::new();
+            for (key, value) in table {
+                json_object.insert(key, toml_value_to_serde_value(value));
+            }
+            serde_json::Value::Object(json_object)
+        }
+    }
+}
+
+pub fn hash(val: &SerdeValue) -> String {
+    let sorted_str: String = json_to_sorted_string(val);
+    blake3::hash(sorted_str.as_bytes()).to_string()
+}
+
+pub fn json_to_sorted_string(v: &SerdeValue) -> String {
+    match v {
+        SerdeValue::Object(m) => {
+            let mut new_str: String = String::from("");
+            for (i, val) in m.iter().sorted_by_key(|item| item.0) {
+                let p: String = json_to_sorted_string(val);
+                new_str.push_str(i);
+                new_str.push_str(&String::from(":"));
+                new_str.push_str(&p);
+                new_str.push_str(&String::from("$"));
+            }
+            new_str
+        }
+        SerdeValue::String(m) => m.to_string(),
+        SerdeValue::Number(m) => m.to_string(),
+        SerdeValue::Bool(m) => m.to_string(),
+        SerdeValue::Null => String::from("null"),
+        SerdeValue::Array(m) => {
+            let mut new_vec =
+                m.iter().map(json_to_sorted_string).collect::<Vec<String>>();
+            new_vec.sort();
+            new_vec.join(",")
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic_types() {
+        // Test string
+        let toml_str = toml::Value::String("hello".to_string());
+        let json_str = toml_value_to_serde_value(toml_str);
+        assert_eq!(json_str, serde_json::Value::String("hello".to_string()));
+
+        // Test integer
+        let toml_int = toml::Value::Integer(42);
+        let json_int = toml_value_to_serde_value(toml_int);
+        assert_eq!(
+            json_int,
+            serde_json::Value::Number(serde_json::Number::from(42))
+        );
+
+        // Test boolean
+        let toml_bool = toml::Value::Boolean(true);
+        let json_bool = toml_value_to_serde_value(toml_bool);
+        assert_eq!(json_bool, serde_json::Value::Bool(true));
+    }
+
+    #[test]
+    fn test_complex_types() {
+        // Test array
+        let toml_array = toml::Value::Array(vec![
+            toml::Value::String("item1".to_string()),
+            toml::Value::Integer(123),
+        ]);
+        let json_array = toml_value_to_serde_value(toml_array);
+        let expected = serde_json::Value::Array(vec![
+            serde_json::Value::String("item1".to_string()),
+            serde_json::Value::Number(serde_json::Number::from(123)),
+        ]);
+        assert_eq!(json_array, expected);
+
+        // Test table
+        let mut toml_table = toml::value::Table::new();
+        toml_table.insert("name".to_string(), toml::Value::String("test".to_string()));
+        toml_table.insert("count".to_string(), toml::Value::Integer(5));
+
+        let toml_value = toml::Value::Table(toml_table);
+        let json_value = toml_value_to_serde_value(toml_value);
+
+        let mut expected_map = serde_json::Map::new();
+        expected_map.insert(
+            "name".to_string(),
+            serde_json::Value::String("test".to_string()),
+        );
+        expected_map.insert(
+            "count".to_string(),
+            serde_json::Value::Number(serde_json::Number::from(5)),
+        );
+        let expected = serde_json::Value::Object(expected_map);
+
+        assert_eq!(json_value, expected);
+    }
 }

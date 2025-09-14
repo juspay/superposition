@@ -1,9 +1,8 @@
-use std::collections::HashMap;
+use serde_json::{Map, Value};
 use std::process;
 
 use cac_toml::ContextAwareConfig;
 use clap::{Arg, Command};
-use toml::Value;
 
 fn main() {
     let args = Command::new("CAC Demo App")
@@ -26,16 +25,14 @@ fn main() {
         )
         .get_matches();
 
-    let mut dimensions: HashMap<String, Value> = HashMap::new();
+    let mut dimensions: Map<String, Value> = Map::new();
 
     if let Some(values) = args.get_many::<String>("dimension") {
         for value in values {
             let parts: Vec<&str> = value.split('=').collect();
             if parts.len() == 2 {
-                dimensions.insert(
-                    parts[0].to_string(),
-                    toml::Value::String(parts[1].to_string()),
-                );
+                dimensions
+                    .insert(parts[0].to_string(), Value::String(parts[1].to_string()));
             }
         }
     }
