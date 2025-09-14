@@ -1,8 +1,8 @@
 use serde_json::{Map, Value};
 use std::process;
 
-use cac_toml::ContextAwareConfig;
 use clap::{Arg, Command};
+use superposition_toml::SuperpositionToml;
 
 fn main() {
     let args = Command::new("CAC Demo App")
@@ -39,7 +39,7 @@ fn main() {
 
     let file: String = args.get_one::<String>("file").unwrap().to_string();
 
-    let cac = ContextAwareConfig::parse(&file).unwrap_or_else(|_err| {
+    let cac = SuperpositionToml::parse(&file).unwrap_or_else(|_err| {
         eprintln!("Could not parse file at {}", file);
         process::exit(-1);
     });

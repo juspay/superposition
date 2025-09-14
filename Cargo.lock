@@ -1222,21 +1222,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cac_toml"
-version = "0.95.1"
-dependencies = [
- "blake3",
- "clap 4.3.4",
- "itertools 0.10.5",
- "pest",
- "pest_derive",
- "serde_json",
- "superposition_core",
- "superposition_types",
- "toml 0.8.8",
-]
-
-[[package]]
 name = "cached"
 version = "0.45.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5520,6 +5505,21 @@ dependencies = [
  "fastrand 2.3.0",
  "http 0.2.9",
  "tracing",
+]
+
+[[package]]
+name = "superposition_toml"
+version = "0.91.1"
+dependencies = [
+ "blake3",
+ "clap 4.3.4",
+ "itertools 0.10.5",
+ "pest",
+ "pest_derive",
+ "serde_json",
+ "superposition_core",
+ "superposition_types",
+ "toml 0.8.8",
 ]
 
 [[package]]

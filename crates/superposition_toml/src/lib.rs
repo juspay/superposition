@@ -10,7 +10,7 @@ use superposition_types::{Cac, Condition, Context, OverrideWithKeys, Overrides};
 use toml::{Table, Value as TomlValue};
 
 #[derive(Clone, Debug)]
-pub struct ContextAwareConfig {
+pub struct SuperpositionToml {
     file: String,
     dimension_priority: HashMap<String, i64>,
     default_config: Map<String, SerdeValue>,
@@ -20,16 +20,16 @@ pub struct ContextAwareConfig {
 }
 
 #[derive(Debug, Clone)]
-pub struct CACParseError;
+pub struct SuperpositionTomlParseError;
 
-impl fmt::Display for CACParseError {
+impl fmt::Display for SuperpositionTomlParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Unable to parse CAC TOML file.")
     }
 }
 
-impl ContextAwareConfig {
-    pub fn parse(file: &str) -> Result<ContextAwareConfig, CACParseError> {
+impl SuperpositionToml {
+    pub fn parse(file: &str) -> Result<SuperpositionToml, SuperpositionTomlParseError> {
         let toml_file_path = Path::new(file);
 
         // Read the content of the TOML file
@@ -40,7 +40,7 @@ impl ContextAwareConfig {
         let toml_value =
             toml::from_str(&toml_content).expect("Failed to parse the TOML file");
 
-        let mut cac: ContextAwareConfig = ContextAwareConfig {
+        let mut superposition_toml: SuperpositionToml = SuperpositionToml {
             file: String::from(file),
             dimension_priority: HashMap::new(),
             contexts: Vec::new(),
@@ -49,9 +49,9 @@ impl ContextAwareConfig {
             toml_value,
         };
 
-        match cac.parse_and_load() {
-            true => Ok(cac),
-            false => Err(CACParseError),
+        match superposition_toml.parse_and_load() {
+            true => Ok(superposition_toml),
+            false => Err(SuperpositionTomlParseError),
         }
     }
 
