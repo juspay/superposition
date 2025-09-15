@@ -59,7 +59,7 @@ ctx = EvaluationContext(
   attributes={'d1': 'd1'}
 )
 
-bool_val = client.get_boolean_details(
+bool_val = client.get_boolean_value(
     flag_key="bool",
     default_value=True,
     evaluation_context=ctx
