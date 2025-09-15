@@ -61,7 +61,9 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	schema-file
 	setup
 	setup-clients
+	smithy-clean
 	smithy-build
+	smithy-clean-build
 	smithy-api-docs
 	smithy-updates
 	validate-aws-connection
@@ -244,22 +246,47 @@ test_jsonlogic: setup frontend superposition_jsonlogic
 tailwind:
 	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
 
+smithy-clean:
+	rm -rf smithy/output
+
 smithy-build:
 	cd smithy && smithy build
+
+smithy-clean-build: smithy-clean smithy-build
 
 smithy-clients: smithy-build
 ## Moving the Java client like this as smithy publishes it as a java project.
 ## Probably want to use that to publish it ourselves in the future.
+	rm -rf clients/java/sdk/src/main/java
+	mkdir -p clients/java/sdk/src/main/java
 	cp -r $(SMITHY_BUILD_SRC)/java-client-codegen/*\
 				clients/java/sdk/src/main/java
+
+	rm -rf clients/python/sdk
+	mkdir -p clients/python/sdk
 	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
 				clients/python/sdk
+
+	rm -rf clients/haskell/sdk
+	mkdir -p clients/haskell/sdk
 	cp -r $(SMITHY_BUILD_SRC)/haskell-client-codegen/*\
 				clients/haskell/sdk
+
+## not removing the root folder here, deleting the src folder only
+	rm -rf clients/javascript/sdk
+	mkdir -p clients/javascript/sdk
+	git restore clients/javascript/sdk/README.md
+	git restore clients/javascript/sdk/LICENSE
 	cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen/*\
 				clients/javascript/sdk
+
+	rm -rf crates/superposition_sdk
+	mkdir -p crates/superposition_sdk
+	git restore crates/superposition_sdk/README.md
+	git restore crates/superposition_sdk/CHANGELOG.md
 	cp -r $(SMITHY_BUILD_SRC)/rust-client-codegen/*\
 				crates/superposition_sdk
+
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
 		[[ "$$d" =~ "java" || "$$d" =~ "haskell" || "$$d" =~ "python" || "$$d" =~ "typescript" || "$$d" =~ "rust" ]] && continue; \
@@ -268,9 +295,15 @@ smithy-clients: smithy-build
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
 	git apply smithy/patches/*.patch
+	git restore clients/python/sdk/README.md
+	git restore LICENSE
 
 # API Documentation targets
 smithy-api-docs: smithy-build
+	rm -rf docs/docs/api
+	mkdir -p docs/docs/api
+# FIXME: Remove this and make the sidebar generation automatic with proper TAGS
+	git restore docs/docs/api/sidebar.ts
 	cp $(SMITHY_BUILD_SRC)/openapi/Superposition.openapi.json docs/docs/api/
 	cd docs && npm ci && npm run openapi-docs
 
