@@ -39,11 +39,11 @@ fn main() {
 
     let file: String = args.get_one::<String>("file").unwrap().to_string();
 
-    let cac = SuperpositionToml::parse(&file).unwrap_or_else(|_err| {
+    let config = SuperpositionToml::parse(&file).unwrap_or_else(|_err| {
         eprintln!("Could not parse file at {}", file);
         process::exit(-1);
     });
 
-    println!("{:#?}", cac.get_resolved_config(&dimensions));
+    println!("{:#?}", config.get_resolved_config(&dimensions));
     process::exit(0);
 }
