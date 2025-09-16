@@ -1,7 +1,8 @@
 [package]
 name = "service_utils"
-version.workspace = true
-edition = "2021"
+version = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
