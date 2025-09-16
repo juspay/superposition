@@ -8,6 +8,7 @@ edition = "2021"
 license = { workspace = true }
 homepage = { workspace = true }
 repository = "https://github.com/juspay/superposition"
+rust-version = "1.85.0"
 readme = "README.md"
 
 [package.metadata.smithy]

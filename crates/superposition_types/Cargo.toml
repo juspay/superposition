@@ -1,7 +1,8 @@
 [package]
 name = "superposition_types"
-version.workspace = true
+version = { workspace = true }
 edition = "2021"
+rust-version = { workspace = true }
 license = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }

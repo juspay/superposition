@@ -2,6 +2,7 @@
 name = "superposition_core"
 version.workspace = true
 edition = "2021"
+rust-version.workspace = true
 description = "Core native library for Superposition FFI bindings"
 license = { workspace = true }
 homepage = { workspace = true }

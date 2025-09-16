@@ -34,6 +34,7 @@
       "service": "io.superposition#Superposition",
       "module": "superposition_sdk",
       "moduleVersion": "0.1.0",
+      "minimumSupportedRustVersion": "1.85.0",
       "moduleDescription": "Rust SDK to work with Superposition",
       "moduleAuthors": [
         "superposition@juspay.in"

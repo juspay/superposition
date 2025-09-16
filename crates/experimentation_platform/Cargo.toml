@@ -2,7 +2,8 @@
 name = "experimentation_platform"
 description = "experimentation-platform leverages the power of context-aware-config to allow for N variant experiments and A/B releases"
 version.workspace = true
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
