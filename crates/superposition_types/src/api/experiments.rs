@@ -11,7 +11,7 @@ use superposition_derives::{IsEmpty, QueryParam};
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::experiments;
 use crate::{
-    api::{deserialize_option_i64, i64_option_formatter},
+    api::{deserialize_option_i64, i64_option_formatter, DimensionMatchStrategy},
     custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams, QueryParam},
     database::models::{
         experimentation::{
@@ -226,7 +226,7 @@ impl Default for ExperimentSortOn {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, IsEmpty, QueryParam)]
+#[derive(Deserialize, Serialize, Clone, PartialEq, IsEmpty, QueryParam)]
 pub struct ExperimentListFilters {
     #[query_param(skip_if_empty)]
     pub status: Option<CommaSeparatedQParams<ExperimentStatusType>>,
@@ -242,6 +242,7 @@ pub struct ExperimentListFilters {
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
     pub global_experiments_only: Option<bool>,
+    pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 
 impl Default for ExperimentListFilters {
@@ -266,6 +267,7 @@ impl Default for ExperimentListFilters {
             sort_on: None,
             sort_by: Some(SortBy::Desc),
             global_experiments_only: None,
+            dimension_match_strategy: None,
         }
     }
 }

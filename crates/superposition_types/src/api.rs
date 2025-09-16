@@ -25,6 +25,24 @@ pub fn default_true() -> bool {
     true
 }
 
+#[derive(
+    Deserialize,
+    Serialize,
+    PartialEq,
+    Copy,
+    Clone,
+    strum_macros::EnumIter,
+    strum_macros::Display,
+    Default,
+)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum DimensionMatchStrategy {
+    Exact,
+    #[default]
+    Subset,
+}
+
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Nullable<BigInt>))]

@@ -25,6 +25,8 @@ pub struct ListContextsInput  {
     pub last_modified_by: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub plaintext: ::std::option::Option<::std::string::String>,
+    /// Strategy to follow while filter items based on the context
+    pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl  ListContextsInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -71,6 +73,10 @@ impl  ListContextsInput  {
     pub fn plaintext(&self) -> ::std::option::Option<&str> {
         self.plaintext.as_deref()
     }
+    /// Strategy to follow while filter items based on the context
+    pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
+        self.dimension_match_strategy.as_ref()
+    }
 }
 impl ListContextsInput {
     /// Creates a new builder-style object to manufacture [`ListContextsInput`](crate::operation::list_contexts::ListContextsInput).
@@ -94,6 +100,7 @@ pub struct ListContextsInputBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) plaintext: ::std::option::Option<::std::string::String>,
+    pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl ListContextsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -241,6 +248,19 @@ impl ListContextsInputBuilder {
     pub fn get_plaintext(&self) -> &::std::option::Option<::std::string::String> {
         &self.plaintext
     }
+    /// Strategy to follow while filter items based on the context
+    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
+        self.dimension_match_strategy = ::std::option::Option::Some(input);
+        self
+    }
+    /// Strategy to follow while filter items based on the context
+    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
+        self.dimension_match_strategy = input; self
+    }
+    /// Strategy to follow while filter items based on the context
+    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+        &self.dimension_match_strategy
+    }
     /// Consumes the builder and constructs a [`ListContextsInput`](crate::operation::list_contexts::ListContextsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_contexts::ListContextsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -266,6 +286,8 @@ impl ListContextsInputBuilder {
                 last_modified_by: self.last_modified_by
                 ,
                 plaintext: self.plaintext
+                ,
+                dimension_match_strategy: self.dimension_match_strategy
                 ,
             }
         )

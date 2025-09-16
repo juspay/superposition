@@ -120,6 +120,7 @@ library
                         Io.Superposition.Model.GetConfigOutput,
                         Io.Superposition.Model.GetWebhookOutput,
                         Io.Superposition.Model.ListDefaultConfigsInput,
+                        Io.Superposition.Model.DimensionMatchStrategy,
                         Io.Superposition.Model.UpdateDefaultConfigInput,
                         Io.Superposition.Model.UpdateWorkspaceOutput,
                         Io.Superposition.Model.CreateOrganisationOutput,

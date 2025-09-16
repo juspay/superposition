@@ -180,6 +180,11 @@ fn uri_query(_input: &crate::operation::list_contexts::ListContextsInput, mut ou
             query.push_kv("plaintext", &::aws_smithy_http::query::fmt_string(inner_9));
         }
     }
+    if let ::std::option::Option::Some(inner_10) = &_input.dimension_match_strategy {
+         {
+            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_10));
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

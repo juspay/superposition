@@ -41,3 +41,11 @@ enum SortBy {
     @documentation("Ascending order (A-Z, oldest first)")
     Asc = "asc"
 }
+
+@documentation("Strategy to follow while filter items based on the context")
+enum DimensionMatchStrategy {
+    @documentation("Match the overrides which have the exact context")
+    Exact = "exact"
+    @documentation("Match the overrides which have the given context as subset")
+    Subset = "subset"
+}

@@ -239,6 +239,10 @@ operation ListContexts {
         @httpQuery("plaintext")
         @notProperty
         plaintext: String
+        
+        @httpQuery("dimension_match_strategy")
+        @notProperty
+        dimension_match_strategy: DimensionMatchStrategy
     }
 
     output := {

@@ -33,6 +33,8 @@ pub struct ListExperimentInput  {
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
     #[allow(missing_docs)] // documentation missing in model
     pub global_experiments_only: ::std::option::Option<bool>,
+    /// Strategy to follow while filter items based on the context
+    pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl  ListExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -95,6 +97,10 @@ impl  ListExperimentInput  {
     pub fn global_experiments_only(&self) -> ::std::option::Option<bool> {
         self.global_experiments_only
     }
+    /// Strategy to follow while filter items based on the context
+    pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
+        self.dimension_match_strategy.as_ref()
+    }
 }
 impl ListExperimentInput {
     /// Creates a new builder-style object to manufacture [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
@@ -122,6 +128,7 @@ pub struct ListExperimentInputBuilder {
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) global_experiments_only: ::std::option::Option<bool>,
+    pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl ListExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -321,6 +328,19 @@ impl ListExperimentInputBuilder {
     pub fn get_global_experiments_only(&self) -> &::std::option::Option<bool> {
         &self.global_experiments_only
     }
+    /// Strategy to follow while filter items based on the context
+    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
+        self.dimension_match_strategy = ::std::option::Option::Some(input);
+        self
+    }
+    /// Strategy to follow while filter items based on the context
+    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
+        self.dimension_match_strategy = input; self
+    }
+    /// Strategy to follow while filter items based on the context
+    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+        &self.dimension_match_strategy
+    }
     /// Consumes the builder and constructs a [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment::ListExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -354,6 +374,8 @@ impl ListExperimentInputBuilder {
                 sort_by: self.sort_by
                 ,
                 global_experiments_only: self.global_experiments_only
+                ,
+                dimension_match_strategy: self.dimension_match_strategy
                 ,
             }
         )

@@ -206,7 +206,7 @@ run_legacy: kill build db superposition_legacy
 	@./target/debug/superposition
 
 run_jsonlogic: FE_FEATURES += jsonlogic
-run_jsonlogic: kill build db superposition_jsonlogic
+run_jsonlogic: kill db frontend superposition_jsonlogic
 	@./target/debug/superposition
 
 test: WASM_PACK_MODE=--profiling
@@ -272,7 +272,6 @@ smithy-clients: smithy-build
 	cp -r $(SMITHY_BUILD_SRC)/haskell-client-codegen/*\
 				clients/haskell/sdk
 
-## not removing the root folder here, deleting the src folder only
 	rm -rf clients/javascript/sdk
 	mkdir -p clients/javascript/sdk
 	git restore clients/javascript/sdk/README.md

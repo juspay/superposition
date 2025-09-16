@@ -33,6 +33,8 @@ pub use crate::types::_variant_update_request::VariantUpdateRequest;
 
 pub use crate::types::_experiment_response::ExperimentResponse;
 
+pub use crate::types::_dimension_match_strategy::DimensionMatchStrategy;
+
 pub use crate::types::_experiment_sort_on::ExperimentSortOn;
 
 pub use crate::types::_org_status::OrgStatus;
@@ -114,6 +116,8 @@ mod _context_response;
 mod _default_config_full;
 
 mod _dimension_ext;
+
+mod _dimension_match_strategy;
 
 mod _experiment_group_response;
 

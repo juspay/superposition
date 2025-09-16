@@ -811,6 +811,25 @@ export interface GetContextFromConditionInput {
  * @public
  * @enum
  */
+export const DimensionMatchStrategy = {
+  /**
+   * Match the overrides which have the exact context
+   */
+  Exact: "exact",
+  /**
+   * Match the overrides which have the given context as subset
+   */
+  Subset: "subset",
+} as const
+/**
+ * @public
+ */
+export type DimensionMatchStrategy = typeof DimensionMatchStrategy[keyof typeof DimensionMatchStrategy]
+
+/**
+ * @public
+ * @enum
+ */
 export const SortBy = {
   /**
    * Ascending order (A-Z, oldest first)
@@ -860,6 +879,11 @@ export interface ListContextsInput {
   created_by?: string | undefined;
   last_modified_by?: string | undefined;
   plaintext?: string | undefined;
+  /**
+   * Strategy to follow while filter items based on the context
+   * @public
+   */
+  dimension_match_strategy?: DimensionMatchStrategy | undefined;
 }
 
 /**
@@ -1685,6 +1709,11 @@ export interface ListExperimentInput {
   sort_by?: SortBy | undefined;
 
   global_experiments_only?: boolean | undefined;
+  /**
+   * Strategy to follow while filter items based on the context
+   * @public
+   */
+  dimension_match_strategy?: DimensionMatchStrategy | undefined;
 }
 
 /**

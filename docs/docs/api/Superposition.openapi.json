@@ -691,6 +691,14 @@
                         }
                     },
                     {
+                        "name": "dimension_match_strategy",
+                        "in": "query",
+                        "description": "Strategy to follow while filter items based on the context",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionMatchStrategy"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2163,6 +2171,14 @@
                         "in": "query",
                         "schema": {
                             "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "dimension_match_strategy",
+                        "in": "query",
+                        "description": "Strategy to follow while filter items based on the context",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionMatchStrategy"
                         }
                     },
                     {
@@ -5818,6 +5834,14 @@
                     "last_modified_by",
                     "position",
                     "schema"
+                ]
+            },
+            "DimensionMatchStrategy": {
+                "type": "string",
+                "description": "Strategy to follow while filter items based on the context",
+                "enum": [
+                    "exact",
+                    "subset"
                 ]
             },
             "DiscardExperimentRequestContent": {

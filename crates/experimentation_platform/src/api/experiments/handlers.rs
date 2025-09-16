@@ -44,6 +44,7 @@ use superposition_types::{
             ExperimentResponse, ExperimentSortOn, ExperimentStateChangeRequest,
             OverrideKeysUpdateRequest, RampRequest,
         },
+        DimensionMatchStrategy,
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
@@ -1026,10 +1027,15 @@ async fn list_experiments(
                 .collect()
         } else {
             let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-            let dimension_filter_experiments =
+            let dimension_filtered_experiments =
                 Experiment::filter_by_dimension(all_experiments, &dimension_keys);
 
-            Experiment::filter_by_eval(dimension_filter_experiments, &dimension_params)
+            let filter_fn = match filters.dimension_match_strategy.unwrap_or_default() {
+                DimensionMatchStrategy::Exact => Experiment::filter_exact_match,
+                DimensionMatchStrategy::Subset => Experiment::filter_by_eval,
+            };
+
+            filter_fn(dimension_filtered_experiments, &dimension_params)
         };
 
         let experiments = filtered_experiments

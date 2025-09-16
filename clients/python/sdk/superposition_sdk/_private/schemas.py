@@ -2680,6 +2680,31 @@ GET_CONTEXT_FROM_CONDITION = Schema(
 
 )
 
+DIMENSION_MATCH_STRATEGY = Schema.collection(
+    id=ShapeID("io.superposition#DimensionMatchStrategy"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "Exact": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="exact"),
+
+            ],
+        },
+
+        "Subset": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="subset"),
+
+            ],
+        },
+
+    }
+)
+
 SORT_BY = Schema.collection(
     id=ShapeID("io.superposition#SortBy"),
     shape_type=ShapeType.ENUM,
@@ -2854,6 +2879,16 @@ LIST_CONTEXTS_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="plaintext"),
+
+            ],
+        },
+
+        "dimension_match_strategy": {
+            "target": DIMENSION_MATCH_STRATEGY,
+            "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
 
             ],
         },
@@ -8987,6 +9022,16 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="global_experiments_only"),
+
+            ],
+        },
+
+        "dimension_match_strategy": {
+            "target": DIMENSION_MATCH_STRATEGY,
+            "index": 15,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
 
             ],
         },

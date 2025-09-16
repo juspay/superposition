@@ -1213,6 +1213,7 @@ export const se_ListContextsCommand = async(
     [_cb]: [,input[_cb]!],
     [_lmb]: [,input[_lmb]!],
     [_pl]: [,input[_pl]!],
+    [_dms]: [,input[_dms]!],
   });
   let body: any;
   b.m("GET")
@@ -1301,6 +1302,7 @@ export const se_ListExperimentCommand = async(
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
     [_geo]: [() => input.global_experiments_only !== void 0, () => (input[_geo]!.toString())],
+    [_dms]: [,input[_dms]!],
   });
   let body: any;
   b.m("GET")
@@ -5016,6 +5018,7 @@ const de_CommandError = async(
   const _cb = "created_by";
   const _ci = "context_id";
   const _ct = "config_tags";
+  const _dms = "dimension_match_strategy";
   const _egi = "experiment_group_ids";
   const _ei = "experiment_ids";
   const _en = "experiment_name";
