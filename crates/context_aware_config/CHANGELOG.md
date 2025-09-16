@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.61.0 - 2025-09-16
+#### Features
+- Exact match option for context and experiment filter (#700) - (0944a86) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump axios in /crates/context_aware_config (#703) - (eb821f7) - dependabot[bot]
+- **(version)** v0.89.0 [skip ci] - (d68f44e) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.60.1 - 2025-09-09
 #### Bug Fixes
 - Snapshot page and apis - (36fd9b6) - ayush.jain@juspay.in

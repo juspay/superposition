@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.90.0 - 2025-09-16
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.61.0
+- superposition_sdk bumped to superposition_sdk-v0.7.0
+- haskell_client bumped to haskell_client-v0.5.0
+- frontend bumped to frontend-v0.43.0
+- superposition_types bumped to superposition_types-v0.33.0
+- experimentation_platform bumped to experimentation_platform-v0.43.0
+- superposition_provider bumped to superposition_provider-v0.4.4
+- experimentation_client bumped to experimentation_client-v0.20.0
+### Global changes
+#### Bug Fixes
+- **(hs-sdk)** Multiple fixes, tests & re-org files. (#677) - (a520099) - ShreyBana
+- introduce all filter for list contexts API in smithy (#697) - (556386d) - Datron
+#### Features
+- Exact match option for context and experiment filter (#700) - (0944a86) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps-dev)** bump vite in /examples/dynamic-payment-fields (#698) - (7a55487) - dependabot[bot]
+- **(version)** v0.89.0 [skip ci] - (d68f44e) - Superposition Bot
+- make smithy generation consistent, with deadcode removal (#702) - (83fffc6) - Ayush Jain
+
+- - -
+
 ## v0.89.0 - 2025-09-09
 ### Package updates
 - service_utils bumped to service_utils-v0.33.1

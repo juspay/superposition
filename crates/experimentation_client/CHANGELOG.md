@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.20.0 - 2025-09-16
+#### Features
+- Exact match option for context and experiment filter (#700) - (0944a86) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.89.0 [skip ci] - (d68f44e) - Superposition Bot
+
+- - -
+
 ## experimentation_client-v0.19.0 - 2025-09-09
 #### Bug Fixes
 - Experiment applicable group resolution for system generated (#692) - (fa1c5a6) - Ayush Jain
