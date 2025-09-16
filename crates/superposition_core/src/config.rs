@@ -1,7 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
 use serde_json::{json, Map, Value};
-use superposition_types::{Config, Context, DimensionInfo, Overrides};
+use superposition_types::{
+    database::models::cac::DimensionType, Config, Context, DimensionInfo, Overrides,
+};
 
 #[derive(Clone, Debug, PartialEq, strum_macros::Display, Default, uniffi::Enum)]
 #[strum(serialize_all = "snake_case")]
@@ -19,6 +21,80 @@ impl From<&str> for MergeStrategy {
             _ => Self::default(),
         }
     }
+}
+
+fn evaluate_cohort(
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+) -> Result<Map<String, Value>, String> {
+    let mut cohort_context = Map::new();
+
+    for (dimension_key, dimension_value) in query_data {
+        let dimension_info = match dimensions.get(dimension_key) {
+            Some(info) => info,
+            None => {
+                log::error!("CAC: dimension {dimension_key} not found in dimensions");
+                return Err(format!(
+                    "CAC: dimension {dimension_key} not found in dimensions"
+                ));
+            }
+        };
+
+        if dimension_info.dimension_type != DimensionType::Regular {
+            continue;
+        }
+
+        for dependency in &dimension_info.dependencies {
+            let dependency_info = match dimensions.get(dependency) {
+                Some(info) => info,
+                None => {
+                    log::error!(
+                        "CAC: dependency dimension {dependency} not found in dimensions"
+                    );
+                    return Err(format!(
+                        "CAC: dependency dimension {dependency} not found in dimensions"
+                    ));
+                }
+            };
+
+            if dependency_info.dimension_type != DimensionType::LocalCohort {
+                continue;
+            }
+
+            let schema_object = match &dependency_info.schema {
+                Value::Object(logic) => logic,
+                _ => {
+                    log::error!("CAC: failed to parse schema for dimension {dependency}");
+                    return Err(format!(
+                        "CAC: failed to parse schema for dimension {dependency}"
+                    ));
+                }
+            };
+
+            for (cohort_name, expression) in schema_object.iter() {
+                let evaluation_data = json!({dimension_key: dimension_value});
+
+                match jsonlogic::apply(expression, &evaluation_data) {
+                    Ok(Value::Bool(true)) => {
+                        cohort_context.insert(
+                            dependency.clone(),
+                            Value::String(cohort_name.clone()),
+                        );
+                        break; // stop at the first match
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    let modified_query_data = query_data
+        .clone()
+        .into_iter()
+        .chain(cohort_context.clone().into_iter())
+        .collect::<Map<String, Value>>();
+
+    Ok(modified_query_data)
 }
 
 pub fn eval_config(
@@ -45,8 +121,11 @@ pub fn eval_config(
                 config.filter_by_prefix(&HashSet::from_iter(prefixes.iter().cloned()));
         }
     }
+
+    let modified_query_data = evaluate_cohort(&config.dimensions, query_data)?;
+
     let overrides_map: Map<String, Value> = get_overrides(
-        query_data,
+        &modified_query_data,
         &config.contexts,
         &config.overrides,
         &merge_strategy,
@@ -92,8 +171,10 @@ pub fn eval_config_with_reasoning(
         }));
     };
 
+    let modified_query_data = evaluate_cohort(&config.dimensions, query_data)?;
+
     let overrides_map = get_overrides(
-        query_data,
+        &modified_query_data,
         &config.contexts,
         &config.overrides,
         &merge_strategy,
