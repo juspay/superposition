@@ -9,7 +9,7 @@ use std::ptr;
 use crate::config::{self, MergeStrategy};
 use crate::experiment::ExperimentationArgs;
 use crate::{get_applicable_variants, Experiments};
-use superposition_types::{Context, Overrides};
+use superposition_types::{Context, DimensionInfo, Overrides};
 // Thread-local storage for error handling
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
@@ -58,6 +58,7 @@ pub extern "C" fn core_get_resolved_config(
     default_config_json: *const c_char,
     contexts_json: *const c_char,
     overrides_json: *const c_char,
+    dimensions: *const c_char,
     query_data_json: *const c_char,
     merge_strategy_str: *const c_char,
     filter_prefixes_json: *const c_char,
@@ -67,6 +68,7 @@ pub extern "C" fn core_get_resolved_config(
     if default_config_json.is_null()
         || contexts_json.is_null()
         || overrides_json.is_null()
+        || dimensions.is_null()
         || query_data_json.is_null()
         || merge_strategy_str.is_null()
     {
@@ -165,11 +167,20 @@ pub extern "C" fn core_get_resolved_config(
         }
     }
 
+    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
+        Ok(dimensions) => dimensions,
+        Err(e) => {
+            set_last_error(format!("Failed to parse dimensions: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
     // Call pure config resolution logic
     match config::eval_config(
         default_config,
         &contexts,
         &overrides,
+        &dimensions,
         &query_data,
         merge_strategy,
         filter_prefixes,
@@ -193,6 +204,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     default_config_json: *const c_char,
     contexts_json: *const c_char,
     overrides_json: *const c_char,
+    dimensions: *const c_char,
     query_data_json: *const c_char,
     merge_strategy_str: *const c_char,
     filter_prefixes_json: *const c_char,
@@ -202,6 +214,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     if default_config_json.is_null()
         || contexts_json.is_null()
         || overrides_json.is_null()
+        || dimensions.is_null()
         || query_data_json.is_null()
         || merge_strategy_str.is_null()
     {
@@ -301,11 +314,20 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
         }
     }
 
+    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
+        Ok(dimensions) => dimensions,
+        Err(e) => {
+            set_last_error(format!("Failed to parse dimensions: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
     // Call config resolution with reasoning
     match config::eval_config_with_reasoning(
         default_config,
         &contexts,
         &overrides,
+        &dimensions,
         &query_data,
         merge_strategy,
         filter_prefixes,

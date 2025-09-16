@@ -28,7 +28,9 @@ use diesel_derive_enum as _;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-pub use config::{Condition, Config, Context, OverrideWithKeys, Overrides};
+pub use config::{
+    Condition, Config, Context, DimensionInfo, OverrideWithKeys, Overrides,
+};
 pub use contextual::Contextual;
 pub use logic::{apply, partial_apply};
 pub use overridden::Overridden;

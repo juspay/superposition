@@ -10,6 +10,8 @@ pub struct GetConfigOutput  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub default_configs: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
+    pub dimensions: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -31,6 +33,10 @@ impl  GetConfigOutput  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn default_configs(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.default_configs.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dimensions(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        self.dimensions.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(&self) -> ::std::option::Option<&str> {
@@ -59,6 +65,7 @@ pub struct GetConfigOutputBuilder {
     pub(crate) contexts: ::std::option::Option<::std::vec::Vec::<crate::types::ContextPartial>>,
     pub(crate) overrides: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>>,
     pub(crate) default_configs: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) dimensions: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) audit_id: ::std::option::Option<::std::string::String>,
@@ -166,6 +173,8 @@ impl GetConfigOutputBuilder {
             overrides: self.overrides
             ,
             default_configs: self.default_configs
+            ,
+            dimensions: self.dimensions
             ,
             version: self.version
             ,

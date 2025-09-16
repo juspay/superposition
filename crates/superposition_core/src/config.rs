@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use serde_json::{json, Map, Value};
-use superposition_types::{Config, Context, Overrides};
+use superposition_types::{Config, Context, DimensionInfo, Overrides};
 
 #[derive(Clone, Debug, PartialEq, strum_macros::Display, Default, uniffi::Enum)]
 #[strum(serialize_all = "snake_case")]
@@ -25,6 +25,7 @@ pub fn eval_config(
     default_config: Map<String, Value>,
     contexts: &[Context],
     overrides: &HashMap<String, Overrides>,
+    dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -34,6 +35,7 @@ pub fn eval_config(
         default_configs: default_config,
         contexts: contexts.to_vec(),
         overrides: overrides.clone(),
+        dimensions: dimensions.clone(),
     };
 
     // Apply prefix filtering if keys are provided (using existing superposition_types logic)
@@ -62,6 +64,7 @@ pub fn eval_config_with_reasoning(
     default_config: Map<String, Value>,
     contexts: &[Context],
     overrides: &HashMap<String, Overrides>,
+    dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
@@ -72,6 +75,7 @@ pub fn eval_config_with_reasoning(
         default_configs: default_config,
         contexts: contexts.to_vec(),
         overrides: overrides.clone(),
+        dimensions: dimensions.clone(),
     };
 
     if let Some(prefixes) = filter_prefixes {
