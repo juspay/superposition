@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.7.0 - 2025-09-16
+#### Bug Fixes
+- introduce all filter for list contexts API in smithy (#697) - (556386d) - Datron
+#### Features
+- Exact match option for context and experiment filter (#700) - (0944a86) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.89.0 [skip ci] - (d68f44e) - Superposition Bot
+- make smithy generation consistent, with deadcode removal (#702) - (83fffc6) - Ayush Jain
+
+- - -
+
 ## superposition_sdk-v0.6.0 - 2025-09-09
 #### Documentation
 - added documnetation for all the operations in smithy (#672) - (b51c486) - sauraww

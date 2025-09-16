@@ -5,7 +5,7 @@ package.homepage = "https://juspay.io/open-source/superposition"
 package.repository = "https://github.com/juspay/superposition"
 package.readme = "README.md"
 package.authors = ["superposition@juspay.in"]
-package.version = "0.89.0"
+package.version = "0.90.0"
 
 members = [
     "crates/service_utils",
@@ -74,14 +74,14 @@ toml = { version = "0.8.8", features = ["preserve_order"] }
 url = "2.5.0"
 uuid = { version = "1.3.4", features = ["v4", "serde"] }
 uniffi = { version = "0.29.3", features = [ "cli" ] }
-superposition = { path = "crates/superposition", version = "0.89.0" }
-superposition_types = { path = "crates/superposition_types", version = "0.89.0" }
-superposition_derives = { path = "crates/superposition_derives", version = "0.89.0" }
-superposition_macros = { path = "crates/superposition_macros", version = "0.89.0" }
-superposition_core = { path = "crates/superposition_core", version = "0.89.0" }
-superposition_provider = { path = "crates/superposition_provider", version = "0.89.0" }
-superposition_sdk = { path = "crates/superposition_sdk", version = "0.89.0" }
-service_utils = { path = "crates/service_utils", version = "0.89.0" }
+superposition = { path = "crates/superposition", version = "0.90.0" }
+superposition_types = { path = "crates/superposition_types", version = "0.90.0" }
+superposition_derives = { path = "crates/superposition_derives", version = "0.90.0" }
+superposition_macros = { path = "crates/superposition_macros", version = "0.90.0" }
+superposition_core = { path = "crates/superposition_core", version = "0.90.0" }
+superposition_provider = { path = "crates/superposition_provider", version = "0.90.0" }
+superposition_sdk = { path = "crates/superposition_sdk", version = "0.90.0" }
+service_utils = { path = "crates/service_utils", version = "0.90.0" }
 
 [workspace.lints.clippy]
 mod_module_files = "warn"

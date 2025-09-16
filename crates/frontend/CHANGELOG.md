@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.43.0 - 2025-09-16
+#### Features
+- Exact match option for context and experiment filter (#700) - (0944a86) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.89.0 [skip ci] - (d68f44e) - Superposition Bot
+
+- - -
+
 ## frontend-v0.42.0 - 2025-09-09
 #### Bug Fixes
 - Snapshot page and apis - (36fd9b6) - ayush.jain@juspay.in

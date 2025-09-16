@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.4.4 - 2025-09-16
+#### Bug Fixes
+- Rust provider doc (#699) - (4494b3e) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.87.0 [skip ci] - (87e0763) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.4.3 - 2025-08-13
 #### Bug Fixes
 - show proper license in crates.io (#657) - (9406a0d) - Datron
