@@ -36,7 +36,7 @@ RUN mv crates/frontend/pkg target/site/
 RUN cp -a crates/frontend/assets/. target/site/
 RUN cp .env.example target/.env
 # building backend
-RUN cargo build --release
+RUN cargo build --release --features=ssr
 RUN pwd
 RUN ls -l target
 
