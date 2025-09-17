@@ -188,11 +188,12 @@ frontend:
 	mv crates/frontend/pkg target/site/
 	cp -a crates/frontend/assets/. target/site/
 
+backend: CARGO_FLAGS += --features='$(FEATURES)' --color always
 backend:
 	-rm -rf target/node_modules
 	npm --prefix ./crates/context_aware_config/ ci
 	mv crates/context_aware_config/node_modules target/
-	cargo build --color always
+	cargo build $(CARGO_FLAGS)
 
 build: frontend backend
 
