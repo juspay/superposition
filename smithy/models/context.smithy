@@ -69,6 +69,7 @@ structure ContextResponse for Context {
 @documentation("Creates a new context with specified conditions and overrides. Contexts define conditional rules for config management.")
 @idempotent
 @http(method: "PUT", uri: "/context")
+@tags(["Context Management"])
 operation CreateContext {
     input := for Context with [WorkspaceMixin] {
         // TODO Find re-name functionality.
@@ -94,6 +95,7 @@ operation CreateContext {
 
 @documentation("Retrieves detailed information about a specific context by its unique identifier, including conditions, overrides, and metadata.")
 @http(method: "GET", uri: "/context/{id}")
+@tags(["Context Management"])
 operation GetContext {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
@@ -110,6 +112,7 @@ operation GetContext {
 
 @documentation("Updates the condition of the mentioned context, if a context with the new condition already exists, it merges the override and effectively deleting the old context")
 @http(method: "PUT", uri: "/context/move/{id}")
+@tags(["Context Management"])
 operation MoveContext {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
@@ -153,6 +156,7 @@ structure UpdateContextOverrideRequest for Context {
 
 @documentation("Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.")
 @http(method: "PUT", uri: "/context/overrides")
+@tags(["Context Management"])
 operation UpdateOverride {
     input := for Context with [WorkspaceMixin] {
         // REVIEW Should this be made a property?
@@ -175,6 +179,7 @@ operation UpdateOverride {
 
 @documentation("Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.")
 @http(method: "POST", uri: "/context/get")
+@tags(["Context Management"])
 operation GetContextFromCondition {
     input := for Context with [WorkspaceMixin] {
         @httpPayload
@@ -202,6 +207,7 @@ list ListContextOut {
 @documentation("Retrieves a paginated list of contexts with support for filtering by creation date, modification date, weight, and other criteria.")
 @readonly
 @http(method: "GET", uri: "/context/list")
+@tags(["Context Management"])
 operation ListContexts {
     input := with [WorkspaceMixin] {
         @httpQuery("page")
@@ -260,6 +266,7 @@ operation ListContexts {
 @documentation("Permanently removes a context from the workspace. This operation cannot be undone and will affect config resolution.")
 @idempotent
 @http(method: "DELETE", uri: "/context/{id}", code: 201)
+@tags(["Context Management"])
 operation DeleteContext {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
@@ -291,6 +298,7 @@ list WeightRecomputeResponses {
 
 @documentation("Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.")
 @http(method: "PUT", uri: "/context/weight/recompute")
+@tags(["Context Management"])
 operation WeightRecompute {
     input := with [WorkspaceMixin] {
         @httpHeader("x-config-tags")
@@ -361,6 +369,7 @@ structure BulkOperationOut {
 
 @documentation("Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.")
 @http(method: "PUT", uri: "/context/bulk-operations")
+@tags(["Context Management"])
 operation BulkOperation {
     input := for Context with [WorkspaceMixin] {
         @httpHeader("x-config-tags")

@@ -3220,9 +3220,9 @@
                 }
             }
         },
-        "/superposition/organisations": {
+        "/organisations": {
             "get": {
-                "description": "Retrieves a paginated list of all organisations with their basic information and status details.",
+                "description": "Retrieves a paginated list of all organisations with their basic information, creation details, and current status.",
                 "operationId": "ListOrganisation",
                 "parameters": [
                     {
@@ -3271,7 +3271,7 @@
                 }
             },
             "post": {
-                "description": "Creates a new organisation with specified details including name, admin contact, and organisational information.",
+                "description": "Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings.",
                 "operationId": "CreateOrganisation",
                 "requestBody": {
                     "content": {
