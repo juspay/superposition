@@ -6,7 +6,7 @@ use superposition_types::{
     api::dimension::DimensionResponse, database::models::cac::DependencyGraph,
 };
 
-use crate::api::{delete_dimension, get_dimension};
+use crate::api::dimensions;
 use crate::components::badge::Badge;
 use crate::components::description::ContentDescription;
 use crate::components::{
@@ -98,6 +98,10 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                             <div class="stat-value text-base">{*dimension.position}</div>
                         </div>
                         <div class="h-fit w-[250px] flex gap-4">
+                            <div class="stat-title">"Dimension Type"</div>
+                            <div class="stat-value text-base">{dimension.dimension_type.to_string()}</div>
+                        </div>
+                        <div class="h-fit w-[250px] flex gap-4">
                             <div class="stat-title">"Mandatory"</div>
                             <div class="stat-value text-base">
                                 <Toggle value=dimension.mandatory disabled=true on_change=|_| {} />
@@ -187,7 +191,7 @@ pub fn dimension_page() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (dimension_name.get(), workspace.get().0, org.get().0),
         |(dimension_name, workspace, org_id)| async move {
-            get_dimension(&dimension_name, &workspace, &org_id)
+            dimensions::get(&dimension_name, &workspace, &org_id)
                 .await
                 .ok()
         },
@@ -196,7 +200,7 @@ pub fn dimension_page() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         delete_inprogress_rws.set(true);
         spawn_local(async move {
-            let result = delete_dimension(
+            let result = dimensions::delete(
                 dimension_name.get_untracked(),
                 workspace.get_untracked().0,
                 org.get_untracked().0,
@@ -345,10 +349,12 @@ pub fn dimension_page() -> impl IntoView {
                                         position=dimension_st.with_value(|d| *d.position as u32)
                                         dimension_name=dimension_st
                                             .with_value(|d| d.dimension.clone())
+                                        dimension_type=dimension_st
+                                            .with_value(|d| d.dimension_type)
+                                        cohort_based_on=dimension_st
+                                            .with_value(|d| d.dependents.first().cloned())
                                         dimension_schema=dimension_st
                                             .with_value(|d| d.schema.clone())
-                                        dependencies=dimension_st
-                                            .with_value(|d| d.dependencies.clone())
                                         validation_function_name=dimension_st
                                             .with_value(|d| d.function_name.clone())
                                         autocomplete_function_name=dimension_st

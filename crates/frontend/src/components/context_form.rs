@@ -1,14 +1,17 @@
 use std::collections::{HashMap, HashSet};
 
 use leptos::*;
-use serde_json::Value;
+use serde_json::{json, Value};
 use superposition_types::api::{
     dimension::DimensionResponse, workspace::WorkspaceResponse,
 };
+use superposition_types::database::models::cac::DimensionType;
 
+use crate::components::alert::AlertType;
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
 use crate::logic::{Condition, Conditions, Expression, Operator};
+use crate::providers::alert_provider::enqueue_alert;
 use crate::schema::EnumVariants;
 use crate::types::{AutoCompleteCallbacks, OrganisationId, Tenant};
 use crate::utils::autocomplete_fn_generator;
@@ -16,6 +19,22 @@ use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
 };
+
+fn extract_dimension_or_cohort_schema(dimension: &DimensionResponse) -> Value {
+    if dimension.dimension_type == DimensionType::Regular
+        || dimension.dimension_type == DimensionType::RemoteCohort
+    {
+        dimension.schema.clone()
+    } else if let Some(cohort_variants) = dimension.schema.as_object() {
+        let mut enums = cohort_variants.keys().cloned().collect::<Vec<_>>();
+        enums.push("otherwise".to_string());
+        json!({ "type": "string", "enum": enums })
+    } else {
+        logging::log!("Could not parse cohort schema to display options");
+        enqueue_alert(String::from("There was an issue with the cohort schema, please check the cohort definition"), AlertType::Error, 5000);
+        Value::Null
+    }
+}
 
 #[component]
 pub fn condition_input(
@@ -278,9 +297,15 @@ pub fn context_form(
     let insert_dimension =
         move |context: &mut Conditions, dimension: &DimensionResponse| {
             if !context.includes(&dimension.dimension) {
+                let dimension_schema = extract_dimension_or_cohort_schema(dimension);
+                logging::log!(
+                    "Inserting dimension {:?} with schema {:?}",
+                    dimension.dimension,
+                    dimension_schema
+                );
                 context.push(Condition::new_with_default_expression(
                     dimension.dimension.clone(),
-                    SchemaType::try_from(dimension.schema.clone()).unwrap(),
+                    SchemaType::try_from(dimension_schema).unwrap(),
                 ));
             }
             dimension
@@ -288,10 +313,11 @@ pub fn context_form(
                 .keys()
                 .filter(|key| **key != dimension.dimension)
                 .for_each(|dependency| {
-                    if let Some(r#type) = dimension_map
-                        .get_value()
-                        .get(dependency)
-                        .and_then(|d| SchemaType::try_from(d.schema.clone()).ok())
+                    if let Some(r#type) =
+                        dimension_map.get_value().get(dependency).and_then(|d| {
+                            SchemaType::try_from(extract_dimension_or_cohort_schema(d))
+                                .ok()
+                        })
                     {
                         if !context.includes(dependency) {
                             context.push(Condition::new_with_default_expression(
@@ -354,7 +380,10 @@ pub fn context_form(
             } else {
                 context.push(Condition::new_with_default_expression(
                     selected_dimension.dimension.clone(),
-                    SchemaType::try_from(selected_dimension.schema.clone()).unwrap(),
+                    SchemaType::try_from(extract_dimension_or_cohort_schema(
+                        &selected_dimension,
+                    ))
+                    .unwrap(),
                 ));
             }
             context_ws.update(|v| {
@@ -450,9 +479,10 @@ pub fn context_form(
                                 .with_value(|v| {
                                     v.get(&condition.variable)
                                         .map(|d| {
+                                            let dimension_schema = extract_dimension_or_cohort_schema(d);
                                             (
-                                                SchemaType::try_from(d.schema.clone()),
-                                                EnumVariants::try_from(d.schema.clone()),
+                                                SchemaType::try_from(dimension_schema.clone()),
+                                                EnumVariants::try_from(dimension_schema),
                                             )
                                         })
                                         .unwrap_or((Err("".to_string()), Err("".to_string())))

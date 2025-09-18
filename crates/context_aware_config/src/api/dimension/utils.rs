@@ -123,60 +123,6 @@ pub fn validate_dimension_position(
 
 // Dependent dimensions related functions
 
-pub fn validate_and_initialize_dimension_hierarchy(
-    dimension_name: &str,
-    dependent_dimensions: &[String],
-    user_email: &str,
-    schema_name: &SchemaName,
-    conn: &mut DBConnection,
-) -> superposition::Result<DependencyGraph> {
-    let mut dependency_map = DependencyGraph::new();
-
-    if dependent_dimensions.is_empty() {
-        return Ok(dependency_map);
-    }
-
-    detect_self_loop(dimension_name, dependent_dimensions)?;
-
-    let mut dimensions_map = fetch_dimensions_map(conn, schema_name)?;
-
-    // fetch all dependent_dimensions from dimensions_map at once
-    let dependent_dimensions_data = dependent_dimensions
-        .iter()
-        .filter_map(|d| dimensions_map.get(d))
-        .map(|(dimension_data, _)| dimension_data.clone())
-        .collect::<Vec<Dimension>>();
-
-    for dependent_data in dependent_dimensions_data {
-        // Update dependencies' dependents list
-        update_dependents(&dependent_data, dimension_name, &mut dimensions_map)?;
-
-        dependency_map.insert_dependents(&dependent_data);
-    }
-
-    if !dependent_dimensions.is_empty() {
-        dependency_map.insert(
-            dimension_name.to_string(),
-            dependent_dimensions
-                .iter()
-                .map(String::from)
-                .collect::<Vec<_>>(),
-        );
-    }
-
-    update_dimensions_in_db(
-        &mut dimensions_map,
-        user_email,
-        &format!(
-            "Auto-updated: dependency added to dimension '{dimension_name}' at runtime"
-        ),
-        schema_name,
-        conn,
-    )?;
-
-    Ok(dependency_map)
-}
-
 pub fn validate_and_update_dimension_hierarchy(
     dimension_data: &Dimension,
     dependent_dimensions: &[String],
@@ -234,50 +180,6 @@ pub fn validate_and_update_dimension_hierarchy(
         schema_name,
         conn,
     )?;
-
-    Ok(())
-}
-
-pub fn validate_dimension_deletability(
-    dimension_name: &str,
-    dimension_data: &Dimension,
-    user_email: &str,
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> superposition::Result<()> {
-    // If someone is dependent on this i.e. check the dependents, then don't let it be deleted
-    if !dimension_data.dependents.is_empty() {
-        let dependents_list = dimension_data.dependents.clone().join(", ");
-        log::error!(
-            "Cannot delete dimension `{}`: it is used as a dependency by: {}",
-            dimension_name,
-            dependents_list
-        );
-        return Err(bad_argument!(
-            "Cannot delete dimension `{}`: it is used as a dependency by: {}",
-            dimension_name,
-            dependents_list
-        ));
-    }
-
-    let dependencies_list = dimension_data.dependencies.clone();
-
-    if !dependencies_list.is_empty() {
-        // Remove the dimension from the dependencies' dependents
-        let mut dimensions_map = fetch_dimensions_map(conn, schema_name)?;
-        update_dependents_for_removed_dependencies(
-            dimension_name,
-            &dependencies_list,
-            &mut dimensions_map,
-        )?;
-        update_dimensions_in_db(
-            &mut dimensions_map,
-            user_email,
-            &format!("Auto-updated: Dependents adjusted due to deletion of dimension '{dimension_name}'"),
-            schema_name,
-            conn,
-        )?;
-    }
 
     Ok(())
 }

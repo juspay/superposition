@@ -13,7 +13,7 @@ use superposition_types::{
 use types::{ComparisonTable, ContextList, PageParams};
 
 use crate::{
-    api::{fetch_dimensions, resolve_config},
+    api::{dimensions, resolve_config},
     components::{
         alert::AlertType,
         button::Button,
@@ -127,7 +127,7 @@ pub fn compare_overrides() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
         |(tenant, org)| async {
-            fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
+            dimensions::fetch(&PaginationParams::all_entries(), tenant, org)
                 .await
                 .unwrap_or_default()
         },
