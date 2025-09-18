@@ -1,7 +1,7 @@
 ---
 id: list-organisation
 title: "ListOrganisation"
-description: "Retrieves a paginated list of all organisations with their basic information and status details."
+description: "Retrieves a paginated list of all organisations with their basic information, creation details, and current status."
 sidebar_label: "ListOrganisation"
 hide_title: true
 hide_table_of_contents: true
@@ -28,7 +28,7 @@ import Heading from "@theme/Heading";
 
 <MethodEndpoint
   method={"get"}
-  path={"/superposition/organisations"}
+  path={"/organisations"}
   context={"endpoint"}
 >
   
@@ -36,7 +36,7 @@ import Heading from "@theme/Heading";
 
 
 
-Retrieves a paginated list of all organisations with their basic information and status details.
+Retrieves a paginated list of all organisations with their basic information, creation details, and current status.
 
 <Heading
   id={"request"}

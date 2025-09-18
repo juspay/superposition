@@ -95,6 +95,7 @@ list DimensionExtList {
 
 @documentation("Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.")
 @http(method: "POST", uri: "/dimension")
+@tags(["Dimensions"])
 operation CreateDimension {
     input := for Dimension with [WorkspaceMixin] {
         @required
@@ -125,6 +126,7 @@ operation CreateDimension {
 @documentation("Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata.")
 @readonly
 @http(method: "GET", uri: "/dimension")
+@tags(["Dimensions"])
 operation ListDimensions {
     input := with [PaginationParams, WorkspaceMixin] {}
     output := with [PaginatedResponse] {
@@ -134,6 +136,7 @@ operation ListDimensions {
 
 @documentation("Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata.")
 @http(method: "GET", uri: "/dimension/{dimension}")
+@tags(["Dimensions"])
 operation GetDimension {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
@@ -151,6 +154,7 @@ operation GetDimension {
 @documentation("Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.")
 @idempotent
 @http(method: "PUT", uri: "/dimension/{dimension}")
+@tags(["Dimensions"])
 operation UpdateDimension {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
@@ -183,6 +187,7 @@ operation UpdateDimension {
 @documentation("Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.")
 @idempotent
 @http(method: "DELETE", uri: "/dimension/{dimension}", code: 201)
+@tags(["Dimensions"])
 operation DeleteDimension {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel

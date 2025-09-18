@@ -1,7 +1,7 @@
 ---
 id: create-organisation
 title: "CreateOrganisation"
-description: "Creates a new organisation with specified details including name, admin contact, and organisational information."
+description: "Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings."
 sidebar_label: "CreateOrganisation"
 hide_title: true
 hide_table_of_contents: true
@@ -28,7 +28,7 @@ import Heading from "@theme/Heading";
 
 <MethodEndpoint
   method={"post"}
-  path={"/superposition/organisations"}
+  path={"/organisations"}
   context={"endpoint"}
 >
   
@@ -36,7 +36,7 @@ import Heading from "@theme/Heading";
 
 
 
-Creates a new organisation with specified details including name, admin contact, and organisational information.
+Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings.
 
 <Heading
   id={"request"}
