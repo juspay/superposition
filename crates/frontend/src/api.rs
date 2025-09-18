@@ -31,30 +31,6 @@ use superposition_types::{
     Config, PaginatedResponse,
 };
 
-// #[server(GetDimensions, "/fxn", "GetJson")]
-pub async fn fetch_dimensions(
-    filters: &PaginationParams,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<DimensionResponse>, ServerFnError> {
-    let client = reqwest::Client::new();
-    let host = use_host_server();
-
-    let url = format!("{}/dimension?{}", host, filters.to_query_param());
-    let response: PaginatedResponse<DimensionResponse> = client
-        .get(url)
-        .header("x-tenant", &tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-
-    Ok(response)
-}
-
 // #[server(GetDefaultConfig, "/fxn", "GetJson")]
 pub async fn fetch_default_config(
     pagination: &PaginationParams,
@@ -135,6 +111,134 @@ pub mod snapshots {
             .map_err(|e| ServerFnError::new(e.to_string()))?;
 
         Ok(response)
+    }
+}
+
+pub mod dimensions {
+    use superposition_types::{
+        api::dimension::{CreateRequest, DimensionName, UpdateRequest},
+        database::models::cac::{DimensionType, Position},
+    };
+
+    use super::*;
+
+    pub async fn fetch(
+        filters: &PaginationParams,
+        tenant: String,
+        org_id: String,
+    ) -> Result<PaginatedResponse<DimensionResponse>, ServerFnError> {
+        let client = reqwest::Client::new();
+        let host = use_host_server();
+
+        let url = format!("{}/dimension?{}", host, filters.to_query_param());
+        let response: PaginatedResponse<DimensionResponse> = client
+            .get(url)
+            .header("x-tenant", &tenant)
+            .header("x-org-id", org_id)
+            .send()
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?
+            .json()
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+        Ok(response)
+    }
+
+    pub async fn get(
+        name: &str,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<DimensionResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/dimension/{name}");
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<serde_json::Value>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn create(
+        dimension: String,
+        position: u32,
+        schema: Value,
+        validation_fn_name: Option<String>,
+        autocomplete_fn_name: Option<String>,
+        description: String,
+        change_reason: String,
+        tenant: String,
+        org_id: String,
+        dimension_type: DimensionType,
+    ) -> Result<DimensionResponse, String> {
+        let payload = CreateRequest {
+            dimension: DimensionName::try_from(dimension)?,
+            position: Position::from(position),
+            schema,
+            function_name: validation_fn_name,
+            autocomplete_function_name: autocomplete_fn_name,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+            dimension_type,
+        };
+
+        let host = get_host();
+        let url = format!("{host}/dimension");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update(
+        tenant: String,
+        dimension_name: String,
+        payload: UpdateRequest,
+        org_id: String,
+    ) -> Result<DimensionResponse, String> {
+        let host = get_host();
+        let url = format!("{host}/dimension/{dimension_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::PUT,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        name: String,
+        tenant: String,
+        org_id: String,
+    ) -> Result<(), String> {
+        let host = get_host();
+        let url = format!("{host}/dimension/{name}");
+
+        request(
+            url,
+            reqwest::Method::DELETE,
+            None::<serde_json::Value>,
+            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        )
+        .await?;
+
+        Ok(())
     }
 }
 
@@ -349,25 +453,6 @@ pub async fn delete_default_config(
 ) -> Result<(), String> {
     let host = get_host();
     let url = format!("{host}/default-config/{key}");
-
-    request(
-        url,
-        reqwest::Method::DELETE,
-        None::<serde_json::Value>,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
-    )
-    .await?;
-
-    Ok(())
-}
-
-pub async fn delete_dimension(
-    name: String,
-    tenant: String,
-    org_id: String,
-) -> Result<(), String> {
-    let host = get_host();
-    let url = format!("{host}/dimension/{name}");
 
     request(
         url,
@@ -794,25 +879,6 @@ pub async fn get_default_config(
 ) -> Result<DefaultConfig, String> {
     let host = use_host_server();
     let url = format!("{host}/default-config/{key_name}");
-
-    let response = request(
-        url,
-        reqwest::Method::GET,
-        None::<serde_json::Value>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
-    )
-    .await?;
-
-    parse_json_response(response).await
-}
-
-pub async fn get_dimension(
-    name: &str,
-    tenant: &str,
-    org_id: &str,
-) -> Result<DimensionResponse, String> {
-    let host = use_host_server();
-    let url = format!("{host}/dimension/{name}");
 
     let response = request(
         url,

@@ -14,7 +14,7 @@ use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Tenant};
 use crate::{
-    api::{fetch_config, fetch_dimensions, resolve_config},
+    api::{dimensions, fetch_config, resolve_config},
     components::{button::Button, context_form::ContextForm},
     utils::{check_url_and_return_val, get_element_by_id},
 };
@@ -153,7 +153,7 @@ pub fn home() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
         |(tenant, org)| async {
-            fetch_dimensions(&PaginationParams::all_entries(), tenant, org)
+            dimensions::fetch(&PaginationParams::all_entries(), tenant, org)
                 .await
                 .unwrap_or_default()
         },

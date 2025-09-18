@@ -338,7 +338,7 @@ pub fn context_form(
                 dimension_map
                     .get_value()
                     .get(dimension)
-                    .map(|d| d.dependencies.clone())
+                    .map(|_| vec![])
                     .unwrap_or_default()
             })
             .collect::<HashSet<_>>()
@@ -391,10 +391,8 @@ pub fn context_form(
             return "Mandatory Dimension".to_string();
         }
         if context_dependencies.get().contains(&variable) {
-            if let Some(parents) = dimension_map
-                .get_value()
-                .get(&variable)
-                .map(|d| d.dependents.clone())
+            if let Some(parents) =
+                dimension_map.get_value().get(&variable).map(|_| Vec::new())
             {
                 let parents_in_context = parents
                     .into_iter()
@@ -441,7 +439,7 @@ pub fn context_form(
                                 condition.variable,
                                 idx,
                                 condition.expression.to_operator(),
-                                context_dependencies.with(|v| v.contains(&condition.variable)),
+                                context_dependencies.with(|v: &HashSet<String> | v.contains(&condition.variable)),
                             )
                         }
 

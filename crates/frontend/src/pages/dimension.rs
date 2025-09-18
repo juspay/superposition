@@ -6,7 +6,7 @@ use superposition_types::{
     api::dimension::DimensionResponse, database::models::cac::DependencyGraph,
 };
 
-use crate::api::{delete_dimension, get_dimension};
+use crate::api::dimensions;
 use crate::components::badge::Badge;
 use crate::components::description::ContentDescription;
 use crate::components::{
@@ -187,7 +187,7 @@ pub fn dimension_page() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (dimension_name.get(), workspace.get().0, org.get().0),
         |(dimension_name, workspace, org_id)| async move {
-            get_dimension(&dimension_name, &workspace, &org_id)
+            dimensions::get(&dimension_name, &workspace, &org_id)
                 .await
                 .ok()
         },
@@ -196,7 +196,7 @@ pub fn dimension_page() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         delete_inprogress_rws.set(true);
         spawn_local(async move {
-            let result = delete_dimension(
+            let result = dimensions::delete(
                 dimension_name.get_untracked(),
                 workspace.get_untracked().0,
                 org.get_untracked().0,
@@ -275,7 +275,7 @@ pub fn dimension_page() -> impl IntoView {
                             last_modified_at=dimension.last_modified_at
                         />
                         <DimensionInfo dimension=dimension.clone() />
-                        {if dimension.dependency_graph.is_empty() && dimension.dependents.is_empty()
+                        {if dimension.dependency_graph.is_empty()
                         {
                             ().into_view()
                         } else {
@@ -284,9 +284,7 @@ pub fn dimension_page() -> impl IntoView {
                                     <div class="card-body">
                                         <h2 class="card-title">"Dependency Data"</h2>
                                         <div class="flex flex-col gap-4">
-                                            {if dimension.dependencies.is_empty() {
-                                                ().into_view()
-                                            } else {
+                                            {
                                                 view! {
                                                     <div class="flex flex-row gap-6 flex-wrap">
                                                         <div class="h-fit flex flex-col gap-1 overflow-x-scroll">
@@ -304,10 +302,8 @@ pub fn dimension_page() -> impl IntoView {
                                                     </div>
                                                 }
                                                     .into_view()
-                                            }}
-                                            {if dimension.dependents.is_empty() {
-                                                ().into_view()
-                                            } else {
+                                            }
+                                            {
                                                 view! {
                                                     <div class="flex flex-row gap-6 flex-wrap">
                                                         <div class="h-fit flex flex-col gap-1">
@@ -317,14 +313,14 @@ pub fn dimension_page() -> impl IntoView {
                                                             <Badge
                                                                 href_fn=|d| format!("../{d}")
                                                                 options=Signal::derive(move || {
-                                                                    dimension.dependents.clone()
+                                                                    vec![String::new()]
                                                                 })
                                                             />
                                                         </div>
                                                     </div>
                                                 }
                                                     .into_view()
-                                            }}
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -347,8 +343,6 @@ pub fn dimension_page() -> impl IntoView {
                                             .with_value(|d| d.dimension.clone())
                                         dimension_schema=dimension_st
                                             .with_value(|d| d.schema.clone())
-                                        dependencies=dimension_st
-                                            .with_value(|d| d.dependencies.clone())
                                         validation_function_name=dimension_st
                                             .with_value(|d| d.function_name.clone())
                                         autocomplete_function_name=dimension_st

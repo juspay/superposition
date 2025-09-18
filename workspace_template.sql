@@ -679,3 +679,10 @@ UPDATE {replaceme}.functions SET created_at = last_modified_at WHERE created_at 
 ALTER TABLE {replaceme}.functions
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
 ALTER COLUMN created_at SET NOT NULL;
+
+ALTER TABLE {replaceme}.dimensions 
+ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
+
+ALTER TABLE {replaceme}.dimensions 
+    DROP COLUMN IF EXISTS dependencies,
+    DROP COLUMN IF EXISTS dependents;

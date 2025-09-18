@@ -12,12 +12,12 @@ use superposition_types::{
         functions::ListFunctionFilters,
     },
     custom_query::PaginationParams,
-    database::models::cac::{Function, FunctionType, TypeTemplate},
+    database::models::cac::{DimensionType, Function, FunctionType, TypeTemplate},
 };
-use utils::{create_dimension, try_update_payload, update_dimension};
+use utils::try_update_payload;
 use web_sys::MouseEvent;
 
-use crate::api::{fetch_dimensions, fetch_functions, fetch_types, get_dimension};
+use crate::api::{dimensions, fetch_functions, fetch_types};
 use crate::components::{
     alert::AlertType,
     button::Button,
@@ -82,7 +82,7 @@ pub fn dimension_form(
         |(dimensions, tenant, org_id)| async move {
             let dimensions_future = async {
                 match dimensions {
-                    None => fetch_dimensions(
+                    None => dimensions::fetch(
                         &PaginationParams::all_entries(),
                         tenant.clone(),
                         org_id.clone(),
@@ -149,13 +149,12 @@ pub fn dimension_form(
         let validation_fn_name = validation_fn_name_rs.get_untracked();
         let autocomplete_fn_name = autocomplete_fn_name_rs.get_untracked();
         let function_schema = dimension_schema_rs.get_untracked();
-        let dependencies = dependencies_rs.get_untracked();
 
         spawn_local({
             async move {
                 let result = match (edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => {
-                        let future = update_dimension(
+                        let future = dimensions::update(
                             workspace.get_untracked().0,
                             dimension_name,
                             update_payload,
@@ -168,7 +167,6 @@ pub fn dimension_form(
                         let request_payload = try_update_payload(
                             function_position,
                             function_schema,
-                            dependencies,
                             validation_fn_name,
                             autocomplete_fn_name,
                             description_rs.get_untracked(),
@@ -182,17 +180,17 @@ pub fn dimension_form(
                             Err(e) => Err(e),
                         }
                     }
-                    _ => create_dimension(
+                    _ => dimensions::create(
                         dimension_name,
                         function_position,
                         function_schema,
-                        dependencies,
                         validation_fn_name,
                         autocomplete_fn_name,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
                         workspace.get_untracked().0,
                         org.get_untracked().0,
+                        DimensionType::Regular,
                     )
                     .await
                     .map(|_| ResponseType::Response),
@@ -486,7 +484,7 @@ pub fn change_log_summary(
     let dimension = create_local_resource(
         move || (dimension_name.clone(), workspace.get().0, org.get().0),
         |(dimension_name, workspace, org)| async move {
-            get_dimension(&dimension_name, &workspace, &org).await
+            dimensions::get(&dimension_name, &workspace, &org).await
         },
     );
 
@@ -559,17 +557,6 @@ pub fn change_log_summary(
                                                 "Position".to_string(),
                                                 Value::Number((*position).into()),
                                             )),
-                                            Some((
-                                                "Dependencies".to_string(),
-                                                Value::Array(
-                                                    update_request
-                                                        .dependencies
-                                                        .unwrap_or_else(|| dim.dependencies.clone())
-                                                        .into_iter()
-                                                        .map(Value::String)
-                                                        .collect(),
-                                                ),
-                                            )),
                                             valdiate_fn
                                                 .map(|f| (
                                                     "Validation Function".to_string(),
@@ -606,12 +593,6 @@ pub fn change_log_summary(
                                         Some((
                                             "Position".to_string(),
                                             Value::Number(Number::from(*dim.position)),
-                                        )),
-                                        Some((
-                                            "Dependencies".to_string(),
-                                            Value::Array(
-                                                dim.dependencies.into_iter().map(Value::String).collect(),
-                                            ),
                                         )),
                                         dim
                                             .function_name
