@@ -167,6 +167,7 @@ structure FunctionNotFound {}
 // Operations
 @documentation("Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.")
 @http(method: "POST", uri: "/function")
+@tags(["Functions"])
 operation CreateFunction {
     input: CreateFunctionRequest
     output: FunctionResponse
@@ -175,6 +176,7 @@ operation CreateFunction {
 @documentation("Retrieves detailed information about a specific function including its published and draft versions, code, and metadata.")
 @readonly
 @http(method: "GET", uri: "/function/{function_name}")
+@tags(["Functions"])
 operation GetFunction {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
@@ -192,6 +194,7 @@ operation GetFunction {
 @documentation("Retrieves a paginated list of all functions in the workspace with their basic information and current status.")
 @readonly
 @http(method: "GET", uri: "/function")
+@tags(["Functions"])
 operation ListFunction {
     input := with [PaginationParams, WorkspaceMixin] {}
     output := with [PaginatedResponse] {
@@ -202,6 +205,7 @@ operation ListFunction {
 @documentation("Updates the draft version of an existing function with new code, runtime version, or description while preserving the published version.")
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}")
+@tags(["Functions"])
 operation UpdateFunction {
     input: UpdateFunctionRequest
     output: FunctionResponse
@@ -213,6 +217,7 @@ operation UpdateFunction {
 @documentation("Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use")
 @idempotent
 @http(method: "DELETE", uri: "/function/{function_name}")
+@tags(["Functions"])
 operation DeleteFunction {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
@@ -230,6 +235,7 @@ operation DeleteFunction {
 @documentation("Executes a function in test mode with provided input parameters to validate its behavior before publishing or deployment.")
 @idempotent
 @http(method: "POST", uri: "/function/{function_name}/{stage}/test")
+@tags(["Functions"])
 operation Test {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
@@ -257,6 +263,7 @@ operation Test {
 @documentation("Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.")
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}/publish")
+@tags(["Functions"])
 operation Publish {
     input := for Function with [WorkspaceMixin] {
         @httpLabel

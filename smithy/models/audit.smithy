@@ -38,6 +38,7 @@ list AuditLogList {
 @documentation("Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes.")
 @readonly
 @http(method: "GET", uri: "/audit")
+@tags(["Audit & Monitoring"])
 operation ListAuditLogs {
     input := with [WorkspaceMixin, PaginationParams] {
         @httpQuery("from_date")

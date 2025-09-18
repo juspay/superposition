@@ -47,8 +47,14 @@ const config: Config = {
                         downloadUrl: "docs/api/Superposition.openapi.json",
                         sidebarOptions: {
                             groupPathsBy: "tag",
-                            categoryLinkSource: "tag"
+                            categoryLinkSource: "tag",
+                            sidebarCollapsed: false,
+                            customProps: {
+                                // Add custom CSS classes for styling
+                            }
                         },
+                        // Removed template configuration that was causing the error
+                        hideSendButton: false,
                     } satisfies OpenApiPlugin.Options,
                 },
             },
