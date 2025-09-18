@@ -111,7 +111,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Audit & Monitoring"
+                ]
             }
         },
         "/config": {
@@ -198,7 +201,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
             }
         },
         "/config/fast": {
@@ -262,7 +268,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
             }
         },
         "/config/resolve": {
@@ -370,7 +379,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
             }
         },
         "/config/versions": {
@@ -431,7 +443,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
             }
         },
         "/context": {
@@ -495,7 +510,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/context/bulk-operations": {
@@ -559,7 +577,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/context/get": {
@@ -618,7 +639,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/context/list": {
@@ -737,7 +761,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/context/move/{id}": {
@@ -805,7 +832,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/context/overrides": {
@@ -872,7 +902,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/context/weight/recompute": {
@@ -926,7 +959,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/context/{id}": {
@@ -984,7 +1020,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             },
             "get": {
                 "description": "Retrieves detailed information about a specific context by its unique identifier, including conditions, overrides, and metadata.",
@@ -1040,7 +1079,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Context Management"
+                ]
             }
         },
         "/default-config": {
@@ -1111,7 +1153,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Default Configuration"
+                ]
             },
             "post": {
                 "description": "Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.",
@@ -1166,7 +1211,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Default Configuration"
+                ]
             }
         },
         "/default-config/{key}": {
@@ -1217,7 +1265,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Default Configuration"
+                ]
             },
             "put": {
                 "description": "Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.",
@@ -1283,7 +1334,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Default Configuration"
+                ]
             }
         },
         "/dimension": {
@@ -1351,7 +1405,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Dimensions"
+                ]
             },
             "post": {
                 "description": "Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.",
@@ -1406,7 +1463,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Dimensions"
+                ]
             }
         },
         "/dimension/{dimension}": {
@@ -1457,7 +1517,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Dimensions"
+                ]
             },
             "get": {
                 "description": "Retrieves detailed information about a specific dimension, including its schema, cohort dependency graph, and configuration metadata.",
@@ -1513,7 +1576,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Dimensions"
+                ]
             },
             "put": {
                 "description": "Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.",
@@ -1579,7 +1645,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Dimensions"
+                ]
             }
         },
         "/experiment-groups": {
@@ -1700,7 +1769,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
             },
             "post": {
                 "description": "Creates a new experiment group.",
@@ -1755,7 +1827,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
             }
         },
         "/experiment-groups/{id}": {
@@ -1813,7 +1888,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
             },
             "get": {
                 "description": "Retrieves an existing experiment group by its ID.",
@@ -1869,7 +1947,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
             },
             "patch": {
                 "description": "Updates an existing experiment group. Allows partial updates to specified fields.",
@@ -1935,7 +2016,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
             }
         },
         "/experiment-groups/{id}/add-members": {
@@ -2003,7 +2087,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
             }
         },
         "/experiment-groups/{id}/remove-members": {
@@ -2071,7 +2158,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
             }
         },
         "/experiments": {
@@ -2220,7 +2310,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             },
             "post": {
                 "description": "Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.",
@@ -2275,7 +2368,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/applicable-variants": {
@@ -2332,7 +2428,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/{id}": {
@@ -2387,7 +2486,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/{id}/conclude": {
@@ -2452,7 +2554,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/{id}/discard": {
@@ -2517,7 +2622,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/{id}/overrides": {
@@ -2582,7 +2690,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/{id}/pause": {
@@ -2647,7 +2758,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/{id}/ramp": {
@@ -2712,7 +2826,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/experiments/{id}/resume": {
@@ -2777,7 +2894,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
             }
         },
         "/function": {
@@ -2845,7 +2965,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Functions"
+                ]
             },
             "post": {
                 "description": "Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.",
@@ -2900,7 +3023,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Functions"
+                ]
             }
         },
         "/function/{function_name}": {
@@ -2951,7 +3077,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Functions"
+                ]
             },
             "get": {
                 "description": "Retrieves detailed information about a specific function including its published and draft versions, code, and metadata.",
@@ -3007,7 +3136,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Functions"
+                ]
             },
             "patch": {
                 "description": "Updates the draft version of an existing function with new code, runtime version, or description while preserving the published version.",
@@ -3073,7 +3205,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Functions"
+                ]
             }
         },
         "/function/{function_name}/publish": {
@@ -3141,7 +3276,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Functions"
+                ]
             }
         },
         "/function/{function_name}/{stage}/test": {
@@ -3217,12 +3355,15 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Functions"
+                ]
             }
         },
         "/superposition/organisations": {
             "get": {
-                "description": "Retrieves a paginated list of all organisations with their basic information and status details.",
+                "description": "Retrieves a paginated list of all organisations with their basic information, creation details, and current status.",
                 "operationId": "ListOrganisation",
                 "parameters": [
                     {
@@ -3268,10 +3409,13 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Organisation Management"
+                ]
             },
             "post": {
-                "description": "Creates a new organisation with specified details including name, admin contact, and organisational information.",
+                "description": "Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings.",
                 "operationId": "CreateOrganisation",
                 "requestBody": {
                     "content": {
@@ -3304,7 +3448,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Organisation Management"
+                ]
             }
         },
         "/superposition/organisations/{id}": {
@@ -3345,7 +3492,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Organisation Management"
+                ]
             },
             "put": {
                 "description": "Updates an existing organisation's information including contact details, status, and administrative properties.",
@@ -3393,7 +3543,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Organisation Management"
+                ]
             }
         },
         "/types": {
@@ -3461,7 +3614,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Type Templates"
+                ]
             },
             "post": {
                 "description": "Creates a new type template with specified schema definition, providing reusable type definitions for config validation.",
@@ -3516,7 +3672,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Type Templates"
+                ]
             }
         },
         "/types/{type_name}": {
@@ -3574,7 +3733,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Type Templates"
+                ]
             },
             "put": {
                 "description": "Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.",
@@ -3640,7 +3802,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Type Templates"
+                ]
             }
         },
         "/webhook": {
@@ -3708,7 +3873,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Webhooks"
+                ]
             },
             "post": {
                 "description": "Creates a new webhook config to receive HTTP notifications when specified events occur in the system.",
@@ -3763,7 +3931,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Webhooks"
+                ]
             }
         },
         "/webhook/{name}": {
@@ -3818,7 +3989,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Webhooks"
+                ]
             },
             "patch": {
                 "description": "Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook properties.",
@@ -3884,7 +4058,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Webhooks"
+                ]
             }
         },
         "/workspaces": {
@@ -3944,7 +4121,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Workspace Management"
+                ]
             },
             "post": {
                 "description": "Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.",
@@ -3991,7 +4171,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Workspace Management"
+                ]
             }
         },
         "/workspaces/{workspace_name}": {
@@ -4051,7 +4234,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Workspace Management"
+                ]
             }
         },
         "/workspaces/{workspace_name}/db/migrate": {
@@ -4098,7 +4284,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Workspace Management"
+                ]
             }
         }
     },

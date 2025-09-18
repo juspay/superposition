@@ -158,6 +158,7 @@ structure WorkspaceNotFound {}
 // Operations
 @documentation("Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.")
 @http(method: "POST", uri: "/workspaces")
+@tags(["Workspace Management"])
 operation CreateWorkspace {
     input: CreateWorkspaceRequest
     output: WorkspaceResponse
@@ -166,6 +167,7 @@ operation CreateWorkspace {
 @documentation("Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.")
 @idempotent
 @http(method: "PUT", uri: "/workspaces/{workspace_name}")
+@tags(["Workspace Management"])
 operation UpdateWorkspace {
     input: UpdateWorkspaceRequest
     output: WorkspaceResponse
@@ -177,6 +179,7 @@ operation UpdateWorkspace {
 @documentation("Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.")
 @readonly
 @http(method: "GET", uri: "/workspaces")
+@tags(["Workspace Management"])
 operation ListWorkspace {
     input := with [PaginationParams, CreateWorkspaceMixin] {}
     output: WorkspaceListResponse
@@ -185,6 +188,7 @@ operation ListWorkspace {
 @documentation("Migrates the workspace database schema to the new version of the template")
 @readonly
 @http(method: "POST", uri: "/workspaces/{workspace_name}/db/migrate")
+@tags(["Workspace Management"])
 operation MigrateWorkspaceSchema {
     input: MigrateWorkspaceSchemaRequest
     output: WorkspaceResponse

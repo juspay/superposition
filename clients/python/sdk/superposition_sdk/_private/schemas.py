@@ -348,6 +348,9 @@ ADD_MEMBERS_TO_GROUP = Schema(
     id=ShapeID("io.superposition#AddMembersToGroup"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experiment Groups",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiment-groups/{id}/add-members",
@@ -514,6 +517,9 @@ APPLICABLE_VARIANTS = Schema(
     id=ShapeID("io.superposition#ApplicableVariants"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/experiments/applicable-variants",
@@ -716,6 +722,9 @@ LIST_AUDIT_LOGS = Schema(
     id=ShapeID("io.superposition#ListAuditLogs"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Audit & Monitoring",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/audit",
@@ -1147,6 +1156,9 @@ BULK_OPERATION = Schema(
     id=ShapeID("io.superposition#BulkOperation"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/context/bulk-operations",
@@ -1483,6 +1495,9 @@ CONCLUDE_EXPERIMENT = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiments/{id}/conclude",
@@ -1828,6 +1843,9 @@ GET_CONFIG = Schema(
     id=ShapeID("io.superposition#GetConfig"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/config",
@@ -1921,6 +1939,9 @@ GET_CONFIG_FAST = Schema(
     id=ShapeID("io.superposition#GetConfigFast"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/config/fast",
@@ -2098,6 +2119,9 @@ GET_RESOLVED_CONFIG = Schema(
     id=ShapeID("io.superposition#GetResolvedConfig"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/config/resolve",
@@ -2273,6 +2297,9 @@ LIST_VERSIONS = Schema(
     id=ShapeID("io.superposition#ListVersions"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/config/versions",
@@ -2434,6 +2461,9 @@ CREATE_CONTEXT = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/context",
@@ -2510,6 +2540,9 @@ DELETE_CONTEXT = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "DELETE",
                 "uri": "/context/{id}",
@@ -2637,6 +2670,9 @@ GET_CONTEXT = Schema(
     id=ShapeID("io.superposition#GetContext"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/context/{id}",
@@ -2763,6 +2799,9 @@ GET_CONTEXT_FROM_CONDITION = Schema(
     id=ShapeID("io.superposition#GetContextFromCondition"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/context/get",
@@ -3042,6 +3081,9 @@ LIST_CONTEXTS = Schema(
     id=ShapeID("io.superposition#ListContexts"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/context/list",
@@ -3193,6 +3235,9 @@ MOVE_CONTEXT = Schema(
     id=ShapeID("io.superposition#MoveContext"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/context/move/{id}",
@@ -3330,6 +3375,9 @@ UPDATE_OVERRIDE = Schema(
     id=ShapeID("io.superposition#UpdateOverride"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/context/overrides",
@@ -3444,6 +3492,9 @@ WEIGHT_RECOMPUTE = Schema(
     id=ShapeID("io.superposition#WeightRecompute"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Context Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/context/weight/recompute",
@@ -3647,6 +3698,9 @@ CREATE_DEFAULT_CONFIG = Schema(
     id=ShapeID("io.superposition#CreateDefaultConfig"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Default Configuration",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/default-config",
@@ -3882,6 +3936,9 @@ CREATE_DIMENSION = Schema(
     id=ShapeID("io.superposition#CreateDimension"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Dimensions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/dimension",
@@ -4156,6 +4213,9 @@ CREATE_EXPERIMENT = Schema(
     id=ShapeID("io.superposition#CreateExperiment"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/experiments",
@@ -4398,6 +4458,9 @@ CREATE_EXPERIMENT_GROUP = Schema(
     id=ShapeID("io.superposition#CreateExperimentGroup"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experiment Groups",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/experiment-groups",
@@ -4647,6 +4710,9 @@ CREATE_FUNCTION = Schema(
     id=ShapeID("io.superposition#CreateFunction"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Functions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/function",
@@ -4848,6 +4914,9 @@ CREATE_ORGANISATION = Schema(
     id=ShapeID("io.superposition#CreateOrganisation"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Organisation Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/superposition/organisations",
@@ -5014,6 +5083,9 @@ CREATE_TYPE_TEMPLATES = Schema(
     id=ShapeID("io.superposition#CreateTypeTemplates"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Type Templates",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/types",
@@ -5360,6 +5432,9 @@ CREATE_WEBHOOK = Schema(
     id=ShapeID("io.superposition#CreateWebhook"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Webhooks",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/webhook",
@@ -5632,6 +5707,9 @@ CREATE_WORKSPACE = Schema(
     id=ShapeID("io.superposition#CreateWorkspace"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Workspace Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/workspaces",
@@ -5698,6 +5776,9 @@ DELETE_DEFAULT_CONFIG = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Default Configuration",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "DELETE",
                 "uri": "/default-config/{key}",
@@ -5907,6 +5988,9 @@ LIST_DEFAULT_CONFIGS = Schema(
     id=ShapeID("io.superposition#ListDefaultConfigs"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Default Configuration",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/default-config",
@@ -6101,6 +6185,9 @@ UPDATE_DEFAULT_CONFIG = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Default Configuration",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/default-config/{key}",
@@ -6167,6 +6254,9 @@ DELETE_DIMENSION = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Dimensions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "DELETE",
                 "uri": "/dimension/{dimension}",
@@ -6365,6 +6455,9 @@ DELETE_EXPERIMENT_GROUP = Schema(
     id=ShapeID("io.superposition#DeleteExperimentGroup"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experiment Groups",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "DELETE",
                 "uri": "/experiment-groups/{id}",
@@ -6442,6 +6535,9 @@ DELETE_FUNCTION = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Functions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "DELETE",
                 "uri": "/function/{function_name}",
@@ -6593,6 +6689,9 @@ DELETE_TYPE_TEMPLATES = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Type Templates",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "DELETE",
                 "uri": "/types/{type_name}",
@@ -6778,6 +6877,9 @@ GET_DIMENSION = Schema(
     id=ShapeID("io.superposition#GetDimension"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Dimensions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/dimension/{dimension}",
@@ -7013,6 +7115,9 @@ LIST_DIMENSIONS = Schema(
     id=ShapeID("io.superposition#ListDimensions"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Dimensions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/dimension",
@@ -7234,6 +7339,9 @@ UPDATE_DIMENSION = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Dimensions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/dimension/{dimension}",
@@ -7467,6 +7575,9 @@ DISCARD_EXPERIMENT = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiments/{id}/discard",
@@ -7664,6 +7775,9 @@ GET_EXPERIMENT_GROUP = Schema(
     id=ShapeID("io.superposition#GetExperimentGroup"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experiment Groups",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/experiment-groups/{id}",
@@ -8021,6 +8135,9 @@ LIST_EXPERIMENT_GROUPS = Schema(
     id=ShapeID("io.superposition#ListExperimentGroups"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experiment Groups",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/experiment-groups",
@@ -8238,6 +8355,9 @@ REMOVE_MEMBERS_FROM_GROUP = Schema(
     id=ShapeID("io.superposition#RemoveMembersFromGroup"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experiment Groups",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiment-groups/{id}/remove-members",
@@ -8462,6 +8582,9 @@ UPDATE_EXPERIMENT_GROUP = Schema(
     id=ShapeID("io.superposition#UpdateExperimentGroup"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experiment Groups",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiment-groups/{id}",
@@ -8860,6 +8983,9 @@ GET_EXPERIMENT = Schema(
     id=ShapeID("io.superposition#GetExperiment"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/experiments/{id}",
@@ -9112,6 +9238,9 @@ LIST_EXPERIMENT = Schema(
     id=ShapeID("io.superposition#ListExperiment"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/experiments",
@@ -9346,6 +9475,9 @@ PAUSE_EXPERIMENT = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiments/{id}/pause",
@@ -9588,6 +9720,9 @@ RAMP_EXPERIMENT = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiments/{id}/ramp",
@@ -9821,6 +9956,9 @@ RESUME_EXPERIMENT = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/experiments/{id}/resume",
@@ -10116,6 +10254,9 @@ UPDATE_OVERRIDES_EXPERIMENT = Schema(
     id=ShapeID("io.superposition#UpdateOverridesExperiment"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Experimentation",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/experiments/{id}/overrides",
@@ -10293,6 +10434,9 @@ GET_FUNCTION = Schema(
     id=ShapeID("io.superposition#GetFunction"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Functions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/function/{function_name}",
@@ -10521,6 +10665,9 @@ LIST_FUNCTION = Schema(
     id=ShapeID("io.superposition#ListFunction"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Functions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/function",
@@ -10709,6 +10856,9 @@ PUBLISH = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Functions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/function/{function_name}/publish",
@@ -10888,6 +11038,9 @@ TEST = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Functions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/function/{function_name}/{stage}/test",
@@ -11101,6 +11254,9 @@ UPDATE_FUNCTION = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Functions",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/function/{function_name}",
@@ -11250,6 +11406,9 @@ GET_ORGANISATION = Schema(
     id=ShapeID("io.superposition#GetOrganisation"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Organisation Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/superposition/organisations/{id}",
@@ -11440,6 +11599,9 @@ GET_TYPE_TEMPLATES_LIST = Schema(
     id=ShapeID("io.superposition#GetTypeTemplatesList"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Type Templates",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/types",
@@ -11635,6 +11797,9 @@ GET_WEBHOOK = Schema(
     id=ShapeID("io.superposition#GetWebhook"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Webhooks",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/webhook/{name}",
@@ -11824,6 +11989,9 @@ LIST_ORGANISATION = Schema(
     id=ShapeID("io.superposition#ListOrganisation"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Organisation Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/superposition/organisations",
@@ -12082,6 +12250,9 @@ LIST_WEBHOOK = Schema(
     id=ShapeID("io.superposition#ListWebhook"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Webhooks",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/webhook",
@@ -12335,6 +12506,9 @@ LIST_WORKSPACE = Schema(
     id=ShapeID("io.superposition#ListWorkspace"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Workspace Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/workspaces",
@@ -12526,6 +12700,9 @@ MIGRATE_WORKSPACE_SCHEMA = Schema(
     id=ShapeID("io.superposition#MigrateWorkspaceSchema"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Workspace Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/workspaces/{workspace_name}/db/migrate",
@@ -12697,6 +12874,9 @@ UPDATE_ORGANISATION = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Organisation Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/superposition/organisations/{id}",
@@ -12861,6 +13041,9 @@ UPDATE_TYPE_TEMPLATES = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Type Templates",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/types/{type_name}",
@@ -13131,6 +13314,9 @@ UPDATE_WEBHOOK = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Webhooks",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/webhook/{name}",
@@ -13372,6 +13558,9 @@ UPDATE_WORKSPACE = Schema(
     shape_type=ShapeType.OPERATION,
     traits=[
         Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Workspace Management",
+            )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/workspaces/{workspace_name}",

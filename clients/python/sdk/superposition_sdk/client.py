@@ -653,8 +653,9 @@ class Superposition:
 
     async def create_organisation(self, input: CreateOrganisationInput, plugins: list[Plugin] | None = None) -> CreateOrganisationOutput:
         """
-        Creates a new organisation with specified details including name, admin contact,
-        and organisational information.
+        Creates a new organisation with specified name and administrator email. This is
+        the top-level entity that contains workspaces and manages organizational-level
+        settings.
 
         :param input: The operation's input.
 
@@ -1463,8 +1464,8 @@ class Superposition:
 
     async def list_organisation(self, input: ListOrganisationInput, plugins: list[Plugin] | None = None) -> ListOrganisationOutput:
         """
-        Retrieves a paginated list of all organisations with their basic information and
-        status details.
+        Retrieves a paginated list of all organisations with their basic information,
+        creation details, and current status.
 
         :param input: The operation's input.
 
