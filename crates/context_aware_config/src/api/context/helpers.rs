@@ -29,7 +29,7 @@ use superposition_types::{
 use crate::helpers::DimensionData;
 use crate::validation_functions::execute_fn;
 use crate::{
-    api::dimension::{get_dimension_data, get_dimension_data_map},
+    api::dimension::{get_dimensions_data, get_dimension_data_map},
     helpers::calculate_context_weight,
 };
 use crate::{
@@ -436,7 +436,7 @@ pub fn validate_ctx(
     )?;
     validate_condition_with_dependent_dimensions(conn, context_map, schema_name)?;
     validate_condition_with_functions(conn, context_map, schema_name)?;
-    let dimension_data = get_dimension_data(conn, schema_name)?;
+    let dimension_data = get_dimensions_data(conn, schema_name)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     validate_dimensions(
         #[cfg(feature = "jsonlogic")]

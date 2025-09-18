@@ -82,9 +82,8 @@ diesel::table! {
         description -> Text,
         change_reason -> Text,
         dependency_graph -> Json,
-        dependents -> Array<Text>,
-        dependencies -> Array<Text>,
         autocomplete_function_name -> Nullable<Text>,
+        dimension_type -> Text,
     }
 }
 

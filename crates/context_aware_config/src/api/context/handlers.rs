@@ -9,7 +9,7 @@ use crate::{
             helpers::{query_description, validate_ctx},
             operations,
         },
-        dimension::{get_dimension_data, get_dimension_data_map},
+        dimension::{get_dimensions_data, get_dimension_data_map},
     },
     helpers::{add_config_version, calculate_context_weight},
 };
@@ -663,7 +663,7 @@ async fn weight_recompute(
             unexpected_error!("Something went wrong")
         })?;
 
-    let dimension_data = get_dimension_data(&mut conn, &schema_name)?;
+    let dimension_data = get_dimensions_data(&mut conn, &schema_name)?;
     let dimension_data_map = get_dimension_data_map(&dimension_data)?;
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;

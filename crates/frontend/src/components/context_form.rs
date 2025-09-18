@@ -5,6 +5,7 @@ use serde_json::Value;
 use superposition_types::api::{
     dimension::DimensionResponse, workspace::WorkspaceResponse,
 };
+use superposition_types::database::models::cac::DimensionType;
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
@@ -278,6 +279,11 @@ pub fn context_form(
     let insert_dimension =
         move |context: &mut Conditions, dimension: &DimensionResponse| {
             if !context.includes(&dimension.dimension) {
+                logging::log!(
+                    "Inserting dimension {:?} with schema {:?}",
+                    dimension.dimension,
+                    dimension.schema
+                );
                 context.push(Condition::new_with_default_expression(
                     dimension.dimension.clone(),
                     SchemaType::try_from(dimension.schema.clone()).unwrap(),
@@ -338,7 +344,14 @@ pub fn context_form(
                 dimension_map
                     .get_value()
                     .get(dimension)
-                    .map(|d| d.dependencies.clone())
+                    .cloned()
+                    .map(|d| {
+                        d.dependency_graph
+                            .keys()
+                            .filter(|key| **key != d.dimension)
+                            .cloned()
+                            .collect::<HashSet<String>>()
+                    })
                     .unwrap_or_default()
             })
             .collect::<HashSet<_>>()
@@ -354,7 +367,7 @@ pub fn context_form(
             } else {
                 context.push(Condition::new_with_default_expression(
                     selected_dimension.dimension.clone(),
-                    SchemaType::try_from(selected_dimension.schema.clone()).unwrap(),
+                    SchemaType::try_from(selected_dimension.schema).unwrap(),
                 ));
             }
             context_ws.update(|v| {
@@ -391,17 +404,14 @@ pub fn context_form(
             return "Mandatory Dimension".to_string();
         }
         if context_dependencies.get().contains(&variable) {
-            if let Some(parents) = dimension_map
-                .get_value()
-                .get(&variable)
-                .map(|d| d.dependents.clone())
-            {
-                let parents_in_context = parents
-                    .into_iter()
-                    .filter(|parent| used_dimensions.get().contains(parent))
-                    .collect::<Vec<String>>()
-                    .join(", ");
-                return format!("Required by: {parents_in_context}",);
+            if let Some(dim) = dimension_map.get_value().get(&variable) {
+                match dim.dimension_type {
+                    DimensionType::Regular{} => return String::new(),
+                    DimensionType::LocalCohort(ref cohort_based_on)
+                    | DimensionType::RemoteCohort(ref cohort_based_on) => {
+                        return format!("Required by: {cohort_based_on}",)
+                    }
+                }
             }
         }
         String::new()
@@ -450,9 +460,10 @@ pub fn context_form(
                                 .with_value(|v| {
                                     v.get(&condition.variable)
                                         .map(|d| {
+                                            let dimension_schema = d.schema.clone();
                                             (
-                                                SchemaType::try_from(d.schema.clone()),
-                                                EnumVariants::try_from(d.schema.clone()),
+                                                SchemaType::try_from(dimension_schema.clone()),
+                                                EnumVariants::try_from(dimension_schema),
                                             )
                                         })
                                         .unwrap_or((Err("".to_string()), Err("".to_string())))
