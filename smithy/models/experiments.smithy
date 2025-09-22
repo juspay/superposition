@@ -240,6 +240,7 @@ structure ExperimentNotFound {}
 // Operations
 @documentation("Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.")
 @http(method: "POST", uri: "/experiments")
+@tags(["Experimentation"])
 operation CreateExperiment {
     input: CreateExperimentRequest
     output: ExperimentResponse
@@ -248,6 +249,7 @@ operation CreateExperiment {
 // Operations
 @documentation("Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.")
 @http(method: "PUT", uri: "/experiments/{id}/overrides")
+@tags(["Experimentation"])
 operation UpdateOverridesExperiment {
     input: UpdateOverrideRequest
     output: ExperimentResponse
@@ -256,6 +258,7 @@ operation UpdateOverridesExperiment {
 @documentation("Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment to a concluded state.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/conclude")
+@tags(["Experimentation"])
 operation ConcludeExperiment {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
@@ -277,6 +280,7 @@ operation ConcludeExperiment {
 @documentation("Discards an experiment without selecting a winner, effectively canceling the experiment and removing its effects.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/discard")
+@tags(["Experimentation"])
 operation DiscardExperiment {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
@@ -293,6 +297,7 @@ operation DiscardExperiment {
 @documentation("Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or rollback of experimental features.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/ramp")
+@tags(["Experimentation"])
 operation RampExperiment {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
@@ -312,6 +317,7 @@ operation RampExperiment {
 @documentation("Retrieves detailed information about a specific experiment, including its config, variants, status, and metrics.")
 @readonly
 @http(method: "GET", uri: "/experiments/{id}")
+@tags(["Experimentation"])
 operation GetExperiment {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
@@ -325,6 +331,7 @@ operation GetExperiment {
 @documentation("Retrieves a paginated list of experiments with support for filtering by status, date range, name, creator, and experiment group.")
 @readonly
 @http(method: "GET", uri: "/experiments")
+@tags(["Experimentation"])
 operation ListExperiment {
     input := with [WorkspaceMixin] {
         @httpQuery("page")
@@ -388,6 +395,7 @@ operation ListExperiment {
 
 @documentation("Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection.")
 @http(method: "POST", uri: "/experiments/applicable-variants")
+@tags(["Experimentation"])
 operation ApplicableVariants {
     input: ApplicableVariantsInput
     output: ApplicableVariantsOutput
@@ -396,6 +404,7 @@ operation ApplicableVariants {
 @documentation("Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment config for later resumption.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/pause")
+@tags(["Experimentation"])
 operation PauseExperiment {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
@@ -412,6 +421,7 @@ operation PauseExperiment {
 @documentation("Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant evaluation.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/resume")
+@tags(["Experimentation"])
 operation ResumeExperiment {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel

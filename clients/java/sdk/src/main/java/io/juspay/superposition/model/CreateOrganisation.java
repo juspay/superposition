@@ -13,8 +13,8 @@ import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
- * Creates a new organisation with specified details including name, admin contact, and organisational
- * information.
+ * Creates a new organisation with specified name and administrator email. This is the top-level entity
+ * that contains workspaces and manages organizational-level settings.
  */
 @SmithyGenerated
 public final class CreateOrganisation implements ApiOperation<CreateOrganisationInput, CreateOrganisationOutput> {

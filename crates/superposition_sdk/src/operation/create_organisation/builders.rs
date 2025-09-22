@@ -19,7 +19,7 @@ impl crate::operation::create_organisation::builders::CreateOrganisationInputBui
                 }
 /// Fluent builder constructing a request to `CreateOrganisation`.
 /// 
-/// Creates a new organisation with specified details including name, admin contact, and organisational information.
+/// Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateOrganisationFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,
