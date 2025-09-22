@@ -33,41 +33,39 @@ index f06fe61c..b7600b53 100644
      private static final List<Schema> $OPERATIONS = List.of(MoveContext.$SCHEMA,
          UpdateOverride.$SCHEMA,
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
-index 518d71c9..68775fc5 100644
+index 0de33755..a0155187 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
-@@ -16,19 +16,20 @@ public final class Dimension implements ApiResource {
+@@ -16,18 +16,19 @@ public final class Dimension implements ApiResource {
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
          "org_id", PreludeSchemas.STRING,
          "dimension", PreludeSchemas.STRING);
 -    private static final Map<String, Schema> $PROPERTIES = Map.of("schema", PreludeSchemas.DOCUMENT,
--        "description", PreludeSchemas.STRING,
--        "created_at", SharedSchemas.DATE_TIME,
--        "last_modified_by", PreludeSchemas.STRING,
--        "created_by", PreludeSchemas.STRING,
--        "dependencies", SharedSchemas.DEPENDENCIES,
--        "dependency_graph", SharedSchemas.OBJECT,
--        "last_modified_at", SharedSchemas.DATE_TIME,
 -        "autocomplete_function_name", PreludeSchemas.STRING,
 -        "change_reason", PreludeSchemas.STRING,
+-        "dimension_type", DimensionType.$SCHEMA,
 -        "function_name", PreludeSchemas.STRING,
--        "dependents", SharedSchemas.DEPENDENTS,
--        "position", PreludeSchemas.INTEGER);
+-        "description", PreludeSchemas.STRING,
+-        "created_at", SharedSchemas.DATE_TIME,
+-        "position", PreludeSchemas.INTEGER,
+-        "last_modified_by", PreludeSchemas.STRING,
+-        "created_by", PreludeSchemas.STRING,
+-        "dependency_graph", SharedSchemas.OBJECT,
+-        "last_modified_at", SharedSchemas.DATE_TIME);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
 +        Map.entry("schema", PreludeSchemas.DOCUMENT),
-+        Map.entry("description", PreludeSchemas.STRING),
-+        Map.entry("created_at", SharedSchemas.DATE_TIME),
-+        Map.entry("last_modified_by", PreludeSchemas.STRING),
-+        Map.entry("created_by", PreludeSchemas.STRING),
-+        Map.entry("dependencies", SharedSchemas.DEPENDENCIES),
-+        Map.entry("dependency_graph", SharedSchemas.OBJECT),
-+        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
 +        Map.entry("autocomplete_function_name", PreludeSchemas.STRING),
 +        Map.entry("change_reason", PreludeSchemas.STRING),
++        Map.entry("dimension_type", DimensionType.$SCHEMA),
 +        Map.entry("function_name", PreludeSchemas.STRING),
-+        Map.entry("dependents", SharedSchemas.DEPENDENTS),
-+        Map.entry("position", PreludeSchemas.INTEGER));
- 
++        Map.entry("description", PreludeSchemas.STRING),
++        Map.entry("created_at", SharedSchemas.DATE_TIME),
++        Map.entry("position", PreludeSchemas.INTEGER),
++        Map.entry("last_modified_by", PreludeSchemas.STRING),
++        Map.entry("created_by", PreludeSchemas.STRING),
++        Map.entry("dependency_graph", SharedSchemas.OBJECT),
++        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
+
      private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
          CreateDimension.$SCHEMA);
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java

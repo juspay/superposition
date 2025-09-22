@@ -23,12 +23,10 @@ pub struct UpdateDimensionOutput  {
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::string::String,
-    #[allow(missing_docs)] // documentation missing in model
-    pub dependencies: ::std::vec::Vec::<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub dependents: ::std::vec::Vec::<::std::string::String>,
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub dimension_type: crate::types::DimensionType,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -75,17 +73,13 @@ impl  UpdateDimensionOutput  {
     pub fn created_by(&self) -> &str {
         use std::ops::Deref; self.created_by.deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn dependencies(&self) -> &[::std::string::String] {
-        use std::ops::Deref; self.dependencies.deref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn dependents(&self) -> &[::std::string::String] {
-        use std::ops::Deref; self.dependents.deref()
-    }
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
         &self.dependency_graph
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dimension_type(&self) -> &crate::types::DimensionType {
+        &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
@@ -117,9 +111,8 @@ pub struct UpdateDimensionOutputBuilder {
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
-    pub(crate) dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) dependents: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory: ::std::option::Option<bool>,
 }
@@ -263,42 +256,6 @@ impl UpdateDimensionOutputBuilder {
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.created_by
     }
-    /// Appends an item to `dependencies`.
-    ///
-    /// To override the contents of this collection use [`set_dependencies`](Self::set_dependencies).
-    ///
-    pub fn dependencies(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        let mut v = self.dependencies.unwrap_or_default();
-                        v.push(input.into());
-                        self.dependencies = ::std::option::Option::Some(v);
-                        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependencies(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.dependencies = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependencies(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-        &self.dependencies
-    }
-    /// Appends an item to `dependents`.
-    ///
-    /// To override the contents of this collection use [`set_dependents`](Self::set_dependents).
-    ///
-    pub fn dependents(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        let mut v = self.dependents.unwrap_or_default();
-                        v.push(input.into());
-                        self.dependents = ::std::option::Option::Some(v);
-                        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependents(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.dependents = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependents(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-        &self.dependents
-    }
     /// Adds a key-value pair to `dependency_graph`.
     ///
     /// To override the contents of this collection use [`set_dependency_graph`](Self::set_dependency_graph).
@@ -317,6 +274,20 @@ impl UpdateDimensionOutputBuilder {
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn get_dependency_graph(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.dependency_graph
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn dimension_type(mut self, input: crate::types::DimensionType) -> Self {
+        self.dimension_type = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_dimension_type(mut self, input: ::std::option::Option<crate::types::DimensionType>) -> Self {
+        self.dimension_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_dimension_type(&self) -> &::std::option::Option<crate::types::DimensionType> {
+        &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -355,9 +326,8 @@ impl UpdateDimensionOutputBuilder {
     /// - [`last_modified_by`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::last_modified_by)
     /// - [`created_at`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::created_at)
     /// - [`created_by`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::created_by)
-    /// - [`dependencies`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::dependencies)
-    /// - [`dependents`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::dependents)
     /// - [`dependency_graph`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::dependency_graph)
+    /// - [`dimension_type`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::dimension_type)
     pub fn build(self) -> ::std::result::Result<crate::operation::update_dimension::UpdateDimensionOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::update_dimension::UpdateDimensionOutput {
@@ -408,19 +378,14 @@ impl UpdateDimensionOutputBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("created_by", "created_by was not specified but it is required when building UpdateDimensionOutput")
                     )?
                 ,
-                dependencies: self.dependencies
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("dependencies", "dependencies was not specified but it is required when building UpdateDimensionOutput")
-                    )?
-                ,
-                dependents: self.dependents
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("dependents", "dependents was not specified but it is required when building UpdateDimensionOutput")
-                    )?
-                ,
                 dependency_graph: self.dependency_graph
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("dependency_graph", "dependency_graph was not specified but it is required when building UpdateDimensionOutput")
+                    )?
+                ,
+                dimension_type: self.dimension_type
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimension_type", "dimension_type was not specified but it is required when building UpdateDimensionOutput")
                     )?
                 ,
                 autocomplete_function_name: self.autocomplete_function_name

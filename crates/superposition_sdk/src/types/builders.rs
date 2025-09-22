@@ -43,6 +43,8 @@ pub use crate::types::_context_put::ContextPutBuilder;
 
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponseBuilder;
 
+pub use crate::types::_unit::UnitBuilder;
+
 pub use crate::types::_dimension_ext::DimensionExtBuilder;
 
 pub use crate::types::_default_config_full::DefaultConfigFullBuilder;

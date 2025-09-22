@@ -263,11 +263,9 @@ pub(crate) mod shape_condition;
 
 pub(crate) mod shape_context_list;
 
-pub(crate) mod shape_dependencies;
-
-pub(crate) mod shape_dependents;
-
 pub(crate) mod shape_dimension_ext_list;
+
+pub(crate) mod shape_dimension_type;
 
 pub(crate) mod shape_document;
 

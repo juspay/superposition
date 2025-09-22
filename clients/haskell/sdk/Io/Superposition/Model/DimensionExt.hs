@@ -9,9 +9,8 @@ module Io.Superposition.Model.DimensionExt (
     setLastModifiedBy,
     setCreatedAt,
     setCreatedBy,
-    setDependencies,
-    setDependents,
     setDependencyGraph,
+    setDimensionType,
     setAutocompleteFunctionName,
     setMandatory,
     build,
@@ -27,9 +26,8 @@ module Io.Superposition.Model.DimensionExt (
     last_modified_by,
     created_at,
     created_by,
-    dependencies,
-    dependents,
     dependency_graph,
+    dimension_type,
     autocomplete_function_name,
     mandatory
 ) where
@@ -46,6 +44,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionType
 import qualified Io.Superposition.Utility
 
 data DimensionExt = DimensionExt {
@@ -59,9 +58,8 @@ data DimensionExt = DimensionExt {
     last_modified_by :: Data.Text.Text,
     created_at :: Data.Time.UTCTime,
     created_by :: Data.Text.Text,
-    dependencies :: [] Data.Text.Text,
-    dependents :: [] Data.Text.Text,
     dependency_graph :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
     mandatory :: Data.Maybe.Maybe Bool
 } deriving (
@@ -82,9 +80,8 @@ instance Data.Aeson.ToJSON DimensionExt where
         "last_modified_by" Data.Aeson..= last_modified_by a,
         "created_at" Data.Aeson..= created_at a,
         "created_by" Data.Aeson..= created_by a,
-        "dependencies" Data.Aeson..= dependencies a,
-        "dependents" Data.Aeson..= dependents a,
         "dependency_graph" Data.Aeson..= dependency_graph a,
+        "dimension_type" Data.Aeson..= dimension_type a,
         "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
         "mandatory" Data.Aeson..= mandatory a
         ]
@@ -104,9 +101,8 @@ instance Data.Aeson.FromJSON DimensionExt where
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
-        Control.Applicative.<*> (v Data.Aeson..: "dependencies")
-        Control.Applicative.<*> (v Data.Aeson..: "dependents")
         Control.Applicative.<*> (v Data.Aeson..: "dependency_graph")
+        Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
         Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory")
     
@@ -124,9 +120,8 @@ data DimensionExtBuilderState = DimensionExtBuilderState {
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    dependenciesBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
-    dependentsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     dependency_graphBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    dimension_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
     autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     mandatoryBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
@@ -145,9 +140,8 @@ defaultBuilderState = DimensionExtBuilderState {
     last_modified_byBuilderState = Data.Maybe.Nothing,
     created_atBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
-    dependenciesBuilderState = Data.Maybe.Nothing,
-    dependentsBuilderState = Data.Maybe.Nothing,
     dependency_graphBuilderState = Data.Maybe.Nothing,
+    dimension_typeBuilderState = Data.Maybe.Nothing,
     autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
     mandatoryBuilderState = Data.Maybe.Nothing
 }
@@ -194,17 +188,13 @@ setCreatedBy :: Data.Text.Text -> DimensionExtBuilder ()
 setCreatedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = Data.Maybe.Just value }))
 
-setDependencies :: [] Data.Text.Text -> DimensionExtBuilder ()
-setDependencies value =
-   Control.Monad.State.Strict.modify (\s -> (s { dependenciesBuilderState = Data.Maybe.Just value }))
-
-setDependents :: [] Data.Text.Text -> DimensionExtBuilder ()
-setDependents value =
-   Control.Monad.State.Strict.modify (\s -> (s { dependentsBuilderState = Data.Maybe.Just value }))
-
 setDependencyGraph :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> DimensionExtBuilder ()
 setDependencyGraph value =
    Control.Monad.State.Strict.modify (\s -> (s { dependency_graphBuilderState = Data.Maybe.Just value }))
+
+setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> DimensionExtBuilder ()
+setDimensionType value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_typeBuilderState = Data.Maybe.Just value }))
 
 setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionExtBuilder ()
 setAutocompleteFunctionName value =
@@ -227,9 +217,8 @@ build builder = do
     last_modified_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.last_modified_by is a required property.") Data.Either.Right (last_modified_byBuilderState st)
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
-    dependencies' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dependencies is a required property.") Data.Either.Right (dependenciesBuilderState st)
-    dependents' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dependents is a required property.") Data.Either.Right (dependentsBuilderState st)
     dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
+    dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
     autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
     mandatory' <- Data.Either.Right (mandatoryBuilderState st)
     Data.Either.Right (DimensionExt { 
@@ -243,9 +232,8 @@ build builder = do
         last_modified_by = last_modified_by',
         created_at = created_at',
         created_by = created_by',
-        dependencies = dependencies',
-        dependents = dependents',
         dependency_graph = dependency_graph',
+        dimension_type = dimension_type',
         autocomplete_function_name = autocomplete_function_name',
         mandatory = mandatory'
     })

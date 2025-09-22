@@ -93,14 +93,6 @@ final class SharedSchemas {
         .putMember("member", WeightRecomputeResponse.$SCHEMA)
         .build();
 
-    static final Schema DEPENDENCIES = Schema.listBuilder(ShapeId.from("io.superposition#Dependencies"))
-        .putMember("member", PreludeSchemas.STRING)
-        .build();
-
-    static final Schema DEPENDENTS = Schema.listBuilder(ShapeId.from("io.superposition#Dependents"))
-        .putMember("member", PreludeSchemas.STRING)
-        .build();
-
     static final Schema EVENTS = Schema.listBuilder(ShapeId.from("io.superposition#Events"))
         .putMember("member", PreludeSchemas.STRING)
         .build();
