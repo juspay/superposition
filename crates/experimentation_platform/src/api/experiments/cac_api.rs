@@ -12,7 +12,11 @@ use service_utils::service::types::{
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
-    api::context::{ContextBulkResponse, ContextValidationRequest},
+    api::{
+        config::ResolveConfigQuery,
+        context::{ContextBulkResponse, ContextValidationRequest},
+    },
+    custom_query::{DimensionQuery, QueryMap, QueryParam},
     database::models::cac::Context as ContextResp,
     result as superposition, Cac, Condition, User,
 };
@@ -142,28 +146,39 @@ pub async fn get_partial_resolve_config(
 ) -> superposition::Result<Map<String, Value>> {
     cfg_if::cfg_if! {
         if #[cfg(feature = "jsonlogic")] {
-            let mut exp_context_dimension_value = extract_dimensions(exp_context)?;
+            let exp_context_dimension_value = extract_dimensions(exp_context)?;
         } else {
-            let mut exp_context_dimension_value: Map<String, Value> = exp_context.clone().into();
+            let exp_context_dimension_value: Map<String, Value> = exp_context.clone().into();
         }
     }
 
-    exp_context_dimension_value.insert(
-        "context_id".to_string(),
-        Value::String(context_id.to_string()),
-    );
-    get_resolved_config(user, state, &exp_context_dimension_value, workspace_request)
-        .await
+    get_resolved_config(
+        user,
+        state,
+        &DimensionQuery::from(exp_context_dimension_value),
+        &ResolveConfigQuery {
+            context_id: Some(context_id.to_string()),
+            ..Default::default()
+        },
+        workspace_request,
+    )
+    .await
 }
 
 pub async fn get_resolved_config(
     user: &User,
     state: &Data<AppState>,
-    query_map: &Map<String, Value>,
+    dimension_query: &DimensionQuery<QueryMap>,
+    resolve_params: &ResolveConfigQuery,
     workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
     let http_client = state.http_client.clone();
-    let url = state.cac_host.clone() + "/config/resolve";
+    let url = format!(
+        "{}/config/resolve?{}&{}",
+        state.cac_host,
+        resolve_params.to_query_param(),
+        dimension_query.to_query_param()
+    );
 
     let user_str = serde_json::to_string(user).map_err(|err| {
         log::error!("Something went wrong, failed to stringify user data {err}");
@@ -182,7 +197,6 @@ pub async fn get_resolved_config(
     )?;
     let response = http_client
         .get(&url)
-        .query(&query_map)
         .headers(headers_map.into())
         .header(
             header::AUTHORIZATION,

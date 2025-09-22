@@ -79,9 +79,9 @@ async fn app(ctx: web::Query<Context>) -> impl Responder {
     let vehicle_type = context.vehicle_type.unwrap_or(Vehicle::Cab);
     let hour_of_day = context.hour_of_day.unwrap_or(0);
     let client = Client::default();
-    let req = client.get(format!("http://localhost:8080/config/resolve?city={city}&vehicle_type={vehicle_type}&hour_of_day={hour_of_day}"))
+    let req = client.get(format!("http://localhost:8080/config/resolve?dimension[city]={city}&dimension[vehicle_type]={vehicle_type}&dimension[hour_of_day]={hour_of_day}"))
         .insert_header(("x-tenant", "dev"));
-    // println!("{}", format!("http://localhost:8080/config/resolve?city={city}&vehicle_type={vehicle_type}&hour_of_day={hour_of_day}"));
+    // println!("{}", format!("http://localhost:8080/config/resolve?dimension[city]={city}&dimension[vehicle_type]={vehicle_type}&dimension[hour_of_day]={hour_of_day}"));
     let mut res = req.send().await.expect("Failed to send request");
     let res_string = res
         .body()

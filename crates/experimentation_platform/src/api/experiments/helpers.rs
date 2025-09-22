@@ -16,12 +16,16 @@ use service_utils::service::types::{
     AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
 };
 use superposition_macros::{bad_argument, unexpected_error};
-use superposition_types::database::models::experimentation::GroupType;
 use superposition_types::{
-    api::{experiment_groups::ExpGroupMemberRequest, I64Update},
+    api::{
+        config::ResolveConfigQuery, experiment_groups::ExpGroupMemberRequest, I64Update,
+    },
+    custom_query::DimensionQuery,
     database::{
         models::{
-            experimentation::{Experiment, ExperimentStatusType, Variant, VariantType},
+            experimentation::{
+                Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
+            },
             others::{Webhook, WebhookEvent},
             ChangeReason, Workspace,
         },
@@ -808,12 +812,18 @@ pub async fn validate_control_overrides(
         if #[cfg(feature = "jsonlogic")] {
             let context = &extract_dimensions(exp_context)?;
         } else {
-            let context = &exp_context;
+            let context: &Map<String, Value> = exp_context;
         }
     }
 
-    let resolved_config =
-        get_resolved_config(user, state, context, workspace_request).await?;
+    let resolved_config = get_resolved_config(
+        user,
+        state,
+        &DimensionQuery::from(context.clone()),
+        &ResolveConfigQuery::default(),
+        workspace_request,
+    )
+    .await?;
     let control_variant_overrides = control_overrides.clone().into_inner();
     let mismatched_overrides: Map<_, _> = control_variant_overrides
         .into_iter()

@@ -7,8 +7,8 @@ use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
-    api::workspace::WorkspaceResponse,
-    custom_query::{CustomQuery, PaginationParams, Query},
+    api::{config::ResolveConfigQuery, workspace::WorkspaceResponse},
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query},
 };
 use types::{ComparisonTable, ContextList, PageParams};
 
@@ -144,12 +144,15 @@ pub fn compare_overrides() -> impl IntoView {
             contexts.insert(DEFAULT_CONFIG_COLUMN.to_string(), Map::new());
             let mut contexts_config_vector_map: ComparisonTable = HashMap::new();
             for (context_key, context) in contexts.iter() {
-                let context = context
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", k, v))
-                    .collect::<Vec<_>>()
-                    .join("&");
-                match resolve_config(&context, false, None, &tenant, &org_id).await {
+                let context = DimensionQuery::from(context.clone());
+                match resolve_config(
+                    &context,
+                    &ResolveConfigQuery::default(),
+                    &tenant,
+                    &org_id,
+                )
+                .await
+                {
                     Ok(config) => {
                         for (config_key, resolved_value) in config {
                             let mut row_vector = contexts_config_vector_map

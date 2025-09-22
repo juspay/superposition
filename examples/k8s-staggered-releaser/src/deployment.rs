@@ -2,15 +2,15 @@ use serde_json::{json, Value};
 
 use crate::utils::{K8S_API_SERVER, TOKEN};
 
-
-
 pub fn generate_deployment_config(config: Value, dep_name: String) -> Value {
     let mut env_object: Vec<Value> = Vec::new();
 
     if let Value::Object(map) = config.clone() {
         for (key, value) in &map {
             if key.contains("env.") {
-                env_object.push(json!({"name": key.replace("env.", ""), "value": value.clone()}));
+                env_object.push(
+                    json!({"name": key.replace("env.", ""), "value": value.clone()}),
+                );
             }
         }
     }
@@ -69,7 +69,7 @@ pub async fn create_deployment(
 
     let resp = client
         .get(format!(
-            "http://localhost:8080/config/resolve?namespace={namespace}&variantIds={variant_use}"
+            "http://localhost:8080/config/resolve?dimension[namespace]={namespace}&dimension[variantIds]={variant_use}"
         ))
         .header("x-org-id", "localorg")
         .header("x-tenant", service.clone())

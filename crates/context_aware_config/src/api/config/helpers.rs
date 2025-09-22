@@ -1,15 +1,13 @@
-use serde_json::{Map, Value};
-use superposition_types::{result as superposition, Config};
+use superposition_types::{
+    custom_query::CommaSeparatedStringQParams, result as superposition, Config,
+};
 
 pub fn apply_prefix_filter_to_config(
-    query_params_map: &mut Map<String, Value>,
+    prefix: &Option<CommaSeparatedStringQParams>,
     mut config: Config,
 ) -> superposition::Result<Config> {
-    if let Some(prefix) = query_params_map
-        .remove("prefix")
-        .and_then(|prefix| prefix.as_str().map(String::from))
-    {
-        config = config.filter_by_prefix(&prefix.split(',').map(String::from).collect());
+    if let Some(prefix) = prefix {
+        config = config.filter_by_prefix(&prefix.iter().map(Clone::clone).collect());
     }
 
     Ok(config)
