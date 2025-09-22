@@ -17,9 +17,8 @@ impl super::Client {
     ///   - [`last_modified_by(String)`](crate::operation::get_dimension::GetDimensionOutput::last_modified_by): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::get_dimension::GetDimensionOutput::created_at): (undocumented)
     ///   - [`created_by(String)`](crate::operation::get_dimension::GetDimensionOutput::created_by): (undocumented)
-    ///   - [`dependencies(Vec::<String>)`](crate::operation::get_dimension::GetDimensionOutput::dependencies): (undocumented)
-    ///   - [`dependents(Vec::<String>)`](crate::operation::get_dimension::GetDimensionOutput::dependents): (undocumented)
     ///   - [`dependency_graph(HashMap::<String, Document>)`](crate::operation::get_dimension::GetDimensionOutput::dependency_graph): Generic key-value object structure used for flexible data representation throughout the API.
+    ///   - [`dimension_type(DimensionType)`](crate::operation::get_dimension::GetDimensionOutput::dimension_type): (undocumented)
     ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::get_dimension::GetDimensionOutput::autocomplete_function_name): (undocumented)
     ///   - [`mandatory(Option<bool>)`](crate::operation::get_dimension::GetDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<GetDimensionError>`](crate::operation::get_dimension::GetDimensionError)

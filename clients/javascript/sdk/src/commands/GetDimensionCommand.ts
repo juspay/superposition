@@ -35,7 +35,7 @@ export interface GetDimensionCommandInput extends GetDimensionInput {}
 export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBearer {}
 
 /**
- * Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata.
+ * Retrieves detailed information about a specific dimension, including its schema, cohort dependency graph, and configuration metadata.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -60,14 +60,13 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * //   last_modified_by: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
- * //   dependencies: [ // Dependencies // required
- * //     "STRING_VALUE",
- * //   ],
- * //   dependents: [ // Dependents // required
- * //     "STRING_VALUE",
- * //   ],
  * //   dependency_graph: { // Object // required
  * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
+ * //   dimension_type: { // DimensionType Union: only one key present
+ * //     REGULAR: {},
+ * //     LOCAL_COHORT: "STRING_VALUE",
+ * //     REMOTE_COHORT: "STRING_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
  * //   mandatory: true || false,

@@ -1007,6 +1007,76 @@ export interface DefaultConfigFull {
 /**
  * @public
  */
+export interface Unit {
+}
+
+/**
+ * @public
+ */
+export type DimensionType =
+  | DimensionType.LOCAL_COHORTMember
+  | DimensionType.REGULARMember
+  | DimensionType.REMOTE_COHORTMember
+  | DimensionType.$UnknownMember
+
+/**
+ * @public
+ */
+export namespace DimensionType {
+
+  export interface REGULARMember {
+    REGULAR: Unit;
+    LOCAL_COHORT?: never;
+    REMOTE_COHORT?: never;
+    $unknown?: never;
+  }
+
+  export interface LOCAL_COHORTMember {
+    REGULAR?: never;
+    LOCAL_COHORT: string;
+    REMOTE_COHORT?: never;
+    $unknown?: never;
+  }
+
+  export interface REMOTE_COHORTMember {
+    REGULAR?: never;
+    LOCAL_COHORT?: never;
+    REMOTE_COHORT: string;
+    $unknown?: never;
+  }
+
+  /**
+   * @public
+   */
+  export interface $UnknownMember {
+    REGULAR?: never;
+    LOCAL_COHORT?: never;
+    REMOTE_COHORT?: never;
+    $unknown: [string, any];
+  }
+
+  export interface Visitor<T> {
+    REGULAR: (value: Unit) => T;
+    LOCAL_COHORT: (value: string) => T;
+    REMOTE_COHORT: (value: string) => T;
+    _: (name: string, value: any) => T;
+  }
+
+  export const visit = <T>(
+    value: DimensionType,
+    visitor: Visitor<T>
+  ): T => {
+    if (value.REGULAR !== undefined) return visitor.REGULAR(value.REGULAR);
+    if (value.LOCAL_COHORT !== undefined) return visitor.LOCAL_COHORT(value.LOCAL_COHORT);
+    if (value.REMOTE_COHORT !== undefined) return visitor.REMOTE_COHORT(value.REMOTE_COHORT);
+    return visitor._(value.$unknown[0], value.$unknown[1]);
+  }
+
+}
+
+/**
+ * @public
+ */
 export interface CreateDimensionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1014,9 +1084,9 @@ export interface CreateDimensionInput {
   position: number | undefined;
   schema: __DocumentType | undefined;
   function_name?: string | undefined;
-  dependencies?: (string)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  dimension_type: DimensionType | undefined;
   autocomplete_function_name?: string | undefined;
 }
 
@@ -1034,14 +1104,13 @@ export interface DimensionExt {
   last_modified_by: string | undefined;
   created_at: Date | undefined;
   created_by: string | undefined;
-  dependencies: (string)[] | undefined;
-  dependents: (string)[] | undefined;
   /**
    * Generic key-value object structure used for flexible data representation throughout the API.
    * @public
    */
   dependency_graph: Record<string, __DocumentType> | undefined;
 
+  dimension_type: DimensionType | undefined;
   autocomplete_function_name?: string | undefined;
   mandatory?: boolean | undefined;
 }
@@ -1515,7 +1584,6 @@ export interface UpdateDimensionInput {
   position?: number | undefined;
   function_name?: string | undefined;
   description?: string | undefined;
-  dependencies?: (string)[] | undefined;
   change_reason: string | undefined;
   autocomplete_function_name?: string | undefined;
 }

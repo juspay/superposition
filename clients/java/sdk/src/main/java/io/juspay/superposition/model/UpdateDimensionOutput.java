@@ -3,7 +3,6 @@ package io.juspay.superposition.model;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
@@ -44,11 +43,9 @@ public final class UpdateDimensionOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("created_by", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("dependencies", SharedSchemas.DEPENDENCIES,
-                new RequiredTrait())
-        .putMember("dependents", SharedSchemas.DEPENDENTS,
-                new RequiredTrait())
         .putMember("dependency_graph", SharedSchemas.OBJECT,
+                new RequiredTrait())
+        .putMember("dimension_type", DimensionType.$SCHEMA,
                 new RequiredTrait())
         .putMember("autocomplete_function_name", PreludeSchemas.STRING)
         .putMember("mandatory", PreludeSchemas.BOOLEAN)
@@ -64,9 +61,8 @@ public final class UpdateDimensionOutput implements SerializableStruct {
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
     private static final Schema $SCHEMA_CREATED_AT = $SCHEMA.member("created_at");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
-    private static final Schema $SCHEMA_DEPENDENCIES = $SCHEMA.member("dependencies");
-    private static final Schema $SCHEMA_DEPENDENTS = $SCHEMA.member("dependents");
     private static final Schema $SCHEMA_DEPENDENCY_GRAPH = $SCHEMA.member("dependency_graph");
+    private static final Schema $SCHEMA_DIMENSION_TYPE = $SCHEMA.member("dimension_type");
     private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
     private static final Schema $SCHEMA_MANDATORY = $SCHEMA.member("mandatory");
 
@@ -80,9 +76,8 @@ public final class UpdateDimensionOutput implements SerializableStruct {
     private final transient String lastModifiedBy;
     private final transient Instant createdAt;
     private final transient String createdBy;
-    private final transient List<String> dependencies;
-    private final transient List<String> dependents;
     private final transient Map<String, Document> dependencyGraph;
+    private final transient DimensionType dimensionType;
     private final transient String autocompleteFunctionName;
     private final transient Boolean mandatory;
 
@@ -97,9 +92,8 @@ public final class UpdateDimensionOutput implements SerializableStruct {
         this.lastModifiedBy = builder.lastModifiedBy;
         this.createdAt = builder.createdAt;
         this.createdBy = builder.createdBy;
-        this.dependencies = Collections.unmodifiableList(builder.dependencies);
-        this.dependents = Collections.unmodifiableList(builder.dependents);
         this.dependencyGraph = Collections.unmodifiableMap(builder.dependencyGraph);
+        this.dimensionType = builder.dimensionType;
         this.autocompleteFunctionName = builder.autocompleteFunctionName;
         this.mandatory = builder.mandatory;
     }
@@ -144,28 +138,16 @@ public final class UpdateDimensionOutput implements SerializableStruct {
         return createdBy;
     }
 
-    public List<String> dependencies() {
-        return dependencies;
-    }
-
-    public boolean hasDependencies() {
-        return true;
-    }
-
-    public List<String> dependents() {
-        return dependents;
-    }
-
-    public boolean hasDependents() {
-        return true;
-    }
-
     public Map<String, Document> dependencyGraph() {
         return dependencyGraph;
     }
 
     public boolean hasDependencyGraph() {
         return true;
+    }
+
+    public DimensionType dimensionType() {
+        return dimensionType;
     }
 
     public String autocompleteFunctionName() {
@@ -200,16 +182,15 @@ public final class UpdateDimensionOutput implements SerializableStruct {
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.createdAt, that.createdAt)
                && Objects.equals(this.createdBy, that.createdBy)
-               && Objects.equals(this.dependencies, that.dependencies)
-               && Objects.equals(this.dependents, that.dependents)
                && Objects.equals(this.dependencyGraph, that.dependencyGraph)
+               && Objects.equals(this.dimensionType, that.dimensionType)
                && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName)
                && Objects.equals(this.mandatory, that.mandatory);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(dimension, position, schemaMember, functionName, description, changeReason, lastModifiedAt, lastModifiedBy, createdAt, createdBy, dependencies, dependents, dependencyGraph, autocompleteFunctionName, mandatory);
+        return Objects.hash(dimension, position, schemaMember, functionName, description, changeReason, lastModifiedAt, lastModifiedBy, createdAt, createdBy, dependencyGraph, dimensionType, autocompleteFunctionName, mandatory);
     }
 
     @Override
@@ -231,9 +212,10 @@ public final class UpdateDimensionOutput implements SerializableStruct {
         serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
         serializer.writeTimestamp($SCHEMA_CREATED_AT, createdAt);
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
-        serializer.writeList($SCHEMA_DEPENDENCIES, dependencies, dependencies.size(), SharedSerde.DependenciesSerializer.INSTANCE);
-        serializer.writeList($SCHEMA_DEPENDENTS, dependents, dependents.size(), SharedSerde.DependentsSerializer.INSTANCE);
         serializer.writeMap($SCHEMA_DEPENDENCY_GRAPH, dependencyGraph, dependencyGraph.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
+        if (dimensionType != null) {
+            serializer.writeStruct($SCHEMA_DIMENSION_TYPE, dimensionType);
+        }
         if (autocompleteFunctionName != null) {
             serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
         }
@@ -255,12 +237,11 @@ public final class UpdateDimensionOutput implements SerializableStruct {
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_AT, member, createdAt);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCIES, member, dependencies);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEPENDENTS, member, dependents);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCY_GRAPH, member, dependencyGraph);
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
-            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
-            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY, member, mandatory);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCY_GRAPH, member, dependencyGraph);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, dimensionType);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY, member, mandatory);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -284,9 +265,8 @@ public final class UpdateDimensionOutput implements SerializableStruct {
         builder.lastModifiedBy(this.lastModifiedBy);
         builder.createdAt(this.createdAt);
         builder.createdBy(this.createdBy);
-        builder.dependencies(this.dependencies);
-        builder.dependents(this.dependents);
         builder.dependencyGraph(this.dependencyGraph);
+        builder.dimensionType(this.dimensionType);
         builder.autocompleteFunctionName(this.autocompleteFunctionName);
         builder.mandatory(this.mandatory);
         return builder;
@@ -314,9 +294,8 @@ public final class UpdateDimensionOutput implements SerializableStruct {
         private String lastModifiedBy;
         private Instant createdAt;
         private String createdBy;
-        private List<String> dependencies;
-        private List<String> dependents;
         private Map<String, Document> dependencyGraph;
+        private DimensionType dimensionType;
         private String autocompleteFunctionName;
         private Boolean mandatory;
 
@@ -429,29 +408,19 @@ public final class UpdateDimensionOutput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder dependencies(List<String> dependencies) {
-            this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null");
-            tracker.setMember($SCHEMA_DEPENDENCIES);
-            return this;
-        }
-
-        /**
-         * <p><strong>Required</strong>
-         * @return this builder.
-         */
-        public Builder dependents(List<String> dependents) {
-            this.dependents = Objects.requireNonNull(dependents, "dependents cannot be null");
-            tracker.setMember($SCHEMA_DEPENDENTS);
-            return this;
-        }
-
-        /**
-         * <p><strong>Required</strong>
-         * @return this builder.
-         */
         public Builder dependencyGraph(Map<String, Document> dependencyGraph) {
             this.dependencyGraph = Objects.requireNonNull(dependencyGraph, "dependencyGraph cannot be null");
             tracker.setMember($SCHEMA_DEPENDENCY_GRAPH);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder dimensionType(DimensionType dimensionType) {
+            this.dimensionType = Objects.requireNonNull(dimensionType, "dimensionType cannot be null");
+            tracker.setMember($SCHEMA_DIMENSION_TYPE);
             return this;
         }
 
@@ -490,12 +459,11 @@ public final class UpdateDimensionOutput implements SerializableStruct {
                 case 6 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 7 -> createdAt((Instant) SchemaUtils.validateSameMember($SCHEMA_CREATED_AT, member, value));
                 case 8 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 9 -> dependencies((List<String>) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCIES, member, value));
-                case 10 -> dependents((List<String>) SchemaUtils.validateSameMember($SCHEMA_DEPENDENTS, member, value));
-                case 11 -> dependencyGraph((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCY_GRAPH, member, value));
-                case 12 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
-                case 13 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
-                case 14 -> mandatory((boolean) SchemaUtils.validateSameMember($SCHEMA_MANDATORY, member, value));
+                case 9 -> dependencyGraph((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCY_GRAPH, member, value));
+                case 10 -> dimensionType((DimensionType) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, value));
+                case 11 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
+                case 12 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
+                case 13 -> mandatory((boolean) SchemaUtils.validateSameMember($SCHEMA_MANDATORY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -532,14 +500,11 @@ public final class UpdateDimensionOutput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_CREATED_BY)) {
                 createdBy("");
             }
-            if (!tracker.checkMember($SCHEMA_DEPENDENCIES)) {
-                dependencies(Collections.emptyList());
-            }
-            if (!tracker.checkMember($SCHEMA_DEPENDENTS)) {
-                dependents(Collections.emptyList());
-            }
             if (!tracker.checkMember($SCHEMA_DEPENDENCY_GRAPH)) {
                 dependencyGraph(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_DIMENSION_TYPE)) {
+                tracker.setMember($SCHEMA_DIMENSION_TYPE);
             }
             return this;
         }
@@ -571,12 +536,11 @@ public final class UpdateDimensionOutput implements SerializableStruct {
                     case 6 -> builder.lastModifiedBy(de.readString(member));
                     case 7 -> builder.createdAt(de.readTimestamp(member));
                     case 8 -> builder.createdBy(de.readString(member));
-                    case 9 -> builder.dependencies(SharedSerde.deserializeDependencies(member, de));
-                    case 10 -> builder.dependents(SharedSerde.deserializeDependents(member, de));
-                    case 11 -> builder.dependencyGraph(SharedSerde.deserializeObjectShape(member, de));
-                    case 12 -> builder.functionName(de.readString(member));
-                    case 13 -> builder.autocompleteFunctionName(de.readString(member));
-                    case 14 -> builder.mandatory(de.readBoolean(member));
+                    case 9 -> builder.dependencyGraph(SharedSerde.deserializeObjectShape(member, de));
+                    case 10 -> builder.dimensionType(DimensionType.builder().deserializeMember(de, member).build());
+                    case 11 -> builder.functionName(de.readString(member));
+                    case 12 -> builder.autocompleteFunctionName(de.readString(member));
+                    case 13 -> builder.mandatory(de.readBoolean(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

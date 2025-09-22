@@ -3,6 +3,12 @@ $version: "2.0"
 
 namespace io.superposition
 
+union DimensionType {
+    REGULAR: Unit,
+    LOCAL_COHORT: String,
+    REMOTE_COHORT: String
+}
+
 resource Dimension {
     identifiers: {
         dimension: String
@@ -15,14 +21,13 @@ resource Dimension {
         function_name: String
         description: String
         change_reason: String
-        dependencies: Dependencies
-        dependents: Dependents
         dependency_graph: Object
         created_at: DateTime
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
         autocomplete_function_name: String
+        dimension_type: DimensionType
     }
     list: ListDimensions
     put: UpdateDimension
@@ -31,14 +36,6 @@ resource Dimension {
         GetDimension
         CreateDimension
     ]
-}
-
-list Dependencies {
-    member: String
-}
-
-list Dependents {
-    member: String
 }
 
 @mixin
@@ -73,13 +70,10 @@ structure DimensionMixin for Dimension {
     $created_by
 
     @required
-    $dependencies
-
-    @required
-    $dependents
-
-    @required
     $dependency_graph
+    
+    @required
+    $dimension_type
 
     $autocomplete_function_name
 }
@@ -108,13 +102,14 @@ operation CreateDimension {
 
         $function_name
 
-        $dependencies
-
         @required
         $description
 
         @required
         $change_reason
+        
+        @required
+        $dimension_type
 
         $autocomplete_function_name
     }
@@ -132,7 +127,7 @@ operation ListDimensions {
     }
 }
 
-@documentation("Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata.")
+@documentation("Retrieves detailed information about a specific dimension, including its schema, cohort dependency graph, and configuration metadata.")
 @http(method: "GET", uri: "/dimension/{dimension}")
 operation GetDimension {
     input := for Dimension with [WorkspaceMixin] {
@@ -164,8 +159,6 @@ operation UpdateDimension {
         $function_name
 
         $description
-
-        $dependencies
 
         @required
         $change_reason

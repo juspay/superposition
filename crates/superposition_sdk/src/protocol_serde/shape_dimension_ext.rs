@@ -87,19 +87,14 @@ pub(crate) fn de_dimension_ext<'a, I>(tokens: &mut ::std::iter::Peekable<I>) -> 
                                     ).transpose()?
                                 );
                             }
-                            "dependencies" => {
-                                builder = builder.set_dependencies(
-                                    crate::protocol_serde::shape_dependencies::de_dependencies(tokens)?
-                                );
-                            }
-                            "dependents" => {
-                                builder = builder.set_dependents(
-                                    crate::protocol_serde::shape_dependents::de_dependents(tokens)?
-                                );
-                            }
                             "dependency_graph" => {
                                 builder = builder.set_dependency_graph(
                                     crate::protocol_serde::shape_object::de_object(tokens)?
+                                );
+                            }
+                            "dimension_type" => {
+                                builder = builder.set_dimension_type(
+                                    crate::protocol_serde::shape_dimension_type::de_dimension_type(tokens)?
                                 );
                             }
                             "autocomplete_function_name" => {

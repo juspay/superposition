@@ -18,18 +18,17 @@ public final class Dimension implements ApiResource {
         "dimension", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
         Map.entry("schema", PreludeSchemas.DOCUMENT),
-        Map.entry("description", PreludeSchemas.STRING),
-        Map.entry("created_at", SharedSchemas.DATE_TIME),
-        Map.entry("last_modified_by", PreludeSchemas.STRING),
-        Map.entry("created_by", PreludeSchemas.STRING),
-        Map.entry("dependencies", SharedSchemas.DEPENDENCIES),
-        Map.entry("dependency_graph", SharedSchemas.OBJECT),
-        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
         Map.entry("autocomplete_function_name", PreludeSchemas.STRING),
         Map.entry("change_reason", PreludeSchemas.STRING),
+        Map.entry("dimension_type", DimensionType.$SCHEMA),
         Map.entry("function_name", PreludeSchemas.STRING),
-        Map.entry("dependents", SharedSchemas.DEPENDENTS),
-        Map.entry("position", PreludeSchemas.INTEGER));
+        Map.entry("description", PreludeSchemas.STRING),
+        Map.entry("created_at", SharedSchemas.DATE_TIME),
+        Map.entry("position", PreludeSchemas.INTEGER),
+        Map.entry("last_modified_by", PreludeSchemas.STRING),
+        Map.entry("created_by", PreludeSchemas.STRING),
+        Map.entry("dependency_graph", SharedSchemas.OBJECT),
+        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
 
     private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
         CreateDimension.$SCHEMA);

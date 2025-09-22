@@ -1,8 +1,6 @@
 
 package io.juspay.superposition.model;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -40,10 +38,11 @@ public final class CreateDimensionInput implements SerializableStruct {
         .putMember("schema", PreludeSchemas.DOCUMENT,
                 new RequiredTrait())
         .putMember("function_name", PreludeSchemas.STRING)
-        .putMember("dependencies", SharedSchemas.DEPENDENCIES)
         .putMember("description", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("change_reason", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("dimension_type", DimensionType.$SCHEMA,
                 new RequiredTrait())
         .putMember("autocomplete_function_name", PreludeSchemas.STRING)
         .build();
@@ -54,9 +53,9 @@ public final class CreateDimensionInput implements SerializableStruct {
     private static final Schema $SCHEMA_POSITION = $SCHEMA.member("position");
     private static final Schema $SCHEMA_SCHEMA_MEMBER = $SCHEMA.member("schema");
     private static final Schema $SCHEMA_FUNCTION_NAME = $SCHEMA.member("function_name");
-    private static final Schema $SCHEMA_DEPENDENCIES = $SCHEMA.member("dependencies");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
+    private static final Schema $SCHEMA_DIMENSION_TYPE = $SCHEMA.member("dimension_type");
     private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
 
     private final transient String workspaceId;
@@ -65,9 +64,9 @@ public final class CreateDimensionInput implements SerializableStruct {
     private final transient int position;
     private final transient Document schemaMember;
     private final transient String functionName;
-    private final transient List<String> dependencies;
     private final transient String description;
     private final transient String changeReason;
+    private final transient DimensionType dimensionType;
     private final transient String autocompleteFunctionName;
 
     private CreateDimensionInput(Builder builder) {
@@ -77,9 +76,9 @@ public final class CreateDimensionInput implements SerializableStruct {
         this.position = builder.position;
         this.schemaMember = builder.schemaMember;
         this.functionName = builder.functionName;
-        this.dependencies = builder.dependencies == null ? null : Collections.unmodifiableList(builder.dependencies);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
+        this.dimensionType = builder.dimensionType;
         this.autocompleteFunctionName = builder.autocompleteFunctionName;
     }
 
@@ -107,23 +106,16 @@ public final class CreateDimensionInput implements SerializableStruct {
         return functionName;
     }
 
-    public List<String> dependencies() {
-        if (dependencies == null) {
-            return Collections.emptyList();
-        }
-        return dependencies;
-    }
-
-    public boolean hasDependencies() {
-        return dependencies != null;
-    }
-
     public String description() {
         return description;
     }
 
     public String changeReason() {
         return changeReason;
+    }
+
+    public DimensionType dimensionType() {
+        return dimensionType;
     }
 
     public String autocompleteFunctionName() {
@@ -150,15 +142,15 @@ public final class CreateDimensionInput implements SerializableStruct {
                && this.position == that.position
                && Objects.equals(this.schemaMember, that.schemaMember)
                && Objects.equals(this.functionName, that.functionName)
-               && Objects.equals(this.dependencies, that.dependencies)
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
+               && Objects.equals(this.dimensionType, that.dimensionType)
                && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, dimension, position, schemaMember, functionName, dependencies, description, changeReason, autocompleteFunctionName);
+        return Objects.hash(workspaceId, orgId, dimension, position, schemaMember, functionName, description, changeReason, dimensionType, autocompleteFunctionName);
     }
 
     @Override
@@ -176,11 +168,11 @@ public final class CreateDimensionInput implements SerializableStruct {
         if (functionName != null) {
             serializer.writeString($SCHEMA_FUNCTION_NAME, functionName);
         }
-        if (dependencies != null) {
-            serializer.writeList($SCHEMA_DEPENDENCIES, dependencies, dependencies.size(), SharedSerde.DependenciesSerializer.INSTANCE);
-        }
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        if (dimensionType != null) {
+            serializer.writeStruct($SCHEMA_DIMENSION_TYPE, dimensionType);
+        }
         if (autocompleteFunctionName != null) {
             serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
         }
@@ -196,9 +188,9 @@ public final class CreateDimensionInput implements SerializableStruct {
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, schemaMember);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCIES, member, dependencies);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, dimensionType);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
@@ -219,9 +211,9 @@ public final class CreateDimensionInput implements SerializableStruct {
         builder.position(this.position);
         builder.schemaMember(this.schemaMember);
         builder.functionName(this.functionName);
-        builder.dependencies(this.dependencies);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
+        builder.dimensionType(this.dimensionType);
         builder.autocompleteFunctionName(this.autocompleteFunctionName);
         return builder;
     }
@@ -245,9 +237,9 @@ public final class CreateDimensionInput implements SerializableStruct {
         private int position;
         private Document schemaMember;
         private String functionName;
-        private List<String> dependencies;
         private String description;
         private String changeReason;
+        private DimensionType dimensionType;
         private String autocompleteFunctionName;
 
         private Builder() {}
@@ -315,14 +307,6 @@ public final class CreateDimensionInput implements SerializableStruct {
         }
 
         /**
-         * @return this builder.
-         */
-        public Builder dependencies(List<String> dependencies) {
-            this.dependencies = dependencies;
-            return this;
-        }
-
-        /**
          * <p><strong>Required</strong>
          * @return this builder.
          */
@@ -339,6 +323,16 @@ public final class CreateDimensionInput implements SerializableStruct {
         public Builder changeReason(String changeReason) {
             this.changeReason = Objects.requireNonNull(changeReason, "changeReason cannot be null");
             tracker.setMember($SCHEMA_CHANGE_REASON);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder dimensionType(DimensionType dimensionType) {
+            this.dimensionType = Objects.requireNonNull(dimensionType, "dimensionType cannot be null");
+            tracker.setMember($SCHEMA_DIMENSION_TYPE);
             return this;
         }
 
@@ -366,9 +360,9 @@ public final class CreateDimensionInput implements SerializableStruct {
                 case 3 -> schemaMember((Document) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
                 case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 5 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 6 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 7 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
-                case 8 -> dependencies((List<String>) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCIES, member, value));
+                case 6 -> dimensionType((DimensionType) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, value));
+                case 7 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 8 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
                 case 9 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
@@ -397,6 +391,9 @@ public final class CreateDimensionInput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_CHANGE_REASON)) {
                 changeReason("");
             }
+            if (!tracker.checkMember($SCHEMA_DIMENSION_TYPE)) {
+                tracker.setMember($SCHEMA_DIMENSION_TYPE);
+            }
             return this;
         }
 
@@ -424,9 +421,9 @@ public final class CreateDimensionInput implements SerializableStruct {
                     case 3 -> builder.schemaMember(de.readDocument());
                     case 4 -> builder.description(de.readString(member));
                     case 5 -> builder.changeReason(de.readString(member));
-                    case 6 -> builder.orgId(de.readString(member));
-                    case 7 -> builder.functionName(de.readString(member));
-                    case 8 -> builder.dependencies(SharedSerde.deserializeDependencies(member, de));
+                    case 6 -> builder.dimensionType(DimensionType.builder().deserializeMember(de, member).build());
+                    case 7 -> builder.orgId(de.readString(member));
+                    case 8 -> builder.functionName(de.readString(member));
                     case 9 -> builder.autocompleteFunctionName(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
