@@ -72,7 +72,7 @@ pub fn dimension_form(
     let (dimension_type_template_rs, dimension_type_template_ws) =
         create_signal(dimension_type_template);
     let (dimension_type_rs, dimension_type_ws) =
-        create_signal(DimensionTypeOptions::from_dimension_type(&dimension_type));
+        create_signal(DimensionTypeOptions::from(&dimension_type));
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (validation_fn_name_rs, validation_fn_name_ws) =
         create_signal(validation_function_name);
@@ -81,7 +81,7 @@ pub fn dimension_form(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (cohort_based_on_rs, cohort_based_on_ws) = create_signal(match dimension_type {
-        DimensionType::Regular{} => String::new(),
+        DimensionType::Regular {} => String::new(),
         DimensionType::LocalCohort(cohort_based_on)
         | DimensionType::RemoteCohort(cohort_based_on) => cohort_based_on,
     });
@@ -267,14 +267,17 @@ pub fn dimension_form(
                                     .set(
                                         json!(
                                             {
-                                    "enum": [
-                                        "otherwise"
-                                    ],
-                                    "type": "string",
-                                    "definitions": {}
-                                }
+                                                "enum": [
+                                                    "otherwise"
+                                                ],
+                                                "type": "string",
+                                                "definitions": {}
+                                            }
                                         ),
                                     );
+                            } else {
+                                dimension_schema_ws.set(Value::Null);
+                                dimension_type_template_ws.set(String::new());
                             }
                             dimension_type_ws.set(selected_item);
                         })
@@ -283,134 +286,132 @@ pub fn dimension_form(
 
                 <Suspense>
                     {move || {
-                        match dimension_type_rs.get() {
-                            DimensionTypeOptions::Regular | DimensionTypeOptions::RemoteCohort => {
-                                let options = combined_resources
-                                    .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
-                                    .unwrap_or_default();
-                                let dimension_options = combined_resources
-                                    .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
-                                    .unwrap_or_default()
-                                    .iter()
-                                    .filter_map(|d| {
-                                        (d.dimension != dimension_name_rs.get()
-                                            && !matches!(
-                                                d.dimension_type,
-                                                DimensionType::LocalCohort(_)
-                                            ))
-                                            .then_some(d.dimension.clone())
-                                    })
-                                    .collect::<Vec<_>>();
-                                let dimension_options = StoredValue::new(dimension_options);
-                                let dimension_t = if dimension_type_template_rs.get().is_empty()
-                                    && edit
+                        let dimension_type_schema = SchemaType::Single(
+                            JsonSchemaType::from(&dimension_schema_rs.get()),
+                        );
+                        let monaco_margin = if matches!(
+                            dimension_type_rs.get(),
+                            DimensionTypeOptions::LocalCohort
+                        ) {
+                            ""
+                        } else {
+                            "mt-3"
+                        };
+
+                        view! {
+                            <Show when=move || {
+                                !matches!(dimension_type_rs.get(), DimensionTypeOptions::Regular)
+                            }>
                                 {
-                                    "change current type template".into()
-                                } else if dimension_type_template_rs.get().is_empty() && !edit {
-                                    "choose a type template".into()
-                                } else {
-                                    dimension_type_template_rs.get()
-                                };
-                                let dimension_type_schema = SchemaType::Single(
-                                    JsonSchemaType::from(&dimension_schema_rs.get()),
-                                );
-                                view! {
-                                    <div class="form-control">
-                                        <Show when=move || {
-                                            dimension_type_rs.get()
-                                                == DimensionTypeOptions::RemoteCohort
-                                        }>
+                                    let dimension_name = dimension_name_rs.get();
+                                    let dimension_options = combined_resources
+                                        .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
+                                        .unwrap_or_default()
+                                        .iter()
+                                        .filter_map(|d| {
+                                            (d.dimension != dimension_name
+                                                && !matches!(
+                                                    d.dimension_type,
+                                                    DimensionType::LocalCohort(_)
+                                                ))
+                                                .then_some(d.dimension.clone())
+                                        })
+                                        .collect::<Vec<_>>();
+                                    let dimension_options = StoredValue::new(dimension_options);
+                                    let current_cohort = cohort_based_on_rs.get();
+                                    let dropdown_text = if current_cohort.is_empty() {
+                                        "choose a cohort based on".into()
+                                    } else {
+                                        current_cohort
+                                    };
+
+                                    view! {
+                                        <div class="form-control">
                                             <Label title="Cohort Based on" />
                                             <Dropdown
                                                 disabled=edit
-                                                dropdown_text=cohort_based_on_rs.get()
+                                                dropdown_text
                                                 dropdown_direction=DropdownDirection::Down
                                                 dropdown_btn_type=DropdownBtnType::Select
                                                 dropdown_options=dimension_options.get_value()
-                                                on_select=Callback::new(move |selected_item: String| {
+                                                on_select=move |selected_item: String| {
                                                     logging::log!("selected item {:?}", selected_item);
                                                     cohort_based_on_ws.set(selected_item);
-                                                })
-                                            />
-                                        </Show>
-
-                                        <Label title="Set Schema" />
-                                        <Dropdown
-                                            dropdown_width="w-100"
-                                            dropdown_icon="".to_string()
-                                            dropdown_text=dimension_t
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options=options
-                                            on_select=Callback::new(move |selected_item: TypeTemplate| {
-                                                logging::log!("selected item {:?}", selected_item);
-                                                dimension_type_template_ws.set(selected_item.type_name);
-                                                dimension_schema_ws.set(selected_item.type_schema);
-                                            })
-                                        />
-                                        <EditorProvider>
-                                            <Input
-                                                id="type-schema"
-                                                class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                                schema_type=dimension_type_schema
-                                                value=dimension_schema_rs.get_untracked()
-                                                on_change=move |new_type_schema| {
-                                                    dimension_schema_ws.set(new_type_schema)
                                                 }
-                                                r#type=InputType::Monaco(vec![])
                                             />
-                                        </EditorProvider>
-                                    </div>
+                                        </div>
+                                    }
                                 }
-                            }
-                            DimensionTypeOptions::LocalCohort => {
-                                let dimension_name = dimension_name_rs.get();
-                                let dropdown_options = combined_resources
-                                    .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
-                                    .unwrap_or_default()
-                                    .iter()
-                                    .filter_map(|d| {
-                                        (d.dimension != dimension_name
-                                            && DimensionTypeOptions::from_dimension_type(
-                                                &d.dimension_type,
-                                            ) != DimensionTypeOptions::LocalCohort)
-                                            .then_some(d.dimension.clone())
-                                    })
-                                    .collect::<Vec<_>>();
-                                let dimension_type_schema = SchemaType::Single(
-                                    JsonSchemaType::Object,
-                                );
-                                view! {
-                                    <div class="form-control">
-                                        <Label title="Cohort Based on" />
-                                        <Dropdown
-                                            disabled=edit
-                                            dropdown_text=cohort_based_on_rs.get()
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options
-                                            on_select=Callback::new(move |selected_item: String| {
-                                                logging::log!("selected item {:?}", selected_item);
-                                                cohort_based_on_ws.set(selected_item);
-                                            })
-                                        />
+                            </Show>
 
-                                        <Label title="Set Cohort Definition" />
-                                        <EditorProvider>
-                                            <Input
-                                                id="type-schema"
-                                                class="mt-2 rounded-md resize-y w-full max-w-md pt-3"
-                                                schema_type=dimension_type_schema
-                                                value=dimension_schema_rs.get_untracked()
-                                                on_change=move |new_type_schema| {
-                                                    dimension_schema_ws.set(new_type_schema)
-                                                }
-                                                r#type=InputType::Monaco(vec![])
+                            <div class="form-control">
+                                <Show
+                                    when=move || {
+                                        !matches!(
+                                            dimension_type_rs.get(),
+                                            DimensionTypeOptions::LocalCohort
+                                        )
+                                    }
+                                    fallback=move || {
+                                        view! {
+                                            <Label
+                                                title="Set Cohort Definition"
+                                                description="Define the cohort options in terms of JSONLogic. The schema must have an enum with 'otherwise' as one of the values. Order of the enum defines the priority of the cohort options."
                                             />
-                                        </EditorProvider>
-                                    </div>
-                                }
-                            }
+                                        }
+                                    }
+                                >
+                                    {
+                                        let options = combined_resources
+                                            .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
+                                            .unwrap_or_default();
+                                        let dimension_t = if dimension_type_template_rs
+                                            .get()
+                                            .is_empty() && edit
+                                        {
+                                            "change current type template".into()
+                                        } else if dimension_type_template_rs.get().is_empty()
+                                            && !edit
+                                        {
+                                            "choose a type template".into()
+                                        } else {
+                                            dimension_type_template_rs.get()
+                                        };
+
+                                        view! {
+                                            <Label title="Set Schema" />
+                                            <Dropdown
+                                                dropdown_width="w-100"
+                                                dropdown_icon="".to_string()
+                                                dropdown_text=dimension_t
+                                                dropdown_direction=DropdownDirection::Down
+                                                dropdown_btn_type=DropdownBtnType::Select
+                                                dropdown_options=options
+                                                on_select=move |selected_item: TypeTemplate| {
+                                                    logging::log!("selected item {:?}", selected_item);
+                                                    dimension_type_template_ws.set(selected_item.type_name);
+                                                    dimension_schema_ws.set(selected_item.type_schema);
+                                                }
+                                            />
+                                        }
+                                    }
+                                </Show>
+                                <EditorProvider>
+                                    <Input
+                                        id="type-schema"
+                                        class=format!(
+                                            "{} rounded-md resize-y w-full max-w-md pt-3",
+                                            monaco_margin,
+                                        )
+                                        schema_type=dimension_type_schema
+                                        value=dimension_schema_rs.get_untracked()
+                                        on_change=move |new_type_schema| {
+                                            dimension_schema_ws.set(new_type_schema)
+                                        }
+                                        r#type=InputType::Monaco(vec![])
+                                    />
+                                </EditorProvider>
+                            </div>
                         }
                     }}
                 </Suspense>

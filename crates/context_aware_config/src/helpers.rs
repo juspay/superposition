@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
@@ -18,7 +20,6 @@ use service_utils::{
     helpers::{generate_snowflake_id, validation_err_to_str},
     service::types::{AppState, SchemaName},
 };
-use std::collections::{HashMap, HashSet};
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
@@ -342,7 +343,9 @@ pub fn validate_cohort_schema(
             })?;
 
         let dims = ast.get_variable_names().map_err(|e| {
-            log::error!("Error while parsing variable names for cohort {cohort_option}: {e}");
+            log::error!(
+                "Error while parsing variable names for cohort {cohort_option}: {e}"
+            );
             validation_error!(
                 "Invalid JSON Logic in cohort {}, error while parsing variable names: {}",
                 cohort_option,
