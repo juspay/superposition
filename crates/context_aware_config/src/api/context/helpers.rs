@@ -29,7 +29,7 @@ use superposition_types::{
 use crate::helpers::DimensionData;
 use crate::validation_functions::execute_fn;
 use crate::{
-    api::dimension::{get_dimensions_data, get_dimension_data_map},
+    api::dimension::{get_dimension_data_map, get_dimensions_data},
     helpers::calculate_context_weight,
 };
 use crate::{

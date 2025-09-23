@@ -244,16 +244,19 @@ pub enum DimensionTypeOptions {
 impl DimensionTypeOptions {
     pub fn to_dimension_type(&self, cohort: String) -> DimensionType {
         match self {
-            DimensionTypeOptions::Regular => DimensionType::Regular{},
+            DimensionTypeOptions::Regular => DimensionType::Regular {},
             DimensionTypeOptions::LocalCohort => DimensionType::LocalCohort(cohort),
             DimensionTypeOptions::RemoteCohort => DimensionType::RemoteCohort(cohort),
         }
     }
-    pub fn from_dimension_type(dim_type: &DimensionType) -> Self {
+}
+
+impl From<&DimensionType> for DimensionTypeOptions {
+    fn from(dim_type: &DimensionType) -> Self {
         match dim_type {
-            DimensionType::Regular{} => DimensionTypeOptions::Regular,
-            DimensionType::LocalCohort(_) => DimensionTypeOptions::LocalCohort,
-            DimensionType::RemoteCohort(_) => DimensionTypeOptions::RemoteCohort,
+            DimensionType::Regular {} => Self::Regular,
+            DimensionType::LocalCohort(_) => Self::LocalCohort,
+            DimensionType::RemoteCohort(_) => Self::RemoteCohort,
         }
     }
 }

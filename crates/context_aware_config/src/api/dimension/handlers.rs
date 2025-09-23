@@ -74,7 +74,7 @@ async fn create(
     )?;
 
     match create_req.dimension_type {
-        DimensionType::Regular{} | DimensionType::RemoteCohort(_) => {
+        DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
             #[cfg(not(feature = "jsonlogic"))]
             allow_primitive_types(&schema_value)?;
             validate_jsonschema(&state.meta_schema, &schema_value)?;
@@ -138,7 +138,7 @@ async fn create(
                     transaction_conn,
                 )?
             }
-            DimensionType::Regular{} => (),
+            DimensionType::Regular {} => (),
         }
 
         let insert_resp = diesel::insert_into(dimensions::table)
@@ -231,7 +231,7 @@ async fn update(
 
     if let Some(schema_value) = update_req.schema.clone() {
         match dimension_data.dimension_type {
-            DimensionType::Regular{} | DimensionType::RemoteCohort(_) => {
+            DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
                 #[cfg(not(feature = "jsonlogic"))]
                 allow_primitive_types(&schema_value)?;
                 validate_jsonschema(&state.meta_schema, &schema_value)?;

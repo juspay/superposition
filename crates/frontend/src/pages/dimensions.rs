@@ -75,7 +75,7 @@ pub fn dimensions() -> impl IntoView {
             move |dimension_type: &str, _| {
                 let dim_type = serde_json::from_str::<DimensionType>(dimension_type)
                     .unwrap_or_default();
-                let dimension_type = DimensionTypeOptions::from_dimension_type(&dim_type);
+                let dimension_type = DimensionTypeOptions::from(&dim_type);
                 view! {
                     <span>{dimension_type.to_string()}</span>
                 }

@@ -88,8 +88,7 @@ fn tree_node(
 
 #[component]
 fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
-    let dimension_type =
-        DimensionTypeOptions::from_dimension_type(&dimension.dimension_type);
+    let dimension_type = DimensionTypeOptions::from(&dimension.dimension_type);
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body">
@@ -282,66 +281,62 @@ pub fn dimension_page() -> impl IntoView {
                             last_modified_at=dimension.last_modified_at
                         />
                         <DimensionInfo dimension=dimension.clone() />
-                        {if dimension.dependency_graph.is_empty() {
+                        {if dimension.dependency_graph.len() < 2
+                            && (DimensionType::Regular {} == dimension.dimension_type)
+                        {
                             ().into_view()
                         } else {
                             view! {
                                 <div class="card bg-base-100 max-w-screen shadow">
                                     <div class="card-body">
-                                        <h2 class="card-title">
-                                            "Cohorts referring to this dimension"
-                                        </h2>
+                                        <h2 class="card-title">"Dependency Data"</h2>
                                         <div class="flex flex-col gap-4">
-                                            <div class="flex flex-row gap-6 flex-wrap">
-                                                <div class="h-fit flex flex-col gap-1 overflow-x-scroll">
-                                                    <div class="stat-title">
-                                                        "Dimensions on which this dimension depends on"
+                                            {if dimension.dependency_graph.len() < 2 {
+                                                ().into_view()
+                                            } else {
+                                                view! {
+                                                    <div class="flex flex-row gap-6 flex-wrap">
+                                                        <div class="h-fit flex flex-col gap-1 overflow-x-scroll">
+                                                            <div class="stat-title">
+                                                                "Dimensions on which this dimension depends on"
+                                                            </div>
+                                                            <div class="w-[inherit] pl-5 whitespace-pre overflow-x-auto">
+                                                                <TreeNode
+                                                                    name=dimension.dimension.clone()
+                                                                    data=dimension.dependency_graph.clone()
+                                                                    root=true
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="w-[inherit] pl-5 whitespace-pre overflow-x-auto">
-                                                        <TreeNode
-                                                            name=dimension.dimension.clone()
-                                                            data=dimension.dependency_graph.clone()
-                                                            root=true
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                }
+                                                    .into_view()
+                                            }}
+                                            {match dimension.dimension_type {
+                                                DimensionType::Regular {} => ().into_view(),
+                                                DimensionType::LocalCohort(cohort_based_on)
+                                                | DimensionType::RemoteCohort(cohort_based_on) => {
+                                                    view! {
+                                                        <div class="flex flex-row gap-6 flex-wrap">
+                                                            <div class="h-fit flex flex-col gap-1">
+                                                                <div class="stat-title">"Cohort is based on"</div>
+                                                                <Badge
+                                                                    href_fn=|d| format!("../{d}")
+                                                                    options=Signal::derive(move || {
+                                                                        vec![cohort_based_on.clone()]
+                                                                    })
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                        .into_view()
+                                                }
+                                            }}
                                         </div>
                                     </div>
                                 </div>
                             }
                                 .into_view()
-                        }}
-
-                        {if DimensionTypeOptions::from_dimension_type(&dimension.dimension_type) != DimensionTypeOptions::Regular {
-                            view! {
-                                <div class="card bg-base-100 max-w-screen shadow">
-                                    <div class="card-body">
-                                        <h2 class="card-title">"Cohort Dimension"</h2>
-                                        <div class="flex flex-col gap-4">
-                                            <div class="flex flex-row gap-6 flex-wrap">
-                                                <div class="h-fit flex flex-col gap-1">
-                                                    <Badge
-                                                        href_fn=|d| format!("../{d}")
-                                                        options=Signal::derive(move || {
-                                                            match &dimension.dimension_type {
-                                                                DimensionType::LocalCohort(cohort)
-                                                                | DimensionType::RemoteCohort(cohort) => {
-                                                                    vec![cohort.clone()]
-                                                                }
-                                                                DimensionType::Regular{} => vec![],
-                                                            }
-                                                        })
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                                .into_view()
-                        } else {
-                            ().into_view()
                         }}
                     </div>
                     {match action_rws.get() {

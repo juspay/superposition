@@ -79,14 +79,14 @@ pub enum DimensionType {
 
 impl Default for DimensionType {
     fn default() -> Self {
-        DimensionType::Regular{}
+        DimensionType::Regular {}
     }
 }
 
 impl Display for DimensionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DimensionType::Regular{} => write!(f, "REGULAR"),
+            DimensionType::Regular {} => write!(f, "REGULAR"),
             DimensionType::LocalCohort(cohort_based_on) => {
                 write!(f, "LOCAL_COHORT:{}", cohort_based_on)
             }
@@ -103,7 +103,7 @@ impl FromStr for DimensionType {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.split(':').collect();
         match parts[0] {
-            "REGULAR" => Ok(DimensionType::Regular{}),
+            "REGULAR" => Ok(DimensionType::Regular {}),
             "LOCAL_COHORT" => Ok(DimensionType::LocalCohort(parts[1].to_string())),
             "REMOTE_COHORT" => Ok(DimensionType::RemoteCohort(parts[1].to_string())),
             _ => Err(format!("Invalid dimension type: {}", s)),

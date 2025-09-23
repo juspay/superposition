@@ -9,7 +9,7 @@ use crate::{
             helpers::{query_description, validate_ctx},
             operations,
         },
-        dimension::{get_dimensions_data, get_dimension_data_map},
+        dimension::{get_dimension_data_map, get_dimensions_data},
     },
     helpers::{add_config_version, calculate_context_weight},
 };

@@ -406,7 +406,7 @@ pub fn context_form(
         if context_dependencies.get().contains(&variable) {
             if let Some(dim) = dimension_map.get_value().get(&variable) {
                 match dim.dimension_type {
-                    DimensionType::Regular{} => return String::new(),
+                    DimensionType::Regular {} => return String::new(),
                     DimensionType::LocalCohort(ref cohort_based_on)
                     | DimensionType::RemoteCohort(ref cohort_based_on) => {
                         return format!("Required by: {cohort_based_on}",)
