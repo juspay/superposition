@@ -803,7 +803,7 @@ describe("Dimension API", () => {
         );
     });
     
-    test("fail2create a local cohort dimension with definition mismatch", async () => {
+    test("fail2create a local cohort dimension with definition/enum mismatch", async () => {
         const wrongCohort = {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
@@ -853,17 +853,71 @@ describe("Dimension API", () => {
         expect(
             superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            "",
+            "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 2 cohorts and 1 enum options (not including otherwise)",
         );
     });
     
-    test("fail2create a local cohort dimension with multiple dimensions", async () => {
+    test("fail2create a local cohort dimension without enum otherwise", async () => {
         const wrongCohort = {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
             schema: {
                 "type": "string",
                 "enum": ["small", "big"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                    big: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "sd",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": testDimension.dimension
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            "schema validation failed: array doesn't contain items conforming to the specified schema"
+        );
+    });
+    
+    test("fail2create a local cohort dimension with multiple dimensions", async () => {
+        const wrongCohort = {
+            dimension: `test-local-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "big", "otherwise"],
                 "definitions": {
                     small: {
                         and: [
@@ -907,7 +961,7 @@ describe("Dimension API", () => {
         expect(
             superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            /The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found [0-9]+ cohorts and [0-9]+ enum options \(not including otherwise\)/,
+            /Multiple dimensions used in cohort schema and that is not allowed: .* /
         );
     });
 
