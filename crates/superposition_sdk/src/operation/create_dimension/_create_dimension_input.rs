@@ -16,11 +16,11 @@ pub struct CreateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub dimension_type: ::std::option::Option<crate::types::DimensionType>,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
@@ -50,19 +50,16 @@ impl  CreateDimensionInput  {
         self.function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
-    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.dependencies.is_none()`.
-    pub fn dependencies(&self) -> &[::std::string::String] {
-        self.dependencies.as_deref()
-        .unwrap_or_default()
-    }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> ::std::option::Option<&str> {
         self.description.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dimension_type(&self) -> ::std::option::Option<&crate::types::DimensionType> {
+        self.dimension_type.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
@@ -86,9 +83,9 @@ pub struct CreateDimensionInputBuilder {
     pub(crate) position: ::std::option::Option<i32>,
     pub(crate) schema: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
-    pub(crate) dependencies: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl CreateDimensionInputBuilder {
@@ -175,24 +172,6 @@ impl CreateDimensionInputBuilder {
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }
-    /// Appends an item to `dependencies`.
-    ///
-    /// To override the contents of this collection use [`set_dependencies`](Self::set_dependencies).
-    ///
-    pub fn dependencies(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        let mut v = self.dependencies.unwrap_or_default();
-                        v.push(input.into());
-                        self.dependencies = ::std::option::Option::Some(v);
-                        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependencies(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.dependencies = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependencies(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-        &self.dependencies
-    }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -220,6 +199,19 @@ impl CreateDimensionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dimension_type(mut self, input: crate::types::DimensionType) -> Self {
+        self.dimension_type = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_dimension_type(mut self, input: ::std::option::Option<crate::types::DimensionType>) -> Self {
+        self.dimension_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_dimension_type(&self) -> &::std::option::Option<crate::types::DimensionType> {
+        &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -250,11 +242,11 @@ impl CreateDimensionInputBuilder {
                 ,
                 function_name: self.function_name
                 ,
-                dependencies: self.dependencies
-                ,
                 description: self.description
                 ,
                 change_reason: self.change_reason
+                ,
+                dimension_type: self.dimension_type
                 ,
                 autocomplete_function_name: self.autocomplete_function_name
                 ,

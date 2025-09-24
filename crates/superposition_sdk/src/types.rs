@@ -83,6 +83,10 @@ pub use crate::types::_weight_recompute_response::WeightRecomputeResponse;
 
 pub use crate::types::_context_filter_sort_on::ContextFilterSortOn;
 
+pub use crate::types::_dimension_type::DimensionType;
+
+pub use crate::types::_unit::Unit;
+
 pub use crate::types::_dimension_ext::DimensionExt;
 
 pub use crate::types::_default_config_full::DefaultConfigFull;
@@ -119,6 +123,8 @@ mod _dimension_ext;
 
 mod _dimension_match_strategy;
 
+mod _dimension_type;
+
 mod _experiment_group_response;
 
 mod _experiment_group_sort_on;
@@ -154,6 +160,8 @@ mod _sort_by;
 mod _stage;
 
 mod _type_templates_response;
+
+mod _unit;
 
 mod _update_context_override_request;
 

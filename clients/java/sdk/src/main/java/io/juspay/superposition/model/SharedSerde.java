@@ -390,68 +390,6 @@ final class SharedSerde {
         }
     }
 
-    static final class DependentsSerializer implements BiConsumer<List<String>, ShapeSerializer> {
-        static final DependentsSerializer INSTANCE = new DependentsSerializer();
-
-        @Override
-        public void accept(List<String> values, ShapeSerializer serializer) {
-            for (var value : values) {
-                serializer.writeString(SharedSchemas.DEPENDENTS.listMember(), value);
-            }
-        }
-    }
-
-    static List<String> deserializeDependents(Schema schema, ShapeDeserializer deserializer) {
-        var size = deserializer.containerSize();
-        List<String> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
-        deserializer.readList(schema, result, Dependents$MemberDeserializer.INSTANCE);
-        return result;
-    }
-
-    private static final class Dependents$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<String>> {
-        static final Dependents$MemberDeserializer INSTANCE = new Dependents$MemberDeserializer();
-
-        @Override
-        public void accept(List<String> state, ShapeDeserializer deserializer) {
-            if (deserializer.isNull()) {
-
-                return;
-            }
-            state.add(deserializer.readString(SharedSchemas.DEPENDENTS.listMember()));
-        }
-    }
-
-    static final class DependenciesSerializer implements BiConsumer<List<String>, ShapeSerializer> {
-        static final DependenciesSerializer INSTANCE = new DependenciesSerializer();
-
-        @Override
-        public void accept(List<String> values, ShapeSerializer serializer) {
-            for (var value : values) {
-                serializer.writeString(SharedSchemas.DEPENDENCIES.listMember(), value);
-            }
-        }
-    }
-
-    static List<String> deserializeDependencies(Schema schema, ShapeDeserializer deserializer) {
-        var size = deserializer.containerSize();
-        List<String> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
-        deserializer.readList(schema, result, Dependencies$MemberDeserializer.INSTANCE);
-        return result;
-    }
-
-    private static final class Dependencies$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<String>> {
-        static final Dependencies$MemberDeserializer INSTANCE = new Dependencies$MemberDeserializer();
-
-        @Override
-        public void accept(List<String> state, ShapeDeserializer deserializer) {
-            if (deserializer.isNull()) {
-
-                return;
-            }
-            state.add(deserializer.readString(SharedSchemas.DEPENDENCIES.listMember()));
-        }
-    }
-
     static final class WeightRecomputeResponsesSerializer implements BiConsumer<List<WeightRecomputeResponse>, ShapeSerializer> {
         static final WeightRecomputeResponsesSerializer INSTANCE = new WeightRecomputeResponsesSerializer();
 

@@ -68,9 +68,8 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
-if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
-if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
                 builder
             }
 
@@ -250,9 +249,8 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
-if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
-if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
                 builder
             }
 
@@ -508,9 +506,8 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
-if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
-if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
                 builder
             }
 
@@ -661,9 +658,8 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
-if builder.dependencies.is_none() { builder.dependencies = Some(Default::default()) }
-if builder.dependents.is_none() { builder.dependents = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
                 builder
             }
 
