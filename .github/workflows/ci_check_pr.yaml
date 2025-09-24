@@ -41,23 +41,25 @@ env:
 jobs:
     formatting:
         name: Check formatting
-        runs-on: ubuntu-latest
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - uses: Swatinem/rust-cache@v2
-
-            # - name: Check git settings
-            #   shell: bash
-            #   run: |
-            #       echo "${{ github.event.pull_request.head.ref }}"
-            #       git log --pretty=oneline --abbrev-commit
-            #       echo "----------------"
-            #       git tag "abc_tag" ${{github.event.pull_request.head.sha}}
-            #       git tag
+            - name: Restore cache (if present)
+              uses: actions/cache/restore@v4
+              id: cache-restore
+              with:
+                path: |
+                  ~/.cargo/bin/
+                  ~/.cargo/registry/index/
+                  ~/.cargo/registry/cache/
+                  ~/.cargo/git/db/
+                  target/
+                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+                restore-keys: ${{ runner.os }}-cargo-test-
 
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
@@ -65,7 +67,7 @@ jobs:
                   toolchain: 1.86.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
-
+                  
             - name: Check formatting & linting
               shell: bash
               run: make check
@@ -90,7 +92,7 @@ jobs:
 
     test:
         name: Testing
-        runs-on: ubuntu-latest
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         services:
             postgres:
                 image: postgres:12-alpine
@@ -101,25 +103,28 @@ jobs:
                     POSTGRES_DB: "config"
                     restart: on-failure
 
-            localstack:
-                image: localstack/localstack:1.3.0
-                ports:
-                    - 4510-4559:4510-4559 # external service port range
-                    - 4566:4566 # LocalStack Edge Proxy
-                    - 4571:4571
-                env:
-                    LOCALSTACK_SERVICES: kms
-                    AWS_DEFAULT_REGION: ap-south-1
-                    EDGE_PORT: 4566
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-
-            - uses: Swatinem/rust-cache@v2
+                  
+            - name: Restore cache (if present)
+              uses: actions/cache/restore@v4
+              id: cache-restore
               with:
-                  shared-key: "cache-rust"
+                path: |
+                  ~/.cargo/bin/
+                  ~/.cargo/registry/index/
+                  ~/.cargo/registry/cache/
+                  ~/.cargo/git/db/
+                  target/
+                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+                restore-keys: ${{ runner.os }}-cargo-test-
+                  
+            - name: Install postgres libs
+              run: |
+                sudo apt-get -y install postgresql libpq-dev
 
             - name: Install Bun
               uses: oven-sh/setup-bun@v2
@@ -130,7 +135,7 @@ jobs:
                   toolchain: 1.86.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
-
+                  
             - name: install node
               uses: actions/setup-node@v4
               with:
@@ -152,10 +157,23 @@ jobs:
                   make test_jsonlogic CI=1
               env:
                   APP_ENV: "TEST"
+            
+            - name: save/update cache for future runs
+              uses: actions/cache/save@v4
+              id: cache-save
+              if: github.ref == 'refs/heads/main'
+              with:
+                path: |
+                  ~/.cargo/bin/
+                  ~/.cargo/registry/index/
+                  ~/.cargo/registry/cache/
+                  ~/.cargo/git/db/
+                  target/
+                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
 
     java-build:
         name: Java build
-        runs-on: ubuntu-latest
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         defaults:
             run:
                 working-directory: clients/java
@@ -163,6 +181,16 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
+              
+            - name: Restore cache (if present)
+              uses: actions/cache/restore@v4
+              with:
+                path: |
+                  ~/.gradle/caches
+                  ~/.gradle/wrapper
+                key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+                restore-keys: |
+                  ${{ runner.os }}-gradle-
 
             - name: Set up JDK 17
               uses: actions/setup-java@v4
@@ -180,7 +208,16 @@ jobs:
             ## some dummy data.
             # - name: Run tests
             #   run: ./gradlew test
-
+            
+            - name: save/update cache for future runs
+              uses: actions/cache/save@v4
+              if: github.ref == 'refs/heads/main'
+              with:
+                path: |
+                  ~/.gradle/caches
+                  ~/.gradle/wrapper
+                key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            
             - name: Upload build artifacts
               if: failure()
               uses: actions/upload-artifact@v4

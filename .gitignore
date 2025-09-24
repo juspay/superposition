@@ -67,3 +67,4 @@ clients/generated/smithy/typescript/dist-types/
 clients/generated/smithy/typescript/tsconfig.*
 
 .npmrc
+.zed
