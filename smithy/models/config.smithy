@@ -107,6 +107,18 @@ structure ContextPartial {
     override_with_keys: OverrideWithKeys
 }
 
+// structure DimensionInfo {
+//     schema: Object,
+//     position: Integer,
+//     dimension_type: DimensionType,
+//     dependency_graph: Object
+// }
+
+map DimensionData {
+    key: String
+    value: Document
+}
+
 list ContextList {
     member: ContextPartial
 }
@@ -141,6 +153,9 @@ operation GetConfig {
 
         @notProperty
         default_configs: Object
+
+        @notProperty
+        dimensions: DimensionData
 
         @httpHeader("x-config-version")
         $version

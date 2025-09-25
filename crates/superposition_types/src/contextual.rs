@@ -120,9 +120,10 @@ mod tests {
 
     use crate::{
         config::tests::{
-            get_config, get_dimension_data1, get_dimension_data2, get_dimension_data3,
-            get_dimension_filtered_config1, get_dimension_filtered_config2,
-            get_dimension_filtered_config3,
+            get_config_with_dimension, get_dimension_data1, get_dimension_data2,
+            get_dimension_data3, get_dimension_filtered_config1_with_dimension,
+            get_dimension_filtered_config2_with_dimension,
+            get_dimension_filtered_config3_with_dimension,
         },
         Context,
     };
@@ -266,27 +267,27 @@ mod tests {
 
     #[test]
     fn filter_by_eval() {
-        let config = get_config();
+        let config = get_config_with_dimension();
 
         assert_eq!(
             Contextual::filter_by_eval(config.contexts.clone(), &get_dimension_data1()),
-            get_dimension_filtered_config1().contexts
+            get_dimension_filtered_config1_with_dimension().contexts
         );
 
         assert_eq!(
             Contextual::filter_by_eval(config.contexts.clone(), &get_dimension_data2()),
-            get_dimension_filtered_config2().contexts
+            get_dimension_filtered_config2_with_dimension().contexts
         );
 
         assert_eq!(
             Contextual::filter_by_eval(config.contexts, &get_dimension_data3()),
-            get_dimension_filtered_config3().contexts
+            get_dimension_filtered_config3_with_dimension().contexts
         );
     }
 
     #[test]
     fn filter_by_dimension() {
-        let config = get_config();
+        let config = get_config_with_dimension();
 
         assert_eq!(
             Contextual::filter_by_dimension(

@@ -46,18 +46,14 @@ use superposition_types::{
         superposition_schema::superposition::workspaces,
     },
     result as superposition, Cac, Condition, Config, Context, DBConnection,
-    OverrideWithKeys, Overrides, PaginatedResponse, User,
+    DimensionInfo, OverrideWithKeys, Overrides, PaginatedResponse, User,
 };
 use uuid::Uuid;
 
+use crate::api::context::{self, helpers::query_description};
 use crate::helpers::generate_cac;
 use crate::{
-    api::context::{self, helpers::query_description},
-    helpers::DimensionData,
-};
-use crate::{
-    api::dimension::{get_dimension_data_map, get_dimensions_data},
-    helpers::calculate_context_weight,
+    api::dimension::fetch_dimensions_info_map, helpers::calculate_context_weight,
 };
 
 use super::helpers::apply_prefix_filter_to_config;
@@ -486,7 +482,7 @@ async fn reduce_config_key(
     mut og_contexts: Vec<Context>,
     mut og_overrides: HashMap<String, Overrides>,
     check_key: &str,
-    dimension_schema_map: &HashMap<String, DimensionData>,
+    dimension_schema_map: &HashMap<String, DimensionInfo>,
     default_config: Map<String, Value>,
     is_approve: bool,
     schema_name: &SchemaName,
@@ -621,6 +617,7 @@ async fn reduce_config_key(
         contexts: og_contexts,
         overrides: og_overrides,
         default_configs: default_config,
+        dimensions: dimension_schema_map.clone(),
     })
 }
 
@@ -638,8 +635,7 @@ async fn reduce_config(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
-    let dimensions_vec = get_dimensions_data(&mut conn, &schema_name)?;
-    let dimensions_data_map = get_dimension_data_map(&dimensions_vec)?;
+    let dimensions_info_map = fetch_dimensions_info_map(&mut conn, &schema_name)?;
     let mut config = generate_cac(&mut conn, &schema_name)?;
     let default_config = (config.default_configs).clone();
     for (key, _) in default_config {
@@ -652,7 +648,7 @@ async fn reduce_config(
             contexts.clone(),
             overrides.clone(),
             key.as_str(),
-            &dimensions_data_map,
+            &dimensions_info_map,
             default_config.clone(),
             is_approve,
             &schema_name,
@@ -798,7 +794,7 @@ async fn get_config(
         body.map_or_else(QueryMap::default, |body| body.into_inner().context.into())
     };
     if !context.is_empty() {
-        config = config.filter_by_dimensions(&context)
+        config = config.filter_by_dimensions(&context);
     }
 
     let mut response = HttpResponse::Ok();
@@ -846,10 +842,6 @@ async fn get_resolved_config(
         .and_then(|val| MergeStrategy::from_str(val).ok())
         .unwrap_or_default();
 
-    let mut override_map = HashMap::new();
-    for (key, val) in config.overrides {
-        override_map.insert(key, val);
-    }
     let show_reason = matches!(
         query_params_map.get("show_reasoning"),
         Some(Value::String(_))
@@ -873,7 +865,7 @@ async fn get_resolved_config(
     }
 
     let is_smithy: bool;
-    let context = if req.method() == actix_web::http::Method::GET {
+    let query_data = if req.method() == actix_web::http::Method::GET {
         is_smithy = false;
         query_params_map
     } else {
@@ -887,26 +879,12 @@ async fn get_resolved_config(
         .into()
     };
     let response = if show_reason {
-        eval_cac_with_reasoning(
-            config.default_configs,
-            &config.contexts,
-            &override_map,
-            &context,
-            merge_strategy,
-        )
-        .map_err(|err| {
+        eval_cac_with_reasoning(&config, &query_data, merge_strategy).map_err(|err| {
             log::error!("failed to eval cac with err: {}", err);
             unexpected_error!("cac eval failed")
         })?
     } else {
-        eval_cac(
-            config.default_configs,
-            &config.contexts,
-            &override_map,
-            &context,
-            merge_strategy,
-        )
-        .map_err(|err| {
+        eval_cac(&config, &query_data, merge_strategy).map_err(|err| {
             log::error!("failed to eval cac with err: {}", err);
             unexpected_error!("cac eval failed")
         })?

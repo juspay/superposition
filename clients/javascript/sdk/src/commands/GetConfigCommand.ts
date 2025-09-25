@@ -75,6 +75,9 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * //   default_configs: { // Object
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
+ * //   dimensions: { // DimensionData
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
  * //   version: "STRING_VALUE",
  * //   last_modified: new Date("TIMESTAMP"),
  * //   audit_id: "STRING_VALUE",

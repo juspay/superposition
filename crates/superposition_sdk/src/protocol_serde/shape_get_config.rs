@@ -111,6 +111,11 @@ pub(crate) fn de_get_config(value: &[u8], mut builder: crate::operation::get_con
                             crate::protocol_serde::shape_object::de_object(tokens)?
                         );
                     }
+                    "dimensions" => {
+                        builder = builder.set_dimensions(
+                            crate::protocol_serde::shape_dimension_data::de_dimension_data(tokens)?
+                        );
+                    }
                     "overrides" => {
                         builder = builder.set_overrides(
                             crate::protocol_serde::shape_overrides_map::de_overrides_map(tokens)?

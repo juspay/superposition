@@ -654,6 +654,7 @@ export interface GetConfigOutput {
    */
   default_configs?: Record<string, __DocumentType> | undefined;
 
+  dimensions?: Record<string, __DocumentType> | undefined;
   version?: string | undefined;
   last_modified?: Date | undefined;
   audit_id?: string | undefined;

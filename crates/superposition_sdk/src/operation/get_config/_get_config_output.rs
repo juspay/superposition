@@ -10,6 +10,8 @@ pub struct GetConfigOutput  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub default_configs: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
+    pub dimensions: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -31,6 +33,10 @@ impl  GetConfigOutput  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub fn default_configs(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.default_configs.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dimensions(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        self.dimensions.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(&self) -> ::std::option::Option<&str> {
@@ -59,6 +65,7 @@ pub struct GetConfigOutputBuilder {
     pub(crate) contexts: ::std::option::Option<::std::vec::Vec::<crate::types::ContextPartial>>,
     pub(crate) overrides: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>>,
     pub(crate) default_configs: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) dimensions: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) audit_id: ::std::option::Option<::std::string::String>,
@@ -119,6 +126,24 @@ impl GetConfigOutputBuilder {
     pub fn get_default_configs(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.default_configs
     }
+    /// Adds a key-value pair to `dimensions`.
+    ///
+    /// To override the contents of this collection use [`set_dimensions`](Self::set_dimensions).
+    ///
+    pub fn dimensions(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+        let mut hash_map = self.dimensions.unwrap_or_default();
+                        hash_map.insert(k.into(), v);
+                        self.dimensions = ::std::option::Option::Some(hash_map);
+                        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_dimensions(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
+        self.dimensions = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_dimensions(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        &self.dimensions
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.version = ::std::option::Option::Some(input.into());
@@ -166,6 +191,8 @@ impl GetConfigOutputBuilder {
             overrides: self.overrides
             ,
             default_configs: self.default_configs
+            ,
+            dimensions: self.dimensions
             ,
             version: self.version
             ,

@@ -1460,7 +1460,7 @@
                 }
             },
             "get": {
-                "description": "Retrieves detailed information about a specific dimension, including its schema, dependencies, and configuration metadata.",
+                "description": "Retrieves detailed information about a specific dimension, including its schema, cohort dependency graph, and configuration metadata.",
                 "operationId": "GetDimension",
                 "parameters": [
                     {
@@ -4824,17 +4824,14 @@
                     "function_name": {
                         "type": "string"
                     },
-                    "dependencies": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "description": {
                         "type": "string"
                     },
                     "change_reason": {
                         "type": "string"
+                    },
+                    "dimension_type": {
+                        "$ref": "#/components/schemas/DimensionType"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -4881,20 +4878,11 @@
                     "created_by": {
                         "type": "string"
                     },
-                    "dependencies": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "dependents": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "dependency_graph": {
                         "$ref": "#/components/schemas/Object"
+                    },
+                    "dimension_type": {
+                        "$ref": "#/components/schemas/DimensionType"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -4907,11 +4895,10 @@
                     "change_reason",
                     "created_at",
                     "created_by",
-                    "dependencies",
                     "dependency_graph",
-                    "dependents",
                     "description",
                     "dimension",
+                    "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
                     "position",
@@ -5766,6 +5753,10 @@
                     "type_schema"
                 ]
             },
+            "DimensionData": {
+                "type": "object",
+                "additionalProperties": {}
+            },
             "DimensionExt": {
                 "type": "object",
                 "properties": {
@@ -5799,20 +5790,11 @@
                     "created_by": {
                         "type": "string"
                     },
-                    "dependencies": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "dependents": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "dependency_graph": {
                         "$ref": "#/components/schemas/Object"
+                    },
+                    "dimension_type": {
+                        "$ref": "#/components/schemas/DimensionType"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -5825,11 +5807,10 @@
                     "change_reason",
                     "created_at",
                     "created_by",
-                    "dependencies",
                     "dependency_graph",
-                    "dependents",
                     "description",
                     "dimension",
+                    "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
                     "position",
@@ -5842,6 +5823,46 @@
                 "enum": [
                     "exact",
                     "subset"
+                ]
+            },
+            "DimensionType": {
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "title": "REGULAR",
+                        "properties": {
+                            "REGULAR": {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        },
+                        "required": [
+                            "REGULAR"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "title": "LOCAL_COHORT",
+                        "properties": {
+                            "LOCAL_COHORT": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "LOCAL_COHORT"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "title": "REMOTE_COHORT",
+                        "properties": {
+                            "REMOTE_COHORT": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "REMOTE_COHORT"
+                        ]
+                    }
                 ]
             },
             "DiscardExperimentRequestContent": {
@@ -6257,6 +6278,9 @@
                     },
                     "default_configs": {
                         "$ref": "#/components/schemas/Object"
+                    },
+                    "dimensions": {
+                        "$ref": "#/components/schemas/DimensionData"
                     }
                 }
             },
@@ -6382,20 +6406,11 @@
                     "created_by": {
                         "type": "string"
                     },
-                    "dependencies": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "dependents": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "dependency_graph": {
                         "$ref": "#/components/schemas/Object"
+                    },
+                    "dimension_type": {
+                        "$ref": "#/components/schemas/DimensionType"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -6408,11 +6423,10 @@
                     "change_reason",
                     "created_at",
                     "created_by",
-                    "dependencies",
                     "dependency_graph",
-                    "dependents",
                     "description",
                     "dimension",
+                    "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
                     "position",
@@ -7822,6 +7836,9 @@
                     "type_schema"
                 ]
             },
+            "Unit": {
+                "type": "object"
+            },
             "UpdateContextOverrideRequest": {
                 "type": "object",
                 "properties": {
@@ -7927,12 +7944,6 @@
                     "description": {
                         "type": "string"
                     },
-                    "dependencies": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "change_reason": {
                         "type": "string"
                     },
@@ -7977,20 +7988,11 @@
                     "created_by": {
                         "type": "string"
                     },
-                    "dependencies": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "dependents": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "dependency_graph": {
                         "$ref": "#/components/schemas/Object"
+                    },
+                    "dimension_type": {
+                        "$ref": "#/components/schemas/DimensionType"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -8003,11 +8005,10 @@
                     "change_reason",
                     "created_at",
                     "created_by",
-                    "dependencies",
                     "dependency_graph",
-                    "dependents",
                     "description",
                     "dimension",
+                    "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
                     "position",

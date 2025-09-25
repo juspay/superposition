@@ -38,17 +38,13 @@ use superposition_types::{
         superposition_schema::superposition::workspaces,
     },
     result as superposition, Cac, Condition, Config, Context, DBConnection,
-    OverrideWithKeys, Overrides,
+    DimensionInfo, OverrideWithKeys, Overrides,
 };
 
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
 
-#[derive(Debug)]
-pub struct DimensionData {
-    pub schema: JSONSchema,
-    pub position: i32,
-}
+use crate::api::dimension::fetch_dimensions_info_map;
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();
@@ -117,8 +113,18 @@ pub fn get_cohort_meta_schema() -> JSONSchema {
 pub fn validate_context_jsonschema(
     #[cfg(feature = "jsonlogic")] object_key: &str,
     dimension_value: &Value,
-    dimension_schema: &JSONSchema,
+    dimension_schema: &Value,
 ) -> superposition::Result<()> {
+    let dimension_schema = JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(dimension_schema)
+        .map_err(|e| {
+            log::error!(
+                "Failed to compile as a Draft-7 JSON schema: {}",
+                e.to_string()
+            );
+            bad_argument!("Error encountered: invalid jsonschema for dimension.")
+        })?;
     match dimension_value {
         #[cfg(feature = "jsonlogic")]
         Value::Array(val_arr) if object_key == "in" => {
@@ -428,7 +434,7 @@ fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
 
 pub fn calculate_context_weight(
     cond: &Value,
-    dimension_position_map: &HashMap<String, DimensionData>,
+    dimension_position_map: &HashMap<String, DimensionInfo>,
 ) -> Result<BigDecimal, String> {
     cfg_if::cfg_if! {
         if #[cfg(feature = "jsonlogic")] {
@@ -535,10 +541,14 @@ pub fn generate_cac(
                 acc
             });
 
+    let dimensions: HashMap<String, DimensionInfo> =
+        fetch_dimensions_info_map(conn, schema_name)?;
+
     Ok(Config {
         contexts,
         overrides,
         default_configs,
+        dimensions,
     })
 }
 
@@ -671,7 +681,7 @@ mod tests {
             #[cfg(feature = "jsonlogic")]
             "in",
             &str_dimension_val,
-            &test_jsonschema,
+            &test_schema,
         );
         #[cfg(feature = "jsonlogic")]
         let ok_arr_context =

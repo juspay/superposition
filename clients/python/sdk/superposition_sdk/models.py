@@ -2327,6 +2327,24 @@ def _deserialize_object(deserializer: ShapeDeserializer, schema: Schema) -> dict
     deserializer.read_map(schema, _read_value)
     return result
 
+def _serialize_dimension_data(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_document(value_schema, v))
+
+def _deserialize_dimension_data(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
+    result: dict[str, Document] = {}
+    value_schema = schema.members["value"]
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_document(value_schema)
+    deserializer.read_map(schema, _read_value)
+    return result
+
 def _serialize_overrides_map(serializer: ShapeSerializer, schema: Schema, value: dict[str, dict[str, Document]]) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
@@ -2358,6 +2376,7 @@ class GetConfigOutput:
     contexts: list[ContextPartial] | None = None
     overrides: dict[str, dict[str, Document]] | None = None
     default_configs: dict[str, Document] | None = None
+    dimensions: dict[str, Document] | None = None
     version: str | None = None
     last_modified: datetime | None = None
     audit_id: str | None = None
@@ -2374,6 +2393,9 @@ class GetConfigOutput:
 
         if self.default_configs is not None:
             _serialize_object(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["default_configs"], self.default_configs)
+
+        if self.dimensions is not None:
+            _serialize_dimension_data(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["dimensions"], self.dimensions)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2395,12 +2417,15 @@ class GetConfigOutput:
                     kwargs["default_configs"] = _deserialize_object(de, _SCHEMA_GET_CONFIG_OUTPUT.members["default_configs"])
 
                 case 3:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_OUTPUT.members["version"])
+                    kwargs["dimensions"] = _deserialize_dimension_data(de, _SCHEMA_GET_CONFIG_OUTPUT.members["dimensions"])
 
                 case 4:
-                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_CONFIG_OUTPUT.members["last_modified"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_OUTPUT.members["version"])
 
                 case 5:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_CONFIG_OUTPUT.members["last_modified"])
+
+                case 6:
                     kwargs["audit_id"] = de.read_string(_SCHEMA_GET_CONFIG_OUTPUT.members["audit_id"])
 
                 case _:

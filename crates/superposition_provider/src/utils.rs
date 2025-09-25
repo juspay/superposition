@@ -7,7 +7,7 @@ use superposition_types::database::models::experimentation::{
     Variant, VariantType, Variants,
 };
 use superposition_types::{
-    Cac, Condition, Config, Context, Exp, OverrideWithKeys, Overrides,
+    Cac, Condition, Config, Context, DimensionInfo, Exp, OverrideWithKeys, Overrides,
 };
 
 pub struct ConversionUtils;
@@ -99,10 +99,31 @@ impl ConversionUtils {
             })
             .collect::<Result<Vec<Context>>>()?;
 
+        let dimensions = response
+            .dimensions()
+            .map(|dim| {
+                dim.iter()
+                    .map(|(key, doc)| {
+                        let value = Self::document_to_value(doc)?;
+
+                        let dim_info: DimensionInfo = serde_json::from_value(value)
+                            .map_err(|e| {
+                                SuperpositionError::SerializationError(format!(
+                                    "Invalid dimension info for '{}': {}",
+                                    key, e
+                                ))
+                            })?;
+                        Ok((key.clone(), dim_info))
+                    })
+                    .collect::<Result<HashMap<String, DimensionInfo>>>()
+            })
+            .unwrap_or_else(|| Ok(HashMap::new()))?;
+
         let config = Config {
             contexts,
             overrides,
             default_configs,
+            dimensions,
         };
 
         debug!("Successfully converted config with {} contexts, {} overrides, {} default configs", 
@@ -256,10 +277,30 @@ impl ConversionUtils {
             })?
             .clone();
 
+        let dimensions = map
+            .get("dimensions")
+            .and_then(|v| v.as_object())
+            .map(|dim| {
+                dim.iter()
+                    .map(|(key, value)| {
+                        let dim_info: DimensionInfo =
+                            serde_json::from_value(value.clone()).map_err(|e| {
+                                SuperpositionError::SerializationError(format!(
+                                    "Invalid dimension info for '{}': {}",
+                                    key, e
+                                ))
+                            })?;
+                        Ok((key.clone(), dim_info))
+                    })
+                    .collect::<Result<HashMap<String, DimensionInfo>>>()
+            })
+            .unwrap_or_else(|| Ok(HashMap::new()))?;
+
         Ok(Config {
             contexts,
             overrides,
             default_configs,
+            dimensions,
         })
     }
     /// Convert list_experiment SDK response to structured experiment data

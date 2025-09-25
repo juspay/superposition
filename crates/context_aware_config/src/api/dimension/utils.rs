@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use chrono::Utc;
-use diesel::{query_dsl::methods::SchemaNameDsl, ExpressionMethods, RunQueryDsl};
-use jsonschema::{Draft, JSONSchema};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+#[cfg(feature = "jsonlogic")]
+use serde_json::Value;
 #[cfg(not(feature = "jsonlogic"))]
 use serde_json::{Map, Value};
 #[cfg(feature = "jsonlogic")]
@@ -13,15 +14,13 @@ use superposition_types::{
     api::dimension::DimensionName,
     database::{
         models::{
-            cac::{Context, Dimension, Position},
+            cac::{Context, DependencyGraph, Dimension, DimensionType, Position},
             ChangeReason,
         },
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
-    result as superposition, Cac, Condition, DBConnection,
+    result as superposition, Cac, Condition, DBConnection, DimensionInfo,
 };
-
-use crate::helpers::DimensionData;
 
 pub fn get_dimensions_data(
     conn: &mut DBConnection,
@@ -30,30 +29,6 @@ pub fn get_dimensions_data(
     Ok(dimensions
         .schema_name(schema_name)
         .load::<Dimension>(conn)?)
-}
-
-pub fn get_dimension_data_map(
-    dimensions_vec: &[Dimension],
-) -> superposition::Result<HashMap<String, DimensionData>> {
-    let dimension_schema_map = dimensions_vec
-        .iter()
-        .filter_map(|item| {
-            let compiled_schema = JSONSchema::options()
-                .with_draft(Draft::Draft7)
-                .compile(&item.schema)
-                .ok()?;
-
-            Some((
-                item.dimension.clone(),
-                DimensionData {
-                    schema: compiled_schema,
-                    position: item.position.into(),
-                },
-            ))
-        })
-        .collect();
-
-    Ok(dimension_schema_map)
 }
 
 pub fn get_dimension_usage_context_ids(
@@ -201,4 +176,36 @@ fn update_dimensions_in_db(
         .schema_name(schema_name)
         .execute(conn)?;
     Ok(())
+}
+
+pub fn fetch_dimensions_info_map(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<HashMap<String, DimensionInfo>> {
+    let dimensions_map = dimensions
+        .select((
+            dimension,
+            schema,
+            position,
+            dimension_type,
+            dependency_graph,
+        ))
+        .order_by(position.asc())
+        .schema_name(schema_name)
+        .load::<(String, Value, i32, DimensionType, DependencyGraph)>(conn)?
+        .into_iter()
+        .map(|(key, schema_value, pos, dim_type, dep_graph)| {
+            (
+                key,
+                DimensionInfo {
+                    schema: schema_value,
+                    position: pos,
+                    dimension_type: dim_type,
+                    dependency_graph: dep_graph,
+                },
+            )
+        })
+        .collect();
+
+    Ok(dimensions_map)
 }

@@ -40,20 +40,21 @@ mod tests {
     use serde_json::Map;
 
     use crate::config::tests::{
-        get_config, get_prefix_filtered_config1, get_prefix_filtered_config2,
+        get_config_with_dimension, get_prefix_filtered_config1_with_dimension,
+        get_prefix_filtered_config2_with_dimension,
     };
 
     use super::filter_config_keys_by_prefix;
 
     #[test]
     fn test_filter_config_keys_by_prefix() {
-        let config = get_config();
+        let config = get_config_with_dimension();
 
         let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
         assert_eq!(
             filter_config_keys_by_prefix(&config.default_configs, &prefix_list),
-            get_prefix_filtered_config1().default_configs
+            get_prefix_filtered_config1_with_dimension().default_configs
         );
 
         let prefix_list =
@@ -61,7 +62,7 @@ mod tests {
 
         assert_eq!(
             filter_config_keys_by_prefix(&config.default_configs, &prefix_list),
-            get_prefix_filtered_config2().default_configs
+            get_prefix_filtered_config2_with_dimension().default_configs
         );
 
         let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);

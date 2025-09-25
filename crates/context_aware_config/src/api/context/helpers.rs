@@ -23,15 +23,14 @@ use superposition_types::{
         },
         schema::{contexts, default_configs::dsl, dimensions},
     },
-    result as superposition, Cac, Condition, DBConnection, Overrides, User,
+    logic::evaluate_cohort,
+    result as superposition, Cac, Condition, DBConnection, DimensionInfo, Overrides,
+    User,
 };
 
-use crate::helpers::DimensionData;
+use crate::api::dimension::fetch_dimensions_info_map;
+use crate::helpers::calculate_context_weight;
 use crate::validation_functions::execute_fn;
-use crate::{
-    api::dimension::{get_dimension_data_map, get_dimensions_data},
-    helpers::calculate_context_weight,
-};
 use crate::{
     api::functions::helpers::get_published_functions_by_names, helpers::get_workspace,
 };
@@ -411,11 +410,33 @@ pub fn update_override_of_existing_ctx(
     db_update_override(conn, new_ctx, user, schema_name)
 }
 
+fn validate_cohort_dimension_values(
+    dimensions: &HashMap<String, DimensionInfo>,
+    context_map: &Map<String, Value>,
+) -> superposition::Result<()> {
+    let evaluated_context = evaluate_cohort(dimensions, context_map);
+
+    for (dimension_key, value) in context_map {
+        if let Some(evaluated_value) = evaluated_context.get(dimension_key) {
+            if evaluated_value != value {
+                return Err(validation_error!(
+                    "Context value mismatch for cohort dimension '{}': expected {}, found {}",
+                    dimension_key,
+                    evaluated_value,
+                    value
+                ));
+            }
+        }
+    }
+
+    Ok(())
+}
+
 pub fn validate_ctx(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
     condition: Condition,
-) -> superposition::Result<HashMap<String, DimensionData>> {
+) -> superposition::Result<HashMap<String, DimensionInfo>> {
     let workspace_settings = get_workspace(schema_name, conn)?;
 
     cfg_if::cfg_if! {
@@ -435,14 +456,14 @@ pub fn validate_ctx(
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
     validate_condition_with_dependent_dimensions(conn, context_map, schema_name)?;
-    validate_condition_with_functions(conn, context_map, schema_name)?;
-    let dimension_data = get_dimensions_data(conn, schema_name)?;
-    let dimension_data_map = get_dimension_data_map(&dimension_data)?;
+    let dimension_info_map = fetch_dimensions_info_map(conn, schema_name)?;
     validate_dimensions(
         #[cfg(feature = "jsonlogic")]
         "context",
         &condition_val,
-        &dimension_data_map,
+        &dimension_info_map,
     )?;
-    Ok(dimension_data_map)
+    validate_cohort_dimension_values(&dimension_info_map, context_map)?;
+    validate_condition_with_functions(conn, context_map, schema_name)?;
+    Ok(dimension_info_map)
 }

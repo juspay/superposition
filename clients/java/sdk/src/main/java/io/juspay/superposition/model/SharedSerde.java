@@ -528,6 +528,51 @@ final class SharedSerde {
         }
     }
 
+    static final class DimensionDataSerializer implements BiConsumer<Map<String, Document>, MapSerializer> {
+        static final DimensionDataSerializer INSTANCE = new DimensionDataSerializer();
+
+        @Override
+        public void accept(Map<String, Document> values, MapSerializer serializer) {
+            for (var valueEntry : values.entrySet()) {
+                serializer.writeEntry(
+                    SharedSchemas.DIMENSION_DATA.mapKeyMember(),
+                    valueEntry.getKey(),
+                    valueEntry.getValue(),
+                    DimensionData$ValueSerializer.INSTANCE
+                );
+            }
+        }
+    }
+
+    private static final class DimensionData$ValueSerializer implements BiConsumer<Document, ShapeSerializer> {
+        private static final DimensionData$ValueSerializer INSTANCE = new DimensionData$ValueSerializer();
+
+        @Override
+        public void accept(Document values, ShapeSerializer serializer) {
+            serializer.writeDocument(SharedSchemas.DIMENSION_DATA.mapValueMember(), values);
+        }
+    }
+
+    static Map<String, Document> deserializeDimensionData(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        Map<String, Document> result = size == -1 ? new LinkedHashMap<>() : new LinkedHashMap<>(size);
+        deserializer.readStringMap(schema, result, DimensionData$ValueDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class DimensionData$ValueDeserializer implements ShapeDeserializer.MapMemberConsumer<String, Map<String, Document>> {
+        static final DimensionData$ValueDeserializer INSTANCE = new DimensionData$ValueDeserializer();
+
+        @Override
+        public void accept(Map<String, Document> state, String key, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+                deserializer.readNull();
+                return;
+            }
+            state.put(key, deserializer.readDocument());
+        }
+    }
+
     static final class ObjectShapeSerializer implements BiConsumer<Map<String, Document>, MapSerializer> {
         static final ObjectShapeSerializer INSTANCE = new ObjectShapeSerializer();
 
