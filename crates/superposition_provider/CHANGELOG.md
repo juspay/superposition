@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.5.0 - 2025-09-25
+#### Features
+- Cohort resolution (#712) - (21bbf39) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.90.0 [skip ci] - (c98c27f) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.4.4 - 2025-09-16
 #### Bug Fixes
 - Rust provider doc (#699) - (4494b3e) - Ayush Jain

@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.6.0 - 2025-09-25
+#### Features
+- Cohort resolution (#712) - (21bbf39) - Ankit Kumar Mahato
+- introduce cohort dimensions (#709) - (dea0d81) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.90.0 [skip ci] - (c98c27f) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.5.0 - 2025-09-16
 #### Bug Fixes
 - **(hs-sdk)** Multiple fixes, tests & re-org files. (#677) - (a520099) - ShreyBana
