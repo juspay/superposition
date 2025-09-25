@@ -669,10 +669,6 @@ mod tests {
             "type": "string",
             "pattern": ".*"
         });
-        let test_jsonschema = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&test_schema)
-        .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.");
 
         let str_dimension_val = json!("string1".to_owned());
         #[cfg(feature = "jsonlogic")]
@@ -685,11 +681,10 @@ mod tests {
         );
         #[cfg(feature = "jsonlogic")]
         let ok_arr_context =
-            validate_context_jsonschema("in", &arr_dimension_val, &test_jsonschema);
+            validate_context_jsonschema("in", &arr_dimension_val, &test_schema);
         #[cfg(feature = "jsonlogic")]
         let err_arr_context =
-            match validate_context_jsonschema("==", &arr_dimension_val, &test_jsonschema)
-            {
+            match validate_context_jsonschema("==", &arr_dimension_val, &test_schema) {
                 Err(superposition::AppError::ValidationError(err)) => {
                     log::info!("{:?}", err);
                     true

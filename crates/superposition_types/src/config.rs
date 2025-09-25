@@ -1224,27 +1224,6 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
-            },
-            "dimensions" : {
-                "test3": {
-                    "schema": {
-                        "type": "boolean"
-                    },
-                    "dimension_type": {"REGULAR": {}}
-                },
-                "test2": {
-                    "schema": {
-                        "type": "integer"
-                    },
-                    "dimension_type": {"REGULAR": {}}
-                },
-                "test": {
-                    "schema": {
-                        "pattern": ".*",
-                        "type" : "string"
-                    },
-                    "dimension_type": {"REGULAR": {}}
-                }
             }
         });
 
