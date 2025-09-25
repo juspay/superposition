@@ -27,6 +27,7 @@ public final class GetConfigOutput implements SerializableStruct {
         .putMember("contexts", SharedSchemas.CONTEXT_LIST)
         .putMember("overrides", SharedSchemas.OVERRIDES_MAP)
         .putMember("default_configs", SharedSchemas.OBJECT)
+        .putMember("dimensions", SharedSchemas.DIMENSION_DATA)
         .putMember("version", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-config-version"))
         .putMember("last_modified", SharedSchemas.DATE_TIME,
@@ -38,6 +39,7 @@ public final class GetConfigOutput implements SerializableStruct {
     private static final Schema $SCHEMA_CONTEXTS = $SCHEMA.member("contexts");
     private static final Schema $SCHEMA_OVERRIDES = $SCHEMA.member("overrides");
     private static final Schema $SCHEMA_DEFAULT_CONFIGS = $SCHEMA.member("default_configs");
+    private static final Schema $SCHEMA_DIMENSIONS = $SCHEMA.member("dimensions");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
     private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
     private static final Schema $SCHEMA_AUDIT_ID = $SCHEMA.member("audit_id");
@@ -45,6 +47,7 @@ public final class GetConfigOutput implements SerializableStruct {
     private final transient List<ContextPartial> contexts;
     private final transient Map<String, Map<String, Document>> overrides;
     private final transient Map<String, Document> defaultConfigs;
+    private final transient Map<String, Document> dimensions;
     private final transient String version;
     private final transient Instant lastModified;
     private final transient String auditId;
@@ -53,6 +56,7 @@ public final class GetConfigOutput implements SerializableStruct {
         this.contexts = builder.contexts == null ? null : Collections.unmodifiableList(builder.contexts);
         this.overrides = builder.overrides == null ? null : Collections.unmodifiableMap(builder.overrides);
         this.defaultConfigs = builder.defaultConfigs == null ? null : Collections.unmodifiableMap(builder.defaultConfigs);
+        this.dimensions = builder.dimensions == null ? null : Collections.unmodifiableMap(builder.dimensions);
         this.version = builder.version;
         this.lastModified = builder.lastModified;
         this.auditId = builder.auditId;
@@ -91,6 +95,17 @@ public final class GetConfigOutput implements SerializableStruct {
         return defaultConfigs != null;
     }
 
+    public Map<String, Document> dimensions() {
+        if (dimensions == null) {
+            return Collections.emptyMap();
+        }
+        return dimensions;
+    }
+
+    public boolean hasDimensions() {
+        return dimensions != null;
+    }
+
     public String version() {
         return version;
     }
@@ -120,6 +135,7 @@ public final class GetConfigOutput implements SerializableStruct {
         return Objects.equals(this.contexts, that.contexts)
                && Objects.equals(this.overrides, that.overrides)
                && Objects.equals(this.defaultConfigs, that.defaultConfigs)
+               && Objects.equals(this.dimensions, that.dimensions)
                && Objects.equals(this.version, that.version)
                && Objects.equals(this.lastModified, that.lastModified)
                && Objects.equals(this.auditId, that.auditId);
@@ -127,7 +143,7 @@ public final class GetConfigOutput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(contexts, overrides, defaultConfigs, version, lastModified, auditId);
+        return Objects.hash(contexts, overrides, defaultConfigs, dimensions, version, lastModified, auditId);
     }
 
     @Override
@@ -145,6 +161,9 @@ public final class GetConfigOutput implements SerializableStruct {
         }
         if (defaultConfigs != null) {
             serializer.writeMap($SCHEMA_DEFAULT_CONFIGS, defaultConfigs, defaultConfigs.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
+        }
+        if (dimensions != null) {
+            serializer.writeMap($SCHEMA_DIMENSIONS, dimensions, dimensions.size(), SharedSerde.DimensionDataSerializer.INSTANCE);
         }
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version);
@@ -164,9 +183,10 @@ public final class GetConfigOutput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXTS, member, contexts);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_OVERRIDES, member, overrides);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEFAULT_CONFIGS, member, defaultConfigs);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, auditId);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, dimensions);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, auditId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -183,6 +203,7 @@ public final class GetConfigOutput implements SerializableStruct {
         builder.contexts(this.contexts);
         builder.overrides(this.overrides);
         builder.defaultConfigs(this.defaultConfigs);
+        builder.dimensions(this.dimensions);
         builder.version(this.version);
         builder.lastModified(this.lastModified);
         builder.auditId(this.auditId);
@@ -203,6 +224,7 @@ public final class GetConfigOutput implements SerializableStruct {
         private List<ContextPartial> contexts;
         private Map<String, Map<String, Document>> overrides;
         private Map<String, Document> defaultConfigs;
+        private Map<String, Document> dimensions;
         private String version;
         private Instant lastModified;
         private String auditId;
@@ -235,6 +257,14 @@ public final class GetConfigOutput implements SerializableStruct {
          */
         public Builder defaultConfigs(Map<String, Document> defaultConfigs) {
             this.defaultConfigs = defaultConfigs;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder dimensions(Map<String, Document> dimensions) {
+            this.dimensions = dimensions;
             return this;
         }
 
@@ -274,9 +304,10 @@ public final class GetConfigOutput implements SerializableStruct {
                 case 0 -> contexts((List<ContextPartial>) SchemaUtils.validateSameMember($SCHEMA_CONTEXTS, member, value));
                 case 1 -> overrides((Map<String, Map<String, Document>>) SchemaUtils.validateSameMember($SCHEMA_OVERRIDES, member, value));
                 case 2 -> defaultConfigs((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_DEFAULT_CONFIGS, member, value));
-                case 3 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 4 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
-                case 5 -> auditId((String) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, value));
+                case 3 -> dimensions((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, value));
+                case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 5 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
+                case 6 -> auditId((String) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -302,9 +333,10 @@ public final class GetConfigOutput implements SerializableStruct {
                     case 0 -> builder.contexts(SharedSerde.deserializeContextList(member, de));
                     case 1 -> builder.overrides(SharedSerde.deserializeOverridesMap(member, de));
                     case 2 -> builder.defaultConfigs(SharedSerde.deserializeObjectShape(member, de));
-                    case 3 -> builder.version(de.readString(member));
-                    case 4 -> builder.lastModified(de.readTimestamp(member));
-                    case 5 -> builder.auditId(de.readString(member));
+                    case 3 -> builder.dimensions(SharedSerde.deserializeDimensionData(member, de));
+                    case 4 -> builder.version(de.readString(member));
+                    case 5 -> builder.lastModified(de.readTimestamp(member));
+                    case 6 -> builder.auditId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

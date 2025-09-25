@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use crate::{utils::core::MapError, Context, MergeStrategy};
 use serde_json::{json, Map, Value};
-use superposition_types::Overrides;
+use superposition_types::{logic::evaluate_cohort, Config, Overrides};
 
 pub fn merge(doc: &mut Value, patch: &Value) {
     if !patch.is_object() {
@@ -115,17 +115,17 @@ fn merge_overrides_on_default_config(
 }
 
 pub fn eval_cac(
-    mut default_config: Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
+    config: &Config,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {
+    let mut default_config = config.default_configs.clone();
     let on_override_select: Option<&mut dyn FnMut(Context)> = None;
+    let modified_query_data = evaluate_cohort(&config.dimensions, query_data);
     let overrides: Map<String, Value> = get_overrides(
-        query_data,
-        contexts,
-        overrides,
+        &modified_query_data,
+        &config.contexts,
+        &config.overrides,
         &merge_strategy,
         on_override_select,
     )
@@ -137,18 +137,19 @@ pub fn eval_cac(
 }
 
 pub fn eval_cac_with_reasoning(
-    mut default_config: Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
+    config: &Config,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {
+    let mut default_config = config.default_configs.clone();
     let mut reasoning: Vec<Value> = vec![];
 
+    let modified_query_data = evaluate_cohort(&config.dimensions, query_data);
+
     let applied_overrides: Map<String, Value> = get_overrides(
-        query_data,
-        contexts,
-        overrides,
+        &modified_query_data,
+        &config.contexts,
+        &config.overrides,
         &merge_strategy,
         Some(&mut |context| {
             reasoning.push(json!({

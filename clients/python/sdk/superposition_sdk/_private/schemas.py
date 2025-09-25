@@ -1649,6 +1649,23 @@ OBJECT = Schema.collection(
     }
 )
 
+DIMENSION_DATA = Schema.collection(
+    id=ShapeID("io.superposition#DimensionData"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "value": {
+            "target": DOCUMENT,
+            "index": 1,
+        },
+
+    }
+)
+
 OVERRIDES_MAP = Schema.collection(
     id=ShapeID("io.superposition#OverridesMap"),
     shape_type=ShapeType.MAP,
@@ -1701,9 +1718,18 @@ GET_CONFIG_OUTPUT = Schema.collection(
             ],
         },
 
+        "dimensions": {
+            "target": DIMENSION_DATA,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "version": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-version"),
 
@@ -1712,7 +1738,7 @@ GET_CONFIG_OUTPUT = Schema.collection(
 
         "last_modified": {
             "target": DATE_TIME,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="last-modified"),
 
@@ -1721,7 +1747,7 @@ GET_CONFIG_OUTPUT = Schema.collection(
 
         "audit_id": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-audit-id"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),

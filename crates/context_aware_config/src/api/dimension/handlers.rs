@@ -7,7 +7,10 @@ use chrono::Utc;
 use diesel::{
     delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
-use service_utils::service::types::{AppState, DbConnection, SchemaName};
+use service_utils::{
+    helpers::parse_config_tags,
+    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
+};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     api::dimension::{
@@ -17,7 +20,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{DependencyGraph, Dimension, DimensionType},
-            Workspace,
+            Description, Workspace,
         },
         schema::dimensions::{self, dsl::*},
     },
@@ -26,14 +29,16 @@ use superposition_types::{
 
 #[cfg(not(feature = "jsonlogic"))]
 use crate::helpers::allow_primitive_types;
+#[cfg(feature = "high-performance-mode")]
+use crate::helpers::put_config_in_redis;
 use crate::{
     api::dimension::utils::{
         create_connections_with_dependents, get_dimension_usage_context_ids,
         remove_connections_with_dependents, validate_dimension_position,
     },
     helpers::{
-        does_dimension_exist_for_cohorting, get_workspace, validate_cohort_schema,
-        validate_jsonschema,
+        add_config_version, does_dimension_exist_for_cohorting, get_workspace,
+        validate_cohort_schema, validate_jsonschema,
     },
 };
 
@@ -51,12 +56,14 @@ async fn create(
     state: Data<AppState>,
     req: web::Json<CreateRequest>,
     user: User,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let create_req = req.into_inner();
     let schema_value = create_req.schema;
+    let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let num_rows = dimensions
         .count()
@@ -112,70 +119,88 @@ async fn create(
         dimension_type: create_req.dimension_type,
     };
 
-    conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-        diesel::update(dimensions::table)
-            .filter(dimensions::position.ge(dimension_data.position))
-            .set((
-                last_modified_at.eq(Utc::now()),
-                last_modified_by.eq(user.get_email()),
-                dimensions::position.eq(dimensions::position + 1),
-            ))
-            .returning(Dimension::as_returning())
-            .schema_name(&schema_name)
-            .execute(transaction_conn)?;
-
-        match dimension_data.dimension_type {
-            DimensionType::LocalCohort(ref cohort_based_on)
-            | DimensionType::RemoteCohort(ref cohort_based_on) => {
-                // Update dependency graphs of all dimensions that
-                // depend on the cohort_based_on dimension as well as
-                // the cohorted dimension itself
-                create_connections_with_dependents(
-                    cohort_based_on,
-                    &dimension_data.dimension,
-                    &user.get_email(),
-                    &schema_name,
-                    transaction_conn,
-                )?
-            }
-            DimensionType::Regular {} => (),
-        }
-
-        let insert_resp = diesel::insert_into(dimensions::table)
-            .values(&dimension_data)
-            .returning(Dimension::as_returning())
-            .schema_name(&schema_name)
-            .get_result(transaction_conn);
-
-        match insert_resp {
-            Ok(inserted_dimension) => {
-                let workspace_settings: Workspace =
-                    get_workspace(&schema_name, transaction_conn)?;
-                let is_mandatory = workspace_settings
-                    .mandatory_dimensions
-                    .unwrap_or_default()
-                    .contains(&inserted_dimension.dimension);
-                Ok(HttpResponse::Created()
-                    .json(DimensionResponse::new(inserted_dimension, is_mandatory)))
-            }
-            Err(diesel::result::Error::DatabaseError(
-                diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-                e,
-            )) => {
-                let fun_name = create_req.function_name.clone();
-                log::error!("{fun_name:?} function not found with error: {e:?}");
-                Err(bad_argument!(
-                    "Function {} doesn't exists",
-                    Into::<Option<String>>::into(create_req.function_name.clone())
-                        .unwrap_or_default()
+    let (inserted_dimension, is_mandatory, version_id) = conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            diesel::update(dimensions::table)
+                .filter(dimensions::position.ge(dimension_data.position))
+                .set((
+                    last_modified_at.eq(Utc::now()),
+                    last_modified_by.eq(user.get_email()),
+                    dimensions::position.eq(dimensions::position + 1),
                 ))
+                .returning(Dimension::as_returning())
+                .schema_name(&schema_name)
+                .execute(transaction_conn)?;
+
+            match dimension_data.dimension_type {
+                DimensionType::LocalCohort(ref cohort_based_on)
+                | DimensionType::RemoteCohort(ref cohort_based_on) => {
+                    // Update dependency graphs of all dimensions that
+                    // depend on the cohort_based_on dimension as well as
+                    // the cohorted dimension itself
+                    create_connections_with_dependents(
+                        cohort_based_on,
+                        &dimension_data.dimension,
+                        &user.get_email(),
+                        &schema_name,
+                        transaction_conn,
+                    )?
+                }
+                DimensionType::Regular {} => (),
             }
-            Err(e) => {
-                log::error!("Dimension create failed with error: {e}");
-                Err(db_error!(e))
+
+            let insert_resp = diesel::insert_into(dimensions::table)
+                .values(&dimension_data)
+                .returning(Dimension::as_returning())
+                .schema_name(&schema_name)
+                .get_result(transaction_conn);
+
+            match insert_resp {
+                Ok(inserted_dimension) => {
+                    let workspace_settings: Workspace =
+                        get_workspace(&schema_name, transaction_conn)?;
+                    let is_mandatory = workspace_settings
+                        .mandatory_dimensions
+                        .unwrap_or_default()
+                        .contains(&inserted_dimension.dimension);
+
+                    let version_id = add_config_version(
+                        &state,
+                        tags,
+                        dimension_data.change_reason.into(),
+                        transaction_conn,
+                        &schema_name,
+                    )?;
+                    Ok((inserted_dimension, is_mandatory, version_id))
+                }
+                Err(diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+                    e,
+                )) => {
+                    let fun_name = create_req.function_name.clone();
+                    log::error!("{fun_name:?} function not found with error: {e:?}");
+                    Err(bad_argument!(
+                        "Function {} doesn't exists",
+                        Into::<Option<String>>::into(create_req.function_name.clone())
+                            .unwrap_or_default()
+                    ))
+                }
+                Err(e) => {
+                    log::error!("Dimension create failed with error: {e}");
+                    Err(db_error!(e))
+                }
             }
-        }
-    })
+        })?;
+
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+
+    let mut http_resp = HttpResponse::Created();
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
+    Ok(http_resp.json(DimensionResponse::new(inserted_dimension, is_mandatory)))
 }
 
 #[get("/{name}")]
@@ -206,12 +231,14 @@ async fn update(
     state: Data<AppState>,
     req: web::Json<UpdateRequest>,
     user: User,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.clone().into();
     use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
+    let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
@@ -254,8 +281,8 @@ async fn update(
         }
     }
 
-    let result =
-        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+    let (result, is_mandatory, version_id) = conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             if let Some(position_val) = update_req.position {
                 let new_position = position_val;
                 validate_dimension_position(
@@ -303,7 +330,7 @@ async fn update(
                 };
             }
 
-            diesel::update(dimensions)
+            let result = diesel::update(dimensions)
                 .filter(dsl::dimension.eq(name))
                 .set((
                     update_req,
@@ -313,16 +340,35 @@ async fn update(
                 .returning(Dimension::as_returning())
                 .schema_name(&schema_name)
                 .get_result::<Dimension>(transaction_conn)
-                .map_err(|err| db_error!(err))
+                .map_err(|err| db_error!(err))?;
+
+            let workspace_settings = get_workspace(&schema_name, transaction_conn)?;
+
+            let is_mandatory = workspace_settings
+                .mandatory_dimensions
+                .unwrap_or_default()
+                .contains(&result.dimension);
+
+            let version_id = add_config_version(
+                &state,
+                tags,
+                dimension_data.change_reason.into(),
+                transaction_conn,
+                &schema_name,
+            )?;
+
+            Ok((result, is_mandatory, version_id))
         })?;
 
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
-    let is_mandatory = workspace_settings
-        .mandatory_dimensions
-        .unwrap_or_default()
-        .contains(&result.dimension);
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
-    Ok(HttpResponse::Ok().json(DimensionResponse::new(result, is_mandatory)))
+    let mut http_resp = HttpResponse::Ok();
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        version_id.to_string(),
+    ));
+    Ok(http_resp.json(DimensionResponse::new(result, is_mandatory)))
 }
 
 #[get("")]
@@ -383,13 +429,17 @@ async fn list(
 
 #[delete("/{name}")]
 async fn delete_dimension(
+    state: Data<AppState>,
     path: Path<DeleteRequest>,
     user: User,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
     let DbConnection(mut conn) = db_conn;
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
         .select(Dimension::as_select())
@@ -397,8 +447,9 @@ async fn delete_dimension(
         .get_result(&mut conn)?;
 
     let context_ids = get_dimension_usage_context_ids(&name, &mut conn, &schema_name)?;
+
     if context_ids.is_empty() {
-        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let (resp, _version_id) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             use dimensions::dsl;
 
             if !dimension_data.dependency_graph.is_empty() {
@@ -444,13 +495,40 @@ async fn delete_dimension(
 
             match deleted_row {
                 Ok(0) => Err(not_found!("Dimension `{}` doesn't exists", name)),
-                Ok(_) => Ok(HttpResponse::NoContent().finish()),
+                Ok(_) => {
+                    let config_version_desc = Description::try_from(format!(
+                        "Dimension Deleted by {}",
+                        user.get_email()
+                    ))
+                    .map_err(|e| unexpected_error!(e))?;
+                    let version_id = add_config_version(
+                        &state,
+                        tags,
+                        config_version_desc,
+                        transaction_conn,
+                        &schema_name,
+                    )?;
+                    log::info!(
+                        "Dimension: {name} deleted by {}",
+                        user.get_email()
+                    );
+                    Ok((HttpResponse::NoContent()
+                        .insert_header((
+                            AppHeader::XConfigVersion.to_string(),
+                            version_id.to_string(),
+                        ))
+                        .finish(), version_id))
+                    },
                 Err(e) => {
                     log::error!("dimension delete query failed with error: {e}");
                     Err(unexpected_error!("Something went wrong."))
                 }
             }
-        })
+        })?;
+
+        #[cfg(feature = "high-performance-mode")]
+        put_config_in_redis(_version_id, state, &schema_name, &mut conn).await?;
+        Ok(resp)
     } else {
         Err(bad_argument!(
             "Given key already in use in contexts: {}",

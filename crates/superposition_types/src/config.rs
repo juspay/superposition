@@ -11,7 +11,12 @@ use serde_json::{Map, Value};
 use superposition_derives::{JsonFromSql, JsonToSql};
 use uniffi::deps::anyhow;
 
-use crate::{overridden::filter_config_keys_by_prefix, Cac, Contextual, Exp};
+use crate::{
+    database::models::cac::{DependencyGraph, DimensionType},
+    logic::evaluate_cohort,
+    overridden::filter_config_keys_by_prefix,
+    Cac, Contextual, Exp,
+};
 
 macro_rules! impl_try_from_map {
     ($wrapper:ident, $type:ident, $validate:expr) => {
@@ -344,12 +349,16 @@ pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
     pub default_configs: Map<String, Value>,
+    #[serde(default)]
+    pub dimensions: HashMap<String, DimensionInfo>,
 }
 
 impl Config {
     pub fn filter_by_dimensions(&self, dimension_data: &Map<String, Value>) -> Self {
+        let modified_context = evaluate_cohort(&self.dimensions, dimension_data);
+
         let filtered_context =
-            Context::filter_by_eval(self.contexts.clone(), dimension_data);
+            Context::filter_by_eval(self.contexts.clone(), &modified_context);
 
         let filtered_overrides: HashMap<String, Overrides> = filtered_context
             .iter()
@@ -365,6 +374,7 @@ impl Config {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: self.default_configs.clone(),
+            dimensions: self.dimensions.clone(),
         }
     }
 
@@ -405,9 +415,56 @@ impl Config {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: filtered_default_config,
+            dimensions: self.dimensions.clone(),
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DimensionInfo {
+    pub schema: Value,
+    pub position: i32,
+    pub dimension_type: DimensionType,
+    pub dependency_graph: DependencyGraph,
+}
+
+uniffi::custom_type!(DimensionInfo, HashMap<String, String>, {
+    lower: |v| {
+        let mut map = HashMap::new();
+        map.insert("schema".to_string(), serde_json::to_string(&v.schema).unwrap());
+        map.insert("position".to_string(), v.position.to_string());
+        map.insert("dimension_type".to_string(), serde_json::to_string(&v.dimension_type).unwrap());
+        map.insert("dependency_graph".to_string(), serde_json::to_string(&v.dependency_graph).unwrap());
+        map
+    },
+    try_lift: |v| {
+        let schema = v.get("schema")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'schema' field"))?;
+        let position = v.get("position")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'position' field"))?;
+        let dimension_type = v.get("dimension_type")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'dimension_type' field"))?;
+        let dependency_graph = v.get("dependency_graph")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'dependency_graph' field"))?;
+
+        let schema_value = serde_json::from_str::<Value>(schema)
+            .map_err(|err| anyhow::anyhow!("Failed to deserialize schema: {}", err))?;
+        let position_value = position.parse::<i32>()
+            .map_err(|err| anyhow::anyhow!("Failed to parse position: {}", err))?;
+        let dimension_type_value = serde_json::from_str::<DimensionType>(dimension_type)
+            .map_err(|err| anyhow::anyhow!("Failed to deserialize dimension_type: {}", err))?;
+        let dependency_graph_value = serde_json::from_str::<DependencyGraph>(dependency_graph)
+            .map_err(|err| anyhow::anyhow!("Failed to deserialize dependency_graph: {}", err))?;
+
+        Ok(DimensionInfo {
+            schema: schema_value,
+            position: position_value,
+            dimension_type: dimension_type_value,
+            dependency_graph: dependency_graph_value,
+        })
+    }
+});
 
 #[cfg(test)]
 pub(crate) mod tests {
@@ -418,7 +475,7 @@ pub(crate) mod tests {
     use super::Config;
 
     #[cfg(feature = "jsonlogic")]
-    pub(crate) fn get_config() -> Config {
+    pub(crate) fn get_config_with_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -501,6 +558,214 @@ pub(crate) mod tests {
                 "test.test1": 12,
                 "test2.key": false,
                 "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
+    pub(crate) fn get_config_without_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                },
+                {
+                    "id": "9fbf3b9fa10caaaf31f6003cbd20ed36d40efe73b5c6b238288c0a96e6933500",
+                    "condition": {
+                        "and": [
+                            {
+                                "==": [
+                                    {
+                                        "var": "test3"
+                                    },
+                                    false
+                                ]
+                            },
+                            {
+                                "==": [
+                                    {
+                                        "var": "test"
+                                    },
+                                    "test"
+                                ]
+                            }
+                        ]
+                    },
+                    "priority": 2,
+                    "weight": 2,
+                    "override_with_keys": [
+                        "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                },
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8": {
+                    "key1": true
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_config_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                       "test2": 123
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                },
+                {
+                    "id": "9fbf3b9fa10caaaf31f6003cbd20ed36d40efe73b5c6b238288c0a96e6933500",
+                    "condition": {
+                        "test3": false,
+                        "test": "test"
+                    },
+                    "priority": 2,
+                    "weight": 2,
+                    "override_with_keys": [
+                        "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                },
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "e2fa5b38c3a1448cf0e27f9d555fdb8964a686d8ae41b70b55e6ee30359b87c8": {
+                    "key1": true
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
             }
         });
 
@@ -508,7 +773,7 @@ pub(crate) mod tests {
     }
 
     #[cfg(not(feature = "jsonlogic"))]
-    pub(crate) fn get_config() -> Config {
+    pub(crate) fn get_config_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -591,7 +856,93 @@ pub(crate) mod tests {
     }
 
     #[cfg(feature = "jsonlogic")]
-    pub(crate) fn get_dimension_filtered_config1() -> Config {
+    pub(crate) fn get_dimension_filtered_config1_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
+    pub(crate) fn get_dimension_filtered_config1_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -650,7 +1001,83 @@ pub(crate) mod tests {
     }
 
     #[cfg(not(feature = "jsonlogic"))]
-    pub(crate) fn get_dimension_filtered_config1() -> Config {
+    pub(crate) fn get_dimension_filtered_config1_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "test2": 123
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_dimension_filtered_config1_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -699,7 +1126,73 @@ pub(crate) mod tests {
     }
 
     #[cfg(feature = "jsonlogic")]
-    pub(crate) fn get_dimension_filtered_config2() -> Config {
+    pub(crate) fn get_dimension_filtered_config2_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
+    pub(crate) fn get_dimension_filtered_config2_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -738,7 +1231,68 @@ pub(crate) mod tests {
     }
 
     #[cfg(not(feature = "jsonlogic"))]
-    pub(crate) fn get_dimension_filtered_config2() -> Config {
+    pub(crate) fn get_dimension_filtered_config2_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "test2": 123
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                }
+            },
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_dimension_filtered_config2_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -771,7 +1325,50 @@ pub(crate) mod tests {
         from_value(config_json).unwrap()
     }
 
-    pub(crate) fn get_dimension_filtered_config3() -> Config {
+    pub(crate) fn get_dimension_filtered_config3_with_dimension() -> Config {
+        let config_json = json!(  {
+            "contexts": [],
+            "overrides": {},
+            "default_configs": {
+                "key1": false,
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+
+        from_value(config_json).unwrap()
+    }
+
+    pub(crate) fn get_dimension_filtered_config3_without_dimension() -> Config {
         let config_json = json!(  {
             "contexts": [],
             "overrides": {},
@@ -788,7 +1385,68 @@ pub(crate) mod tests {
     }
 
     #[cfg(feature = "jsonlogic")]
-    pub(crate) fn get_prefix_filtered_config1() -> Config {
+    pub(crate) fn get_prefix_filtered_config1_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
+    pub(crate) fn get_prefix_filtered_config1_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -822,7 +1480,63 @@ pub(crate) mod tests {
     }
 
     #[cfg(not(feature = "jsonlogic"))]
-    pub(crate) fn get_prefix_filtered_config1() -> Config {
+    pub(crate) fn get_prefix_filtered_config1_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                }
+            ],
+            "overrides": {
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_prefix_filtered_config1_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -851,7 +1565,91 @@ pub(crate) mod tests {
     }
 
     #[cfg(feature = "jsonlogic")]
-    pub(crate) fn get_prefix_filtered_config2() -> Config {
+    pub(crate) fn get_prefix_filtered_config2_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test3"
+                            },
+                            true
+                        ]
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "==": [
+                            {
+                                "var": "test2"
+                            },
+                            123
+                        ]
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(feature = "jsonlogic")]
+    pub(crate) fn get_prefix_filtered_config2_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -908,7 +1706,81 @@ pub(crate) mod tests {
     }
 
     #[cfg(not(feature = "jsonlogic"))]
-    pub(crate) fn get_prefix_filtered_config2() -> Config {
+    pub(crate) fn get_prefix_filtered_config2_with_dimension() -> Config {
+        let config_json = json!({
+            "contexts": [
+                {
+                    "id": "40c2564c114e1a2036bc6ce0e730289d05e117b051f2d286d6e7c68960f3bc7d",
+                    "condition": {
+                        "test3": true
+                    },
+                    "priority": 0,
+                    "weight": 0,
+                    "override_with_keys": [
+                        "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef"
+                    ]
+                },
+                {
+                    "id": "691ed369369ac3facdd07e5dd388e07ed682a7e212a04b7bcd0186e6f2d0d097",
+                    "condition": {
+                        "test2": 123
+                    },
+                    "priority": 1,
+                    "weight": 1,
+                    "override_with_keys": [
+                        "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9"
+                    ]
+                }
+            ],
+            "overrides": {
+                "2b96b6e8c6475d40d0dc92a05360828a304b9c2ed58abbe03958b178b431a5f9": {
+                    "test2.key": true,
+                    "test2.test": "value"
+                },
+                "0e72cf409a9eba53446dc858191751accf9f8ad3e6195413933145a497feb0ef": {
+                    "test.test1": 5,
+                    "test2.test": "testval"
+                }
+            },
+            "default_configs": {
+                "test.test.test1": 1,
+                "test.test1": 12,
+                "test2.key": false,
+                "test2.test": "def_val"
+            },
+            "dimensions" : {
+                "test3": {
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 3,
+                    "dependency_graph": {}
+                },
+                "test2": {
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 2,
+                    "dependency_graph": {}
+                },
+                "test": {
+                    "schema": {
+                        "pattern": ".*",
+                        "type" : "string"
+                    },
+                    "dimension_type": {"REGULAR": {}},
+                    "position": 1,
+                    "dependency_graph": {}
+                }
+            }
+        });
+        from_value(config_json).unwrap()
+    }
+
+    #[cfg(not(feature = "jsonlogic"))]
+    pub(crate) fn get_prefix_filtered_config2_without_dimension() -> Config {
         let config_json = json!({
             "contexts": [
                 {
@@ -955,28 +1827,48 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn filter_by_dimensions() {
-        let config = get_config();
+    fn filter_by_dimensions_with_dimension() {
+        let config = get_config_with_dimension();
 
         assert_eq!(
             config.filter_by_dimensions(&get_dimension_data1()),
-            get_dimension_filtered_config1()
+            get_dimension_filtered_config1_with_dimension()
         );
 
         assert_eq!(
             config.filter_by_dimensions(&get_dimension_data2()),
-            get_dimension_filtered_config2()
+            get_dimension_filtered_config2_with_dimension()
         );
 
         assert_eq!(
             config.filter_by_dimensions(&get_dimension_data3()),
-            get_dimension_filtered_config3()
+            get_dimension_filtered_config3_with_dimension()
         );
     }
 
     #[test]
-    fn filter_default_by_prefix() {
-        let config = get_config();
+    fn filter_by_dimensions_without_dimension() {
+        let config = get_config_without_dimension();
+
+        assert_eq!(
+            config.filter_by_dimensions(&get_dimension_data1()),
+            get_dimension_filtered_config1_without_dimension()
+        );
+
+        assert_eq!(
+            config.filter_by_dimensions(&get_dimension_data2()),
+            get_dimension_filtered_config2_without_dimension()
+        );
+
+        assert_eq!(
+            config.filter_by_dimensions(&get_dimension_data3()),
+            get_dimension_filtered_config3_without_dimension()
+        );
+    }
+
+    #[test]
+    fn filter_default_by_prefix_with_dimension() {
+        let config = get_config_with_dimension();
 
         let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
@@ -997,14 +1889,36 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn filter_by_prefix() {
-        let config = get_config();
+    fn filter_default_by_prefix_without_dimension() {
+        let config = get_config_without_dimension();
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
+
+        assert_eq!(
+            config.filter_default_by_prefix(&prefix_list),
+            json!({
+                "test.test.test1": 1,
+                "test.test1": 12,
+            })
+            .as_object()
+            .unwrap()
+            .clone()
+        );
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test3")]);
+
+        assert_eq!(config.filter_default_by_prefix(&prefix_list), Map::new());
+    }
+
+    #[test]
+    fn filter_by_prefix_with_dimension() {
+        let config = get_config_with_dimension();
 
         let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
         assert_eq!(
             config.filter_by_prefix(&prefix_list),
-            get_prefix_filtered_config1()
+            get_prefix_filtered_config1_with_dimension()
         );
 
         let prefix_list =
@@ -1012,7 +1926,7 @@ pub(crate) mod tests {
 
         assert_eq!(
             config.filter_by_prefix(&prefix_list),
-            get_prefix_filtered_config2()
+            get_prefix_filtered_config2_with_dimension()
         );
 
         let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);
@@ -1023,6 +1937,39 @@ pub(crate) mod tests {
                 contexts: Vec::new(),
                 overrides: HashMap::new(),
                 default_configs: Map::new(),
+                dimensions: config.dimensions.clone(),
+            }
+        );
+    }
+
+    #[test]
+    fn filter_by_prefix_without_dimension() {
+        let config = get_config_without_dimension();
+
+        let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
+
+        assert_eq!(
+            config.filter_by_prefix(&prefix_list),
+            get_prefix_filtered_config1_without_dimension()
+        );
+
+        let prefix_list =
+            HashSet::from_iter(vec![String::from("test."), String::from("test2.")]);
+
+        assert_eq!(
+            config.filter_by_prefix(&prefix_list),
+            get_prefix_filtered_config2_without_dimension()
+        );
+
+        let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);
+
+        assert_eq!(
+            config.filter_by_prefix(&prefix_list),
+            Config {
+                contexts: Vec::new(),
+                overrides: HashMap::new(),
+                default_configs: Map::new(),
+                dimensions: config.dimensions.clone(),
             }
         );
     }

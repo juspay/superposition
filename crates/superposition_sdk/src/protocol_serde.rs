@@ -263,6 +263,8 @@ pub(crate) mod shape_condition;
 
 pub(crate) mod shape_context_list;
 
+pub(crate) mod shape_dimension_data;
+
 pub(crate) mod shape_dimension_ext_list;
 
 pub(crate) mod shape_dimension_type;

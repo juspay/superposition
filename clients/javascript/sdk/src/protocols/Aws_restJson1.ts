@@ -2625,6 +2625,7 @@ export const de_GetConfigCommand = async(
   const doc = take(data, {
     'contexts': _ => de_ContextList(_, context),
     'default_configs': _ => de_Object(_, context),
+    'dimensions': _ => de_DimensionData(_, context),
     'overrides': _ => de_OverridesMap(_, context),
   });
   Object.assign(contents, doc);
@@ -4509,6 +4510,22 @@ const de_CommandError = async(
       'value': (_: any) => de_Document(_, context),
     }) as any;
   }
+
+  /**
+   * deserializeAws_restJson1DimensionData
+   */
+  const de_DimensionData = (
+    output: any,
+    context: __SerdeContext
+  ): Record<string, __DocumentType> => {
+    return Object.entries(output).reduce((acc: Record<string, __DocumentType>, [key, value]: [string, any]) => {
+      if (value === null) {
+        return acc;
+      }
+      acc[key as string] = de_Document(value, context);
+      return acc;
+
+    }, {} as Record<string, __DocumentType>);}
 
   /**
    * deserializeAws_restJson1DimensionExt

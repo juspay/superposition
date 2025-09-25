@@ -5,10 +5,9 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{Map, Value};
 use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
 use superposition_macros::{bad_argument, validation_error};
-use superposition_types::{database::schema, result, DBConnection};
+use superposition_types::{database::schema, result, DBConnection, DimensionInfo};
 
 use crate::helpers::validate_context_jsonschema;
-use crate::helpers::DimensionData;
 
 #[cfg(feature = "jsonlogic")]
 use super::types::DimensionCondition;
@@ -67,7 +66,7 @@ pub fn validate_override_with_default_configs(
 pub fn validate_dimensions(
     object_key: &str,
     cond: &Value,
-    dimension_schema_map: &HashMap<String, DimensionData>,
+    dimension_schema_map: &HashMap<String, DimensionInfo>,
 ) -> result::Result<()> {
     let check_dimension = |key: &String, val: &Value| -> result::Result<()> {
         if key == "var" {
@@ -136,7 +135,7 @@ pub fn validate_dimensions(
 #[cfg(not(feature = "jsonlogic"))]
 pub fn validate_dimensions(
     cond: &Map<String, Value>,
-    dimension_schema_map: &HashMap<String, DimensionData>,
+    dimension_schema_map: &HashMap<String, DimensionInfo>,
 ) -> result::Result<()> {
     for (dimension, value) in cond.iter() {
         let dimension_data = dimension_schema_map
