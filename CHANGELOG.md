@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.91.0 - 2025-09-25
+### Package updates
+- superposition_core bumped to superposition_core-v0.7.0
+- cac_client bumped to cac_client-v0.22.0
+- superposition_provider bumped to superposition_provider-v0.5.0
+- frontend bumped to frontend-v0.44.0
+- haskell_client bumped to haskell_client-v0.6.0
+- context_aware_config bumped to context_aware_config-v0.62.0
+- superposition_types bumped to superposition_types-v0.34.0
+- superposition_sdk bumped to superposition_sdk-v0.8.0
+### Global changes
+#### Bug Fixes
+- frontend compilation for ssr in docker image (#707) - (b31ba98) - Ayush Jain
+#### Features
+- introduce cohort dimensions (#709) - (dea0d81) - Datron
+- Cohort resolution (#712) - (21bbf39) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.90.0 [skip ci] - (c98c27f) - Superposition Bot
+
+- - -
+
 ## v0.90.0 - 2025-09-16
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.61.0
