@@ -23,7 +23,7 @@ use superposition_types::{
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::models::{
-        cac::{Context, DefaultConfig, Function, TypeTemplate},
+        cac::{Context, DefaultConfig, EventLog, Function, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
         ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
@@ -1113,4 +1113,34 @@ pub mod experiment_groups {
 
         parse_json_response(response).await
     }
+}
+
+pub async fn fetch_audit_logs(
+    filters: &superposition_types::api::config::AuditQueryFilters,
+    pagination: &PaginationParams,
+    tenant: String,
+    org_id: String,
+) -> Result<PaginatedResponse<EventLog>, ServerFnError> {
+    let client = reqwest::Client::new();
+    let host = use_host_server();
+
+    let url = format!(
+        "{}/audit?{}&{}",
+        host,
+        filters.to_query_param(),
+        pagination.to_query_param(),
+    );
+
+    let response: PaginatedResponse<EventLog> = client
+        .get(url)
+        .header("x-tenant", &tenant)
+        .header("x-org-id", org_id)
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .json()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(response)
 }
