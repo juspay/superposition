@@ -121,19 +121,9 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                             ).transpose()?
                         );
                     }
-                    "dependencies" => {
-                        builder = builder.set_dependencies(
-                            crate::protocol_serde::shape_dependencies::de_dependencies(tokens)?
-                        );
-                    }
                     "dependency_graph" => {
                         builder = builder.set_dependency_graph(
                             crate::protocol_serde::shape_object::de_object(tokens)?
-                        );
-                    }
-                    "dependents" => {
-                        builder = builder.set_dependents(
-                            crate::protocol_serde::shape_dependents::de_dependents(tokens)?
                         );
                     }
                     "description" => {
@@ -152,6 +142,11 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                                     u.into_owned()
                                 )
                             ).transpose()?
+                        );
+                    }
+                    "dimension_type" => {
+                        builder = builder.set_dimension_type(
+                            crate::protocol_serde::shape_dimension_type::de_dimension_type(tokens)?
                         );
                     }
                     "function_name" => {

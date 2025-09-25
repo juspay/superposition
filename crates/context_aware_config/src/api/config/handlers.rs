@@ -56,7 +56,7 @@ use crate::{
     helpers::DimensionData,
 };
 use crate::{
-    api::dimension::{get_dimension_data, get_dimension_data_map},
+    api::dimension::{get_dimension_data_map, get_dimensions_data},
     helpers::calculate_context_weight,
 };
 
@@ -638,7 +638,7 @@ async fn reduce_config(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
-    let dimensions_vec = get_dimension_data(&mut conn, &schema_name)?;
+    let dimensions_vec = get_dimensions_data(&mut conn, &schema_name)?;
     let dimensions_data_map = get_dimension_data_map(&dimensions_vec)?;
     let mut config = generate_cac(&mut conn, &schema_name)?;
     let default_config = (config.default_configs).clone();

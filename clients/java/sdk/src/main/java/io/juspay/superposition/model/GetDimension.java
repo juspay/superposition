@@ -13,8 +13,8 @@ import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
- * Retrieves detailed information about a specific dimension, including its schema, dependencies, and
- * configuration metadata.
+ * Retrieves detailed information about a specific dimension, including its schema, cohort dependency
+ * graph, and configuration metadata.
  */
 @SmithyGenerated
 public final class GetDimension implements ApiOperation<GetDimensionInput, GetDimensionOutput> {

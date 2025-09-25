@@ -9,6 +9,7 @@ from typing import Any, ClassVar, Literal, Self, Union
 from smithy_core.deserializers import ShapeDeserializer
 from smithy_core.documents import Document, TypeRegistry
 from smithy_core.exceptions import SmithyException
+from smithy_core.prelude import UNIT as _SCHEMA_UNIT
 from smithy_core.schemas import APIOperation, Schema
 from smithy_core.serializers import ShapeSerializer
 from smithy_core.shapes import ShapeID
@@ -88,6 +89,7 @@ from ._private.schemas import (
     DELETE_TYPE_TEMPLATES_INPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
     DELETE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
     DIMENSION_EXT as _SCHEMA_DIMENSION_EXT,
+    DIMENSION_TYPE as _SCHEMA_DIMENSION_TYPE,
     DISCARD_EXPERIMENT as _SCHEMA_DISCARD_EXPERIMENT,
     DISCARD_EXPERIMENT_INPUT as _SCHEMA_DISCARD_EXPERIMENT_INPUT,
     DISCARD_EXPERIMENT_OUTPUT as _SCHEMA_DISCARD_EXPERIMENT_OUTPUT,
@@ -4365,23 +4367,131 @@ CREATE_DEFAULT_CONFIG = APIOperation(
         ]
 )
 
-def _serialize_dependencies(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
-    member_schema = schema.members["member"]
-    with serializer.begin_list(schema, len(value)) as ls:
-        for e in value:
-            ls.write_string(member_schema, e)
+@dataclass(kw_only=True)
+class Unit:
 
-def _deserialize_dependencies(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
-    result: list[str] = []
-    member_schema = schema.members["member"]
-    def _read_value(d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UNIT, self)
 
-        else:
-            result.append(d.read_string(member_schema))
-    deserializer.read_list(schema, _read_value)
-    return result
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_UNIT, consumer=_consumer)
+        return kwargs
+
+@dataclass
+class DimensionTypeREGULAR:
+
+    value: Unit
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE.members["REGULAR"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=Unit.deserialize(deserializer))
+
+@dataclass
+class DimensionTypeLOCAL_COHORT:
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DIMENSION_TYPE.members["LOCAL_COHORT"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["LOCAL_COHORT"]))
+
+@dataclass
+class DimensionTypeREMOTE_COHORT:
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DIMENSION_TYPE.members["REMOTE_COHORT"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["REMOTE_COHORT"]))
+
+@dataclass
+class DimensionTypeUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+DimensionType = Union[DimensionTypeREGULAR | DimensionTypeLOCAL_COHORT | DimensionTypeREMOTE_COHORT | DimensionTypeUnknown]
+
+class _DimensionTypeDeserializer:
+    _result: DimensionType | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> DimensionType:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_DIMENSION_TYPE, self._consumer)
+
+        if self._result is None:
+            raise SmithyException("Unions must have exactly one value, but found none.")
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(DimensionTypeREGULAR.deserialize(de))
+
+            case 1:
+                self._set_result(DimensionTypeLOCAL_COHORT.deserialize(de))
+
+            case 2:
+                self._set_result(DimensionTypeREMOTE_COHORT.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: DimensionType) -> None:
+        if self._result is not None:
+            raise SmithyException("Unions must have exactly one value, but found more than one.")
+        self._result = value
 
 @dataclass(kw_only=True)
 class CreateDimensionInput:
@@ -4392,9 +4502,9 @@ class CreateDimensionInput:
     position: int | None = None
     schema: Document | None = None
     function_name: str | None = None
-    dependencies: list[str] | None = None
     description: str | None = None
     change_reason: str | None = None
+    dimension_type: DimensionType | None = None
     autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4413,14 +4523,14 @@ class CreateDimensionInput:
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["function_name"], self.function_name)
 
-        if self.dependencies is not None:
-            _serialize_dependencies(serializer, _SCHEMA_CREATE_DIMENSION_INPUT.members["dependencies"], self.dependencies)
-
         if self.description is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["description"], self.description)
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["change_reason"], self.change_reason)
+
+        if self.dimension_type is not None:
+            serializer.write_struct(_SCHEMA_CREATE_DIMENSION_INPUT.members["dimension_type"], self.dimension_type)
 
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -4454,13 +4564,13 @@ class CreateDimensionInput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["function_name"])
 
                 case 6:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_CREATE_DIMENSION_INPUT.members["dependencies"])
-
-                case 7:
                     kwargs["description"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["description"])
 
-                case 8:
+                case 7:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["change_reason"])
+
+                case 8:
+                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 9:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"])
@@ -4470,24 +4580,6 @@ class CreateDimensionInput:
 
         deserializer.read_struct(_SCHEMA_CREATE_DIMENSION_INPUT, consumer=_consumer)
         return kwargs
-
-def _serialize_dependents(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
-    member_schema = schema.members["member"]
-    with serializer.begin_list(schema, len(value)) as ls:
-        for e in value:
-            ls.write_string(member_schema, e)
-
-def _deserialize_dependents(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
-    result: list[str] = []
-    member_schema = schema.members["member"]
-    def _read_value(d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result.append(d.read_string(member_schema))
-    deserializer.read_list(schema, _read_value)
-    return result
 
 @dataclass(kw_only=True)
 class CreateDimensionOutput:
@@ -4517,11 +4609,9 @@ class CreateDimensionOutput:
 
     created_by: str
 
-    dependencies: list[str]
-
-    dependents: list[str]
-
     dependency_graph: dict[str, Document]
+
+    dimension_type: DimensionType
 
     function_name: str | None = None
     autocomplete_function_name: str | None = None
@@ -4543,9 +4633,8 @@ class CreateDimensionOutput:
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_dependencies(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependencies"], self.dependencies)
-        _serialize_dependents(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        serializer.write_struct(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
@@ -4593,18 +4682,15 @@ class CreateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependencies"])
-
-                case 11:
-                    kwargs["dependents"] = _deserialize_dependents(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependents"])
-
-                case 12:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
-                case 13:
+                case 11:
+                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
+
+                case 12:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
 
-                case 14:
+                case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:
@@ -7227,11 +7313,9 @@ class GetDimensionOutput:
 
     created_by: str
 
-    dependencies: list[str]
-
-    dependents: list[str]
-
     dependency_graph: dict[str, Document]
+
+    dimension_type: DimensionType
 
     function_name: str | None = None
     autocomplete_function_name: str | None = None
@@ -7253,9 +7337,8 @@ class GetDimensionOutput:
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_dependencies(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependencies"], self.dependencies)
-        _serialize_dependents(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
@@ -7303,18 +7386,15 @@ class GetDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependencies"])
-
-                case 11:
-                    kwargs["dependents"] = _deserialize_dependents(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependents"])
-
-                case 12:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
 
-                case 13:
+                case 11:
+                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
+
+                case 12:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"])
 
-                case 14:
+                case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:
@@ -7412,11 +7492,9 @@ class DimensionExt:
 
     created_by: str
 
-    dependencies: list[str]
-
-    dependents: list[str]
-
     dependency_graph: dict[str, Document]
+
+    dimension_type: DimensionType
 
     function_name: str | None = None
     autocomplete_function_name: str | None = None
@@ -7438,9 +7516,8 @@ class DimensionExt:
         serializer.write_string(_SCHEMA_DIMENSION_EXT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_DIMENSION_EXT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_DIMENSION_EXT.members["created_by"], self.created_by)
-        _serialize_dependencies(serializer, _SCHEMA_DIMENSION_EXT.members["dependencies"], self.dependencies)
-        _serialize_dependents(serializer, _SCHEMA_DIMENSION_EXT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_DIMENSION_EXT.members["dependency_graph"], self.dependency_graph)
+        serializer.write_struct(_SCHEMA_DIMENSION_EXT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
@@ -7488,18 +7565,15 @@ class DimensionExt:
                     kwargs["created_by"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["created_by"])
 
                 case 10:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_DIMENSION_EXT.members["dependencies"])
-
-                case 11:
-                    kwargs["dependents"] = _deserialize_dependents(de, _SCHEMA_DIMENSION_EXT.members["dependents"])
-
-                case 12:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_DIMENSION_EXT.members["dependency_graph"])
 
-                case 13:
+                case 11:
+                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
+
+                case 12:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"])
 
-                case 14:
+                case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_DIMENSION_EXT.members["mandatory"])
 
                 case _:
@@ -7594,7 +7668,6 @@ class UpdateDimensionInput:
     position: int | None = None
     function_name: str | None = None
     description: str | None = None
-    dependencies: list[str] | None = None
     change_reason: str | None = None
     autocomplete_function_name: str | None = None
 
@@ -7613,9 +7686,6 @@ class UpdateDimensionInput:
 
         if self.description is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["description"], self.description)
-
-        if self.dependencies is not None:
-            _serialize_dependencies(serializer, _SCHEMA_UPDATE_DIMENSION_INPUT.members["dependencies"], self.dependencies)
 
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"], self.change_reason)
@@ -7655,12 +7725,9 @@ class UpdateDimensionInput:
                     kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["description"])
 
                 case 7:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_UPDATE_DIMENSION_INPUT.members["dependencies"])
-
-                case 8:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"])
 
-                case 9:
+                case 8:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["autocomplete_function_name"])
 
                 case _:
@@ -7697,11 +7764,9 @@ class UpdateDimensionOutput:
 
     created_by: str
 
-    dependencies: list[str]
-
-    dependents: list[str]
-
     dependency_graph: dict[str, Document]
+
+    dimension_type: DimensionType
 
     function_name: str | None = None
     autocomplete_function_name: str | None = None
@@ -7723,9 +7788,8 @@ class UpdateDimensionOutput:
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_dependencies(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependencies"], self.dependencies)
-        _serialize_dependents(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependents"], self.dependents)
         _serialize_object(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
@@ -7773,18 +7837,15 @@ class UpdateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependencies"] = _deserialize_dependencies(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependencies"])
-
-                case 11:
-                    kwargs["dependents"] = _deserialize_dependents(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependents"])
-
-                case 12:
                     kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
-                case 13:
+                case 11:
+                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
+
+                case 12:
                     kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
 
-                case 14:
+                case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"])
 
                 case _:

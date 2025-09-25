@@ -267,6 +267,7 @@ import {
   ContextResponse,
   DefaultConfigFull,
   DimensionExt,
+  DimensionType,
   ExperimentGroupResponse,
   ExperimentResponse,
   FunctionExecutionRequest,
@@ -279,6 +280,7 @@ import {
   ResourceNotFound,
   TypeTemplatesNotFound,
   TypeTemplatesResponse,
+  Unit,
   UpdateContextOverrideRequest,
   ValidateFunctionRequest,
   Variant,
@@ -509,9 +511,9 @@ export const se_CreateDimensionCommand = async(
   body = JSON.stringify(take(input, {
     'autocomplete_function_name': [],
     'change_reason': [],
-    'dependencies': _ => _json(_),
     'description': [],
     'dimension': [],
+    'dimension_type': _ => _json(_),
     'function_name': [],
     'position': [],
     'schema': _ => se_Document(_, context),
@@ -1723,7 +1725,6 @@ export const se_UpdateDimensionCommand = async(
   body = JSON.stringify(take(input, {
     'autocomplete_function_name': [],
     'change_reason': [],
-    'dependencies': _ => _json(_),
     'description': [],
     'function_name': [],
     'position': [],
@@ -2180,11 +2181,10 @@ export const de_CreateDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
-    'dependencies': _json,
     'dependency_graph': _ => de_Object(_, context),
-    'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': _ => _json(__expectUnion(_)),
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -2734,11 +2734,10 @@ export const de_GetDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
-    'dependencies': _json,
     'dependency_graph': _ => de_Object(_, context),
-    'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': _ => _json(__expectUnion(_)),
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -3551,11 +3550,10 @@ export const de_UpdateDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
-    'dependencies': _json,
     'dependency_graph': _ => de_Object(_, context),
-    'dependents': _json,
     'description': __expectString,
     'dimension': __expectString,
+    'dimension_type': _ => _json(__expectUnion(_)),
     'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
@@ -4174,7 +4172,7 @@ const de_CommandError = async(
     });
   }
 
-  // se_Dependencies omitted.
+  // se_DimensionType omitted.
 
   // se_Events omitted.
 
@@ -4318,6 +4316,8 @@ const de_CommandError = async(
   ): any => {
     return input;
   }
+
+  // se_Unit omitted.
 
   /**
    * deserializeAws_restJson1AuditLogFull
@@ -4510,10 +4510,6 @@ const de_CommandError = async(
     }) as any;
   }
 
-  // de_Dependencies omitted.
-
-  // de_Dependents omitted.
-
   /**
    * deserializeAws_restJson1DimensionExt
    */
@@ -4526,11 +4522,10 @@ const de_CommandError = async(
       'change_reason': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
-      'dependencies': _json,
       'dependency_graph': (_: any) => de_Object(_, context),
-      'dependents': _json,
       'description': __expectString,
       'dimension': __expectString,
+      'dimension_type': (_: any) => _json(__expectUnion(_)),
       'function_name': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
@@ -4552,6 +4547,8 @@ const de_CommandError = async(
     });
     return retVal;
   }
+
+  // de_DimensionType omitted.
 
   // de_Events omitted.
 
@@ -5000,6 +4997,8 @@ const de_CommandError = async(
   ): __DocumentType => {
     return output;
   }
+
+  // de_Unit omitted.
 
   const deserializeMetadata = (output: __HttpResponse): __ResponseMetadata => ({
     httpStatusCode: output.statusCode,

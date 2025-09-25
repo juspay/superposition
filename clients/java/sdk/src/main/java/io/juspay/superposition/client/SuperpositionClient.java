@@ -609,8 +609,8 @@ public interface SuperpositionClient {
     GetContextFromConditionOutput getContextFromCondition(GetContextFromConditionInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Retrieves detailed information about a specific dimension, including its schema, dependencies, and
-     * configuration metadata.
+     * Retrieves detailed information about a specific dimension, including its schema, cohort dependency
+     * graph, and configuration metadata.
      *
      * @throws ResourceNotFound
      * @throws InternalServerError
@@ -620,8 +620,8 @@ public interface SuperpositionClient {
     }
 
     /**
-     * Retrieves detailed information about a specific dimension, including its schema, dependencies, and
-     * configuration metadata.
+     * Retrieves detailed information about a specific dimension, including its schema, cohort dependency
+     * graph, and configuration metadata.
      *
      * @throws ResourceNotFound
      * @throws InternalServerError

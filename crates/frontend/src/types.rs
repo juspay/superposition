@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 use superposition_types::{
     api::dimension::DimensionResponse,
     database::models::{
-        cac::{DefaultConfig, TypeTemplate},
+        cac::{DefaultConfig, DimensionType, TypeTemplate},
         experimentation::{Variant, VariantType},
         others::{HttpMethod, PayloadVersion, WebhookEvent},
     },
@@ -217,5 +217,56 @@ impl DropdownOption for Option<String> {
             Some(id) => id.clone(),
             None => "None".to_string(),
         }
+    }
+}
+
+#[derive(
+    Serialize,
+    Deserialize,
+    Clone,
+    Default,
+    Debug,
+    PartialEq,
+    Eq,
+    strum_macros::Display,
+    strum_macros::EnumString,
+    strum_macros::EnumIter,
+)]
+pub enum DimensionTypeOptions {
+    #[default]
+    Regular,
+    #[strum(serialize = "Local Cohort")]
+    LocalCohort,
+    #[strum(serialize = "Remote Cohort")]
+    RemoteCohort,
+}
+
+impl DimensionTypeOptions {
+    pub fn to_dimension_type(&self, cohort: String) -> DimensionType {
+        match self {
+            DimensionTypeOptions::Regular => DimensionType::Regular {},
+            DimensionTypeOptions::LocalCohort => DimensionType::LocalCohort(cohort),
+            DimensionTypeOptions::RemoteCohort => DimensionType::RemoteCohort(cohort),
+        }
+    }
+}
+
+impl From<&DimensionType> for DimensionTypeOptions {
+    fn from(dim_type: &DimensionType) -> Self {
+        match dim_type {
+            DimensionType::Regular {} => Self::Regular,
+            DimensionType::LocalCohort(_) => Self::LocalCohort,
+            DimensionType::RemoteCohort(_) => Self::RemoteCohort,
+        }
+    }
+}
+
+impl DropdownOption for DimensionTypeOptions {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+
+    fn label(&self) -> String {
+        self.to_string()
     }
 }

@@ -1060,7 +1060,7 @@ class Superposition:
     async def get_dimension(self, input: GetDimensionInput, plugins: list[Plugin] | None = None) -> GetDimensionOutput:
         """
         Retrieves detailed information about a specific dimension, including its schema,
-        dependencies, and configuration metadata.
+        cohort dependency graph, and configuration metadata.
 
         :param input: The operation's input.
 

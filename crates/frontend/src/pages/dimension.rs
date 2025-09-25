@@ -2,11 +2,12 @@ use std::ops::Deref;
 
 use leptos::*;
 use leptos_router::{use_navigate, use_params_map, A};
+use superposition_types::database::models::cac::DimensionType;
 use superposition_types::{
     api::dimension::DimensionResponse, database::models::cac::DependencyGraph,
 };
 
-use crate::api::{delete_dimension, get_dimension};
+use crate::api::dimensions;
 use crate::components::badge::Badge;
 use crate::components::description::ContentDescription;
 use crate::components::{
@@ -20,7 +21,7 @@ use crate::components::{
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{DimensionTypeOptions, OrganisationId, Tenant};
 use crate::utils::use_url_base;
 
 #[component]
@@ -87,6 +88,7 @@ fn tree_node(
 
 #[component]
 fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
+    let dimension_type = DimensionTypeOptions::from(&dimension.dimension_type);
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body">
@@ -96,6 +98,10 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                         <div class="h-fit w-[250px] flex gap-4">
                             <div class="stat-title">"Position"</div>
                             <div class="stat-value text-base">{*dimension.position}</div>
+                        </div>
+                        <div class="h-fit w-[250px] flex gap-4">
+                            <div class="stat-title">"Dimension Type"</div>
+                            <div class="stat-value text-base">{dimension_type.to_string()}</div>
                         </div>
                         <div class="h-fit w-[250px] flex gap-4">
                             <div class="stat-title">"Mandatory"</div>
@@ -187,7 +193,7 @@ pub fn dimension_page() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (dimension_name.get(), workspace.get().0, org.get().0),
         |(dimension_name, workspace, org_id)| async move {
-            get_dimension(&dimension_name, &workspace, &org_id)
+            dimensions::get(&dimension_name, &workspace, &org_id)
                 .await
                 .ok()
         },
@@ -196,7 +202,7 @@ pub fn dimension_page() -> impl IntoView {
     let confirm_delete = Callback::new(move |_| {
         delete_inprogress_rws.set(true);
         spawn_local(async move {
-            let result = delete_dimension(
+            let result = dimensions::delete(
                 dimension_name.get_untracked(),
                 workspace.get_untracked().0,
                 org.get_untracked().0,
@@ -275,7 +281,8 @@ pub fn dimension_page() -> impl IntoView {
                             last_modified_at=dimension.last_modified_at
                         />
                         <DimensionInfo dimension=dimension.clone() />
-                        {if dimension.dependency_graph.is_empty() && dimension.dependents.is_empty()
+                        {if dimension.dependency_graph.len() < 2
+                            && (DimensionType::Regular {} == dimension.dimension_type)
                         {
                             ().into_view()
                         } else {
@@ -284,7 +291,7 @@ pub fn dimension_page() -> impl IntoView {
                                     <div class="card-body">
                                         <h2 class="card-title">"Dependency Data"</h2>
                                         <div class="flex flex-col gap-4">
-                                            {if dimension.dependencies.is_empty() {
+                                            {if dimension.dependency_graph.len() < 2 {
                                                 ().into_view()
                                             } else {
                                                 view! {
@@ -305,25 +312,25 @@ pub fn dimension_page() -> impl IntoView {
                                                 }
                                                     .into_view()
                                             }}
-                                            {if dimension.dependents.is_empty() {
-                                                ().into_view()
-                                            } else {
-                                                view! {
-                                                    <div class="flex flex-row gap-6 flex-wrap">
-                                                        <div class="h-fit flex flex-col gap-1">
-                                                            <div class="stat-title">
-                                                                "Dimensions dependent on this dimension"
+                                            {match dimension.dimension_type {
+                                                DimensionType::Regular {} => ().into_view(),
+                                                DimensionType::LocalCohort(cohort_based_on)
+                                                | DimensionType::RemoteCohort(cohort_based_on) => {
+                                                    view! {
+                                                        <div class="flex flex-row gap-6 flex-wrap">
+                                                            <div class="h-fit flex flex-col gap-1">
+                                                                <div class="stat-title">"Cohort is based on"</div>
+                                                                <Badge
+                                                                    href_fn=|d| format!("../{d}")
+                                                                    options=Signal::derive(move || {
+                                                                        vec![cohort_based_on.clone()]
+                                                                    })
+                                                                />
                                                             </div>
-                                                            <Badge
-                                                                href_fn=|d| format!("../{d}")
-                                                                options=Signal::derive(move || {
-                                                                    dimension.dependents.clone()
-                                                                })
-                                                            />
                                                         </div>
-                                                    </div>
+                                                    }
+                                                        .into_view()
                                                 }
-                                                    .into_view()
                                             }}
                                         </div>
                                     </div>
@@ -345,10 +352,10 @@ pub fn dimension_page() -> impl IntoView {
                                         position=dimension_st.with_value(|d| *d.position as u32)
                                         dimension_name=dimension_st
                                             .with_value(|d| d.dimension.clone())
+                                        dimension_type=dimension_st
+                                            .with_value(|d| d.dimension_type.clone())
                                         dimension_schema=dimension_st
                                             .with_value(|d| d.schema.clone())
-                                        dependencies=dimension_st
-                                            .with_value(|d| d.dependencies.clone())
                                         validation_function_name=dimension_st
                                             .with_value(|d| d.function_name.clone())
                                         autocomplete_function_name=dimension_st

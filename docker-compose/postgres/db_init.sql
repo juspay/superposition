@@ -1430,4 +1430,18 @@ ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT TRUE;
 
 UPDATE superposition.workspaces SET auto_populate_control = FALSE;
 
+ALTER TABLE localorg_dev.dimensions 
+ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
+
+ALTER TABLE localorg_dev.dimensions 
+    DROP COLUMN IF EXISTS dependencies,
+    DROP COLUMN IF EXISTS dependents;
+    
+ALTER TABLE localorg_test.dimensions 
+ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
+
+ALTER TABLE localorg_test.dimensions 
+    DROP COLUMN IF EXISTS dependencies,
+    DROP COLUMN IF EXISTS dependents;
+
 COMMIT;

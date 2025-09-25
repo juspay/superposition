@@ -22,6 +22,59 @@ describe("Dimension API", () => {
         description: "Test dimension for automated testing",
         change_reason: "Creating test dimension",
     };
+    
+    const testLocalCohort = {
+        dimension: `test-local-cohort-${Date.now()}`,
+        position: 2,
+        schema: {
+            "type": "string",
+            "enum": ["small", "big", "otherwise"],
+            "definitions": {
+                small: {
+                    and: [
+                        {
+                            "==": [
+                                {
+                                    var: testDimension.dimension,
+                                },
+                                "hdfc",
+                            ],
+                        },
+                    ],
+                },
+                big: {
+                    and: [
+                        {
+                            "==": [
+                                {
+                                    var: testDimension.dimension,
+                                },
+                                "kotak",
+                            ],
+                        },
+                    ],
+                },
+            }
+        },
+        dimension_type: {
+            "LOCAL_COHORT": testDimension.dimension
+        },
+        description: "Test cohort for automated testing",
+        change_reason: "Creating test cohort",
+    };
+    
+    const testRemoteCohort = {
+        dimension: `test-remote-cohort-${Date.now()}`,
+        position: 3,
+        schema: {
+            "type": "string"
+        },
+        dimension_type: {
+            "REMOTE_COHORT": testDimension.dimension
+        },
+        description: "Test cohort for automated testing",
+        change_reason: "Creating test cohort",
+    };
 
     // Track all created dimensions and functions for cleanup
     const createdDimensions: string[] = [];
@@ -573,6 +626,486 @@ describe("Dimension API", () => {
             console.error(e["$response"]);
             throw e;
         }
+    });
+    
+    // Cohort dimension tests
+    
+    test("fail2create a local cohort dimension without cohort_based_on", async () => {
+        const wrongCohort = {
+            dimension: `test-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema:{
+                "type": "string",
+                "enum": ["small", "big", "otherwise"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                    big: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "kotak",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": ""            
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            `Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples`,
+        );
+    });
+    
+    test("fail2create a local cohort dimension without definitions", async () => {
+        const wrongCohort = {
+            dimension: `test-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "big", "otherwise"],
+            },
+            dimension_type: {
+                "LOCAL_COHORT": "random_dimension"
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            'schema validation failed: required property `\"definitions\"` is missing',
+        );
+    });
+
+
+    test("fail2create a local cohort dimension with cohort_based_on mismatch", async () => {
+        const wrongCohort = {
+            dimension: `test-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "big", "otherwise"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": "random_dimension"
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            `The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 1 cohorts and 2 enum options (not including otherwise)`,
+        );
+    });
+
+    test("fail2create a local cohort dimension with an invalid dimension", async () => {
+        const wrongCohort = {
+            dimension: `test-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "big", "otherwise"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: "sdk",
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                    big: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: "sdk",
+                                    },
+                                    "kotak",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": "sdk"
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            "Dimension sdk used in cohort schema has not been created or does not exist. Please create the dimension first before using it in cohort schema.",
+        );
+    });
+    
+    test("fail2create a local cohort dimension with definition/enum mismatch", async () => {
+        const wrongCohort = {
+            dimension: `test-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "otherwise"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: "sdk",
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                    big: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: "sdk",
+                                    },
+                                    "kotak",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": "sdk"
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 2 cohorts and 1 enum options (not including otherwise)",
+        );
+    });
+    
+    test("fail2create a local cohort dimension without enum otherwise", async () => {
+        const wrongCohort = {
+            dimension: `test-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "big"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                    big: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "sd",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": testDimension.dimension
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            "schema validation failed: array doesn't contain items conforming to the specified schema"
+        );
+    });
+    
+    test("fail2create a local cohort dimension with multiple dimensions", async () => {
+        const wrongCohort = {
+            dimension: `test-local-cohort-${Date.now()}`,
+            position: 2, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "big", "otherwise"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testDimension.dimension,
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                    big: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: "wrong-dimension",
+                                    },
+                                    "sd",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": testDimension.dimension
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            /Multiple dimensions used in cohort schema and that is not allowed: .* /
+        );
+    });
+
+    test("create a local cohort dimension", async () => {
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...testLocalCohort,
+        };
+
+        const cmd = new CreateDimensionCommand(input);
+
+        try {
+            const response = await superpositionClient.send(cmd);
+            console.log("Created dimension:", response);
+
+            // Save for later use and cleanup
+            createdDimension = response;
+            createdDimensions.push(response.dimension);
+
+            // Assertions
+            expect(response).toBeDefined();
+            expect(response.dimension).toBe(testLocalCohort.dimension);
+            expect(response.position).toBe(testLocalCohort.position);
+            expect(response.description).toBe(testLocalCohort.description);
+            expect(response.created_by).toBeDefined();
+            expect(response.created_at).toBeDefined();
+            expect(response.last_modified_at).toBeDefined();
+            expect(response.last_modified_by).toBeDefined();
+        } catch (e) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
+    test("fail2create a remote cohort dimension on a local cohort", async () => {
+        const wrongCohort = {
+            dimension: `test-remote-cohort-${Date.now()}`,
+            position: 3,
+            schema: {
+                "type": "string"
+            },
+            cohort_based_on: testLocalCohort.dimension,
+            dimension_type: {
+                "REMOTE_COHORT": testLocalCohort.dimension
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).rejects.toThrow(
+            `Dimension ${testLocalCohort.dimension} is a local cohort and cannot be used in cohorting`
+        );
+    });
+    
+    test("create a remote cohort dimension", async () => {
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...testRemoteCohort,
+        };
+
+        const cmd = new CreateDimensionCommand(input);
+
+        try {
+            const response = await superpositionClient.send(cmd);
+            console.log("Created dimension:", response);
+
+            // Save for later use and cleanup
+            createdDimension = response;
+            createdDimensions.push(response.dimension);
+
+            // Assertions
+            expect(response).toBeDefined();
+            expect(response.dimension).toBe(testRemoteCohort.dimension);
+            expect(response.position).toBe(testRemoteCohort.position);
+            expect(response.description).toBe(testRemoteCohort.description);
+            expect(response.created_by).toBeDefined();
+            expect(response.created_at).toBeDefined();
+            expect(response.last_modified_at).toBeDefined();
+            expect(response.last_modified_by).toBeDefined();
+        } catch (e) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+    
+    test("create a local cohort dimension on a remote dimension", async () => {
+        const wrongCohort = {
+            dimension: `test-cohort-local-${Date.now()}`,
+            position: 4, // Position 0 is reserved, start from 1
+            schema: {
+                "type": "string",
+                "enum": ["small", "big", "otherwise"],
+                "definitions": {
+                    small: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testRemoteCohort.dimension,
+                                    },
+                                    "hdfc",
+                                ],
+                            },
+                        ],
+                    },
+                    big: {
+                        and: [
+                            {
+                                "==": [
+                                    {
+                                        var: testRemoteCohort.dimension,
+                                    },
+                                    "kotak",
+                                ],
+                            },
+                        ],
+                    },
+                }
+            },
+            dimension_type: {
+                "LOCAL_COHORT": testRemoteCohort.dimension
+            },
+            description: "Test cohort for automated testing",
+            change_reason: "Creating test cohort",
+        };
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            ...wrongCohort,
+        };
+
+        expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
+        ).resolves.toBeDefined();
     });
 
     // ==================== DELETE DIMENSION TESTS ====================

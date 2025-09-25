@@ -66,14 +66,13 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //       last_modified_by: "STRING_VALUE", // required
  * //       created_at: new Date("TIMESTAMP"), // required
  * //       created_by: "STRING_VALUE", // required
- * //       dependencies: [ // Dependencies // required
- * //         "STRING_VALUE",
- * //       ],
- * //       dependents: [ // Dependents // required
- * //         "STRING_VALUE",
- * //       ],
  * //       dependency_graph: { // Object // required
  * //         "<keys>": "DOCUMENT_VALUE",
+ * //       },
+ * //       dimension_type: { // DimensionType Union: only one key present
+ * //         REGULAR: {},
+ * //         LOCAL_COHORT: "STRING_VALUE",
+ * //         REMOTE_COHORT: "STRING_VALUE",
  * //       },
  * //       autocomplete_function_name: "STRING_VALUE",
  * //       mandatory: true || false,

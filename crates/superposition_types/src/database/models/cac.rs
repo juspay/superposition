@@ -1,5 +1,5 @@
 #[cfg(feature = "diesel_derives")]
-use std::str;
+use std::str::{self, FromStr};
 use std::{collections::HashMap, fmt::Display};
 
 #[cfg(feature = "diesel_derives")]
@@ -19,7 +19,7 @@ use diesel::{
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
-use superposition_derives::{JsonFromSql, JsonToSql};
+use superposition_derives::{JsonFromSql, JsonToSql, TextFromSql, TextToSql};
 
 use crate::{Cac, Condition, Contextual, Overridden, Overrides};
 
@@ -64,6 +64,69 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Eq, AsExpression, FromSqlRow, TextFromSql, TextToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = diesel::sql_types::Text))]
+pub enum DimensionType {
+    Regular {},
+    LocalCohort(String),
+    RemoteCohort(String),
+}
+
+impl Default for DimensionType {
+    fn default() -> Self {
+        DimensionType::Regular {}
+    }
+}
+
+impl Display for DimensionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DimensionType::Regular {} => write!(f, "REGULAR"),
+            DimensionType::LocalCohort(cohort_based_on) => {
+                write!(f, "LOCAL_COHORT:{}", cohort_based_on)
+            }
+            DimensionType::RemoteCohort(cohort_based_on) => {
+                write!(f, "REMOTE_COHORT:{}", cohort_based_on)
+            }
+        }
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl FromStr for DimensionType {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split(':').collect();
+        match parts[0] {
+            "REGULAR" => Ok(DimensionType::Regular {}),
+            "LOCAL_COHORT" => Ok(DimensionType::LocalCohort(parts[1].to_string())),
+            "REMOTE_COHORT" => Ok(DimensionType::RemoteCohort(parts[1].to_string())),
+            _ => Err(format!("Invalid dimension type: {}", s)),
+        }
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl TryFrom<String> for DimensionType {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        DimensionType::from_str(&value)
+    }
+}
+
+#[cfg(feature = "diesel_derives")]
+impl From<&DimensionType> for String {
+    fn from(value: &DimensionType) -> String {
+        value.to_string()
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -84,9 +147,8 @@ pub struct Dimension {
     pub description: Description,
     pub change_reason: ChangeReason,
     pub dependency_graph: DependencyGraph,
-    pub dependents: Vec<String>,
-    pub dependencies: Vec<String>,
     pub autocomplete_function_name: Option<String>,
+    pub dimension_type: DimensionType,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -368,43 +430,17 @@ where
 }
 
 #[derive(
-    Deserialize, Serialize, Clone, Deref, Debug, PartialEq, Into, AsRef, Default,
+    Deserialize, Serialize, Clone, Deref, DerefMut, Debug, PartialEq, Into, AsRef, Default,
 )]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
-pub struct DependencyGraph(HashMap<String, Vec<String>>);
+pub struct DependencyGraph(pub HashMap<String, Vec<String>>);
 
 impl DependencyGraph {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn insert<K, V>(&mut self, key: K, value: V) -> Option<Vec<String>>
-    where
-        K: Into<String>,
-        V: Into<Vec<String>>,
-    {
-        self.0.insert(key.into(), value.into())
-    }
-
-    pub fn insert_dependents(&mut self, dependent_dimension: &Dimension) {
-        if dependent_dimension.dependency_graph.is_empty() {
-            self.0
-                .insert(dependent_dimension.dimension.to_string(), vec![]);
-        } else {
-            dependent_dimension
-                .dependency_graph
-                .iter()
-                .for_each(|(key, value)| {
-                    self.0.insert(key.to_string(), value.clone());
-                });
-        }
     }
 }
