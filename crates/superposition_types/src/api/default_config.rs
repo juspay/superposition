@@ -2,12 +2,12 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 use superposition_derives::{IsEmpty, QueryParam};
 
-use crate::custom_query::QueryParam;
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::default_configs;
+use crate::{custom_query::QueryParam, ExtendedMap};
 use crate::{
     database::models::{cac::deserialize_function_name, ChangeReason, Description},
     IsEmpty, RegexEnum,
@@ -24,7 +24,7 @@ pub struct DefaultConfigFilters {
 pub struct DefaultConfigCreateRequest {
     pub key: DefaultConfigKey,
     pub value: Value,
-    pub schema: Map<String, Value>,
+    pub schema: ExtendedMap,
     pub function_name: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
@@ -56,7 +56,7 @@ impl TryFrom<String> for DefaultConfigKey {
 pub struct DefaultConfigUpdateRequest {
     #[serde(default, deserialize_with = "deserialize_option")]
     pub value: Option<Value>,
-    pub schema: Option<Value>,
+    pub schema: Option<ExtendedMap>,
     #[serde(default, deserialize_with = "deserialize_function_name")]
     pub function_name: Option<Option<String>>,
     #[serde(default, deserialize_with = "deserialize_function_name")]

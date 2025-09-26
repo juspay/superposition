@@ -1,8 +1,18 @@
-import { SuperpositionOptions, ConfigOptions, ConfigData, PollingStrategy, ExperimentationArgs } from './types';
-import { NativeResolver } from 'superposition-bindings';
-import { SuperpositionClient, GetConfigCommand, GetConfigCommandInput } from 'superposition-sdk';
-import { ExperimentationClient, Experiment } from './experimentation-client';
-import { ExperimentationOptions } from './types';
+import {
+    SuperpositionOptions,
+    ConfigOptions,
+    ConfigData,
+    PollingStrategy,
+    ExperimentationArgs,
+} from "./types";
+import { NativeResolver } from "superposition-bindings";
+import {
+    SuperpositionClient,
+    GetConfigCommand,
+    GetConfigCommandInput,
+} from "superposition-sdk";
+import { ExperimentationClient, Experiment } from "./experimentation-client";
+import { ExperimentationOptions } from "./types";
 
 export class ConfigurationClient {
     private config: SuperpositionOptions;
@@ -25,7 +35,10 @@ export class ConfigurationClient {
         this.resolver = resolver;
         this.options = options;
 
-        if (this.options.refreshStrategy && 'interval' in this.options.refreshStrategy) {
+        if (
+            this.options.refreshStrategy &&
+            "interval" in this.options.refreshStrategy
+        ) {
             const strategy = this.options.refreshStrategy as PollingStrategy;
 
             setInterval(async () => {
@@ -34,16 +47,20 @@ export class ConfigurationClient {
                     this.currentConfigData = refreshedConfig;
                     console.log("Configuration refreshed successfully.");
                 } catch (error) {
-                    console.error("Failed to refresh configuration. Will continue to use the last known good configuration.", error);
+                    console.error(
+                        "Failed to refresh configuration. Will continue to use the last known good configuration.",
+                        error
+                    );
                 }
-
             }, strategy.interval);
 
             if (experimentationOptions) {
                 this.experimentationOptions = experimentationOptions;
-                this.experimentationClient = new ExperimentationClient(config, experimentationOptions);
+                this.experimentationClient = new ExperimentationClient(
+                    config,
+                    experimentationOptions
+                );
             }
-
         }
 
         this.smithyClient = new SuperpositionClient({
@@ -59,20 +76,32 @@ export class ConfigurationClient {
         }
     }
 
-    async eval(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<any>;
-    async eval<T>(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<T>;
-    async eval(queryData: Record<string, any>, filterPrefixes?: string[], targetingKey?: string): Promise<any> {
+    async eval(
+        queryData: Record<string, any>,
+        filterPrefixes?: string[],
+        targetingKey?: string
+    ): Promise<any>;
+    async eval<T>(
+        queryData: Record<string, any>,
+        filterPrefixes?: string[],
+        targetingKey?: string
+    ): Promise<T>;
+    async eval(
+        queryData: Record<string, any>,
+        filterPrefixes?: string[],
+        targetingKey?: string
+    ): Promise<any> {
         try {
-
             const configData = await this.fetchConfigData();
 
             let experimentationArgs: ExperimentationArgs | undefined;
 
             if (this.experimentationClient && targetingKey) {
-                const experiments = await this.experimentationClient.getExperiments();
+                const experiments =
+                    await this.experimentationClient.getExperiments();
                 experimentationArgs = {
                     experiments,
-                    targeting_key: targetingKey
+                    targeting_key: targetingKey,
                 };
             }
 
@@ -80,22 +109,23 @@ export class ConfigurationClient {
                 configData.default_configs || {},
                 configData.contexts || [],
                 configData.overrides || {},
+                configData.dimensions || {},
                 queryData,
-                'merge',
+                "merge",
                 filterPrefixes,
                 experimentationArgs
             );
             return result;
-
         } catch (error) {
             if (this.defaults) {
-                console.log('Falling back to defaults');
+                console.log("Falling back to defaults");
                 return this.resolver.resolveConfig(
                     this.defaults.default_configs || {},
                     this.defaults.contexts || [],
                     this.defaults.overrides || {},
+                    this.defaults.dimensions || {},
                     queryData,
-                    'merge',
+                    "merge",
                     filterPrefixes
                 );
             }
@@ -116,19 +146,22 @@ export class ConfigurationClient {
         const command = new GetConfigCommand(commandInput);
 
         try {
-
             const response = await this.smithyClient.send(command);
             this.currentConfigData = {
                 default_configs: response.default_configs || {},
                 contexts: response.contexts || [],
-                overrides: response.overrides || {}
+                overrides: response.overrides || {},
+                dimensions: response.dimensions || {},
             };
 
             return this.currentConfigData;
-
         } catch (error) {
-            console.error('SuperpositionClient GetConfigCommand failed:', error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error(
+                "SuperpositionClient GetConfigCommand failed:",
+                error
+            );
+            const errorMessage =
+                error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to fetch configuration: ${errorMessage}`);
         }
     }
@@ -145,11 +178,17 @@ export class ConfigurationClient {
             let queryData = { ...context };
 
             if (this.experimentationClient && targetingKey) {
-                const experiments = await this.experimentationClient.getExperiments();
-                const identifier = this.experimentationOptions?.defaultIdentifier ||
-                    (targetingKey ? targetingKey : 'default');
+                const experiments =
+                    await this.experimentationClient.getExperiments();
+                const identifier =
+                    this.experimentationOptions?.defaultIdentifier ||
+                    (targetingKey ? targetingKey : "default");
 
-                const variantIds = await this.getApplicableVariants(experiments, queryData, identifier);
+                const variantIds = await this.getApplicableVariants(
+                    experiments,
+                    queryData,
+                    identifier
+                );
                 if (variantIds.length > 0) {
                     queryData.variantIds = variantIds;
                 }
@@ -159,8 +198,9 @@ export class ConfigurationClient {
                 configData.default_configs || {},
                 configData.contexts || [],
                 configData.overrides || {},
+                configData.dimensions || {},
                 queryData,
-                'merge'
+                "merge"
             );
 
             return result;
@@ -170,8 +210,9 @@ export class ConfigurationClient {
                     this.defaults.default_configs || {},
                     this.defaults.contexts || [],
                     this.defaults.overrides || {},
+                    this.defaults.dimensions || {},
                     context,
-                    'merge'
+                    "merge"
                 );
             }
             throw error;

@@ -107,16 +107,16 @@ structure ContextPartial {
     override_with_keys: OverrideWithKeys
 }
 
-// structure DimensionInfo {
-//     schema: Object,
-//     position: Integer,
-//     dimension_type: DimensionType,
-//     dependency_graph: Object
-// }
+structure DimensionInfo {
+    schema: Object
+    position: Integer
+    dimension_type: DimensionType
+    dependency_graph: DepedendencyGraph
+}
 
 map DimensionData {
     key: String
-    value: Document
+    value: DimensionInfo
 }
 
 list ContextList {

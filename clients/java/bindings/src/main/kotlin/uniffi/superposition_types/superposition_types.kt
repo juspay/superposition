@@ -1063,7 +1063,7 @@ data class Context (
     var `condition`: Condition, 
     var `priority`: kotlin.Int, 
     var `weight`: kotlin.Int, 
-    var `overrideWithKeys`: List<kotlin.String>
+    var `overrideWithKeys`: OverrideWithKeys
 ) {
     
     companion object
@@ -1079,7 +1079,7 @@ public object FfiConverterTypeContext: FfiConverterRustBuffer<Context> {
             FfiConverterTypeCondition.read(buf),
             FfiConverterInt.read(buf),
             FfiConverterInt.read(buf),
-            FfiConverterSequenceString.read(buf),
+            FfiConverterTypeOverrideWithKeys.read(buf),
         )
     }
 
@@ -1088,7 +1088,7 @@ public object FfiConverterTypeContext: FfiConverterRustBuffer<Context> {
             FfiConverterTypeCondition.allocationSize(value.`condition`) +
             FfiConverterInt.allocationSize(value.`priority`) +
             FfiConverterInt.allocationSize(value.`weight`) +
-            FfiConverterSequenceString.allocationSize(value.`overrideWithKeys`)
+            FfiConverterTypeOverrideWithKeys.allocationSize(value.`overrideWithKeys`)
     )
 
     override fun write(value: Context, buf: ByteBuffer) {
@@ -1096,7 +1096,47 @@ public object FfiConverterTypeContext: FfiConverterRustBuffer<Context> {
             FfiConverterTypeCondition.write(value.`condition`, buf)
             FfiConverterInt.write(value.`priority`, buf)
             FfiConverterInt.write(value.`weight`, buf)
-            FfiConverterSequenceString.write(value.`overrideWithKeys`, buf)
+            FfiConverterTypeOverrideWithKeys.write(value.`overrideWithKeys`, buf)
+    }
+}
+
+
+
+data class DimensionInfo (
+    var `schema`: ExtendedMap, 
+    var `position`: kotlin.Int, 
+    var `dimensionType`: DimensionType, 
+    var `dependencyGraph`: DependencyGraph
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInfo> {
+    override fun read(buf: ByteBuffer): DimensionInfo {
+        return DimensionInfo(
+            FfiConverterTypeExtendedMap.read(buf),
+            FfiConverterInt.read(buf),
+            FfiConverterTypeDimensionType.read(buf),
+            FfiConverterTypeDependencyGraph.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: DimensionInfo) = (
+            FfiConverterTypeExtendedMap.allocationSize(value.`schema`) +
+            FfiConverterInt.allocationSize(value.`position`) +
+            FfiConverterTypeDimensionType.allocationSize(value.`dimensionType`) +
+            FfiConverterTypeDependencyGraph.allocationSize(value.`dependencyGraph`)
+    )
+
+    override fun write(value: DimensionInfo, buf: ByteBuffer) {
+            FfiConverterTypeExtendedMap.write(value.`schema`, buf)
+            FfiConverterInt.write(value.`position`, buf)
+            FfiConverterTypeDimensionType.write(value.`dimensionType`, buf)
+            FfiConverterTypeDependencyGraph.write(value.`dependencyGraph`, buf)
     }
 }
 
@@ -1143,6 +1183,90 @@ public object FfiConverterTypeVariant: FfiConverterRustBuffer<Variant> {
             FfiConverterTypeVariantOverrides.write(value.`overrides`, buf)
     }
 }
+
+
+
+sealed class DimensionType {
+    
+    object Regular : DimensionType()
+    
+    
+    data class LocalCohort(
+        val v1: kotlin.String) : DimensionType() {
+        companion object
+    }
+    
+    data class RemoteCohort(
+        val v1: kotlin.String) : DimensionType() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDimensionType : FfiConverterRustBuffer<DimensionType>{
+    override fun read(buf: ByteBuffer): DimensionType {
+        return when(buf.getInt()) {
+            1 -> DimensionType.Regular
+            2 -> DimensionType.LocalCohort(
+                FfiConverterString.read(buf),
+                )
+            3 -> DimensionType.RemoteCohort(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: DimensionType) = when(value) {
+        is DimensionType.Regular -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is DimensionType.LocalCohort -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
+        }
+        is DimensionType.RemoteCohort -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
+        }
+    }
+
+    override fun write(value: DimensionType, buf: ByteBuffer) {
+        when(value) {
+            is DimensionType.Regular -> {
+                buf.putInt(1)
+                Unit
+            }
+            is DimensionType.LocalCohort -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.v1, buf)
+                Unit
+            }
+            is DimensionType.RemoteCohort -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.v1, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
 
 
 
@@ -1201,6 +1325,36 @@ public object FfiConverterTypeExperimentType: FfiConverterRustBuffer<ExperimentT
     override fun allocationSize(value: ExperimentType) = 4UL
 
     override fun write(value: ExperimentType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class GroupType {
+    
+    USER_CREATED,
+    SYSTEM_GENERATED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGroupType: FfiConverterRustBuffer<GroupType> {
+    override fun read(buf: ByteBuffer) = try {
+        GroupType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: GroupType) = 4UL
+
+    override fun write(value: GroupType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -1366,6 +1520,45 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 
 
 
+
+/**
+ * @suppress
+ */
+public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, List<kotlin.String>>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, List<kotlin.String>> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, List<kotlin.String>>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterSequenceString.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, List<kotlin.String>>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterSequenceString.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, List<kotlin.String>>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterSequenceString.write(v, buf)
+        }
+    }
+}
+
+
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -1373,6 +1566,36 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
  */
 public typealias Condition = Map<kotlin.String, kotlin.String>
 public typealias FfiConverterTypeCondition = FfiConverterMapStringString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias DependencyGraph = Map<kotlin.String, List<kotlin.String>>
+public typealias FfiConverterTypeDependencyGraph = FfiConverterMapStringSequenceString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias ExtendedMap = Map<kotlin.String, kotlin.String>
+public typealias FfiConverterTypeExtendedMap = FfiConverterMapStringString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias OverrideWithKeys = List<kotlin.String>
+public typealias FfiConverterTypeOverrideWithKeys = FfiConverterSequenceString
 
 
 

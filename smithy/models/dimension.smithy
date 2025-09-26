@@ -4,9 +4,14 @@ $version: "2.0"
 namespace io.superposition
 
 union DimensionType {
-    REGULAR: Unit,
-    LOCAL_COHORT: String,
+    REGULAR: Unit
+    LOCAL_COHORT: String
     REMOTE_COHORT: String
+}
+
+map DepedendencyGraph {
+    key: String
+    value: StringList
 }
 
 resource Dimension {
@@ -17,11 +22,11 @@ resource Dimension {
     }
     properties: {
         position: Integer
-        schema: Document
+        schema: Object
         function_name: String
         description: String
         change_reason: String
-        dependency_graph: Object
+        dependency_graph: DepedendencyGraph
         created_at: DateTime
         created_by: String
         last_modified_at: DateTime
@@ -71,7 +76,7 @@ structure DimensionMixin for Dimension {
 
     @required
     $dependency_graph
-    
+
     @required
     $dimension_type
 
@@ -107,7 +112,7 @@ operation CreateDimension {
 
         @required
         $change_reason
-        
+
         $dimension_type
 
         $autocomplete_function_name

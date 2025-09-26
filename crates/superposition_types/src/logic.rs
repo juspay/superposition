@@ -48,13 +48,12 @@ pub fn partial_apply(
 fn _evaluate_local_cohort_dimension(
     cohort_based_on: &str,
     cohort_based_on_value: &Value,
-    schema: &Value,
+    schema: &Map<String, Value>,
 ) -> Option<String> {
-    let cohort_schema = schema.as_object()?;
-    let definitions_object = cohort_schema.get("definitions")?.as_object()?;
+    let definitions_object = schema.get("definitions")?.as_object()?;
 
     // Get the array of cohort names from the "enum" field and remove "otherwise"
-    let cohort_enums = cohort_schema
+    let cohort_enums = schema
         .get("enum")?
         .as_array()?
         .iter()
@@ -77,7 +76,7 @@ fn _evaluate_local_cohort_dimension(
 fn evaluate_local_cohort_dimension(
     cohort_based_on: &str,
     cohort_based_on_value: &Value,
-    schema: &Value,
+    schema: &Map<String, Value>,
 ) -> String {
     _evaluate_local_cohort_dimension(cohort_based_on, cohort_based_on_value, schema)
         .unwrap_or_else(|| "otherwise".to_string())
@@ -122,6 +121,10 @@ pub fn evaluate_cohort(
     dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
 ) -> Map<String, Value> {
+    if dimensions.is_empty() {
+        return query_data.clone();
+    }
+
     let mut modified_context = Map::new();
 
     for (dimension_key, value) in query_data {
@@ -133,10 +136,10 @@ pub fn evaluate_cohort(
                     &dimension_info.dependency_graph,
                     dimensions,
                     &mut modified_context,
-                )
+                );
+                modified_context.insert(dimension_key.to_string(), value.clone());
             }
         }
-        modified_context.insert(dimension_key.to_string(), value.clone());
     }
 
     for (dimension_key, value) in query_data {
@@ -151,10 +154,10 @@ pub fn evaluate_cohort(
                     &dimension_info.dependency_graph,
                     dimensions,
                     &mut modified_context,
-                )
+                );
+                modified_context.insert(dimension_key.to_string(), value.clone());
             }
         }
-        modified_context.insert(dimension_key.to_string(), value.clone());
     }
 
     for (dimension_key, value) in query_data {

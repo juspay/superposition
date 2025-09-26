@@ -162,7 +162,7 @@ pub(crate) fn de_update_type_templates(value: &[u8], mut builder: crate::operati
                     }
                     "type_schema" => {
                         builder = builder.set_type_schema(
-                            Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                            crate::protocol_serde::shape_object::de_object(tokens)?
                         );
                     }
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

@@ -68,6 +68,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	smithy-updates
 	validate-aws-connection
 	validate-psql-connection
+	uniffi-bindings
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -357,3 +358,9 @@ schema-file:
 	diesel print-schema --schema superposition > crates/superposition_types/src/database/superposition_schema.rs
 	git apply crates/superposition_types/src/database/superposition_schema.patch
 	git apply crates/superposition_types/src/database/schema-timestamp-migration.patch
+
+uniffi-bindings:
+	cargo build --package superposition_core --lib --release
+	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language kotlin --out-dir clients/java/bindings/src/main/kotlin
+	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
+	git apply uniffi/patches/*.patch

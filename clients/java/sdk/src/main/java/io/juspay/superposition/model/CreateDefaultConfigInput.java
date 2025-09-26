@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -28,7 +30,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("value", PreludeSchemas.DOCUMENT,
                 new RequiredTrait())
-        .putMember("schema", PreludeSchemas.DOCUMENT,
+        .putMember("schema", SharedSchemas.OBJECT,
                 new RequiredTrait())
         .putMember("description", PreludeSchemas.STRING,
                 new RequiredTrait())
@@ -57,7 +59,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
 
     private final transient String key;
     private final transient Document value;
-    private final transient Document schemaMember;
+    private final transient Map<String, Document> schemaMember;
     private final transient String description;
     private final transient String changeReason;
     private final transient String functionName;
@@ -68,7 +70,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
     private CreateDefaultConfigInput(Builder builder) {
         this.key = builder.key;
         this.value = builder.value;
-        this.schemaMember = builder.schemaMember;
+        this.schemaMember = Collections.unmodifiableMap(builder.schemaMember);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
         this.functionName = builder.functionName;
@@ -85,8 +87,12 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         return value;
     }
 
-    public Document schemaMember() {
+    public Map<String, Document> schemaMember() {
         return schemaMember;
+    }
+
+    public boolean hasSchemaMember() {
+        return true;
     }
 
     public String description() {
@@ -155,7 +161,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_KEY, key);
         serializer.writeDocument($SCHEMA_VALUE, value);
-        serializer.writeDocument($SCHEMA_SCHEMA_MEMBER, schemaMember);
+        serializer.writeMap($SCHEMA_SCHEMA_MEMBER, schemaMember, schemaMember.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
         if (functionName != null) {
@@ -221,7 +227,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String key;
         private Document value;
-        private Document schemaMember;
+        private Map<String, Document> schemaMember;
         private String description;
         private String changeReason;
         private String functionName;
@@ -260,7 +266,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder schemaMember(Document schemaMember) {
+        public Builder schemaMember(Map<String, Document> schemaMember) {
             this.schemaMember = Objects.requireNonNull(schemaMember, "schemaMember cannot be null");
             tracker.setMember($SCHEMA_SCHEMA_MEMBER);
             return this;
@@ -335,7 +341,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> key((String) SchemaUtils.validateSameMember($SCHEMA_KEY, member, value));
                 case 1 -> value((Document) SchemaUtils.validateSameMember($SCHEMA_VALUE, member, value));
-                case 2 -> schemaMember((Document) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
+                case 2 -> schemaMember((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
                 case 3 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 4 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 5 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
@@ -358,7 +364,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                 tracker.setMember($SCHEMA_VALUE);
             }
             if (!tracker.checkMember($SCHEMA_SCHEMA_MEMBER)) {
-                tracker.setMember($SCHEMA_SCHEMA_MEMBER);
+                schemaMember(Collections.emptyMap());
             }
             if (!tracker.checkMember($SCHEMA_DESCRIPTION)) {
                 description("");
@@ -392,7 +398,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.key(de.readString(member));
                     case 1 -> builder.value(de.readDocument());
-                    case 2 -> builder.schemaMember(de.readDocument());
+                    case 2 -> builder.schemaMember(SharedSerde.deserializeObjectShape(member, de));
                     case 3 -> builder.description(de.readString(member));
                     case 4 -> builder.changeReason(de.readString(member));
                     case 5 -> builder.workspaceId(de.readString(member));

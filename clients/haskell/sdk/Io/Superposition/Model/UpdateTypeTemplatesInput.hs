@@ -21,6 +21,7 @@ import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
@@ -32,7 +33,7 @@ data UpdateTypeTemplatesInput = UpdateTypeTemplatesInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
     type_name :: Data.Text.Text,
-    type_schema :: Data.Aeson.Value,
+    type_schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     description :: Data.Maybe.Maybe Data.Text.Text,
     change_reason :: Data.Text.Text
 } deriving (
@@ -70,7 +71,7 @@ data UpdateTypeTemplatesInputBuilderState = UpdateTypeTemplatesInputBuilderState
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     type_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    type_schemaBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    type_schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
@@ -101,7 +102,7 @@ setTypeName :: Data.Text.Text -> UpdateTypeTemplatesInputBuilder ()
 setTypeName value =
    Control.Monad.State.Strict.modify (\s -> (s { type_nameBuilderState = Data.Maybe.Just value }))
 
-setTypeSchema :: Data.Aeson.Value -> UpdateTypeTemplatesInputBuilder ()
+setTypeSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> UpdateTypeTemplatesInputBuilder ()
 setTypeSchema value =
    Control.Monad.State.Strict.modify (\s -> (s { type_schemaBuilderState = Data.Maybe.Just value }))
 

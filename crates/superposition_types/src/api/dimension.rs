@@ -3,7 +3,6 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::dimensions;
@@ -15,7 +14,7 @@ use crate::{
         },
         ChangeReason, Description,
     },
-    RegexEnum,
+    ExtendedMap, RegexEnum,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -24,7 +23,7 @@ pub struct DimensionResponse {
     pub position: Position,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    pub schema: Value,
+    pub schema: ExtendedMap,
     pub function_name: Option<String>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
@@ -61,7 +60,7 @@ impl DimensionResponse {
 pub struct CreateRequest {
     pub dimension: DimensionName,
     pub position: Position,
-    pub schema: Value,
+    pub schema: ExtendedMap,
     pub function_name: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
@@ -75,7 +74,7 @@ pub struct CreateRequest {
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = dimensions))]
 pub struct UpdateRequest {
     pub position: Option<Position>,
-    pub schema: Option<Value>,
+    pub schema: Option<ExtendedMap>,
     #[serde(default, deserialize_with = "deserialize_function_name")]
     pub function_name: Option<Option<String>>,
     #[serde(default, deserialize_with = "deserialize_function_name")]

@@ -48,7 +48,9 @@ export interface UpdateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  *   key: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   value: "DOCUMENT_VALUE",
- *   schema: "DOCUMENT_VALUE",
+ *   schema: { // Object
+ *     "<keys>": "DOCUMENT_VALUE",
+ *   },
  *   function_name: "STRING_VALUE",
  *   description: "STRING_VALUE",
  *   autocomplete_function_name: "STRING_VALUE",
@@ -58,7 +60,9 @@ export interface UpdateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  * // { // DefaultConfigFull
  * //   key: "STRING_VALUE", // required
  * //   value: "DOCUMENT_VALUE", // required
- * //   schema: "DOCUMENT_VALUE", // required
+ * //   schema: { // Object // required
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
  * //   function_name: "STRING_VALUE",

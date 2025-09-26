@@ -76,7 +76,22 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
  * //   dimensions: { // DimensionData
- * //     "<keys>": "DOCUMENT_VALUE",
+ * //     "<keys>": { // DimensionInfo
+ * //       schema: {
+ * //         "<keys>": "DOCUMENT_VALUE",
+ * //       },
+ * //       position: Number("int"),
+ * //       dimension_type: { // DimensionType Union: only one key present
+ * //         REGULAR: {},
+ * //         LOCAL_COHORT: "STRING_VALUE",
+ * //         REMOTE_COHORT: "STRING_VALUE",
+ * //       },
+ * //       dependency_graph: { // DepedendencyGraph
+ * //         "<keys>": [ // StringList
+ * //           "STRING_VALUE",
+ * //         ],
+ * //       },
+ * //     },
  * //   },
  * //   version: "STRING_VALUE",
  * //   last_modified: new Date("TIMESTAMP"),

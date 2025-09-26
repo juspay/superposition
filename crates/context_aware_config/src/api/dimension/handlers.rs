@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_web::{
     delete, get, post, put,
     web::{self, Data, Json, Path, Query},
@@ -7,6 +9,7 @@ use chrono::Utc;
 use diesel::{
     delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
+use serde_json::Value;
 use service_utils::{
     helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
@@ -62,7 +65,7 @@ async fn create(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let create_req = req.into_inner();
-    let schema_value = create_req.schema;
+    let schema_value = Value::Object(create_req.schema.deref().clone());
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let num_rows = dimensions
@@ -83,7 +86,7 @@ async fn create(
     match create_req.dimension_type {
         DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
             #[cfg(not(feature = "jsonlogic"))]
-            allow_primitive_types(&schema_value)?;
+            allow_primitive_types(&create_req.schema)?;
             validate_jsonschema(&state.meta_schema, &schema_value)?;
             if let DimensionType::RemoteCohort(ref cohort_based_on) =
                 create_req.dimension_type
@@ -106,7 +109,7 @@ async fn create(
     let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
         position: create_req.position,
-        schema: schema_value,
+        schema: create_req.schema,
         created_by: user.get_email(),
         created_at: Utc::now(),
         function_name: create_req.function_name.clone(),
@@ -256,11 +259,12 @@ async fn update(
 
     let update_req = req.into_inner();
 
-    if let Some(schema_value) = update_req.schema.clone() {
+    if let Some(new_schema) = update_req.schema.clone() {
+        let schema_value = Value::Object(new_schema.deref().clone());
         match dimension_data.dimension_type {
             DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
                 #[cfg(not(feature = "jsonlogic"))]
-                allow_primitive_types(&schema_value)?;
+                allow_primitive_types(&new_schema)?;
                 validate_jsonschema(&state.meta_schema, &schema_value)?;
                 if let DimensionType::RemoteCohort(ref cohort_based_on) =
                     dimension_data.dimension_type

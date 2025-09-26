@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use leptos::*;
 use leptos_router::{use_navigate, use_params_map, A};
+use serde_json::Value;
 use superposition_types::database::models::cac::DefaultConfig;
 
 use crate::api::{delete_default_config, get_default_config};
@@ -21,10 +22,10 @@ use crate::utils::use_url_base;
 
 #[component]
 fn config_info(default_config: DefaultConfig) -> impl IntoView {
-    let Ok(schema_type) = SchemaType::try_from(default_config.schema.clone()) else {
+    let Ok(schema_type) = SchemaType::try_from(default_config.schema.deref()) else {
         return view! { <span class="text-red-500">"Invalid schema"</span> }.into_view();
     };
-    let Ok(enum_variants) = EnumVariants::try_from(default_config.schema.clone()) else {
+    let Ok(enum_variants) = EnumVariants::try_from(default_config.schema.deref()) else {
         return view! { <span class="text-red-500">"Invalid schema"</span> }.into_view();
     };
     let input_type = InputType::from((schema_type.clone(), enum_variants));
@@ -60,7 +61,7 @@ fn config_info(default_config: DefaultConfig) -> impl IntoView {
                                 id="type-schema"
                                 class="rounded-md resize-y w-full max-w-md"
                                 schema_type=SchemaType::Single(JsonSchemaType::Object)
-                                value=default_config.schema
+                                value=Value::Object(default_config.schema.deref().clone())
                                 on_change=move |_| {}
                                 r#type=InputType::Monaco(vec![])
                             />
@@ -228,7 +229,7 @@ pub fn default_config() -> impl IntoView {
                                         config_value=default_config_st
                                             .with_value(|s| s.value.clone())
                                         type_schema=default_config_st
-                                            .with_value(|s| s.schema.clone())
+                                            .with_value(|s| Value::Object(s.schema.deref().clone()))
                                         description=default_config_st
                                             .with_value(|s| s.description.deref().to_string())
                                         validation_function_name=default_config_st

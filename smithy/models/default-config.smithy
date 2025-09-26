@@ -11,7 +11,7 @@ resource DefaultConfig {
     }
     properties: {
         value: Document
-        schema: Document
+        schema: Object
         function_name: String
         description: String
         change_reason: String

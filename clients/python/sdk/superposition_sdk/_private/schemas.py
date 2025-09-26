@@ -1649,6 +1649,72 @@ OBJECT = Schema.collection(
     }
 )
 
+DEPEDENDENCY_GRAPH = Schema.collection(
+    id=ShapeID("io.superposition#DepedendencyGraph"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "value": {
+            "target": STRING_LIST,
+            "index": 1,
+        },
+
+    }
+)
+
+DIMENSION_TYPE = Schema.collection(
+    id=ShapeID("io.superposition#DimensionType"),
+    shape_type=ShapeType.UNION,
+    members={
+        "REGULAR": {
+            "target": UNIT,
+            "index": 0,
+        },
+
+        "LOCAL_COHORT": {
+            "target": STRING,
+            "index": 1,
+        },
+
+        "REMOTE_COHORT": {
+            "target": STRING,
+            "index": 2,
+        },
+
+    }
+)
+
+DIMENSION_INFO = Schema.collection(
+    id=ShapeID("io.superposition#DimensionInfo"),
+
+    members={
+        "schema": {
+            "target": OBJECT,
+            "index": 0,
+        },
+
+        "position": {
+            "target": INTEGER,
+            "index": 1,
+        },
+
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 2,
+        },
+
+        "dependency_graph": {
+            "target": DEPEDENDENCY_GRAPH,
+            "index": 3,
+        },
+
+    }
+)
+
 DIMENSION_DATA = Schema.collection(
     id=ShapeID("io.superposition#DimensionData"),
     shape_type=ShapeType.MAP,
@@ -1659,7 +1725,7 @@ DIMENSION_DATA = Schema.collection(
         },
 
         "value": {
-            "target": DOCUMENT,
+            "target": DIMENSION_INFO,
             "index": 1,
         },
 
@@ -3414,7 +3480,7 @@ CREATE_DEFAULT_CONFIG_INPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -3502,7 +3568,7 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -3590,28 +3656,6 @@ CREATE_DEFAULT_CONFIG = Schema(
 
 )
 
-DIMENSION_TYPE = Schema.collection(
-    id=ShapeID("io.superposition#DimensionType"),
-    shape_type=ShapeType.UNION,
-    members={
-        "REGULAR": {
-            "target": UNIT,
-            "index": 0,
-        },
-
-        "LOCAL_COHORT": {
-            "target": STRING,
-            "index": 1,
-        },
-
-        "REMOTE_COHORT": {
-            "target": STRING,
-            "index": 2,
-        },
-
-    }
-)
-
 CREATE_DIMENSION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#CreateDimensionInput"),
 
@@ -3660,7 +3704,7 @@ CREATE_DIMENSION_INPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -3732,7 +3776,7 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -3800,7 +3844,7 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": OBJECT,
+            "target": DEPEDENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -4853,7 +4897,7 @@ CREATE_TYPE_TEMPLATES_INPUT = Schema.collection(
         },
 
         "type_schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -4901,7 +4945,7 @@ CREATE_TYPE_TEMPLATES_OUTPUT = Schema.collection(
         },
 
         "type_schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -5746,7 +5790,7 @@ DEFAULT_CONFIG_FULL = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -5927,7 +5971,7 @@ UPDATE_DEFAULT_CONFIG_INPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 5,
         },
 
@@ -5977,7 +6021,7 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6468,7 +6512,7 @@ DELETE_TYPE_TEMPLATES_OUTPUT = Schema.collection(
         },
 
         "type_schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6628,7 +6672,7 @@ GET_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6696,7 +6740,7 @@ GET_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": OBJECT,
+            "target": DEPEDENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6825,7 +6869,7 @@ DIMENSION_EXT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6893,7 +6937,7 @@ DIMENSION_EXT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": OBJECT,
+            "target": DEPEDENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -7019,7 +7063,7 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 3,
         },
 
@@ -7083,7 +7127,7 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -7151,7 +7195,7 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": OBJECT,
+            "target": DEPEDENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -11289,7 +11333,7 @@ TYPE_TEMPLATES_RESPONSE = Schema.collection(
         },
 
         "type_schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -12703,7 +12747,7 @@ UPDATE_TYPE_TEMPLATES_INPUT = Schema.collection(
         },
 
         "type_schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -12747,7 +12791,7 @@ UPDATE_TYPE_TEMPLATES_OUTPUT = Schema.collection(
         },
 
         "type_schema": {
-            "target": DOCUMENT,
+            "target": OBJECT,
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),

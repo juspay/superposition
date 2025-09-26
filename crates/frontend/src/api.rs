@@ -118,6 +118,7 @@ pub mod dimensions {
     use superposition_types::{
         api::dimension::{CreateRequest, DimensionName, UpdateRequest},
         database::models::cac::{DimensionType, Position},
+        ExtendedMap,
     };
 
     use super::*;
@@ -180,7 +181,7 @@ pub mod dimensions {
         let payload = CreateRequest {
             dimension: DimensionName::try_from(dimension)?,
             position: Position::from(position),
-            schema,
+            schema: ExtendedMap::try_from(schema)?,
             function_name: validation_fn_name,
             autocomplete_function_name: autocomplete_fn_name,
             description: Description::try_from(description)?,

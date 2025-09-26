@@ -17,7 +17,7 @@ public final class TypeTemplates implements ApiResource {
         "type_name", PreludeSchemas.STRING,
         "org_id", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.of("change_reason", PreludeSchemas.STRING,
-        "type_schema", PreludeSchemas.DOCUMENT,
+        "type_schema", SharedSchemas.OBJECT,
         "description", PreludeSchemas.STRING,
         "created_at", SharedSchemas.DATE_TIME,
         "last_modified_by", PreludeSchemas.STRING,

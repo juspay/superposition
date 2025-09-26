@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -35,7 +37,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
         .putMember("type_name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
-        .putMember("type_schema", PreludeSchemas.DOCUMENT,
+        .putMember("type_schema", SharedSchemas.OBJECT,
                 new RequiredTrait())
         .putMember("description", PreludeSchemas.STRING)
         .putMember("change_reason", PreludeSchemas.STRING,
@@ -52,7 +54,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient String typeName;
-    private final transient Document typeSchema;
+    private final transient Map<String, Document> typeSchema;
     private final transient String description;
     private final transient String changeReason;
 
@@ -60,7 +62,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.typeName = builder.typeName;
-        this.typeSchema = builder.typeSchema;
+        this.typeSchema = Collections.unmodifiableMap(builder.typeSchema);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
     }
@@ -77,8 +79,12 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
         return typeName;
     }
 
-    public Document typeSchema() {
+    public Map<String, Document> typeSchema() {
         return typeSchema;
+    }
+
+    public boolean hasTypeSchema() {
+        return true;
     }
 
     public String description() {
@@ -126,7 +132,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_TYPE_NAME, typeName);
-        serializer.writeDocument($SCHEMA_TYPE_SCHEMA, typeSchema);
+        serializer.writeMap($SCHEMA_TYPE_SCHEMA, typeSchema, typeSchema.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         if (description != null) {
             serializer.writeString($SCHEMA_DESCRIPTION, description);
         }
@@ -181,7 +187,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
         private String workspaceId;
         private String orgId = ORG_ID_DEFAULT;
         private String typeName;
-        private Document typeSchema;
+        private Map<String, Document> typeSchema;
         private String description;
         private String changeReason;
 
@@ -225,7 +231,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder typeSchema(Document typeSchema) {
+        public Builder typeSchema(Map<String, Document> typeSchema) {
             this.typeSchema = Objects.requireNonNull(typeSchema, "typeSchema cannot be null");
             tracker.setMember($SCHEMA_TYPE_SCHEMA);
             return this;
@@ -261,7 +267,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> typeName((String) SchemaUtils.validateSameMember($SCHEMA_TYPE_NAME, member, value));
-                case 2 -> typeSchema((Document) SchemaUtils.validateSameMember($SCHEMA_TYPE_SCHEMA, member, value));
+                case 2 -> typeSchema((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_TYPE_SCHEMA, member, value));
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 4 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 5 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
@@ -281,7 +287,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
                 typeName("");
             }
             if (!tracker.checkMember($SCHEMA_TYPE_SCHEMA)) {
-                tracker.setMember($SCHEMA_TYPE_SCHEMA);
+                typeSchema(Collections.emptyMap());
             }
             if (!tracker.checkMember($SCHEMA_CHANGE_REASON)) {
                 changeReason("");
@@ -309,7 +315,7 @@ public final class UpdateTypeTemplatesInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.typeName(de.readString(member));
-                    case 2 -> builder.typeSchema(de.readDocument());
+                    case 2 -> builder.typeSchema(SharedSerde.deserializeObjectShape(member, de));
                     case 3 -> builder.changeReason(de.readString(member));
                     case 4 -> builder.orgId(de.readString(member));
                     case 5 -> builder.description(de.readString(member));

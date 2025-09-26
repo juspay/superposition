@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_web::{
     delete, get, post, put,
     web::{Data, Json, Path, Query},
@@ -73,12 +75,11 @@ async fn create_default_config(
     }
 
     let value = req.value;
-    let schema = Value::Object(req.schema);
 
     let default_config = DefaultConfig {
         key: key.to_owned(),
         value,
-        schema,
+        schema: req.schema,
         function_name: req.function_name,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -89,9 +90,10 @@ async fn create_default_config(
         autocomplete_function_name: req.autocomplete_function_name,
     };
 
+    let schema = Value::Object(default_config.schema.deref().clone());
     let schema_compile_result = JSONSchema::options()
         .with_draft(Draft::Draft7)
-        .compile(&default_config.schema);
+        .compile(&schema);
     let jschema = match schema_compile_result {
         Ok(jschema) => jschema,
         Err(e) => {
@@ -198,42 +200,39 @@ async fn update_default_config(
     let change_reason = req.change_reason.clone();
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
-    let schema = req
-        .schema
-        .clone()
-        .unwrap_or_else(|| existing.schema.clone());
 
-    let jschema = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&schema)
-        .map_err(|e| {
-            log::info!("Failed to compile JSON schema: {e}");
-            bad_argument!("Invalid JSON schema.")
+    if let Some(ref schema) = req.schema {
+        let schema = Value::Object(schema.deref().clone());
+
+        let jschema = JSONSchema::options()
+            .with_draft(Draft::Draft7)
+            .compile(&schema)
+            .map_err(|e| {
+                log::info!("Failed to compile JSON schema: {e}");
+                bad_argument!("Invalid JSON schema.")
+            })?;
+
+        jschema.validate(&value).map_err(|e| {
+            let verrors = e.collect::<Vec<ValidationError>>();
+            validation_error!(
+                "Schema validation failed: {}",
+                validation_err_to_str(verrors)
+                    .first()
+                    .unwrap_or(&String::new())
+            )
         })?;
-
-    if let Err(e) = jschema.validate(&value) {
-        let verrors = e.collect::<Vec<_>>();
-        log::info!("Validation failed: {:?}", verrors);
-        return Err(validation_error!(
-            "Schema validation failed: {}",
-            validation_err_to_str(verrors)
-                .first()
-                .unwrap_or(&String::new())
-        ));
     }
 
-    let validation_function_name: Option<String> =
-        req.function_name.clone().unwrap_or(existing.function_name);
+    if let Some(ref validation_function_name) = req.function_name {
+        let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
-    if let Err(e) = validate_and_get_function_code(
-        &mut conn,
-        validation_function_name.as_ref(),
-        &key_str,
-        &value,
-        &schema_name,
-    ) {
-        log::info!("Validation failed: {:?}", e);
-        return Err(e);
+        validate_and_get_function_code(
+            &mut conn,
+            validation_function_name.as_ref(),
+            &key_str,
+            &value,
+            &schema_name,
+        )?
     }
 
     let (db_row, version_id) =

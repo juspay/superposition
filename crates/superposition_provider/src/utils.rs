@@ -1,14 +1,18 @@
-use crate::types::*;
+use std::collections::HashMap;
+
 use log::debug;
 use serde_json::{json, Map, Value};
-use std::collections::HashMap;
 use superposition_core::{Experiments, FfiExperiment};
+use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::database::models::experimentation::{
     Variant, VariantType, Variants,
 };
 use superposition_types::{
-    Cac, Condition, Config, Context, DimensionInfo, Exp, OverrideWithKeys, Overrides,
+    Cac, Condition, Config, Context, DimensionInfo, Exp, ExtendedMap, OverrideWithKeys,
+    Overrides,
 };
+
+use crate::types::*;
 
 pub struct ConversionUtils;
 
@@ -103,16 +107,41 @@ impl ConversionUtils {
             .dimensions()
             .map(|dim| {
                 dim.iter()
-                    .map(|(key, doc)| {
-                        let value = Self::document_to_value(doc)?;
-
-                        let dim_info: DimensionInfo = serde_json::from_value(value)
-                            .map_err(|e| {
-                                SuperpositionError::SerializationError(format!(
-                                    "Invalid dimension info for '{}': {}",
-                                    key, e
+                    .map(|(key, dimension_info)| {
+                        let schema = dimension_info
+                            .schema()
+                            .and_then(|map| {
+                                map.iter()
+                                    .map(|(k, v)| {
+                                        Self::document_to_value(v)
+                                            .map(|val| (k.clone(), val))
+                                    })
+                                    .collect::<Result<Map<String, Value>>>()
+                                    .ok()
+                            })
+                            .ok_or_else(|| {
+                                SuperpositionError::ConfigError(format!(
+                                    "Missing or invalid schema for dimension '{key}'",
                                 ))
                             })?;
+                        let dim_info = DimensionInfo {
+                            schema: ExtendedMap(schema),
+                            position: dimension_info.position().unwrap_or_default(),
+                            dimension_type: dimension_info
+                                .dimension_type()
+                                .map(Self::try_dimension_type)
+                                .ok_or_else(|| {
+                                    SuperpositionError::ConfigError(format!(
+                                        "Missing or invalid dimension_type for dimension '{key}'",
+                                    ))
+                                })??,
+                            dependency_graph: DependencyGraph(
+                                dimension_info
+                                    .dependency_graph()
+                                    .cloned()
+                                    .unwrap_or_default(),
+                            ),
+                        };
                         Ok((key.clone(), dim_info))
                     })
                     .collect::<Result<HashMap<String, DimensionInfo>>>()
@@ -130,6 +159,25 @@ impl ConversionUtils {
                config.contexts.len(), config.overrides.len(), config.default_configs.len());
 
         Ok(config)
+    }
+
+    fn try_dimension_type(
+        dim_type: &superposition_sdk::types::DimensionType,
+    ) -> Result<DimensionType> {
+        match dim_type {
+            superposition_sdk::types::DimensionType::RemoteCohort(cohort_based_on) => {
+                Ok(DimensionType::RemoteCohort(cohort_based_on.clone()))
+            }
+            superposition_sdk::types::DimensionType::LocalCohort(cohort_based_on) => {
+                Ok(DimensionType::LocalCohort(cohort_based_on.clone()))
+            }
+            superposition_sdk::types::DimensionType::Regular => {
+                Ok(DimensionType::Regular {})
+            }
+            _ => Err(SuperpositionError::SerializationError(
+                "Unknown dimension type".to_string(),
+            )),
+        }
     }
 
     pub fn convert_value_to_config(map: &Map<String, Value>) -> Result<Config> {

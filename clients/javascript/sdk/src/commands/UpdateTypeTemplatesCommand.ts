@@ -46,7 +46,9 @@ export interface UpdateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
  *   type_name: "STRING_VALUE", // required
- *   type_schema: "DOCUMENT_VALUE", // required
+ *   type_schema: { // Object // required
+ *     "<keys>": "DOCUMENT_VALUE",
+ *   },
  *   description: "STRING_VALUE",
  *   change_reason: "STRING_VALUE", // required
  * };
@@ -54,7 +56,9 @@ export interface UpdateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * const response = await client.send(command);
  * // { // TypeTemplatesResponse
  * //   type_name: "STRING_VALUE", // required
- * //   type_schema: "DOCUMENT_VALUE", // required
+ * //   type_schema: { // Object // required
+ * //     "<keys>": "DOCUMENT_VALUE",
+ * //   },
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
  * //   created_by: "STRING_VALUE", // required

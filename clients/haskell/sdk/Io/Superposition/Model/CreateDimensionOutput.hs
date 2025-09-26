@@ -51,7 +51,7 @@ import qualified Network.HTTP.Types
 data CreateDimensionOutput = CreateDimensionOutput {
     dimension :: Data.Text.Text,
     position :: Data.Int.Int32,
-    schema :: Data.Aeson.Value,
+    schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     function_name :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
@@ -59,7 +59,7 @@ data CreateDimensionOutput = CreateDimensionOutput {
     last_modified_by :: Data.Text.Text,
     created_at :: Data.Time.UTCTime,
     created_by :: Data.Text.Text,
-    dependency_graph :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    dependency_graph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text),
     dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
     mandatory :: Data.Maybe.Maybe Bool
@@ -113,7 +113,7 @@ instance Data.Aeson.FromJSON CreateDimensionOutput where
 data CreateDimensionOutputBuilderState = CreateDimensionOutputBuilderState {
     dimensionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     positionBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
-    schemaBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -121,7 +121,7 @@ data CreateDimensionOutputBuilderState = CreateDimensionOutputBuilderState {
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    dependency_graphBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    dependency_graphBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text ([] Data.Text.Text)),
     dimension_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
     autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     mandatoryBuilderState :: Data.Maybe.Maybe Bool
@@ -157,7 +157,7 @@ setPosition :: Data.Int.Int32 -> CreateDimensionOutputBuilder ()
 setPosition value =
    Control.Monad.State.Strict.modify (\s -> (s { positionBuilderState = Data.Maybe.Just value }))
 
-setSchema :: Data.Aeson.Value -> CreateDimensionOutputBuilder ()
+setSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> CreateDimensionOutputBuilder ()
 setSchema value =
    Control.Monad.State.Strict.modify (\s -> (s { schemaBuilderState = Data.Maybe.Just value }))
 
@@ -189,7 +189,7 @@ setCreatedBy :: Data.Text.Text -> CreateDimensionOutputBuilder ()
 setCreatedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = Data.Maybe.Just value }))
 
-setDependencyGraph :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> CreateDimensionOutputBuilder ()
+setDependencyGraph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text) -> CreateDimensionOutputBuilder ()
 setDependencyGraph value =
    Control.Monad.State.Strict.modify (\s -> (s { dependency_graphBuilderState = Data.Maybe.Just value }))
 
