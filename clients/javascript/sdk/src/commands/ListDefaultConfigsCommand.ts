@@ -58,7 +58,9 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  * //     { // DefaultConfigFull
  * //       key: "STRING_VALUE", // required
  * //       value: "DOCUMENT_VALUE", // required
- * //       schema: "DOCUMENT_VALUE", // required
+ * //       schema: { // Object // required
+ * //         "<keys>": "DOCUMENT_VALUE",
+ * //       },
  * //       description: "STRING_VALUE", // required
  * //       change_reason: "STRING_VALUE", // required
  * //       function_name: "STRING_VALUE",

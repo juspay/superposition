@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -35,7 +37,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         .putMember("dimension", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
-        .putMember("schema", PreludeSchemas.DOCUMENT)
+        .putMember("schema", SharedSchemas.OBJECT)
         .putMember("position", PreludeSchemas.INTEGER)
         .putMember("function_name", PreludeSchemas.STRING)
         .putMember("description", PreludeSchemas.STRING)
@@ -57,7 +59,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient String dimension;
-    private final transient Document schemaMember;
+    private final transient Map<String, Document> schemaMember;
     private final transient Integer position;
     private final transient String functionName;
     private final transient String description;
@@ -68,7 +70,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.dimension = builder.dimension;
-        this.schemaMember = builder.schemaMember;
+        this.schemaMember = builder.schemaMember == null ? null : Collections.unmodifiableMap(builder.schemaMember);
         this.position = builder.position;
         this.functionName = builder.functionName;
         this.description = builder.description;
@@ -88,8 +90,15 @@ public final class UpdateDimensionInput implements SerializableStruct {
         return dimension;
     }
 
-    public Document schemaMember() {
+    public Map<String, Document> schemaMember() {
+        if (schemaMember == null) {
+            return Collections.emptyMap();
+        }
         return schemaMember;
+    }
+
+    public boolean hasSchemaMember() {
+        return schemaMember != null;
     }
 
     public Integer position() {
@@ -153,7 +162,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_DIMENSION, dimension);
         if (schemaMember != null) {
-            serializer.writeDocument($SCHEMA_SCHEMA_MEMBER, schemaMember);
+            serializer.writeMap($SCHEMA_SCHEMA_MEMBER, schemaMember, schemaMember.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         }
         if (position != null) {
             serializer.writeInteger($SCHEMA_POSITION, position);
@@ -224,7 +233,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         private String workspaceId;
         private String orgId = ORG_ID_DEFAULT;
         private String dimension;
-        private Document schemaMember;
+        private Map<String, Document> schemaMember;
         private Integer position;
         private String functionName;
         private String description;
@@ -270,7 +279,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder schemaMember(Document schemaMember) {
+        public Builder schemaMember(Map<String, Document> schemaMember) {
             this.schemaMember = schemaMember;
             return this;
         }
@@ -331,7 +340,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
                 case 1 -> dimension((String) SchemaUtils.validateSameMember($SCHEMA_DIMENSION, member, value));
                 case 2 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 3 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 4 -> schemaMember((Document) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
+                case 4 -> schemaMember((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
                 case 5 -> position((int) SchemaUtils.validateSameMember($SCHEMA_POSITION, member, value));
                 case 6 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
                 case 7 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
@@ -379,7 +388,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
                     case 1 -> builder.dimension(de.readString(member));
                     case 2 -> builder.changeReason(de.readString(member));
                     case 3 -> builder.orgId(de.readString(member));
-                    case 4 -> builder.schemaMember(de.readDocument());
+                    case 4 -> builder.schemaMember(SharedSerde.deserializeObjectShape(member, de));
                     case 5 -> builder.position(de.readInteger(member));
                     case 6 -> builder.functionName(de.readString(member));
                     case 7 -> builder.description(de.readString(member));

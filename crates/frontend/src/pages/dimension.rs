@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use leptos::*;
 use leptos_router::{use_navigate, use_params_map, A};
+use serde_json::Value;
 use superposition_types::database::models::cac::DimensionType;
 use superposition_types::{
     api::dimension::DimensionResponse, database::models::cac::DependencyGraph,
@@ -159,7 +160,7 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                                 id="type-schema"
                                 class="rounded-md resize-y w-[28rem]"
                                 schema_type=SchemaType::Single(JsonSchemaType::Object)
-                                value=dimension.schema
+                                value=Value::Object(dimension.schema.0)
                                 on_change=move |_| {}
                                 r#type=InputType::Monaco(vec![])
                             />
@@ -355,7 +356,7 @@ pub fn dimension_page() -> impl IntoView {
                                         dimension_type=dimension_st
                                             .with_value(|d| d.dimension_type.clone())
                                         dimension_schema=dimension_st
-                                            .with_value(|d| d.schema.clone())
+                                            .with_value(|d| Value::Object(d.schema.deref().clone()))
                                         validation_function_name=dimension_st
                                             .with_value(|d| d.function_name.clone())
                                         autocomplete_function_name=dimension_st

@@ -25,6 +25,7 @@ import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Time
@@ -34,7 +35,7 @@ import qualified Io.Superposition.Utility
 
 data TypeTemplatesResponse = TypeTemplatesResponse {
     type_name :: Data.Text.Text,
-    type_schema :: Data.Aeson.Value,
+    type_schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     created_by :: Data.Text.Text,
@@ -78,7 +79,7 @@ instance Data.Aeson.FromJSON TypeTemplatesResponse where
 
 data TypeTemplatesResponseBuilderState = TypeTemplatesResponseBuilderState {
     type_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    type_schemaBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    type_schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -107,7 +108,7 @@ setTypeName :: Data.Text.Text -> TypeTemplatesResponseBuilder ()
 setTypeName value =
    Control.Monad.State.Strict.modify (\s -> (s { type_nameBuilderState = Data.Maybe.Just value }))
 
-setTypeSchema :: Data.Aeson.Value -> TypeTemplatesResponseBuilder ()
+setTypeSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> TypeTemplatesResponseBuilder ()
 setTypeSchema value =
    Control.Monad.State.Strict.modify (\s -> (s { type_schemaBuilderState = Data.Maybe.Just value }))
 

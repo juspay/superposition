@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::Deref,
+};
 
 use leptos::*;
 use serde_json::Value;
@@ -141,7 +144,7 @@ pub fn override_form(
     let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
 
-        if let Ok(config_type) = SchemaType::try_from(default_config.schema) {
+        if let Ok(config_type) = SchemaType::try_from(default_config.schema.deref()) {
             let def_value = if auto_fill_from_default {
                 default_config.value
             } else {
@@ -249,8 +252,8 @@ pub fn override_form(
                                     .get(&config_key)
                                     .map(|config| config.schema.clone())
                                     .unwrap_or_default();
-                                let schema_type = SchemaType::try_from(schema.clone());
-                                let enum_variants = EnumVariants::try_from(schema);
+                                let schema_type = SchemaType::try_from(schema.deref());
+                                let enum_variants = EnumVariants::try_from(schema.deref());
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)

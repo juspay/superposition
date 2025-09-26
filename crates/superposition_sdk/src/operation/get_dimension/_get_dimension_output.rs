@@ -7,8 +7,8 @@ pub struct GetDimensionOutput  {
     pub dimension: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub position: i32,
-    #[allow(missing_docs)] // documentation missing in model
-    pub schema: ::aws_smithy_types::Document,
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub schema: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -23,8 +23,8 @@ pub struct GetDimensionOutput  {
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::string::String,
-    /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub dimension_type: crate::types::DimensionType,
     #[allow(missing_docs)] // documentation missing in model
@@ -41,8 +41,8 @@ impl  GetDimensionOutput  {
     pub fn position(&self) -> i32 {
         self.position
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn schema(&self) -> &::aws_smithy_types::Document {
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub fn schema(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -73,8 +73,8 @@ impl  GetDimensionOutput  {
     pub fn created_by(&self) -> &str {
         use std::ops::Deref; self.created_by.deref()
     }
-    /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>> {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -103,7 +103,7 @@ impl GetDimensionOutput {
 pub struct GetDimensionOutputBuilder {
     pub(crate) dimension: ::std::option::Option<::std::string::String>,
     pub(crate) position: ::std::option::Option<i32>,
-    pub(crate) schema: ::std::option::Option<::aws_smithy_types::Document>,
+    pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
@@ -111,7 +111,7 @@ pub struct GetDimensionOutputBuilder {
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
-    pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>,
     pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory: ::std::option::Option<bool>,
@@ -145,18 +145,23 @@ impl GetDimensionOutputBuilder {
     pub fn get_position(&self) -> &::std::option::Option<i32> {
         &self.position
     }
-    #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
-    pub fn schema(mut self, input: ::aws_smithy_types::Document) -> Self {
-        self.schema = ::std::option::Option::Some(input);
-        self
+    /// Adds a key-value pair to `schema`.
+    ///
+    /// To override the contents of this collection use [`set_schema`](Self::set_schema).
+    ///
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub fn schema(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+        let mut hash_map = self.schema.unwrap_or_default();
+                        hash_map.insert(k.into(), v);
+                        self.schema = ::std::option::Option::Some(hash_map);
+                        self
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_schema(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub fn set_schema(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.schema = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_schema(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub fn get_schema(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -260,19 +265,18 @@ impl GetDimensionOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_dependency_graph`](Self::set_dependency_graph).
     ///
-    /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn dependency_graph(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn dependency_graph(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::std::vec::Vec::<::std::string::String>) -> Self {
         let mut hash_map = self.dependency_graph.unwrap_or_default();
                         hash_map.insert(k.into(), v);
                         self.dependency_graph = ::std::option::Option::Some(hash_map);
                         self
     }
-    /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_dependency_graph(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_dependency_graph(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>) -> Self {
         self.dependency_graph = input; self
     }
-    /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_dependency_graph(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_dependency_graph(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>> {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model

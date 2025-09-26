@@ -21,7 +21,7 @@ use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql, TextFromSql, TextToSql};
 
-use crate::{Cac, Condition, Contextual, Overridden, Overrides};
+use crate::{Cac, Condition, Contextual, ExtendedMap, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::{
@@ -64,7 +64,7 @@ impl Overridden<Cac<Overrides>> for Context {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, uniffi::Enum)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -139,7 +139,7 @@ pub struct Dimension {
     pub dimension: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    pub schema: Value,
+    pub schema: ExtendedMap,
     pub function_name: Option<String>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
@@ -164,7 +164,7 @@ pub struct DefaultConfig {
     pub value: Value,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    pub schema: Value,
+    pub schema: ExtendedMap,
     pub function_name: Option<String>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
@@ -298,7 +298,7 @@ pub struct ConfigVersionListItem {
 #[cfg_attr(feature = "diesel_derives", diesel(primary_key(type_name)))]
 pub struct TypeTemplate {
     pub type_name: String,
-    pub type_schema: Value,
+    pub type_schema: ExtendedMap,
     pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub last_modified_at: DateTime<Utc>,
@@ -438,9 +438,4 @@ where
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct DependencyGraph(pub HashMap<String, Vec<String>>);
-
-impl DependencyGraph {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
+uniffi::custom_newtype!(DependencyGraph, HashMap<String, Vec<String>>);

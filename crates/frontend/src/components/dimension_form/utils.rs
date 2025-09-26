@@ -2,6 +2,7 @@ use serde_json::Value;
 use superposition_types::{
     api::dimension::UpdateRequest,
     database::models::{cac::Position, ChangeReason, Description},
+    ExtendedMap,
 };
 
 pub fn try_update_payload(
@@ -14,7 +15,7 @@ pub fn try_update_payload(
 ) -> Result<UpdateRequest, String> {
     Ok(UpdateRequest {
         position: Some(Position::from(position)),
-        schema: Some(schema),
+        schema: Some(ExtendedMap::try_from(schema)?),
         function_name: Some(validation_fn_name),
         autocomplete_function_name: Some(autocomplete_fn_name),
         description: Some(Description::try_from(description)?),

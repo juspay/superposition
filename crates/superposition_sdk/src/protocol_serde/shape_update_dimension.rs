@@ -139,7 +139,7 @@ pub(crate) fn de_update_dimension(value: &[u8], mut builder: crate::operation::u
                     }
                     "dependency_graph" => {
                         builder = builder.set_dependency_graph(
-                            crate::protocol_serde::shape_object::de_object(tokens)?
+                            crate::protocol_serde::shape_depedendency_graph::de_depedendency_graph(tokens)?
                         );
                     }
                     "description" => {
@@ -202,7 +202,7 @@ pub(crate) fn de_update_dimension(value: &[u8], mut builder: crate::operation::u
                     }
                     "schema" => {
                         builder = builder.set_schema(
-                            Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                            crate::protocol_serde::shape_object::de_object(tokens)?
                         );
                     }
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

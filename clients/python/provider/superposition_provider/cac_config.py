@@ -4,9 +4,14 @@ from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
 from superposition_sdk.client import Superposition, Config, GetConfigInput
+from superposition_sdk.models import (
+    DimensionType as SDKDimensionType,
+    DimensionTypeLOCAL_COHORT,
+    DimensionTypeREMOTE_COHORT,
+)
 import asyncio
 from datetime import datetime, timedelta
-from superposition_bindings.superposition_types import Context
+from superposition_bindings.superposition_types import Context, DimensionInfo, DimensionType
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
@@ -63,6 +68,17 @@ def document_to_python_value(doc: Document) -> Any:
                 return float(val)
             return val
 
+def to_dimension_type(sdk_dim_type: SDKDimensionType) -> DimensionType:
+    match sdk_dim_type:
+        case DimensionTypeLOCAL_COHORT():
+            return DimensionType.LOCAL_COHORT(sdk_dim_type.value)
+
+        case DimensionTypeREMOTE_COHORT():
+            return DimensionType.REMOTE_COHORT(sdk_dim_type.value)
+
+        case _:
+            return DimensionType.REGULAR()
+
 def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """Convert fallback config to the expected format."""
     if not fallback_config:
@@ -90,6 +106,16 @@ def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Option
             )
             for ctx in fallback_config['contexts']
         ]
+    if 'dimensions' in fallback_config:
+        converted['dimensions'] = {
+            key: DimensionInfo(
+                schema={k: json.dumps(v) for k, v in dimension.get('schema', {}).items()},
+                position=dimension['position'],
+                dimension_type=dimension['dimension_type'],
+                dependency_graph=dimension['dependency_graph'],
+            )
+            for key, dimension in fallback_config['dimensions'].items()
+        }
     
     return converted
 
@@ -211,7 +237,18 @@ class CacConfig:
                     )
                     context.append(cv)
                 config_data['contexts'] = context
-            
+            if response.dimensions:
+                dimensions = {}
+                for (key, dim_info) in response.dimensions.items():
+                    dimension = DimensionInfo(
+                        schema={k: json.dumps(document_to_python_value(v)) for k, v in dim_info.schema.items()},
+                        position=dim_info.position,
+                        dimension_type=to_dimension_type(dim_info.dimension_type),
+                        dependency_graph=dim_info.dependency_graph,
+                    )
+                    dimensions[key] = dimension
+                config_data['dimensions'] = dimensions
+    
             return config_data
             
         except Exception as e:

@@ -10,7 +10,14 @@ pub fn ser_update_type_templates_input_input(
         object.key("description").string(var_2.as_str());
     }
     if let Some(var_3) = &input.type_schema {
-        object.key("type_schema").document(var_3);
+        #[allow(unused_mut)]
+        let mut object_4 = object.key("type_schema").start_object();
+        for (key_5, value_6) in var_3 {
+             {
+                object_4.key(key_5.as_str()).document(value_6);
+            }
+        }
+        object_4.finish();
     }
     Ok(())
 }

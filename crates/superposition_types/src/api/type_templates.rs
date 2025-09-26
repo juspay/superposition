@@ -1,15 +1,14 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::{
     database::models::{ChangeReason, Description},
-    RegexEnum,
+    ExtendedMap, RegexEnum,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TypeTemplateCreateRequest {
-    pub type_schema: Value,
+    pub type_schema: ExtendedMap,
     pub type_name: TypeTemplateName,
     pub description: Description,
     pub change_reason: ChangeReason,
@@ -17,7 +16,7 @@ pub struct TypeTemplateCreateRequest {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TypeTemplateUpdateRequest {
-    pub type_schema: Value,
+    pub type_schema: ExtendedMap,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }

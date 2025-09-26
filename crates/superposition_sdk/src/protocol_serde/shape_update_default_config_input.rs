@@ -16,10 +16,17 @@ pub fn ser_update_default_config_input_input(
         object.key("function_name").string(var_4.as_str());
     }
     if let Some(var_5) = &input.schema {
-        object.key("schema").document(var_5);
+        #[allow(unused_mut)]
+        let mut object_6 = object.key("schema").start_object();
+        for (key_7, value_8) in var_5 {
+             {
+                object_6.key(key_7.as_str()).document(value_8);
+            }
+        }
+        object_6.finish();
     }
-    if let Some(var_6) = &input.value {
-        object.key("value").document(var_6);
+    if let Some(var_9) = &input.value {
+        object.key("value").document(var_9);
     }
     Ok(())
 }

@@ -84,22 +84,54 @@ public class DefaultConfigPopulator {
             }
         }
 
-        // create context
-        client.createContext(CreateContextInput.builder().
-            context(Map.of("and", Document.of(
-                List.of(
-                    Document.of(
-                        Map.of("==", Document.of(
-                            List.of(
-                                Document.of(Map.of("var", Document.of("d1"))),
-                                Document.of(true)
-                            )
+        try {
+            client.createDimension(CreateDimensionInput.builder()
+                .dimension("d1")
+                .position(1)
+                .schemaMember(Map.of("type", Document.of("boolean")))
+                .description("description")
+                .changeReason("change")
+                .workspaceId(this.workspaceId)
+                .orgId(this.orgId)
+                .build());
+            System.out.println("Created dimension: d1");
+        } catch (Exception e) {
+            System.out.println("Skipping existing/failing dimension: d1");
+        }
+
+        try {
+            client.createDimension(CreateDimensionInput.builder()
+                .dimension("d2")
+                .position(2)
+                .dimensionType(new DimensionType.LocalCohortMember("d1"))
+                .schemaMember(Map.of(
+                    "type", Document.of("string"),
+                    "enum", Document.of(List.of(Document.of("test"), Document.of("otherwise"))),
+                    "definitions", Document.of(Map.of(
+                            "test", Document.of(Map.of(
+                                    "==", Document.of(List.of(
+                                            Document.of(Map.of("var", Document.of("d1"))),
+                                            Document.of(true)
+                                        )
+                                    )
+                                )
                             )
                         )
                     )
-                )
-            )
-            )).
+                ))
+                .description("description")
+                .changeReason("change")
+                .workspaceId(this.workspaceId)
+                .orgId(this.orgId)
+                .build());
+            System.out.println("Created dimension: d2");
+        } catch (Exception e) {
+            System.out.println("Skipping existing/failing dimension: d2");
+        }
+
+        // create context
+        client.createContext(CreateContextInput.builder().
+            context(Map.of("d2", Document.of("test"))).
             override(Map.of("bool", Document.of(false))).
             description("description").
             changeReason("change").
@@ -210,7 +242,7 @@ public class DefaultConfigPopulator {
         CreateDefaultConfigInput.Builder inputBuilder = CreateDefaultConfigInput.builder()
             .key(key)
             .value(Document.of(value))
-            .schemaMember(Document.of(schema))
+            .schemaMember(schema)
             .description(description)
             .changeReason(changeReason)
             .workspaceId(workspaceId)

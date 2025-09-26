@@ -4,6 +4,7 @@ use superposition_types::{
         DefaultConfigCreateRequest, DefaultConfigKey, DefaultConfigUpdateRequest,
     },
     database::models::{ChangeReason, Description},
+    ExtendedMap,
 };
 
 use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
@@ -22,10 +23,7 @@ pub async fn create_default_config(
 ) -> Result<serde_json::Value, String> {
     let payload = DefaultConfigCreateRequest {
         key: DefaultConfigKey::try_from(key)?,
-        schema: schema
-            .as_object()
-            .ok_or_else(|| String::from("Schema should be a JSON object"))?
-            .clone(),
+        schema: ExtendedMap::try_from(schema)?,
         value,
         function_name,
         description: Description::try_from(description)?,
@@ -55,7 +53,7 @@ pub fn try_update_payload(
     change_reason: String,
 ) -> Result<DefaultConfigUpdateRequest, String> {
     Ok(DefaultConfigUpdateRequest {
-        schema: Some(schema),
+        schema: Some(ExtendedMap::try_from(schema)?),
         value: Some(value),
         function_name: Some(function_name),
         description: Some(Description::try_from(description)?),

@@ -405,8 +405,8 @@ pub fn validate_cohort_schema(
 }
 
 #[cfg(not(feature = "jsonlogic"))]
-pub fn allow_primitive_types(schema: &Value) -> superposition::Result<()> {
-    match schema.as_object().and_then(|o| o.get("type")).cloned().unwrap_or_default() {
+pub fn allow_primitive_types(schema: &Map<String, Value>) -> superposition::Result<()> {
+    match schema.get("type").cloned().unwrap_or_default() {
         Value::String(type_val) if type_val != "array" && type_val != "object" => {
             Ok(())
         }
@@ -415,7 +415,7 @@ pub fn allow_primitive_types(schema: &Value) -> superposition::Result<()> {
         }
         _ => {
             Err(validation_error!(
-                "Invalid schema: expected a primitive type or an array of primitive types, found: {}",
+                "Invalid schema: expected a primitive type or an array of primitive types, found: {:?}",
                 schema
             ))
         }

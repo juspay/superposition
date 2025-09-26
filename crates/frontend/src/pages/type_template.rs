@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use leptos::*;
 use leptos_router::{use_navigate, use_params_map};
+use serde_json::Value;
 use superposition_types::database::models::cac::TypeTemplate;
 
 use crate::api::get_type_template;
@@ -36,7 +37,7 @@ fn type_info(type_template: TypeTemplate) -> impl IntoView {
                                 id="type-schema"
                                 class="rounded-md resize-y w-full max-w-md"
                                 schema_type=SchemaType::Single(JsonSchemaType::Object)
-                                value=type_template.type_schema
+                                value=Value::Object(type_template.type_schema.deref().clone())
                                 on_change=move |_| {}
                                 r#type=InputType::Monaco(vec![])
                             />
@@ -165,7 +166,7 @@ pub fn type_page() -> impl IntoView {
                                         type_name=type_template_st
                                             .with_value(|t| t.type_name.clone())
                                         type_schema=type_template_st
-                                            .with_value(|t| t.type_schema.clone())
+                                            .with_value(|t| Value::Object(t.type_schema.deref().clone()))
                                         description=type_template_st
                                             .with_value(|t| t.description.deref().to_string())
                                         handle_submit=move |_| {

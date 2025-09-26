@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, put, Scope};
 use chrono::Utc;
@@ -5,6 +7,7 @@ use diesel::{
     ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use jsonschema::JSONSchema;
+use serde_json::Value;
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
@@ -36,17 +39,19 @@ async fn create_type(
     schema_name: SchemaName,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
-    let _ = JSONSchema::compile(&request.type_schema).map_err(|err| {
-        log::error!(
-            "Invalid jsonschema sent in the request, schema: {:?} error: {}",
-            request.type_schema,
-            err
-        );
-        bad_argument!(
-            "Invalid jsonschema sent in the request, validation error is: {}",
-            err.to_string()
-        )
-    })?;
+    JSONSchema::compile(&Value::Object(request.type_schema.deref().clone())).map_err(
+        |err| {
+            log::error!(
+                "Invalid jsonschema sent in the request, schema: {:?} error: {}",
+                request.type_schema,
+                err
+            );
+            bad_argument!(
+                "Invalid jsonschema sent in the request, validation error is: {}",
+                err.to_string()
+            )
+        },
+    )?;
     let type_name: String = request.type_name.clone().into();
     let type_template = diesel::insert_into(type_templates::table)
         .values((
@@ -93,17 +98,19 @@ async fn update_type(
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
-    let _ = JSONSchema::compile(&request.type_schema).map_err(|err| {
-        log::error!(
-            "Invalid jsonschema sent in the request, schema: {:?} error: {}",
-            request,
-            err
-        );
-        bad_argument!(
-            "Invalid jsonschema sent in the request, validation error is: {}",
-            err.to_string()
-        )
-    })?;
+    JSONSchema::compile(&Value::Object(request.type_schema.deref().clone())).map_err(
+        |err| {
+            log::error!(
+                "Invalid jsonschema sent in the request, schema: {:?} error: {}",
+                request,
+                err
+            );
+            bad_argument!(
+                "Invalid jsonschema sent in the request, validation error is: {}",
+                err.to_string()
+            )
+        },
+    )?;
 
     let description = request.description;
     let type_name: String = path.into_inner().into();

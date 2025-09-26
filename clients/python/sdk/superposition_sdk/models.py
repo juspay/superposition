@@ -89,6 +89,7 @@ from ._private.schemas import (
     DELETE_TYPE_TEMPLATES_INPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
     DELETE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
     DIMENSION_EXT as _SCHEMA_DIMENSION_EXT,
+    DIMENSION_INFO as _SCHEMA_DIMENSION_INFO,
     DIMENSION_TYPE as _SCHEMA_DIMENSION_TYPE,
     DISCARD_EXPERIMENT as _SCHEMA_DISCARD_EXPERIMENT,
     DISCARD_EXPERIMENT_INPUT as _SCHEMA_DISCARD_EXPERIMENT_INPUT,
@@ -2327,21 +2328,224 @@ def _deserialize_object(deserializer: ShapeDeserializer, schema: Schema) -> dict
     deserializer.read_map(schema, _read_value)
     return result
 
-def _serialize_dimension_data(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
+def _serialize_depedendency_graph(serializer: ShapeSerializer, schema: Schema, value: dict[str, list[str]]) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
         for k, v in value.items():
-            m.entry(k, lambda vs: vs.write_document(value_schema, v))
+            m.entry(k, lambda vs: _serialize_string_list(vs, value_schema, v))
 
-def _deserialize_dimension_data(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
-    result: dict[str, Document] = {}
+def _deserialize_depedendency_graph(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, list[str]]:
+    result: dict[str, list[str]] = {}
     value_schema = schema.members["value"]
     def _read_value(k: str, d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
-            result[k] = d.read_document(value_schema)
+            result[k] = _deserialize_string_list(d, value_schema)
+    deserializer.read_map(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class Unit:
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UNIT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_UNIT, consumer=_consumer)
+        return kwargs
+
+@dataclass
+class DimensionTypeREGULAR:
+
+    value: Unit
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE.members["REGULAR"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=Unit.deserialize(deserializer))
+
+@dataclass
+class DimensionTypeLOCAL_COHORT:
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DIMENSION_TYPE.members["LOCAL_COHORT"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["LOCAL_COHORT"]))
+
+@dataclass
+class DimensionTypeREMOTE_COHORT:
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DIMENSION_TYPE.members["REMOTE_COHORT"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["REMOTE_COHORT"]))
+
+@dataclass
+class DimensionTypeUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+DimensionType = Union[DimensionTypeREGULAR | DimensionTypeLOCAL_COHORT | DimensionTypeREMOTE_COHORT | DimensionTypeUnknown]
+
+class _DimensionTypeDeserializer:
+    _result: DimensionType | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> DimensionType:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_DIMENSION_TYPE, self._consumer)
+
+        if self._result is None:
+            raise SmithyException("Unions must have exactly one value, but found none.")
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(DimensionTypeREGULAR.deserialize(de))
+
+            case 1:
+                self._set_result(DimensionTypeLOCAL_COHORT.deserialize(de))
+
+            case 2:
+                self._set_result(DimensionTypeREMOTE_COHORT.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: DimensionType) -> None:
+        if self._result is not None:
+            raise SmithyException("Unions must have exactly one value, but found more than one.")
+        self._result = value
+
+@dataclass(kw_only=True)
+class DimensionInfo:
+    """
+
+    :param schema:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
+
+    schema: dict[str, Document] | None = None
+    position: int | None = None
+    dimension_type: DimensionType | None = None
+    dependency_graph: dict[str, list[str]] | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_INFO, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.schema is not None:
+            _serialize_object(serializer, _SCHEMA_DIMENSION_INFO.members["schema"], self.schema)
+
+        if self.position is not None:
+            serializer.write_integer(_SCHEMA_DIMENSION_INFO.members["position"], self.position)
+
+        if self.dimension_type is not None:
+            serializer.write_struct(_SCHEMA_DIMENSION_INFO.members["dimension_type"], self.dimension_type)
+
+        if self.dependency_graph is not None:
+            _serialize_depedendency_graph(serializer, _SCHEMA_DIMENSION_INFO.members["dependency_graph"], self.dependency_graph)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_DIMENSION_INFO.members["schema"])
+
+                case 1:
+                    kwargs["position"] = de.read_integer(_SCHEMA_DIMENSION_INFO.members["position"])
+
+                case 2:
+                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
+
+                case 3:
+                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_DIMENSION_INFO.members["dependency_graph"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DIMENSION_INFO, consumer=_consumer)
+        return kwargs
+
+def _serialize_dimension_data(serializer: ShapeSerializer, schema: Schema, value: dict[str, DimensionInfo]) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_struct(value_schema, v))
+
+def _deserialize_dimension_data(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, DimensionInfo]:
+    result: dict[str, DimensionInfo] = {}
+    value_schema = schema.members["value"]
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = DimensionInfo.deserialize(d)
     deserializer.read_map(schema, _read_value)
     return result
 
@@ -2376,7 +2580,7 @@ class GetConfigOutput:
     contexts: list[ContextPartial] | None = None
     overrides: dict[str, dict[str, Document]] | None = None
     default_configs: dict[str, Document] | None = None
-    dimensions: dict[str, Document] | None = None
+    dimensions: dict[str, DimensionInfo] | None = None
     version: str | None = None
     last_modified: datetime | None = None
     audit_id: str | None = None
@@ -4196,6 +4400,10 @@ WEIGHT_RECOMPUTE = APIOperation(
 class CreateDefaultConfigInput:
     """
 
+    :param schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
     :param function_name:
          Optional
 
@@ -4203,7 +4411,7 @@ class CreateDefaultConfigInput:
 
     key: str | None = None
     value: Document | None = None
-    schema: Document | None = None
+    schema: dict[str, Document] | None = None
     description: str | None = None
     change_reason: str | None = None
     function_name: str | None = None
@@ -4222,7 +4430,7 @@ class CreateDefaultConfigInput:
             serializer.write_document(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["value"], self.value)
 
         if self.schema is not None:
-            serializer.write_document(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["schema"], self.schema)
+            _serialize_object(serializer, _SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["schema"], self.schema)
 
         if self.description is not None:
             serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["description"], self.description)
@@ -4253,7 +4461,7 @@ class CreateDefaultConfigInput:
                     kwargs["value"] = de.read_document(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["value"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["schema"])
 
                 case 3:
                     kwargs["description"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["description"])
@@ -4283,6 +4491,10 @@ class CreateDefaultConfigInput:
 class CreateDefaultConfigOutput:
     """
 
+    :param schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
     :param function_name:
          Optional
 
@@ -4292,7 +4504,7 @@ class CreateDefaultConfigOutput:
 
     value: Document
 
-    schema: Document
+    schema: dict[str, Document]
 
     description: str
 
@@ -4315,7 +4527,7 @@ class CreateDefaultConfigOutput:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["key"], self.key)
         serializer.write_document(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["value"], self.value)
-        serializer.write_document(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["schema"], self.schema)
+        _serialize_object(serializer, _SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["schema"], self.schema)
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["change_reason"], self.change_reason)
         if self.function_name is not None:
@@ -4346,7 +4558,7 @@ class CreateDefaultConfigOutput:
                     kwargs["value"] = de.read_document(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["value"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["schema"])
 
                 case 3:
                     kwargs["description"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["description"])
@@ -4393,139 +4605,20 @@ CREATE_DEFAULT_CONFIG = APIOperation(
 )
 
 @dataclass(kw_only=True)
-class Unit:
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_UNIT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        pass
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_UNIT, consumer=_consumer)
-        return kwargs
-
-@dataclass
-class DimensionTypeREGULAR:
-
-    value: Unit
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_DIMENSION_TYPE.members["REGULAR"], self.value)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=Unit.deserialize(deserializer))
-
-@dataclass
-class DimensionTypeLOCAL_COHORT:
-
-    value: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_DIMENSION_TYPE.members["LOCAL_COHORT"], self.value)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["LOCAL_COHORT"]))
-
-@dataclass
-class DimensionTypeREMOTE_COHORT:
-
-    value: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_DIMENSION_TYPE.members["REMOTE_COHORT"], self.value)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["REMOTE_COHORT"]))
-
-@dataclass
-class DimensionTypeUnknown:
-    """Represents an unknown variant.
-
-    If you receive this value, you will need to update your library to receive the
-    parsed value.
-
-    This value may not be deliberately sent.
+class CreateDimensionInput:
     """
 
-    tag: str
+    :param schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
 
-    def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        raise NotImplementedError()
-
-DimensionType = Union[DimensionTypeREGULAR | DimensionTypeLOCAL_COHORT | DimensionTypeREMOTE_COHORT | DimensionTypeUnknown]
-
-class _DimensionTypeDeserializer:
-    _result: DimensionType | None = None
-
-    def deserialize(self, deserializer: ShapeDeserializer) -> DimensionType:
-        self._result = None
-        deserializer.read_struct(_SCHEMA_DIMENSION_TYPE, self._consumer)
-
-        if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
-
-        return self._result
-
-    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
-        match schema.expect_member_index():
-            case 0:
-                self._set_result(DimensionTypeREGULAR.deserialize(de))
-
-            case 1:
-                self._set_result(DimensionTypeLOCAL_COHORT.deserialize(de))
-
-            case 2:
-                self._set_result(DimensionTypeREMOTE_COHORT.deserialize(de))
-
-            case _:
-                logger.debug("Unexpected member schema: %s", schema)
-
-    def _set_result(self, value: DimensionType) -> None:
-        if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
-        self._result = value
-
-@dataclass(kw_only=True)
-class CreateDimensionInput:
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
     dimension: str | None = None
     position: int | None = None
-    schema: Document | None = None
+    schema: dict[str, Document] | None = None
     function_name: str | None = None
     description: str | None = None
     change_reason: str | None = None
@@ -4543,7 +4636,7 @@ class CreateDimensionInput:
             serializer.write_integer(_SCHEMA_CREATE_DIMENSION_INPUT.members["position"], self.position)
 
         if self.schema is not None:
-            serializer.write_document(_SCHEMA_CREATE_DIMENSION_INPUT.members["schema"], self.schema)
+            _serialize_object(serializer, _SCHEMA_CREATE_DIMENSION_INPUT.members["schema"], self.schema)
 
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["function_name"], self.function_name)
@@ -4583,7 +4676,7 @@ class CreateDimensionInput:
                     kwargs["position"] = de.read_integer(_SCHEMA_CREATE_DIMENSION_INPUT.members["position"])
 
                 case 4:
-                    kwargs["schema"] = de.read_document(_SCHEMA_CREATE_DIMENSION_INPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_CREATE_DIMENSION_INPUT.members["schema"])
 
                 case 5:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["function_name"])
@@ -4610,7 +4703,7 @@ class CreateDimensionInput:
 class CreateDimensionOutput:
     """
 
-    :param dependency_graph:
+    :param schema:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
@@ -4620,7 +4713,7 @@ class CreateDimensionOutput:
 
     position: int
 
-    schema: Document
+    schema: dict[str, Document]
 
     description: str
 
@@ -4634,7 +4727,7 @@ class CreateDimensionOutput:
 
     created_by: str
 
-    dependency_graph: dict[str, Document]
+    dependency_graph: dict[str, list[str]]
 
     dimension_type: DimensionType
 
@@ -4648,7 +4741,7 @@ class CreateDimensionOutput:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension"], self.dimension)
         serializer.write_integer(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["position"], self.position)
-        serializer.write_document(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["schema"], self.schema)
+        _serialize_object(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["schema"], self.schema)
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["function_name"], self.function_name)
 
@@ -4658,7 +4751,7 @@ class CreateDimensionOutput:
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_object(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_depedendency_graph(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -4683,7 +4776,7 @@ class CreateDimensionOutput:
                     kwargs["position"] = de.read_integer(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["position"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["schema"])
 
                 case 3:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["function_name"])
@@ -4707,7 +4800,7 @@ class CreateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -5615,11 +5708,18 @@ CREATE_ORGANISATION = APIOperation(
 
 @dataclass(kw_only=True)
 class CreateTypeTemplatesInput:
+    """
+
+    :param type_schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
     type_name: str | None = None
-    type_schema: Document | None = None
+    type_schema: dict[str, Document] | None = None
     description: str | None = None
     change_reason: str | None = None
 
@@ -5631,7 +5731,7 @@ class CreateTypeTemplatesInput:
             serializer.write_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_name"], self.type_name)
 
         if self.type_schema is not None:
-            serializer.write_document(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_schema"], self.type_schema)
+            _serialize_object(serializer, _SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_schema"], self.type_schema)
 
         if self.description is not None:
             serializer.write_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["description"], self.description)
@@ -5659,7 +5759,7 @@ class CreateTypeTemplatesInput:
                     kwargs["type_name"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_name"])
 
                 case 3:
-                    kwargs["type_schema"] = de.read_document(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
 
                 case 4:
                     kwargs["description"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["description"])
@@ -5675,10 +5775,17 @@ class CreateTypeTemplatesInput:
 
 @dataclass(kw_only=True)
 class CreateTypeTemplatesOutput:
+    """
+
+    :param type_schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     type_name: str
 
-    type_schema: Document
+    type_schema: dict[str, Document]
 
     description: str
 
@@ -5697,7 +5804,7 @@ class CreateTypeTemplatesOutput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["type_name"], self.type_name)
-        serializer.write_document(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"], self.type_schema)
+        _serialize_object(serializer, _SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"], self.type_schema)
         serializer.write_string(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["change_reason"], self.change_reason)
         serializer.write_string(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["created_by"], self.created_by)
@@ -5719,7 +5826,7 @@ class CreateTypeTemplatesOutput:
                     kwargs["type_name"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["type_name"])
 
                 case 1:
-                    kwargs["type_schema"] = de.read_document(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"])
 
                 case 2:
                     kwargs["description"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT.members["description"])
@@ -6394,6 +6501,10 @@ class ListDefaultConfigsInput:
 class DefaultConfigFull:
     """
 
+    :param schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
     :param function_name:
          Optional
 
@@ -6403,7 +6514,7 @@ class DefaultConfigFull:
 
     value: Document
 
-    schema: Document
+    schema: dict[str, Document]
 
     description: str
 
@@ -6426,7 +6537,7 @@ class DefaultConfigFull:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["key"], self.key)
         serializer.write_document(_SCHEMA_DEFAULT_CONFIG_FULL.members["value"], self.value)
-        serializer.write_document(_SCHEMA_DEFAULT_CONFIG_FULL.members["schema"], self.schema)
+        _serialize_object(serializer, _SCHEMA_DEFAULT_CONFIG_FULL.members["schema"], self.schema)
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["description"], self.description)
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["change_reason"], self.change_reason)
         if self.function_name is not None:
@@ -6457,7 +6568,7 @@ class DefaultConfigFull:
                     kwargs["value"] = de.read_document(_SCHEMA_DEFAULT_CONFIG_FULL.members["value"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_DEFAULT_CONFIG_FULL.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_DEFAULT_CONFIG_FULL.members["schema"])
 
                 case 3:
                     kwargs["description"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["description"])
@@ -6568,13 +6679,20 @@ ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 
 @dataclass(kw_only=True)
 class UpdateDefaultConfigInput:
+    """
+
+    :param schema:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
     key: str | None = None
     change_reason: str | None = None
     value: Document | None = None
-    schema: Document | None = None
+    schema: dict[str, Document] | None = None
     function_name: str | None = None
     description: str | None = None
     autocomplete_function_name: str | None = None
@@ -6590,7 +6708,7 @@ class UpdateDefaultConfigInput:
             serializer.write_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value"], self.value)
 
         if self.schema is not None:
-            serializer.write_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["schema"], self.schema)
+            _serialize_object(serializer, _SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["schema"], self.schema)
 
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["function_name"], self.function_name)
@@ -6627,7 +6745,7 @@ class UpdateDefaultConfigInput:
                     kwargs["value"] = de.read_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value"])
 
                 case 5:
-                    kwargs["schema"] = de.read_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["schema"])
 
                 case 6:
                     kwargs["function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["function_name"])
@@ -6648,6 +6766,10 @@ class UpdateDefaultConfigInput:
 class UpdateDefaultConfigOutput:
     """
 
+    :param schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
     :param function_name:
          Optional
 
@@ -6657,7 +6779,7 @@ class UpdateDefaultConfigOutput:
 
     value: Document
 
-    schema: Document
+    schema: dict[str, Document]
 
     description: str
 
@@ -6680,7 +6802,7 @@ class UpdateDefaultConfigOutput:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["key"], self.key)
         serializer.write_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["value"], self.value)
-        serializer.write_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["schema"], self.schema)
+        _serialize_object(serializer, _SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["schema"], self.schema)
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["change_reason"], self.change_reason)
         if self.function_name is not None:
@@ -6711,7 +6833,7 @@ class UpdateDefaultConfigOutput:
                     kwargs["value"] = de.read_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["value"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["schema"])
 
                 case 3:
                     kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["description"])
@@ -7156,10 +7278,17 @@ class DeleteTypeTemplatesInput:
 
 @dataclass(kw_only=True)
 class DeleteTypeTemplatesOutput:
+    """
+
+    :param type_schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     type_name: str
 
-    type_schema: Document
+    type_schema: dict[str, Document]
 
     description: str
 
@@ -7178,7 +7307,7 @@ class DeleteTypeTemplatesOutput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["type_name"], self.type_name)
-        serializer.write_document(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["type_schema"], self.type_schema)
+        _serialize_object(serializer, _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["type_schema"], self.type_schema)
         serializer.write_string(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["change_reason"], self.change_reason)
         serializer.write_string(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["created_by"], self.created_by)
@@ -7200,7 +7329,7 @@ class DeleteTypeTemplatesOutput:
                     kwargs["type_name"] = de.read_string(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["type_name"])
 
                 case 1:
-                    kwargs["type_schema"] = de.read_document(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["type_schema"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["type_schema"])
 
                 case 2:
                     kwargs["description"] = de.read_string(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT.members["description"])
@@ -7314,7 +7443,7 @@ class GetDimensionInput:
 class GetDimensionOutput:
     """
 
-    :param dependency_graph:
+    :param schema:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
@@ -7324,7 +7453,7 @@ class GetDimensionOutput:
 
     position: int
 
-    schema: Document
+    schema: dict[str, Document]
 
     description: str
 
@@ -7338,7 +7467,7 @@ class GetDimensionOutput:
 
     created_by: str
 
-    dependency_graph: dict[str, Document]
+    dependency_graph: dict[str, list[str]]
 
     dimension_type: DimensionType
 
@@ -7352,7 +7481,7 @@ class GetDimensionOutput:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension"], self.dimension)
         serializer.write_integer(_SCHEMA_GET_DIMENSION_OUTPUT.members["position"], self.position)
-        serializer.write_document(_SCHEMA_GET_DIMENSION_OUTPUT.members["schema"], self.schema)
+        _serialize_object(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["schema"], self.schema)
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["function_name"], self.function_name)
 
@@ -7362,7 +7491,7 @@ class GetDimensionOutput:
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_object(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_depedendency_graph(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -7387,7 +7516,7 @@ class GetDimensionOutput:
                     kwargs["position"] = de.read_integer(_SCHEMA_GET_DIMENSION_OUTPUT.members["position"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_GET_DIMENSION_OUTPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["schema"])
 
                 case 3:
                     kwargs["function_name"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["function_name"])
@@ -7411,7 +7540,7 @@ class GetDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -7493,7 +7622,7 @@ class ListDimensionsInput:
 class DimensionExt:
     """
 
-    :param dependency_graph:
+    :param schema:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
@@ -7503,7 +7632,7 @@ class DimensionExt:
 
     position: int
 
-    schema: Document
+    schema: dict[str, Document]
 
     description: str
 
@@ -7517,7 +7646,7 @@ class DimensionExt:
 
     created_by: str
 
-    dependency_graph: dict[str, Document]
+    dependency_graph: dict[str, list[str]]
 
     dimension_type: DimensionType
 
@@ -7531,7 +7660,7 @@ class DimensionExt:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_DIMENSION_EXT.members["dimension"], self.dimension)
         serializer.write_integer(_SCHEMA_DIMENSION_EXT.members["position"], self.position)
-        serializer.write_document(_SCHEMA_DIMENSION_EXT.members["schema"], self.schema)
+        _serialize_object(serializer, _SCHEMA_DIMENSION_EXT.members["schema"], self.schema)
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_DIMENSION_EXT.members["function_name"], self.function_name)
 
@@ -7541,7 +7670,7 @@ class DimensionExt:
         serializer.write_string(_SCHEMA_DIMENSION_EXT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_DIMENSION_EXT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_DIMENSION_EXT.members["created_by"], self.created_by)
-        _serialize_object(serializer, _SCHEMA_DIMENSION_EXT.members["dependency_graph"], self.dependency_graph)
+        _serialize_depedendency_graph(serializer, _SCHEMA_DIMENSION_EXT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_DIMENSION_EXT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -7566,7 +7695,7 @@ class DimensionExt:
                     kwargs["position"] = de.read_integer(_SCHEMA_DIMENSION_EXT.members["position"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_DIMENSION_EXT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_DIMENSION_EXT.members["schema"])
 
                 case 3:
                     kwargs["function_name"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["function_name"])
@@ -7590,7 +7719,7 @@ class DimensionExt:
                     kwargs["created_by"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_DIMENSION_EXT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_DIMENSION_EXT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -7685,11 +7814,18 @@ LIST_DIMENSIONS = APIOperation(
 
 @dataclass(kw_only=True)
 class UpdateDimensionInput:
+    """
+
+    :param schema:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
     dimension: str | None = None
-    schema: Document | None = None
+    schema: dict[str, Document] | None = None
     position: int | None = None
     function_name: str | None = None
     description: str | None = None
@@ -7701,7 +7837,7 @@ class UpdateDimensionInput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.schema is not None:
-            serializer.write_document(_SCHEMA_UPDATE_DIMENSION_INPUT.members["schema"], self.schema)
+            _serialize_object(serializer, _SCHEMA_UPDATE_DIMENSION_INPUT.members["schema"], self.schema)
 
         if self.position is not None:
             serializer.write_integer(_SCHEMA_UPDATE_DIMENSION_INPUT.members["position"], self.position)
@@ -7738,7 +7874,7 @@ class UpdateDimensionInput:
                     kwargs["dimension"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["dimension"])
 
                 case 3:
-                    kwargs["schema"] = de.read_document(_SCHEMA_UPDATE_DIMENSION_INPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DIMENSION_INPUT.members["schema"])
 
                 case 4:
                     kwargs["position"] = de.read_integer(_SCHEMA_UPDATE_DIMENSION_INPUT.members["position"])
@@ -7765,7 +7901,7 @@ class UpdateDimensionInput:
 class UpdateDimensionOutput:
     """
 
-    :param dependency_graph:
+    :param schema:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
@@ -7775,7 +7911,7 @@ class UpdateDimensionOutput:
 
     position: int
 
-    schema: Document
+    schema: dict[str, Document]
 
     description: str
 
@@ -7789,7 +7925,7 @@ class UpdateDimensionOutput:
 
     created_by: str
 
-    dependency_graph: dict[str, Document]
+    dependency_graph: dict[str, list[str]]
 
     dimension_type: DimensionType
 
@@ -7803,7 +7939,7 @@ class UpdateDimensionOutput:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension"], self.dimension)
         serializer.write_integer(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["position"], self.position)
-        serializer.write_document(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["schema"], self.schema)
+        _serialize_object(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["schema"], self.schema)
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["function_name"], self.function_name)
 
@@ -7813,7 +7949,7 @@ class UpdateDimensionOutput:
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_object(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_depedendency_graph(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -7838,7 +7974,7 @@ class UpdateDimensionOutput:
                     kwargs["position"] = de.read_integer(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["position"])
 
                 case 2:
-                    kwargs["schema"] = de.read_document(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["schema"])
 
                 case 3:
                     kwargs["function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["function_name"])
@@ -7862,7 +7998,7 @@ class UpdateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_object(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -11681,10 +11817,17 @@ class GetTypeTemplatesListInput:
 
 @dataclass(kw_only=True)
 class TypeTemplatesResponse:
+    """
+
+    :param type_schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     type_name: str
 
-    type_schema: Document
+    type_schema: dict[str, Document]
 
     description: str
 
@@ -11703,7 +11846,7 @@ class TypeTemplatesResponse:
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["type_name"], self.type_name)
-        serializer.write_document(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["type_schema"], self.type_schema)
+        _serialize_object(serializer, _SCHEMA_TYPE_TEMPLATES_RESPONSE.members["type_schema"], self.type_schema)
         serializer.write_string(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["description"], self.description)
         serializer.write_string(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["change_reason"], self.change_reason)
         serializer.write_string(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["created_by"], self.created_by)
@@ -11725,7 +11868,7 @@ class TypeTemplatesResponse:
                     kwargs["type_name"] = de.read_string(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["type_name"])
 
                 case 1:
-                    kwargs["type_schema"] = de.read_document(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["type_schema"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_TYPE_TEMPLATES_RESPONSE.members["type_schema"])
 
                 case 2:
                     kwargs["description"] = de.read_string(_SCHEMA_TYPE_TEMPLATES_RESPONSE.members["description"])
@@ -13060,11 +13203,18 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class UpdateTypeTemplatesInput:
+    """
+
+    :param type_schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     workspace_id: str | None = None
     org_id: str = "juspay"
     type_name: str | None = None
-    type_schema: Document | None = None
+    type_schema: dict[str, Document] | None = None
     description: str | None = None
     change_reason: str | None = None
 
@@ -13073,7 +13223,7 @@ class UpdateTypeTemplatesInput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.type_schema is not None:
-            serializer.write_document(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_schema"], self.type_schema)
+            _serialize_object(serializer, _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_schema"], self.type_schema)
 
         if self.description is not None:
             serializer.write_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["description"], self.description)
@@ -13101,7 +13251,7 @@ class UpdateTypeTemplatesInput:
                     kwargs["type_name"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_name"])
 
                 case 3:
-                    kwargs["type_schema"] = de.read_document(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
 
                 case 4:
                     kwargs["description"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["description"])
@@ -13117,10 +13267,17 @@ class UpdateTypeTemplatesInput:
 
 @dataclass(kw_only=True)
 class UpdateTypeTemplatesOutput:
+    """
+
+    :param type_schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
 
     type_name: str
 
-    type_schema: Document
+    type_schema: dict[str, Document]
 
     description: str
 
@@ -13139,7 +13296,7 @@ class UpdateTypeTemplatesOutput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["type_name"], self.type_name)
-        serializer.write_document(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"], self.type_schema)
+        _serialize_object(serializer, _SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"], self.type_schema)
         serializer.write_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["description"], self.description)
         serializer.write_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["change_reason"], self.change_reason)
         serializer.write_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["created_by"], self.created_by)
@@ -13161,7 +13318,7 @@ class UpdateTypeTemplatesOutput:
                     kwargs["type_name"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["type_name"])
 
                 case 1:
-                    kwargs["type_schema"] = de.read_document(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["type_schema"])
 
                 case 2:
                     kwargs["description"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT.members["description"])

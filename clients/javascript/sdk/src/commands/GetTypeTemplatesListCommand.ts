@@ -57,7 +57,9 @@ export interface GetTypeTemplatesListCommandOutput extends GetTypeTemplatesListO
  * //   data: [ // TypeTemplatesList
  * //     { // TypeTemplatesResponse
  * //       type_name: "STRING_VALUE", // required
- * //       type_schema: "DOCUMENT_VALUE", // required
+ * //       type_schema: { // Object // required
+ * //         "<keys>": "DOCUMENT_VALUE",
+ * //       },
  * //       description: "STRING_VALUE", // required
  * //       change_reason: "STRING_VALUE", // required
  * //       created_by: "STRING_VALUE", // required

@@ -12,7 +12,7 @@ impl super::Client {
     ///   - [`contexts(Option<Vec::<ContextPartial>>)`](crate::operation::get_config::GetConfigOutput::contexts): (undocumented)
     ///   - [`overrides(Option<HashMap::<String, HashMap::<String, Document>>>)`](crate::operation::get_config::GetConfigOutput::overrides): (undocumented)
     ///   - [`default_configs(Option<HashMap::<String, Document>>)`](crate::operation::get_config::GetConfigOutput::default_configs): Generic key-value object structure used for flexible data representation throughout the API.
-    ///   - [`dimensions(Option<HashMap::<String, Document>>)`](crate::operation::get_config::GetConfigOutput::dimensions): (undocumented)
+    ///   - [`dimensions(Option<HashMap::<String, DimensionInfo>>)`](crate::operation::get_config::GetConfigOutput::dimensions): (undocumented)
     ///   - [`version(Option<String>)`](crate::operation::get_config::GetConfigOutput::version): (undocumented)
     ///   - [`last_modified(Option<DateTime>)`](crate::operation::get_config::GetConfigOutput::last_modified): (undocumented)
     ///   - [`audit_id(Option<String>)`](crate::operation::get_config::GetConfigOutput::audit_id): (undocumented)

@@ -42,7 +42,7 @@ fn ffi_eval_logic(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
-    dimensions: HashMap<String, String>,
+    dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -53,14 +53,6 @@ fn ffi_eval_logic(
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
     let mut _q = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
-    let dimensions: HashMap<String, DimensionInfo> = dimensions
-        .into_iter()
-        .map(|(k, v)| {
-            serde_json::from_str(&v)
-                .map(|dim_info| (k, dim_info))
-                .map_err(|err| OperationError::Unexpected(err.to_string()))
-        })
-        .collect::<Result<HashMap<_, _>, _>>()?;
 
     if let Some(e_args) = experimentation {
         // NOTE Parsing to allow for testing. This has to be migrated to the new
@@ -100,7 +92,7 @@ fn ffi_eval_config(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
-    dimensions: HashMap<String, String>,
+    dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
@@ -125,7 +117,7 @@ fn ffi_eval_config_with_reasoning(
     default_config: HashMap<String, String>,
     contexts: &[Context],
     overrides: HashMap<String, Overrides>,
-    dimensions: HashMap<String, String>,
+    dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,

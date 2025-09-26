@@ -9,6 +9,8 @@ import io.juspay.superposition.model.GetConfigOutput
 import software.amazon.smithy.java.core.serde.document.Document
 import uniffi.superposition_client.*
 import uniffi.superposition_types.Context
+import uniffi.superposition_types.DimensionInfo
+import uniffi.superposition_types.DimensionType
 import uniffi.superposition_types.Variant
 import uniffi.superposition_types.VariantType
 
@@ -18,6 +20,7 @@ internal class EvaluationArgs {
     val contexts: List<Context>
     // Values in the 2nd Map are serialized json values.
     val overrides: Map<String, Map<String, String>>
+    val dimensions: Map<String, DimensionInfo>
 
     @Throws(OperationException::class)
     fun evaluate(queryContext: EvaluationContext, eargs: ExperimentationArgs?): MutableMap<String, String> {
@@ -26,6 +29,7 @@ internal class EvaluationArgs {
             defaultConfig,
             contexts,
             overrides,
+            dimensions,
             query,
             MergeStrategy.MERGE,
             null,
@@ -37,14 +41,16 @@ internal class EvaluationArgs {
         defaultConfig = serializeDocumentValues(output.defaultConfigs())
         contexts = output.contexts().map { toFfiContext(it) }
         overrides = output.overrides().mapValues { serializeDocumentValues(it.value) }
+        dimensions = output.dimensions().mapValues { toFfiDimensionInfo(it.value) }
     }
 
     constructor(config: SuperpositionConfig) {
         defaultConfig = config.defaultConfig.mapValues { valueToJsonString(toSerializable(it.value)) }
-        contexts = config.contexts.map { toFfiContext(it) }
+        contexts = config.contexts
         overrides = config.overrides.mapValues {
             it.value.mapValues { e -> valueToJsonString(toSerializable(e.value)) }
         }
+        dimensions = config.dimensions
     }
 
     internal object Helpers {
@@ -108,15 +114,21 @@ internal class EvaluationArgs {
             )
         }
 
-        private fun toFfiContext(ctx: SuperpositionConfig.Context): Context {
-            val cond = ctx.condition.mapValues { valueToJsonString(it.value) }
-            return Context(
-                ctx.id,
-                cond,
-                ctx.priority,
-                ctx.weight,
-                ctx.overrideWithKeys
+        private fun toFfiDimensionInfo(dim: io.juspay.superposition.model.DimensionInfo): DimensionInfo {
+            return DimensionInfo(
+                serializeDocumentValues( dim.schemaMember() ),
+                dim.position(),
+                toFfiDimensionType (dim.dimensionType() ),
+                dim.dependencyGraph()
             )
+        }
+
+        private fun toFfiDimensionType(dimType: io.juspay.superposition.model.DimensionType): DimensionType {
+            return when (dimType.type()) {
+                io.juspay.superposition.model.DimensionType.Type.localCohort -> DimensionType.LocalCohort(dimType.getValue<String>())
+                io.juspay.superposition.model.DimensionType.Type.remoteCohort -> DimensionType.RemoteCohort(dimType.getValue<String>())
+                else -> DimensionType.Regular
+            }
         }
 
         private fun toSerializable(v: Value): Any {

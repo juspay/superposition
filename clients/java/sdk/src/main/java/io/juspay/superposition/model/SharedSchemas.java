@@ -76,9 +76,14 @@ final class SharedSchemas {
         .putMember("value", PreludeSchemas.DOCUMENT)
         .build();
 
+    static final Schema DEPEDENDENCY_GRAPH = Schema.mapBuilder(ShapeId.from("io.superposition#DepedendencyGraph"))
+        .putMember("key", PreludeSchemas.STRING)
+        .putMember("value", SharedSchemas.STRING_LIST)
+        .build();
+
     static final Schema DIMENSION_DATA = Schema.mapBuilder(ShapeId.from("io.superposition#DimensionData"))
         .putMember("key", PreludeSchemas.STRING)
-        .putMember("value", PreludeSchemas.DOCUMENT)
+        .putMember("value", DimensionInfo.$SCHEMA)
         .build();
 
     static final Schema OVERRIDES_MAP = Schema.mapBuilder(ShapeId.from("io.superposition#OverridesMap"))

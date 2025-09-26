@@ -8,7 +8,7 @@ impl super::Client {
     ///   - [`type_name(impl Into<String>)`](crate::operation::delete_type_templates::builders::DeleteTypeTemplatesFluentBuilder::type_name) / [`set_type_name(Option<String>)`](crate::operation::delete_type_templates::builders::DeleteTypeTemplatesFluentBuilder::set_type_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`DeleteTypeTemplatesOutput`](crate::operation::delete_type_templates::DeleteTypeTemplatesOutput) with field(s):
     ///   - [`type_name(String)`](crate::operation::delete_type_templates::DeleteTypeTemplatesOutput::type_name): (undocumented)
-    ///   - [`type_schema(Document)`](crate::operation::delete_type_templates::DeleteTypeTemplatesOutput::type_schema): (undocumented)
+    ///   - [`type_schema(HashMap::<String, Document>)`](crate::operation::delete_type_templates::DeleteTypeTemplatesOutput::type_schema): Generic key-value object structure used for flexible data representation throughout the API.
     ///   - [`description(String)`](crate::operation::delete_type_templates::DeleteTypeTemplatesOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::delete_type_templates::DeleteTypeTemplatesOutput::change_reason): (undocumented)
     ///   - [`created_by(String)`](crate::operation::delete_type_templates::DeleteTypeTemplatesOutput::created_by): (undocumented)
