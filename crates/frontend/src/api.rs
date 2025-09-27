@@ -5,6 +5,7 @@ use leptos::ServerFnError;
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{
+        config::{ConfigQuery, ResolveConfigQuery},
         context::ContextListFilters,
         default_config::DefaultConfigFilters,
         dimension::DimensionResponse,
@@ -355,17 +356,19 @@ pub async fn fetch_function(
 
 // #[server(GetConfig, "/fxn", "GetJson")]
 pub async fn fetch_config(
-    tenant: String,
-    version: Option<String>,
-    org_id: String,
+    context: &DimensionQuery<QueryMap>,
+    config_params: &ConfigQuery,
+    tenant: &str,
+    org_id: &str,
 ) -> Result<Config, ServerFnError> {
     let client = reqwest::Client::new();
     let host = use_host_server();
+    let url = format!(
+        "{host}/config?{}&{}",
+        context.to_query_param(),
+        config_params.to_query_param()
+    );
 
-    let url = match version {
-        Some(version) => format!("{}/config?version={}", host, version),
-        None => format!("{}/config", host),
-    };
     match client
         .get(url)
         .header("x-tenant", tenant)
@@ -695,21 +698,19 @@ pub async fn delete_webhooks(
 }
 
 pub async fn resolve_config(
-    context: &str,
-    show_reasoning: bool,
-    context_id: Option<&String>,
+    context: &DimensionQuery<QueryMap>,
+    resolve_params: &ResolveConfigQuery,
     tenant: &str,
     org_id: &str,
 ) -> Result<Map<String, Value>, String> {
     let client = reqwest::Client::new();
     let host = use_host_server();
-    let mut url = format!("{host}/config/resolve?{context}");
-    if let Some(context_id) = context_id {
-        url = format!("{url}&context_id={context_id}");
-    };
-    if show_reasoning {
-        url = format!("{url}&show_reasoning=true");
-    }
+    let url = format!(
+        "{host}/config/resolve?{}&{}",
+        context.to_query_param(),
+        resolve_params.to_query_param()
+    );
+
     match client
         .get(url)
         .header("x-tenant", tenant)

@@ -435,13 +435,6 @@ impl Conditions {
             .collect()
     }
 
-    pub fn as_query_string(&self) -> String {
-        self.iter()
-            .filter_map(|v| v.to_condition_query_str())
-            .collect::<Vec<String>>()
-            .join("&")
-    }
-
     pub fn as_resolve_context(&self) -> Map<String, Value> {
         self.iter()
             .map(|c| (c.variable.clone(), c.expression.to_value()))

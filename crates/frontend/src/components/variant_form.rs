@@ -5,7 +5,8 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
-    api::workspace::WorkspaceResponse,
+    api::{config::ResolveConfigQuery, workspace::WorkspaceResponse},
+    custom_query::DimensionQuery,
     database::models::{cac::DefaultConfig, experimentation::VariantType},
 };
 
@@ -86,7 +87,8 @@ where
         },
         |(context, tenant, org_id, auto_populate_control)| async move {
             if auto_populate_control {
-                resolve_config(&context.as_query_string(), false, None, &tenant, &org_id)
+                let context = DimensionQuery::from(context.as_resolve_context());
+                resolve_config(&context, &ResolveConfigQuery::default(), &tenant, &org_id)
                     .await
                     .unwrap_or_default()
             } else {
@@ -630,10 +632,13 @@ where
             };
             match context_data {
                 Ok((context_id, overrides)) => {
+                    let context = DimensionQuery::from(context.as_resolve_context());
                     let resolved_config = resolve_config(
-                        &context.as_query_string(),
-                        false,
-                        Some(&context_id),
+                        &context,
+                        &ResolveConfigQuery {
+                            context_id: Some(context_id),
+                            ..Default::default()
+                        },
                         &tenant,
                         &org_id,
                     )

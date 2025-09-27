@@ -3,15 +3,13 @@ use std::{collections::HashMap, str::FromStr};
 use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
 use actix_http::StatusCode;
-#[cfg(feature = "high-performance-mode")]
-use actix_web::http::header::ContentType;
-#[cfg(feature = "high-performance-mode")]
-use actix_web::web::Data;
 use actix_web::{
     get, put, route,
     web::{Json, Path, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
+#[cfg(feature = "high-performance-mode")]
+use actix_web::{http::header::ContentType, web::Data};
 use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
 use chrono::{DateTime, Timelike, Utc};
 use diesel::{
@@ -33,9 +31,13 @@ use service_utils::service::types::{
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    api::{config::ContextPayload, context::PutRequest},
+    api::{
+        config::{ConfigQuery, ContextPayload, ResolveConfigQuery},
+        context::PutRequest,
+    },
     custom_query::{
-        self as superposition_query, CustomQuery, PaginationParams, QueryMap,
+        self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
+        QueryMap,
     },
     database::{
         models::{
@@ -96,21 +98,24 @@ fn get_config_version_from_workspace(
         }
     }
 }
+
 fn get_config_version(
-    query_params_map: &mut Map<String, Value>,
+    version: &Option<String>,
     workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
 ) -> superposition::Result<Option<i64>> {
-    query_params_map.remove("version").map_or_else(
+    version.as_ref().map_or_else(
         || Ok(get_config_version_from_workspace(workspace_context, conn)),
         |version| {
-            if version == Value::String("latest".to_string()) {
-                log::info!("latest config request");
+            if *version == *"latest" {
+                log::trace!("latest config request");
                 return Ok(None);
             }
-            version.as_i64().map_or_else(
-                || {
-                    log::error!("failed to decode version as integer: {}", version);
+            version.parse::<i64>().map_or_else(
+                |e| {
+                    log::error!(
+                        "failed to decode version as integer: {version}, error: {e}"
+                    );
                     Err(bad_argument!("version is not of type integer"))
                 },
                 |v| Ok(Some(v)),
@@ -175,9 +180,8 @@ fn get_max_created_at(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> Result<DateTime<Utc>, diesel::result::Error> {
-    event_log::event_log
-        .select(max(event_log::timestamp))
-        .filter(event_log::table_name.eq_any(vec!["contexts", "default_configs"]))
+    config_versions::config_versions
+        .select(max(config_versions::created_at))
         .schema_name(schema_name)
         .first::<Option<DateTime<Utc>>>(conn)
         .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
@@ -756,7 +760,8 @@ async fn get_config(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
     db_conn: DbConnection,
-    query_map: superposition_query::Query<QueryMap>,
+    dimension_params: DimensionQuery<QueryMap>,
+    query_filters: superposition_query::Query<ConfigQuery>,
     workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -773,9 +778,9 @@ async fn get_config(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let mut query_params_map = query_map.into_inner();
+    let query_filters = query_filters.into_inner();
     let mut version =
-        get_config_version(&mut query_params_map, &workspace_context, &mut conn)?;
+        get_config_version(&query_filters.version, &workspace_context, &mut conn)?;
 
     let mut config = generate_config_from_version(
         &mut version,
@@ -783,11 +788,11 @@ async fn get_config(
         &workspace_context.schema_name,
     )?;
 
-    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
+    config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
     let is_smithy: bool;
     let context = if req.method() == actix_web::http::Method::GET {
         is_smithy = false;
-        query_params_map
+        dimension_params.into_inner()
     } else {
         // Assuming smithy.
         is_smithy = true;
@@ -809,11 +814,12 @@ async fn get_resolved_config(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
     db_conn: DbConnection,
-    query_map: superposition_query::Query<QueryMap>,
+    dimension_params: DimensionQuery<QueryMap>,
+    query_filters: superposition_query::Query<ResolveConfigQuery>,
     workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let mut query_params_map = query_map.into_inner();
+    let query_filters = query_filters.into_inner();
 
     let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
@@ -826,14 +832,14 @@ async fn get_resolved_config(
     }
 
     let mut config_version =
-        get_config_version(&mut query_params_map, &workspace_context, &mut conn)?;
+        get_config_version(&query_filters.version, &workspace_context, &mut conn)?;
     let mut config = generate_config_from_version(
         &mut config_version,
         &mut conn,
         &workspace_context.schema_name,
     )?;
 
-    config = apply_prefix_filter_to_config(&mut query_params_map, config)?;
+    config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
 
     let merge_strategy = req
         .headers()
@@ -842,32 +848,25 @@ async fn get_resolved_config(
         .and_then(|val| MergeStrategy::from_str(val).ok())
         .unwrap_or_default();
 
-    let show_reason = matches!(
-        query_params_map.get("show_reasoning"),
-        Some(Value::String(_))
-    );
+    let show_reason = query_filters.show_reasoning.unwrap_or_default();
 
-    if let Some(context_id) = query_params_map.get("context_id") {
-        let c_id = context_id
-            .as_str()
-            .ok_or_else(|| bad_argument!("context_id is not a string"))?
-            .to_string();
-
-        config.contexts =
-            if let Some(index) = config.contexts.iter().position(|ctx| ctx.id == c_id) {
-                config.contexts[..index].to_vec()
-            } else {
-                return Err(bad_argument!(
-                    "context with id {} not found in CAC",
-                    context_id
-                ));
-            };
+    if let Some(context_id) = query_filters.context_id {
+        config.contexts = if let Some(index) =
+            config.contexts.iter().position(|ctx| ctx.id == context_id)
+        {
+            config.contexts[..index].to_vec()
+        } else {
+            return Err(bad_argument!(
+                "context with id {} not found in CAC",
+                context_id
+            ));
+        };
     }
 
     let is_smithy: bool;
     let query_data = if req.method() == actix_web::http::Method::GET {
         is_smithy = false;
-        query_params_map
+        dimension_params.into_inner()
     } else {
         // Must be smithy calling w/ POST :D
         is_smithy = true;

@@ -3,8 +3,14 @@ use std::time::Duration;
 use leptos::*;
 use serde_json::{json, Map, Value};
 use strum_macros::Display;
-use superposition_types::api::workspace::WorkspaceResponse;
-use superposition_types::{custom_query::PaginationParams, Config};
+use superposition_types::{
+    api::{
+        config::{ConfigQuery, ResolveConfigQuery},
+        workspace::WorkspaceResponse,
+    },
+    custom_query::{DimensionQuery, PaginationParams},
+    Config,
+};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};
 
@@ -149,7 +155,15 @@ pub fn home() -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let config_data = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
-        |(tenant, org)| fetch_config(tenant, None, org),
+        |(tenant, org)| async move {
+            fetch_config(
+                &DimensionQuery::default(),
+                &ConfigQuery::default(),
+                &tenant,
+                &org,
+            )
+            .await
+        },
     );
     let dimension_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
@@ -253,11 +267,13 @@ pub fn home() -> impl IntoView {
         let context_updated = context_rs.get();
         // resolve the context and get the config that would apply
         spawn_local(async move {
-            let context = context_updated.as_query_string();
+            let context = DimensionQuery::from(context_updated.as_resolve_context());
             let mut config = resolve_config(
                 &context,
-                true,
-                None,
+                &ResolveConfigQuery {
+                    show_reasoning: Some(true),
+                    ..Default::default()
+                },
                 &workspace.get_untracked().0,
                 &org.get_untracked().0,
             )
