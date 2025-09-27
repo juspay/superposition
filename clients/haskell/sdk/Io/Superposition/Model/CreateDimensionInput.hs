@@ -30,6 +30,7 @@ import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
 import qualified Data.Int
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
@@ -43,7 +44,7 @@ data CreateDimensionInput = CreateDimensionInput {
     org_id :: Data.Text.Text,
     dimension :: Data.Text.Text,
     position :: Data.Int.Int32,
-    schema :: Data.Aeson.Value,
+    schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     function_name :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
@@ -93,7 +94,7 @@ data CreateDimensionInputBuilderState = CreateDimensionInputBuilderState {
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dimensionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     positionBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
-    schemaBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -135,7 +136,7 @@ setPosition :: Data.Int.Int32 -> CreateDimensionInputBuilder ()
 setPosition value =
    Control.Monad.State.Strict.modify (\s -> (s { positionBuilderState = Data.Maybe.Just value }))
 
-setSchema :: Data.Aeson.Value -> CreateDimensionInputBuilder ()
+setSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> CreateDimensionInputBuilder ()
 setSchema value =
    Control.Monad.State.Strict.modify (\s -> (s { schemaBuilderState = Data.Maybe.Just value }))
 

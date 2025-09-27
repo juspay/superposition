@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -38,7 +40,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("value", PreludeSchemas.DOCUMENT)
-        .putMember("schema", PreludeSchemas.DOCUMENT)
+        .putMember("schema", SharedSchemas.OBJECT)
         .putMember("function_name", PreludeSchemas.STRING)
         .putMember("description", PreludeSchemas.STRING)
         .putMember("autocomplete_function_name", PreludeSchemas.STRING)
@@ -59,7 +61,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
     private final transient String key;
     private final transient String changeReason;
     private final transient Document value;
-    private final transient Document schemaMember;
+    private final transient Map<String, Document> schemaMember;
     private final transient String functionName;
     private final transient String description;
     private final transient String autocompleteFunctionName;
@@ -70,7 +72,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         this.key = builder.key;
         this.changeReason = builder.changeReason;
         this.value = builder.value;
-        this.schemaMember = builder.schemaMember;
+        this.schemaMember = builder.schemaMember == null ? null : Collections.unmodifiableMap(builder.schemaMember);
         this.functionName = builder.functionName;
         this.description = builder.description;
         this.autocompleteFunctionName = builder.autocompleteFunctionName;
@@ -96,8 +98,15 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         return value;
     }
 
-    public Document schemaMember() {
+    public Map<String, Document> schemaMember() {
+        if (schemaMember == null) {
+            return Collections.emptyMap();
+        }
         return schemaMember;
+    }
+
+    public boolean hasSchemaMember() {
+        return schemaMember != null;
     }
 
     public String functionName() {
@@ -157,7 +166,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
             serializer.writeDocument($SCHEMA_VALUE, value);
         }
         if (schemaMember != null) {
-            serializer.writeDocument($SCHEMA_SCHEMA_MEMBER, schemaMember);
+            serializer.writeMap($SCHEMA_SCHEMA_MEMBER, schemaMember, schemaMember.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         }
         if (functionName != null) {
             serializer.writeString($SCHEMA_FUNCTION_NAME, functionName);
@@ -226,7 +235,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         private String key;
         private String changeReason;
         private Document value;
-        private Document schemaMember;
+        private Map<String, Document> schemaMember;
         private String functionName;
         private String description;
         private String autocompleteFunctionName;
@@ -288,7 +297,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder schemaMember(Document schemaMember) {
+        public Builder schemaMember(Map<String, Document> schemaMember) {
             this.schemaMember = schemaMember;
             return this;
         }
@@ -332,7 +341,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
                 case 2 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 3 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 4 -> value((Document) SchemaUtils.validateSameMember($SCHEMA_VALUE, member, value));
-                case 5 -> schemaMember((Document) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
+                case 5 -> schemaMember((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
                 case 6 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
                 case 7 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 8 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
@@ -380,7 +389,7 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
                     case 2 -> builder.changeReason(de.readString(member));
                     case 3 -> builder.orgId(de.readString(member));
                     case 4 -> builder.value(de.readDocument());
-                    case 5 -> builder.schemaMember(de.readDocument());
+                    case 5 -> builder.schemaMember(SharedSerde.deserializeObjectShape(member, de));
                     case 6 -> builder.functionName(de.readString(member));
                     case 7 -> builder.description(de.readString(member));
                     case 8 -> builder.autocompleteFunctionName(de.readString(member));

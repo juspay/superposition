@@ -47,7 +47,7 @@ public final class GetConfigOutput implements SerializableStruct {
     private final transient List<ContextPartial> contexts;
     private final transient Map<String, Map<String, Document>> overrides;
     private final transient Map<String, Document> defaultConfigs;
-    private final transient Map<String, Document> dimensions;
+    private final transient Map<String, DimensionInfo> dimensions;
     private final transient String version;
     private final transient Instant lastModified;
     private final transient String auditId;
@@ -95,7 +95,7 @@ public final class GetConfigOutput implements SerializableStruct {
         return defaultConfigs != null;
     }
 
-    public Map<String, Document> dimensions() {
+    public Map<String, DimensionInfo> dimensions() {
         if (dimensions == null) {
             return Collections.emptyMap();
         }
@@ -224,7 +224,7 @@ public final class GetConfigOutput implements SerializableStruct {
         private List<ContextPartial> contexts;
         private Map<String, Map<String, Document>> overrides;
         private Map<String, Document> defaultConfigs;
-        private Map<String, Document> dimensions;
+        private Map<String, DimensionInfo> dimensions;
         private String version;
         private Instant lastModified;
         private String auditId;
@@ -263,7 +263,7 @@ public final class GetConfigOutput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder dimensions(Map<String, Document> dimensions) {
+        public Builder dimensions(Map<String, DimensionInfo> dimensions) {
             this.dimensions = dimensions;
             return this;
         }
@@ -304,7 +304,7 @@ public final class GetConfigOutput implements SerializableStruct {
                 case 0 -> contexts((List<ContextPartial>) SchemaUtils.validateSameMember($SCHEMA_CONTEXTS, member, value));
                 case 1 -> overrides((Map<String, Map<String, Document>>) SchemaUtils.validateSameMember($SCHEMA_OVERRIDES, member, value));
                 case 2 -> defaultConfigs((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_DEFAULT_CONFIGS, member, value));
-                case 3 -> dimensions((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, value));
+                case 3 -> dimensions((Map<String, DimensionInfo>) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, value));
                 case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
                 case 5 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
                 case 6 -> auditId((String) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, value));

@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-#[cfg(feature = "jsonlogic")]
-use serde_json::Value;
 #[cfg(not(feature = "jsonlogic"))]
 use serde_json::{Map, Value};
 #[cfg(feature = "jsonlogic")]
@@ -19,7 +17,7 @@ use superposition_types::{
         },
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
-    result as superposition, Cac, Condition, DBConnection, DimensionInfo,
+    result as superposition, Cac, Condition, DBConnection, DimensionInfo, ExtendedMap,
 };
 
 pub fn get_dimensions_data(
@@ -192,7 +190,7 @@ pub fn fetch_dimensions_info_map(
         ))
         .order_by(position.asc())
         .schema_name(schema_name)
-        .load::<(String, Value, i32, DimensionType, DependencyGraph)>(conn)?
+        .load::<(String, ExtendedMap, i32, DimensionType, DependencyGraph)>(conn)?
         .into_iter()
         .map(|(key, schema_value, pos, dim_type, dep_graph)| {
             (

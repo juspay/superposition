@@ -14,6 +14,7 @@ use superposition_types::{
         cac::{Function, FunctionType, TypeTemplate},
         ChangeReason, Description,
     },
+    ExtendedMap,
 };
 use utils::try_update_payload;
 use wasm_bindgen::JsCast;
@@ -275,7 +276,7 @@ pub fn default_config_form(
                         options
                             .push(TypeTemplate {
                                 type_name: "Custom JSON Schema".to_string(),
-                                type_schema: Value::Object(
+                                type_schema: ExtendedMap(
                                     Map::from_iter([
                                         ("type".to_string(), Value::String("object".to_string())),
                                     ]),
@@ -329,13 +330,13 @@ pub fn default_config_form(
                                         logging::log!("selected item {:?}", selected_item);
                                         let type_schema = selected_item.type_schema.clone();
                                         let parsed_schema_type = SchemaType::try_from(
-                                            type_schema.clone(),
+                                            type_schema.deref(),
                                         );
                                         let parsed_enum_variants = EnumVariants::try_from(
-                                            type_schema.clone(),
+                                            type_schema.deref(),
                                         );
                                         config_type_ws.set(selected_item.type_name);
-                                        config_schema_ws.set(type_schema);
+                                        config_schema_ws.set(Value::Object(type_schema.deref().clone()));
                                         if let (Ok(schema_type), Ok(enum_variants)) = (
                                             parsed_schema_type,
                                             parsed_enum_variants,
@@ -655,8 +656,8 @@ pub fn change_log_summary(
                             />
                             <JsonChangeSummary
                                 title="Schema changes"
-                                old_values=Some(default.schema)
-                                new_values=new_schema
+                                old_values=Some(Value::Object(default.schema.deref().clone()))
+                                new_values=new_schema.map(|m| Value::Object(m.deref().clone()))
                             />
                             <ChangeSummary
                                 title="Other changes"

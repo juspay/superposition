@@ -528,11 +528,11 @@ final class SharedSerde {
         }
     }
 
-    static final class DimensionDataSerializer implements BiConsumer<Map<String, Document>, MapSerializer> {
+    static final class DimensionDataSerializer implements BiConsumer<Map<String, DimensionInfo>, MapSerializer> {
         static final DimensionDataSerializer INSTANCE = new DimensionDataSerializer();
 
         @Override
-        public void accept(Map<String, Document> values, MapSerializer serializer) {
+        public void accept(Map<String, DimensionInfo> values, MapSerializer serializer) {
             for (var valueEntry : values.entrySet()) {
                 serializer.writeEntry(
                     SharedSchemas.DIMENSION_DATA.mapKeyMember(),
@@ -544,32 +544,77 @@ final class SharedSerde {
         }
     }
 
-    private static final class DimensionData$ValueSerializer implements BiConsumer<Document, ShapeSerializer> {
+    private static final class DimensionData$ValueSerializer implements BiConsumer<DimensionInfo, ShapeSerializer> {
         private static final DimensionData$ValueSerializer INSTANCE = new DimensionData$ValueSerializer();
 
         @Override
-        public void accept(Document values, ShapeSerializer serializer) {
-            serializer.writeDocument(SharedSchemas.DIMENSION_DATA.mapValueMember(), values);
+        public void accept(DimensionInfo values, ShapeSerializer serializer) {
+            serializer.writeStruct(SharedSchemas.DIMENSION_DATA.mapValueMember(), values);
         }
     }
 
-    static Map<String, Document> deserializeDimensionData(Schema schema, ShapeDeserializer deserializer) {
+    static Map<String, DimensionInfo> deserializeDimensionData(Schema schema, ShapeDeserializer deserializer) {
         var size = deserializer.containerSize();
-        Map<String, Document> result = size == -1 ? new LinkedHashMap<>() : new LinkedHashMap<>(size);
+        Map<String, DimensionInfo> result = size == -1 ? new LinkedHashMap<>() : new LinkedHashMap<>(size);
         deserializer.readStringMap(schema, result, DimensionData$ValueDeserializer.INSTANCE);
         return result;
     }
 
-    private static final class DimensionData$ValueDeserializer implements ShapeDeserializer.MapMemberConsumer<String, Map<String, Document>> {
+    private static final class DimensionData$ValueDeserializer implements ShapeDeserializer.MapMemberConsumer<String, Map<String, DimensionInfo>> {
         static final DimensionData$ValueDeserializer INSTANCE = new DimensionData$ValueDeserializer();
 
         @Override
-        public void accept(Map<String, Document> state, String key, ShapeDeserializer deserializer) {
+        public void accept(Map<String, DimensionInfo> state, String key, ShapeDeserializer deserializer) {
             if (deserializer.isNull()) {
                 deserializer.readNull();
                 return;
             }
-            state.put(key, deserializer.readDocument());
+            state.put(key, DimensionInfo.builder().deserializeMember(deserializer, SharedSchemas.DIMENSION_DATA.mapValueMember()).build());
+        }
+    }
+
+    static final class DepedendencyGraphSerializer implements BiConsumer<Map<String, List<String>>, MapSerializer> {
+        static final DepedendencyGraphSerializer INSTANCE = new DepedendencyGraphSerializer();
+
+        @Override
+        public void accept(Map<String, List<String>> values, MapSerializer serializer) {
+            for (var valueEntry : values.entrySet()) {
+                serializer.writeEntry(
+                    SharedSchemas.DEPEDENDENCY_GRAPH.mapKeyMember(),
+                    valueEntry.getKey(),
+                    valueEntry.getValue(),
+                    DepedendencyGraph$ValueSerializer.INSTANCE
+                );
+            }
+        }
+    }
+
+    private static final class DepedendencyGraph$ValueSerializer implements BiConsumer<List<String>, ShapeSerializer> {
+        private static final DepedendencyGraph$ValueSerializer INSTANCE = new DepedendencyGraph$ValueSerializer();
+
+        @Override
+        public void accept(List<String> values, ShapeSerializer serializer) {
+            serializer.writeList(SharedSchemas.DEPEDENDENCY_GRAPH.mapValueMember(), values, values.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
+    }
+
+    static Map<String, List<String>> deserializeDepedendencyGraph(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        Map<String, List<String>> result = size == -1 ? new LinkedHashMap<>() : new LinkedHashMap<>(size);
+        deserializer.readStringMap(schema, result, DepedendencyGraph$ValueDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class DepedendencyGraph$ValueDeserializer implements ShapeDeserializer.MapMemberConsumer<String, Map<String, List<String>>> {
+        static final DepedendencyGraph$ValueDeserializer INSTANCE = new DepedendencyGraph$ValueDeserializer();
+
+        @Override
+        public void accept(Map<String, List<String>> state, String key, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+                deserializer.readNull();
+                return;
+            }
+            state.put(key, SharedSerde.deserializeStringList(SharedSchemas.DEPEDENDENCY_GRAPH.mapValueMember(), deserializer));
         }
     }
 

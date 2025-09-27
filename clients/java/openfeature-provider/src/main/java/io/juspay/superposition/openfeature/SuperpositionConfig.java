@@ -9,6 +9,9 @@ import lombok.NonNull;
 import java.util.List;
 import java.util.Map;
 
+import uniffi.superposition_types.DimensionInfo;
+import uniffi.superposition_types.Context;
+
 /**
  * Data class to represent Superposition's config.
  * */
@@ -21,20 +24,6 @@ public class SuperpositionConfig {
     List<Context> contexts;
     @NonNull
     Map<String, Map<String, Value>> overrides;
-
-    /**
-     * Superposition's representation of context.
-     * See Superposition docs for more detail.
-     * */
-    @Builder
-    public static class Context {
-        @NonNull
-        String id;
-        @NonNull
-        Map<String, Structure> condition;
-        int priority;
-        int weight;
-        @NonNull
-        List<String> overrideWithKeys;
-    }
+    @NonNull
+    Map<String, DimensionInfo> dimensions;
 }

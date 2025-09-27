@@ -2,6 +2,8 @@
 package io.juspay.superposition.model;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -24,7 +26,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("type_name", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("type_schema", PreludeSchemas.DOCUMENT,
+        .putMember("type_schema", SharedSchemas.OBJECT,
                 new RequiredTrait())
         .putMember("description", PreludeSchemas.STRING,
                 new RequiredTrait())
@@ -50,7 +52,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
 
     private final transient String typeName;
-    private final transient Document typeSchema;
+    private final transient Map<String, Document> typeSchema;
     private final transient String description;
     private final transient String changeReason;
     private final transient String createdBy;
@@ -60,7 +62,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
 
     private DeleteTypeTemplatesOutput(Builder builder) {
         this.typeName = builder.typeName;
-        this.typeSchema = builder.typeSchema;
+        this.typeSchema = Collections.unmodifiableMap(builder.typeSchema);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
         this.createdBy = builder.createdBy;
@@ -73,8 +75,12 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
         return typeName;
     }
 
-    public Document typeSchema() {
+    public Map<String, Document> typeSchema() {
         return typeSchema;
+    }
+
+    public boolean hasTypeSchema() {
+        return true;
     }
 
     public String description() {
@@ -138,7 +144,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_TYPE_NAME, typeName);
-        serializer.writeDocument($SCHEMA_TYPE_SCHEMA, typeSchema);
+        serializer.writeMap($SCHEMA_TYPE_SCHEMA, typeSchema, typeSchema.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
@@ -196,7 +202,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
     public static final class Builder implements ShapeBuilder<DeleteTypeTemplatesOutput> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String typeName;
-        private Document typeSchema;
+        private Map<String, Document> typeSchema;
         private String description;
         private String changeReason;
         private String createdBy;
@@ -225,7 +231,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder typeSchema(Document typeSchema) {
+        public Builder typeSchema(Map<String, Document> typeSchema) {
             this.typeSchema = Objects.requireNonNull(typeSchema, "typeSchema cannot be null");
             tracker.setMember($SCHEMA_TYPE_SCHEMA);
             return this;
@@ -302,7 +308,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
                 case 0 -> typeName((String) SchemaUtils.validateSameMember($SCHEMA_TYPE_NAME, member, value));
-                case 1 -> typeSchema((Document) SchemaUtils.validateSameMember($SCHEMA_TYPE_SCHEMA, member, value));
+                case 1 -> typeSchema((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_TYPE_SCHEMA, member, value));
                 case 2 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 4 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
@@ -322,7 +328,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
                 typeName("");
             }
             if (!tracker.checkMember($SCHEMA_TYPE_SCHEMA)) {
-                tracker.setMember($SCHEMA_TYPE_SCHEMA);
+                typeSchema(Collections.emptyMap());
             }
             if (!tracker.checkMember($SCHEMA_DESCRIPTION)) {
                 description("");
@@ -364,7 +370,7 @@ public final class DeleteTypeTemplatesOutput implements SerializableStruct {
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
                     case 0 -> builder.typeName(de.readString(member));
-                    case 1 -> builder.typeSchema(de.readDocument());
+                    case 1 -> builder.typeSchema(SharedSerde.deserializeObjectShape(member, de));
                     case 2 -> builder.description(de.readString(member));
                     case 3 -> builder.changeReason(de.readString(member));
                     case 4 -> builder.createdBy(de.readString(member));

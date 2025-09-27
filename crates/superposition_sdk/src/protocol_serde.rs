@@ -263,6 +263,8 @@ pub(crate) mod shape_condition;
 
 pub(crate) mod shape_context_list;
 
+pub(crate) mod shape_depedendency_graph;
+
 pub(crate) mod shape_dimension_data;
 
 pub(crate) mod shape_dimension_ext_list;
@@ -334,6 +336,8 @@ pub(crate) mod shape_context_response;
 pub(crate) mod shape_default_config_full;
 
 pub(crate) mod shape_dimension_ext;
+
+pub(crate) mod shape_dimension_info;
 
 pub(crate) mod shape_experiment_group_response;
 

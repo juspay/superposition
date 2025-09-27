@@ -144,7 +144,7 @@ pub fn dimension_form(
         let dimension_name = dimension_name_rs.get_untracked();
         let validation_fn_name = validation_fn_name_rs.get_untracked();
         let autocomplete_fn_name = autocomplete_fn_name_rs.get_untracked();
-        let function_schema = dimension_schema_rs.get_untracked();
+        let dimension_schema = dimension_schema_rs.get_untracked();
         let cohort_based_on = cohort_based_on_rs.get_untracked();
         let dimension_type = dimension_type_rs
             .get_untracked()
@@ -165,7 +165,7 @@ pub fn dimension_form(
                     (true, None) => {
                         let request_payload = try_update_payload(
                             function_position,
-                            function_schema,
+                            dimension_schema,
                             validation_fn_name,
                             autocomplete_fn_name,
                             description_rs.get_untracked(),
@@ -182,7 +182,7 @@ pub fn dimension_form(
                     _ => dimensions::create(
                         dimension_name,
                         function_position,
-                        function_schema,
+                        dimension_schema,
                         validation_fn_name,
                         autocomplete_fn_name,
                         description_rs.get_untracked(),
@@ -390,7 +390,7 @@ pub fn dimension_form(
                                                 on_select=move |selected_item: TypeTemplate| {
                                                     logging::log!("selected item {:?}", selected_item);
                                                     dimension_type_template_ws.set(selected_item.type_name);
-                                                    dimension_schema_ws.set(selected_item.type_schema);
+                                                    dimension_schema_ws.set(Value::Object(selected_item.type_schema.deref().clone()));
                                                 }
                                             />
                                         }
@@ -665,8 +665,8 @@ pub fn change_log_summary(
                         view! {
                             <JsonChangeSummary
                                 title="Schema changes"
-                                old_values=Some(dim.schema)
-                                new_values=new_schema
+                                old_values=Some(Value::Object(dim.schema.deref().clone()))
+                                new_values=new_schema.map(|m| Value::Object(m.deref().clone()))
                             />
                             <ChangeSummary
                                 title="Other changes"

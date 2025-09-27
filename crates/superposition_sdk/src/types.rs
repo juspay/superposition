@@ -57,6 +57,12 @@ pub use crate::types::_audit_log_full::AuditLogFull;
 
 pub use crate::types::_merge_strategy::MergeStrategy;
 
+pub use crate::types::_dimension_info::DimensionInfo;
+
+pub use crate::types::_dimension_type::DimensionType;
+
+pub use crate::types::_unit::Unit;
+
 pub use crate::types::_context_partial::ContextPartial;
 
 pub use crate::types::_list_versions_member::ListVersionsMember;
@@ -82,10 +88,6 @@ pub use crate::types::_context_put::ContextPut;
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponse;
 
 pub use crate::types::_context_filter_sort_on::ContextFilterSortOn;
-
-pub use crate::types::_dimension_type::DimensionType;
-
-pub use crate::types::_unit::Unit;
 
 pub use crate::types::_dimension_ext::DimensionExt;
 
@@ -120,6 +122,8 @@ mod _context_response;
 mod _default_config_full;
 
 mod _dimension_ext;
+
+mod _dimension_info;
 
 mod _dimension_match_strategy;
 

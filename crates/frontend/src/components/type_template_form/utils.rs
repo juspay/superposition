@@ -4,6 +4,7 @@ use superposition_types::{
         TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
     },
     database::models::{cac::TypeTemplate, ChangeReason, Description},
+    ExtendedMap,
 };
 
 use crate::utils::{construct_request_headers, get_host, request};
@@ -18,7 +19,7 @@ pub async fn create_type(
 ) -> Result<TypeTemplate, String> {
     let payload = TypeTemplateCreateRequest {
         type_name: TypeTemplateName::try_from(type_name)?,
-        type_schema,
+        type_schema: ExtendedMap::try_from(type_schema)?,
         description: Description::try_from(description)?,
         change_reason: ChangeReason::try_from(change_reason)?,
     };
@@ -42,7 +43,7 @@ pub fn try_update_payload(
     change_reason: String,
 ) -> Result<TypeTemplateUpdateRequest, String> {
     Ok(TypeTemplateUpdateRequest {
-        type_schema: schema,
+        type_schema: ExtendedMap::try_from(schema)?,
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
     })

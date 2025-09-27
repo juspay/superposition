@@ -30,6 +30,7 @@ import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Io.Superposition.Model.ContextPartial
+import qualified Io.Superposition.Model.DimensionInfo
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
@@ -37,7 +38,7 @@ data GetConfigOutput = GetConfigOutput {
     contexts :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextPartial.ContextPartial),
     overrides :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text (Data.Map.Map Data.Text.Text Data.Aeson.Value)),
     default_configs :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    dimensions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    dimensions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo),
     version :: Data.Maybe.Maybe Data.Text.Text,
     last_modified :: Data.Maybe.Maybe Data.Time.UTCTime,
     audit_id :: Data.Maybe.Maybe Data.Text.Text
@@ -78,7 +79,7 @@ data GetConfigOutputBuilderState = GetConfigOutputBuilderState {
     contextsBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextPartial.ContextPartial),
     overridesBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text (Data.Map.Map Data.Text.Text Data.Aeson.Value)),
     default_configsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    dimensionsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    dimensionsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     audit_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
@@ -111,7 +112,7 @@ setDefaultConfigs :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Va
 setDefaultConfigs value =
    Control.Monad.State.Strict.modify (\s -> (s { default_configsBuilderState = value }))
 
-setDimensions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> GetConfigOutputBuilder ()
+setDimensions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo) -> GetConfigOutputBuilder ()
 setDimensions value =
    Control.Monad.State.Strict.modify (\s -> (s { dimensionsBuilderState = value }))
 

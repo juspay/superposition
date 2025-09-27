@@ -10,7 +10,7 @@ resource TypeTemplates {
         org_id: String
     }
     properties: {
-        type_schema: Document
+        type_schema: Object
         description: String
         change_reason: String
         created_by: String

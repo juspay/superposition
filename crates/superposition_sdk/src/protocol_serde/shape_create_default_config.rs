@@ -164,7 +164,7 @@ pub(crate) fn de_create_default_config(value: &[u8], mut builder: crate::operati
                     }
                     "schema" => {
                         builder = builder.set_schema(
-                            Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                            crate::protocol_serde::shape_object::de_object(tokens)?
                         );
                     }
                     "value" => {
