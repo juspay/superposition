@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.7.1 - 2025-09-30
+#### Bug Fixes
+- **(cohorts)** eval logic and update providers (#715) - (e99aa25) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.91.0 [skip ci] - (87c956e) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.7.0 - 2025-09-25
 #### Features
 - Cohort resolution (#712) - (21bbf39) - Ankit Kumar Mahato
