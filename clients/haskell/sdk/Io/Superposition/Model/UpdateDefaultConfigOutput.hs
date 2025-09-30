@@ -31,6 +31,7 @@ import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Time
@@ -42,7 +43,7 @@ import qualified Network.HTTP.Types
 data UpdateDefaultConfigOutput = UpdateDefaultConfigOutput {
     key :: Data.Text.Text,
     value :: Data.Aeson.Value,
-    schema :: Data.Aeson.Value,
+    schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     function_name :: Data.Maybe.Maybe Data.Text.Text,
@@ -95,7 +96,7 @@ instance Data.Aeson.FromJSON UpdateDefaultConfigOutput where
 data UpdateDefaultConfigOutputBuilderState = UpdateDefaultConfigOutputBuilderState {
     keyBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     valueBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
-    schemaBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -133,7 +134,7 @@ setValue :: Data.Aeson.Value -> UpdateDefaultConfigOutputBuilder ()
 setValue value =
    Control.Monad.State.Strict.modify (\s -> (s { valueBuilderState = Data.Maybe.Just value }))
 
-setSchema :: Data.Aeson.Value -> UpdateDefaultConfigOutputBuilder ()
+setSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> UpdateDefaultConfigOutputBuilder ()
 setSchema value =
    Control.Monad.State.Strict.modify (\s -> (s { schemaBuilderState = Data.Maybe.Just value }))
 

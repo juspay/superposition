@@ -187,6 +187,7 @@ library
                         Io.Superposition.Model.FunctionTypes,
                         Io.Superposition.Model.PublishOutput,
                         Io.Superposition.Model.WorkspaceResponse,
+                        Io.Superposition.Model.DimensionInfo,
                         Io.Superposition.Model.GetExperimentGroupInput,
                         Io.Superposition.Command.Test,
                         Io.Superposition.Model.DeleteContextOutput,

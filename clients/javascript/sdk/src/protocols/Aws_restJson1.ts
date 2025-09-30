@@ -267,6 +267,7 @@ import {
   ContextResponse,
   DefaultConfigFull,
   DimensionExt,
+  DimensionInfo,
   DimensionType,
   ExperimentGroupResponse,
   ExperimentResponse,
@@ -484,7 +485,7 @@ export const se_CreateDefaultConfigCommand = async(
     'description': [],
     'function_name': [],
     'key': [],
-    'schema': _ => se_Document(_, context),
+    'schema': _ => se_Object(_, context),
     'value': _ => se_Document(_, context),
   }));
   b.m("POST")
@@ -516,7 +517,7 @@ export const se_CreateDimensionCommand = async(
     'dimension_type': _ => _json(_),
     'function_name': [],
     'position': [],
-    'schema': _ => se_Document(_, context),
+    'schema': _ => se_Object(_, context),
   }));
   b.m("POST")
   .h(headers)
@@ -659,7 +660,7 @@ export const se_CreateTypeTemplatesCommand = async(
     'change_reason': [],
     'description': [],
     'type_name': [],
-    'type_schema': _ => se_Document(_, context),
+    'type_schema': _ => se_Object(_, context),
   }));
   b.m("POST")
   .h(headers)
@@ -1697,7 +1698,7 @@ export const se_UpdateDefaultConfigCommand = async(
     'change_reason': [],
     'description': [],
     'function_name': [],
-    'schema': _ => se_Document(_, context),
+    'schema': _ => se_Object(_, context),
     'value': _ => se_Document(_, context),
   }));
   b.m("PUT")
@@ -1728,7 +1729,7 @@ export const se_UpdateDimensionCommand = async(
     'description': [],
     'function_name': [],
     'position': [],
-    'schema': _ => se_Document(_, context),
+    'schema': _ => se_Object(_, context),
   }));
   b.m("PUT")
   .h(headers)
@@ -1896,7 +1897,7 @@ export const se_UpdateTypeTemplatesCommand = async(
   body = JSON.stringify(take(input, {
     'change_reason': [],
     'description': [],
-    'type_schema': _ => se_Document(_, context),
+    'type_schema': _ => se_Object(_, context),
   }));
   b.m("PUT")
   .h(headers)
@@ -2155,7 +2156,7 @@ export const de_CreateDefaultConfigCommand = async(
     'key': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
-    'schema': _ => de_Document(_, context),
+    'schema': _ => de_Object(_, context),
     'value': _ => de_Document(_, context),
   });
   Object.assign(contents, doc);
@@ -2181,7 +2182,7 @@ export const de_CreateDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
-    'dependency_graph': _ => de_Object(_, context),
+    'dependency_graph': _json,
     'description': __expectString,
     'dimension': __expectString,
     'dimension_type': _ => _json(__expectUnion(_)),
@@ -2190,7 +2191,7 @@ export const de_CreateDimensionCommand = async(
     'last_modified_by': __expectString,
     'mandatory': __expectBoolean,
     'position': __expectInt32,
-    'schema': _ => de_Document(_, context),
+    'schema': _ => de_Object(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -2358,7 +2359,7 @@ export const de_CreateTypeTemplatesCommand = async(
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'type_name': __expectString,
-    'type_schema': _ => de_Document(_, context),
+    'type_schema': _ => de_Object(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -2559,7 +2560,7 @@ export const de_DeleteTypeTemplatesCommand = async(
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'type_name': __expectString,
-    'type_schema': _ => de_Document(_, context),
+    'type_schema': _ => de_Object(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -2735,7 +2736,7 @@ export const de_GetDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
-    'dependency_graph': _ => de_Object(_, context),
+    'dependency_graph': _json,
     'description': __expectString,
     'dimension': __expectString,
     'dimension_type': _ => _json(__expectUnion(_)),
@@ -2744,7 +2745,7 @@ export const de_GetDimensionCommand = async(
     'last_modified_by': __expectString,
     'mandatory': __expectBoolean,
     'position': __expectInt32,
-    'schema': _ => de_Document(_, context),
+    'schema': _ => de_Object(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -3525,7 +3526,7 @@ export const de_UpdateDefaultConfigCommand = async(
     'key': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
-    'schema': _ => de_Document(_, context),
+    'schema': _ => de_Object(_, context),
     'value': _ => de_Document(_, context),
   });
   Object.assign(contents, doc);
@@ -3551,7 +3552,7 @@ export const de_UpdateDimensionCommand = async(
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
-    'dependency_graph': _ => de_Object(_, context),
+    'dependency_graph': _json,
     'description': __expectString,
     'dimension': __expectString,
     'dimension_type': _ => _json(__expectUnion(_)),
@@ -3560,7 +3561,7 @@ export const de_UpdateDimensionCommand = async(
     'last_modified_by': __expectString,
     'mandatory': __expectBoolean,
     'position': __expectInt32,
-    'schema': _ => de_Document(_, context),
+    'schema': _ => de_Object(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -3759,7 +3760,7 @@ export const de_UpdateTypeTemplatesCommand = async(
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'type_name': __expectString,
-    'type_schema': _ => de_Document(_, context),
+    'type_schema': _ => de_Object(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -4506,10 +4507,12 @@ const de_CommandError = async(
       'key': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
-      'schema': (_: any) => de_Document(_, context),
+      'schema': (_: any) => de_Object(_, context),
       'value': (_: any) => de_Document(_, context),
     }) as any;
   }
+
+  // de_DepedendencyGraph omitted.
 
   /**
    * deserializeAws_restJson1DimensionData
@@ -4517,15 +4520,15 @@ const de_CommandError = async(
   const de_DimensionData = (
     output: any,
     context: __SerdeContext
-  ): Record<string, __DocumentType> => {
-    return Object.entries(output).reduce((acc: Record<string, __DocumentType>, [key, value]: [string, any]) => {
+  ): Record<string, DimensionInfo> => {
+    return Object.entries(output).reduce((acc: Record<string, DimensionInfo>, [key, value]: [string, any]) => {
       if (value === null) {
         return acc;
       }
-      acc[key as string] = de_Document(value, context);
+      acc[key as string] = de_DimensionInfo(value, context);
       return acc;
 
-    }, {} as Record<string, __DocumentType>);}
+    }, {} as Record<string, DimensionInfo>);}
 
   /**
    * deserializeAws_restJson1DimensionExt
@@ -4539,7 +4542,7 @@ const de_CommandError = async(
       'change_reason': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
-      'dependency_graph': (_: any) => de_Object(_, context),
+      'dependency_graph': _json,
       'description': __expectString,
       'dimension': __expectString,
       'dimension_type': (_: any) => _json(__expectUnion(_)),
@@ -4548,7 +4551,7 @@ const de_CommandError = async(
       'last_modified_by': __expectString,
       'mandatory': __expectBoolean,
       'position': __expectInt32,
-      'schema': (_: any) => de_Document(_, context),
+      'schema': (_: any) => de_Object(_, context),
     }) as any;
   }
 
@@ -4563,6 +4566,21 @@ const de_CommandError = async(
       return de_DimensionExt(entry, context);
     });
     return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1DimensionInfo
+   */
+  const de_DimensionInfo = (
+    output: any,
+    context: __SerdeContext
+  ): DimensionInfo => {
+    return take(output, {
+      'dependency_graph': _json,
+      'dimension_type': (_: any) => _json(__expectUnion(_)),
+      'position': __expectInt32,
+      'schema': (_: any) => de_Object(_, context),
+    }) as any;
   }
 
   // de_DimensionType omitted.
@@ -4878,7 +4896,7 @@ const de_CommandError = async(
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
       'type_name': __expectString,
-      'type_schema': (_: any) => de_Document(_, context),
+      'type_schema': (_: any) => de_Object(_, context),
     }) as any;
   }
 

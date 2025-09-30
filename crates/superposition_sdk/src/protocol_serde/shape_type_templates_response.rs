@@ -22,7 +22,7 @@ pub(crate) fn de_type_templates_response<'a, I>(tokens: &mut ::std::iter::Peekab
                             }
                             "type_schema" => {
                                 builder = builder.set_type_schema(
-                                    Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                                    crate::protocol_serde::shape_object::de_object(tokens)?
                                 );
                             }
                             "description" => {

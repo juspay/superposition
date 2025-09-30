@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::ops::Deref;
 
 use leptos::*;
 use serde_json::Value;
@@ -286,7 +287,7 @@ pub fn context_form(
                 );
                 context.push(Condition::new_with_default_expression(
                     dimension.dimension.clone(),
-                    SchemaType::try_from(dimension.schema.clone()).unwrap(),
+                    SchemaType::try_from(dimension.schema.deref()).unwrap_or_default(),
                 ));
             }
             dimension
@@ -297,7 +298,7 @@ pub fn context_form(
                     if let Some(r#type) = dimension_map
                         .get_value()
                         .get(dependency)
-                        .and_then(|d| SchemaType::try_from(d.schema.clone()).ok())
+                        .and_then(|d| SchemaType::try_from(d.schema.deref()).ok())
                     {
                         if !context.includes(dependency) {
                             context.push(Condition::new_with_default_expression(
@@ -367,7 +368,8 @@ pub fn context_form(
             } else {
                 context.push(Condition::new_with_default_expression(
                     selected_dimension.dimension.clone(),
-                    SchemaType::try_from(selected_dimension.schema).unwrap(),
+                    SchemaType::try_from(selected_dimension.schema.deref())
+                        .unwrap_or_default(),
                 ));
             }
             context_ws.update(|v| {
@@ -462,8 +464,8 @@ pub fn context_form(
                                         .map(|d| {
                                             let dimension_schema = d.schema.clone();
                                             (
-                                                SchemaType::try_from(dimension_schema.clone()),
-                                                EnumVariants::try_from(dimension_schema),
+                                                SchemaType::try_from(dimension_schema.deref()),
+                                                EnumVariants::try_from(dimension_schema.deref()),
                                             )
                                         })
                                         .unwrap_or((Err("".to_string()), Err("".to_string())))

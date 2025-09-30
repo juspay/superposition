@@ -27,6 +27,7 @@ import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
@@ -40,7 +41,7 @@ data UpdateDefaultConfigInput = UpdateDefaultConfigInput {
     key :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     value :: Data.Maybe.Maybe Data.Aeson.Value,
-    schema :: Data.Maybe.Maybe Data.Aeson.Value,
+    schema :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     function_name :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Maybe.Maybe Data.Text.Text,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
@@ -87,7 +88,7 @@ data UpdateDefaultConfigInputBuilderState = UpdateDefaultConfigInputBuilderState
     keyBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     valueBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
-    schemaBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
@@ -130,7 +131,7 @@ setValue :: Data.Maybe.Maybe Data.Aeson.Value -> UpdateDefaultConfigInputBuilder
 setValue value =
    Control.Monad.State.Strict.modify (\s -> (s { valueBuilderState = value }))
 
-setSchema :: Data.Maybe.Maybe Data.Aeson.Value -> UpdateDefaultConfigInputBuilder ()
+setSchema :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> UpdateDefaultConfigInputBuilder ()
 setSchema value =
    Control.Monad.State.Strict.modify (\s -> (s { schemaBuilderState = value }))
 

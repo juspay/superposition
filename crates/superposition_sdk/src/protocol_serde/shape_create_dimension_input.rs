@@ -28,7 +28,14 @@ pub fn ser_create_dimension_input_input(
         object.key("position").number(#[allow(clippy::useless_conversion)]::aws_smithy_types::Number::NegInt((*var_8).into()));
     }
     if let Some(var_9) = &input.schema {
-        object.key("schema").document(var_9);
+        #[allow(unused_mut)]
+        let mut object_10 = object.key("schema").start_object();
+        for (key_11, value_12) in var_9 {
+             {
+                object_10.key(key_11.as_str()).document(value_12);
+            }
+        }
+        object_10.finish();
     }
     Ok(())
 }

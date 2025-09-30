@@ -19,10 +19,17 @@ pub fn ser_create_default_config_input_input(
         object.key("key").string(var_5.as_str());
     }
     if let Some(var_6) = &input.schema {
-        object.key("schema").document(var_6);
+        #[allow(unused_mut)]
+        let mut object_7 = object.key("schema").start_object();
+        for (key_8, value_9) in var_6 {
+             {
+                object_7.key(key_8.as_str()).document(value_9);
+            }
+        }
+        object_7.finish();
     }
-    if let Some(var_7) = &input.value {
-        object.key("value").document(var_7);
+    if let Some(var_10) = &input.value {
+        object.key("value").document(var_10);
     }
     Ok(())
 }

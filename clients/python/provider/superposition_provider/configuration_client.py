@@ -83,6 +83,7 @@ class ConfigurationClient:
                 self.cac_config.cached_config.get('default_configs', {}),
                 self.cac_config.cached_config.get('contexts', []),
                 self.cac_config.cached_config.get('overrides', {}),
+                self.cac_config.cached_config.get('dimensions', {}),
                 query_data,
                 MergeStrategy.MERGE,
                 filter_prefixes=None,

@@ -7,7 +7,7 @@ impl super::Client {
     ///   - [`org_id(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`dimension(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::dimension) / [`set_dimension(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_dimension):<br>required: **true**<br>(undocumented)<br>
     ///   - [`position(i32)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::position) / [`set_position(Option<i32>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_position):<br>required: **true**<br>(undocumented)<br>
-    ///   - [`schema(Document)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::schema) / [`set_schema(Option<Document>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_schema):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`schema(impl Into<String>, Document)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::schema) / [`set_schema(Option<HashMap::<String, Document>>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_schema):<br>required: **true**<br>Generic key-value object structure used for flexible data representation throughout the API.<br>
     ///   - [`function_name(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::function_name) / [`set_function_name(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_function_name):<br>required: **false**<br>(undocumented)<br>
     ///   - [`description(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_description):<br>required: **true**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
@@ -16,7 +16,7 @@ impl super::Client {
                             /// - On success, responds with [`CreateDimensionOutput`](crate::operation::create_dimension::CreateDimensionOutput) with field(s):
     ///   - [`dimension(String)`](crate::operation::create_dimension::CreateDimensionOutput::dimension): (undocumented)
     ///   - [`position(i32)`](crate::operation::create_dimension::CreateDimensionOutput::position): (undocumented)
-    ///   - [`schema(Document)`](crate::operation::create_dimension::CreateDimensionOutput::schema): (undocumented)
+    ///   - [`schema(HashMap::<String, Document>)`](crate::operation::create_dimension::CreateDimensionOutput::schema): Generic key-value object structure used for flexible data representation throughout the API.
     ///   - [`function_name(Option<String>)`](crate::operation::create_dimension::CreateDimensionOutput::function_name): (undocumented)
     ///   - [`description(String)`](crate::operation::create_dimension::CreateDimensionOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::create_dimension::CreateDimensionOutput::change_reason): (undocumented)
@@ -24,7 +24,7 @@ impl super::Client {
     ///   - [`last_modified_by(String)`](crate::operation::create_dimension::CreateDimensionOutput::last_modified_by): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::create_dimension::CreateDimensionOutput::created_at): (undocumented)
     ///   - [`created_by(String)`](crate::operation::create_dimension::CreateDimensionOutput::created_by): (undocumented)
-    ///   - [`dependency_graph(HashMap::<String, Document>)`](crate::operation::create_dimension::CreateDimensionOutput::dependency_graph): Generic key-value object structure used for flexible data representation throughout the API.
+    ///   - [`dependency_graph(HashMap::<String, Vec::<String>>)`](crate::operation::create_dimension::CreateDimensionOutput::dependency_graph): (undocumented)
     ///   - [`dimension_type(DimensionType)`](crate::operation::create_dimension::CreateDimensionOutput::dimension_type): (undocumented)
     ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::create_dimension::CreateDimensionOutput::autocomplete_function_name): (undocumented)
     ///   - [`mandatory(Option<bool>)`](crate::operation::create_dimension::CreateDimensionOutput::mandatory): (undocumented)

@@ -46,6 +46,7 @@ export interface ConfigData {
     default_configs: Record<string, any>;
     contexts: any[];
     overrides: Record<string, Record<string, any>>;
+    dimensions: Record<string, Record<string, any>>;
 }
 
 export interface FfiExperiment {
@@ -57,7 +58,7 @@ export interface FfiExperiment {
 
 export interface Variant {
     id: string;
-    variant_type: 'CONTROL' | 'EXPERIMENTAL';
+    variant_type: "CONTROL" | "EXPERIMENTAL";
     context_id?: string;
     override_id?: string;
     overrides: Record<string, string>;

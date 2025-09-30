@@ -13,20 +13,29 @@ mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
 
-use std::fmt::Display;
 #[cfg(feature = "server")]
 use std::future::{ready, Ready};
+use std::{collections::HashMap, fmt::Display};
 
 #[cfg(feature = "server")]
 use actix_web::{dev::Payload, FromRequest, HttpMessage, HttpRequest};
+use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
-use diesel::r2d2::{ConnectionManager, PooledConnection};
-#[cfg(feature = "diesel_derives")]
-use diesel::PgConnection;
+use diesel::{
+    deserialize::FromSqlRow,
+    expression::AsExpression,
+    r2d2::{ConnectionManager, PooledConnection},
+    sql_types::Json,
+    PgConnection,
+};
 #[cfg(feature = "diesel_derives")]
 use diesel_derive_enum as _;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
+#[cfg(feature = "diesel_derives")]
+use superposition_derives::{JsonFromSql, JsonToSql};
+use uniffi::deps::anyhow;
 
 pub use config::{
     Condition, Config, Context, DimensionInfo, OverrideWithKeys, Overrides,
@@ -236,6 +245,39 @@ impl Default for SortBy {
 
 #[cfg(feature = "diesel_derives")]
 pub type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Deref, DerefMut, PartialEq)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct ExtendedMap(pub Map<String, Value>);
+uniffi::custom_type!(ExtendedMap, HashMap<String, String>, {
+    lower: |v| {
+        v.iter().map(|(k, v)| (
+            k.clone(), serde_json::to_string(v).unwrap()
+        )).collect::<HashMap<String, String>>()
+    },
+    try_lift: |v| {
+        v.iter().map(|(k, s)| {
+            serde_json::from_str::<Value>(s)
+                .map(|v| (k.clone(), v))
+                .map_err(|err| anyhow::anyhow!(err.to_string()))
+        }).collect::<Result<Map<String, Value>, anyhow::Error>>().map(ExtendedMap)
+    }
+});
+
+impl TryFrom<Value> for ExtendedMap {
+    type Error = String;
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        value
+            .as_object()
+            .cloned()
+            .map(ExtendedMap)
+            .ok_or_else(|| "expected a JSON object".to_string())
+    }
+}
 
 #[cfg(test)]
 mod tests {

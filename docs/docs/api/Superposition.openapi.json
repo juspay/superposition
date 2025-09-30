@@ -4740,7 +4740,9 @@
                         "type": "string"
                     },
                     "value": {},
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -4770,7 +4772,9 @@
                         "type": "string"
                     },
                     "value": {},
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -4820,7 +4824,9 @@
                     "position": {
                         "type": "number"
                     },
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "function_name": {
                         "type": "string"
                     },
@@ -4854,7 +4860,9 @@
                     "position": {
                         "type": "number"
                     },
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "function_name": {
                         "type": "string"
                     },
@@ -4879,7 +4887,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/Object"
+                        "$ref": "#/components/schemas/DepedendencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -5321,7 +5329,9 @@
                     "type_name": {
                         "type": "string"
                     },
-                    "type_schema": {},
+                    "type_schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -5342,7 +5352,9 @@
                     "type_name": {
                         "type": "string"
                     },
-                    "type_schema": {},
+                    "type_schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -5599,7 +5611,9 @@
                         "type": "string"
                     },
                     "value": {},
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -5720,7 +5734,9 @@
                     "type_name": {
                         "type": "string"
                     },
-                    "type_schema": {},
+                    "type_schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -5753,9 +5769,20 @@
                     "type_schema"
                 ]
             },
+            "DepedendencyGraph": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
             "DimensionData": {
                 "type": "object",
-                "additionalProperties": {}
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/DimensionInfo"
+                }
             },
             "DimensionExt": {
                 "type": "object",
@@ -5766,7 +5793,9 @@
                     "position": {
                         "type": "number"
                     },
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "function_name": {
                         "type": "string"
                     },
@@ -5791,7 +5820,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/Object"
+                        "$ref": "#/components/schemas/DepedendencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -5816,6 +5845,23 @@
                     "position",
                     "schema"
                 ]
+            },
+            "DimensionInfo": {
+                "type": "object",
+                "properties": {
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
+                    "position": {
+                        "type": "number"
+                    },
+                    "dimension_type": {
+                        "$ref": "#/components/schemas/DimensionType"
+                    },
+                    "dependency_graph": {
+                        "$ref": "#/components/schemas/DepedendencyGraph"
+                    }
+                }
             },
             "DimensionMatchStrategy": {
                 "type": "string",
@@ -6382,7 +6428,9 @@
                     "position": {
                         "type": "number"
                     },
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "function_name": {
                         "type": "string"
                     },
@@ -6407,7 +6455,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/Object"
+                        "$ref": "#/components/schemas/DepedendencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -7803,7 +7851,9 @@
                     "type_name": {
                         "type": "string"
                     },
-                    "type_schema": {},
+                    "type_schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -7868,7 +7918,9 @@
                         "type": "string"
                     },
                     "value": {},
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "function_name": {
                         "type": "string"
                     },
@@ -7890,7 +7942,9 @@
                         "type": "string"
                     },
                     "value": {},
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -7934,7 +7988,9 @@
             "UpdateDimensionRequestContent": {
                 "type": "object",
                 "properties": {
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "position": {
                         "type": "number"
                     },
@@ -7964,7 +8020,9 @@
                     "position": {
                         "type": "number"
                     },
-                    "schema": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "function_name": {
                         "type": "string"
                     },
@@ -7989,7 +8047,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/Object"
+                        "$ref": "#/components/schemas/DepedendencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -8432,7 +8490,9 @@
             "UpdateTypeTemplatesRequestContent": {
                 "type": "object",
                 "properties": {
-                    "type_schema": {},
+                    "type_schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },
@@ -8451,7 +8511,9 @@
                     "type_name": {
                         "type": "string"
                     },
-                    "type_schema": {},
+                    "type_schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
                     "description": {
                         "type": "string"
                     },

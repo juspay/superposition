@@ -13,7 +13,14 @@ pub fn ser_create_type_templates_input_input(
         object.key("type_name").string(var_3.as_str());
     }
     if let Some(var_4) = &input.type_schema {
-        object.key("type_schema").document(var_4);
+        #[allow(unused_mut)]
+        let mut object_5 = object.key("type_schema").start_object();
+        for (key_6, value_7) in var_4 {
+             {
+                object_5.key(key_6.as_str()).document(value_7);
+            }
+        }
+        object_5.finish();
     }
     Ok(())
 }

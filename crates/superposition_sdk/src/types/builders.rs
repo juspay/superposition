@@ -25,6 +25,10 @@ pub use crate::types::_function_response::FunctionResponseBuilder;
 
 pub use crate::types::_audit_log_full::AuditLogFullBuilder;
 
+pub use crate::types::_dimension_info::DimensionInfoBuilder;
+
+pub use crate::types::_unit::UnitBuilder;
+
 pub use crate::types::_context_partial::ContextPartialBuilder;
 
 pub use crate::types::_list_versions_member::ListVersionsMemberBuilder;
@@ -42,8 +46,6 @@ pub use crate::types::_update_context_override_request::UpdateContextOverrideReq
 pub use crate::types::_context_put::ContextPutBuilder;
 
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponseBuilder;
-
-pub use crate::types::_unit::UnitBuilder;
 
 pub use crate::types::_dimension_ext::DimensionExtBuilder;
 

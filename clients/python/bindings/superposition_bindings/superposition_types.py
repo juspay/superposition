@@ -895,8 +895,8 @@ class Context:
     condition: "Condition"
     priority: "int"
     weight: "int"
-    override_with_keys: "typing.List[str]"
-    def __init__(self, *, id: "str", condition: "Condition", priority: "int", weight: "int", override_with_keys: "typing.List[str]"):
+    override_with_keys: "OverrideWithKeys"
+    def __init__(self, *, id: "str", condition: "Condition", priority: "int", weight: "int", override_with_keys: "OverrideWithKeys"):
         self.id = id
         self.condition = condition
         self.priority = priority
@@ -927,7 +927,7 @@ class _UniffiConverterTypeContext(_UniffiConverterRustBuffer):
             condition=_UniffiConverterTypeCondition.read(buf),
             priority=_UniffiConverterInt32.read(buf),
             weight=_UniffiConverterInt32.read(buf),
-            override_with_keys=_UniffiConverterSequenceString.read(buf),
+            override_with_keys=_UniffiConverterTypeOverrideWithKeys.read(buf),
         )
 
     @staticmethod
@@ -936,7 +936,7 @@ class _UniffiConverterTypeContext(_UniffiConverterRustBuffer):
         _UniffiConverterTypeCondition.check_lower(value.condition)
         _UniffiConverterInt32.check_lower(value.priority)
         _UniffiConverterInt32.check_lower(value.weight)
-        _UniffiConverterSequenceString.check_lower(value.override_with_keys)
+        _UniffiConverterTypeOverrideWithKeys.check_lower(value.override_with_keys)
 
     @staticmethod
     def write(value, buf):
@@ -944,7 +944,57 @@ class _UniffiConverterTypeContext(_UniffiConverterRustBuffer):
         _UniffiConverterTypeCondition.write(value.condition, buf)
         _UniffiConverterInt32.write(value.priority, buf)
         _UniffiConverterInt32.write(value.weight, buf)
-        _UniffiConverterSequenceString.write(value.override_with_keys, buf)
+        _UniffiConverterTypeOverrideWithKeys.write(value.override_with_keys, buf)
+
+
+class DimensionInfo:
+    schema: "ExtendedMap"
+    position: "int"
+    dimension_type: "DimensionType"
+    dependency_graph: "DependencyGraph"
+    def __init__(self, *, schema: "ExtendedMap", position: "int", dimension_type: "DimensionType", dependency_graph: "DependencyGraph"):
+        self.schema = schema
+        self.position = position
+        self.dimension_type = dimension_type
+        self.dependency_graph = dependency_graph
+
+    def __str__(self):
+        return "DimensionInfo(schema={}, position={}, dimension_type={}, dependency_graph={})".format(self.schema, self.position, self.dimension_type, self.dependency_graph)
+
+    def __eq__(self, other):
+        if self.schema != other.schema:
+            return False
+        if self.position != other.position:
+            return False
+        if self.dimension_type != other.dimension_type:
+            return False
+        if self.dependency_graph != other.dependency_graph:
+            return False
+        return True
+
+class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return DimensionInfo(
+            schema=_UniffiConverterTypeExtendedMap.read(buf),
+            position=_UniffiConverterInt32.read(buf),
+            dimension_type=_UniffiConverterTypeDimensionType.read(buf),
+            dependency_graph=_UniffiConverterTypeDependencyGraph.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterTypeExtendedMap.check_lower(value.schema)
+        _UniffiConverterInt32.check_lower(value.position)
+        _UniffiConverterTypeDimensionType.check_lower(value.dimension_type)
+        _UniffiConverterTypeDependencyGraph.check_lower(value.dependency_graph)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterTypeExtendedMap.write(value.schema, buf)
+        _UniffiConverterInt32.write(value.position, buf)
+        _UniffiConverterTypeDimensionType.write(value.dimension_type, buf)
+        _UniffiConverterTypeDependencyGraph.write(value.dependency_graph, buf)
 
 
 class Variant:
@@ -1002,6 +1052,130 @@ class _UniffiConverterTypeVariant(_UniffiConverterRustBuffer):
         _UniffiConverterOptionalString.write(value.context_id, buf)
         _UniffiConverterOptionalString.write(value.override_id, buf)
         _UniffiConverterTypeVariantOverrides.write(value.overrides, buf)
+
+
+
+
+
+class DimensionType:
+    def __init__(self):
+        raise RuntimeError("DimensionType cannot be instantiated directly")
+
+    # Each enum variant is a nested class of the enum itself.
+    class REGULAR:
+
+        def __init__(self,):
+            pass
+
+        def __str__(self):
+            return "DimensionType.REGULAR()".format()
+
+        def __eq__(self, other):
+            if not other.is_REGULAR():
+                return False
+            return True
+    
+    class LOCAL_COHORT:
+        def __init__(self, *values):
+            if len(values) != 1:
+                raise TypeError(f"Expected 1 arguments, found {len(values)}")
+            self._values = values
+
+        def __getitem__(self, index):
+            return self._values[index]
+
+        def __str__(self):
+            return f"DimensionType.LOCAL_COHORT{self._values!r}"
+
+        def __eq__(self, other):
+            if not other.is_LOCAL_COHORT():
+                return False
+            return self._values == other._values
+    class REMOTE_COHORT:
+        def __init__(self, *values):
+            if len(values) != 1:
+                raise TypeError(f"Expected 1 arguments, found {len(values)}")
+            self._values = values
+
+        def __getitem__(self, index):
+            return self._values[index]
+
+        def __str__(self):
+            return f"DimensionType.REMOTE_COHORT{self._values!r}"
+
+        def __eq__(self, other):
+            if not other.is_REMOTE_COHORT():
+                return False
+            return self._values == other._values
+    
+
+    # For each variant, we have `is_NAME` and `is_name` methods for easily checking
+    # whether an instance is that variant.
+    def is_REGULAR(self) -> bool:
+        return isinstance(self, DimensionType.REGULAR)
+    def is_regular(self) -> bool:
+        return isinstance(self, DimensionType.REGULAR)
+    def is_LOCAL_COHORT(self) -> bool:
+        return isinstance(self, DimensionType.LOCAL_COHORT)
+    def is_local_cohort(self) -> bool:
+        return isinstance(self, DimensionType.LOCAL_COHORT)
+    def is_REMOTE_COHORT(self) -> bool:
+        return isinstance(self, DimensionType.REMOTE_COHORT)
+    def is_remote_cohort(self) -> bool:
+        return isinstance(self, DimensionType.REMOTE_COHORT)
+    
+
+# Now, a little trick - we make each nested variant class be a subclass of the main
+# enum class, so that method calls and instance checks etc will work intuitively.
+# We might be able to do this a little more neatly with a metaclass, but this'll do.
+DimensionType.REGULAR = type("DimensionType.REGULAR", (DimensionType.REGULAR, DimensionType,), {})  # type: ignore
+DimensionType.LOCAL_COHORT = type("DimensionType.LOCAL_COHORT", (DimensionType.LOCAL_COHORT, DimensionType,), {})  # type: ignore
+DimensionType.REMOTE_COHORT = type("DimensionType.REMOTE_COHORT", (DimensionType.REMOTE_COHORT, DimensionType,), {})  # type: ignore
+
+
+
+
+class _UniffiConverterTypeDimensionType(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        variant = buf.read_i32()
+        if variant == 1:
+            return DimensionType.REGULAR(
+            )
+        if variant == 2:
+            return DimensionType.LOCAL_COHORT(
+                _UniffiConverterString.read(buf),
+            )
+        if variant == 3:
+            return DimensionType.REMOTE_COHORT(
+                _UniffiConverterString.read(buf),
+            )
+        raise InternalError("Raw enum value doesn't match any cases")
+
+    @staticmethod
+    def check_lower(value):
+        if value.is_REGULAR():
+            return
+        if value.is_LOCAL_COHORT():
+            _UniffiConverterString.check_lower(value._values[0])
+            return
+        if value.is_REMOTE_COHORT():
+            _UniffiConverterString.check_lower(value._values[0])
+            return
+        raise ValueError(value)
+
+    @staticmethod
+    def write(value, buf):
+        if value.is_REGULAR():
+            buf.write_i32(1)
+        if value.is_LOCAL_COHORT():
+            buf.write_i32(2)
+            _UniffiConverterString.write(value._values[0], buf)
+        if value.is_REMOTE_COHORT():
+            buf.write_i32(3)
+            _UniffiConverterString.write(value._values[0], buf)
+
+
 
 
 
@@ -1099,6 +1273,44 @@ class _UniffiConverterTypeExperimentType(_UniffiConverterRustBuffer):
         if value == ExperimentType.DEFAULT:
             buf.write_i32(1)
         if value == ExperimentType.DELETE_OVERRIDES:
+            buf.write_i32(2)
+
+
+
+
+
+
+
+class GroupType(enum.Enum):
+    USER_CREATED = 0
+    
+    SYSTEM_GENERATED = 1
+    
+
+
+class _UniffiConverterTypeGroupType(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        variant = buf.read_i32()
+        if variant == 1:
+            return GroupType.USER_CREATED
+        if variant == 2:
+            return GroupType.SYSTEM_GENERATED
+        raise InternalError("Raw enum value doesn't match any cases")
+
+    @staticmethod
+    def check_lower(value):
+        if value == GroupType.USER_CREATED:
+            return
+        if value == GroupType.SYSTEM_GENERATED:
+            return
+        raise ValueError(value)
+
+    @staticmethod
+    def write(value, buf):
+        if value == GroupType.USER_CREATED:
+            buf.write_i32(1)
+        if value == GroupType.SYSTEM_GENERATED:
             buf.write_i32(2)
 
 
@@ -1252,6 +1464,39 @@ class _UniffiConverterMapStringString(_UniffiConverterRustBuffer):
         return d
 
 
+
+class _UniffiConverterMapStringSequenceString(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, items):
+        for (key, value) in items.items():
+            _UniffiConverterString.check_lower(key)
+            _UniffiConverterSequenceString.check_lower(value)
+
+    @classmethod
+    def write(cls, items, buf):
+        buf.write_i32(len(items))
+        for (key, value) in items.items():
+            _UniffiConverterString.write(key, buf)
+            _UniffiConverterSequenceString.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative map size")
+
+        # It would be nice to use a dict comprehension,
+        # but in Python 3.7 and before the evaluation order is not according to spec,
+        # so we we're reading the value before the key.
+        # This loop makes the order explicit: first reading the key, then the value.
+        d = {}
+        for i in range(count):
+            key = _UniffiConverterString.read(buf)
+            val = _UniffiConverterSequenceString.read(buf)
+            d[key] = val
+        return d
+
+
 class _UniffiConverterTypeCondition:
     @staticmethod
     def write(value, buf):
@@ -1272,6 +1517,72 @@ class _UniffiConverterTypeCondition:
     @staticmethod
     def lower(value):
         return _UniffiConverterMapStringString.lower(value)
+
+
+class _UniffiConverterTypeDependencyGraph:
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterMapStringSequenceString.write(value, buf)
+
+    @staticmethod
+    def read(buf):
+        return _UniffiConverterMapStringSequenceString.read(buf)
+
+    @staticmethod
+    def lift(value):
+        return _UniffiConverterMapStringSequenceString.lift(value)
+
+    @staticmethod
+    def check_lower(value):
+        return _UniffiConverterMapStringSequenceString.check_lower(value)
+
+    @staticmethod
+    def lower(value):
+        return _UniffiConverterMapStringSequenceString.lower(value)
+
+
+class _UniffiConverterTypeExtendedMap:
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterMapStringString.write(value, buf)
+
+    @staticmethod
+    def read(buf):
+        return _UniffiConverterMapStringString.read(buf)
+
+    @staticmethod
+    def lift(value):
+        return _UniffiConverterMapStringString.lift(value)
+
+    @staticmethod
+    def check_lower(value):
+        return _UniffiConverterMapStringString.check_lower(value)
+
+    @staticmethod
+    def lower(value):
+        return _UniffiConverterMapStringString.lower(value)
+
+
+class _UniffiConverterTypeOverrideWithKeys:
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterSequenceString.write(value, buf)
+
+    @staticmethod
+    def read(buf):
+        return _UniffiConverterSequenceString.read(buf)
+
+    @staticmethod
+    def lift(value):
+        return _UniffiConverterSequenceString.lift(value)
+
+    @staticmethod
+    def check_lower(value):
+        return _UniffiConverterSequenceString.check_lower(value)
+
+    @staticmethod
+    def lower(value):
+        return _UniffiConverterSequenceString.lower(value)
 
 
 class _UniffiConverterTypeOverrides:
@@ -1341,6 +1652,9 @@ class _UniffiConverterTypeVariants:
 
 # objects.
 Condition = dict[str, str]
+DependencyGraph = dict[str, typing.List[str]]
+ExtendedMap = dict[str, str]
+OverrideWithKeys = typing.List[str]
 Overrides = dict[str, str]
 VariantOverrides = Overrides
 Variants = typing.List[Variant]
@@ -1349,10 +1663,13 @@ Variants = typing.List[Variant]
 
 __all__ = [
     "InternalError",
+    "DimensionType",
     "ExperimentStatusType",
     "ExperimentType",
+    "GroupType",
     "VariantType",
     "Context",
+    "DimensionInfo",
     "Variant",
 ]
 

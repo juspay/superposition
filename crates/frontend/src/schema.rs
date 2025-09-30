@@ -126,29 +126,45 @@ impl SchemaType {
     }
 }
 
+impl TryFrom<&Map<String, Value>> for SchemaType {
+    type Error = String;
+    fn try_from(schema: &Map<String, Value>) -> Result<Self, Self::Error> {
+        let type_ = schema
+            .get("type")
+            .ok_or("type not defined in schema".to_string())?;
+
+        match type_ {
+            Value::Array(arr) => SchemaType::parse_from_array(arr),
+            Value::String(s) => SchemaType::parse_from_string(s),
+            _ => Err("type should be either a string or an array of strings".to_string()),
+        }
+    }
+}
+
 impl TryFrom<Value> for SchemaType {
     type Error = String;
     fn try_from(schema: Value) -> Result<Self, Self::Error> {
         schema
             .as_object()
             .ok_or("schema is not an object".to_string())
-            .and_then(|obj| {
-                let type_ = obj
-                    .get("type")
-                    .ok_or("type not defined in schema".to_string())?;
-
-                match type_ {
-                    Value::Array(arr) => SchemaType::parse_from_array(arr),
-                    Value::String(s) => SchemaType::parse_from_string(s),
-                    _ => Err("type should be either a string or an array of strings"
-                        .to_string()),
-                }
-            })
+            .and_then(SchemaType::try_from)
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Deref, DerefMut)]
 pub struct EnumVariants(pub Vec<Value>);
+
+impl TryFrom<&Map<String, Value>> for EnumVariants {
+    type Error = String;
+    fn try_from(schema: &Map<String, Value>) -> Result<Self, Self::Error> {
+        let type_ = schema.get("enum").cloned().unwrap_or(Value::Array(vec![]));
+
+        match type_ {
+            Value::Array(arr) => Ok(EnumVariants(arr)),
+            _ => Err("enum should be an array of options".to_string()),
+        }
+    }
+}
 
 impl TryFrom<Value> for EnumVariants {
     type Error = String;
@@ -156,13 +172,6 @@ impl TryFrom<Value> for EnumVariants {
         schema
             .as_object()
             .ok_or("schema is not an object".to_string())
-            .and_then(|obj| {
-                let type_ = obj.get("enum").cloned().unwrap_or(Value::Array(vec![]));
-
-                match type_ {
-                    Value::Array(arr) => Ok(EnumVariants(arr)),
-                    _ => Err("enum should be an array of options".to_string()),
-                }
-            })
+            .and_then(EnumVariants::try_from)
     }
 }

@@ -27,7 +27,7 @@ pub(crate) fn de_default_config_full<'a, I>(tokens: &mut ::std::iter::Peekable<I
                             }
                             "schema" => {
                                 builder = builder.set_schema(
-                                    Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                                    crate::protocol_serde::shape_object::de_object(tokens)?
                                 );
                             }
                             "description" => {

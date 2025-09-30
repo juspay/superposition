@@ -645,6 +645,91 @@ export interface ContextPartial {
 /**
  * @public
  */
+export interface Unit {
+}
+
+/**
+ * @public
+ */
+export type DimensionType =
+  | DimensionType.LOCAL_COHORTMember
+  | DimensionType.REGULARMember
+  | DimensionType.REMOTE_COHORTMember
+  | DimensionType.$UnknownMember
+
+/**
+ * @public
+ */
+export namespace DimensionType {
+
+  export interface REGULARMember {
+    REGULAR: Unit;
+    LOCAL_COHORT?: never;
+    REMOTE_COHORT?: never;
+    $unknown?: never;
+  }
+
+  export interface LOCAL_COHORTMember {
+    REGULAR?: never;
+    LOCAL_COHORT: string;
+    REMOTE_COHORT?: never;
+    $unknown?: never;
+  }
+
+  export interface REMOTE_COHORTMember {
+    REGULAR?: never;
+    LOCAL_COHORT?: never;
+    REMOTE_COHORT: string;
+    $unknown?: never;
+  }
+
+  /**
+   * @public
+   */
+  export interface $UnknownMember {
+    REGULAR?: never;
+    LOCAL_COHORT?: never;
+    REMOTE_COHORT?: never;
+    $unknown: [string, any];
+  }
+
+  export interface Visitor<T> {
+    REGULAR: (value: Unit) => T;
+    LOCAL_COHORT: (value: string) => T;
+    REMOTE_COHORT: (value: string) => T;
+    _: (name: string, value: any) => T;
+  }
+
+  export const visit = <T>(
+    value: DimensionType,
+    visitor: Visitor<T>
+  ): T => {
+    if (value.REGULAR !== undefined) return visitor.REGULAR(value.REGULAR);
+    if (value.LOCAL_COHORT !== undefined) return visitor.LOCAL_COHORT(value.LOCAL_COHORT);
+    if (value.REMOTE_COHORT !== undefined) return visitor.REMOTE_COHORT(value.REMOTE_COHORT);
+    return visitor._(value.$unknown[0], value.$unknown[1]);
+  }
+
+}
+
+/**
+ * @public
+ */
+export interface DimensionInfo {
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  schema?: Record<string, __DocumentType> | undefined;
+
+  position?: number | undefined;
+  dimension_type?: DimensionType | undefined;
+  dependency_graph?: Record<string, (string)[]> | undefined;
+}
+
+/**
+ * @public
+ */
 export interface GetConfigOutput {
   contexts?: (ContextPartial)[] | undefined;
   overrides?: Record<string, Record<string, __DocumentType>> | undefined;
@@ -654,7 +739,7 @@ export interface GetConfigOutput {
    */
   default_configs?: Record<string, __DocumentType> | undefined;
 
-  dimensions?: Record<string, __DocumentType> | undefined;
+  dimensions?: Record<string, DimensionInfo> | undefined;
   version?: string | undefined;
   last_modified?: Date | undefined;
   audit_id?: string | undefined;
@@ -969,7 +1054,12 @@ export interface WeightRecomputeOutput {
 export interface CreateDefaultConfigInput {
   key: string | undefined;
   value: __DocumentType | undefined;
-  schema: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  schema: Record<string, __DocumentType> | undefined;
+
   description: string | undefined;
   change_reason: string | undefined;
   /**
@@ -989,7 +1079,12 @@ export interface CreateDefaultConfigInput {
 export interface DefaultConfigFull {
   key: string | undefined;
   value: __DocumentType | undefined;
-  schema: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  schema: Record<string, __DocumentType> | undefined;
+
   description: string | undefined;
   change_reason: string | undefined;
   /**
@@ -1008,82 +1103,17 @@ export interface DefaultConfigFull {
 /**
  * @public
  */
-export interface Unit {
-}
-
-/**
- * @public
- */
-export type DimensionType =
-  | DimensionType.LOCAL_COHORTMember
-  | DimensionType.REGULARMember
-  | DimensionType.REMOTE_COHORTMember
-  | DimensionType.$UnknownMember
-
-/**
- * @public
- */
-export namespace DimensionType {
-
-  export interface REGULARMember {
-    REGULAR: Unit;
-    LOCAL_COHORT?: never;
-    REMOTE_COHORT?: never;
-    $unknown?: never;
-  }
-
-  export interface LOCAL_COHORTMember {
-    REGULAR?: never;
-    LOCAL_COHORT: string;
-    REMOTE_COHORT?: never;
-    $unknown?: never;
-  }
-
-  export interface REMOTE_COHORTMember {
-    REGULAR?: never;
-    LOCAL_COHORT?: never;
-    REMOTE_COHORT: string;
-    $unknown?: never;
-  }
-
-  /**
-   * @public
-   */
-  export interface $UnknownMember {
-    REGULAR?: never;
-    LOCAL_COHORT?: never;
-    REMOTE_COHORT?: never;
-    $unknown: [string, any];
-  }
-
-  export interface Visitor<T> {
-    REGULAR: (value: Unit) => T;
-    LOCAL_COHORT: (value: string) => T;
-    REMOTE_COHORT: (value: string) => T;
-    _: (name: string, value: any) => T;
-  }
-
-  export const visit = <T>(
-    value: DimensionType,
-    visitor: Visitor<T>
-  ): T => {
-    if (value.REGULAR !== undefined) return visitor.REGULAR(value.REGULAR);
-    if (value.LOCAL_COHORT !== undefined) return visitor.LOCAL_COHORT(value.LOCAL_COHORT);
-    if (value.REMOTE_COHORT !== undefined) return visitor.REMOTE_COHORT(value.REMOTE_COHORT);
-    return visitor._(value.$unknown[0], value.$unknown[1]);
-  }
-
-}
-
-/**
- * @public
- */
 export interface CreateDimensionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   dimension: string | undefined;
   position: number | undefined;
-  schema: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  schema: Record<string, __DocumentType> | undefined;
+
   function_name?: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
@@ -1097,7 +1127,12 @@ export interface CreateDimensionInput {
 export interface DimensionExt {
   dimension: string | undefined;
   position: number | undefined;
-  schema: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  schema: Record<string, __DocumentType> | undefined;
+
   function_name?: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
@@ -1105,12 +1140,7 @@ export interface DimensionExt {
   last_modified_by: string | undefined;
   created_at: Date | undefined;
   created_by: string | undefined;
-  /**
-   * Generic key-value object structure used for flexible data representation throughout the API.
-   * @public
-   */
-  dependency_graph: Record<string, __DocumentType> | undefined;
-
+  dependency_graph: Record<string, (string)[]> | undefined;
   dimension_type: DimensionType | undefined;
   autocomplete_function_name?: string | undefined;
   mandatory?: boolean | undefined;
@@ -1264,7 +1294,12 @@ export interface CreateTypeTemplatesRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
   type_name: string | undefined;
-  type_schema: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  type_schema: Record<string, __DocumentType> | undefined;
+
   description: string | undefined;
   change_reason: string | undefined;
 }
@@ -1274,7 +1309,12 @@ export interface CreateTypeTemplatesRequest {
  */
 export interface TypeTemplatesResponse {
   type_name: string | undefined;
-  type_schema: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  type_schema: Record<string, __DocumentType> | undefined;
+
   description: string | undefined;
   change_reason: string | undefined;
   created_by: string | undefined;
@@ -1453,7 +1493,12 @@ export interface UpdateDefaultConfigInput {
   key: string | undefined;
   change_reason: string | undefined;
   value?: __DocumentType | undefined;
-  schema?: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  schema?: Record<string, __DocumentType> | undefined;
+
   function_name?: string | undefined;
   description?: string | undefined;
   autocomplete_function_name?: string | undefined;
@@ -1581,7 +1626,12 @@ export interface UpdateDimensionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   dimension: string | undefined;
-  schema?: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  schema?: Record<string, __DocumentType> | undefined;
+
   position?: number | undefined;
   function_name?: string | undefined;
   description?: string | undefined;
@@ -2122,7 +2172,12 @@ export interface UpdateTypeTemplatesRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
   type_name: string | undefined;
-  type_schema: __DocumentType | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  type_schema: Record<string, __DocumentType> | undefined;
+
   description?: string | undefined;
   change_reason: string | undefined;
 }

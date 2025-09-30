@@ -30,16 +30,19 @@ import typing
 import platform
 from .superposition_types import Condition
 from .superposition_types import Context
+from .superposition_types import DimensionInfo
 from .superposition_types import Overrides
 from .superposition_types import Variant
 from .superposition_types import Variants
 from .superposition_types import _UniffiConverterTypeCondition
 from .superposition_types import _UniffiConverterTypeContext
+from .superposition_types import _UniffiConverterTypeDimensionInfo
 from .superposition_types import _UniffiConverterTypeOverrides
 from .superposition_types import _UniffiConverterTypeVariant
 from .superposition_types import _UniffiConverterTypeVariants
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferCondition
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferContext
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferDimensionInfo
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferOverrides
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferVariant
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferVariants
@@ -465,7 +468,6 @@ def _uniffi_load_indirect():
 
     return ctypes.cdll.LoadLibrary(libpath)
 
-
 def _uniffi_check_contract_api_version(lib):
     # Get the bindings contract version from our ComponentInterface
     bindings_contract_version = 29
@@ -475,9 +477,9 @@ def _uniffi_check_contract_api_version(lib):
         raise InternalError("UniFFI contract version mismatch: try cleaning and rebuilding your project")
 
 def _uniffi_check_api_checksums(lib):
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 16161:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 19563:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 28068:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 2552:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 29145:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -595,10 +597,12 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.argtypes = (
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning.argtypes = (
+    _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -1316,6 +1320,39 @@ class _UniffiConverterMapStringString(_UniffiConverterRustBuffer):
 
 
 
+class _UniffiConverterMapStringTypeDimensionInfo(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, items):
+        for (key, value) in items.items():
+            _UniffiConverterString.check_lower(key)
+            _UniffiConverterTypeDimensionInfo.check_lower(value)
+
+    @classmethod
+    def write(cls, items, buf):
+        buf.write_i32(len(items))
+        for (key, value) in items.items():
+            _UniffiConverterString.write(key, buf)
+            _UniffiConverterTypeDimensionInfo.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative map size")
+
+        # It would be nice to use a dict comprehension,
+        # but in Python 3.7 and before the evaluation order is not according to spec,
+        # so we we're reading the value before the key.
+        # This loop makes the order explicit: first reading the key, then the value.
+        d = {}
+        for i in range(count):
+            key = _UniffiConverterString.read(buf)
+            val = _UniffiConverterTypeDimensionInfo.read(buf)
+            d[key] = val
+        return d
+
+
+
 class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, items):
@@ -1351,6 +1388,8 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # External type Context: `from .superposition_types import Context`
 
+# External type DimensionInfo: `from .superposition_types import DimensionInfo`
+
 # External type Variant: `from .superposition_types import Variant`
 
 # External type Condition: `from .superposition_types import Condition`
@@ -1361,12 +1400,14 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # Async support
 
-def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
+def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
     _UniffiConverterMapStringString.check_lower(default_config)
     
     _UniffiConverterSequenceTypeContext.check_lower(contexts)
     
     _UniffiConverterMapStringTypeOverrides.check_lower(overrides)
+    
+    _UniffiConverterMapStringTypeDimensionInfo.check_lower(dimensions)
     
     _UniffiConverterMapStringString.check_lower(query_data)
     
@@ -1380,18 +1421,21 @@ def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Cont
         _UniffiConverterMapStringString.lower(default_config),
         _UniffiConverterSequenceTypeContext.lower(contexts),
         _UniffiConverterMapStringTypeOverrides.lower(overrides),
+        _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions),
         _UniffiConverterMapStringString.lower(query_data),
         _UniffiConverterTypeMergeStrategy.lower(merge_strategy),
         _UniffiConverterOptionalSequenceString.lower(filter_prefixes),
         _UniffiConverterOptionalTypeExperimentationArgs.lower(experimentation)))
 
 
-def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
+def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
     _UniffiConverterMapStringString.check_lower(default_config)
     
     _UniffiConverterSequenceTypeContext.check_lower(contexts)
     
     _UniffiConverterMapStringTypeOverrides.check_lower(overrides)
+    
+    _UniffiConverterMapStringTypeDimensionInfo.check_lower(dimensions)
     
     _UniffiConverterMapStringString.check_lower(query_data)
     
@@ -1405,6 +1449,7 @@ def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "t
         _UniffiConverterMapStringString.lower(default_config),
         _UniffiConverterSequenceTypeContext.lower(contexts),
         _UniffiConverterMapStringTypeOverrides.lower(overrides),
+        _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions),
         _UniffiConverterMapStringString.lower(query_data),
         _UniffiConverterTypeMergeStrategy.lower(merge_strategy),
         _UniffiConverterOptionalSequenceString.lower(filter_prefixes),

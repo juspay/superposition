@@ -138,18 +138,23 @@ impl CreateTypeTemplatesFluentBuilder {
     pub fn get_type_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_type_name()
                 }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn type_schema(mut self, input: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.type_schema(input);
+    /// 
+    /// Adds a key-value pair to `type_schema`.
+    /// 
+    /// To override the contents of this collection use [`set_type_schema`](Self::set_type_schema).
+    /// 
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub fn type_schema(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+                    self.inner = self.inner.type_schema(k.into(), v);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_type_schema(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub fn set_type_schema(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
                     self.inner = self.inner.set_type_schema(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_type_schema(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    /// Generic key-value object structure used for flexible data representation throughout the API.
+    pub fn get_type_schema(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
                     self.inner.get_type_schema()
                 }
     #[allow(missing_docs)] // documentation missing in model
