@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.91.1 - 2025-09-30
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.62.1
+- haskell_client bumped to haskell_client-v0.6.1
+- superposition_provider bumped to superposition_provider-v0.5.1
+- experimentation_platform bumped to experimentation_platform-v0.43.1
+- superposition_types bumped to superposition_types-v0.34.1
+- superposition_core bumped to superposition_core-v0.7.1
+- frontend bumped to frontend-v0.44.1
+- superposition_sdk bumped to superposition_sdk-v0.8.1
+### Global changes
+#### Bug Fixes
+- **(cohorts)** eval logic and update providers (#715) - (e99aa25) - Ayush Jain
+- use dimension prefix for context in get and resolve config (#713) - (f9df4d7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.91.0 [skip ci] - (87c956e) - Superposition Bot
+
+- - -
+
 ## v0.91.0 - 2025-09-25
 ### Package updates
 - superposition_core bumped to superposition_core-v0.7.0

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.43.1 - 2025-09-30
+#### Bug Fixes
+- use dimension prefix for context in get and resolve config (#713) - (f9df4d7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.90.0 [skip ci] - (c98c27f) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.43.0 - 2025-09-16
 #### Features
 - Exact match option for context and experiment filter (#700) - (0944a86) - Ayush Jain
