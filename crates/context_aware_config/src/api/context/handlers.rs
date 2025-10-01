@@ -15,7 +15,7 @@ use crate::{
 };
 
 use actix_web::{
-    delete, get, post, put,
+    delete, get, post, put, routes,
     web::{Data, Json, Path},
     Either, HttpResponse, Scope,
 };
@@ -281,7 +281,9 @@ async fn get_context(
     Ok(Json(ctx))
 }
 
+#[routes]
 #[get("/list")]
+#[get("")]
 async fn list_contexts(
     filter_params: superposition_query::Query<ContextListFilters>,
     pagination_params: superposition_query::Query<PaginationParams>,

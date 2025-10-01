@@ -21,9 +21,10 @@ resource DefaultConfig {
         last_modified_by: String
         autocomplete_function_name: String
     }
-    list: ListDefaultConfigs
-    put: UpdateDefaultConfig
+    update: UpdateDefaultConfig
     delete: DeleteDefaultConfig
+    read: GetDefaultConfig
+    list: ListDefaultConfigs
     operations: [
         CreateDefaultConfig
     ]
@@ -71,6 +72,20 @@ list ListDefaultConfigOut {
     member: DefaultConfigFull
 }
 
+@documentation("Retrieves a specific default config entry by its key, including its value, schema, function mappings, and metadata.")
+@readonly
+@http(method: "GET", uri: "/default-config/{key}")
+@tags(["Default Configuration"])
+operation GetDefaultConfig with [GetOperation] {
+    input := for DefaultConfig with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        $key
+    }
+
+    output: DefaultConfigFull
+}
+
 // Operations
 @documentation("Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.")
 @http(method: "POST", uri: "/default-config")
@@ -83,19 +98,21 @@ operation CreateDefaultConfig {
 @readonly
 @http(method: "GET", uri: "/default-config")
 operation ListDefaultConfigs {
-    input := with [PaginationParams, WorkspaceMixin] {}
+    input := with [WorkspaceMixin, PaginationParams] {
+        @httpQuery("name")
+        @notProperty
+        name: String
+    }
+
     output := with [PaginatedResponse] {
         data: ListDefaultConfigOut
     }
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 @documentation("Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.")
 @idempotent
-@http(method: "PUT", uri: "/default-config/{key}")
-operation UpdateDefaultConfig {
+@http(method: "PATCH", uri: "/default-config/{key}")
+operation UpdateDefaultConfig with [GetOperation] {
     input := for DefaultConfig with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -116,25 +133,15 @@ operation UpdateDefaultConfig {
     }
 
     output: DefaultConfigFull
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 @documentation("Permanently removes a default config entry from the workspace. This operation cannot be performed if it affects config resolution for contexts that rely on this fallback value.")
 @idempotent
 @http(method: "DELETE", uri: "/default-config/{key}", code: 201)
-operation DeleteDefaultConfig {
+operation DeleteDefaultConfig with [GetOperation] {
     input := for DefaultConfig with [WorkspaceMixin] {
         @httpLabel
         @required
         $key
     }
-
-    output := {}
-
-    errors: [
-        ResourceNotFound
-    ]
 }

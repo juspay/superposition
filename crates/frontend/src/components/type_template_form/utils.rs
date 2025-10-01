@@ -59,7 +59,7 @@ pub async fn update_type(
 
     let response = request(
         url,
-        reqwest::Method::PUT,
+        reqwest::Method::PATCH,
         Some(payload),
         construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )
