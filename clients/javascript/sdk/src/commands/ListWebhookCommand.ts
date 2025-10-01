@@ -6,7 +6,7 @@ import {
 } from "../SuperpositionClient";
 import {
   ListWebhookInput,
-  WebhookListResponse,
+  ListWebhookOutput,
 } from "../models/models_0";
 import {
   de_ListWebhookCommand,
@@ -32,7 +32,7 @@ export interface ListWebhookCommandInput extends ListWebhookInput {}
  *
  * The output of {@link ListWebhookCommand}.
  */
-export interface ListWebhookCommandOutput extends WebhookListResponse, __MetadataBearer {}
+export interface ListWebhookCommandOutput extends ListWebhookOutput, __MetadataBearer {}
 
 /**
  * Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.
@@ -51,10 +51,10 @@ export interface ListWebhookCommandOutput extends WebhookListResponse, __Metadat
  * };
  * const command = new ListWebhookCommand(input);
  * const response = await client.send(command);
- * // { // WebhookListResponse
- * //   total_pages: Number("long"), // required
- * //   total_items: Number("long"), // required
- * //   data: [ // WebhookList // required
+ * // { // ListWebhookOutput
+ * //   total_pages: Number("int"),
+ * //   total_items: Number("int"),
+ * //   data: [ // WebhookList
  * //     { // WebhookResponse
  * //       name: "STRING_VALUE", // required
  * //       description: "STRING_VALUE", // required
@@ -113,7 +113,7 @@ export class ListWebhookCommand extends $Command.classBuilder<ListWebhookCommand
 declare protected static __types: {
   api: {
       input: ListWebhookInput;
-      output: WebhookListResponse;
+      output: ListWebhookOutput;
   };
   sdk: {
       input: ListWebhookCommandInput;

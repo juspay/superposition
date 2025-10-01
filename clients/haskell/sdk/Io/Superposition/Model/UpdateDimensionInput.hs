@@ -175,13 +175,13 @@ build builder = do
 
 instance Io.Superposition.Utility.IntoRequestBuilder UpdateDimensionInput where
     intoRequestBuilder self = do
-        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPut
+        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPatch
         Io.Superposition.Utility.setPath [
             "dimension",
             Io.Superposition.Utility.serializeElement (dimension self)
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "schema" (schema self)
         Io.Superposition.Utility.serField "autocomplete_function_name" (autocomplete_function_name self)

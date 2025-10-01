@@ -3,16 +3,16 @@
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ListContextsInput  {
+    /// Number of items to be returned in each page.
+    pub count: ::std::option::Option<i32>,
+    /// Page number to retrieve, starting from 1.
+    pub page: ::std::option::Option<i32>,
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub all: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub page: ::std::option::Option<i32>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub count: ::std::option::Option<i32>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub all: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub prefix: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -29,6 +29,18 @@ pub struct ListContextsInput  {
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl  ListContextsInput  {
+    /// Number of items to be returned in each page.
+    pub fn count(&self) -> ::std::option::Option<i32> {
+        self.count
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn page(&self) -> ::std::option::Option<i32> {
+        self.page
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn all(&self) -> ::std::option::Option<bool> {
+        self.all
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -36,18 +48,6 @@ impl  ListContextsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn page(&self) -> ::std::option::Option<i32> {
-        self.page
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn count(&self) -> ::std::option::Option<i32> {
-        self.count
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn all(&self) -> ::std::option::Option<bool> {
-        self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn prefix(&self) -> ::std::option::Option<&str> {
@@ -89,11 +89,11 @@ impl ListContextsInput {
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
 pub struct ListContextsInputBuilder {
+    pub(crate) count: ::std::option::Option<i32>,
+    pub(crate) page: ::std::option::Option<i32>,
+    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) page: ::std::option::Option<i32>,
-    pub(crate) count: ::std::option::Option<i32>,
-    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) prefix: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ContextFilterSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
@@ -103,6 +103,45 @@ pub struct ListContextsInputBuilder {
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl ListContextsInputBuilder {
+    /// Number of items to be returned in each page.
+    pub fn count(mut self, input: i32) -> Self {
+        self.count = ::std::option::Option::Some(input);
+        self
+    }
+    /// Number of items to be returned in each page.
+    pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
+        self.count = input; self
+    }
+    /// Number of items to be returned in each page.
+    pub fn get_count(&self) -> &::std::option::Option<i32> {
+        &self.count
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn page(mut self, input: i32) -> Self {
+        self.page = ::std::option::Option::Some(input);
+        self
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
+        self.page = input; self
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn get_page(&self) -> &::std::option::Option<i32> {
+        &self.page
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn all(mut self, input: bool) -> Self {
+        self.all = ::std::option::Option::Some(input);
+        self
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.all = input; self
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+        &self.all
+    }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -130,45 +169,6 @@ impl ListContextsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn page(mut self, input: i32) -> Self {
-        self.page = ::std::option::Option::Some(input);
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_page(&self) -> &::std::option::Option<i32> {
-        &self.page
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn count(mut self, input: i32) -> Self {
-        self.count = ::std::option::Option::Some(input);
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_count(&self) -> &::std::option::Option<i32> {
-        &self.count
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn all(mut self, input: bool) -> Self {
-        self.all = ::std::option::Option::Some(input);
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_all(&self) -> &::std::option::Option<bool> {
-        &self.all
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -265,15 +265,15 @@ impl ListContextsInputBuilder {
     pub fn build(self) -> ::std::result::Result<crate::operation::list_contexts::ListContextsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::list_contexts::ListContextsInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
+                count: self.count
                 ,
                 page: self.page
                 ,
-                count: self.count
-                ,
                 all: self.all
+                ,
+                workspace_id: self.workspace_id
+                ,
+                org_id: self.org_id
                 ,
                 prefix: self.prefix
                 ,

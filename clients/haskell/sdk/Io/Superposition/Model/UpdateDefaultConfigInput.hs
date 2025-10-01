@@ -174,13 +174,13 @@ build builder = do
 
 instance Io.Superposition.Utility.IntoRequestBuilder UpdateDefaultConfigInput where
     intoRequestBuilder self = do
-        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPut
+        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPatch
         Io.Superposition.Utility.setPath [
             "default-config",
             Io.Superposition.Utility.serializeElement (key self)
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "schema" (schema self)
         Io.Superposition.Utility.serField "autocomplete_function_name" (autocomplete_function_name self)

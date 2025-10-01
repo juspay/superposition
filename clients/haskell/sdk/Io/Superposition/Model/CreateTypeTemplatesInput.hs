@@ -140,7 +140,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateTypeTemplatesInput wh
             "types"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "type_name" (type_name self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)

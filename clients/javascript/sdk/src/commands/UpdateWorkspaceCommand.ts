@@ -86,7 +86,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * @see {@link UpdateWorkspaceCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
- * @throws {@link WorkspaceNotFound} (client fault)
+ * @throws {@link ResourceNotFound} (client fault)
  *
  * @throws {@link InternalServerError} (server fault)
  *

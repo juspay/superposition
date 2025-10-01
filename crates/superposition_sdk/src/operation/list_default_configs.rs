@@ -150,6 +150,11 @@ fn uri_query(_input: &crate::operation::list_default_configs::ListDefaultConfigs
             query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
         }
     }
+    if let ::std::option::Option::Some(inner_4) = &_input.name {
+         {
+            query.push_kv("name", &::aws_smithy_http::query::fmt_string(inner_4));
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]
@@ -209,8 +214,6 @@ builder
 #[derive(::std::fmt::Debug)]
 pub enum ListDefaultConfigsError {
     #[allow(missing_docs)] // documentation missing in model
-    ResourceNotFound(crate::types::error::ResourceNotFound),
-    #[allow(missing_docs)] // documentation missing in model
     InternalServerError(crate::types::error::InternalServerError),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
                     #[deprecated(note = "Matching `Unhandled` directly is not forwards compatible. Instead, match using a \
@@ -237,14 +240,9 @@ impl ListDefaultConfigsError {
     /// 
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
-            Self::ResourceNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::Unhandled(e) => &e.meta,
         }
-    }
-    /// Returns `true` if the error kind is `ListDefaultConfigsError::ResourceNotFound`.
-    pub fn is_resource_not_found(&self) -> bool {
-        matches!(self, Self::ResourceNotFound(_))
     }
     /// Returns `true` if the error kind is `ListDefaultConfigsError::InternalServerError`.
     pub fn is_internal_server_error(&self) -> bool {
@@ -254,9 +252,6 @@ impl ListDefaultConfigsError {
 impl ::std::error::Error for ListDefaultConfigsError {
     fn source(&self) -> ::std::option::Option<&(dyn ::std::error::Error + 'static)> {
         match self {
-            Self::ResourceNotFound(_inner) =>
-            ::std::option::Option::Some(_inner)
-            ,
             Self::InternalServerError(_inner) =>
             ::std::option::Option::Some(_inner)
             ,
@@ -269,9 +264,6 @@ impl ::std::error::Error for ListDefaultConfigsError {
 impl ::std::fmt::Display for ListDefaultConfigsError {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match self {
-            Self::ResourceNotFound(_inner) =>
-            _inner.fmt(f)
-            ,
             Self::InternalServerError(_inner) =>
             _inner.fmt(f)
             ,
@@ -296,9 +288,6 @@ impl ::aws_smithy_types::retry::ProvideErrorKind for ListDefaultConfigsError {
 impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for ListDefaultConfigsError {
     fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
-            Self::ResourceNotFound(_inner) =>
-            ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
-            ,
             Self::InternalServerError(_inner) =>
             ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
             ,

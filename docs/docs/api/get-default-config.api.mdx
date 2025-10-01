@@ -1,0 +1,71 @@
+---
+id: get-default-config
+title: "GetDefaultConfig"
+description: "Retrieves a specific default config entry by its key, including its value, schema, function mappings, and metadata."
+sidebar_label: "GetDefaultConfig"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVk1P20AQ/Ssrn1opIRGFS26UUsqlRUBPKIo264m9YHuX3VlKFPm/d8brhDgxVP1APcXxzseb92ZmvUpS8Mppi9pUySS5AnQaHsELKbwFpRdaiRQWMhQolKkWOhNQoVuK+VJo9OIelgOhK1WEVFdZ8+pRFgEGwqscSjkQi1Apji5KaS3Z+IGQVSpKQJlKlAfJIDEWnGSbi5QwnAN+ihlPm4RkYKWT5ADOJ5PbVVLRHzKk3HSmGbeVmNNzzJlMVgkuLZt4KqfKknqQOHgI2gElQBegHmyiPA2Ny4Y6XYfKQabg/jjYD+PuvZUK/iLelN94ayoPnu0Px2P+6Uq1S5MgK7F2o3SkFpJU7EjEF1o1DI/uPHuv9tGY+R0oZLId64E65maS+yA3KtNJ3VPYJpRMU81ZZXG5HZR8dmupwFGnUbJhE1jEEILyBYXBgQgeUrEwTiwKeNLzAgR3DxVsqWaqs6lOYO5MyHITkB5BnFxecH+hxoJxfYu4dtP3VKdyWWUwcyD9Cxbrtp5F5Xctdiv8ZiMP7CoDGmVKW1BHz34Rh7EQCoR0JrEvDVFS8klCdMAQNQXZ8pn3i1dIj7PSpDTevxm469kbvtPPtztUdsrp4OwyNminew9pD4RNB667cvos+e6UXLUDctpOR10z3qPx0f6AkakJTsFXg59NoJVFVs8DRl7HfWN5QXEdCX0N7hHcmXPUssdvMpkleC+zvp6pn+vvgdNHAXvIjLdr0tIlIl8hLmamlBZwbnhBZ9CA4ZU7SUbt7TCMt8NoRbrVLAmo4DQum4XtS4358kBafZAj2o8gHbiTwAFup7zu1tbXXHss7xWfTcF8sDdqX25uLkU0FzRqOdXYUrzuFHadNwYNV7pamCZoy9l1IJat8br1IeJ8DH04Pjwejj8Mx8esP5lgKRvN2vVP3Sa6/O2iWz2r/58u25Y6hCcc2ULSHUWlBFcwtqjpbdLVlJwmPI2kU04ls8FqNZcevruirvn1QwDHSk95Ap2Wc+aRdE+152dqmoUsPLzCxburdmW8Fy9hbF/KarkZ9EnSLor4MVBPyay9b/95+phm62thA4Hv/zdJtf0t0ckWDU6UAotbZ3vbpN4e2/OzG2r3nzqsdrQ=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetDefaultConfig"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/default-config/{key}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a specific default config entry by its key, including its value, schema, function mappings, and metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"key","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetDefaultConfig 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"key":{"type":"string"},"value":{},"schema":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"description":{"type":"string"},"change_reason":{"type":"string"},"function_name":{"type":"string","description":"Optional"},"autocomplete_function_name":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","key","last_modified_at","last_modified_by","schema","value"],"title":"GetDefaultConfigResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

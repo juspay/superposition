@@ -1,0 +1,71 @@
+---
+id: get-version
+title: "GetVersion"
+description: "Retrieves a specific config version along with its metadata for audit and rollback purposes."
+sidebar_label: "GetVersion"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VU1v2kAQ/SurPbUSBJSGC7c0StMcWlVJ2gtC0WAPeBPbu9kdkyDk/94Z2xgc3Bza5sSa+Xrz3s7sVscYIm8cGZvrqb5B8gbXGBSo4DAySxOpyOZLs1Jr9IG9FKQ2X6lnQ4kyFFSGBDEQqKX1CorYkII8Vt6m6QKiR+UK72zAcKIH2jr0IKWuYy52hfSrzskmBx44FX/r6Wyrc/5gFxOzyQgyB5TwOUQJZqCnW00bJx6BAecrXQ60x6fCeOTM5AssB22Sl6H1q+E+VYIQo//rZM/WPwYHEf5Dvrn8E5zNmRjxPx2P5acrxp4fxXa1C+BCrAhhThICzqUmqkgdPQSJ2x7jsIsHjEhY9iIBmboqU9KHtdabTe35PoGQ9Pt6BML4HujYPNB8JTKxaL4gOCTDDHJMp8uenASrcGAA72EjXBNmoSeg7NA728HvYu8g7UIYCA8sCBlKsUP7TcP4RUN3WdU6G58da8WutvARfrf0xRZ8/9lrrxhHTfoUvua8Pof0Fj1P16X3PEKTd5E6wxBghX307TvvgdNHQSvRTF9UFBf1UKtvkHONTPyYT57mxMqcr7DCIwM81aNmjYy2Ji5lZjAqvKFNNfUh462yOQFnThIi9xnBoz8vJHA2l6HZed9K23Vnb8S0vYrhlepT/fXu7oeq3XlvUcKwG3Z3oyyhi8qhosnkS1slbei6LZhg3m2miWk6Y8vp+HQyHH8ajiciPbtQBpVczRLhK6b2q+/VPLSKv/c2bsghfKGRS4F3GYMtfCogarVmbU8DPa2nJOFmxLDdLiDgT5+Wpfz9VKAXDfm4Bm9gIQyxorEJcuZrsIQ04BvNfrhpZvij+hO23ULIZR2sIS3ki4+PuKnfinLOXs06/u/V6yoHj0mLQJ6Hdyl1+NR0qtUO51GEjg5sRxuiPJzDq8s7vse/Ad7uvss=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetVersion"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/version/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a specific config version along with its metadata for audit and rollback purposes.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetVersion 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"config":{},"config_hash":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"description":{"type":"string"},"tags":{"type":"array","items":{"type":"string"}}},"required":["config","config_hash","created_at","description","id"],"title":"GetVersionResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

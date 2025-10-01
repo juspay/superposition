@@ -161,9 +161,24 @@ export interface ApplicableVariantsOutput {
 export interface ListAuditLogsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
   count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
   page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
   all?: boolean | undefined;
+
   from_date?: Date | undefined;
   to_date?: Date | undefined;
   /**
@@ -808,17 +823,16 @@ export interface GetResolvedConfigOutput {
 /**
  * @public
  */
-export interface ListVersionsInput {
+export interface GetVersionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
-  count?: number | undefined;
-  page?: number | undefined;
+  id: string | undefined;
 }
 
 /**
  * @public
  */
-export interface ListVersionsMember {
+export interface GetVersionResponse {
   id: string | undefined;
   config: __DocumentType | undefined;
   config_hash: string | undefined;
@@ -830,10 +844,40 @@ export interface ListVersionsMember {
 /**
  * @public
  */
+export interface ListVersionsInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListVersionsMember {
+  id: string | undefined;
+  config: __DocumentType | undefined;
+  created_at: Date | undefined;
+  description: string | undefined;
+  tags?: (string)[] | undefined;
+}
+
+/**
+ * @public
+ */
 export interface ListVersionsOutput {
-  total_pages: number | undefined;
-  total_items: number | undefined;
-  data: (ListVersionsMember)[] | undefined;
+  total_pages?: number | undefined;
+  total_items?: number | undefined;
+  data?: (ListVersionsMember)[] | undefined;
 }
 
 /**
@@ -867,12 +911,6 @@ export interface DeleteContextInput {
   org_id: string | undefined;
   id: string | undefined;
   config_tags?: string | undefined;
-}
-
-/**
- * @public
- */
-export interface DeleteContextOutput {
 }
 
 /**
@@ -949,11 +987,26 @@ export type ContextFilterSortOn = typeof ContextFilterSortOn[keyof typeof Contex
  * @public
  */
 export interface ListContextsInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
   workspace_id: string | undefined;
   org_id: string | undefined;
-  page?: number | undefined;
-  count?: number | undefined;
-  all?: boolean | undefined;
   prefix?: string | undefined;
   sort_on?: ContextFilterSortOn | undefined;
   /**
@@ -1006,6 +1059,19 @@ export interface UpdateOverrideInput {
   org_id: string | undefined;
   config_tags?: string | undefined;
   request: UpdateContextOverrideRequest | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ValidateContextInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
+  context: Record<string, __DocumentType> | undefined;
 }
 
 /**
@@ -1461,18 +1527,37 @@ export interface DeleteDefaultConfigInput {
 /**
  * @public
  */
-export interface DeleteDefaultConfigOutput {
+export interface GetDefaultConfigInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  key: string | undefined;
 }
 
 /**
  * @public
  */
 export interface ListDefaultConfigsInput {
-  count?: number | undefined;
-  page?: number | undefined;
-  all?: boolean | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
+  name?: string | undefined;
 }
 
 /**
@@ -1516,12 +1601,6 @@ export interface DeleteDimensionInput {
 /**
  * @public
  */
-export interface DeleteDimensionOutput {
-}
-
-/**
- * @public
- */
 export interface DeleteExperimentGroupInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1540,31 +1619,6 @@ export interface DeleteFunctionInput {
 /**
  * @public
  */
-export interface DeleteFunctionOutput {
-}
-
-/**
- * @public
- */
-export class FunctionNotFound extends __BaseException {
-  readonly name: "FunctionNotFound" = "FunctionNotFound";
-  readonly $fault: "client" = "client";
-  /**
-   * @internal
-   */
-  constructor(opts: __ExceptionOptionType<FunctionNotFound, __BaseException>) {
-    super({
-      name: "FunctionNotFound",
-      $fault: "client",
-      ...opts
-    });
-    Object.setPrototypeOf(this, FunctionNotFound.prototype);
-  }
-}
-
-/**
- * @public
- */
 export interface DeleteTypeTemplatesInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1574,20 +1628,10 @@ export interface DeleteTypeTemplatesInput {
 /**
  * @public
  */
-export class TypeTemplatesNotFound extends __BaseException {
-  readonly name: "TypeTemplatesNotFound" = "TypeTemplatesNotFound";
-  readonly $fault: "client" = "client";
-  /**
-   * @internal
-   */
-  constructor(opts: __ExceptionOptionType<TypeTemplatesNotFound, __BaseException>) {
-    super({
-      name: "TypeTemplatesNotFound",
-      $fault: "client",
-      ...opts
-    });
-    Object.setPrototypeOf(this, TypeTemplatesNotFound.prototype);
-  }
+export interface DeleteWebhookInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
 }
 
 /**
@@ -1603,9 +1647,24 @@ export interface GetDimensionInput {
  * @public
  */
 export interface ListDimensionsInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
   count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
   page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
   all?: boolean | undefined;
+
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -1685,10 +1744,26 @@ export type ExperimentGroupSortOn = typeof ExperimentGroupSortOn[keyof typeof Ex
  * @public
  */
 export interface ListExperimentGroupsInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
   workspace_id: string | undefined;
   org_id: string | undefined;
-  page?: number | undefined;
-  count?: number | undefined;
   /**
    * Filter by experiment group name (exact match or substring, depending on backend implementation).
    * @public
@@ -1720,12 +1795,6 @@ export interface ListExperimentGroupsInput {
   sort_by?: SortBy | undefined;
 
   /**
-   * If true, returns all experiment groups, ignoring pagination parameters page and count.
-   * @public
-   */
-  all?: boolean | undefined;
-
-  /**
    * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
    * @public
    */
@@ -1733,17 +1802,16 @@ export interface ListExperimentGroupsInput {
 }
 
 /**
- * Output structure for the list experiment groups operation, including pagination details.
  * @public
  */
-export interface ListExperimentGroupsResponse {
-  total_pages: number | undefined;
-  total_items: number | undefined;
+export interface ListExperimentGroupsOutput {
+  total_pages?: number | undefined;
+  total_items?: number | undefined;
   /**
    * A list of experiment group responses.
    * @public
    */
-  data: (ExperimentGroupResponse)[] | undefined;
+  data?: (ExperimentGroupResponse)[] | undefined;
 }
 
 /**
@@ -1776,15 +1844,6 @@ export interface UpdateExperimentGroupRequest {
 /**
  * @public
  */
-export interface ExperimentListResponse {
-  total_pages: number | undefined;
-  total_items: number | undefined;
-  data: (ExperimentResponse)[] | undefined;
-}
-
-/**
- * @public
- */
 export interface GetExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1808,11 +1867,26 @@ export type ExperimentSortOn = typeof ExperimentSortOn[keyof typeof ExperimentSo
  * @public
  */
 export interface ListExperimentInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
   workspace_id: string | undefined;
   org_id: string | undefined;
-  page?: number | undefined;
-  count?: number | undefined;
-  all?: boolean | undefined;
   status?: ExperimentStatusType | undefined;
   from_date?: Date | undefined;
   to_date?: Date | undefined;
@@ -1833,6 +1907,15 @@ export interface ListExperimentInput {
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListExperimentOutput {
+  total_pages?: number | undefined;
+  total_items?: number | undefined;
+  data?: (ExperimentResponse)[] | undefined;
 }
 
 /**
@@ -1901,9 +1984,24 @@ export interface GetFunctionInput {
  * @public
  */
 export interface ListFunctionInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
   count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
   page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
   all?: boolean | undefined;
+
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -2042,29 +2140,34 @@ export interface GetOrganisationInput {
 /**
  * @public
  */
-export class OrganisationNotFound extends __BaseException {
-  readonly name: "OrganisationNotFound" = "OrganisationNotFound";
-  readonly $fault: "client" = "client";
-  /**
-   * @internal
-   */
-  constructor(opts: __ExceptionOptionType<OrganisationNotFound, __BaseException>) {
-    super({
-      name: "OrganisationNotFound",
-      $fault: "client",
-      ...opts
-    });
-    Object.setPrototypeOf(this, OrganisationNotFound.prototype);
-  }
+export interface GetTypeTemplateInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  type_name: string | undefined;
 }
 
 /**
  * @public
  */
 export interface GetTypeTemplatesListInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
   count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
   page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
   all?: boolean | undefined;
+
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -2090,9 +2193,40 @@ export interface GetWebhookInput {
 /**
  * @public
  */
+export interface GetWebhookByEventInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  event: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetWorkspaceInput {
+  org_id: string | undefined;
+  workspace_name: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface ListOrganisationInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
   count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
   page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
   all?: boolean | undefined;
 }
 
@@ -2109,9 +2243,24 @@ export interface ListOrganisationOutput {
  * @public
  */
 export interface ListWebhookInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
   count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
   page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
   all?: boolean | undefined;
+
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -2119,29 +2268,44 @@ export interface ListWebhookInput {
 /**
  * @public
  */
-export interface WebhookListResponse {
-  total_pages: number | undefined;
-  total_items: number | undefined;
-  data: (WebhookResponse)[] | undefined;
+export interface ListWebhookOutput {
+  total_pages?: number | undefined;
+  total_items?: number | undefined;
+  data?: (WebhookResponse)[] | undefined;
 }
 
 /**
  * @public
  */
 export interface ListWorkspaceInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
   count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
   page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
   all?: boolean | undefined;
+
   org_id: string | undefined;
 }
 
 /**
  * @public
  */
-export interface WorkspaceListResponse {
-  total_pages: number | undefined;
-  total_items: number | undefined;
-  data: (WorkspaceResponse)[] | undefined;
+export interface ListWorkspaceOutput {
+  total_pages?: number | undefined;
+  total_items?: number | undefined;
+  data?: (WorkspaceResponse)[] | undefined;
 }
 
 /**
@@ -2207,25 +2371,6 @@ export interface UpdateWebhookInput {
 /**
  * @public
  */
-export class WebhookNotFound extends __BaseException {
-  readonly name: "WebhookNotFound" = "WebhookNotFound";
-  readonly $fault: "client" = "client";
-  /**
-   * @internal
-   */
-  constructor(opts: __ExceptionOptionType<WebhookNotFound, __BaseException>) {
-    super({
-      name: "WebhookNotFound",
-      $fault: "client",
-      ...opts
-    });
-    Object.setPrototypeOf(this, WebhookNotFound.prototype);
-  }
-}
-
-/**
- * @public
- */
 export interface UpdateWorkspaceRequest {
   org_id: string | undefined;
   workspace_name: string | undefined;
@@ -2236,23 +2381,4 @@ export interface UpdateWorkspaceRequest {
   metrics?: __DocumentType | undefined;
   allow_experiment_self_approval?: boolean | undefined;
   auto_populate_control?: boolean | undefined;
-}
-
-/**
- * @public
- */
-export class WorkspaceNotFound extends __BaseException {
-  readonly name: "WorkspaceNotFound" = "WorkspaceNotFound";
-  readonly $fault: "client" = "client";
-  /**
-   * @internal
-   */
-  constructor(opts: __ExceptionOptionType<WorkspaceNotFound, __BaseException>) {
-    super({
-      name: "WorkspaceNotFound",
-      $fault: "client",
-      ...opts
-    });
-    Object.setPrototypeOf(this, WorkspaceNotFound.prototype);
-  }
 }

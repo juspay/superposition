@@ -13,9 +13,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
-import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.DefaultTrait;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpLabelTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
@@ -30,12 +28,11 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("workspace_id", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-tenant"),
+                new HttpHeaderTrait("x-workspace"),
                 new RequiredTrait())
         .putMember("org_id", PreludeSchemas.STRING,
-                new DefaultTrait(Node.from("juspay")),
-                new RequiredTrait(),
-                new HttpHeaderTrait("x-org-id"))
+                new HttpHeaderTrait("x-org-id"),
+                new RequiredTrait())
         .putMember("id", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
@@ -140,10 +137,10 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
-            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_MEMBER_EXPERIMENT_IDS, member, memberExperimentIds);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_MEMBER_EXPERIMENT_IDS, member, memberExperimentIds);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -176,10 +173,9 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
      * Builder for {@link RemoveMembersFromGroupInput}.
      */
     public static final class Builder implements ShapeBuilder<RemoveMembersFromGroupInput> {
-        private static final String ORG_ID_DEFAULT = "juspay";
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
-        private String orgId = ORG_ID_DEFAULT;
+        private String orgId;
         private String id;
         private String changeReason;
         private List<String> memberExperimentIds;
@@ -207,6 +203,7 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
          */
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
+            tracker.setMember($SCHEMA_ORG_ID);
             return this;
         }
 
@@ -255,10 +252,10 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
-                case 1 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
-                case 2 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 3 -> memberExperimentIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_MEMBER_EXPERIMENT_IDS, member, value));
-                case 4 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 2 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
+                case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 4 -> memberExperimentIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_MEMBER_EXPERIMENT_IDS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -270,6 +267,9 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_ID)) {
                 workspaceId("");
+            }
+            if (!tracker.checkMember($SCHEMA_ORG_ID)) {
+                orgId("");
             }
             if (!tracker.checkMember($SCHEMA_ID)) {
                 id("");
@@ -302,10 +302,10 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
-                    case 1 -> builder.id(de.readString(member));
-                    case 2 -> builder.changeReason(de.readString(member));
-                    case 3 -> builder.memberExperimentIds(SharedSerde.deserializeStringList(member, de));
-                    case 4 -> builder.orgId(de.readString(member));
+                    case 1 -> builder.orgId(de.readString(member));
+                    case 2 -> builder.id(de.readString(member));
+                    case 3 -> builder.changeReason(de.readString(member));
+                    case 4 -> builder.memberExperimentIds(SharedSerde.deserializeStringList(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

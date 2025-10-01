@@ -130,19 +130,19 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListCon
                     let mut request_builder = {
                         fn uri_base(_input: &crate::operation::list_contexts::ListContextsInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     use ::std::fmt::Write as _;
-    ::std::write!(output, "/context/list").expect("formatting should succeed");
+    ::std::write!(output, "/context").expect("formatting should succeed");
     ::std::result::Result::Ok(())
 }
 fn uri_query(_input: &crate::operation::list_contexts::ListContextsInput, mut output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     let mut query = ::aws_smithy_http::query::Writer::new(output);
-    if let ::std::option::Option::Some(inner_1) = &_input.page {
+    if let ::std::option::Option::Some(inner_1) = &_input.count {
          {
-            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_1).encode());
+            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_1).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_2) = &_input.count {
+    if let ::std::option::Option::Some(inner_2) = &_input.page {
          {
-            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
+            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
         }
     }
     if let ::std::option::Option::Some(inner_3) = &_input.all {

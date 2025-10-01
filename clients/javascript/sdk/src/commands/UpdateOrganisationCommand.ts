@@ -76,7 +76,7 @@ export interface UpdateOrganisationCommandOutput extends OrganisationResponse, _
  * @see {@link UpdateOrganisationCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
- * @throws {@link OrganisationNotFound} (client fault)
+ * @throws {@link ResourceNotFound} (client fault)
  *
  * @throws {@link InternalServerError} (server fault)
  *

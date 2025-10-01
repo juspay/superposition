@@ -4,10 +4,7 @@ import {
   ServiceOutputTypes,
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
-import {
-  DeleteDimensionInput,
-  DeleteDimensionOutput,
-} from "../models/models_0";
+import { DeleteDimensionInput } from "../models/models_0";
 import {
   de_DeleteDimensionCommand,
   se_DeleteDimensionCommand,
@@ -32,7 +29,7 @@ export interface DeleteDimensionCommandInput extends DeleteDimensionInput {}
  *
  * The output of {@link DeleteDimensionCommand}.
  */
-export interface DeleteDimensionCommandOutput extends DeleteDimensionOutput, __MetadataBearer {}
+export interface DeleteDimensionCommandOutput extends __MetadataBearer {}
 
 /**
  * Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.

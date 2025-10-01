@@ -104,6 +104,11 @@ import {
   DeleteTypeTemplatesCommandOutput,
 } from "./commands/DeleteTypeTemplatesCommand";
 import {
+  DeleteWebhookCommand,
+  DeleteWebhookCommandInput,
+  DeleteWebhookCommandOutput,
+} from "./commands/DeleteWebhookCommand";
+import {
   DiscardExperimentCommand,
   DiscardExperimentCommandInput,
   DiscardExperimentCommandOutput,
@@ -128,6 +133,11 @@ import {
   GetContextFromConditionCommandInput,
   GetContextFromConditionCommandOutput,
 } from "./commands/GetContextFromConditionCommand";
+import {
+  GetDefaultConfigCommand,
+  GetDefaultConfigCommandInput,
+  GetDefaultConfigCommandOutput,
+} from "./commands/GetDefaultConfigCommand";
 import {
   GetDimensionCommand,
   GetDimensionCommandInput,
@@ -159,15 +169,35 @@ import {
   GetResolvedConfigCommandOutput,
 } from "./commands/GetResolvedConfigCommand";
 import {
+  GetTypeTemplateCommand,
+  GetTypeTemplateCommandInput,
+  GetTypeTemplateCommandOutput,
+} from "./commands/GetTypeTemplateCommand";
+import {
   GetTypeTemplatesListCommand,
   GetTypeTemplatesListCommandInput,
   GetTypeTemplatesListCommandOutput,
 } from "./commands/GetTypeTemplatesListCommand";
 import {
+  GetVersionCommand,
+  GetVersionCommandInput,
+  GetVersionCommandOutput,
+} from "./commands/GetVersionCommand";
+import {
+  GetWebhookByEventCommand,
+  GetWebhookByEventCommandInput,
+  GetWebhookByEventCommandOutput,
+} from "./commands/GetWebhookByEventCommand";
+import {
   GetWebhookCommand,
   GetWebhookCommandInput,
   GetWebhookCommandOutput,
 } from "./commands/GetWebhookCommand";
+import {
+  GetWorkspaceCommand,
+  GetWorkspaceCommandInput,
+  GetWorkspaceCommandOutput,
+} from "./commands/GetWorkspaceCommand";
 import {
   ListAuditLogsCommand,
   ListAuditLogsCommandInput,
@@ -314,6 +344,11 @@ import {
   UpdateWorkspaceCommandOutput,
 } from "./commands/UpdateWorkspaceCommand";
 import {
+  ValidateContextCommand,
+  ValidateContextCommandInput,
+  ValidateContextCommandOutput,
+} from "./commands/ValidateContextCommand";
+import {
   WeightRecomputeCommand,
   WeightRecomputeCommandInput,
   WeightRecomputeCommandOutput,
@@ -342,19 +377,25 @@ const commands = {
   DeleteExperimentGroupCommand,
   DeleteFunctionCommand,
   DeleteTypeTemplatesCommand,
+  DeleteWebhookCommand,
   DiscardExperimentCommand,
   GetConfigCommand,
   GetConfigFastCommand,
   GetContextCommand,
   GetContextFromConditionCommand,
+  GetDefaultConfigCommand,
   GetDimensionCommand,
   GetExperimentCommand,
   GetExperimentGroupCommand,
   GetFunctionCommand,
   GetOrganisationCommand,
   GetResolvedConfigCommand,
+  GetTypeTemplateCommand,
   GetTypeTemplatesListCommand,
+  GetVersionCommand,
   GetWebhookCommand,
+  GetWebhookByEventCommand,
+  GetWorkspaceCommand,
   ListAuditLogsCommand,
   ListContextsCommand,
   ListDefaultConfigsCommand,
@@ -384,6 +425,7 @@ const commands = {
   UpdateTypeTemplatesCommand,
   UpdateWebhookCommand,
   UpdateWorkspaceCommand,
+  ValidateContextCommand,
   WeightRecomputeCommand,
 }
 
@@ -729,6 +771,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link DeleteWebhookCommand}
+   */
+  deleteWebhook(
+    args: DeleteWebhookCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<DeleteWebhookCommandOutput>;
+  deleteWebhook(
+    args: DeleteWebhookCommandInput,
+    cb: (err: any, data?: DeleteWebhookCommandOutput) => void
+  ): void;
+  deleteWebhook(
+    args: DeleteWebhookCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: DeleteWebhookCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link DiscardExperimentCommand}
    */
   discardExperiment(
@@ -811,6 +870,23 @@ export interface Superposition {
     args: GetContextFromConditionCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetContextFromConditionCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetDefaultConfigCommand}
+   */
+  getDefaultConfig(
+    args: GetDefaultConfigCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetDefaultConfigCommandOutput>;
+  getDefaultConfig(
+    args: GetDefaultConfigCommandInput,
+    cb: (err: any, data?: GetDefaultConfigCommandOutput) => void
+  ): void;
+  getDefaultConfig(
+    args: GetDefaultConfigCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetDefaultConfigCommandOutput) => void
   ): void;
 
   /**
@@ -916,6 +992,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link GetTypeTemplateCommand}
+   */
+  getTypeTemplate(
+    args: GetTypeTemplateCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetTypeTemplateCommandOutput>;
+  getTypeTemplate(
+    args: GetTypeTemplateCommandInput,
+    cb: (err: any, data?: GetTypeTemplateCommandOutput) => void
+  ): void;
+  getTypeTemplate(
+    args: GetTypeTemplateCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetTypeTemplateCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link GetTypeTemplatesListCommand}
    */
   getTypeTemplatesList(
@@ -933,6 +1026,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link GetVersionCommand}
+   */
+  getVersion(
+    args: GetVersionCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetVersionCommandOutput>;
+  getVersion(
+    args: GetVersionCommandInput,
+    cb: (err: any, data?: GetVersionCommandOutput) => void
+  ): void;
+  getVersion(
+    args: GetVersionCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetVersionCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link GetWebhookCommand}
    */
   getWebhook(
@@ -947,6 +1057,40 @@ export interface Superposition {
     args: GetWebhookCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetWebhookCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetWebhookByEventCommand}
+   */
+  getWebhookByEvent(
+    args: GetWebhookByEventCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetWebhookByEventCommandOutput>;
+  getWebhookByEvent(
+    args: GetWebhookByEventCommandInput,
+    cb: (err: any, data?: GetWebhookByEventCommandOutput) => void
+  ): void;
+  getWebhookByEvent(
+    args: GetWebhookByEventCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetWebhookByEventCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetWorkspaceCommand}
+   */
+  getWorkspace(
+    args: GetWorkspaceCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetWorkspaceCommandOutput>;
+  getWorkspace(
+    args: GetWorkspaceCommandInput,
+    cb: (err: any, data?: GetWorkspaceCommandOutput) => void
+  ): void;
+  getWorkspace(
+    args: GetWorkspaceCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetWorkspaceCommandOutput) => void
   ): void;
 
   /**
@@ -1441,6 +1585,23 @@ export interface Superposition {
     args: UpdateWorkspaceCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: UpdateWorkspaceCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ValidateContextCommand}
+   */
+  validateContext(
+    args: ValidateContextCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ValidateContextCommandOutput>;
+  validateContext(
+    args: ValidateContextCommandInput,
+    cb: (err: any, data?: ValidateContextCommandOutput) => void
+  ): void;
+  validateContext(
+    args: ValidateContextCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ValidateContextCommandOutput) => void
   ): void;
 
   /**

@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
-import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -14,7 +13,6 @@ import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -22,42 +20,42 @@ public final class ListVersionsOutput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListVersionsOutput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("total_pages", PreludeSchemas.INTEGER,
-                new RequiredTrait())
-        .putMember("total_items", PreludeSchemas.INTEGER,
-                new RequiredTrait())
-        .putMember("data", SharedSchemas.LIST_VERSIONS_OUT,
-                new RequiredTrait())
+        .putMember("total_pages", PreludeSchemas.INTEGER)
+        .putMember("total_items", PreludeSchemas.INTEGER)
+        .putMember("data", SharedSchemas.LIST_VERSIONS_OUT)
         .build();
 
     private static final Schema $SCHEMA_TOTAL_PAGES = $SCHEMA.member("total_pages");
     private static final Schema $SCHEMA_TOTAL_ITEMS = $SCHEMA.member("total_items");
     private static final Schema $SCHEMA_DATA = $SCHEMA.member("data");
 
-    private final transient int totalPages;
-    private final transient int totalItems;
+    private final transient Integer totalPages;
+    private final transient Integer totalItems;
     private final transient List<ListVersionsMember> data;
 
     private ListVersionsOutput(Builder builder) {
         this.totalPages = builder.totalPages;
         this.totalItems = builder.totalItems;
-        this.data = Collections.unmodifiableList(builder.data);
+        this.data = builder.data == null ? null : Collections.unmodifiableList(builder.data);
     }
 
-    public int totalPages() {
+    public Integer totalPages() {
         return totalPages;
     }
 
-    public int totalItems() {
+    public Integer totalItems() {
         return totalItems;
     }
 
     public List<ListVersionsMember> data() {
+        if (data == null) {
+            return Collections.emptyList();
+        }
         return data;
     }
 
     public boolean hasData() {
-        return true;
+        return data != null;
     }
 
     @Override
@@ -74,8 +72,8 @@ public final class ListVersionsOutput implements SerializableStruct {
             return false;
         }
         ListVersionsOutput that = (ListVersionsOutput) other;
-        return this.totalPages == that.totalPages
-               && this.totalItems == that.totalItems
+        return Objects.equals(this.totalPages, that.totalPages)
+               && Objects.equals(this.totalItems, that.totalItems)
                && Objects.equals(this.data, that.data);
     }
 
@@ -91,9 +89,15 @@ public final class ListVersionsOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        serializer.writeInteger($SCHEMA_TOTAL_PAGES, totalPages);
-        serializer.writeInteger($SCHEMA_TOTAL_ITEMS, totalItems);
-        serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.ListVersionsOutSerializer.INSTANCE);
+        if (totalPages != null) {
+            serializer.writeInteger($SCHEMA_TOTAL_PAGES, totalPages);
+        }
+        if (totalItems != null) {
+            serializer.writeInteger($SCHEMA_TOTAL_ITEMS, totalItems);
+        }
+        if (data != null) {
+            serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.ListVersionsOutSerializer.INSTANCE);
+        }
     }
 
     @Override
@@ -133,9 +137,8 @@ public final class ListVersionsOutput implements SerializableStruct {
      * Builder for {@link ListVersionsOutput}.
      */
     public static final class Builder implements ShapeBuilder<ListVersionsOutput> {
-        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
-        private int totalPages;
-        private int totalItems;
+        private Integer totalPages;
+        private Integer totalItems;
         private List<ListVersionsMember> data;
 
         private Builder() {}
@@ -146,38 +149,31 @@ public final class ListVersionsOutput implements SerializableStruct {
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder totalPages(int totalPages) {
             this.totalPages = totalPages;
-            tracker.setMember($SCHEMA_TOTAL_PAGES);
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder totalItems(int totalItems) {
             this.totalItems = totalItems;
-            tracker.setMember($SCHEMA_TOTAL_ITEMS);
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder data(List<ListVersionsMember> data) {
-            this.data = Objects.requireNonNull(data, "data cannot be null");
-            tracker.setMember($SCHEMA_DATA);
+            this.data = data;
             return this;
         }
 
         @Override
         public ListVersionsOutput build() {
-            tracker.validate();
             return new ListVersionsOutput(this);
         }
 
@@ -190,23 +186,6 @@ public final class ListVersionsOutput implements SerializableStruct {
                 case 2 -> data((List<ListVersionsMember>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
-        }
-
-        @Override
-        public ShapeBuilder<ListVersionsOutput> errorCorrection() {
-            if (tracker.allSet()) {
-                return this;
-            }
-            if (!tracker.checkMember($SCHEMA_TOTAL_PAGES)) {
-                tracker.setMember($SCHEMA_TOTAL_PAGES);
-            }
-            if (!tracker.checkMember($SCHEMA_TOTAL_ITEMS)) {
-                tracker.setMember($SCHEMA_TOTAL_ITEMS);
-            }
-            if (!tracker.checkMember($SCHEMA_DATA)) {
-                data(Collections.emptyList());
-            }
-            return this;
         }
 
         @Override

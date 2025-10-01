@@ -5,7 +5,7 @@ description: "Permanently removes a dimension from the workspace. This operation
 sidebar_label: "DeleteDimension"
 hide_title: true
 hide_table_of_contents: true
-api: eJzVVD1v2zAQ/SsEpxbwV9Nk8ZY2LhqgKILEnYIMtHSymFAkc6ScCIL+e+8kWbbjNO3QDvVi6vju693j1TKFkKD2UTsr5/IKsFAWbDSVQCjcBoJQItUF2EAIkaErRMxBPDl8CF4lMBHLXAfhPKDiIOJJGyMypY3QWQvdeeeKoiVRb8gIHmwKNtGUwaGgEAgZIFkgFatKwLMOUdu1SJzN9LrsooeJHMkh12VKJV+AgQgX2yR07xWqgmwY5Py2lpY+CJfuITT36lXM6RySHAol57WMlWdgiEh5ZTOSCI+lRqAsEUtoRkOs57HD9Vin21A5qBTwjWAj4jlTpYlkui+JuOo38SNYZeMfxz8OdseW4IkyCIw/mX3gv8Nxv+BOEEhsvTjm6ez02Okagisxge8ufnGlTQWhDrzOZrNjr0tLA7HK3ABuABeINHQC7hxHkiZNbUf2Vd4bnbRDnt4HDlAf9+5W95AwRx5ZElF3nRYQglrDKyRRbVFHA6+Xc91X8rkvo+Efeag160gOLAVJ3JK+csfyS1sKW9WRnOZyOuhsWg/HhkcHSYk6Vq0mQ6FjXk2U15M8Rv8JFAKelxzh9o5nt0XfcNNdX2/4DJ3yRSu2feq/LpdXooMLRXhqrud2qyh2XbWAliRtM9cG7cm6KYle74LufYix0IU+mZ2cjWcfx7MzHjxBIq0Pdu2F3AlM7L/Og9rq3dD/j93T8xzhOU69UfQ6qe8SDbfSKeD2YNPMdx801ZwIYkRdr1SAH2iahs2PJSDrgo4bhVqtmHVSSaoDn0lmmTIB3uDu3XX/+t+LXxXZG5WteILKlPxFxweoDrZjc0fgfuH89SK6ZHvrcyiEt98/STVs0oNU3e15koDfvzvaO83+W79YfFssF/REfgLoB4L3
+api: eJzVVMlu2zAQ/RWCpxbwoqbJxbe0cdEARREk7inIgZZGFhOJZIaUE0HQv3dGkmUrTnPocqgvJkdvtjePU8sEfIzaBW2NXMgrwEIZMCGvBEJht+CFEokuwHhCiBRtIUIG4snig3cqhplYZdoL6wAVBxFPOs9FqnQudNpC996Zomhx0FsyggOTgIk1ZbAoKARCCkgWSMS6EvCsfdBmI2JrUr0pu+h+JidyyHWZUMkXkEOAi10S+u4UqoJs6OXitpaGLoRLDhCae3UqZHT2cQaFkotahsox0AekvLKZSITHUiNQloAlNJMh1vPU4maqk12oDFQC+NvBBjL/IN4dW7wjisAz/iT6wH/j8b7gShBI7Lw45ml0eux0Dd6WGMN3G77Y0iSCUCOvsyg69ro0NACj8hvALeASkYZMwL3jRNJkA0mNfZVzuY7boc7vPQeoj3u363uIAw8YWQJBd50W4L3awCskUW1BhxxeL+e6r+RzX0bDP/JQG9aNHFjykrglPWWW5Za0FLYqI/ks5HzQ1bwejg2PDuISdahaDfpCh6yaKadnWQjuEygEPC85wu0dz26HvuGmu77e8Bk65Q+Ua0z919XqSnRwoQhPzfXc7hTFrusW0JKkTWrboD1ZNyXR66zXvQ8x5rvQJ9HJ2TT6OI3OePAECbQu2LXXcicwcfgaR7XV+6H/H7um5znAc5i7XNHrpL5LzLmVTgG3o82y2F9oqhkRxIi6XisPPzBvGjY/loCsCzpuFWq1ZtZJJYn2fCaZpSr38AZ376771/9e/KrI3qhMxRNUeck3Oj5ANdqGzR2B+4Xz14vokh2sy6EQXoD/JNXhMh1l6wDncQwuHHw7Wj3N4XO/WH5brpb0Sn4CoI1/Eg==
 sidebar_class_name: "delete api-method"
 info_path: docs/api/superposition
 custom_edit_url: null
@@ -47,7 +47,7 @@ Permanently removes a dimension from the workspace. This operation will fail if 
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"dimension","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+  parameters={[{"name":"dimension","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
 >
   
 </ParamsDetails>

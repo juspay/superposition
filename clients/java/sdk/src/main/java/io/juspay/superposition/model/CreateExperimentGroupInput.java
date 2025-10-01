@@ -16,9 +16,7 @@ import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.java.core.serde.document.Document;
-import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.DefaultTrait;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.RangeTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
@@ -33,12 +31,11 @@ public final class CreateExperimentGroupInput implements SerializableStruct {
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("workspace_id", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-tenant"),
+                new HttpHeaderTrait("x-workspace"),
                 new RequiredTrait())
         .putMember("org_id", PreludeSchemas.STRING,
-                new DefaultTrait(Node.from("juspay")),
-                new RequiredTrait(),
-                new HttpHeaderTrait("x-org-id"))
+                new HttpHeaderTrait("x-org-id"),
+                new RequiredTrait())
         .putMember("name", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("description", PreludeSchemas.STRING,
@@ -184,12 +181,12 @@ public final class CreateExperimentGroupInput implements SerializableStruct {
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
-            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, trafficPercentage);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, trafficPercentage);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_MEMBER_EXPERIMENT_IDS, member, memberExperimentIds);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
@@ -226,10 +223,9 @@ public final class CreateExperimentGroupInput implements SerializableStruct {
      * Builder for {@link CreateExperimentGroupInput}.
      */
     public static final class Builder implements ShapeBuilder<CreateExperimentGroupInput> {
-        private static final String ORG_ID_DEFAULT = "juspay";
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
-        private String orgId = ORG_ID_DEFAULT;
+        private String orgId;
         private String name;
         private String description;
         private String changeReason;
@@ -260,6 +256,7 @@ public final class CreateExperimentGroupInput implements SerializableStruct {
          */
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
+            tracker.setMember($SCHEMA_ORG_ID);
             return this;
         }
 
@@ -336,12 +333,12 @@ public final class CreateExperimentGroupInput implements SerializableStruct {
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
-                case 1 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 2 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 4 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-                case 5 -> trafficPercentage((int) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, value));
-                case 6 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 2 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
+                case 3 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 4 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 5 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 6 -> trafficPercentage((int) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, value));
                 case 7 -> memberExperimentIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_MEMBER_EXPERIMENT_IDS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
@@ -354,6 +351,9 @@ public final class CreateExperimentGroupInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_ID)) {
                 workspaceId("");
+            }
+            if (!tracker.checkMember($SCHEMA_ORG_ID)) {
+                orgId("");
             }
             if (!tracker.checkMember($SCHEMA_NAME)) {
                 name("");
@@ -392,12 +392,12 @@ public final class CreateExperimentGroupInput implements SerializableStruct {
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
-                    case 1 -> builder.name(de.readString(member));
-                    case 2 -> builder.description(de.readString(member));
-                    case 3 -> builder.changeReason(de.readString(member));
-                    case 4 -> builder.context(SharedSerde.deserializeCondition(member, de));
-                    case 5 -> builder.trafficPercentage(de.readInteger(member));
-                    case 6 -> builder.orgId(de.readString(member));
+                    case 1 -> builder.orgId(de.readString(member));
+                    case 2 -> builder.name(de.readString(member));
+                    case 3 -> builder.description(de.readString(member));
+                    case 4 -> builder.changeReason(de.readString(member));
+                    case 5 -> builder.context(SharedSerde.deserializeCondition(member, de));
+                    case 6 -> builder.trafficPercentage(de.readInteger(member));
                     case 7 -> builder.memberExperimentIds(SharedSerde.deserializeStringList(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }

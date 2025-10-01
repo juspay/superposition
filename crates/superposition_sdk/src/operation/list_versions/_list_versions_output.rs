@@ -4,24 +4,27 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ListVersionsOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub total_pages: i32,
+    pub total_pages: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
-    pub total_items: i32,
+    pub total_items: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::ListVersionsMember>,
+    pub data: ::std::option::Option<::std::vec::Vec::<crate::types::ListVersionsMember>>,
 }
 impl  ListVersionsOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_pages(&self) -> i32 {
+    pub fn total_pages(&self) -> ::std::option::Option<i32> {
         self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_items(&self) -> i32 {
+    pub fn total_items(&self) -> ::std::option::Option<i32> {
         self.total_items
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.data.is_none()`.
     pub fn data(&self) -> &[crate::types::ListVersionsMember] {
-        use std::ops::Deref; self.data.deref()
+        self.data.as_deref()
+        .unwrap_or_default()
     }
 }
 impl ListVersionsOutput {
@@ -41,7 +44,6 @@ pub struct ListVersionsOutputBuilder {
 }
 impl ListVersionsOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn total_pages(mut self, input: i32) -> Self {
         self.total_pages = ::std::option::Option::Some(input);
         self
@@ -55,7 +57,6 @@ impl ListVersionsOutputBuilder {
         &self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn total_items(mut self, input: i32) -> Self {
         self.total_items = ::std::option::Option::Some(input);
         self
@@ -87,30 +88,15 @@ impl ListVersionsOutputBuilder {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListVersionsOutput`](crate::operation::list_versions::ListVersionsOutput).
-    /// This method will fail if any of the following fields are not set:
-    /// - [`total_pages`](crate::operation::list_versions::builders::ListVersionsOutputBuilder::total_pages)
-    /// - [`total_items`](crate::operation::list_versions::builders::ListVersionsOutputBuilder::total_items)
-    /// - [`data`](crate::operation::list_versions::builders::ListVersionsOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_versions::ListVersionsOutput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::list_versions::ListVersionsOutput {
-                total_pages: self.total_pages
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_pages", "total_pages was not specified but it is required when building ListVersionsOutput")
-                    )?
-                ,
-                total_items: self.total_items
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_items", "total_items was not specified but it is required when building ListVersionsOutput")
-                    )?
-                ,
-                data: self.data
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building ListVersionsOutput")
-                    )?
-                ,
-            }
-        )
+    pub fn build(self) -> crate::operation::list_versions::ListVersionsOutput {
+        crate::operation::list_versions::ListVersionsOutput {
+            total_pages: self.total_pages
+            ,
+            total_items: self.total_items
+            ,
+            data: self.data
+            ,
+        }
     }
 }
 

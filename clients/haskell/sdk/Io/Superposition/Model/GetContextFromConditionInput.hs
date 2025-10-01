@@ -101,7 +101,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetContextFromConditionInpu
             "get"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serBody "application/json" (context self)
 

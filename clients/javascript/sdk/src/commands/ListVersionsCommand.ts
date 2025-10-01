@@ -51,13 +51,12 @@ export interface ListVersionsCommandOutput extends ListVersionsOutput, __Metadat
  * const command = new ListVersionsCommand(input);
  * const response = await client.send(command);
  * // { // ListVersionsOutput
- * //   total_pages: Number("int"), // required
- * //   total_items: Number("int"), // required
- * //   data: [ // ListVersionsOut // required
+ * //   total_pages: Number("int"),
+ * //   total_items: Number("int"),
+ * //   data: [ // ListVersionsOut
  * //     { // ListVersionsMember
  * //       id: "STRING_VALUE", // required
  * //       config: "DOCUMENT_VALUE", // required
- * //       config_hash: "STRING_VALUE", // required
  * //       created_at: new Date("TIMESTAMP"), // required
  * //       description: "STRING_VALUE", // required
  * //       tags: [ // StringList

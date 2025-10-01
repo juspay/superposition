@@ -97,48 +97,6 @@ impl ListDefaultConfigsFluentBuilder {
                             self
                         }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn count(mut self, input: i32) -> Self {
-                    self.inner = self.inner.count(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_count(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_count(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_count()
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn page(mut self, input: i32) -> Self {
-                    self.inner = self.inner.page(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_page(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_page(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_page()
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn all(mut self, input: bool) -> Self {
-                    self.inner = self.inner.all(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_all(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_all(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_all()
-                }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.workspace_id(input.into());
                     self
@@ -165,6 +123,62 @@ impl ListDefaultConfigsFluentBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
+                }
+    /// Number of items to be returned in each page.
+    pub fn count(mut self, input: i32) -> Self {
+                    self.inner = self.inner.count(input);
+                    self
+                }
+    /// Number of items to be returned in each page.
+    pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
+                    self.inner = self.inner.set_count(input);
+                    self
+                }
+    /// Number of items to be returned in each page.
+    pub fn get_count(&self) -> &::std::option::Option<i32> {
+                    self.inner.get_count()
+                }
+    /// Page number to retrieve, starting from 1.
+    pub fn page(mut self, input: i32) -> Self {
+                    self.inner = self.inner.page(input);
+                    self
+                }
+    /// Page number to retrieve, starting from 1.
+    pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
+                    self.inner = self.inner.set_page(input);
+                    self
+                }
+    /// Page number to retrieve, starting from 1.
+    pub fn get_page(&self) -> &::std::option::Option<i32> {
+                    self.inner.get_page()
+                }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn all(mut self, input: bool) -> Self {
+                    self.inner = self.inner.all(input);
+                    self
+                }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_all(input);
+                    self
+                }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_all()
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.name(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_name(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_name()
                 }
 }
 

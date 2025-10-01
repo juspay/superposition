@@ -1,0 +1,71 @@
+---
+id: delete-webhook
+title: "DeleteWebhook"
+description: "Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint."
+sidebar_label: "DeleteWebhook"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVE1v2zAM/SuCThuQNF7XXnLr1gwrMAxF22GHogfFZmK1tqRSdLrA8H8faStpgnQ97APLJbLER5HvPbHVBcQcbSDrnZ7qS8DaOHBUrRVC7VcQlVFPMC+9f1C5dwu7VAv0taIS1JPHhxhMDiMVyYdg3VKZqlKLhhoEBStOpJwnu7C5kRuiIs9IQwpcEbx1dKRH2gfA/vii4BLOoQKC78OVfBoMmpp3MOrpbasdf3BU/zfSVooOhkpex7yE2uhpq2kdJCYSckW6G2mEx8YicHrCBrrRNs2Pscfl2BabVCWYAvC3k20J+YN8d7ITA5MFUeKPs3fyt6/THkmKQ9QGIxlPspNDyBVE32AOXz198o0rFEftoU6z7BB14Zh5Z6prwBXgDNGj4sBn4EizK4iFFqwJoUpST+6jJGgPO/fze8hJlEVRnuzQZw0xmiW8QBHXRpYqeLmcq1TJx1RGJz9GmKUYRieOomZe2UalF48VPX29udg6Uz1JDp+0ImUnekHeoKV177lYWyrXRybYo5IofACDgGeNQG/vRLBN9LX0OrTzCmbboBzwXfuMf765uVRDuDIczz0lSjc2Eui8D+i5sW7h+6SJo+uGWQ0+2oRhouKQ+jg7Ph1n78fZqejNIcSPXaDJwIOr1PPb26usfVb6/8yJxBrBD5qEyvAD4y4arKS0Qchb/bStfdo3xeKU3Kccte3cRPiGVdfJ9mMDKPLycmXQmrmQx2IXNsqabbIwVYRXSHhzlV7uW/Wr6tKmcWsRwlSNfPHyAdabIdbdcVyaE3/9/uGenSm3rUHm1j+5ancG7t02BJzlOQTaOTuYGd3uSz2ffZndzNjnPwFu0046
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteWebhook"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/webhook/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"DeleteWebhook 201 response"},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

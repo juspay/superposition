@@ -14,7 +14,8 @@ public final class Experiments implements ApiResource {
     public static final ShapeId $ID = ShapeId.from("io.superposition#Experiments");
     private static final Experiments $INSTANCE = new Experiments();
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
-        "org_id", PreludeSchemas.STRING);
+        "org_id", PreludeSchemas.STRING,
+        "id", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
         Map.entry("chosen_variant", PreludeSchemas.STRING),
         Map.entry("created_at", SharedSchemas.DATE_TIME),
@@ -31,19 +32,21 @@ public final class Experiments implements ApiResource {
         Map.entry("context", SharedSchemas.CONDITION),
         Map.entry("started_at", SharedSchemas.DATE_TIME),
         Map.entry("experiment_group_id", PreludeSchemas.STRING),
-        Map.entry("id", PreludeSchemas.STRING),
         Map.entry("metrics", PreludeSchemas.DOCUMENT),
         Map.entry("last_modified", SharedSchemas.DATE_TIME),
         Map.entry("started_by", PreludeSchemas.STRING),
         Map.entry("status", ExperimentStatusType.$SCHEMA));
 
-    private static final List<Schema> $OPERATIONS = List.of(ListExperiment.$SCHEMA,
-        CreateExperiment.$SCHEMA,
+    private static final List<Schema>$COLLECTION_OPERATIONS = List.of(UpdateOverridesExperiment.$SCHEMA,
         ConcludeExperiment.$SCHEMA,
         DiscardExperiment.$SCHEMA,
         RampExperiment.$SCHEMA,
-        UpdateOverridesExperiment.$SCHEMA,
-        ApplicableVariants.$SCHEMA,
+        PauseExperiment.$SCHEMA,
+        ResumeExperiment.$SCHEMA);
+    private static final List<Schema> $OPERATIONS = List.of(UpdateOverridesExperiment.$SCHEMA,
+        ConcludeExperiment.$SCHEMA,
+        DiscardExperiment.$SCHEMA,
+        RampExperiment.$SCHEMA,
         PauseExperiment.$SCHEMA,
         ResumeExperiment.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
@@ -75,10 +78,24 @@ public final class Experiments implements ApiResource {
     }
 
     @Override
+    public Schema create() {
+        return CreateExperiment.$SCHEMA;
+    }
+
+    @Override
     public Schema read() {
         return GetExperiment.$SCHEMA;
     }
 
+    @Override
+    public Schema list() {
+        return ListExperiment.$SCHEMA;
+    }
+
+    @Override
+    public List<Schema> collectionOperations() {
+        return $COLLECTION_OPERATIONS;
+    }
     @Override
     public List<Schema> operations() {
         return $OPERATIONS;

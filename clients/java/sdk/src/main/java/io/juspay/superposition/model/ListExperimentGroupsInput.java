@@ -11,9 +11,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
-import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.DefaultTrait;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
@@ -24,17 +22,18 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListExperimentGroupsInput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
+        .putMember("count", PreludeSchemas.INTEGER,
+                new HttpQueryTrait("count"))
+        .putMember("page", PreludeSchemas.INTEGER,
+                new HttpQueryTrait("page"))
+        .putMember("all", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("all"))
         .putMember("workspace_id", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-tenant"),
+                new HttpHeaderTrait("x-workspace"),
                 new RequiredTrait())
         .putMember("org_id", PreludeSchemas.STRING,
-                new DefaultTrait(Node.from("juspay")),
-                new RequiredTrait(),
-                new HttpHeaderTrait("x-org-id"))
-        .putMember("page", PreludeSchemas.LONG,
-                new HttpQueryTrait("page"))
-        .putMember("count", PreludeSchemas.LONG,
-                new HttpQueryTrait("count"))
+                new HttpHeaderTrait("x-org-id"),
+                new RequiredTrait())
         .putMember("name", PreludeSchemas.STRING,
                 new HttpQueryTrait("name"))
         .putMember("created_by", PreludeSchemas.STRING,
@@ -45,48 +44,67 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 new HttpQueryTrait("sort_on"))
         .putMember("sort_by", SortBy.$SCHEMA,
                 new HttpQueryTrait("sort_by"))
-        .putMember("all", PreludeSchemas.BOOLEAN,
-                new HttpQueryTrait("all"))
         .putMember("group_type", GroupType.$SCHEMA,
                 new HttpQueryTrait("group_type"))
         .build();
 
+    private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
+    private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
+    private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
-    private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
-    private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
-    private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_GROUP_TYPE = $SCHEMA.member("group_type");
 
+    private final transient Integer count;
+    private final transient Integer page;
+    private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
-    private final transient Long page;
-    private final transient Long count;
     private final transient String name;
     private final transient String createdBy;
     private final transient String lastModifiedBy;
     private final transient ExperimentGroupSortOn sortOn;
     private final transient SortBy sortBy;
-    private final transient Boolean all;
     private final transient GroupType groupType;
 
     private ListExperimentGroupsInput(Builder builder) {
+        this.count = builder.count;
+        this.page = builder.page;
+        this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
-        this.page = builder.page;
-        this.count = builder.count;
         this.name = builder.name;
         this.createdBy = builder.createdBy;
         this.lastModifiedBy = builder.lastModifiedBy;
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
-        this.all = builder.all;
         this.groupType = builder.groupType;
+    }
+
+    /**
+     * Number of items to be returned in each page.
+     */
+    public Integer count() {
+        return count;
+    }
+
+    /**
+     * Page number to retrieve, starting from 1.
+     */
+    public Integer page() {
+        return page;
+    }
+
+    /**
+     * If true, returns all requested items, ignoring pagination parameters page and count.
+     */
+    public Boolean all() {
+        return all;
     }
 
     public String workspaceId() {
@@ -95,14 +113,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
-    }
-
-    public Long page() {
-        return page;
-    }
-
-    public Long count() {
-        return count;
     }
 
     /**
@@ -141,13 +151,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     }
 
     /**
-     * If true, returns all experiment groups, ignoring pagination parameters page and count.
-     */
-    public Boolean all() {
-        return all;
-    }
-
-    /**
      * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
      */
     public GroupType groupType() {
@@ -168,22 +171,22 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             return false;
         }
         ListExperimentGroupsInput that = (ListExperimentGroupsInput) other;
-        return Objects.equals(this.workspaceId, that.workspaceId)
-               && Objects.equals(this.orgId, that.orgId)
+        return Objects.equals(this.count, that.count)
                && Objects.equals(this.page, that.page)
-               && Objects.equals(this.count, that.count)
+               && Objects.equals(this.all, that.all)
+               && Objects.equals(this.workspaceId, that.workspaceId)
+               && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.name, that.name)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy)
-               && Objects.equals(this.all, that.all)
                && Objects.equals(this.groupType, that.groupType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, page, count, name, createdBy, lastModifiedBy, sortOn, sortBy, all, groupType);
+        return Objects.hash(count, page, all, workspaceId, orgId, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType);
     }
 
     @Override
@@ -193,14 +196,17 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
+        if (count != null) {
+            serializer.writeInteger($SCHEMA_COUNT, count);
+        }
+        if (page != null) {
+            serializer.writeInteger($SCHEMA_PAGE, page);
+        }
+        if (all != null) {
+            serializer.writeBoolean($SCHEMA_ALL, all);
+        }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
-        if (page != null) {
-            serializer.writeLong($SCHEMA_PAGE, page);
-        }
-        if (count != null) {
-            serializer.writeLong($SCHEMA_COUNT, count);
-        }
         if (name != null) {
             serializer.writeString($SCHEMA_NAME, name);
         }
@@ -216,9 +222,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         if (sortBy != null) {
             serializer.writeString($SCHEMA_SORT_BY, sortBy.value());
         }
-        if (all != null) {
-            serializer.writeBoolean($SCHEMA_ALL, all);
-        }
         if (groupType != null) {
             serializer.writeString($SCHEMA_GROUP_TYPE, groupType.value());
         }
@@ -230,14 +233,14 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, groupType);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
@@ -252,16 +255,16 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
      */
     public Builder toBuilder() {
         var builder = new Builder();
+        builder.count(this.count);
+        builder.page(this.page);
+        builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
-        builder.page(this.page);
-        builder.count(this.count);
         builder.name(this.name);
         builder.createdBy(this.createdBy);
         builder.lastModifiedBy(this.lastModifiedBy);
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
-        builder.all(this.all);
         builder.groupType(this.groupType);
         return builder;
     }
@@ -277,18 +280,17 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
      * Builder for {@link ListExperimentGroupsInput}.
      */
     public static final class Builder implements ShapeBuilder<ListExperimentGroupsInput> {
-        private static final String ORG_ID_DEFAULT = "juspay";
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
+        private Integer count;
+        private Integer page;
+        private Boolean all;
         private String workspaceId;
-        private String orgId = ORG_ID_DEFAULT;
-        private Long page;
-        private Long count;
+        private String orgId;
         private String name;
         private String createdBy;
         private String lastModifiedBy;
         private ExperimentGroupSortOn sortOn;
         private SortBy sortBy;
-        private Boolean all;
         private GroupType groupType;
 
         private Builder() {}
@@ -296,6 +298,36 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         @Override
         public Schema schema() {
             return $SCHEMA;
+        }
+
+        /**
+         * Number of items to be returned in each page.
+         *
+         * @return this builder.
+         */
+        public Builder count(int count) {
+            this.count = count;
+            return this;
+        }
+
+        /**
+         * Page number to retrieve, starting from 1.
+         *
+         * @return this builder.
+         */
+        public Builder page(int page) {
+            this.page = page;
+            return this;
+        }
+
+        /**
+         * If true, returns all requested items, ignoring pagination parameters page and count.
+         *
+         * @return this builder.
+         */
+        public Builder all(boolean all) {
+            this.all = all;
+            return this;
         }
 
         /**
@@ -314,22 +346,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
          */
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
-            return this;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder page(long page) {
-            this.page = page;
-            return this;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder count(long count) {
-            this.count = count;
+            tracker.setMember($SCHEMA_ORG_ID);
             return this;
         }
 
@@ -384,16 +401,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         }
 
         /**
-         * If true, returns all experiment groups, ignoring pagination parameters page and count.
-         *
-         * @return this builder.
-         */
-        public Builder all(boolean all) {
-            this.all = all;
-            return this;
-        }
-
-        /**
          * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
          *
          * @return this builder.
@@ -415,14 +422,14 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 2 -> page((long) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
-                case 3 -> count((long) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
-                case 4 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 5 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 6 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
-                case 7 -> sortOn((ExperimentGroupSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 8 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 9 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
+                case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
+                case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 5 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
+                case 6 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 7 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 8 -> sortOn((ExperimentGroupSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
+                case 9 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 case 10 -> groupType((GroupType) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
@@ -435,6 +442,9 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_ID)) {
                 workspaceId("");
+            }
+            if (!tracker.checkMember($SCHEMA_ORG_ID)) {
+                orgId("");
             }
             return this;
         }
@@ -459,14 +469,14 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
-                    case 2 -> builder.page(de.readLong(member));
-                    case 3 -> builder.count(de.readLong(member));
-                    case 4 -> builder.name(de.readString(member));
-                    case 5 -> builder.createdBy(de.readString(member));
-                    case 6 -> builder.lastModifiedBy(de.readString(member));
-                    case 7 -> builder.sortOn(ExperimentGroupSortOn.builder().deserializeMember(de, member).build());
-                    case 8 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 9 -> builder.all(de.readBoolean(member));
+                    case 2 -> builder.count(de.readInteger(member));
+                    case 3 -> builder.page(de.readInteger(member));
+                    case 4 -> builder.all(de.readBoolean(member));
+                    case 5 -> builder.name(de.readString(member));
+                    case 6 -> builder.createdBy(de.readString(member));
+                    case 7 -> builder.lastModifiedBy(de.readString(member));
+                    case 8 -> builder.sortOn(ExperimentGroupSortOn.builder().deserializeMember(de, member).build());
+                    case 9 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     case 10 -> builder.groupType(GroupType.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }

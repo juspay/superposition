@@ -96,6 +96,48 @@ impl ListExperimentGroupsFluentBuilder {
                             self.config_override = config_override;
                             self
                         }
+    /// Number of items to be returned in each page.
+    pub fn count(mut self, input: i32) -> Self {
+                    self.inner = self.inner.count(input);
+                    self
+                }
+    /// Number of items to be returned in each page.
+    pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
+                    self.inner = self.inner.set_count(input);
+                    self
+                }
+    /// Number of items to be returned in each page.
+    pub fn get_count(&self) -> &::std::option::Option<i32> {
+                    self.inner.get_count()
+                }
+    /// Page number to retrieve, starting from 1.
+    pub fn page(mut self, input: i32) -> Self {
+                    self.inner = self.inner.page(input);
+                    self
+                }
+    /// Page number to retrieve, starting from 1.
+    pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
+                    self.inner = self.inner.set_page(input);
+                    self
+                }
+    /// Page number to retrieve, starting from 1.
+    pub fn get_page(&self) -> &::std::option::Option<i32> {
+                    self.inner.get_page()
+                }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn all(mut self, input: bool) -> Self {
+                    self.inner = self.inner.all(input);
+                    self
+                }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_all(input);
+                    self
+                }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_all()
+                }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.workspace_id(input.into());
@@ -123,34 +165,6 @@ impl ListExperimentGroupsFluentBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn page(mut self, input: i64) -> Self {
-                    self.inner = self.inner.page(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_page(mut self, input: ::std::option::Option<i64>) -> Self {
-                    self.inner = self.inner.set_page(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_page(&self) -> &::std::option::Option<i64> {
-                    self.inner.get_page()
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn count(mut self, input: i64) -> Self {
-                    self.inner = self.inner.count(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_count(mut self, input: ::std::option::Option<i64>) -> Self {
-                    self.inner = self.inner.set_count(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_count(&self) -> &::std::option::Option<i64> {
-                    self.inner.get_count()
                 }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
     pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -221,20 +235,6 @@ impl ListExperimentGroupsFluentBuilder {
     /// Sort order (ascending or descending).
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
                     self.inner.get_sort_by()
-                }
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub fn all(mut self, input: bool) -> Self {
-                    self.inner = self.inner.all(input);
-                    self
-                }
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_all(input);
-                    self
-                }
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub fn get_all(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_all()
                 }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub fn group_type(mut self, input: crate::types::GroupType) -> Self {

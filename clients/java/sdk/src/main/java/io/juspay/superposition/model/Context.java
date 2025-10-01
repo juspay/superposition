@@ -14,27 +14,21 @@ public final class Context implements ApiResource {
     public static final ShapeId $ID = ShapeId.from("io.superposition#Context");
     private static final Context $INSTANCE = new Context();
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
-        "org_id", PreludeSchemas.STRING);
-    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
-        Map.entry("change_reason", PreludeSchemas.STRING),
-        Map.entry("override_id", PreludeSchemas.STRING),
-        Map.entry("weight", SharedSchemas.WEIGHT),
-        Map.entry("description", PreludeSchemas.STRING),
-        Map.entry("created_at", SharedSchemas.DATE_TIME),
-        Map.entry("id", PreludeSchemas.STRING),
-        Map.entry("override", SharedSchemas.OVERRIDES),
-        Map.entry("last_modified_by", PreludeSchemas.STRING),
-        Map.entry("value", SharedSchemas.CONDITION),
-        Map.entry("created_by", PreludeSchemas.STRING),
-        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
+        "org_id", PreludeSchemas.STRING,
+        "id", PreludeSchemas.STRING);
+    private static final Map<String, Schema> $PROPERTIES = Map.of("change_reason", PreludeSchemas.STRING,
+        "override_id", PreludeSchemas.STRING,
+        "weight", SharedSchemas.WEIGHT,
+        "description", PreludeSchemas.STRING,
+        "created_at", SharedSchemas.DATE_TIME,
+        "override", SharedSchemas.OVERRIDES,
+        "last_modified_by", PreludeSchemas.STRING,
+        "value", SharedSchemas.CONDITION,
+        "created_by", PreludeSchemas.STRING,
+        "last_modified_at", SharedSchemas.DATE_TIME);
 
-    private static final List<Schema> $OPERATIONS = List.of(MoveContext.$SCHEMA,
-        UpdateOverride.$SCHEMA,
-        GetContext.$SCHEMA,
-        GetContextFromCondition.$SCHEMA,
-        ListContexts.$SCHEMA,
-        WeightRecompute.$SCHEMA,
-        BulkOperation.$SCHEMA);
+    private static final List<Schema>$COLLECTION_OPERATIONS = List.of(MoveContext.$SCHEMA);
+    private static final List<Schema> $OPERATIONS = List.of(MoveContext.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**
@@ -64,8 +58,13 @@ public final class Context implements ApiResource {
     }
 
     @Override
-    public Schema put() {
+    public Schema create() {
         return CreateContext.$SCHEMA;
+    }
+
+    @Override
+    public Schema read() {
+        return GetContext.$SCHEMA;
     }
 
     @Override
@@ -73,6 +72,15 @@ public final class Context implements ApiResource {
         return DeleteContext.$SCHEMA;
     }
 
+    @Override
+    public Schema list() {
+        return ListContexts.$SCHEMA;
+    }
+
+    @Override
+    public List<Schema> collectionOperations() {
+        return $COLLECTION_OPERATIONS;
+    }
     @Override
     public List<Schema> operations() {
         return $OPERATIONS;

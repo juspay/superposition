@@ -83,6 +83,8 @@ export interface CreateContextCommandOutput extends ContextResponse, __MetadataB
  * @see {@link CreateContextCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
+ * @throws {@link ResourceNotFound} (client fault)
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}

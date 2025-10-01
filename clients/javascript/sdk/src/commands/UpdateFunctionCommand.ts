@@ -78,7 +78,7 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  * @see {@link UpdateFunctionCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
- * @throws {@link FunctionNotFound} (client fault)
+ * @throws {@link ResourceNotFound} (client fault)
  *
  * @throws {@link InternalServerError} (server fault)
  *

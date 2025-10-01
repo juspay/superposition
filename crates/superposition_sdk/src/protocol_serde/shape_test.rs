@@ -11,13 +11,13 @@ pub fn de_test_http_error(_response_status: u16, _response_headers: &::aws_smith
     
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
-        "FunctionNotFound" => crate::operation::test::TestError::FunctionNotFound({
+        "ResourceNotFound" => crate::operation::test::TestError::ResourceNotFound({
             #[allow(unused_mut)]
             let mut tmp =
                  {
                     #[allow(unused_mut)]
-                    let mut output = crate::types::error::builders::FunctionNotFoundBuilder::default();
-                    output = crate::protocol_serde::shape_function_not_found::de_function_not_found_json_err(_response_body, output).map_err(crate::operation::test::TestError::unhandled)?;
+                    let mut output = crate::types::error::builders::ResourceNotFoundBuilder::default();
+                    output = crate::protocol_serde::shape_resource_not_found::de_resource_not_found_json_err(_response_body, output).map_err(crate::operation::test::TestError::unhandled)?;
                     let output = output.meta(generic);
                     output.build()
                 }
@@ -71,7 +71,7 @@ pub fn ser_test_headers(
                                 err
                             ))
                             })?;
-                            builder = builder.header("x-tenant", header_value);
+                            builder = builder.header("x-workspace", header_value);
     }
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();

@@ -194,7 +194,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateDimensionInput where
             "dimension"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "schema" (schema self)
         Io.Superposition.Utility.serField "autocomplete_function_name" (autocomplete_function_name self)

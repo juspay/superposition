@@ -4,10 +4,7 @@ import {
   ServiceOutputTypes,
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
-import {
-  DeleteDefaultConfigInput,
-  DeleteDefaultConfigOutput,
-} from "../models/models_0";
+import { DeleteDefaultConfigInput } from "../models/models_0";
 import {
   de_DeleteDefaultConfigCommand,
   se_DeleteDefaultConfigCommand,
@@ -32,7 +29,7 @@ export interface DeleteDefaultConfigCommandInput extends DeleteDefaultConfigInpu
  *
  * The output of {@link DeleteDefaultConfigCommand}.
  */
-export interface DeleteDefaultConfigCommandOutput extends DeleteDefaultConfigOutput, __MetadataBearer {}
+export interface DeleteDefaultConfigCommandOutput extends __MetadataBearer {}
 
 /**
  * Permanently removes a default config entry from the workspace. This operation cannot be performed if it affects config resolution for contexts that rely on this fallback value.

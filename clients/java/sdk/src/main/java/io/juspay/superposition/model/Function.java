@@ -63,13 +63,13 @@ public final class Function implements ApiResource {
     }
 
     @Override
-    public Schema put() {
-        return UpdateFunction.$SCHEMA;
+    public Schema read() {
+        return GetFunction.$SCHEMA;
     }
 
     @Override
-    public Schema read() {
-        return GetFunction.$SCHEMA;
+    public Schema update() {
+        return UpdateFunction.$SCHEMA;
     }
 
     @Override

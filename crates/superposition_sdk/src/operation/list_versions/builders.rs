@@ -124,31 +124,31 @@ impl ListVersionsFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn count(mut self, input: i32) -> Self {
                     self.inner = self.inner.count(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
                     self.inner = self.inner.set_count(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
                     self.inner.get_count()
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn page(mut self, input: i32) -> Self {
                     self.inner = self.inner.page(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
                     self.inner = self.inner.set_page(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
                     self.inner.get_page()
                 }

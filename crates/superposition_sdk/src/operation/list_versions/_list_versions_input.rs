@@ -7,9 +7,9 @@ pub struct ListVersionsInput  {
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub page: ::std::option::Option<i32>,
 }
 impl  ListVersionsInput  {
@@ -21,11 +21,11 @@ impl  ListVersionsInput  {
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn page(&self) -> ::std::option::Option<i32> {
         self.page
     }
@@ -75,29 +75,29 @@ impl ListVersionsInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn count(mut self, input: i32) -> Self {
         self.count = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
         self.count = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
         &self.count
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn page(mut self, input: i32) -> Self {
         self.page = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
         self.page = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
         &self.page
     }

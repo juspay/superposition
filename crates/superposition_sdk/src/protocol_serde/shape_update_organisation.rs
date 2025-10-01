@@ -11,13 +11,13 @@ pub fn de_update_organisation_http_error(_response_status: u16, _response_header
     
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
-        "OrganisationNotFound" => crate::operation::update_organisation::UpdateOrganisationError::OrganisationNotFound({
+        "ResourceNotFound" => crate::operation::update_organisation::UpdateOrganisationError::ResourceNotFound({
             #[allow(unused_mut)]
             let mut tmp =
                  {
                     #[allow(unused_mut)]
-                    let mut output = crate::types::error::builders::OrganisationNotFoundBuilder::default();
-                    output = crate::protocol_serde::shape_organisation_not_found::de_organisation_not_found_json_err(_response_body, output).map_err(crate::operation::update_organisation::UpdateOrganisationError::unhandled)?;
+                    let mut output = crate::types::error::builders::ResourceNotFoundBuilder::default();
+                    output = crate::protocol_serde::shape_resource_not_found::de_resource_not_found_json_err(_response_body, output).map_err(crate::operation::update_organisation::UpdateOrganisationError::unhandled)?;
                     let output = output.meta(generic);
                     output.build()
                 }

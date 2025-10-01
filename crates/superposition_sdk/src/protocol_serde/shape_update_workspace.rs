@@ -11,13 +11,13 @@ pub fn de_update_workspace_http_error(_response_status: u16, _response_headers: 
     
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
-        "WorkspaceNotFound" => crate::operation::update_workspace::UpdateWorkspaceError::WorkspaceNotFound({
+        "ResourceNotFound" => crate::operation::update_workspace::UpdateWorkspaceError::ResourceNotFound({
             #[allow(unused_mut)]
             let mut tmp =
                  {
                     #[allow(unused_mut)]
-                    let mut output = crate::types::error::builders::WorkspaceNotFoundBuilder::default();
-                    output = crate::protocol_serde::shape_workspace_not_found::de_workspace_not_found_json_err(_response_body, output).map_err(crate::operation::update_workspace::UpdateWorkspaceError::unhandled)?;
+                    let mut output = crate::types::error::builders::ResourceNotFoundBuilder::default();
+                    output = crate::protocol_serde::shape_resource_not_found::de_resource_not_found_json_err(_response_body, output).map_err(crate::operation::update_workspace::UpdateWorkspaceError::unhandled)?;
                     let output = output.meta(generic);
                     output.build()
                 }
