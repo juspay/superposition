@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use actix_web::{
-    delete, get, post, put,
+    delete, get, post, routes,
     web::{Data, Json, Path, Query},
     HttpResponse, Scope,
 };
@@ -168,7 +168,9 @@ async fn get_default_config(
     Ok(Json(res))
 }
 
+#[routes]
 #[put("/{key}")]
+#[patch("/{key}")]
 async fn update_default_config(
     state: Data<AppState>,
     key: Path<DefaultConfigKey>,

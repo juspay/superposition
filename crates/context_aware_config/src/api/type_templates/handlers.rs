@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use actix_web::web::{Json, Path, Query};
-use actix_web::{delete, get, post, put, Scope};
+use actix_web::{delete, get, post, routes, Scope};
 use chrono::Utc;
 use diesel::{
     ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
@@ -88,7 +88,9 @@ async fn get_type(
     Ok(Json(type_template))
 }
 
+#[routes]
 #[put("/{type_name}")]
+#[patch("/{type_name}")]
 async fn update_type(
     request: Json<TypeTemplateUpdateRequest>,
     path: Path<TypeTemplateName>,

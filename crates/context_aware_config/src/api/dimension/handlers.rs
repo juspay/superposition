@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use actix_web::{
-    delete, get, post, put,
+    delete, get, post, routes,
     web::{self, Data, Json, Path, Query},
     HttpResponse, Scope,
 };
@@ -228,7 +228,9 @@ async fn get(
     Ok(Json(DimensionResponse::new(result, is_mandatory)))
 }
 
+#[routes]
 #[put("/{name}")]
+#[patch("/{name}")]
 async fn update(
     path: Path<DimensionName>,
     state: Data<AppState>,
