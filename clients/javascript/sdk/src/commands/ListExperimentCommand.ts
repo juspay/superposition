@@ -5,8 +5,8 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  ExperimentListResponse,
   ListExperimentInput,
+  ListExperimentOutput,
 } from "../models/models_0";
 import {
   de_ListExperimentCommand,
@@ -32,7 +32,7 @@ export interface ListExperimentCommandInput extends ListExperimentInput {}
  *
  * The output of {@link ListExperimentCommand}.
  */
-export interface ListExperimentCommandOutput extends ExperimentListResponse, __MetadataBearer {}
+export interface ListExperimentCommandOutput extends ListExperimentOutput, __MetadataBearer {}
 
 /**
  * Retrieves a paginated list of experiments with support for filtering by status, date range, name, creator, and experiment group.
@@ -43,11 +43,11 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  * // const { SuperpositionClient, ListExperimentCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListExperimentInput
+ *   count: Number("int"),
+ *   page: Number("int"),
+ *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   page: Number("long"),
- *   count: Number("long"),
- *   all: true || false,
  *   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED" || "PAUSED",
  *   from_date: new Date("TIMESTAMP"),
  *   to_date: new Date("TIMESTAMP"),
@@ -62,10 +62,10 @@ export interface ListExperimentCommandOutput extends ExperimentListResponse, __M
  * };
  * const command = new ListExperimentCommand(input);
  * const response = await client.send(command);
- * // { // ExperimentListResponse
- * //   total_pages: Number("long"), // required
- * //   total_items: Number("long"), // required
- * //   data: [ // ExperimentList // required
+ * // { // ListExperimentOutput
+ * //   total_pages: Number("int"),
+ * //   total_items: Number("int"),
+ * //   data: [ // ExperimentList
  * //     { // ExperimentResponse
  * //       id: "STRING_VALUE", // required
  * //       created_at: new Date("TIMESTAMP"), // required
@@ -137,7 +137,7 @@ export class ListExperimentCommand extends $Command.classBuilder<ListExperimentC
 declare protected static __types: {
   api: {
       input: ListExperimentInput;
-      output: ExperimentListResponse;
+      output: ListExperimentOutput;
   };
   sdk: {
       input: ListExperimentCommandInput;

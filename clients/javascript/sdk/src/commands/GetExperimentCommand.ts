@@ -92,6 +92,8 @@ export interface GetExperimentCommandOutput extends ExperimentResponse, __Metada
  * @see {@link GetExperimentCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
+ * @throws {@link ResourceNotFound} (client fault)
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}

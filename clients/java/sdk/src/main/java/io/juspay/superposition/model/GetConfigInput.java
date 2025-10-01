@@ -14,9 +14,7 @@ import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.java.core.serde.document.Document;
-import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.DefaultTrait;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
@@ -28,12 +26,11 @@ public final class GetConfigInput implements SerializableStruct {
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("workspace_id", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-tenant"),
+                new HttpHeaderTrait("x-workspace"),
                 new RequiredTrait())
         .putMember("org_id", PreludeSchemas.STRING,
-                new DefaultTrait(Node.from("juspay")),
-                new RequiredTrait(),
-                new HttpHeaderTrait("x-org-id"))
+                new HttpHeaderTrait("x-org-id"),
+                new RequiredTrait())
         .putMember("prefix", PreludeSchemas.STRING,
                 new HttpQueryTrait("prefix"))
         .putMember("version", PreludeSchemas.STRING,
@@ -175,10 +172,9 @@ public final class GetConfigInput implements SerializableStruct {
      * Builder for {@link GetConfigInput}.
      */
     public static final class Builder implements ShapeBuilder<GetConfigInput> {
-        private static final String ORG_ID_DEFAULT = "juspay";
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
-        private String orgId = ORG_ID_DEFAULT;
+        private String orgId;
         private String prefix;
         private String version;
         private Map<String, Document> context;
@@ -206,6 +202,7 @@ public final class GetConfigInput implements SerializableStruct {
          */
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
+            tracker.setMember($SCHEMA_ORG_ID);
             return this;
         }
 
@@ -259,6 +256,9 @@ public final class GetConfigInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_ID)) {
                 workspaceId("");
+            }
+            if (!tracker.checkMember($SCHEMA_ORG_ID)) {
+                orgId("");
             }
             return this;
         }

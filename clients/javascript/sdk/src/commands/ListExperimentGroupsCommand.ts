@@ -6,7 +6,7 @@ import {
 } from "../SuperpositionClient";
 import {
   ListExperimentGroupsInput,
-  ListExperimentGroupsResponse,
+  ListExperimentGroupsOutput,
 } from "../models/models_0";
 import {
   de_ListExperimentGroupsCommand,
@@ -32,7 +32,7 @@ export interface ListExperimentGroupsCommandInput extends ListExperimentGroupsIn
  *
  * The output of {@link ListExperimentGroupsCommand}.
  */
-export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsResponse, __MetadataBearer {}
+export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsOutput, __MetadataBearer {}
 
 /**
  * Lists experiment groups, with support for filtering and pagination.
@@ -43,24 +43,24 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsR
  * // const { SuperpositionClient, ListExperimentGroupsCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListExperimentGroupsInput
+ *   count: Number("int"),
+ *   page: Number("int"),
+ *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   page: Number("long"),
- *   count: Number("long"),
  *   name: "STRING_VALUE",
  *   created_by: "STRING_VALUE",
  *   last_modified_by: "STRING_VALUE",
  *   sort_on: "name" || "created_at" || "last_modified_at",
  *   sort_by: "desc" || "asc",
- *   all: true || false,
  *   group_type: "USER_CREATED" || "SYSTEM_GENERATED",
  * };
  * const command = new ListExperimentGroupsCommand(input);
  * const response = await client.send(command);
- * // { // ListExperimentGroupsResponse
- * //   total_pages: Number("long"), // required
- * //   total_items: Number("long"), // required
- * //   data: [ // ExperimentGroupList // required
+ * // { // ListExperimentGroupsOutput
+ * //   total_pages: Number("int"),
+ * //   total_items: Number("int"),
+ * //   data: [ // ExperimentGroupList
  * //     { // ExperimentGroupResponse
  * //       id: "STRING_VALUE", // required
  * //       context_hash: "STRING_VALUE", // required
@@ -123,7 +123,7 @@ export class ListExperimentGroupsCommand extends $Command.classBuilder<ListExper
 declare protected static __types: {
   api: {
       input: ListExperimentGroupsInput;
-      output: ListExperimentGroupsResponse;
+      output: ListExperimentGroupsOutput;
   };
   sdk: {
       input: ListExperimentGroupsCommandInput;

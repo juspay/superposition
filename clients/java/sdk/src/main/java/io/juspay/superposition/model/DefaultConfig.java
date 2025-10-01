@@ -57,7 +57,12 @@ public final class DefaultConfig implements ApiResource {
     }
 
     @Override
-    public Schema put() {
+    public Schema read() {
+        return GetDefaultConfig.$SCHEMA;
+    }
+
+    @Override
+    public Schema update() {
         return UpdateDefaultConfig.$SCHEMA;
     }
 

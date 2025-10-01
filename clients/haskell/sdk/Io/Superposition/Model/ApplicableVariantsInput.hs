@@ -115,7 +115,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ApplicableVariantsInput whe
             "applicable-variants"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "identifier" (identifier self)
         Io.Superposition.Utility.serField "context" (context self)

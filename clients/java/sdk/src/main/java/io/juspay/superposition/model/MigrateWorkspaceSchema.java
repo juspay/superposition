@@ -26,6 +26,7 @@ public final class MigrateWorkspaceSchema implements ApiOperation<MigrateWorkspa
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
+        .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));

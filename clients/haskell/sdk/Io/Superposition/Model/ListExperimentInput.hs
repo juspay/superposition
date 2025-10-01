@@ -1,9 +1,9 @@
 module Io.Superposition.Model.ListExperimentInput (
+    setCount,
+    setPage,
+    setAll',
     setWorkspaceId,
     setOrgId,
-    setPage,
-    setCount,
-    setAll',
     setStatus,
     setFromDate,
     setToDate,
@@ -18,11 +18,11 @@ module Io.Superposition.Model.ListExperimentInput (
     build,
     ListExperimentInputBuilder,
     ListExperimentInput,
+    count,
+    page,
+    all',
     workspace_id,
     org_id,
-    page,
-    count,
-    all',
     status,
     from_date,
     to_date,
@@ -55,11 +55,11 @@ import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
 
 data ListExperimentInput = ListExperimentInput {
+    count :: Data.Maybe.Maybe Data.Int.Int32,
+    page :: Data.Maybe.Maybe Data.Int.Int32,
+    all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
-    page :: Data.Maybe.Maybe Data.Int.Int64,
-    count :: Data.Maybe.Maybe Data.Int.Int64,
-    all' :: Data.Maybe.Maybe Bool,
     status :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType,
     from_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_date :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -79,11 +79,11 @@ data ListExperimentInput = ListExperimentInput {
 
 instance Data.Aeson.ToJSON ListExperimentInput where
     toJSON a = Data.Aeson.object [
+        "count" Data.Aeson..= count a,
+        "page" Data.Aeson..= page a,
+        "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
-        "page" Data.Aeson..= page a,
-        "count" Data.Aeson..= count a,
-        "all" Data.Aeson..= all' a,
         "status" Data.Aeson..= status a,
         "from_date" Data.Aeson..= from_date a,
         "to_date" Data.Aeson..= to_date a,
@@ -102,11 +102,11 @@ instance Io.Superposition.Utility.SerializeBody ListExperimentInput
 
 instance Data.Aeson.FromJSON ListExperimentInput where
     parseJSON = Data.Aeson.withObject "ListExperimentInput" $ \v -> ListExperimentInput
-        Data.Functor.<$> (v Data.Aeson..: "workspace_id")
-        Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Data.Functor.<$> (v Data.Aeson..: "count")
         Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "count")
         Control.Applicative.<*> (v Data.Aeson..: "all")
+        Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
+        Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "status")
         Control.Applicative.<*> (v Data.Aeson..: "from_date")
         Control.Applicative.<*> (v Data.Aeson..: "to_date")
@@ -123,11 +123,11 @@ instance Data.Aeson.FromJSON ListExperimentInput where
 
 
 data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
+    countBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
+    pageBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
+    all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    pageBuilderState :: Data.Maybe.Maybe Data.Int.Int64,
-    countBuilderState :: Data.Maybe.Maybe Data.Int.Int64,
-    all'BuilderState :: Data.Maybe.Maybe Bool,
     statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType,
     from_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -145,11 +145,11 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
 
 defaultBuilderState :: ListExperimentInputBuilderState
 defaultBuilderState = ListExperimentInputBuilderState {
+    countBuilderState = Data.Maybe.Nothing,
+    pageBuilderState = Data.Maybe.Nothing,
+    all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
-    pageBuilderState = Data.Maybe.Nothing,
-    countBuilderState = Data.Maybe.Nothing,
-    all'BuilderState = Data.Maybe.Nothing,
     statusBuilderState = Data.Maybe.Nothing,
     from_dateBuilderState = Data.Maybe.Nothing,
     to_dateBuilderState = Data.Maybe.Nothing,
@@ -165,6 +165,18 @@ defaultBuilderState = ListExperimentInputBuilderState {
 
 type ListExperimentInputBuilder = Control.Monad.State.Strict.State ListExperimentInputBuilderState
 
+setCount :: Data.Maybe.Maybe Data.Int.Int32 -> ListExperimentInputBuilder ()
+setCount value =
+   Control.Monad.State.Strict.modify (\s -> (s { countBuilderState = value }))
+
+setPage :: Data.Maybe.Maybe Data.Int.Int32 -> ListExperimentInputBuilder ()
+setPage value =
+   Control.Monad.State.Strict.modify (\s -> (s { pageBuilderState = value }))
+
+setAll' :: Data.Maybe.Maybe Bool -> ListExperimentInputBuilder ()
+setAll' value =
+   Control.Monad.State.Strict.modify (\s -> (s { all'BuilderState = value }))
+
 setWorkspaceId :: Data.Text.Text -> ListExperimentInputBuilder ()
 setWorkspaceId value =
    Control.Monad.State.Strict.modify (\s -> (s { workspace_idBuilderState = Data.Maybe.Just value }))
@@ -172,18 +184,6 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> ListExperimentInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
-
-setPage :: Data.Maybe.Maybe Data.Int.Int64 -> ListExperimentInputBuilder ()
-setPage value =
-   Control.Monad.State.Strict.modify (\s -> (s { pageBuilderState = value }))
-
-setCount :: Data.Maybe.Maybe Data.Int.Int64 -> ListExperimentInputBuilder ()
-setCount value =
-   Control.Monad.State.Strict.modify (\s -> (s { countBuilderState = value }))
-
-setAll' :: Data.Maybe.Maybe Bool -> ListExperimentInputBuilder ()
-setAll' value =
-   Control.Monad.State.Strict.modify (\s -> (s { all'BuilderState = value }))
 
 setStatus :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType -> ListExperimentInputBuilder ()
 setStatus value =
@@ -232,11 +232,11 @@ setDimensionMatchStrategy value =
 build :: ListExperimentInputBuilder () -> Data.Either.Either Data.Text.Text ListExperimentInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
+    count' <- Data.Either.Right (countBuilderState st)
+    page' <- Data.Either.Right (pageBuilderState st)
+    all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentInput.ListExperimentInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentInput.ListExperimentInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
-    page' <- Data.Either.Right (pageBuilderState st)
-    count' <- Data.Either.Right (countBuilderState st)
-    all'' <- Data.Either.Right (all'BuilderState st)
     status' <- Data.Either.Right (statusBuilderState st)
     from_date' <- Data.Either.Right (from_dateBuilderState st)
     to_date' <- Data.Either.Right (to_dateBuilderState st)
@@ -249,11 +249,11 @@ build builder = do
     global_experiments_only' <- Data.Either.Right (global_experiments_onlyBuilderState st)
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
     Data.Either.Right (ListExperimentInput { 
+        count = count',
+        page = page',
+        all' = all'',
         workspace_id = workspace_id',
         org_id = org_id',
-        page = page',
-        count = count',
-        all' = all'',
         status = status',
         from_date = from_date',
         to_date = to_date',
@@ -288,7 +288,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serQuery "status" (status self)
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         
 

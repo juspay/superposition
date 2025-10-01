@@ -115,7 +115,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder BulkOperationInput where
             "bulk-operations"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serHeader "x-config-tags" (config_tags self)
         Io.Superposition.Utility.serBody "application/json" (bulk_operation self)

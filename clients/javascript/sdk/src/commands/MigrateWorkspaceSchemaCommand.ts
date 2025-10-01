@@ -77,6 +77,8 @@ export interface MigrateWorkspaceSchemaCommandOutput extends WorkspaceResponse, 
  * @see {@link MigrateWorkspaceSchemaCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
+ * @throws {@link ResourceNotFound} (client fault)
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}

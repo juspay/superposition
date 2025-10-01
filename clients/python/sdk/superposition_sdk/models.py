@@ -88,6 +88,9 @@ from ._private.schemas import (
     DELETE_TYPE_TEMPLATES as _SCHEMA_DELETE_TYPE_TEMPLATES,
     DELETE_TYPE_TEMPLATES_INPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
     DELETE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
+    DELETE_WEBHOOK as _SCHEMA_DELETE_WEBHOOK,
+    DELETE_WEBHOOK_INPUT as _SCHEMA_DELETE_WEBHOOK_INPUT,
+    DELETE_WEBHOOK_OUTPUT as _SCHEMA_DELETE_WEBHOOK_OUTPUT,
     DIMENSION_EXT as _SCHEMA_DIMENSION_EXT,
     DIMENSION_INFO as _SCHEMA_DIMENSION_INFO,
     DIMENSION_TYPE as _SCHEMA_DIMENSION_TYPE,
@@ -97,7 +100,6 @@ from ._private.schemas import (
     EXPERIMENT_GROUP_RESPONSE as _SCHEMA_EXPERIMENT_GROUP_RESPONSE,
     EXPERIMENT_RESPONSE as _SCHEMA_EXPERIMENT_RESPONSE,
     FUNCTION_EXECUTION_REQUEST as _SCHEMA_FUNCTION_EXECUTION_REQUEST,
-    FUNCTION_NOT_FOUND as _SCHEMA_FUNCTION_NOT_FOUND,
     FUNCTION_RESPONSE as _SCHEMA_FUNCTION_RESPONSE,
     GET_CONFIG as _SCHEMA_GET_CONFIG,
     GET_CONFIG_FAST as _SCHEMA_GET_CONFIG_FAST,
@@ -111,6 +113,9 @@ from ._private.schemas import (
     GET_CONTEXT_FROM_CONDITION_OUTPUT as _SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT,
     GET_CONTEXT_INPUT as _SCHEMA_GET_CONTEXT_INPUT,
     GET_CONTEXT_OUTPUT as _SCHEMA_GET_CONTEXT_OUTPUT,
+    GET_DEFAULT_CONFIG as _SCHEMA_GET_DEFAULT_CONFIG,
+    GET_DEFAULT_CONFIG_INPUT as _SCHEMA_GET_DEFAULT_CONFIG_INPUT,
+    GET_DEFAULT_CONFIG_OUTPUT as _SCHEMA_GET_DEFAULT_CONFIG_OUTPUT,
     GET_DIMENSION as _SCHEMA_GET_DIMENSION,
     GET_DIMENSION_INPUT as _SCHEMA_GET_DIMENSION_INPUT,
     GET_DIMENSION_OUTPUT as _SCHEMA_GET_DIMENSION_OUTPUT,
@@ -129,12 +134,24 @@ from ._private.schemas import (
     GET_RESOLVED_CONFIG as _SCHEMA_GET_RESOLVED_CONFIG,
     GET_RESOLVED_CONFIG_INPUT as _SCHEMA_GET_RESOLVED_CONFIG_INPUT,
     GET_RESOLVED_CONFIG_OUTPUT as _SCHEMA_GET_RESOLVED_CONFIG_OUTPUT,
+    GET_TYPE_TEMPLATE as _SCHEMA_GET_TYPE_TEMPLATE,
     GET_TYPE_TEMPLATES_LIST as _SCHEMA_GET_TYPE_TEMPLATES_LIST,
     GET_TYPE_TEMPLATES_LIST_INPUT as _SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT,
     GET_TYPE_TEMPLATES_LIST_OUTPUT as _SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT,
+    GET_TYPE_TEMPLATE_INPUT as _SCHEMA_GET_TYPE_TEMPLATE_INPUT,
+    GET_TYPE_TEMPLATE_OUTPUT as _SCHEMA_GET_TYPE_TEMPLATE_OUTPUT,
+    GET_VERSION as _SCHEMA_GET_VERSION,
+    GET_VERSION_INPUT as _SCHEMA_GET_VERSION_INPUT,
+    GET_VERSION_OUTPUT as _SCHEMA_GET_VERSION_OUTPUT,
     GET_WEBHOOK as _SCHEMA_GET_WEBHOOK,
+    GET_WEBHOOK_BY_EVENT as _SCHEMA_GET_WEBHOOK_BY_EVENT,
+    GET_WEBHOOK_BY_EVENT_INPUT as _SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT,
+    GET_WEBHOOK_BY_EVENT_OUTPUT as _SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT,
     GET_WEBHOOK_INPUT as _SCHEMA_GET_WEBHOOK_INPUT,
     GET_WEBHOOK_OUTPUT as _SCHEMA_GET_WEBHOOK_OUTPUT,
+    GET_WORKSPACE as _SCHEMA_GET_WORKSPACE,
+    GET_WORKSPACE_INPUT as _SCHEMA_GET_WORKSPACE_INPUT,
+    GET_WORKSPACE_OUTPUT as _SCHEMA_GET_WORKSPACE_OUTPUT,
     INTERNAL_SERVER_ERROR as _SCHEMA_INTERNAL_SERVER_ERROR,
     LIST_AUDIT_LOGS as _SCHEMA_LIST_AUDIT_LOGS,
     LIST_AUDIT_LOGS_INPUT as _SCHEMA_LIST_AUDIT_LOGS_INPUT,
@@ -176,7 +193,6 @@ from ._private.schemas import (
     MOVE_CONTEXT as _SCHEMA_MOVE_CONTEXT,
     MOVE_CONTEXT_INPUT as _SCHEMA_MOVE_CONTEXT_INPUT,
     MOVE_CONTEXT_OUTPUT as _SCHEMA_MOVE_CONTEXT_OUTPUT,
-    ORGANISATION_NOT_FOUND as _SCHEMA_ORGANISATION_NOT_FOUND,
     ORGANISATION_RESPONSE as _SCHEMA_ORGANISATION_RESPONSE,
     PAUSE_EXPERIMENT as _SCHEMA_PAUSE_EXPERIMENT,
     PAUSE_EXPERIMENT_INPUT as _SCHEMA_PAUSE_EXPERIMENT_INPUT,
@@ -197,7 +213,6 @@ from ._private.schemas import (
     TEST as _SCHEMA_TEST,
     TEST_INPUT as _SCHEMA_TEST_INPUT,
     TEST_OUTPUT as _SCHEMA_TEST_OUTPUT,
-    TYPE_TEMPLATES_NOT_FOUND as _SCHEMA_TYPE_TEMPLATES_NOT_FOUND,
     TYPE_TEMPLATES_RESPONSE as _SCHEMA_TYPE_TEMPLATES_RESPONSE,
     UPDATE_CONTEXT_OVERRIDE_REQUEST as _SCHEMA_UPDATE_CONTEXT_OVERRIDE_REQUEST,
     UPDATE_DEFAULT_CONFIG as _SCHEMA_UPDATE_DEFAULT_CONFIG,
@@ -230,16 +245,17 @@ from ._private.schemas import (
     UPDATE_WORKSPACE as _SCHEMA_UPDATE_WORKSPACE,
     UPDATE_WORKSPACE_INPUT as _SCHEMA_UPDATE_WORKSPACE_INPUT,
     UPDATE_WORKSPACE_OUTPUT as _SCHEMA_UPDATE_WORKSPACE_OUTPUT,
+    VALIDATE_CONTEXT as _SCHEMA_VALIDATE_CONTEXT,
+    VALIDATE_CONTEXT_INPUT as _SCHEMA_VALIDATE_CONTEXT_INPUT,
+    VALIDATE_CONTEXT_OUTPUT as _SCHEMA_VALIDATE_CONTEXT_OUTPUT,
     VALIDATE_FUNCTION_REQUEST as _SCHEMA_VALIDATE_FUNCTION_REQUEST,
     VARIANT as _SCHEMA_VARIANT,
     VARIANT_UPDATE_REQUEST as _SCHEMA_VARIANT_UPDATE_REQUEST,
-    WEBHOOK_NOT_FOUND as _SCHEMA_WEBHOOK_NOT_FOUND,
     WEBHOOK_RESPONSE as _SCHEMA_WEBHOOK_RESPONSE,
     WEIGHT_RECOMPUTE as _SCHEMA_WEIGHT_RECOMPUTE,
     WEIGHT_RECOMPUTE_INPUT as _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
     WEIGHT_RECOMPUTE_OUTPUT as _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
     WEIGHT_RECOMPUTE_RESPONSE as _SCHEMA_WEIGHT_RECOMPUTE_RESPONSE,
-    WORKSPACE_NOT_FOUND as _SCHEMA_WORKSPACE_NOT_FOUND,
     WORKSPACE_RESPONSE as _SCHEMA_WORKSPACE_RESPONSE,
 )
 
@@ -300,7 +316,7 @@ class AddMembersToGroupInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
     member_experiment_ids: list[str] | None = None
@@ -632,7 +648,7 @@ class ApplicableVariantsInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     context: dict[str, Document] | None = None
     identifier: str | None = None
 
@@ -800,6 +816,16 @@ APPLICABLE_VARIANTS = APIOperation(
 class ListAuditLogsInput:
     """
 
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
     :param tables:
          Comma serparated list of tables.
 
@@ -809,7 +835,7 @@ class ListAuditLogsInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     count: int | None = None
     page: int | None = None
     all: bool | None = None
@@ -1518,7 +1544,7 @@ class BulkOperationReq:
 class BulkOperationInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     config_tags: str | None = None
     bulk_operation: BulkOperationReq | None = None
 
@@ -1875,6 +1901,7 @@ BULK_OPERATION = APIOperation(
         output_schema = _SCHEMA_BULK_OPERATION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -1885,7 +1912,7 @@ BULK_OPERATION = APIOperation(
 class ConcludeExperimentInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     chosen_variant: str | None = None
     description: str | None = None
@@ -2131,7 +2158,8 @@ CONCLUDE_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_CONCLUDE_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -2166,7 +2194,7 @@ class GetConfigInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     prefix: str | None = None
     version: str | None = None
     context: dict[str, Document] | None = None
@@ -2656,7 +2684,7 @@ GET_CONFIG = APIOperation(
 class GetConfigFastInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONFIG_FAST_INPUT, self)
@@ -2756,7 +2784,7 @@ class GetResolvedConfigInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     prefix: str | None = None
     version: str | None = None
     show_reasoning: bool | None = None
@@ -2868,10 +2896,133 @@ GET_RESOLVED_CONFIG = APIOperation(
 )
 
 @dataclass(kw_only=True)
-class ListVersionsInput:
+class GetVersionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
+    id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_VERSION_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_VERSION_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_VERSION_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["id"] = de.read_string(_SCHEMA_GET_VERSION_INPUT.members["id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_VERSION_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetVersionOutput:
+
+    id: str
+
+    config: Document
+
+    config_hash: str
+
+    created_at: datetime
+
+    description: str
+
+    tags: list[str] | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_VERSION_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_VERSION_OUTPUT.members["id"], self.id)
+        serializer.write_document(_SCHEMA_GET_VERSION_OUTPUT.members["config"], self.config)
+        serializer.write_string(_SCHEMA_GET_VERSION_OUTPUT.members["config_hash"], self.config_hash)
+        serializer.write_timestamp(_SCHEMA_GET_VERSION_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_VERSION_OUTPUT.members["description"], self.description)
+        if self.tags is not None:
+            _serialize_string_list(serializer, _SCHEMA_GET_VERSION_OUTPUT.members["tags"], self.tags)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_GET_VERSION_OUTPUT.members["id"])
+
+                case 1:
+                    kwargs["config"] = de.read_document(_SCHEMA_GET_VERSION_OUTPUT.members["config"])
+
+                case 2:
+                    kwargs["config_hash"] = de.read_string(_SCHEMA_GET_VERSION_OUTPUT.members["config_hash"])
+
+                case 3:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_VERSION_OUTPUT.members["created_at"])
+
+                case 4:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_VERSION_OUTPUT.members["description"])
+
+                case 5:
+                    kwargs["tags"] = _deserialize_string_list(de, _SCHEMA_GET_VERSION_OUTPUT.members["tags"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_VERSION_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_VERSION = APIOperation(
+        input = GetVersionInput,
+        output = GetVersionOutput,
+        schema = _SCHEMA_GET_VERSION,
+        input_schema = _SCHEMA_GET_VERSION_INPUT,
+        output_schema = _SCHEMA_GET_VERSION_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class ListVersionsInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
     count: int | None = None
     page: int | None = None
 
@@ -2916,8 +3067,6 @@ class ListVersionsMember:
 
     config: Document
 
-    config_hash: str
-
     created_at: datetime
 
     description: str
@@ -2930,7 +3079,6 @@ class ListVersionsMember:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["id"], self.id)
         serializer.write_document(_SCHEMA_LIST_VERSIONS_MEMBER.members["config"], self.config)
-        serializer.write_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["config_hash"], self.config_hash)
         serializer.write_timestamp(_SCHEMA_LIST_VERSIONS_MEMBER.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["description"], self.description)
         if self.tags is not None:
@@ -2953,15 +3101,12 @@ class ListVersionsMember:
                     kwargs["config"] = de.read_document(_SCHEMA_LIST_VERSIONS_MEMBER.members["config"])
 
                 case 2:
-                    kwargs["config_hash"] = de.read_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["config_hash"])
-
-                case 3:
                     kwargs["created_at"] = de.read_timestamp(_SCHEMA_LIST_VERSIONS_MEMBER.members["created_at"])
 
-                case 4:
+                case 3:
                     kwargs["description"] = de.read_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["description"])
 
-                case 5:
+                case 4:
                     kwargs["tags"] = _deserialize_string_list(de, _SCHEMA_LIST_VERSIONS_MEMBER.members["tags"])
 
                 case _:
@@ -2990,19 +3135,22 @@ def _deserialize_list_versions_out(deserializer: ShapeDeserializer, schema: Sche
 @dataclass(kw_only=True)
 class ListVersionsOutput:
 
-    total_pages: int
-
-    total_items: int
-
-    data: list[ListVersionsMember]
+    total_pages: int | None = None
+    total_items: int | None = None
+    data: list[ListVersionsMember] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_VERSIONS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_pages"], self.total_pages)
-        serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_items"], self.total_items)
-        _serialize_list_versions_out(serializer, _SCHEMA_LIST_VERSIONS_OUTPUT.members["data"], self.data)
+        if self.total_pages is not None:
+            serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_pages"], self.total_pages)
+
+        if self.total_items is not None:
+            serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_items"], self.total_items)
+
+        if self.data is not None:
+            _serialize_list_versions_out(serializer, _SCHEMA_LIST_VERSIONS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3059,7 +3207,7 @@ class CreateContextInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     context: dict[str, Document] | None = None
     config_tags: str | None = None
     override: dict[str, Document] | None = None
@@ -3241,7 +3389,8 @@ CREATE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_CREATE_CONTEXT_INPUT,
         output_schema = _SCHEMA_CREATE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -3252,7 +3401,7 @@ CREATE_CONTEXT = APIOperation(
 class DeleteContextInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     config_tags: str | None = None
 
@@ -3323,8 +3472,8 @@ DELETE_CONTEXT = APIOperation(
         input_schema = _SCHEMA_DELETE_CONTEXT_INPUT,
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -3335,7 +3484,7 @@ ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 class GetContextInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3503,7 +3652,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 class GetContextFromConditionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     context: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3708,6 +3857,16 @@ class ContextFilterSortOn(StrEnum):
 class ListContextsInput:
     """
 
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
     :param sort_by:
          Sort order enumeration for list operations.
 
@@ -3716,11 +3875,11 @@ class ListContextsInput:
 
     """
 
-    workspace_id: str | None = None
-    org_id: str = "juspay"
-    page: int | None = None
     count: int | None = None
+    page: int | None = None
     all: bool | None = None
+    workspace_id: str | None = None
+    org_id: str | None = None
     prefix: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
@@ -3746,19 +3905,19 @@ class ListContextsInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["workspace_id"])
-
-                case 1:
-                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["org_id"])
-
-                case 2:
-                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_CONTEXTS_INPUT.members["page"])
-
-                case 3:
                     kwargs["count"] = de.read_integer(_SCHEMA_LIST_CONTEXTS_INPUT.members["count"])
 
-                case 4:
+                case 1:
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_CONTEXTS_INPUT.members["page"])
+
+                case 2:
                     kwargs["all"] = de.read_boolean(_SCHEMA_LIST_CONTEXTS_INPUT.members["all"])
+
+                case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["workspace_id"])
+
+                case 4:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["org_id"])
 
                 case 5:
                     kwargs["prefix"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
@@ -3874,7 +4033,7 @@ class MoveContextInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     context: dict[str, Document] | None = None
     description: str | None = None
@@ -4061,7 +4220,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 class UpdateOverrideInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     config_tags: str | None = None
     request: UpdateContextOverrideRequest | None = None
 
@@ -4230,10 +4389,96 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 )
 
 @dataclass(kw_only=True)
+class ValidateContextInput:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    context: dict[str, Document] | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_VALIDATE_CONTEXT_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.context is not None:
+            _serialize_condition(serializer, _SCHEMA_VALIDATE_CONTEXT_INPUT.members["context"], self.context)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_VALIDATE_CONTEXT_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_VALIDATE_CONTEXT_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_VALIDATE_CONTEXT_INPUT.members["context"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_VALIDATE_CONTEXT_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class ValidateContextOutput:
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_VALIDATE_CONTEXT_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_VALIDATE_CONTEXT_OUTPUT, consumer=_consumer)
+        return kwargs
+
+VALIDATE_CONTEXT = APIOperation(
+        input = ValidateContextInput,
+        output = ValidateContextOutput,
+        schema = _SCHEMA_VALIDATE_CONTEXT,
+        input_schema = _SCHEMA_VALIDATE_CONTEXT_INPUT,
+        output_schema = _SCHEMA_VALIDATE_CONTEXT_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class WeightRecomputeInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     config_tags: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4417,7 +4662,7 @@ class CreateDefaultConfigInput:
     function_name: str | None = None
     autocomplete_function_name: str | None = None
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT, self)
@@ -4615,7 +4860,7 @@ class CreateDimensionInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     dimension: str | None = None
     position: int | None = None
     schema: dict[str, Document] | None = None
@@ -4842,7 +5087,7 @@ class CreateExperimentInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     name: str | None = None
     experiment_type: str | None = None
     context: dict[str, Document] | None = None
@@ -5115,7 +5360,7 @@ class CreateExperimentGroupInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     name: str | None = None
     description: str | None = None
     change_reason: str | None = None
@@ -5323,7 +5568,7 @@ class FunctionTypes(StrEnum):
 class CreateFunctionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     function_name: str | None = None
     description: str | None = None
     change_reason: str | None = None
@@ -5717,7 +5962,7 @@ class CreateTypeTemplatesInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     type_name: str | None = None
     type_schema: dict[str, Document] | None = None
     description: str | None = None
@@ -5906,7 +6151,7 @@ class CreateWebhookInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     name: str | None = None
     description: str | None = None
     enabled: bool | None = None
@@ -6142,7 +6387,7 @@ class WorkspaceStatus(StrEnum):
 @dataclass(kw_only=True)
 class CreateWorkspaceInput:
 
-    org_id: str = "juspay"
+    org_id: str | None = None
     workspace_admin_email: str | None = None
     workspace_name: str | None = None
     workspace_status: str | None = None
@@ -6376,7 +6621,7 @@ CREATE_WORKSPACE = APIOperation(
 class DeleteDefaultConfigInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     key: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6443,8 +6688,164 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class GetDefaultConfigInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    key: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_DEFAULT_CONFIG_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["key"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_INPUT.members["key"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_DEFAULT_CONFIG_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetDefaultConfigOutput:
+    """
+
+    :param schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    :param function_name:
+         Optional
+
+    """
+
+    key: str
+
+    value: Document
+
+    schema: dict[str, Document]
+
+    description: str
+
+    change_reason: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
+
+    function_name: str | None = None
+    autocomplete_function_name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["key"], self.key)
+        serializer.write_document(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["value"], self.value)
+        _serialize_object(serializer, _SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["schema"], self.schema)
+        serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["change_reason"], self.change_reason)
+        if self.function_name is not None:
+            serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["function_name"], self.function_name)
+
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+
+        serializer.write_timestamp(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"], self.last_modified_by)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["key"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["key"])
+
+                case 1:
+                    kwargs["value"] = de.read_document(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["value"])
+
+                case 2:
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["schema"])
+
+                case 3:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["description"])
+
+                case 4:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["change_reason"])
+
+                case 5:
+                    kwargs["function_name"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["function_name"])
+
+                case 6:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"])
+
+                case 7:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_at"])
+
+                case 8:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_by"])
+
+                case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"])
+
+                case 10:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_DEFAULT_CONFIG = APIOperation(
+        input = GetDefaultConfigInput,
+        output = GetDefaultConfigOutput,
+        schema = _SCHEMA_GET_DEFAULT_CONFIG,
+        input_schema = _SCHEMA_GET_DEFAULT_CONFIG_INPUT,
+        output_schema = _SCHEMA_GET_DEFAULT_CONFIG_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6453,12 +6854,26 @@ ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 
 @dataclass(kw_only=True)
 class ListDefaultConfigsInput:
+    """
 
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
     count: int | None = None
     page: int | None = None
     all: bool | None = None
-    workspace_id: str | None = None
-    org_id: str = "juspay"
+    name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT, self)
@@ -6477,19 +6892,22 @@ class ListDefaultConfigsInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["count"])
-
-                case 1:
-                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["page"])
-
-                case 2:
-                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["all"])
-
-                case 3:
                     kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["workspace_id"])
 
-                case 4:
+                case 1:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["count"])
+
+                case 3:
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["page"])
+
+                case 4:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["all"])
+
+                case 5:
+                    kwargs["name"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -6670,7 +7088,6 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6688,7 +7105,7 @@ class UpdateDefaultConfigInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     key: str | None = None
     change_reason: str | None = None
     value: Document | None = None
@@ -6884,7 +7301,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 class DeleteDimensionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     dimension: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6951,8 +7368,8 @@ DELETE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_DELETE_DIMENSION_INPUT,
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -6963,7 +7380,7 @@ ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 class DeleteExperimentGroupInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7132,7 +7549,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 class DeleteFunctionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7192,37 +7609,6 @@ class DeleteFunctionOutput:
         deserializer.read_struct(_SCHEMA_DELETE_FUNCTION_OUTPUT, consumer=_consumer)
         return kwargs
 
-@dataclass(kw_only=True)
-class FunctionNotFound(ApiError):
-
-    code: ClassVar[str] = "FunctionNotFound"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_FUNCTION_NOT_FOUND, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        pass
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_FUNCTION_NOT_FOUND, consumer=_consumer)
-        return kwargs
-
 DELETE_FUNCTION = APIOperation(
         input = DeleteFunctionInput,
         output = DeleteFunctionOutput,
@@ -7230,8 +7616,8 @@ DELETE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -7242,7 +7628,7 @@ ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
 class DeleteTypeTemplatesInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     type_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7355,16 +7741,64 @@ class DeleteTypeTemplatesOutput:
         deserializer.read_struct(_SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT, consumer=_consumer)
         return kwargs
 
+DELETE_TYPE_TEMPLATES = APIOperation(
+        input = DeleteTypeTemplatesInput,
+        output = DeleteTypeTemplatesOutput,
+        schema = _SCHEMA_DELETE_TYPE_TEMPLATES,
+        input_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
+        output_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
 @dataclass(kw_only=True)
-class TypeTemplatesNotFound(ApiError):
+class DeleteWebhookInput:
 
-    code: ClassVar[str] = "TypeTemplatesNotFound"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_TYPE_TEMPLATES_NOT_FOUND, self)
+        serializer.write_struct(_SCHEMA_DELETE_WEBHOOK_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_DELETE_WEBHOOK_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_WEBHOOK_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_DELETE_WEBHOOK_INPUT.members["name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DELETE_WEBHOOK_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class DeleteWebhookOutput:
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DELETE_WEBHOOK_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         pass
@@ -7383,17 +7817,17 @@ class TypeTemplatesNotFound(ApiError):
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_TYPE_TEMPLATES_NOT_FOUND, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_DELETE_WEBHOOK_OUTPUT, consumer=_consumer)
         return kwargs
 
-DELETE_TYPE_TEMPLATES = APIOperation(
-        input = DeleteTypeTemplatesInput,
-        output = DeleteTypeTemplatesOutput,
-        schema = _SCHEMA_DELETE_TYPE_TEMPLATES,
-        input_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
-        output_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
+DELETE_WEBHOOK = APIOperation(
+        input = DeleteWebhookInput,
+        output = DeleteWebhookOutput,
+        schema = _SCHEMA_DELETE_WEBHOOK,
+        input_schema = _SCHEMA_DELETE_WEBHOOK_INPUT,
+        output_schema = _SCHEMA_DELETE_WEBHOOK_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#TypeTemplatesNotFound"): TypeTemplatesNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -7405,7 +7839,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 class GetDimensionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     dimension: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7574,12 +8008,25 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class ListDimensionsInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    """
 
     count: int | None = None
     page: int | None = None
     all: bool | None = None
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_DIMENSIONS_INPUT, self)
@@ -7823,7 +8270,7 @@ class UpdateDimensionInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     dimension: str | None = None
     schema: dict[str, Document] | None = None
     position: int | None = None
@@ -8034,7 +8481,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 class DiscardExperimentInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
 
@@ -8237,7 +8684,8 @@ DISCARD_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_DISCARD_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_DISCARD_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -8248,7 +8696,7 @@ DISCARD_EXPERIMENT = APIOperation(
 class GetExperimentGroupInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8434,6 +8882,16 @@ class ExperimentGroupSortOn(StrEnum):
 class ListExperimentGroupsInput:
     """
 
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
     :param name:
          Filter by experiment group name (exact match or substring, depending on backend
          implementation).
@@ -8450,25 +8908,21 @@ class ListExperimentGroupsInput:
     :param sort_by:
          Sort order (ascending or descending).
 
-    :param all:
-         If true, returns all experiment groups, ignoring pagination parameters page and
-         count.
-
     :param group_type:
          Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
 
     """
 
-    workspace_id: str | None = None
-    org_id: str = "juspay"
-    page: int | None = None
     count: int | None = None
+    page: int | None = None
+    all: bool | None = None
+    workspace_id: str | None = None
+    org_id: str | None = None
     name: str | None = None
     created_by: str | None = None
     last_modified_by: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
-    all: bool | None = None
     group_type: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8488,34 +8942,34 @@ class ListExperimentGroupsInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["workspace_id"])
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["count"])
 
                 case 1:
-                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["org_id"])
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["page"])
 
                 case 2:
-                    kwargs["page"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["page"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["all"])
 
                 case 3:
-                    kwargs["count"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["count"])
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["workspace_id"])
 
                 case 4:
-                    kwargs["name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["name"])
+                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["created_by"])
+                    kwargs["name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["name"])
 
                 case 6:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["created_by"])
 
                 case 7:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_on"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["last_modified_by"])
 
                 case 8:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_on"])
 
                 case 9:
-                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["all"])
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_by"])
 
                 case 10:
                     kwargs["group_type"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
@@ -8662,27 +9116,28 @@ def _deserialize_experiment_group_list(deserializer: ShapeDeserializer, schema: 
 @dataclass(kw_only=True)
 class ListExperimentGroupsOutput:
     """
-    Output structure for the list experiment groups operation, including pagination
-    details.
 
     :param data:
-        **[Required]** - A list of experiment group responses.
+         A list of experiment group responses.
 
     """
 
-    total_pages: int
-
-    total_items: int
-
-    data: list[ExperimentGroupResponse]
+    total_pages: int | None = None
+    total_items: int | None = None
+    data: list[ExperimentGroupResponse] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_long(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_pages"], self.total_pages)
-        serializer.write_long(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_items"], self.total_items)
-        _serialize_experiment_group_list(serializer, _SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["data"], self.data)
+        if self.total_pages is not None:
+            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_pages"], self.total_pages)
+
+        if self.total_items is not None:
+            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_items"], self.total_items)
+
+        if self.data is not None:
+            _serialize_experiment_group_list(serializer, _SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8695,10 +9150,10 @@ class ListExperimentGroupsOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["total_pages"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_pages"])
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_pages"])
 
                 case 1:
-                    kwargs["total_items"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_items"])
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_items"])
 
                 case 2:
                     kwargs["data"] = _deserialize_experiment_group_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["data"])
@@ -8737,7 +9192,7 @@ class RemoveMembersFromGroupInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
     member_experiment_ids: list[str] | None = None
@@ -8931,7 +9386,7 @@ class UpdateExperimentGroupInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
     description: str | None = None
@@ -9293,7 +9748,7 @@ def _deserialize_experiment_list(deserializer: ShapeDeserializer, schema: Schema
 class GetExperimentInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9491,7 +9946,8 @@ GET_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_GET_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_GET_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -9506,6 +9962,16 @@ class ExperimentSortOn(StrEnum):
 class ListExperimentInput:
     """
 
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
     :param sort_by:
          Sort order enumeration for list operations.
 
@@ -9514,11 +9980,11 @@ class ListExperimentInput:
 
     """
 
-    workspace_id: str | None = None
-    org_id: str = "juspay"
-    page: int | None = None
     count: int | None = None
+    page: int | None = None
     all: bool | None = None
+    workspace_id: str | None = None
+    org_id: str | None = None
     status: str | None = None
     from_date: datetime | None = None
     to_date: datetime | None = None
@@ -9548,19 +10014,19 @@ class ListExperimentInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["workspace_id"])
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_INPUT.members["count"])
 
                 case 1:
-                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["org_id"])
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_INPUT.members["page"])
 
                 case 2:
-                    kwargs["page"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_INPUT.members["page"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["all"])
 
                 case 3:
-                    kwargs["count"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_INPUT.members["count"])
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["workspace_id"])
 
                 case 4:
-                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["all"])
+                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["org_id"])
 
                 case 5:
                     kwargs["status"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["status"])
@@ -9604,19 +10070,22 @@ class ListExperimentInput:
 @dataclass(kw_only=True)
 class ListExperimentOutput:
 
-    total_pages: int
-
-    total_items: int
-
-    data: list[ExperimentResponse]
+    total_pages: int | None = None
+    total_items: int | None = None
+    data: list[ExperimentResponse] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_long(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_pages"], self.total_pages)
-        serializer.write_long(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_items"], self.total_items)
-        _serialize_experiment_list(serializer, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"], self.data)
+        if self.total_pages is not None:
+            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_pages"], self.total_pages)
+
+        if self.total_items is not None:
+            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_items"], self.total_items)
+
+        if self.data is not None:
+            _serialize_experiment_list(serializer, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9629,10 +10098,10 @@ class ListExperimentOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["total_pages"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_pages"])
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_pages"])
 
                 case 1:
-                    kwargs["total_items"] = de.read_long(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_items"])
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_items"])
 
                 case 2:
                     kwargs["data"] = _deserialize_experiment_list(de, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"])
@@ -9661,7 +10130,7 @@ LIST_EXPERIMENT = APIOperation(
 class PauseExperimentInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
 
@@ -9864,7 +10333,8 @@ PAUSE_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_PAUSE_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_PAUSE_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -9875,7 +10345,7 @@ PAUSE_EXPERIMENT = APIOperation(
 class RampExperimentInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
     traffic_percentage: int | None = None
@@ -10085,7 +10555,8 @@ RAMP_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_RAMP_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_RAMP_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -10096,7 +10567,7 @@ RAMP_EXPERIMENT = APIOperation(
 class ResumeExperimentInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
 
@@ -10299,7 +10770,8 @@ RESUME_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_RESUME_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_RESUME_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -10363,7 +10835,7 @@ def _deserialize_list_variant_update_request(deserializer: ShapeDeserializer, sc
 class UpdateOverridesExperimentInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     id: str | None = None
     variant_list: list[VariantUpdateRequest] | None = None
     description: str | None = None
@@ -10594,7 +11066,8 @@ UPDATE_OVERRIDES_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -10605,7 +11078,7 @@ UPDATE_OVERRIDES_EXPERIMENT = APIOperation(
 class GetFunctionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -10759,7 +11232,7 @@ GET_FUNCTION = APIOperation(
         input_schema = _SCHEMA_GET_FUNCTION_INPUT,
         output_schema = _SCHEMA_GET_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -10769,12 +11242,25 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class ListFunctionInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    """
 
     count: int | None = None
     page: int | None = None
     all: bool | None = None
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_FUNCTION_INPUT, self)
@@ -11006,7 +11492,7 @@ LIST_FUNCTION = APIOperation(
 class PublishInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     function_name: str | None = None
     change_reason: str | None = None
 
@@ -11165,7 +11651,7 @@ PUBLISH = APIOperation(
         input_schema = _SCHEMA_PUBLISH_INPUT,
         output_schema = _SCHEMA_PUBLISH_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11301,7 +11787,7 @@ class Stage(StrEnum):
 class TestInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     function_name: str | None = None
     stage: str | None = None
     request: FunctionExecutionRequest | None = None
@@ -11392,7 +11878,7 @@ TEST = APIOperation(
         input_schema = _SCHEMA_TEST_INPUT,
         output_schema = _SCHEMA_TEST_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11404,7 +11890,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 class UpdateFunctionInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     function_name: str | None = None
     description: str | None = None
     change_reason: str | None = None
@@ -11584,7 +12070,7 @@ UPDATE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_UPDATE_FUNCTION_INPUT,
         output_schema = _SCHEMA_UPDATE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#FunctionNotFound"): FunctionNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11723,16 +12209,30 @@ class GetOrganisationOutput:
         deserializer.read_struct(_SCHEMA_GET_ORGANISATION_OUTPUT, consumer=_consumer)
         return kwargs
 
+GET_ORGANISATION = APIOperation(
+        input = GetOrganisationInput,
+        output = GetOrganisationOutput,
+        schema = _SCHEMA_GET_ORGANISATION,
+        input_schema = _SCHEMA_GET_ORGANISATION_INPUT,
+        output_schema = _SCHEMA_GET_ORGANISATION_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
 @dataclass(kw_only=True)
-class OrganisationNotFound(ApiError):
+class GetTypeTemplateInput:
 
-    code: ClassVar[str] = "OrganisationNotFound"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    workspace_id: str | None = None
+    org_id: str | None = None
+    type_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_ORGANISATION_NOT_FOUND, self)
+        serializer.write_struct(_SCHEMA_GET_TYPE_TEMPLATE_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         pass
@@ -11747,21 +12247,108 @@ class OrganisationNotFound(ApiError):
 
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["type_name"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_INPUT.members["type_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_ORGANISATION_NOT_FOUND, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_GET_TYPE_TEMPLATE_INPUT, consumer=_consumer)
         return kwargs
 
-GET_ORGANISATION = APIOperation(
-        input = GetOrganisationInput,
-        output = GetOrganisationOutput,
-        schema = _SCHEMA_GET_ORGANISATION,
-        input_schema = _SCHEMA_GET_ORGANISATION_INPUT,
-        output_schema = _SCHEMA_GET_ORGANISATION_OUTPUT,
+@dataclass(kw_only=True)
+class GetTypeTemplateOutput:
+    """
+
+    :param type_schema:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
+
+    type_name: str
+
+    type_schema: dict[str, Document]
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_at: datetime
+
+    last_modified_by: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["type_name"], self.type_name)
+        _serialize_object(serializer, _SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["type_schema"], self.type_schema)
+        serializer.write_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_timestamp(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["last_modified_by"], self.last_modified_by)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["type_name"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["type_name"])
+
+                case 1:
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["type_schema"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["description"])
+
+                case 3:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["change_reason"])
+
+                case 4:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["created_by"])
+
+                case 5:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["created_at"])
+
+                case 6:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["last_modified_at"])
+
+                case 7:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT.members["last_modified_by"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_TYPE_TEMPLATE_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_TYPE_TEMPLATE = APIOperation(
+        input = GetTypeTemplateInput,
+        output = GetTypeTemplateOutput,
+        schema = _SCHEMA_GET_TYPE_TEMPLATE,
+        input_schema = _SCHEMA_GET_TYPE_TEMPLATE_INPUT,
+        output_schema = _SCHEMA_GET_TYPE_TEMPLATE_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#OrganisationNotFound"): OrganisationNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11771,12 +12358,25 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class GetTypeTemplatesListInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    """
 
     count: int | None = None
     page: int | None = None
     all: bool | None = None
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT, self)
@@ -11974,7 +12574,7 @@ GET_TYPE_TEMPLATES_LIST = APIOperation(
 class GetWebhookInput:
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -12139,7 +12739,358 @@ GET_WEBHOOK = APIOperation(
         input_schema = _SCHEMA_GET_WEBHOOK_INPUT,
         output_schema = _SCHEMA_GET_WEBHOOK_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class GetWebhookByEventInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    event: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["event"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT.members["event"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetWebhookByEventOutput:
+    """
+
+    :param custom_headers:
+         Generic key-value object structure used for flexible data representation
+         throughout the API.
+
+    """
+
+    name: str
+
+    description: str
+
+    enabled: bool
+
+    url: str
+
+    method: str
+
+    version: str
+
+    events: list[str]
+
+    max_retries: int
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    custom_headers: dict[str, Document] | None = None
+    last_triggered_at: datetime | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["description"], self.description)
+        serializer.write_boolean(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["enabled"], self.enabled)
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["url"], self.url)
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["method"], self.method)
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["version"], self.version)
+        if self.custom_headers is not None:
+            _serialize_object(serializer, _SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["custom_headers"], self.custom_headers)
+
+        _serialize_events(serializer, _SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["events"], self.events)
+        serializer.write_integer(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["max_retries"], self.max_retries)
+        if self.last_triggered_at is not None:
+            serializer.write_timestamp(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["last_triggered_at"], self.last_triggered_at)
+
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["description"])
+
+                case 2:
+                    kwargs["enabled"] = de.read_boolean(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["enabled"])
+
+                case 3:
+                    kwargs["url"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["url"])
+
+                case 4:
+                    kwargs["method"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["method"])
+
+                case 5:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["version"])
+
+                case 6:
+                    kwargs["custom_headers"] = _deserialize_object(de, _SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["custom_headers"])
+
+                case 7:
+                    kwargs["events"] = _deserialize_events(de, _SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["events"])
+
+                case 8:
+                    kwargs["max_retries"] = de.read_integer(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["max_retries"])
+
+                case 9:
+                    kwargs["last_triggered_at"] = de.read_timestamp(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["last_triggered_at"])
+
+                case 10:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["change_reason"])
+
+                case 11:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["created_by"])
+
+                case 12:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["created_at"])
+
+                case 13:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["last_modified_by"])
+
+                case 14:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_WEBHOOK_BY_EVENT = APIOperation(
+        input = GetWebhookByEventInput,
+        output = GetWebhookByEventOutput,
+        schema = _SCHEMA_GET_WEBHOOK_BY_EVENT,
+        input_schema = _SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT,
+        output_schema = _SCHEMA_GET_WEBHOOK_BY_EVENT_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class GetWorkspaceInput:
+
+    org_id: str | None = None
+    workspace_name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_WORKSPACE_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_WORKSPACE_INPUT.members["org_id"])
+
+                case 1:
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_GET_WORKSPACE_INPUT.members["workspace_name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_WORKSPACE_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetWorkspaceOutput:
+
+    workspace_name: str
+
+    organisation_id: str
+
+    organisation_name: str
+
+    workspace_schema_name: str
+
+    workspace_status: str
+
+    workspace_admin_email: str
+
+    created_by: str
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    created_at: datetime
+
+    strict_mode: bool
+
+    allow_experiment_self_approval: bool
+
+    auto_populate_control: bool
+
+    config_version: str | None = None
+    mandatory_dimensions: list[str] | None = None
+    metrics: Document | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_WORKSPACE_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_name"], self.workspace_name)
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["organisation_id"], self.organisation_id)
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["organisation_name"], self.organisation_name)
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_schema_name"], self.workspace_schema_name)
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_status"], self.workspace_status)
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_admin_email"], self.workspace_admin_email)
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["config_version"], self.config_version)
+
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_GET_WORKSPACE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_timestamp(_SCHEMA_GET_WORKSPACE_OUTPUT.members["created_at"], self.created_at)
+        if self.mandatory_dimensions is not None:
+            _serialize_list_mandatory_dimensions(serializer, _SCHEMA_GET_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
+
+        serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_GET_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
+
+        serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
+        serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_name"])
+
+                case 1:
+                    kwargs["organisation_id"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["organisation_id"])
+
+                case 2:
+                    kwargs["organisation_name"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["organisation_name"])
+
+                case 3:
+                    kwargs["workspace_schema_name"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_schema_name"])
+
+                case 4:
+                    kwargs["workspace_status"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_status"])
+
+                case 5:
+                    kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_admin_email"])
+
+                case 6:
+                    kwargs["config_version"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["config_version"])
+
+                case 7:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["created_by"])
+
+                case 8:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["last_modified_by"])
+
+                case 9:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_GET_WORKSPACE_OUTPUT.members["last_modified_at"])
+
+                case 10:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_WORKSPACE_OUTPUT.members["created_at"])
+
+                case 11:
+                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_GET_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
+
+                case 12:
+                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["strict_mode"])
+
+                case 13:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_GET_WORKSPACE_OUTPUT.members["metrics"])
+
+                case 14:
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
+
+                case 15:
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_WORKSPACE_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_WORKSPACE = APIOperation(
+        input = GetWorkspaceInput,
+        output = GetWorkspaceOutput,
+        schema = _SCHEMA_GET_WORKSPACE,
+        input_schema = _SCHEMA_GET_WORKSPACE_INPUT,
+        output_schema = _SCHEMA_GET_WORKSPACE_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -12148,6 +13099,19 @@ GET_WEBHOOK = APIOperation(
 
 @dataclass(kw_only=True)
 class ListOrganisationInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    """
 
     count: int | None = None
     page: int | None = None
@@ -12363,12 +13327,25 @@ LIST_ORGANISATION = APIOperation(
 
 @dataclass(kw_only=True)
 class ListWebhookInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    """
 
     count: int | None = None
     page: int | None = None
     all: bool | None = None
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WEBHOOK_INPUT, self)
@@ -12551,19 +13528,22 @@ def _deserialize_webhook_list(deserializer: ShapeDeserializer, schema: Schema) -
 @dataclass(kw_only=True)
 class ListWebhookOutput:
 
-    total_pages: int
-
-    total_items: int
-
-    data: list[WebhookResponse]
+    total_pages: int | None = None
+    total_items: int | None = None
+    data: list[WebhookResponse] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WEBHOOK_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_long(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_pages"], self.total_pages)
-        serializer.write_long(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_items"], self.total_items)
-        _serialize_webhook_list(serializer, _SCHEMA_LIST_WEBHOOK_OUTPUT.members["data"], self.data)
+        if self.total_pages is not None:
+            serializer.write_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_pages"], self.total_pages)
+
+        if self.total_items is not None:
+            serializer.write_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_items"], self.total_items)
+
+        if self.data is not None:
+            _serialize_webhook_list(serializer, _SCHEMA_LIST_WEBHOOK_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12576,10 +13556,10 @@ class ListWebhookOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["total_pages"] = de.read_long(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_pages"])
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_pages"])
 
                 case 1:
-                    kwargs["total_items"] = de.read_long(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_items"])
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_items"])
 
                 case 2:
                     kwargs["data"] = _deserialize_webhook_list(de, _SCHEMA_LIST_WEBHOOK_OUTPUT.members["data"])
@@ -12606,11 +13586,24 @@ LIST_WEBHOOK = APIOperation(
 
 @dataclass(kw_only=True)
 class ListWorkspaceInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    """
 
     count: int | None = None
     page: int | None = None
     all: bool | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WORKSPACE_INPUT, self)
@@ -12790,19 +13783,22 @@ def _deserialize_workspace_list(deserializer: ShapeDeserializer, schema: Schema)
 @dataclass(kw_only=True)
 class ListWorkspaceOutput:
 
-    total_pages: int
-
-    total_items: int
-
-    data: list[WorkspaceResponse]
+    total_pages: int | None = None
+    total_items: int | None = None
+    data: list[WorkspaceResponse] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WORKSPACE_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_long(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_pages"], self.total_pages)
-        serializer.write_long(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_items"], self.total_items)
-        _serialize_workspace_list(serializer, _SCHEMA_LIST_WORKSPACE_OUTPUT.members["data"], self.data)
+        if self.total_pages is not None:
+            serializer.write_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_pages"], self.total_pages)
+
+        if self.total_items is not None:
+            serializer.write_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_items"], self.total_items)
+
+        if self.data is not None:
+            _serialize_workspace_list(serializer, _SCHEMA_LIST_WORKSPACE_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12815,10 +13811,10 @@ class ListWorkspaceOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["total_pages"] = de.read_long(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_pages"])
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_pages"])
 
                 case 1:
-                    kwargs["total_items"] = de.read_long(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_items"])
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_items"])
 
                 case 2:
                     kwargs["data"] = _deserialize_workspace_list(de, _SCHEMA_LIST_WORKSPACE_OUTPUT.members["data"])
@@ -12846,7 +13842,7 @@ LIST_WORKSPACE = APIOperation(
 @dataclass(kw_only=True)
 class MigrateWorkspaceSchemaInput:
 
-    org_id: str = "juspay"
+    org_id: str | None = None
     workspace_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -13008,7 +14004,8 @@ MIGRATE_WORKSPACE_SCHEMA = APIOperation(
         input_schema = _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT,
         output_schema = _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBearerAuth")
@@ -13193,7 +14190,7 @@ UPDATE_ORGANISATION = APIOperation(
         input_schema = _SCHEMA_UPDATE_ORGANISATION_INPUT,
         output_schema = _SCHEMA_UPDATE_ORGANISATION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#OrganisationNotFound"): OrganisationNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -13212,7 +14209,7 @@ class UpdateTypeTemplatesInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     type_name: str | None = None
     type_schema: dict[str, Document] | None = None
     description: str | None = None
@@ -13351,7 +14348,7 @@ UPDATE_TYPE_TEMPLATES = APIOperation(
         input_schema = _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT,
         output_schema = _SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#TypeTemplatesNotFound"): TypeTemplatesNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -13370,7 +14367,7 @@ class UpdateWebhookInput:
     """
 
     workspace_id: str | None = None
-    org_id: str = "juspay"
+    org_id: str | None = None
     name: str | None = None
     description: str | None = None
     enabled: bool | None = None
@@ -13582,37 +14579,6 @@ class UpdateWebhookOutput:
         deserializer.read_struct(_SCHEMA_UPDATE_WEBHOOK_OUTPUT, consumer=_consumer)
         return kwargs
 
-@dataclass(kw_only=True)
-class WebhookNotFound(ApiError):
-
-    code: ClassVar[str] = "WebhookNotFound"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_WEBHOOK_NOT_FOUND, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        pass
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_WEBHOOK_NOT_FOUND, consumer=_consumer)
-        return kwargs
-
 UPDATE_WEBHOOK = APIOperation(
         input = UpdateWebhookInput,
         output = UpdateWebhookOutput,
@@ -13620,7 +14586,7 @@ UPDATE_WEBHOOK = APIOperation(
         input_schema = _SCHEMA_UPDATE_WEBHOOK_INPUT,
         output_schema = _SCHEMA_UPDATE_WEBHOOK_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#WebhookNotFound"): WebhookNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -13631,7 +14597,7 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 @dataclass(kw_only=True)
 class UpdateWorkspaceInput:
 
-    org_id: str = "juspay"
+    org_id: str | None = None
     workspace_name: str | None = None
     workspace_admin_email: str | None = None
     config_version: str | None = None
@@ -13833,37 +14799,6 @@ class UpdateWorkspaceOutput:
         deserializer.read_struct(_SCHEMA_UPDATE_WORKSPACE_OUTPUT, consumer=_consumer)
         return kwargs
 
-@dataclass(kw_only=True)
-class WorkspaceNotFound(ApiError):
-
-    code: ClassVar[str] = "WorkspaceNotFound"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_WORKSPACE_NOT_FOUND, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        pass
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_WORKSPACE_NOT_FOUND, consumer=_consumer)
-        return kwargs
-
 UPDATE_WORKSPACE = APIOperation(
         input = UpdateWorkspaceInput,
         output = UpdateWorkspaceOutput,
@@ -13871,7 +14806,7 @@ UPDATE_WORKSPACE = APIOperation(
         input_schema = _SCHEMA_UPDATE_WORKSPACE_INPUT,
         output_schema = _SCHEMA_UPDATE_WORKSPACE_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#WorkspaceNotFound"): WorkspaceNotFound,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [

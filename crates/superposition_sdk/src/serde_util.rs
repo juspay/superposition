@@ -239,6 +239,19 @@ pub(crate) fn get_context_from_condition_output_output_correct_errors(mut builde
                 builder
             }
 
+pub(crate) fn get_default_config_output_output_correct_errors(mut builder: crate::operation::get_default_config::builders::GetDefaultConfigOutputBuilder) -> crate::operation::get_default_config::builders::GetDefaultConfigOutputBuilder {
+                if builder.key.is_none() { builder.key = Some(Default::default()) }
+if builder.value.is_none() { builder.value = Some(Default::default()) }
+if builder.schema.is_none() { builder.schema = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn get_dimension_output_output_correct_errors(mut builder: crate::operation::get_dimension::builders::GetDimensionOutputBuilder) -> crate::operation::get_dimension::builders::GetDimensionOutputBuilder {
                 if builder.dimension.is_none() { builder.dimension = Some(Default::default()) }
 if builder.position.is_none() { builder.position = Some(Default::default()) }
@@ -316,6 +329,27 @@ if builder.updated_by.is_none() { builder.updated_by = Some(Default::default()) 
                 builder
             }
 
+pub(crate) fn get_type_template_output_output_correct_errors(mut builder: crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder) -> crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder {
+                if builder.type_name.is_none() { builder.type_name = Some(Default::default()) }
+if builder.type_schema.is_none() { builder.type_schema = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn get_version_output_output_correct_errors(mut builder: crate::operation::get_version::builders::GetVersionOutputBuilder) -> crate::operation::get_version::builders::GetVersionOutputBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.config.is_none() { builder.config = Some(Default::default()) }
+if builder.config_hash.is_none() { builder.config_hash = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn get_webhook_output_output_correct_errors(mut builder: crate::operation::get_webhook::builders::GetWebhookOutputBuilder) -> crate::operation::get_webhook::builders::GetWebhookOutputBuilder {
                 if builder.name.is_none() { builder.name = Some(Default::default()) }
 if builder.description.is_none() { builder.description = Some(Default::default()) }
@@ -333,38 +367,37 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
                 builder
             }
 
-pub(crate) fn list_experiment_output_output_correct_errors(mut builder: crate::operation::list_experiment::builders::ListExperimentOutputBuilder) -> crate::operation::list_experiment::builders::ListExperimentOutputBuilder {
-                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
-if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
-if builder.data.is_none() { builder.data = Some(Default::default()) }
+pub(crate) fn get_webhook_by_event_output_output_correct_errors(mut builder: crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder) -> crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder {
+                if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.enabled.is_none() { builder.enabled = Some(Default::default()) }
+if builder.url.is_none() { builder.url = Some(Default::default()) }
+if builder.method.is_none() { builder.method = "no value was set".parse::<crate::types::HttpMethod>().ok() }
+if builder.version.is_none() { builder.version = "no value was set".parse::<crate::types::Version>().ok() }
+if builder.events.is_none() { builder.events = Some(Default::default()) }
+if builder.max_retries.is_none() { builder.max_retries = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
                 builder
             }
 
-pub(crate) fn list_experiment_groups_output_output_correct_errors(mut builder: crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder) -> crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder {
-                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
-if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
-if builder.data.is_none() { builder.data = Some(Default::default()) }
-                builder
-            }
-
-pub(crate) fn list_versions_output_output_correct_errors(mut builder: crate::operation::list_versions::builders::ListVersionsOutputBuilder) -> crate::operation::list_versions::builders::ListVersionsOutputBuilder {
-                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
-if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
-if builder.data.is_none() { builder.data = Some(Default::default()) }
-                builder
-            }
-
-pub(crate) fn list_webhook_output_output_correct_errors(mut builder: crate::operation::list_webhook::builders::ListWebhookOutputBuilder) -> crate::operation::list_webhook::builders::ListWebhookOutputBuilder {
-                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
-if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
-if builder.data.is_none() { builder.data = Some(Default::default()) }
-                builder
-            }
-
-pub(crate) fn list_workspace_output_output_correct_errors(mut builder: crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder) -> crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder {
-                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
-if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
-if builder.data.is_none() { builder.data = Some(Default::default()) }
+pub(crate) fn get_workspace_output_output_correct_errors(mut builder: crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder) -> crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder {
+                if builder.workspace_name.is_none() { builder.workspace_name = Some(Default::default()) }
+if builder.organisation_id.is_none() { builder.organisation_id = Some(Default::default()) }
+if builder.organisation_name.is_none() { builder.organisation_name = Some(Default::default()) }
+if builder.workspace_schema_name.is_none() { builder.workspace_schema_name = Some(Default::default()) }
+if builder.workspace_status.is_none() { builder.workspace_status = "no value was set".parse::<crate::types::WorkspaceStatus>().ok() }
+if builder.workspace_admin_email.is_none() { builder.workspace_admin_email = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
+if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
                 builder
             }
 
@@ -716,7 +749,6 @@ if builder.function_type.is_none() { builder.function_type = "no value was set".
 pub(crate) fn list_versions_member_correct_errors(mut builder: crate::types::builders::ListVersionsMemberBuilder) -> crate::types::builders::ListVersionsMemberBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.config.is_none() { builder.config = Some(Default::default()) }
-if builder.config_hash.is_none() { builder.config_hash = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.description.is_none() { builder.description = Some(Default::default()) }
                 builder

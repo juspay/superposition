@@ -4,10 +4,7 @@ import {
   ServiceOutputTypes,
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
-import {
-  DeleteFunctionInput,
-  DeleteFunctionOutput,
-} from "../models/models_0";
+import { DeleteFunctionInput } from "../models/models_0";
 import {
   de_DeleteFunctionCommand,
   se_DeleteFunctionCommand,
@@ -32,7 +29,7 @@ export interface DeleteFunctionCommandInput extends DeleteFunctionInput {}
  *
  * The output of {@link DeleteFunctionCommand}.
  */
-export interface DeleteFunctionCommandOutput extends DeleteFunctionOutput, __MetadataBearer {}
+export interface DeleteFunctionCommandOutput extends __MetadataBearer {}
 
 /**
  * Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use
@@ -59,7 +56,7 @@ export interface DeleteFunctionCommandOutput extends DeleteFunctionOutput, __Met
  * @see {@link DeleteFunctionCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
- * @throws {@link FunctionNotFound} (client fault)
+ * @throws {@link ResourceNotFound} (client fault)
  *
  * @throws {@link InternalServerError} (server fault)
  *

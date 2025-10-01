@@ -1,0 +1,71 @@
+---
+id: delete-webhook
+title: "DeleteWebhook"
+description: "Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint."
+sidebar_label: "DeleteWebhook"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVE1v2zAM/SsCTxugNG6WXnzr1gwrMAxF22GHIAfFZmK1tqRSdLrA8H8faDtps3Q97APLxbHFRz6+R7GBHGNGNrD1DlK4QqqMQ8flVhFWfoNRGfWIy8L7e5V5t7JrtSJfKS5QPXq6j8FkqFVkH4J1a2XKUq1qrgkVbtCxcp7tymZGKkTFXnFhWKHLg7eOT0CDD0jd8WUOKVxgiYzf+pKgIRgyFTJShHTegDMVQto/NFghHQwXoCFmBVYG0gZ4GyQmMlm3hlYD4UNtCXNImWps9T7N95Gn9cjmu1QFmhzpt5PtBfmDfAv5EoN3EaPET5JTeRz6dCCSmiSnaoeRjNNkegy5xuhryvCL54++drmaJtMD1FmSHKMuHSM5U94gbZBmRJ7UWZI8ATVk3jE6FqwJoRysHt9FSdAcd+6Xd5ixOEviPNu+zwpjNGt8QaJWA1su8WU61wOTDwONVn4aKuTCyzzlnVTdIHEBKYyHaR43Ylsr3mBWk+VtN1+xslxsT0ywJwVzeI+GkM5rgc4XYs4u+kb66qm/gtk3Iwegf1L30+3tlerDlam5QMeDfLuREeiyC+h0sG7lu6SDHjd1QAo+2gGzQYp96kkyORsl70bJmXgbfOTKdH4Mw9pPkHq6ZwfMmidX/89OGFRj/M7jUBrrpIuaSqHWGzmHxz33tGtqoaHwkeWoaZYm4lcq21Y+P9RIYu9Cw8aQNUsRb95AbqP8zyFdmTLiKyK8uR5u6Vv1K3bDR+O2YoQpa3kDDfe43S2sdtHq3U746/X7Os822p6D7Kh/Uur5vjuo1gecZxkGfnZ2tB/kQu1v6sXs8+x2Bm37A4ysR6M=
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteWebhook"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/webhook/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"DeleteWebhook 201 response"},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

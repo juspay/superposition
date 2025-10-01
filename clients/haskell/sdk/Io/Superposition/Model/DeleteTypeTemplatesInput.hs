@@ -101,7 +101,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder DeleteTypeTemplatesInput wh
             Io.Superposition.Utility.serializeElement (type_name self)
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         
 

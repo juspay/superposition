@@ -11,9 +11,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
-import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.DefaultTrait;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
@@ -24,19 +22,18 @@ public final class ListContextsInput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListContextsInput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("workspace_id", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-tenant"),
-                new RequiredTrait())
-        .putMember("org_id", PreludeSchemas.STRING,
-                new DefaultTrait(Node.from("juspay")),
-                new RequiredTrait(),
-                new HttpHeaderTrait("x-org-id"))
-        .putMember("page", PreludeSchemas.INTEGER,
-                new HttpQueryTrait("page"))
         .putMember("count", PreludeSchemas.INTEGER,
                 new HttpQueryTrait("count"))
+        .putMember("page", PreludeSchemas.INTEGER,
+                new HttpQueryTrait("page"))
         .putMember("all", PreludeSchemas.BOOLEAN,
                 new HttpQueryTrait("all"))
+        .putMember("workspace_id", PreludeSchemas.STRING,
+                new HttpHeaderTrait("x-workspace"),
+                new RequiredTrait())
+        .putMember("org_id", PreludeSchemas.STRING,
+                new HttpHeaderTrait("x-org-id"),
+                new RequiredTrait())
         .putMember("prefix", PreludeSchemas.STRING,
                 new HttpQueryTrait("prefix"))
         .putMember("sort_on", ContextFilterSortOn.$SCHEMA,
@@ -53,11 +50,11 @@ public final class ListContextsInput implements SerializableStruct {
                 new HttpQueryTrait("dimension_match_strategy"))
         .build();
 
+    private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
+    private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
+    private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
-    private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
-    private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
-    private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
@@ -66,11 +63,11 @@ public final class ListContextsInput implements SerializableStruct {
     private static final Schema $SCHEMA_PLAINTEXT = $SCHEMA.member("plaintext");
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
 
+    private final transient Integer count;
+    private final transient Integer page;
+    private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
-    private final transient Integer page;
-    private final transient Integer count;
-    private final transient Boolean all;
     private final transient String prefix;
     private final transient ContextFilterSortOn sortOn;
     private final transient SortBy sortBy;
@@ -80,11 +77,11 @@ public final class ListContextsInput implements SerializableStruct {
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
 
     private ListContextsInput(Builder builder) {
+        this.count = builder.count;
+        this.page = builder.page;
+        this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
-        this.page = builder.page;
-        this.count = builder.count;
-        this.all = builder.all;
         this.prefix = builder.prefix;
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
@@ -94,24 +91,33 @@ public final class ListContextsInput implements SerializableStruct {
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
     }
 
+    /**
+     * Number of items to be returned in each page.
+     */
+    public Integer count() {
+        return count;
+    }
+
+    /**
+     * Page number to retrieve, starting from 1.
+     */
+    public Integer page() {
+        return page;
+    }
+
+    /**
+     * If true, returns all requested items, ignoring pagination parameters page and count.
+     */
+    public Boolean all() {
+        return all;
+    }
+
     public String workspaceId() {
         return workspaceId;
     }
 
     public String orgId() {
         return orgId;
-    }
-
-    public Integer page() {
-        return page;
-    }
-
-    public Integer count() {
-        return count;
-    }
-
-    public Boolean all() {
-        return all;
     }
 
     public String prefix() {
@@ -156,11 +162,11 @@ public final class ListContextsInput implements SerializableStruct {
             return false;
         }
         ListContextsInput that = (ListContextsInput) other;
-        return Objects.equals(this.workspaceId, that.workspaceId)
-               && Objects.equals(this.orgId, that.orgId)
+        return Objects.equals(this.count, that.count)
                && Objects.equals(this.page, that.page)
-               && Objects.equals(this.count, that.count)
                && Objects.equals(this.all, that.all)
+               && Objects.equals(this.workspaceId, that.workspaceId)
+               && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy)
@@ -172,7 +178,7 @@ public final class ListContextsInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, page, count, all, prefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext, dimensionMatchStrategy);
+        return Objects.hash(count, page, all, workspaceId, orgId, prefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext, dimensionMatchStrategy);
     }
 
     @Override
@@ -182,17 +188,17 @@ public final class ListContextsInput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
-        serializer.writeString($SCHEMA_ORG_ID, orgId);
-        if (page != null) {
-            serializer.writeInteger($SCHEMA_PAGE, page);
-        }
         if (count != null) {
             serializer.writeInteger($SCHEMA_COUNT, count);
+        }
+        if (page != null) {
+            serializer.writeInteger($SCHEMA_PAGE, page);
         }
         if (all != null) {
             serializer.writeBoolean($SCHEMA_ALL, all);
         }
+        serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
+        serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (prefix != null) {
             serializer.writeString($SCHEMA_PREFIX, prefix);
         }
@@ -222,8 +228,8 @@ public final class ListContextsInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
@@ -245,11 +251,11 @@ public final class ListContextsInput implements SerializableStruct {
      */
     public Builder toBuilder() {
         var builder = new Builder();
+        builder.count(this.count);
+        builder.page(this.page);
+        builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
-        builder.page(this.page);
-        builder.count(this.count);
-        builder.all(this.all);
         builder.prefix(this.prefix);
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
@@ -271,13 +277,12 @@ public final class ListContextsInput implements SerializableStruct {
      * Builder for {@link ListContextsInput}.
      */
     public static final class Builder implements ShapeBuilder<ListContextsInput> {
-        private static final String ORG_ID_DEFAULT = "juspay";
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
-        private String workspaceId;
-        private String orgId = ORG_ID_DEFAULT;
-        private Integer page;
         private Integer count;
+        private Integer page;
         private Boolean all;
+        private String workspaceId;
+        private String orgId;
         private String prefix;
         private ContextFilterSortOn sortOn;
         private SortBy sortBy;
@@ -291,6 +296,36 @@ public final class ListContextsInput implements SerializableStruct {
         @Override
         public Schema schema() {
             return $SCHEMA;
+        }
+
+        /**
+         * Number of items to be returned in each page.
+         *
+         * @return this builder.
+         */
+        public Builder count(int count) {
+            this.count = count;
+            return this;
+        }
+
+        /**
+         * Page number to retrieve, starting from 1.
+         *
+         * @return this builder.
+         */
+        public Builder page(int page) {
+            this.page = page;
+            return this;
+        }
+
+        /**
+         * If true, returns all requested items, ignoring pagination parameters page and count.
+         *
+         * @return this builder.
+         */
+        public Builder all(boolean all) {
+            this.all = all;
+            return this;
         }
 
         /**
@@ -309,30 +344,7 @@ public final class ListContextsInput implements SerializableStruct {
          */
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
-            return this;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder page(int page) {
-            this.page = page;
-            return this;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder count(int count) {
-            this.count = count;
-            return this;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder all(boolean all) {
-            this.all = all;
+            tracker.setMember($SCHEMA_ORG_ID);
             return this;
         }
 
@@ -404,8 +416,8 @@ public final class ListContextsInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 2 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
-                case 3 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
+                case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
+                case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
                 case 5 -> prefix((String) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
                 case 6 -> sortOn((ContextFilterSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
@@ -425,6 +437,9 @@ public final class ListContextsInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_ID)) {
                 workspaceId("");
+            }
+            if (!tracker.checkMember($SCHEMA_ORG_ID)) {
+                orgId("");
             }
             return this;
         }
@@ -449,8 +464,8 @@ public final class ListContextsInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
-                    case 2 -> builder.page(de.readInteger(member));
-                    case 3 -> builder.count(de.readInteger(member));
+                    case 2 -> builder.count(de.readInteger(member));
+                    case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
                     case 5 -> builder.prefix(de.readString(member));
                     case 6 -> builder.sortOn(ContextFilterSortOn.builder().deserializeMember(de, member).build());

@@ -11,6 +11,22 @@ pub fn de_resume_experiment_http_error(_response_status: u16, _response_headers:
     
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
+        "ResourceNotFound" => crate::operation::resume_experiment::ResumeExperimentError::ResourceNotFound({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::ResourceNotFoundBuilder::default();
+                    output = crate::protocol_serde::shape_resource_not_found::de_resource_not_found_json_err(_response_body, output).map_err(crate::operation::resume_experiment::ResumeExperimentError::unhandled)?;
+                    let output = output.meta(generic);
+                    output.build()
+                }
+            ;
+            if tmp.message.is_none() {
+                                                            tmp.message = _error_message;
+                                                        }
+            tmp
+        }),
         "InternalServerError" => crate::operation::resume_experiment::ResumeExperimentError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =
@@ -55,7 +71,7 @@ pub fn ser_resume_experiment_headers(
                                 err
                             ))
                             })?;
-                            builder = builder.header("x-tenant", header_value);
+                            builder = builder.header("x-workspace", header_value);
     }
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();

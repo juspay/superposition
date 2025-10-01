@@ -147,7 +147,7 @@ fn update_http_builder(
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_update_workspace::ser_update_workspace_headers(input, builder)?;
-    ::std::result::Result::Ok(builder.method("PUT").uri(uri))
+    ::std::result::Result::Ok(builder.method("PATCH").uri(uri))
 }
 let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
 builder = _header_serialization_settings.set_default_header(builder, ::http::header::CONTENT_TYPE, "application/json");
@@ -199,7 +199,7 @@ builder
 #[derive(::std::fmt::Debug)]
 pub enum UpdateWorkspaceError {
     #[allow(missing_docs)] // documentation missing in model
-    WorkspaceNotFound(crate::types::error::WorkspaceNotFound),
+    ResourceNotFound(crate::types::error::ResourceNotFound),
     #[allow(missing_docs)] // documentation missing in model
     InternalServerError(crate::types::error::InternalServerError),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
@@ -227,14 +227,14 @@ impl UpdateWorkspaceError {
     /// 
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
-            Self::WorkspaceNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
+            Self::ResourceNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::Unhandled(e) => &e.meta,
         }
     }
-    /// Returns `true` if the error kind is `UpdateWorkspaceError::WorkspaceNotFound`.
-    pub fn is_workspace_not_found(&self) -> bool {
-        matches!(self, Self::WorkspaceNotFound(_))
+    /// Returns `true` if the error kind is `UpdateWorkspaceError::ResourceNotFound`.
+    pub fn is_resource_not_found(&self) -> bool {
+        matches!(self, Self::ResourceNotFound(_))
     }
     /// Returns `true` if the error kind is `UpdateWorkspaceError::InternalServerError`.
     pub fn is_internal_server_error(&self) -> bool {
@@ -244,7 +244,7 @@ impl UpdateWorkspaceError {
 impl ::std::error::Error for UpdateWorkspaceError {
     fn source(&self) -> ::std::option::Option<&(dyn ::std::error::Error + 'static)> {
         match self {
-            Self::WorkspaceNotFound(_inner) =>
+            Self::ResourceNotFound(_inner) =>
             ::std::option::Option::Some(_inner)
             ,
             Self::InternalServerError(_inner) =>
@@ -259,7 +259,7 @@ impl ::std::error::Error for UpdateWorkspaceError {
 impl ::std::fmt::Display for UpdateWorkspaceError {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match self {
-            Self::WorkspaceNotFound(_inner) =>
+            Self::ResourceNotFound(_inner) =>
             _inner.fmt(f)
             ,
             Self::InternalServerError(_inner) =>
@@ -286,7 +286,7 @@ impl ::aws_smithy_types::retry::ProvideErrorKind for UpdateWorkspaceError {
 impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for UpdateWorkspaceError {
     fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
-            Self::WorkspaceNotFound(_inner) =>
+            Self::ResourceNotFound(_inner) =>
             ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
             ,
             Self::InternalServerError(_inner) =>

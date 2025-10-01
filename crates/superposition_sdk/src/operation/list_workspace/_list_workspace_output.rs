@@ -4,24 +4,27 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ListWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub total_pages: i64,
+    pub total_pages: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
-    pub total_items: i64,
+    pub total_items: ::std::option::Option<i32>,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::WorkspaceResponse>,
+    pub data: ::std::option::Option<::std::vec::Vec::<crate::types::WorkspaceResponse>>,
 }
 impl  ListWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_pages(&self) -> i64 {
+    pub fn total_pages(&self) -> ::std::option::Option<i32> {
         self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_items(&self) -> i64 {
+    pub fn total_items(&self) -> ::std::option::Option<i32> {
         self.total_items
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.data.is_none()`.
     pub fn data(&self) -> &[crate::types::WorkspaceResponse] {
-        use std::ops::Deref; self.data.deref()
+        self.data.as_deref()
+        .unwrap_or_default()
     }
 }
 impl ListWorkspaceOutput {
@@ -35,37 +38,35 @@ impl ListWorkspaceOutput {
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
 pub struct ListWorkspaceOutputBuilder {
-    pub(crate) total_pages: ::std::option::Option<i64>,
-    pub(crate) total_items: ::std::option::Option<i64>,
+    pub(crate) total_pages: ::std::option::Option<i32>,
+    pub(crate) total_items: ::std::option::Option<i32>,
     pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::WorkspaceResponse>>,
 }
 impl ListWorkspaceOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
-    pub fn total_pages(mut self, input: i64) -> Self {
+    pub fn total_pages(mut self, input: i32) -> Self {
         self.total_pages = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_total_pages(mut self, input: ::std::option::Option<i64>) -> Self {
+    pub fn set_total_pages(mut self, input: ::std::option::Option<i32>) -> Self {
         self.total_pages = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_total_pages(&self) -> &::std::option::Option<i64> {
+    pub fn get_total_pages(&self) -> &::std::option::Option<i32> {
         &self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
-    pub fn total_items(mut self, input: i64) -> Self {
+    pub fn total_items(mut self, input: i32) -> Self {
         self.total_items = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_total_items(mut self, input: ::std::option::Option<i64>) -> Self {
+    pub fn set_total_items(mut self, input: ::std::option::Option<i32>) -> Self {
         self.total_items = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_total_items(&self) -> &::std::option::Option<i64> {
+    pub fn get_total_items(&self) -> &::std::option::Option<i32> {
         &self.total_items
     }
     /// Appends an item to `data`.
@@ -87,30 +88,15 @@ impl ListWorkspaceOutputBuilder {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListWorkspaceOutput`](crate::operation::list_workspace::ListWorkspaceOutput).
-    /// This method will fail if any of the following fields are not set:
-    /// - [`total_pages`](crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder::total_pages)
-    /// - [`total_items`](crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder::total_items)
-    /// - [`data`](crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_workspace::ListWorkspaceOutput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::list_workspace::ListWorkspaceOutput {
-                total_pages: self.total_pages
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_pages", "total_pages was not specified but it is required when building ListWorkspaceOutput")
-                    )?
-                ,
-                total_items: self.total_items
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_items", "total_items was not specified but it is required when building ListWorkspaceOutput")
-                    )?
-                ,
-                data: self.data
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building ListWorkspaceOutput")
-                    )?
-                ,
-            }
-        )
+    pub fn build(self) -> crate::operation::list_workspace::ListWorkspaceOutput {
+        crate::operation::list_workspace::ListWorkspaceOutput {
+            total_pages: self.total_pages
+            ,
+            total_items: self.total_items
+            ,
+            data: self.data
+            ,
+        }
     }
 }
 
