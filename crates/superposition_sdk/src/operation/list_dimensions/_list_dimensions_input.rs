@@ -3,11 +3,11 @@
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ListDimensionsInput  {
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub page: ::std::option::Option<i32>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub all: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
@@ -15,15 +15,15 @@ pub struct ListDimensionsInput  {
     pub org_id: ::std::option::Option<::std::string::String>,
 }
 impl  ListDimensionsInput  {
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn page(&self) -> ::std::option::Option<i32> {
         self.page
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn all(&self) -> ::std::option::Option<bool> {
         self.all
     }
@@ -54,42 +54,42 @@ pub struct ListDimensionsInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
 }
 impl ListDimensionsInputBuilder {
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn count(mut self, input: i32) -> Self {
         self.count = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
         self.count = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
         &self.count
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn page(mut self, input: i32) -> Self {
         self.page = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
         self.page = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
         &self.page
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn all(mut self, input: bool) -> Self {
         self.all = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
         self.all = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
         &self.all
     }

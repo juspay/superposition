@@ -80,6 +80,10 @@ import {
   DeleteTypeTemplatesCommandOutput,
 } from "../commands/DeleteTypeTemplatesCommand";
 import {
+  DeleteWebhookCommandInput,
+  DeleteWebhookCommandOutput,
+} from "../commands/DeleteWebhookCommand";
+import {
   DiscardExperimentCommandInput,
   DiscardExperimentCommandOutput,
 } from "../commands/DiscardExperimentCommand";
@@ -99,6 +103,10 @@ import {
   GetContextFromConditionCommandInput,
   GetContextFromConditionCommandOutput,
 } from "../commands/GetContextFromConditionCommand";
+import {
+  GetDefaultConfigCommandInput,
+  GetDefaultConfigCommandOutput,
+} from "../commands/GetDefaultConfigCommand";
 import {
   GetDimensionCommandInput,
   GetDimensionCommandOutput,
@@ -124,13 +132,29 @@ import {
   GetResolvedConfigCommandOutput,
 } from "../commands/GetResolvedConfigCommand";
 import {
+  GetTypeTemplateCommandInput,
+  GetTypeTemplateCommandOutput,
+} from "../commands/GetTypeTemplateCommand";
+import {
   GetTypeTemplatesListCommandInput,
   GetTypeTemplatesListCommandOutput,
 } from "../commands/GetTypeTemplatesListCommand";
 import {
+  GetVersionCommandInput,
+  GetVersionCommandOutput,
+} from "../commands/GetVersionCommand";
+import {
+  GetWebhookByEventCommandInput,
+  GetWebhookByEventCommandOutput,
+} from "../commands/GetWebhookByEventCommand";
+import {
   GetWebhookCommandInput,
   GetWebhookCommandOutput,
 } from "../commands/GetWebhookCommand";
+import {
+  GetWorkspaceCommandInput,
+  GetWorkspaceCommandOutput,
+} from "../commands/GetWorkspaceCommand";
 import {
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
@@ -248,6 +272,10 @@ import {
   UpdateWorkspaceCommandOutput,
 } from "../commands/UpdateWorkspaceCommand";
 import {
+  ValidateContextCommandInput,
+  ValidateContextCommandOutput,
+} from "../commands/ValidateContextCommand";
+import {
   WeightRecomputeCommandInput,
   WeightRecomputeCommandOutput,
 } from "../commands/WeightRecomputeCommand";
@@ -272,24 +300,19 @@ import {
   ExperimentGroupResponse,
   ExperimentResponse,
   FunctionExecutionRequest,
-  FunctionNotFound,
   FunctionResponse,
   InternalServerError,
   ListVersionsMember,
-  OrganisationNotFound,
   OrganisationResponse,
   ResourceNotFound,
-  TypeTemplatesNotFound,
   TypeTemplatesResponse,
   Unit,
   UpdateContextOverrideRequest,
   ValidateFunctionRequest,
   Variant,
   VariantUpdateRequest,
-  WebhookNotFound,
   WebhookResponse,
   WeightRecomputeResponse,
-  WorkspaceNotFound,
   WorkspaceResponse,
 } from "../models/models_0";
 import {
@@ -307,7 +330,6 @@ import {
   decorateServiceException as __decorateServiceException,
   expectBoolean as __expectBoolean,
   expectInt32 as __expectInt32,
-  expectLong as __expectLong,
   expectNonNull as __expectNonNull,
   expectObject as __expectObject,
   expectString as __expectString,
@@ -339,7 +361,7 @@ export const se_AddMembersToGroupCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiment-groups/{id}/add-members");
@@ -365,7 +387,7 @@ export const se_ApplicableVariantsCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/applicable-variants");
@@ -390,7 +412,7 @@ export const se_BulkOperationCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
     [_xct]: input[_ct]!,
   });
@@ -419,7 +441,7 @@ export const se_ConcludeExperimentCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/{id}/conclude");
@@ -446,7 +468,7 @@ export const se_CreateContextCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
     [_xct]: input[_ct]!,
   });
@@ -474,7 +496,7 @@ export const se_CreateDefaultConfigCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/default-config");
@@ -504,7 +526,7 @@ export const se_CreateDimensionCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/dimension");
@@ -535,7 +557,7 @@ export const se_CreateExperimentCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments");
@@ -566,7 +588,7 @@ export const se_CreateExperimentGroupCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiment-groups");
@@ -595,7 +617,7 @@ export const se_CreateFunctionCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function");
@@ -651,7 +673,7 @@ export const se_CreateTypeTemplatesCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/types");
@@ -678,7 +700,7 @@ export const se_CreateWebhookCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/webhook");
@@ -738,7 +760,7 @@ export const se_DeleteContextCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
     [_xct]: input[_ct]!,
   });
@@ -760,7 +782,7 @@ export const se_DeleteDefaultConfigCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/default-config/{key}");
@@ -781,7 +803,7 @@ export const se_DeleteDimensionCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/dimension/{dimension}");
@@ -802,7 +824,7 @@ export const se_DeleteExperimentGroupCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiment-groups/{id}");
@@ -823,7 +845,7 @@ export const se_DeleteFunctionCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function/{function_name}");
@@ -844,11 +866,32 @@ export const se_DeleteTypeTemplatesCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/types/{type_name}");
   b.p('type_name', () => input.type_name!, '{type_name}', false)
+  let body: any;
+  b.m("DELETE")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1DeleteWebhookCommand
+ */
+export const se_DeleteWebhookCommand = async(
+  input: DeleteWebhookCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/webhook/{name}");
+  b.p('name', () => input.name!, '{name}', false)
   let body: any;
   b.m("DELETE")
   .h(headers)
@@ -866,7 +909,7 @@ export const se_DiscardExperimentCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/{id}/discard");
@@ -891,7 +934,7 @@ export const se_GetConfigCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/config");
@@ -919,7 +962,7 @@ export const se_GetConfigFastCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/config/fast");
@@ -939,7 +982,7 @@ export const se_GetContextCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/context/{id}");
@@ -961,7 +1004,7 @@ export const se_GetContextFromConditionCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/context/get");
@@ -981,6 +1024,27 @@ export const se_GetContextFromConditionCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetDefaultConfigCommand
+ */
+export const se_GetDefaultConfigCommand = async(
+  input: GetDefaultConfigCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/default-config/{key}");
+  b.p('key', () => input.key!, '{key}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1GetDimensionCommand
  */
 export const se_GetDimensionCommand = async(
@@ -989,7 +1053,7 @@ export const se_GetDimensionCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/dimension/{dimension}");
@@ -1010,7 +1074,7 @@ export const se_GetExperimentCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/{id}");
@@ -1031,7 +1095,7 @@ export const se_GetExperimentGroupCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiment-groups/{id}");
@@ -1052,7 +1116,7 @@ export const se_GetFunctionCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function/{function_name}");
@@ -1093,7 +1157,7 @@ export const se_GetResolvedConfigCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
     [_xms]: input[_ms]!,
   });
@@ -1116,6 +1180,27 @@ export const se_GetResolvedConfigCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetTypeTemplateCommand
+ */
+export const se_GetTypeTemplateCommand = async(
+  input: GetTypeTemplateCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/types/{type_name}");
+  b.p('type_name', () => input.type_name!, '{type_name}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1GetTypeTemplatesListCommand
  */
 export const se_GetTypeTemplatesListCommand = async(
@@ -1124,7 +1209,7 @@ export const se_GetTypeTemplatesListCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/types");
@@ -1142,6 +1227,27 @@ export const se_GetTypeTemplatesListCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetVersionCommand
+ */
+export const se_GetVersionCommand = async(
+  input: GetVersionCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/version/{id}");
+  b.p('id', () => input.id!, '{id}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1GetWebhookCommand
  */
 export const se_GetWebhookCommand = async(
@@ -1150,11 +1256,52 @@ export const se_GetWebhookCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/webhook/{name}");
   b.p('name', () => input.name!, '{name}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetWebhookByEventCommand
+ */
+export const se_GetWebhookByEventCommand = async(
+  input: GetWebhookByEventCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/webhook/event/{event}");
+  b.p('event', () => input.event!, '{event}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetWorkspaceCommand
+ */
+export const se_GetWorkspaceCommand = async(
+  input: GetWorkspaceCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/workspaces/{workspace_name}");
+  b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
   let body: any;
   b.m("GET")
   .h(headers)
@@ -1171,7 +1318,7 @@ export const se_ListAuditLogsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/audit");
@@ -1202,13 +1349,13 @@ export const se_ListContextsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
-  b.bp("/context/list");
+  b.bp("/context");
   const query: any = map({
-    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_p]: [,input[_p]!],
     [_so]: [,input[_so]!],
@@ -1235,7 +1382,7 @@ export const se_ListDefaultConfigsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/default-config");
@@ -1243,6 +1390,7 @@ export const se_ListDefaultConfigsCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+    [_n]: [,input[_n]!],
   });
   let body: any;
   b.m("GET")
@@ -1261,7 +1409,7 @@ export const se_ListDimensionsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/dimension");
@@ -1287,13 +1435,13 @@ export const se_ListExperimentCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments");
   const query: any = map({
-    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_s]: [,input[_s]!],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
@@ -1324,19 +1472,19 @@ export const se_ListExperimentGroupsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiment-groups");
   const query: any = map({
-    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_n]: [,input[_n]!],
     [_cb]: [,input[_cb]!],
     [_lmb]: [,input[_lmb]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
-    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_gt]: [,input[_gt]!],
   });
   let body: any;
@@ -1356,7 +1504,7 @@ export const se_ListFunctionCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function");
@@ -1406,7 +1554,7 @@ export const se_ListVersionsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/config/versions");
@@ -1431,7 +1579,7 @@ export const se_ListWebhookCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/webhook");
@@ -1503,7 +1651,7 @@ export const se_MoveContextCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/context/move/{id}");
@@ -1530,7 +1678,7 @@ export const se_PauseExperimentCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/{id}/pause");
@@ -1555,7 +1703,7 @@ export const se_PublishCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function/{function_name}/publish");
@@ -1580,7 +1728,7 @@ export const se_RampExperimentCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/{id}/ramp");
@@ -1606,7 +1754,7 @@ export const se_RemoveMembersFromGroupCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiment-groups/{id}/remove-members");
@@ -1632,7 +1780,7 @@ export const se_ResumeExperimentCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/{id}/resume");
@@ -1657,7 +1805,7 @@ export const se_TestCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function/{function_name}/{stage}/test");
@@ -1687,7 +1835,7 @@ export const se_UpdateDefaultConfigCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/default-config/{key}");
@@ -1701,7 +1849,7 @@ export const se_UpdateDefaultConfigCommand = async(
     'schema': _ => se_Object(_, context),
     'value': _ => se_Document(_, context),
   }));
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -1717,7 +1865,7 @@ export const se_UpdateDimensionCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/dimension/{dimension}");
@@ -1731,7 +1879,7 @@ export const se_UpdateDimensionCommand = async(
     'position': [],
     'schema': _ => se_Object(_, context),
   }));
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -1747,7 +1895,7 @@ export const se_UpdateExperimentGroupCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiment-groups/{id}");
@@ -1774,7 +1922,7 @@ export const se_UpdateFunctionCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/function/{function_name}");
@@ -1814,7 +1962,7 @@ export const se_UpdateOrganisationCommand = async(
     'sector': [],
     'status': [],
   }));
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -1830,7 +1978,7 @@ export const se_UpdateOverrideCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
     [_xct]: input[_ct]!,
   });
@@ -1859,7 +2007,7 @@ export const se_UpdateOverridesExperimentCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/{id}/overrides");
@@ -1872,7 +2020,7 @@ export const se_UpdateOverridesExperimentCommand = async(
     'metrics': _ => se_Document(_, context),
     'variant_list': _ => se_ListVariantUpdateRequest(_, context),
   }));
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -1888,7 +2036,7 @@ export const se_UpdateTypeTemplatesCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/types/{type_name}");
@@ -1899,7 +2047,7 @@ export const se_UpdateTypeTemplatesCommand = async(
     'description': [],
     'type_schema': _ => se_Object(_, context),
   }));
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -1915,7 +2063,7 @@ export const se_UpdateWebhookCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
   });
   b.bp("/webhook/{name}");
@@ -1961,6 +2109,30 @@ export const se_UpdateWorkspaceCommand = async(
     'workspace_admin_email': [],
     'workspace_status': [],
   }));
+  b.m("PATCH")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ValidateContextCommand
+ */
+export const se_ValidateContextCommand = async(
+  input: ValidateContextCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/context/validate");
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'context': _ => se_Condition(_, context),
+  }));
   b.m("PUT")
   .h(headers)
   .b(body);
@@ -1976,7 +2148,7 @@ export const se_WeightRecomputeCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
-    [_xt]: input[_wi]!,
+    [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
     [_xct]: input[_ct]!,
   });
@@ -2567,6 +2739,23 @@ export const de_DeleteTypeTemplatesCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1DeleteWebhookCommand
+ */
+export const de_DeleteWebhookCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<DeleteWebhookCommandOutput> => {
+  if (output.statusCode !== 201 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  await collectBody(output.body, context);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1DiscardExperimentCommand
  */
 export const de_DiscardExperimentCommand = async(
@@ -2712,6 +2901,37 @@ export const de_GetContextFromConditionCommand = async(
     'override_id': __expectString,
     'value': _ => de_Condition(_, context),
     'weight': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetDefaultConfigCommand
+ */
+export const de_GetDefaultConfigCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetDefaultConfigCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'autocomplete_function_name': __expectString,
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'function_name': __expectString,
+    'key': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'schema': _ => de_Object(_, context),
+    'value': _ => de_Document(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -2914,6 +3134,34 @@ export const de_GetResolvedConfigCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1GetTypeTemplateCommand
+ */
+export const de_GetTypeTemplateCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetTypeTemplateCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'type_name': __expectString,
+    'type_schema': _ => de_Object(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1GetTypeTemplatesListCommand
  */
 export const de_GetTypeTemplatesListCommand = async(
@@ -2931,6 +3179,32 @@ export const de_GetTypeTemplatesListCommand = async(
     'data': _ => de_TypeTemplatesList(_, context),
     'total_items': __expectInt32,
     'total_pages': __expectInt32,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetVersionCommand
+ */
+export const de_GetVersionCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetVersionCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'config': _ => de_Document(_, context),
+    'config_hash': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'description': __expectString,
+    'id': __expectString,
+    'tags': _json,
   });
   Object.assign(contents, doc);
   return contents;
@@ -2966,6 +3240,77 @@ export const de_GetWebhookCommand = async(
     'name': __expectString,
     'url': __expectString,
     'version': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetWebhookByEventCommand
+ */
+export const de_GetWebhookByEventCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetWebhookByEventCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'custom_headers': _ => de_Object(_, context),
+    'description': __expectString,
+    'enabled': __expectBoolean,
+    'events': _json,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'last_triggered_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'max_retries': __expectInt32,
+    'method': __expectString,
+    'name': __expectString,
+    'url': __expectString,
+    'version': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetWorkspaceCommand
+ */
+export const de_GetWorkspaceCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetWorkspaceCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'allow_experiment_self_approval': __expectBoolean,
+    'auto_populate_control': __expectBoolean,
+    'config_version': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'mandatory_dimensions': _json,
+    'metrics': _ => de_Document(_, context),
+    'organisation_id': __expectString,
+    'organisation_name': __expectString,
+    'strict_mode': __expectBoolean,
+    'workspace_admin_email': __expectString,
+    'workspace_name': __expectString,
+    'workspace_schema_name': __expectString,
+    'workspace_status': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3079,8 +3424,8 @@ export const de_ListExperimentCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'data': _ => de_ExperimentList(_, context),
-    'total_items': __expectLong,
-    'total_pages': __expectLong,
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3102,8 +3447,8 @@ export const de_ListExperimentGroupsCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'data': _ => de_ExperimentGroupList(_, context),
-    'total_items': __expectLong,
-    'total_pages': __expectLong,
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3194,8 +3539,8 @@ export const de_ListWebhookCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'data': _ => de_WebhookList(_, context),
-    'total_items': __expectLong,
-    'total_pages': __expectLong,
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3217,8 +3562,8 @@ export const de_ListWorkspaceCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'data': _ => de_WorkspaceList(_, context),
-    'total_items': __expectLong,
-    'total_pages': __expectLong,
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3838,6 +4183,23 @@ export const de_UpdateWorkspaceCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1ValidateContextCommand
+ */
+export const de_ValidateContextCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ValidateContextCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  await collectBody(output.body, context);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1WeightRecomputeCommand
  */
 export const de_WeightRecomputeCommand = async(
@@ -3877,21 +4239,6 @@ const de_CommandError = async(
     case "ResourceNotFound":
     case "io.superposition#ResourceNotFound":
       throw await de_ResourceNotFoundRes(parsedOutput, context);
-    case "FunctionNotFound":
-    case "io.superposition#FunctionNotFound":
-      throw await de_FunctionNotFoundRes(parsedOutput, context);
-    case "TypeTemplatesNotFound":
-    case "io.superposition#TypeTemplatesNotFound":
-      throw await de_TypeTemplatesNotFoundRes(parsedOutput, context);
-    case "OrganisationNotFound":
-    case "io.superposition#OrganisationNotFound":
-      throw await de_OrganisationNotFoundRes(parsedOutput, context);
-    case "WebhookNotFound":
-    case "io.superposition#WebhookNotFound":
-      throw await de_WebhookNotFoundRes(parsedOutput, context);
-    case "WorkspaceNotFound":
-    case "io.superposition#WorkspaceNotFound":
-      throw await de_WorkspaceNotFoundRes(parsedOutput, context);
     default:
       const parsedBody = parsedOutput.body;
       return throwDefaultError({
@@ -3903,26 +4250,6 @@ const de_CommandError = async(
   }
 
   const throwDefaultError = withBaseException(__BaseException);
-  /**
-   * deserializeAws_restJson1FunctionNotFoundRes
-   */
-  const de_FunctionNotFoundRes = async (
-    parsedOutput: any,
-    context: __SerdeContext
-  ): Promise<FunctionNotFound> => {
-    const contents: any = map({
-    });
-    const data: any = parsedOutput.body;
-    const doc = take(data, {
-    });
-    Object.assign(contents, doc);
-    const exception = new FunctionNotFound({
-      $metadata: deserializeMetadata(parsedOutput),
-      ...contents
-    });
-    return __decorateServiceException(exception, parsedOutput.body);
-  };
-
   /**
    * deserializeAws_restJson1InternalServerErrorRes
    */
@@ -3945,26 +4272,6 @@ const de_CommandError = async(
   };
 
   /**
-   * deserializeAws_restJson1OrganisationNotFoundRes
-   */
-  const de_OrganisationNotFoundRes = async (
-    parsedOutput: any,
-    context: __SerdeContext
-  ): Promise<OrganisationNotFound> => {
-    const contents: any = map({
-    });
-    const data: any = parsedOutput.body;
-    const doc = take(data, {
-    });
-    Object.assign(contents, doc);
-    const exception = new OrganisationNotFound({
-      $metadata: deserializeMetadata(parsedOutput),
-      ...contents
-    });
-    return __decorateServiceException(exception, parsedOutput.body);
-  };
-
-  /**
    * deserializeAws_restJson1ResourceNotFoundRes
    */
   const de_ResourceNotFoundRes = async (
@@ -3978,66 +4285,6 @@ const de_CommandError = async(
     });
     Object.assign(contents, doc);
     const exception = new ResourceNotFound({
-      $metadata: deserializeMetadata(parsedOutput),
-      ...contents
-    });
-    return __decorateServiceException(exception, parsedOutput.body);
-  };
-
-  /**
-   * deserializeAws_restJson1TypeTemplatesNotFoundRes
-   */
-  const de_TypeTemplatesNotFoundRes = async (
-    parsedOutput: any,
-    context: __SerdeContext
-  ): Promise<TypeTemplatesNotFound> => {
-    const contents: any = map({
-    });
-    const data: any = parsedOutput.body;
-    const doc = take(data, {
-    });
-    Object.assign(contents, doc);
-    const exception = new TypeTemplatesNotFound({
-      $metadata: deserializeMetadata(parsedOutput),
-      ...contents
-    });
-    return __decorateServiceException(exception, parsedOutput.body);
-  };
-
-  /**
-   * deserializeAws_restJson1WebhookNotFoundRes
-   */
-  const de_WebhookNotFoundRes = async (
-    parsedOutput: any,
-    context: __SerdeContext
-  ): Promise<WebhookNotFound> => {
-    const contents: any = map({
-    });
-    const data: any = parsedOutput.body;
-    const doc = take(data, {
-    });
-    Object.assign(contents, doc);
-    const exception = new WebhookNotFound({
-      $metadata: deserializeMetadata(parsedOutput),
-      ...contents
-    });
-    return __decorateServiceException(exception, parsedOutput.body);
-  };
-
-  /**
-   * deserializeAws_restJson1WorkspaceNotFoundRes
-   */
-  const de_WorkspaceNotFoundRes = async (
-    parsedOutput: any,
-    context: __SerdeContext
-  ): Promise<WorkspaceNotFound> => {
-    const contents: any = map({
-    });
-    const data: any = parsedOutput.body;
-    const doc = take(data, {
-    });
-    Object.assign(contents, doc);
-    const exception = new WorkspaceNotFound({
       $metadata: deserializeMetadata(parsedOutput),
       ...contents
     });
@@ -4759,7 +5006,6 @@ const de_CommandError = async(
   ): ListVersionsMember => {
     return take(output, {
       'config': (_: any) => de_Document(_, context),
-      'config_hash': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'description': __expectString,
       'id': __expectString,
@@ -5083,4 +5329,4 @@ const de_CommandError = async(
   const _xcv = "x-config-version";
   const _xms = "x-merge-strategy";
   const _xoi = "x-org-id";
-  const _xt = "x-tenant";
+  const _xw = "x-workspace";

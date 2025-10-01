@@ -23,7 +23,7 @@ public final class UpdateDimension implements ApiOperation<UpdateDimensionInput,
     private static final UpdateDimension $INSTANCE = new UpdateDimension();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/dimension/{dimension}")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/dimension/{dimension}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

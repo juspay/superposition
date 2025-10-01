@@ -32,8 +32,8 @@ public final class Webhook implements ApiResource {
         Map.entry("events", SharedSchemas.EVENTS),
         Map.entry("custom_headers", SharedSchemas.OBJECT));
 
-    private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA,
-        GetWebhook.$SCHEMA);
+    private static final List<Schema>$COLLECTION_OPERATIONS = List.of(CreateWebhook.$SCHEMA);
+    private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**
@@ -63,8 +63,18 @@ public final class Webhook implements ApiResource {
     }
 
     @Override
-    public Schema put() {
+    public Schema read() {
+        return GetWebhook.$SCHEMA;
+    }
+
+    @Override
+    public Schema update() {
         return UpdateWebhook.$SCHEMA;
+    }
+
+    @Override
+    public Schema delete() {
+        return DeleteWebhook.$SCHEMA;
     }
 
     @Override
@@ -72,6 +82,10 @@ public final class Webhook implements ApiResource {
         return ListWebhook.$SCHEMA;
     }
 
+    @Override
+    public List<Schema> collectionOperations() {
+        return $COLLECTION_OPERATIONS;
+    }
     @Override
     public List<Schema> operations() {
         return $OPERATIONS;

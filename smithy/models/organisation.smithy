@@ -22,7 +22,7 @@ resource Organisation {
     create: CreateOrganisation
     read: GetOrganisation
     list: ListOrganisation
-    put: UpdateOrganisation
+    update: UpdateOrganisation
 }
 
 enum OrgStatus {
@@ -94,10 +94,6 @@ list OrganisationList {
     member: OrganisationResponse
 }
 
-@httpError(404)
-@error("client")
-structure OrganisationNotFound {}
-
 // Operations
 @documentation("Creates a new organisation with specified details including name, admin contact, and organisational information.")
 @http(method: "POST", uri: "/superposition/organisations")
@@ -109,7 +105,7 @@ operation CreateOrganisation {
 @documentation("Retrieves detailed information about a specific organisation including its status, contact details, and administrative metadata.")
 @readonly
 @http(method: "GET", uri: "/superposition/organisations/{id}")
-operation GetOrganisation {
+operation GetOrganisation with [GetOperation] {
     input := for Organisation {
         @httpLabel
         @required
@@ -117,21 +113,14 @@ operation GetOrganisation {
     }
 
     output: OrganisationResponse
-
-    errors: [
-        OrganisationNotFound
-    ]
 }
 
 @documentation("Updates an existing organisation's information including contact details, status, and administrative properties.")
 @idempotent
-@http(method: "PUT", uri: "/superposition/organisations/{id}")
-operation UpdateOrganisation {
+@http(method: "PATCH", uri: "/superposition/organisations/{id}")
+operation UpdateOrganisation with [GetOperation] {
     input: UpdateOrganisationRequest
     output: OrganisationResponse
-    errors: [
-        OrganisationNotFound
-    ]
 }
 
 @documentation("Retrieves a paginated list of all organisations with their basic information and status details.")

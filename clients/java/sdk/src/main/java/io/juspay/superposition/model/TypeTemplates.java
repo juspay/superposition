@@ -54,7 +54,12 @@ public final class TypeTemplates implements ApiResource {
     }
 
     @Override
-    public Schema put() {
+    public Schema read() {
+        return GetTypeTemplate.$SCHEMA;
+    }
+
+    @Override
+    public Schema update() {
         return UpdateTypeTemplates.$SCHEMA;
     }
 

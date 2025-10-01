@@ -1,0 +1,71 @@
+---
+id: get-webhook-by-event
+title: "GetWebhookByEvent"
+description: "Retrieves a webhook configuration based on a specific event type, allowing users to find which webhook is set to trigger for that event."
+sidebar_label: "GetWebhookByEvent"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVk1v40YM/SsDnlpAjt00uejm7LpJgLYbJN7tITCMsURLs5FmtBzKiWHovxeUZFmOlaBfC/QSBSaH8/hIPs4OYvQRmYKNsxDCPTIZ3KBXWj3jKnXuSUXOrk1SkhYftdIeY+Ws0soXGJm1iRRu0LLibYGB0lnmno1NVOmRvGKn1sbG6jk1UdqFNF55ZDEymSRBUmtHilPNTawzCMAV2Fx5G0MI18h/NIevtjNxgQAKTTpHRvIQPu7A6hwhBGytRvIpNKcQgI9SzDWEOxCQEIJnMjaBKgDCb6UhjCFkKrEKujgvI0fJyMT7UCnqGOkfB3t29OQLHeG/iLeQX3zhrEcv/ueTiXyOS3jClDqfTNT+HAQQOctCUbgDXRSZiWqWx1+9HN+dwnGrrxjVfJPUhE1zeZPZAOgjOAN2tHqVSU6dbeVchtqKsaRs8FCOnLr41CThyhzCR7iezSGAu08P9edz/Xc6/3ADAXyc/TqbzyCAm9n0IywCYMOZBLlhLn5rIlcBbJD8IOjDJV9+6h//0h6oAohKzy5fNkX1Q+zpODbCic7u+jy+Jgyu0SKZSD3hdrTRWYmqCaE8UxlxSSijFdcTs87wxawyVLFmrQgLQo+Wm0nllFyZpK5kxSmq6d2tjNUe+6cGl9RDmqQPWRPprbQpY+4HqiHl0C9LqrWi72DLfIUkMTPtednONsZLzUOkrh3lYoFYM47Y5FgzmWqb4JJQ+zcaKCLUjPFytX3X/HcurfHmLjZr83bgY6e/Hv5okB9fJXiE9yi348Y4zE1XsQFEA5kcF6ubpKAZ4GbiDr3f6+4TIblvNeRDKyBVJaldTC5ORegevSspwt8d/+JKG6uLycVBg6oALoek69YyktXZA9IGaUbkSF1+F/HK0XudDOlXdSBgAM4QBT11ggSbxcQphDBu1924rtd4V38qUXyMSjK8rdeWzw2n2zNdmLOUubhCTUjTUiI8LkTy994PklsD/50zXUJigNficjOf36nGXemSU7TcUrhfRLUe1w41F8auXR205eShLJAK5017ptNMOJ+cX44mP48ml1LfwnnOtT0sCmkn1faTutqq/RJ/tS26+v6fniIto4wvPC4ybfqbqqn1I7Tx9tMJAYTNP4sAUudZfHY7gfyZsqqSn7+VSNIDiwA2moxMd90RsfHthlzrzOM7HP1w3+rKj+otmHtNt6IE9T6BECCAJ9x2j6VqUQX798h/DqC5qPea6kDI++i7XNV/ax3d1jhMowgL7tlOlETGrptpeVhU1Z978NyS
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetWebhookByEvent"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/webhook/event/{event}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a webhook configuration based on a specific event type, allowing users to find which webhook is set to trigger for that event.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"event","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetWebhookByEvent 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"description":{"type":"string"},"enabled":{"type":"boolean"},"url":{"type":"string"},"method":{"type":"string","enum":["GET","POST","PUT","PATCH","DELETE","HEAD"],"title":"HttpMethod"},"version":{"type":"string","enum":["V1"],"title":"Version"},"custom_headers":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"events":{"type":"array","items":{"type":"string"}},"max_retries":{"type":"number"},"last_triggered_at":{"type":"string","format":"date-time"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","enabled","events","last_modified_at","last_modified_by","max_retries","method","name","url","version"],"title":"GetWebhookByEventResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

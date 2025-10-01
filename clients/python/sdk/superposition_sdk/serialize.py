@@ -35,19 +35,25 @@ from .models import (
     DeleteExperimentGroupInput,
     DeleteFunctionInput,
     DeleteTypeTemplatesInput,
+    DeleteWebhookInput,
     DiscardExperimentInput,
     GetConfigFastInput,
     GetConfigInput,
     GetContextFromConditionInput,
     GetContextInput,
+    GetDefaultConfigInput,
     GetDimensionInput,
     GetExperimentGroupInput,
     GetExperimentInput,
     GetFunctionInput,
     GetOrganisationInput,
     GetResolvedConfigInput,
+    GetTypeTemplateInput,
     GetTypeTemplatesListInput,
+    GetVersionInput,
+    GetWebhookByEventInput,
     GetWebhookInput,
+    GetWorkspaceInput,
     ListAuditLogsInput,
     ListContextsInput,
     ListDefaultConfigsInput,
@@ -78,6 +84,7 @@ from .models import (
     UpdateTypeTemplatesInput,
     UpdateWebhookInput,
     UpdateWorkspaceInput,
+    ValidateContextInput,
     WeightRecomputeInput,
 )
 
@@ -108,7 +115,7 @@ async def _serialize_add_members_to_group(input: AddMembersToGroupInput, config:
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -144,7 +151,7 @@ async def _serialize_applicable_variants(input: ApplicableVariantsInput, config:
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -184,7 +191,7 @@ async def _serialize_bulk_operation(input: BulkOperationInput, config: Config) -
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.config_tags:
@@ -227,7 +234,7 @@ async def _serialize_conclude_experiment(input: ConcludeExperimentInput, config:
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -263,7 +270,7 @@ async def _serialize_create_context(input: CreateContextInput, config: Config) -
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.config_tags:
@@ -301,7 +308,7 @@ async def _serialize_create_default_config(input: CreateDefaultConfigInput, conf
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -337,7 +344,7 @@ async def _serialize_create_dimension(input: CreateDimensionInput, config: Confi
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -373,7 +380,7 @@ async def _serialize_create_experiment(input: CreateExperimentInput, config: Con
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -409,7 +416,7 @@ async def _serialize_create_experiment_group(input: CreateExperimentGroupInput, 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -445,7 +452,7 @@ async def _serialize_create_function(input: CreateFunctionInput, config: Config)
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -513,7 +520,7 @@ async def _serialize_create_type_templates(input: CreateTypeTemplatesInput, conf
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -549,7 +556,7 @@ async def _serialize_create_webhook(input: CreateWebhookInput, config: Config) -
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -615,7 +622,7 @@ async def _serialize_delete_context(input: DeleteContextInput, config: Config) -
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.config_tags:
@@ -649,7 +656,7 @@ async def _serialize_delete_default_config(input: DeleteDefaultConfigInput, conf
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -681,7 +688,7 @@ async def _serialize_delete_dimension(input: DeleteDimensionInput, config: Confi
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -713,7 +720,7 @@ async def _serialize_delete_experiment_group(input: DeleteExperimentGroupInput, 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -745,7 +752,7 @@ async def _serialize_delete_function(input: DeleteFunctionInput, config: Config)
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -777,7 +784,39 @@ async def _serialize_delete_type_templates(input: DeleteTypeTemplatesInput, conf
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="DELETE",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_delete_webhook(input: DeleteWebhookInput, config: Config) -> HTTPRequest:
+    if not input.name:
+        raise ServiceError("name must not be empty.")
+
+    path = "/webhook/{name}".format(
+        name=urlquote(input.name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -818,7 +857,7 @@ async def _serialize_discard_experiment(input: DiscardExperimentInput, config: C
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -862,7 +901,7 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -889,7 +928,7 @@ async def _serialize_get_config_fast(input: GetConfigFastInput, config: Config) 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -921,7 +960,7 @@ async def _serialize_get_context(input: GetContextInput, config: Config) -> HTTP
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -957,7 +996,7 @@ async def _serialize_get_context_from_condition(input: GetContextFromConditionIn
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -968,6 +1007,38 @@ async def _serialize_get_context_from_condition(input: GetContextFromConditionIn
             query=query,
         ),
         method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_default_config(input: GetDefaultConfigInput, config: Config) -> HTTPRequest:
+    if not input.key:
+        raise ServiceError("key must not be empty.")
+
+    path = "/default-config/{key}".format(
+        key=urlquote(input.key, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
         fields=headers,
         body=body,
     )
@@ -989,7 +1060,7 @@ async def _serialize_get_dimension(input: GetDimensionInput, config: Config) -> 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1021,7 +1092,7 @@ async def _serialize_get_experiment(input: GetExperimentInput, config: Config) -
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1053,7 +1124,7 @@ async def _serialize_get_experiment_group(input: GetExperimentGroupInput, config
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1085,7 +1156,7 @@ async def _serialize_get_function(input: GetFunctionInput, config: Config) -> HT
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1161,7 +1232,7 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.merge_strategy:
@@ -1174,6 +1245,38 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
             query=query,
         ),
         method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_type_template(input: GetTypeTemplateInput, config: Config) -> HTTPRequest:
+    if not input.type_name:
+        raise ServiceError("type_name must not be empty.")
+
+    path = "/types/{type_name}".format(
+        type_name=urlquote(input.type_name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
         fields=headers,
         body=body,
     )
@@ -1200,7 +1303,39 @@ async def _serialize_get_type_templates_list(input: GetTypeTemplatesListInput, c
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_version(input: GetVersionInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/version/{id}".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1232,7 +1367,69 @@ async def _serialize_get_webhook(input: GetWebhookInput, config: Config) -> HTTP
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_webhook_by_event(input: GetWebhookByEventInput, config: Config) -> HTTPRequest:
+    if not input.event:
+        raise ServiceError("event must not be empty.")
+
+    path = "/webhook/event/{event}".format(
+        event=urlquote(input.event, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_workspace(input: GetWorkspaceInput, config: Config) -> HTTPRequest:
+    if not input.workspace_name:
+        raise ServiceError("workspace_name must not be empty.")
+
+    path = "/workspaces/{workspace_name}".format(
+        workspace_name=urlquote(input.workspace_name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1279,7 +1476,7 @@ async def _serialize_list_audit_logs(input: ListAuditLogsInput, config: Config) 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1295,14 +1492,14 @@ async def _serialize_list_audit_logs(input: ListAuditLogsInput, config: Config) 
     )
 
 async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> HTTPRequest:
-    path = "/context/list"
+    path = "/context"
     query: str = f''
 
     query_params: list[tuple[str, str | None]] = []
-    if input.page is not None:
-        query_params.append(("page", str(input.page)))
     if input.count is not None:
         query_params.append(("count", str(input.count)))
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.prefix is not None:
@@ -1330,7 +1527,7 @@ async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1356,6 +1553,8 @@ async def _serialize_list_default_configs(input: ListDefaultConfigsInput, config
         query_params.append(("page", str(input.page)))
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
+    if input.name is not None:
+        query_params.append(("name", input.name))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1367,7 +1566,7 @@ async def _serialize_list_default_configs(input: ListDefaultConfigsInput, config
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1404,7 +1603,7 @@ async def _serialize_list_dimensions(input: ListDimensionsInput, config: Config)
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1424,10 +1623,10 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
     query: str = f''
 
     query_params: list[tuple[str, str | None]] = []
-    if input.page is not None:
-        query_params.append(("page", str(input.page)))
     if input.count is not None:
         query_params.append(("count", str(input.count)))
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.status is not None:
@@ -1463,7 +1662,7 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1483,10 +1682,12 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
     query: str = f''
 
     query_params: list[tuple[str, str | None]] = []
-    if input.page is not None:
-        query_params.append(("page", str(input.page)))
     if input.count is not None:
         query_params.append(("count", str(input.count)))
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
     if input.name is not None:
         query_params.append(("name", input.name))
     if input.created_by is not None:
@@ -1497,8 +1698,6 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:
         query_params.append(("sort_by", input.sort_by))
-    if input.all is not None:
-        query_params.append(("all", ('true' if input.all else 'false')))
     if input.group_type is not None:
         query_params.append(("group_type", input.group_type))
 
@@ -1512,7 +1711,7 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1549,7 +1748,7 @@ async def _serialize_list_function(input: ListFunctionInput, config: Config) -> 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1617,7 +1816,7 @@ async def _serialize_list_versions(input: ListVersionsInput, config: Config) -> 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1654,7 +1853,7 @@ async def _serialize_list_webhook(input: ListWebhookInput, config: Config) -> HT
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1760,7 +1959,7 @@ async def _serialize_move_context(input: MoveContextInput, config: Config) -> HT
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1801,7 +2000,7 @@ async def _serialize_pause_experiment(input: PauseExperimentInput, config: Confi
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1842,7 +2041,7 @@ async def _serialize_publish(input: PublishInput, config: Config) -> HTTPRequest
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1883,7 +2082,7 @@ async def _serialize_ramp_experiment(input: RampExperimentInput, config: Config)
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1924,7 +2123,7 @@ async def _serialize_remove_members_from_group(input: RemoveMembersFromGroupInpu
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -1965,7 +2164,7 @@ async def _serialize_resume_experiment(input: ResumeExperimentInput, config: Con
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2010,7 +2209,7 @@ async def _serialize_test(input: TestInput, config: Config) -> HTTPRequest:
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2051,7 +2250,7 @@ async def _serialize_update_default_config(input: UpdateDefaultConfigInput, conf
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2061,7 +2260,7 @@ async def _serialize_update_default_config(input: UpdateDefaultConfigInput, conf
             scheme="https",
             query=query,
         ),
-        method="PUT",
+        method="PATCH",
         fields=headers,
         body=body,
     )
@@ -2092,7 +2291,7 @@ async def _serialize_update_dimension(input: UpdateDimensionInput, config: Confi
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2102,7 +2301,7 @@ async def _serialize_update_dimension(input: UpdateDimensionInput, config: Confi
             scheme="https",
             query=query,
         ),
-        method="PUT",
+        method="PATCH",
         fields=headers,
         body=body,
     )
@@ -2133,7 +2332,7 @@ async def _serialize_update_experiment_group(input: UpdateExperimentGroupInput, 
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2174,7 +2373,7 @@ async def _serialize_update_function(input: UpdateFunctionInput, config: Config)
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2221,7 +2420,7 @@ async def _serialize_update_organisation(input: UpdateOrganisationInput, config:
             scheme="https",
             query=query,
         ),
-        method="PUT",
+        method="PATCH",
         fields=headers,
         body=body,
     )
@@ -2251,7 +2450,7 @@ async def _serialize_update_override(input: UpdateOverrideInput, config: Config)
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.config_tags:
@@ -2294,7 +2493,7 @@ async def _serialize_update_overrides_experiment(input: UpdateOverridesExperimen
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2304,7 +2503,7 @@ async def _serialize_update_overrides_experiment(input: UpdateOverridesExperimen
             scheme="https",
             query=query,
         ),
-        method="PUT",
+        method="PATCH",
         fields=headers,
         body=body,
     )
@@ -2335,7 +2534,7 @@ async def _serialize_update_type_templates(input: UpdateTypeTemplatesInput, conf
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2345,7 +2544,7 @@ async def _serialize_update_type_templates(input: UpdateTypeTemplatesInput, conf
             scheme="https",
             query=query,
         ),
-        method="PUT",
+        method="PATCH",
         fields=headers,
         body=body,
     )
@@ -2376,7 +2575,7 @@ async def _serialize_update_webhook(input: UpdateWebhookInput, config: Config) -
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
@@ -2425,6 +2624,42 @@ async def _serialize_update_workspace(input: UpdateWorkspaceInput, config: Confi
             scheme="https",
             query=query,
         ),
+        method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_validate_context(input: ValidateContextInput, config: Config) -> HTTPRequest:
+    path = "/context/validate"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
         method="PUT",
         fields=headers,
         body=body,
@@ -2442,7 +2677,7 @@ async def _serialize_weight_recompute(input: WeightRecomputeInput, config: Confi
     )
 
     if input.workspace_id:
-        headers.extend(Fields([Field(name="x-tenant", values=[input.workspace_id])]))
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.config_tags:

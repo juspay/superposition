@@ -63,7 +63,12 @@ public final class Workspace implements ApiResource {
     }
 
     @Override
-    public Schema put() {
+    public Schema read() {
+        return GetWorkspace.$SCHEMA;
+    }
+
+    @Override
+    public Schema update() {
         return UpdateWorkspace.$SCHEMA;
     }
 

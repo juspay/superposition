@@ -73,7 +73,7 @@ pub async fn update_default_config(
 
     let response = request(
         url,
-        reqwest::Method::PUT,
+        reqwest::Method::PATCH,
         Some(update_payload),
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )

@@ -148,7 +148,7 @@ build builder = do
 
 instance Io.Superposition.Utility.IntoRequestBuilder UpdateOrganisationInput where
     intoRequestBuilder self = do
-        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPut
+        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPatch
         Io.Superposition.Utility.setPath [
             "superposition",
             "organisations",

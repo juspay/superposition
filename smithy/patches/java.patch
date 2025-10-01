@@ -1,37 +1,3 @@
-diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java
-index f06fe61c..b7600b53 100644
---- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java
-+++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Context.java
-@@ -15,17 +15,18 @@ public final class Context implements ApiResource {
-     private static final Context $INSTANCE = new Context();
-     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
-         "org_id", PreludeSchemas.STRING);
--    private static final Map<String, Schema> $PROPERTIES = Map.of("change_reason", PreludeSchemas.STRING,
--        "override_id", PreludeSchemas.STRING,
--        "weight", SharedSchemas.WEIGHT,
--        "description", PreludeSchemas.STRING,
--        "created_at", SharedSchemas.DATE_TIME,
--        "id", PreludeSchemas.STRING,
--        "override", SharedSchemas.OVERRIDES,
--        "last_modified_by", PreludeSchemas.STRING,
--        "value", SharedSchemas.CONDITION,
--        "created_by", PreludeSchemas.STRING,
--        "last_modified_at", SharedSchemas.DATE_TIME);
-+    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
-+        Map.entry("change_reason", PreludeSchemas.STRING),
-+        Map.entry("override_id", PreludeSchemas.STRING),
-+        Map.entry("weight", SharedSchemas.WEIGHT),
-+        Map.entry("description", PreludeSchemas.STRING),
-+        Map.entry("created_at", SharedSchemas.DATE_TIME),
-+        Map.entry("id", PreludeSchemas.STRING),
-+        Map.entry("override", SharedSchemas.OVERRIDES),
-+        Map.entry("last_modified_by", PreludeSchemas.STRING),
-+        Map.entry("value", SharedSchemas.CONDITION),
-+        Map.entry("created_by", PreludeSchemas.STRING),
-+        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
- 
-     private static final List<Schema> $OPERATIONS = List.of(MoveContext.$SCHEMA,
-         UpdateOverride.$SCHEMA,
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
 index 0de33755..a0155187 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Dimension.java
@@ -65,17 +31,18 @@ index 0de33755..a0155187 100644
 +        Map.entry("created_by", PreludeSchemas.STRING),
 +        Map.entry("dependency_graph", SharedSchemas.DEPEDENDENCY_GRAPH),
 +        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
+ 
+     private static final List<Schema> $OPERATIONS = List.of(CreateDimension.$SCHEMA);
+     private static final Schema $SCHEMA = Schema.createResource($ID);
 
-     private static final List<Schema> $OPERATIONS = List.of(GetDimension.$SCHEMA,
-         CreateDimension.$SCHEMA);
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
-index e6582ad6..10fa9d94 100644
+index 84b85d58..04ffb1bc 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
-@@ -18,20 +18,21 @@ public final class ExperimentGroup implements ApiResource {
-     private static final ExperimentGroup $INSTANCE = new ExperimentGroup();
+@@ -19,19 +19,20 @@ public final class ExperimentGroup implements ApiResource {
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
-         "org_id", PreludeSchemas.STRING);
+         "org_id", PreludeSchemas.STRING,
+         "id", PreludeSchemas.STRING);
 -    private static final Map<String, Schema> $PROPERTIES = Map.of("buckets", SharedSchemas.BUCKETS,
 -        "description", PreludeSchemas.STRING,
 -        "created_at", SharedSchemas.DATE_TIME,
@@ -88,8 +55,7 @@ index e6582ad6..10fa9d94 100644
 -        "traffic_percentage", PreludeSchemas.INTEGER,
 -        "name", PreludeSchemas.STRING,
 -        "context", SharedSchemas.CONDITION,
--        "member_experiment_ids", SharedSchemas.STRING_LIST,
--        "id", PreludeSchemas.STRING);
+-        "member_experiment_ids", SharedSchemas.STRING_LIST);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
 +        Map.entry("buckets", SharedSchemas.BUCKETS),
 +        Map.entry("description", PreludeSchemas.STRING),
@@ -103,19 +69,18 @@ index e6582ad6..10fa9d94 100644
 +        Map.entry("traffic_percentage", PreludeSchemas.INTEGER),
 +        Map.entry("name", PreludeSchemas.STRING),
 +        Map.entry("context", SharedSchemas.CONDITION),
-+        Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST),
-+        Map.entry("id", PreludeSchemas.STRING));
++        Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST));
  
-     private static final List<Schema> $OPERATIONS = List.of(ListExperimentGroups.$SCHEMA,
-         CreateExperimentGroup.$SCHEMA,
+     private static final List<Schema> $OPERATIONS = List.of(AddMembersToGroup.$SCHEMA,
+         RemoveMembersFromGroup.$SCHEMA);
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
-index 9f34fb70..ea610f2e 100644
+index 5b0dd5e8..05445da7 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
-@@ -15,26 +15,27 @@ public final class Experiments implements ApiResource {
-     private static final Experiments $INSTANCE = new Experiments();
+@@ -16,25 +16,26 @@ public final class Experiments implements ApiResource {
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
-         "org_id", PreludeSchemas.STRING);
+         "org_id", PreludeSchemas.STRING,
+         "id", PreludeSchemas.STRING);
 -    private static final Map<String, Schema> $PROPERTIES = Map.of("chosen_variant", PreludeSchemas.STRING,
 -        "created_at", SharedSchemas.DATE_TIME,
 -        "description", PreludeSchemas.STRING,
@@ -131,7 +96,6 @@ index 9f34fb70..ea610f2e 100644
 -        "context", SharedSchemas.CONDITION,
 -        "started_at", SharedSchemas.DATE_TIME,
 -        "experiment_group_id", PreludeSchemas.STRING,
--        "id", PreludeSchemas.STRING,
 -        "metrics", PreludeSchemas.DOCUMENT,
 -        "last_modified", SharedSchemas.DATE_TIME,
 -        "started_by", PreludeSchemas.STRING,
@@ -152,16 +116,15 @@ index 9f34fb70..ea610f2e 100644
 +        Map.entry("context", SharedSchemas.CONDITION),
 +        Map.entry("started_at", SharedSchemas.DATE_TIME),
 +        Map.entry("experiment_group_id", PreludeSchemas.STRING),
-+        Map.entry("id", PreludeSchemas.STRING),
 +        Map.entry("metrics", PreludeSchemas.DOCUMENT),
 +        Map.entry("last_modified", SharedSchemas.DATE_TIME),
 +        Map.entry("started_by", PreludeSchemas.STRING),
 +        Map.entry("status", ExperimentStatusType.$SCHEMA));
  
-     private static final List<Schema> $OPERATIONS = List.of(ListExperiment.$SCHEMA,
-         CreateExperiment.$SCHEMA,
+     private static final List<Schema>$COLLECTION_OPERATIONS = List.of(UpdateOverridesExperiment.$SCHEMA,
+         ConcludeExperiment.$SCHEMA,
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
-index 6c2128c0..532fa9e6 100644
+index 813c9e17..d0a445a7 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
 @@ -16,19 +16,20 @@ public final class Function implements ApiResource {
@@ -233,7 +196,7 @@ index 6f9b8291..d799d52f 100644
      private static final Schema $SCHEMA = Schema.createResource($ID);
  
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java
-index 9277c0c6..dc58b0d2 100644
+index 58d004f4..bf37b2b4 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Webhook.java
 @@ -16,20 +16,21 @@ public final class Webhook implements ApiResource {
@@ -270,10 +233,10 @@ index 9277c0c6..dc58b0d2 100644
 +        Map.entry("events", SharedSchemas.EVENTS),
 +        Map.entry("custom_headers", SharedSchemas.OBJECT));
  
-     private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA,
-         GetWebhook.$SCHEMA);
+     private static final List<Schema>$COLLECTION_OPERATIONS = List.of(CreateWebhook.$SCHEMA);
+     private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA);
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
-index 7b0f248f..87e9b8a7 100644
+index a1dfbada..589784f9 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
 @@ -15,21 +15,22 @@ public final class Workspace implements ApiResource {

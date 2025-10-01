@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
-import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -14,50 +13,49 @@ import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
 public final class ListWebhookOutput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#WebhookListResponse");
+    public static final ShapeId $ID = ShapeId.from("io.superposition#ListWebhookOutput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("total_pages", PreludeSchemas.LONG,
-                new RequiredTrait())
-        .putMember("total_items", PreludeSchemas.LONG,
-                new RequiredTrait())
-        .putMember("data", SharedSchemas.WEBHOOK_LIST,
-                new RequiredTrait())
+        .putMember("total_pages", PreludeSchemas.INTEGER)
+        .putMember("total_items", PreludeSchemas.INTEGER)
+        .putMember("data", SharedSchemas.WEBHOOK_LIST)
         .build();
 
     private static final Schema $SCHEMA_TOTAL_PAGES = $SCHEMA.member("total_pages");
     private static final Schema $SCHEMA_TOTAL_ITEMS = $SCHEMA.member("total_items");
     private static final Schema $SCHEMA_DATA = $SCHEMA.member("data");
 
-    private final transient long totalPages;
-    private final transient long totalItems;
+    private final transient Integer totalPages;
+    private final transient Integer totalItems;
     private final transient List<WebhookResponse> data;
 
     private ListWebhookOutput(Builder builder) {
         this.totalPages = builder.totalPages;
         this.totalItems = builder.totalItems;
-        this.data = Collections.unmodifiableList(builder.data);
+        this.data = builder.data == null ? null : Collections.unmodifiableList(builder.data);
     }
 
-    public long totalPages() {
+    public Integer totalPages() {
         return totalPages;
     }
 
-    public long totalItems() {
+    public Integer totalItems() {
         return totalItems;
     }
 
     public List<WebhookResponse> data() {
+        if (data == null) {
+            return Collections.emptyList();
+        }
         return data;
     }
 
     public boolean hasData() {
-        return true;
+        return data != null;
     }
 
     @Override
@@ -74,8 +72,8 @@ public final class ListWebhookOutput implements SerializableStruct {
             return false;
         }
         ListWebhookOutput that = (ListWebhookOutput) other;
-        return this.totalPages == that.totalPages
-               && this.totalItems == that.totalItems
+        return Objects.equals(this.totalPages, that.totalPages)
+               && Objects.equals(this.totalItems, that.totalItems)
                && Objects.equals(this.data, that.data);
     }
 
@@ -91,9 +89,15 @@ public final class ListWebhookOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        serializer.writeLong($SCHEMA_TOTAL_PAGES, totalPages);
-        serializer.writeLong($SCHEMA_TOTAL_ITEMS, totalItems);
-        serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.WebhookListSerializer.INSTANCE);
+        if (totalPages != null) {
+            serializer.writeInteger($SCHEMA_TOTAL_PAGES, totalPages);
+        }
+        if (totalItems != null) {
+            serializer.writeInteger($SCHEMA_TOTAL_ITEMS, totalItems);
+        }
+        if (data != null) {
+            serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.WebhookListSerializer.INSTANCE);
+        }
     }
 
     @Override
@@ -133,9 +137,8 @@ public final class ListWebhookOutput implements SerializableStruct {
      * Builder for {@link ListWebhookOutput}.
      */
     public static final class Builder implements ShapeBuilder<ListWebhookOutput> {
-        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
-        private long totalPages;
-        private long totalItems;
+        private Integer totalPages;
+        private Integer totalItems;
         private List<WebhookResponse> data;
 
         private Builder() {}
@@ -146,38 +149,31 @@ public final class ListWebhookOutput implements SerializableStruct {
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder totalPages(long totalPages) {
+        public Builder totalPages(int totalPages) {
             this.totalPages = totalPages;
-            tracker.setMember($SCHEMA_TOTAL_PAGES);
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder totalItems(long totalItems) {
+        public Builder totalItems(int totalItems) {
             this.totalItems = totalItems;
-            tracker.setMember($SCHEMA_TOTAL_ITEMS);
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder data(List<WebhookResponse> data) {
-            this.data = Objects.requireNonNull(data, "data cannot be null");
-            tracker.setMember($SCHEMA_DATA);
+            this.data = data;
             return this;
         }
 
         @Override
         public ListWebhookOutput build() {
-            tracker.validate();
             return new ListWebhookOutput(this);
         }
 
@@ -185,28 +181,11 @@ public final class ListWebhookOutput implements SerializableStruct {
         @SuppressWarnings("unchecked")
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
-                case 0 -> totalPages((long) SchemaUtils.validateSameMember($SCHEMA_TOTAL_PAGES, member, value));
-                case 1 -> totalItems((long) SchemaUtils.validateSameMember($SCHEMA_TOTAL_ITEMS, member, value));
+                case 0 -> totalPages((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_PAGES, member, value));
+                case 1 -> totalItems((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_ITEMS, member, value));
                 case 2 -> data((List<WebhookResponse>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
-        }
-
-        @Override
-        public ShapeBuilder<ListWebhookOutput> errorCorrection() {
-            if (tracker.allSet()) {
-                return this;
-            }
-            if (!tracker.checkMember($SCHEMA_TOTAL_PAGES)) {
-                tracker.setMember($SCHEMA_TOTAL_PAGES);
-            }
-            if (!tracker.checkMember($SCHEMA_TOTAL_ITEMS)) {
-                tracker.setMember($SCHEMA_TOTAL_ITEMS);
-            }
-            if (!tracker.checkMember($SCHEMA_DATA)) {
-                data(Collections.emptyList());
-            }
-            return this;
         }
 
         @Override
@@ -227,8 +206,8 @@ public final class ListWebhookOutput implements SerializableStruct {
             @Override
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
-                    case 0 -> builder.totalPages(de.readLong(member));
-                    case 1 -> builder.totalItems(de.readLong(member));
+                    case 0 -> builder.totalPages(de.readInteger(member));
+                    case 1 -> builder.totalItems(de.readInteger(member));
                     case 2 -> builder.data(SharedSerde.deserializeWebhookList(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }

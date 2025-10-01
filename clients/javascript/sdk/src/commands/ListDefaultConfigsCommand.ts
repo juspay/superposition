@@ -43,11 +43,12 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  * // const { SuperpositionClient, ListDefaultConfigsCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListDefaultConfigsInput
+ *   workspace_id: "STRING_VALUE", // required
+ *   org_id: "STRING_VALUE", // required
  *   count: Number("int"),
  *   page: Number("int"),
  *   all: true || false,
- *   workspace_id: "STRING_VALUE", // required
- *   org_id: "STRING_VALUE", // required
+ *   name: "STRING_VALUE",
  * };
  * const command = new ListDefaultConfigsCommand(input);
  * const response = await client.send(command);
@@ -80,8 +81,6 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  * @see {@link ListDefaultConfigsCommandInput} for command's `input` shape.
  * @see {@link ListDefaultConfigsCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
- *
- * @throws {@link ResourceNotFound} (client fault)
  *
  * @throws {@link InternalServerError} (server fault)
  *

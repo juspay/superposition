@@ -43,11 +43,11 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  * // const { SuperpositionClient, ListContextsCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
  * const input = { // ListContextsInput
+ *   count: Number("int"),
+ *   page: Number("int"),
+ *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   page: Number("int"),
- *   count: Number("int"),
- *   all: true || false,
  *   prefix: "STRING_VALUE",
  *   sort_on: "last_modified_at" || "created_at" || "weight",
  *   sort_by: "desc" || "asc",

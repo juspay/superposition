@@ -101,7 +101,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetExperimentGroupInput whe
             Io.Superposition.Utility.serializeElement (id' self)
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         
 

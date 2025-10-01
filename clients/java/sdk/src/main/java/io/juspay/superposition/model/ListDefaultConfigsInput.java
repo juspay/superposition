@@ -11,9 +11,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
-import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.DefaultTrait;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
@@ -24,51 +22,43 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListDefaultConfigsInput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
+        .putMember("workspace_id", PreludeSchemas.STRING,
+                new HttpHeaderTrait("x-workspace"),
+                new RequiredTrait())
+        .putMember("org_id", PreludeSchemas.STRING,
+                new HttpHeaderTrait("x-org-id"),
+                new RequiredTrait())
         .putMember("count", PreludeSchemas.INTEGER,
                 new HttpQueryTrait("count"))
         .putMember("page", PreludeSchemas.INTEGER,
                 new HttpQueryTrait("page"))
         .putMember("all", PreludeSchemas.BOOLEAN,
                 new HttpQueryTrait("all"))
-        .putMember("workspace_id", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-tenant"),
-                new RequiredTrait())
-        .putMember("org_id", PreludeSchemas.STRING,
-                new DefaultTrait(Node.from("juspay")),
-                new RequiredTrait(),
-                new HttpHeaderTrait("x-org-id"))
+        .putMember("name", PreludeSchemas.STRING,
+                new HttpQueryTrait("name"))
         .build();
 
+    private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
+    private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
     private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
-    private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
-    private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
 
+    private final transient String workspaceId;
+    private final transient String orgId;
     private final transient Integer count;
     private final transient Integer page;
     private final transient Boolean all;
-    private final transient String workspaceId;
-    private final transient String orgId;
+    private final transient String name;
 
     private ListDefaultConfigsInput(Builder builder) {
+        this.workspaceId = builder.workspaceId;
+        this.orgId = builder.orgId;
         this.count = builder.count;
         this.page = builder.page;
         this.all = builder.all;
-        this.workspaceId = builder.workspaceId;
-        this.orgId = builder.orgId;
-    }
-
-    public Integer count() {
-        return count;
-    }
-
-    public Integer page() {
-        return page;
-    }
-
-    public Boolean all() {
-        return all;
+        this.name = builder.name;
     }
 
     public String workspaceId() {
@@ -77,6 +67,31 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    /**
+     * Number of items to be returned in each page.
+     */
+    public Integer count() {
+        return count;
+    }
+
+    /**
+     * Page number to retrieve, starting from 1.
+     */
+    public Integer page() {
+        return page;
+    }
+
+    /**
+     * If true, returns all requested items, ignoring pagination parameters page and count.
+     */
+    public Boolean all() {
+        return all;
+    }
+
+    public String name() {
+        return name;
     }
 
     @Override
@@ -93,16 +108,17 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
             return false;
         }
         ListDefaultConfigsInput that = (ListDefaultConfigsInput) other;
-        return Objects.equals(this.count, that.count)
+        return Objects.equals(this.workspaceId, that.workspaceId)
+               && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.count, that.count)
                && Objects.equals(this.page, that.page)
                && Objects.equals(this.all, that.all)
-               && Objects.equals(this.workspaceId, that.workspaceId)
-               && Objects.equals(this.orgId, that.orgId);
+               && Objects.equals(this.name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId);
+        return Objects.hash(workspaceId, orgId, count, page, all, name);
     }
 
     @Override
@@ -112,6 +128,8 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
+        serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
+        serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (count != null) {
             serializer.writeInteger($SCHEMA_COUNT, count);
         }
@@ -121,8 +139,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         if (all != null) {
             serializer.writeBoolean($SCHEMA_ALL, all);
         }
-        serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
-        serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (name != null) {
+            serializer.writeString($SCHEMA_NAME, name);
+        }
     }
 
     @Override
@@ -130,10 +149,11 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
-            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -147,11 +167,12 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
      */
     public Builder toBuilder() {
         var builder = new Builder();
+        builder.workspaceId(this.workspaceId);
+        builder.orgId(this.orgId);
         builder.count(this.count);
         builder.page(this.page);
         builder.all(this.all);
-        builder.workspaceId(this.workspaceId);
-        builder.orgId(this.orgId);
+        builder.name(this.name);
         return builder;
     }
 
@@ -166,43 +187,19 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
      * Builder for {@link ListDefaultConfigsInput}.
      */
     public static final class Builder implements ShapeBuilder<ListDefaultConfigsInput> {
-        private static final String ORG_ID_DEFAULT = "juspay";
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
+        private String workspaceId;
+        private String orgId;
         private Integer count;
         private Integer page;
         private Boolean all;
-        private String workspaceId;
-        private String orgId = ORG_ID_DEFAULT;
+        private String name;
 
         private Builder() {}
 
         @Override
         public Schema schema() {
             return $SCHEMA;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder count(int count) {
-            this.count = count;
-            return this;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder page(int page) {
-            this.page = page;
-            return this;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder all(boolean all) {
-            this.all = all;
-            return this;
         }
 
         /**
@@ -221,6 +218,45 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
          */
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
+            tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * Number of items to be returned in each page.
+         *
+         * @return this builder.
+         */
+        public Builder count(int count) {
+            this.count = count;
+            return this;
+        }
+
+        /**
+         * Page number to retrieve, starting from 1.
+         *
+         * @return this builder.
+         */
+        public Builder page(int page) {
+            this.page = page;
+            return this;
+        }
+
+        /**
+         * If true, returns all requested items, ignoring pagination parameters page and count.
+         *
+         * @return this builder.
+         */
+        public Builder all(boolean all) {
+            this.all = all;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
@@ -235,10 +271,11 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
-                case 1 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
-                case 2 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
-                case 3 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 4 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
+                case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
+                case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 5 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -250,6 +287,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_ID)) {
                 workspaceId("");
+            }
+            if (!tracker.checkMember($SCHEMA_ORG_ID)) {
+                orgId("");
             }
             return this;
         }
@@ -273,10 +313,11 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
-                    case 1 -> builder.count(de.readInteger(member));
-                    case 2 -> builder.page(de.readInteger(member));
-                    case 3 -> builder.all(de.readBoolean(member));
-                    case 4 -> builder.orgId(de.readString(member));
+                    case 1 -> builder.orgId(de.readString(member));
+                    case 2 -> builder.count(de.readInteger(member));
+                    case 3 -> builder.page(de.readInteger(member));
+                    case 4 -> builder.all(de.readBoolean(member));
+                    case 5 -> builder.name(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

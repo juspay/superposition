@@ -4,9 +4,9 @@ namespace io.superposition
 
 resource Webhook {
     identifiers: {
-        name: String
         workspace_id: String
         org_id: String
+        name: String
     }
     properties: {
         description: String
@@ -25,10 +25,14 @@ resource Webhook {
         last_modified_at: DateTime
     }
     list: ListWebhook
-    put: UpdateWebhook
+    update: UpdateWebhook
+    read: GetWebhook
+    delete: DeleteWebhook
     operations: [
         CreateWebhook
-        GetWebhook
+    ]
+    collectionOperations: [
+        GetWebhookByEvent
     ]
 }
 
@@ -98,21 +102,6 @@ list WebhookList {
     member: WebhookResponse
 }
 
-structure WebhookListResponse for Webhook {
-    @required
-    total_pages: Long
-
-    @required
-    total_items: Long
-
-    @required
-    data: WebhookList
-}
-
-@httpError(404)
-@error("client")
-structure WebhookNotFound {}
-
 // Operations
 @documentation("Creates a new webhook config to receive HTTP notifications when specified events occur in the system.")
 @http(method: "POST", uri: "/webhook")
@@ -150,7 +139,7 @@ operation CreateWebhook {
 @documentation("Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook properties.")
 @idempotent
 @http(method: "PATCH", uri: "/webhook/{name}")
-operation UpdateWebhook {
+operation UpdateWebhook with [GetOperation] {
     input := for Webhook with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -180,10 +169,6 @@ operation UpdateWebhook {
     }
 
     output: WebhookResponse
-
-    errors: [
-        WebhookNotFound
-    ]
 }
 
 @documentation("Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.")
@@ -191,13 +176,15 @@ operation UpdateWebhook {
 @http(method: "GET", uri: "/webhook")
 operation ListWebhook {
     input := with [PaginationParams, WorkspaceMixin] {}
-    output: WebhookListResponse
+    output := with [PaginatedResponse] {
+        data: WebhookList
+    }
 }
 
 @documentation("Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history.")
 @readonly
 @http(method: "GET", uri: "/webhook/{name}")
-operation GetWebhook {
+operation GetWebhook with [GetOperation] {
     input := for Webhook with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -207,19 +194,27 @@ operation GetWebhook {
     output: WebhookResponse
 }
 
+@documentation("Retrieves a webhook configuration based on a specific event type, allowing users to find which webhook is set to trigger for that event.")
+@http(method: "GET", uri: "/webhook/event/{event}")
+@tags(["Webhooks"])
+operation GetWebhookByEvent with [GetOperation] {
+    input := with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        @notProperty
+        event: String
+    }
+
+    output: WebhookResponse
+}
+
 @documentation("Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint.")
 @idempotent
 @http(method: "DELETE", uri: "/webhook/{name}", code: 201)
-operation DeleteWebhook {
+operation DeleteWebhook with [GetOperation] {
     input := for Webhook with [WorkspaceMixin] {
         @httpLabel
         @required
         $name
     }
-
-    output := {}
-
-    errors: [
-        ResourceNotFound
-    ]
 }

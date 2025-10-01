@@ -55,6 +55,8 @@ pub use crate::types::_function_response::FunctionResponse;
 
 pub use crate::types::_audit_log_full::AuditLogFull;
 
+pub use crate::types::_list_versions_member::ListVersionsMember;
+
 pub use crate::types::_merge_strategy::MergeStrategy;
 
 pub use crate::types::_dimension_info::DimensionInfo;
@@ -64,8 +66,6 @@ pub use crate::types::_dimension_type::DimensionType;
 pub use crate::types::_unit::Unit;
 
 pub use crate::types::_context_partial::ContextPartial;
-
-pub use crate::types::_list_versions_member::ListVersionsMember;
 
 pub use crate::types::_bulk_operation_out::BulkOperationOut;
 

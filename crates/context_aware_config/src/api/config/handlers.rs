@@ -4,7 +4,7 @@ use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
 use actix_http::StatusCode;
 use actix_web::{
-    get, put, route,
+    get, put, routes,
     web::{Json, Path, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
@@ -755,7 +755,9 @@ async fn get_config_fast(
     }
 }
 
-#[route("", method = "GET", method = "POST")]
+#[routes]
+#[get("")]
+#[post("")]
 async fn get_config(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
@@ -809,7 +811,9 @@ async fn get_config(
     Ok(response.json(config))
 }
 
-#[route("/resolve", method = "GET", method = "POST")]
+#[routes]
+#[get("/resolve")]
+#[post("/resolve")]
 async fn get_resolved_config(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,

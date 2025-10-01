@@ -24,10 +24,11 @@ public final class UpdateOverridesExperiment implements ApiOperation<UpdateOverr
     private static final UpdateOverridesExperiment $INSTANCE = new UpdateOverridesExperiment();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/experiments/{id}/overrides")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/experiments/{id}/overrides")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
+        .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));

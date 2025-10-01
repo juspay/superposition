@@ -135,44 +135,44 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListExp
 }
 fn uri_query(_input: &crate::operation::list_experiment_groups::ListExperimentGroupsInput, mut output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     let mut query = ::aws_smithy_http::query::Writer::new(output);
-    if let ::std::option::Option::Some(inner_1) = &_input.page {
+    if let ::std::option::Option::Some(inner_1) = &_input.count {
          {
-            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_1).encode());
+            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_1).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_2) = &_input.count {
+    if let ::std::option::Option::Some(inner_2) = &_input.page {
          {
-            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
+            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_3) = &_input.name {
+    if let ::std::option::Option::Some(inner_3) = &_input.all {
          {
-            query.push_kv("name", &::aws_smithy_http::query::fmt_string(inner_3));
+            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_4) = &_input.created_by {
+    if let ::std::option::Option::Some(inner_4) = &_input.name {
          {
-            query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_4));
+            query.push_kv("name", &::aws_smithy_http::query::fmt_string(inner_4));
         }
     }
-    if let ::std::option::Option::Some(inner_5) = &_input.last_modified_by {
+    if let ::std::option::Option::Some(inner_5) = &_input.created_by {
          {
-            query.push_kv("last_modified_by", &::aws_smithy_http::query::fmt_string(inner_5));
+            query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_5));
         }
     }
-    if let ::std::option::Option::Some(inner_6) = &_input.sort_on {
+    if let ::std::option::Option::Some(inner_6) = &_input.last_modified_by {
          {
-            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_6));
+            query.push_kv("last_modified_by", &::aws_smithy_http::query::fmt_string(inner_6));
         }
     }
-    if let ::std::option::Option::Some(inner_7) = &_input.sort_by {
+    if let ::std::option::Option::Some(inner_7) = &_input.sort_on {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_7));
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_7));
         }
     }
-    if let ::std::option::Option::Some(inner_8) = &_input.all {
+    if let ::std::option::Option::Some(inner_8) = &_input.sort_by {
          {
-            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_8).encode());
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_8));
         }
     }
     if let ::std::option::Option::Some(inner_9) = &_input.group_type {

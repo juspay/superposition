@@ -5,12 +5,12 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
-    ///   - [`count(i32)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::count) / [`set_count(Option<i32>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::set_count):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`page(i32)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::page) / [`set_page(Option<i32>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::set_page):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`count(i32)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::count) / [`set_count(Option<i32>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::set_count):<br>required: **false**<br>Number of items to be returned in each page.<br>
+    ///   - [`page(i32)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::page) / [`set_page(Option<i32>)`](crate::operation::list_versions::builders::ListVersionsFluentBuilder::set_page):<br>required: **false**<br>Page number to retrieve, starting from 1.<br>
                             /// - On success, responds with [`ListVersionsOutput`](crate::operation::list_versions::ListVersionsOutput) with field(s):
-    ///   - [`total_pages(i32)`](crate::operation::list_versions::ListVersionsOutput::total_pages): (undocumented)
-    ///   - [`total_items(i32)`](crate::operation::list_versions::ListVersionsOutput::total_items): (undocumented)
-    ///   - [`data(Vec::<ListVersionsMember>)`](crate::operation::list_versions::ListVersionsOutput::data): (undocumented)
+    ///   - [`total_pages(Option<i32>)`](crate::operation::list_versions::ListVersionsOutput::total_pages): (undocumented)
+    ///   - [`total_items(Option<i32>)`](crate::operation::list_versions::ListVersionsOutput::total_items): (undocumented)
+    ///   - [`data(Option<Vec::<ListVersionsMember>>)`](crate::operation::list_versions::ListVersionsOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListVersionsError>`](crate::operation::list_versions::ListVersionsError)
     pub fn list_versions(&self) -> crate::operation::list_versions::builders::ListVersionsFluentBuilder {
                                 crate::operation::list_versions::builders::ListVersionsFluentBuilder::new(self.handle.clone())

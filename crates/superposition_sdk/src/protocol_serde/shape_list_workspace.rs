@@ -37,7 +37,7 @@ pub fn de_list_workspace_http_response(_response_status: u16, _response_headers:
         #[allow(unused_mut)]
         let mut output = crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder::default();
         output = crate::protocol_serde::shape_list_workspace::de_list_workspace(_response_body, output).map_err(crate::operation::list_workspace::ListWorkspaceError::unhandled)?;
-        crate::serde_util::list_workspace_output_output_correct_errors(output).build().map_err(crate::operation::list_workspace::ListWorkspaceError::unhandled)?
+        output.build()
     })
 }
 
@@ -77,14 +77,14 @@ pub(crate) fn de_list_workspace(value: &[u8], mut builder: crate::operation::lis
                     "total_items" => {
                         builder = builder.set_total_items(
                             ::aws_smithy_json::deserialize::token::expect_number_or_null(tokens.next())?
-                                                .map(i64::try_from)
+                                                .map(i32::try_from)
                                                 .transpose()?
                         );
                     }
                     "total_pages" => {
                         builder = builder.set_total_pages(
                             ::aws_smithy_json::deserialize::token::expect_number_or_null(tokens.next())?
-                                                .map(i64::try_from)
+                                                .map(i32::try_from)
                                                 .transpose()?
                         );
                     }

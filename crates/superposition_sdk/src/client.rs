@@ -171,6 +171,8 @@ mod delete_function;
 
 mod delete_type_templates;
 
+mod delete_webhook;
+
 mod discard_experiment;
 
 mod get_config;
@@ -180,6 +182,8 @@ mod get_config_fast;
 mod get_context;
 
 mod get_context_from_condition;
+
+mod get_default_config;
 
 mod get_dimension;
 
@@ -193,9 +197,17 @@ mod get_organisation;
 
 mod get_resolved_config;
 
+mod get_type_template;
+
 mod get_type_templates_list;
 
+mod get_version;
+
 mod get_webhook;
+
+mod get_webhook_by_event;
+
+mod get_workspace;
 
 mod list_audit_logs;
 
@@ -254,6 +266,8 @@ mod update_type_templates;
 mod update_webhook;
 
 mod update_workspace;
+
+mod validate_context;
 
 mod weight_recompute;
 

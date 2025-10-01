@@ -4,9 +4,9 @@ use std::{
     vec,
 };
 
-use actix_http::header::{self};
+use actix_http::header;
 use actix_web::{
-    get, patch, post, put, route,
+    get, patch, post, routes,
     web::{self, Data, Json, Path, Query},
     Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
@@ -843,7 +843,9 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
-#[route("/applicable-variants", method = "GET", method = "POST")]
+#[routes]
+#[get("/applicable-variants")]
+#[post("/applicable-variants")]
 async fn get_applicable_variants(
     req: HttpRequest,
     db_conn: DbConnection,
@@ -1287,7 +1289,9 @@ async fn ramp(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[routes]
 #[put("/{id}/overrides")]
+#[patch("/{id}/overrides")]
 async fn update_overrides(
     params: web::Path<i64>,
     state: Data<AppState>,
