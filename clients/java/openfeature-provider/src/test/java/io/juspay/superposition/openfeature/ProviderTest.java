@@ -20,7 +20,7 @@ class ProviderTest {
     }
 
     final static String endpoint = "http://localhost:8080";
-    final static String workspace = "test";
+    final static String workspace = "test3";
     final static String orgId = "localorg";
     final static String token = "my-token";
     final static Logger log = LoggerFactory.getLogger(ProviderTest.class);

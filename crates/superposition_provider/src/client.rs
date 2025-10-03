@@ -1,16 +1,18 @@
-use crate::types::*;
-use crate::utils::ConversionUtils;
-use log::{debug, error, info, warn};
-use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
+
+use log::{debug, error, info, warn};
+use serde_json::Value;
 use superposition_core::{
     eval_config, get_applicable_variants, Experiments, MergeStrategy,
 };
-use superposition_types::Config;
+use superposition_types::{Config, DimensionInfo};
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
+
+use crate::types::*;
+use crate::utils::ConversionUtils;
 
 pub use open_feature::{
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
@@ -468,6 +470,7 @@ impl ExperimentationConfig {
 
     pub async fn get_applicable_variants(
         &self,
+        dimensions_info: &HashMap<String, DimensionInfo>,
         contexts: &serde_json::Map<String, Value>,
         identifier: Option<i8>,
     ) -> Result<Vec<String>> {
@@ -475,6 +478,7 @@ impl ExperimentationConfig {
         if let Some(cached_experiments) = cached_experiments.as_ref() {
             // Use get_applicable_variants from superposition_core
             get_applicable_variants(
+                dimensions_info,
                 cached_experiments,
                 contexts,
                 identifier.unwrap_or_default(),

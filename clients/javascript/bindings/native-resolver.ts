@@ -29,7 +29,7 @@ export class NativeResolver {
                 "int core_last_error_length()"
             );
             this.lib.core_get_applicable_variants = this.lib.func(
-                "char* core_get_applicable_variants(const char*, const char*, const char*, const char*)"
+                "char* core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*)"
             );
             this.lib.core_test_connection = this.lib.func(
                 "int core_test_connection()"
@@ -239,6 +239,7 @@ export class NativeResolver {
 
     getApplicableVariants(
         experiments: any[],
+        dimensions: Record<string, Record<string, any>>,
         userContext: Record<string, any>,
         identifier: string,
         filterPrefixes: string[] = []
@@ -258,6 +259,7 @@ export class NativeResolver {
 
         const experimentsJson = JSON.stringify(experiments);
         const userContextJson = JSON.stringify(userContext);
+        const dimensionsJson = JSON.stringify(dimensions);
         const filterPrefixesJson =
             filterPrefixes.length > 0 ? JSON.stringify(filterPrefixes) : null;
 
@@ -269,6 +271,7 @@ export class NativeResolver {
 
         const result = this.lib.core_get_applicable_variants(
             experimentsJson,
+            dimensionsJson,
             userContextJson,
             identifier,
             filterPrefixesJson

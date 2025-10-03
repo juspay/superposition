@@ -37,6 +37,12 @@ internal class EvaluationArgs {
         ).toMutableMap()
     }
 
+    @Throws(OperationException::class)
+    fun getApplicableVariants(ectx: EvaluationContext, experimentationArgs: ExperimentationArgs): List<String> {
+        val qdata = toQueryData(ectx)
+        return ffiGetApplicableVariants(experimentationArgs, dimensions, qdata, null)
+    }
+
     constructor(output: GetConfigOutput) {
         defaultConfig = serializeDocumentValues(output.defaultConfigs())
         contexts = output.contexts().map { toFfiContext(it) }
@@ -146,11 +152,6 @@ internal class EvaluationArgs {
             }
 
             return v.asObject()
-        }
-
-        internal fun getApplicableVariants(ectx: EvaluationContext, experimentationArgs: ExperimentationArgs): List<String> {
-            val qdata = toQueryData(ectx)
-            return ffiGetApplicableVariants(experimentationArgs, qdata, null)
         }
     }
 }

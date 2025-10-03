@@ -305,7 +305,7 @@ public class DefaultConfigPopulator {
         try {
             // Default values
             String baseUrl = "http://localhost:8080";
-            String workspaceId = "test";
+            String workspaceId = "test3";
             String orgId = "localorg";
             String bearerToken = "my-token";
 

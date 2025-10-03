@@ -1,6 +1,7 @@
 use std::{
     cmp::min,
     collections::{HashMap, HashSet},
+    ops::Deref,
     vec,
 };
 
@@ -64,6 +65,7 @@ use superposition_types::{
             experiments::dsl as experiments,
         },
     },
+    logic::evaluate_cohort,
     result as superposition, Cac, Condition, Contextual, Exp, ListResponse, Overrides,
     PaginatedResponse, SortBy, User,
 };
@@ -846,33 +848,45 @@ pub async fn discard(
 #[route("/applicable-variants", method = "GET", method = "POST")]
 async fn get_applicable_variants(
     req: HttpRequest,
+    state: Data<AppState>,
     db_conn: DbConnection,
     req_body: Option<Json<ApplicableVariantsRequest>>,
     query_data: Option<Query<ApplicableVariantsQuery>>,
-    schema_name: SchemaName,
+    dimension_params: Option<DimensionQuery<QueryMap>>,
+    workspace_request: WorkspaceContext,
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
     use superposition_types::database::schema::experiments::dsl;
 
     let DbConnection(mut conn) = db_conn;
-    let req_data = match (req.method().clone(), query_data, req_body) {
-        (actix_web::http::Method::GET, Some(query_data), None) => query_data.into_inner(),
-        (actix_web::http::Method::POST, None, Some(req_body)) => {
-            req_body.into_inner().into()
-        }
-        _ => {
-            return Err(bad_argument!("Invalid input for the method"));
-        }
-    };
+    let (context, identifier) =
+        match (req.method().clone(), query_data, dimension_params, req_body) {
+            (
+                actix_web::http::Method::GET,
+                Some(query_data),
+                Some(dimension_params),
+                _,
+            ) => (
+                dimension_params.into_inner().deref().clone(),
+                query_data.into_inner().identifier,
+            ),
+            (actix_web::http::Method::POST, _, _, Some(req_body)) => {
+                let req_body = req_body.into_inner();
+                (req_body.context, req_body.identifier)
+            }
+            _ => {
+                return Err(bad_argument!("Invalid input for the method"));
+            }
+        };
 
     let experiment_groups = experiment_groups::experiment_groups
-        .schema_name(&schema_name)
+        .schema_name(&workspace_request.schema_name)
         .load::<ExperimentGroup>(&mut conn)?;
 
-    let buckets = get_applicable_buckets_from_group(
-        &experiment_groups,
-        &Value::Object(req_data.context.clone()),
-        &req_data.identifier,
-    );
+    let (config, _) = fetch_cac_config(&state, &workspace_request).await?;
+    let context = Value::Object(evaluate_cohort(&config.dimensions, &context));
+
+    let buckets =
+        get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
 
     let exp_ids = buckets
         .iter()
@@ -885,7 +899,7 @@ async fn get_applicable_variants(
                 .eq_any(exp_ids)
                 .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
         )
-        .schema_name(&schema_name)
+        .schema_name(&workspace_request.schema_name)
         .load::<Experiment>(&mut conn)?
         .into_iter()
         .map(|exp| {
@@ -895,11 +909,8 @@ async fn get_applicable_variants(
         })
         .collect::<HashMap<String, ExperimentResponse>>();
 
-    let applicable_variants = get_applicable_variants_from_group_response(
-        &exps,
-        &Value::Object(req_data.context),
-        &buckets,
-    );
+    let applicable_variants =
+        get_applicable_variants_from_group_response(&exps, &context, &buckets);
 
     let variants = exps
         .into_iter()
