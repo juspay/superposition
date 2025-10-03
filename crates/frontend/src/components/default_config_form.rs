@@ -336,7 +336,8 @@ pub fn default_config_form(
                                             type_schema.deref(),
                                         );
                                         config_type_ws.set(selected_item.type_name);
-                                        config_schema_ws.set(Value::Object(type_schema.deref().clone()));
+                                        config_schema_ws
+                                            .set(Value::Object(type_schema.deref().clone()));
                                         if let (Ok(schema_type), Ok(enum_variants)) = (
                                             parsed_schema_type,
                                             parsed_enum_variants,
