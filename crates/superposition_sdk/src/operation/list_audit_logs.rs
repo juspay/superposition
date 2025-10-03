@@ -175,6 +175,11 @@ fn uri_query(_input: &crate::operation::list_audit_logs::ListAuditLogsInput, mut
             query.push_kv("username", &::aws_smithy_http::query::fmt_string(inner_8));
         }
     }
+    if let ::std::option::Option::Some(inner_9) = &_input.sort_by {
+         {
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_9));
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

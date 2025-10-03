@@ -45,6 +45,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 new HttpQueryTrait("action"))
         .putMember("username", PreludeSchemas.STRING,
                 new HttpQueryTrait("username"))
+        .putMember("sort_by", SortBy.$SCHEMA,
+                new HttpQueryTrait("sort_by"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -57,6 +59,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
     private static final Schema $SCHEMA_TABLES = $SCHEMA.member("tables");
     private static final Schema $SCHEMA_ACTION = $SCHEMA.member("action");
     private static final Schema $SCHEMA_USERNAME = $SCHEMA.member("username");
+    private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -68,6 +71,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
     private final transient String tables;
     private final transient String action;
     private final transient String username;
+    private final transient SortBy sortBy;
 
     private ListAuditLogsInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -80,6 +84,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         this.tables = builder.tables;
         this.action = builder.action;
         this.username = builder.username;
+        this.sortBy = builder.sortBy;
     }
 
     public String workspaceId() {
@@ -137,6 +142,10 @@ public final class ListAuditLogsInput implements SerializableStruct {
         return username;
     }
 
+    public SortBy sortBy() {
+        return sortBy;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -160,12 +169,13 @@ public final class ListAuditLogsInput implements SerializableStruct {
                && Objects.equals(this.toDate, that.toDate)
                && Objects.equals(this.tables, that.tables)
                && Objects.equals(this.action, that.action)
-               && Objects.equals(this.username, that.username);
+               && Objects.equals(this.username, that.username)
+               && Objects.equals(this.sortBy, that.sortBy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, count, page, all, fromDate, toDate, tables, action, username);
+        return Objects.hash(workspaceId, orgId, count, page, all, fromDate, toDate, tables, action, username, sortBy);
     }
 
     @Override
@@ -201,6 +211,9 @@ public final class ListAuditLogsInput implements SerializableStruct {
         if (username != null) {
             serializer.writeString($SCHEMA_USERNAME, username);
         }
+        if (sortBy != null) {
+            serializer.writeString($SCHEMA_SORT_BY, sortBy.value());
+        }
     }
 
     @Override
@@ -217,6 +230,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, tables);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, action);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, username);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -240,6 +254,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         builder.tables(this.tables);
         builder.action(this.action);
         builder.username(this.username);
+        builder.sortBy(this.sortBy);
         return builder;
     }
 
@@ -265,6 +280,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         private String tables;
         private String action;
         private String username;
+        private SortBy sortBy;
 
         private Builder() {}
 
@@ -367,6 +383,14 @@ public final class ListAuditLogsInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder sortBy(SortBy sortBy) {
+            this.sortBy = sortBy;
+            return this;
+        }
+
         @Override
         public ListAuditLogsInput build() {
             tracker.validate();
@@ -387,6 +411,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 case 7 -> tables((String) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, value));
                 case 8 -> action((String) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, value));
                 case 9 -> username((String) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, value));
+                case 10 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -433,6 +458,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
                     case 7 -> builder.tables(de.readString(member));
                     case 8 -> builder.action(de.readString(member));
                     case 9 -> builder.username(de.readString(member));
+                    case 10 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

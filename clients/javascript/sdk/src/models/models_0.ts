@@ -157,6 +157,25 @@ export interface ApplicableVariantsOutput {
 
 /**
  * @public
+ * @enum
+ */
+export const SortBy = {
+  /**
+   * Ascending order (A-Z, oldest first)
+   */
+  Asc: "asc",
+  /**
+   * Descending order (Z-A, newest first)
+   */
+  Desc: "desc",
+} as const
+/**
+ * @public
+ */
+export type SortBy = typeof SortBy[keyof typeof SortBy]
+
+/**
+ * @public
  */
 export interface ListAuditLogsInput {
   workspace_id: string | undefined;
@@ -194,6 +213,11 @@ export interface ListAuditLogsInput {
   action?: string | undefined;
 
   username?: string | undefined;
+  /**
+   * Sort order enumeration for list operations.
+   * @public
+   */
+  sort_by?: SortBy | undefined;
 }
 
 /**
@@ -949,25 +973,6 @@ export const DimensionMatchStrategy = {
  * @public
  */
 export type DimensionMatchStrategy = typeof DimensionMatchStrategy[keyof typeof DimensionMatchStrategy]
-
-/**
- * @public
- * @enum
- */
-export const SortBy = {
-  /**
-   * Ascending order (A-Z, oldest first)
-   */
-  Asc: "asc",
-  /**
-   * Descending order (Z-A, newest first)
-   */
-  Desc: "desc",
-} as const
-/**
- * @public
- */
-export type SortBy = typeof SortBy[keyof typeof SortBy]
 
 /**
  * @public

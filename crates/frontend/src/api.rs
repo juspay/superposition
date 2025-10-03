@@ -24,7 +24,7 @@ use superposition_types::{
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::models::{
-        cac::{Context, DefaultConfig, EventLog, Function, TypeTemplate},
+        cac::{Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
         ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
@@ -1117,32 +1117,35 @@ pub mod experiment_groups {
     }
 }
 
-pub async fn fetch_audit_logs(
-    filters: &superposition_types::api::config::AuditQueryFilters,
-    pagination: &PaginationParams,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<EventLog>, ServerFnError> {
-    let client = reqwest::Client::new();
-    let host = use_host_server();
+pub mod audit_log {
+    use superposition_types::{
+        api::audit_log::AuditQueryFilters, database::models::cac::EventLog,
+    };
 
-    let url = format!(
-        "{}/audit?{}&{}",
-        host,
-        filters.to_query_param(),
-        pagination.to_query_param(),
-    );
+    use super::*;
 
-    let response: PaginatedResponse<EventLog> = client
-        .get(url)
-        .header("x-tenant", &tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    pub async fn fetch(
+        filters: &AuditQueryFilters,
+        pagination: &PaginationParams,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<EventLog>, String> {
+        let host = use_host_server();
+        let url = format!(
+            "{}/audit?{}&{}",
+            host,
+            filters.to_query_param(),
+            pagination.to_query_param(),
+        );
 
-    Ok(response)
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<Value>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
 }

@@ -9,6 +9,7 @@ module Io.Superposition.Model.ListAuditLogsInput (
     setTables,
     setAction,
     setUsername,
+    setSortBy,
     build,
     ListAuditLogsInputBuilder,
     ListAuditLogsInput,
@@ -21,7 +22,8 @@ module Io.Superposition.Model.ListAuditLogsInput (
     to_date,
     tables,
     action,
-    username
+    username,
+    sort_by
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -35,6 +37,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.SortBy
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
 
@@ -48,7 +51,8 @@ data ListAuditLogsInput = ListAuditLogsInput {
     to_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     tables :: Data.Maybe.Maybe Data.Text.Text,
     action :: Data.Maybe.Maybe Data.Text.Text,
-    username :: Data.Maybe.Maybe Data.Text.Text
+    username :: Data.Maybe.Maybe Data.Text.Text,
+    sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -66,7 +70,8 @@ instance Data.Aeson.ToJSON ListAuditLogsInput where
         "to_date" Data.Aeson..= to_date a,
         "tables" Data.Aeson..= tables a,
         "action" Data.Aeson..= action a,
-        "username" Data.Aeson..= username a
+        "username" Data.Aeson..= username a,
+        "sort_by" Data.Aeson..= sort_by a
         ]
     
 
@@ -84,6 +89,7 @@ instance Data.Aeson.FromJSON ListAuditLogsInput where
         Control.Applicative.<*> (v Data.Aeson..: "tables")
         Control.Applicative.<*> (v Data.Aeson..: "action")
         Control.Applicative.<*> (v Data.Aeson..: "username")
+        Control.Applicative.<*> (v Data.Aeson..: "sort_by")
     
 
 
@@ -98,7 +104,8 @@ data ListAuditLogsInputBuilderState = ListAuditLogsInputBuilderState {
     to_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     tablesBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     actionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    usernameBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    usernameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
   GHC.Generics.Generic
   )
@@ -114,7 +121,8 @@ defaultBuilderState = ListAuditLogsInputBuilderState {
     to_dateBuilderState = Data.Maybe.Nothing,
     tablesBuilderState = Data.Maybe.Nothing,
     actionBuilderState = Data.Maybe.Nothing,
-    usernameBuilderState = Data.Maybe.Nothing
+    usernameBuilderState = Data.Maybe.Nothing,
+    sort_byBuilderState = Data.Maybe.Nothing
 }
 
 type ListAuditLogsInputBuilder = Control.Monad.State.Strict.State ListAuditLogsInputBuilderState
@@ -159,6 +167,10 @@ setUsername :: Data.Maybe.Maybe Data.Text.Text -> ListAuditLogsInputBuilder ()
 setUsername value =
    Control.Monad.State.Strict.modify (\s -> (s { usernameBuilderState = value }))
 
+setSortBy :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy -> ListAuditLogsInputBuilder ()
+setSortBy value =
+   Control.Monad.State.Strict.modify (\s -> (s { sort_byBuilderState = value }))
+
 build :: ListAuditLogsInputBuilder () -> Data.Either.Either Data.Text.Text ListAuditLogsInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -172,6 +184,7 @@ build builder = do
     tables' <- Data.Either.Right (tablesBuilderState st)
     action' <- Data.Either.Right (actionBuilderState st)
     username' <- Data.Either.Right (usernameBuilderState st)
+    sort_by' <- Data.Either.Right (sort_byBuilderState st)
     Data.Either.Right (ListAuditLogsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -182,7 +195,8 @@ build builder = do
         to_date = to_date',
         tables = tables',
         action = action',
-        username = username'
+        username = username',
+        sort_by = sort_by'
     })
 
 
@@ -199,6 +213,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListAuditLogsInput where
         Io.Superposition.Utility.serQuery "count" (count self)
         Io.Superposition.Utility.serQuery "action" (action self)
         Io.Superposition.Utility.serQuery "page" (page self)
+        Io.Superposition.Utility.serQuery "sort_by" (sort_by self)
         Io.Superposition.Utility.serQuery "username" (username self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
