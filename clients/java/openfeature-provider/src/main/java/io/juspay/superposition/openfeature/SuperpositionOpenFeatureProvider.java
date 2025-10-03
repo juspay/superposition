@@ -224,9 +224,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         }
     }
 
-    public @Nullable List<String> applicableVariants(@NonNull EvaluationContext ctx) {
+    public @Nullable List<String> getApplicableVariants(@NonNull EvaluationContext ctx) {
         try {
-            return EvaluationArgs.Companion.getApplicableVariants$openfeature_provider(ctx, getExperimentationArgs(ctx));
+            return getApplicableVariantsInternal(ctx);
         } catch (Exception e) {
             log.error("An exception occurred during evaluation.\nMessage: {}.", e.getMessage());
             return null;
@@ -246,7 +246,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         }
     }
 
-    private Map<String, String> evaluateConfigInternal(EvaluationContext ctx) throws Exception {
+    private EvaluationArgs getEvaluationArgs(EvaluationContext ctx) throws Exception {
         EvaluationArgs args;
         var out = configRefresh.getOutput();
         if (out.isEmpty() && fallbackArgs.isPresent()) {
@@ -257,8 +257,19 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         } else {
             throw new Exception("No configuration available to evaluate.");
         }
+        return args;
+    }
+
+    private Map<String, String> evaluateConfigInternal(EvaluationContext ctx) throws Exception {
+        EvaluationArgs args = getEvaluationArgs(ctx);
         var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
         return args.evaluate(ctx_, getExperimentationArgs(ctx_));
+    }
+
+    private List<String> getApplicableVariantsInternal(EvaluationContext ctx) throws Exception {
+        EvaluationArgs args = getEvaluationArgs(ctx);
+        var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
+        return args.getApplicableVariants(ctx_, getExperimentationArgs(ctx_));
     }
 
     private ExperimentationArgs getExperimentationArgs(EvaluationContext ctx) {

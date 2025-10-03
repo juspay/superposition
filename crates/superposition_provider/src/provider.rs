@@ -1,17 +1,20 @@
-use crate::client::{CacConfig, ExperimentationConfig};
-use crate::types::*;
-use crate::utils::ConversionUtils;
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use log::{error, info};
-use serde_json::Value;
-use tokio::sync::RwLock;
-
 use open_feature::{
     provider::FeatureProvider,
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
     EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult,
     StructValue,
 };
+use serde_json::Value;
+use superposition_types::DimensionInfo;
+use tokio::sync::RwLock;
+
+use crate::client::{CacConfig, ExperimentationConfig};
+use crate::types::*;
+use crate::utils::ConversionUtils;
 
 #[derive(Debug)]
 pub struct SuperpositionProvider {
@@ -77,6 +80,17 @@ impl SuperpositionProvider {
         (context, evaluation_context.targeting_key.clone())
     }
 
+    async fn get_dimensions_info(&self) -> HashMap<String, DimensionInfo> {
+        match &self.cac_config {
+            Some(cac_config) => cac_config
+                .get_cached_config()
+                .await
+                .map(|c| c.dimensions.clone())
+                .unwrap_or_default(),
+            None => HashMap::new(),
+        }
+    }
+
     async fn eval_config(
         &self,
         evaluation_context: &EvaluationContext,
@@ -84,9 +98,12 @@ impl SuperpositionProvider {
         // Get cached config from CAC
         let (mut context, targeting_key) =
             self.get_context_from_evaluation_context(evaluation_context);
+
+        let dimensions_info = self.get_dimensions_info().await;
         let variant_ids = if let Some(exp_config) = &self.exp_config {
             exp_config
                 .get_applicable_variants(
+                    &dimensions_info,
                     &context,
                     targeting_key.unwrap_or_default().parse::<i8>().ok(),
                 )

@@ -806,7 +806,7 @@ internal interface UniffiLib : Library {
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBuffer.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`dimensionsInfo`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun ffi_superposition_core_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -940,7 +940,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 2552.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 29145.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1587,11 +1587,11 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
     }
     
 
-    @Throws(OperationException::class) fun `ffiGetApplicableVariants`(`eargs`: ExperimentationArgs, `queryData`: Map<kotlin.String, kotlin.String>, `prefix`: List<kotlin.String>?): List<kotlin.String> {
+    @Throws(OperationException::class) fun `ffiGetApplicableVariants`(`eargs`: ExperimentationArgs, `dimensionsInfo`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `prefix`: List<kotlin.String>?): List<kotlin.String> {
             return FfiConverterSequenceString.lift(
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_get_applicable_variants(
-        FfiConverterTypeExperimentationArgs.lower(`eargs`),FfiConverterMapStringString.lower(`queryData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+        FfiConverterTypeExperimentationArgs.lower(`eargs`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensionsInfo`),FfiConverterMapStringString.lower(`queryData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
 }
     )
     }
