@@ -1,41 +1,19 @@
-use std::{collections::HashSet, fmt::Display, str::FromStr};
+use std::{fmt::Display, str::FromStr};
 
 use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
-use serde::{Deserialize, Serialize};
 use superposition_types::{
-    api::config::AuditQueryFilters,
-    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams},
+    api::audit_log::AuditQueryFilters,
+    custom_query::{CommaSeparatedQParams, PaginationParams},
 };
 
 use crate::components::{
-    badge::{GrayPill, ListPills},
+    badge::{GlassyPills, GrayPill, ListPills},
     button::{Button, ButtonStyle},
     drawer::{close_drawer, Drawer, DrawerBtn},
     form::label::Label,
     input::DateInput,
 };
-
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Serialize,
-    Deserialize,
-    strum_macros::Display,
-    strum_macros::EnumIter,
-    strum_macros::EnumString,
-)]
-#[serde(rename_all = "UPPERCASE")]
-#[strum(serialize_all = "UPPERCASE")]
-pub enum AuditAction {
-    INSERT,
-    UPDATE,
-    DELETE,
-}
 
 #[component]
 pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView {
@@ -48,16 +26,6 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
         items.clone().and_then(|mut items| {
             items.0.remove(index);
             (!items.is_empty()).then_some(items)
-        })
-    }
-
-    fn filter_string_index(
-        items: &Option<CommaSeparatedStringQParams>,
-        index: usize,
-    ) -> Option<CommaSeparatedStringQParams> {
-        items.clone().and_then(|mut items| {
-            items.0.remove(index);
-            (!items.0.is_empty()).then_some(items)
         })
     }
 
@@ -145,7 +113,7 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
                                         f.action.as_ref().map(|p| p.0.clone()).unwrap_or_default()
                                     })
                                 on_delete=move |idx| {
-                                    filters_rws.update(|f| f.action = filter_string_index(&f.action, idx))
+                                    filters_rws.update(|f| f.action = filter_index(&f.action, idx))
                                 }
                             />
                         }
@@ -159,7 +127,7 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
                                         f.table.as_ref().map(|p| p.0.clone()).unwrap_or_default()
                                     })
                                 on_delete=move |idx| {
-                                    filters_rws.update(|f| f.table = filter_string_index(&f.table, idx))
+                                    filters_rws.update(|f| f.table = filter_index(&f.table, idx))
                                 }
                             />
                         }
@@ -190,28 +158,9 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
 #[component]
 pub fn audit_log_filter_widget(
     filters_rws: RwSignal<AuditQueryFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
-
-    let action_filter_management = move |checked: bool, filter_action: AuditAction| {
-        filters_buffer_rws.update(|f| {
-            let action_types = f.action.clone().map(|s| s.0).unwrap_or_default();
-            let mut old_action_vector: HashSet<String> = HashSet::from_iter(action_types);
-
-            let action_str = filter_action.to_string();
-            if checked {
-                old_action_vector.insert(action_str);
-            } else {
-                old_action_vector.remove(&action_str);
-            }
-            let new_action_vector: Vec<String> = old_action_vector.into_iter().collect();
-            f.action = if new_action_vector.is_empty() {
-                None
-            } else {
-                Some(CommaSeparatedQParams(new_action_vector))
-            }
-        })
-    };
 
     view! {
         <DrawerBtn
@@ -272,43 +221,16 @@ pub fn audit_log_filter_widget(
                     </div>
                 </div>
 
-                <div class="form-control w-full">
-                    <Label title="Action" />
-                    <div class="flex flex-row flex-wrap justify-start gap-5">
-                        {[AuditAction::INSERT, AuditAction::UPDATE, AuditAction::DELETE].iter()
-                            .map(|action| {
-                                let label = action.to_string();
-                                let input_id = format!("{label}-checkbox");
-                                let label_for_check = label.clone();
-
-                                view! {
-                                    <div>
-                                        <input
-                                            type="checkbox"
-                                            id=&input_id
-                                            class="peer hidden"
-                                            checked=move || {
-                                                filters_buffer_rws
-                                                    .with(|f| f.action.clone())
-                                                    .is_some_and(|s| s.0.iter().any(|item| *item == label_for_check))
-                                            }
-                                            on:change=move |event| {
-                                                let checked = event_target_checked(&event);
-                                                action_filter_management(checked, *action)
-                                            }
-                                        />
-                                        <label
-                                            for=&input_id
-                                            class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out"
-                                        >
-                                            {label}
-                                        </label>
-                                    </div>
-                                }
-                            })
-                            .collect_view()}
-                    </div>
-                </div>
+                <GlassyPills
+                    selected=Signal::derive(move || {
+                        filters_buffer_rws
+                            .with(|f| f.action.clone().map(|p| p.0).unwrap_or_default())
+                    })
+                    title="Action"
+                    on_click=move |items| {
+                        filters_buffer_rws.update(|f| f.action = Some(CommaSeparatedQParams(items)))
+                    }
+                />
 
                 <div class="form-control">
                     <Label title="Username" />
@@ -320,11 +242,7 @@ pub fn audit_log_filter_widget(
                         value=move || filters_buffer_rws.with(|f| f.username.clone())
                         on:change=move |event| {
                             let username = event_target_value(&event);
-                            let username = if username.is_empty() {
-                                None
-                            } else {
-                                Some(username)
-                            };
+                            let username = if username.is_empty() { None } else { Some(username) };
                             filters_buffer_rws.update(|f| f.username = username);
                         }
                     />
@@ -341,8 +259,7 @@ pub fn audit_log_filter_widget(
                         id="audit-table-filter"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         value=move || {
-                            filters_buffer_rws
-                                .with(|f| f.table.clone().map(|d| d.to_string()))
+                            filters_buffer_rws.with(|f| f.table.clone().map(|d| d.to_string()))
                         }
                         placeholder="eg: experiments,contexts"
                         on:change=move |event| {
@@ -354,7 +271,8 @@ pub fn audit_log_filter_widget(
                                         .map(|s| s.trim().to_string())
                                         .filter(|s| !s.is_empty())
                                         .collect();
-                                    (!table_list.is_empty()).then_some(CommaSeparatedQParams(table_list))
+                                    (!table_list.is_empty())
+                                        .then_some(CommaSeparatedQParams(table_list))
                                 })
                                 .flatten();
                             filters_buffer_rws.update(|filter| filter.table = tables);
@@ -371,7 +289,10 @@ pub fn audit_log_filter_widget(
                             event.prevent_default();
                             let filters = filters_buffer_rws.get();
                             close_drawer("audit_log_filter_drawer");
-                            filters_rws.set(filters);
+                            batch(|| {
+                                filters_rws.set(filters);
+                                pagination_params_rws.update(|f| f.reset_page());
+                            });
                         }
                     />
                     <Button
@@ -381,9 +302,13 @@ pub fn audit_log_filter_widget(
                         on_click=move |event: web_sys::MouseEvent| {
                             event.prevent_default();
                             close_drawer("audit_log_filter_drawer");
-                            let default_filters = AuditQueryFilters::default();
-                            filters_rws.set(default_filters.clone());
-                            filters_buffer_rws.set(default_filters);
+                            batch(|| {
+                                let default_filters = AuditQueryFilters::default();
+                                filters_rws.set(default_filters.clone());
+                                filters_buffer_rws.set(default_filters);
+                                pagination_params_rws.update(|f| f.reset_page());
+                            });
+                            close_drawer("experiment_filter_drawer")
                         }
                     />
                 </div>

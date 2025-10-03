@@ -23,6 +23,8 @@ pub struct ListAuditLogsInput  {
     pub action: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub username: ::std::option::Option<::std::string::String>,
+    /// Sort order enumeration for list operations.
+    pub sort_by: ::std::option::Option<crate::types::SortBy>,
 }
 impl  ListAuditLogsInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -65,6 +67,10 @@ impl  ListAuditLogsInput  {
     pub fn username(&self) -> ::std::option::Option<&str> {
         self.username.as_deref()
     }
+    /// Sort order enumeration for list operations.
+    pub fn sort_by(&self) -> ::std::option::Option<&crate::types::SortBy> {
+        self.sort_by.as_ref()
+    }
 }
 impl ListAuditLogsInput {
     /// Creates a new builder-style object to manufacture [`ListAuditLogsInput`](crate::operation::list_audit_logs::ListAuditLogsInput).
@@ -87,6 +93,7 @@ pub struct ListAuditLogsInputBuilder {
     pub(crate) tables: ::std::option::Option<::std::string::String>,
     pub(crate) action: ::std::option::Option<::std::string::String>,
     pub(crate) username: ::std::option::Option<::std::string::String>,
+    pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
 }
 impl ListAuditLogsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -221,6 +228,19 @@ impl ListAuditLogsInputBuilder {
     pub fn get_username(&self) -> &::std::option::Option<::std::string::String> {
         &self.username
     }
+    /// Sort order enumeration for list operations.
+    pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
+        self.sort_by = ::std::option::Option::Some(input);
+        self
+    }
+    /// Sort order enumeration for list operations.
+    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
+        self.sort_by = input; self
+    }
+    /// Sort order enumeration for list operations.
+    pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
+        &self.sort_by
+    }
     /// Consumes the builder and constructs a [`ListAuditLogsInput`](crate::operation::list_audit_logs::ListAuditLogsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_audit_logs::ListAuditLogsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -244,6 +264,8 @@ impl ListAuditLogsInputBuilder {
                 action: self.action
                 ,
                 username: self.username
+                ,
+                sort_by: self.sort_by
                 ,
             }
         )

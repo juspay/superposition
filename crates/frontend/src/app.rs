@@ -16,10 +16,11 @@ use crate::pages::function::{
     function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
 };
 use crate::pages::{
-    audit_log::AuditLog, context_override::ContextOverride, default_config::DefaultConfig,
-    default_config_list::DefaultConfigList, experiment::ExperimentPage, home::Home,
-    organisations::Organisations, type_template::TypePage, type_templates::TypesPage,
-    webhook::Webhook, webhooks::Webhooks, workspace::Workspace,
+    audit_log::AuditLog, context_override::ContextOverride,
+    default_config::DefaultConfig, default_config_list::DefaultConfigList,
+    experiment::ExperimentPage, home::Home, organisations::Organisations,
+    type_template::TypePage, type_templates::TypesPage, webhook::Webhook,
+    webhooks::Webhooks, workspace::Workspace,
 };
 use crate::types::Envs;
 
@@ -178,8 +179,8 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                         <Route ssr=SsrMode::Async path="webhooks" view=Webhooks />
                         <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
-                        <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
 
+                        <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
                     </Route>
                 // <Route
                 // path="/*any"

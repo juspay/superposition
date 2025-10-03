@@ -1184,6 +1184,7 @@ export const se_ListAuditLogsCommand = async(
     [_ta]: [,input[_t]!],
     [_ac]: [,input[_ac]!],
     [_u]: [,input[_u]!],
+    [_sb]: [,input[_sb]!],
   });
   let body: any;
   b.m("GET")

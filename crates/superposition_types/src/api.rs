@@ -8,6 +8,7 @@ use diesel::{
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
+pub mod audit_log;
 pub mod config;
 pub mod context;
 pub mod default_config;
