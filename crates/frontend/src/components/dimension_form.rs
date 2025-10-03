@@ -390,7 +390,10 @@ pub fn dimension_form(
                                                 on_select=move |selected_item: TypeTemplate| {
                                                     logging::log!("selected item {:?}", selected_item);
                                                     dimension_type_template_ws.set(selected_item.type_name);
-                                                    dimension_schema_ws.set(Value::Object(selected_item.type_schema.deref().clone()));
+                                                    dimension_schema_ws
+                                                        .set(
+                                                            Value::Object(selected_item.type_schema.deref().clone()),
+                                                        );
                                                 }
                                             />
                                         }

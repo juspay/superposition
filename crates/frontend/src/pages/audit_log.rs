@@ -1,15 +1,12 @@
-pub mod filter;
+mod filter;
 
-pub use filter::{AuditLogFilterWidget, FilterSummary};
+use filter::{AuditLogFilterWidget, FilterSummary};
 use leptos::*;
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
     api::{config::AuditQueryFilters, workspace::WorkspaceResponse},
     custom_query::{CustomQuery, PaginationParams, Query},
-    database::models::cac::EventLog,
-    PaginatedResponse,
 };
 
 use crate::{
@@ -28,11 +25,6 @@ use crate::{
     query_updater::{use_param_updater, use_signal_from_query},
     types::{OrganisationId, Tenant},
 };
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-struct AuditLogResource {
-    pub(self) audit_logs: PaginatedResponse<EventLog>,
-}
 
 fn audit_log_table_columns() -> Vec<Column> {
     vec![
@@ -133,24 +125,16 @@ pub fn AuditLog() -> impl IntoView {
     let audit_log_resource = create_blocking_resource(
         move || {
             (
-                workspace.get().0,
                 filters_rws.get(),
                 pagination_params_rws.get(),
+                workspace.get().0,
                 org.get().0,
             )
         },
-        |(workspace, filters, pagination_params, org_id)| async move {
-            let audit_logs_result = fetch_audit_logs(
-                &filters,
-                &pagination_params,
-                workspace.to_string(),
-                org_id.clone(),
-            )
-            .await;
-
-            AuditLogResource {
-                audit_logs: audit_logs_result.unwrap_or_default(),
-            }
+        |(filters, pagination_params, workspace, org_id)| async move {
+            fetch_audit_logs(&filters, &pagination_params, &workspace, &org_id)
+                .await
+                .unwrap_or_default()
         },
     );
 
@@ -159,81 +143,59 @@ pub fn AuditLog() -> impl IntoView {
     });
 
     view! {
-        <Suspense fallback=move || view! { <Skeleton /> }>
-            <div class="h-full flex flex-col gap-4">
-                {move || {
-                    let value = audit_log_resource.get();
-                    let total_items = match value {
-                        Some(v) => v.audit_logs.total_items.to_string(),
-                        _ => "0".to_string(),
-                    };
-                    view! {
+        <Suspense fallback=move || {
+            view! { <Skeleton /> }
+        }>
+            {move || {
+                let value = audit_log_resource.get().unwrap_or_default();
+                let table_rows = value
+                    .data
+                    .iter()
+                    .map(|ele| {
+                        let mut ele_map = json!(ele).as_object().unwrap().clone();
+                        ele_map
+                            .insert(
+                                "timestamp".to_string(),
+                                Value::String(ele.timestamp.format("%v %T").to_string()),
+                            );
+                        ele_map
+                    })
+                    .collect::<Vec<Map<String, Value>>>();
+                let pagination_params = pagination_params_rws.get();
+                let pagination_props = TablePaginationProps {
+                    enabled: true,
+                    count: pagination_params.count.unwrap_or_default(),
+                    current_page: pagination_params.page.unwrap_or_default(),
+                    total_pages: value.total_pages,
+                    on_page_change: handle_page_change,
+                };
+                view! {
+                    <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
                             <Stat
                                 heading="Audit Log Entries"
                                 icon="ri-file-list-3-line"
-                                number=total_items
+                                number=value.total_items.to_string()
                             />
-                            <div class="flex items-end gap-4">
-                                <AuditLogFilterWidget
-                                    filters_rws
+                            <div class="self-end">
+                                <AuditLogFilterWidget filters_rws pagination_params_rws />
+                            </div>
+                        </div>
+                        <FilterSummary filters_rws />
+                        <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
+                            <div class="card-body overflow-y-auto overflow-x-visible">
+                                <Table
+                                    class="!overflow-y-auto"
+                                    rows=table_rows
+                                    key_column="id"
+                                    columns=audit_log_table_columns()
+                                    pagination=pagination_props
                                 />
                             </div>
                         </div>
-                    }
-                }}
-                <FilterSummary filters_rws />
-                <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
-                    <div class="card-body overflow-y-auto overflow-x-visible">
-                        {move || {
-                            let value = audit_log_resource.get();
-                            let pagination_params = pagination_params_rws.get();
-                            let table_columns = audit_log_table_columns();
-
-                            match value {
-                                Some(v) => {
-                                    let data = v
-                                        .audit_logs
-                                        .data
-                                        .iter()
-                                        .map(|ele| {
-                                            let mut ele_map = json!(ele)
-                                                .as_object()
-                                                .unwrap()
-                                                .to_owned();
-                                            ele_map
-                                                .insert(
-                                                    "timestamp".to_string(),
-                                                    json!(ele.timestamp.format("%Y-%m-%d %H:%M:%S UTC").to_string()),
-                                                );
-                                            ele_map
-                                        })
-                                        .collect::<Vec<Map<String, Value>>>()
-                                        .to_owned();
-                                    let pagination_props = TablePaginationProps {
-                                        enabled: true,
-                                        count: pagination_params.count.unwrap_or_default(),
-                                        current_page: pagination_params.page.unwrap_or_default(),
-                                        total_pages: v.audit_logs.total_pages,
-                                        on_page_change: handle_page_change,
-                                    };
-                                    view! {
-                                        <Table
-                                            class="!overflow-y-auto"
-                                            rows=data
-                                            key_column="id"
-                                            columns=table_columns
-                                            pagination=pagination_props
-                                        />
-                                    }
-                                        .into_view()
-                                }
-                                None => view! { Loading.... }.into_view(),
-                            }
-                        }}
                     </div>
-                </div>
-            </div>
+                }
+            }}
         </Suspense>
     }
 }

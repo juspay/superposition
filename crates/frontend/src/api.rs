@@ -1120,12 +1120,10 @@ pub mod experiment_groups {
 pub async fn fetch_audit_logs(
     filters: &superposition_types::api::config::AuditQueryFilters,
     pagination: &PaginationParams,
-    tenant: String,
-    org_id: String,
-) -> Result<PaginatedResponse<EventLog>, ServerFnError> {
-    let client = reqwest::Client::new();
+    tenant: &str,
+    org_id: &str,
+) -> Result<PaginatedResponse<EventLog>, String> {
     let host = use_host_server();
-
     let url = format!(
         "{}/audit?{}&{}",
         host,
@@ -1133,16 +1131,13 @@ pub async fn fetch_audit_logs(
         pagination.to_query_param(),
     );
 
-    let response: PaginatedResponse<EventLog> = client
-        .get(url)
-        .header("x-tenant", &tenant)
-        .header("x-org-id", org_id)
-        .send()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .json()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<Value>,
+        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+    )
+    .await?;
 
-    Ok(response)
+    parse_json_response(response).await
 }

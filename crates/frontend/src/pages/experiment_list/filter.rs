@@ -55,7 +55,8 @@ pub(super) fn filter_summary(
                 .with(|f| {
                     f.created_by.is_none() && f.from_date.is_none() && f.to_date.is_none()
                         && f.status.is_none() && f.experiment_name.is_none()
-                        && f.experiment_ids.is_none()
+                        && f.experiment_ids.is_none() && f.dimension_match_strategy.is_none()
+                        && f.global_experiments_only.is_none() && f.experiment_group_ids.is_none()
                 });
             let dimension_params_empty = dimension_params_rws.with(|f| f.is_empty());
             !filters_empty || !dimension_params_empty
