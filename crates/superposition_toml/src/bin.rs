@@ -1,7 +1,6 @@
+use clap::{Arg, Command};
 use serde_json::{Map, Value};
 use std::process;
-
-use clap::{Arg, Command};
 use superposition_toml::SuperpositionToml;
 
 fn main() {

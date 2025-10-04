@@ -5486,6 +5486,7 @@ dependencies = [
  "serde_json",
  "superposition_core",
  "superposition_sdk",
+ "superposition_toml",
  "superposition_types",
  "thiserror 1.0.58",
  "tokio",
