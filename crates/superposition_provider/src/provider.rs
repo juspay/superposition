@@ -2,6 +2,11 @@ use std::collections::HashMap;
 
 use async_trait::async_trait;
 use log::{error, info};
+use serde_json::Value;
+use std::sync::Arc;
+use superposition_toml::SuperpositionToml;
+use tokio::sync::RwLock;
+
 use open_feature::{
     provider::FeatureProvider,
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
@@ -17,14 +22,14 @@ use crate::types::*;
 use crate::utils::ConversionUtils;
 
 #[derive(Debug)]
-pub struct SuperpositionProvider {
+pub struct SuperpositionRemoteProvider {
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
     cac_config: Option<CacConfig>,
     exp_config: Option<ExperimentationConfig>,
 }
-impl SuperpositionProvider {
-    pub fn new(provider_options: SuperpositionProviderOptions) -> Self {
+impl SuperpositionRemoteProvider {
+    pub fn new(provider_options: SuperpositionRemoteProviderOptions) -> Self {
         // Create CAC config
         let superposition_options = SuperpositionOptions::new(
             provider_options.endpoint,
@@ -54,7 +59,7 @@ impl SuperpositionProvider {
 
         Self {
             metadata: ProviderMetadata {
-                name: "SuperpositionProvider".to_string(),
+                name: "SuperpositionRemoteProvider".to_string(),
             },
             status: RwLock::new(ProviderStatus::NotReady),
             cac_config: Some(cac_config),
@@ -160,12 +165,25 @@ impl SuperpositionProvider {
     }
 }
 #[async_trait]
-impl FeatureProvider for SuperpositionProvider {
+impl FeatureProvider for SuperpositionRemoteProvider {
     async fn initialize(&mut self, _context: &EvaluationContext) {
-        info!("Initializing SuperpositionProvider...");
+        info!("Initializing SuperpositionRemoteProvider...");
         {
             let mut status = self.status.write().await;
             *status = ProviderStatus::NotReady;
+        }
+
+        // Initialize CAC config
+        if let Some(cac_config) = &self.cac_config {
+            match cac_config.create_config().await {
+                Ok(_) => info!("CAC configuration initialized successfully"),
+                Err(e) => {
+                    error!("Failed to initialize CAC configuration: {}", e);
+                    let mut status = self.status.write().await;
+                    *status = ProviderStatus::Error;
+                    return;
+                }
+            }
         }
         if (self.init().await).is_err() {
             let mut status = self.status.write().await;
@@ -176,7 +194,7 @@ impl FeatureProvider for SuperpositionProvider {
         let mut status = self.status.write().await;
         *status = ProviderStatus::Ready;
 
-        info!("SuperpositionProvider initialized successfully");
+        info!("SuperpositionRemoteProvider initialized successfully");
     }
 
     async fn resolve_bool_value(
@@ -342,6 +360,428 @@ impl FeatureProvider for SuperpositionProvider {
                 ProviderStatus::STALE => ProviderStatus::STALE,
             },
             Err(_) => ProviderStatus::NotReady, // Default if lock is held
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct SuperpositionLocalProvider {
+    metadata: ProviderMetadata,
+    status: RwLock<ProviderStatus>,
+    options: SuperpositionLocalProviderOptions,
+    toml_config: Arc<RwLock<Option<SuperpositionToml>>>,
+}
+
+impl SuperpositionLocalProvider {
+    pub fn new(options: SuperpositionLocalProviderOptions) -> Self {
+        Self {
+            metadata: ProviderMetadata {
+                name: "SuperpositionLocalProvider".to_string(),
+            },
+            status: RwLock::new(ProviderStatus::NotReady),
+            options,
+            toml_config: Arc::new(RwLock::new(None)),
+        }
+    }
+
+    async fn get_context_from_evaluation_context(
+        &self,
+        evaluation_context: &EvaluationContext,
+    ) -> serde_json::Map<String, Value> {
+        evaluation_context
+            .custom_fields
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.clone(),
+                    ConversionUtils::convert_evaluation_context_value_to_serde_value(v),
+                )
+            })
+            .collect()
+    }
+
+    async fn eval_config(
+        &self,
+        evaluation_context: &EvaluationContext,
+    ) -> Result<serde_json::Map<String, Value>> {
+        let context = self
+            .get_context_from_evaluation_context(evaluation_context)
+            .await;
+
+        // Load or reload config based on refresh strategy
+        match self.options.refresh_strategy {
+            LocalRefreshStrategy::OnDemand => {
+                // Reload config for each evaluation
+                match SuperpositionToml::parse(&self.options.file_path) {
+                    Ok(toml_config) => {
+                        let mut config = self.toml_config.write().await;
+                        *config = Some(toml_config);
+                    }
+                    Err(_) => {
+                        return Err(SuperpositionError::ConfigError(
+                            "Failed to parse TOML file".into(),
+                        ));
+                    }
+                }
+            }
+            LocalRefreshStrategy::FileWatch | LocalRefreshStrategy::Manual => {
+                // Use cached config - for FileWatch, we'd need to implement file watching
+                // For now, just use cached config
+            }
+        }
+
+        let config = self.toml_config.read().await;
+        match config.as_ref() {
+            Some(toml_config) => toml_config.get_resolved_config(&context).map_err(|e| {
+                SuperpositionError::ConfigError(format!(
+                    "Failed to resolve config: {}",
+                    e
+                ))
+            }),
+            None => Err(SuperpositionError::ConfigError(
+                "No TOML config loaded".into(),
+            )),
+        }
+    }
+}
+
+#[async_trait]
+impl FeatureProvider for SuperpositionLocalProvider {
+    async fn initialize(&mut self, _context: &EvaluationContext) {
+        info!("Initializing SuperpositionLocalProvider...");
+
+        let mut status = self.status.write().await;
+        *status = ProviderStatus::NotReady;
+        drop(status);
+
+        // Load initial TOML config
+        match SuperpositionToml::parse(&self.options.file_path) {
+            Ok(toml_config) => {
+                let mut config = self.toml_config.write().await;
+                *config = Some(toml_config);
+                info!(
+                    "TOML configuration loaded successfully from: {}",
+                    self.options.file_path
+                );
+
+                let mut status = self.status.write().await;
+                *status = ProviderStatus::Ready;
+            }
+            Err(e) => {
+                error!("Failed to load TOML configuration: {:?}", e);
+                let mut status = self.status.write().await;
+                *status = ProviderStatus::Error;
+                return;
+            }
+        }
+
+        info!("SuperpositionLocalProvider initialized successfully");
+    }
+
+    async fn resolve_bool_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<bool>> {
+        match self.eval_config(evaluation_context).await {
+            Ok(config) => {
+                if let Some(value) = config.get(flag_key) {
+                    if let Some(bool_val) = value.as_bool() {
+                        return Ok(ResolutionDetails::new(bool_val));
+                    }
+                }
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+            Err(e) => {
+                error!("Error evaluating boolean flag {}: {}", flag_key, e);
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+        }
+    }
+
+    async fn resolve_string_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<String>> {
+        match self.eval_config(evaluation_context).await {
+            Ok(config) => {
+                if let Some(value) = config.get(flag_key) {
+                    if let Some(str_val) = value.as_str() {
+                        return Ok(ResolutionDetails::new(str_val.to_owned()));
+                    }
+                }
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+            Err(e) => {
+                error!("Error evaluating String flag {}: {}", flag_key, e);
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+        }
+    }
+
+    async fn resolve_int_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<i64>> {
+        match self.eval_config(evaluation_context).await {
+            Ok(config) => {
+                if let Some(value) = config.get(flag_key) {
+                    if let Some(int_val) = value.as_i64() {
+                        return Ok(ResolutionDetails::new(int_val));
+                    }
+                }
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+            Err(e) => {
+                error!("Error evaluating integer flag {}: {}", flag_key, e);
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+        }
+    }
+
+    async fn resolve_float_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<f64>> {
+        match self.eval_config(evaluation_context).await {
+            Ok(config) => {
+                if let Some(value) = config.get(flag_key) {
+                    if let Some(float_val) = value.as_f64() {
+                        return Ok(ResolutionDetails::new(float_val));
+                    }
+                }
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+            Err(e) => {
+                error!("Error evaluating float flag {}: {}", flag_key, e);
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+        }
+    }
+
+    async fn resolve_struct_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<StructValue>> {
+        match self.eval_config(evaluation_context).await {
+            Ok(config) => {
+                if let Some(value) = config.get(flag_key) {
+                    match ConversionUtils::serde_value_to_struct_value(value) {
+                        Ok(struct_value) => {
+                            return Ok(ResolutionDetails::new(struct_value));
+                        }
+                        Err(e) => {
+                            error!("Error converting value to StructValue: {}", e);
+                            return Err(EvaluationError {
+                                code: EvaluationErrorCode::ParseError,
+                                message: Some(format!(
+                                    "Failed to parse struct value: {}",
+                                    e
+                                )),
+                            });
+                        }
+                    }
+                }
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+            Err(e) => {
+                error!("Error evaluating Object flag {}: {}", flag_key, e);
+                Err(EvaluationError {
+                    code: EvaluationErrorCode::FlagNotFound,
+                    message: Some("Flag not found in configuration".to_string()),
+                })
+            }
+        }
+    }
+
+    fn metadata(&self) -> &ProviderMetadata {
+        &self.metadata
+    }
+
+    fn status(&self) -> ProviderStatus {
+        match self.status.try_read() {
+            Ok(status) => match *status {
+                ProviderStatus::Ready => ProviderStatus::Ready,
+                ProviderStatus::Error => ProviderStatus::Error,
+                ProviderStatus::NotReady => ProviderStatus::NotReady,
+                ProviderStatus::STALE => ProviderStatus::STALE,
+            },
+            Err(_) => ProviderStatus::NotReady,
+        }
+    }
+}
+
+/// Unified SuperpositionProvider that can wrap either Remote or Local providers
+#[derive(Debug)]
+pub enum SuperpositionProvider {
+    Remote(SuperpositionRemoteProvider),
+    Local(SuperpositionLocalProvider),
+}
+
+impl SuperpositionProvider {
+    /// Create a new remote provider
+    pub fn remote(options: SuperpositionRemoteProviderOptions) -> Self {
+        Self::Remote(SuperpositionRemoteProvider::new(options))
+    }
+
+    /// Create a new local provider
+    pub fn local(options: SuperpositionLocalProviderOptions) -> Self {
+        Self::Local(SuperpositionLocalProvider::new(options))
+    }
+
+    /// Backwards compatibility constructor - creates a remote provider
+    #[deprecated(since = "0.1.0", note = "Use SuperpositionProvider::remote() instead")]
+    pub fn new(provider_options: SuperpositionRemoteProviderOptions) -> Self {
+        Self::remote(provider_options)
+    }
+}
+
+#[async_trait]
+impl FeatureProvider for SuperpositionProvider {
+    async fn initialize(&mut self, context: &EvaluationContext) {
+        match self {
+            SuperpositionProvider::Remote(provider) => provider.initialize(context).await,
+            SuperpositionProvider::Local(provider) => provider.initialize(context).await,
+        }
+    }
+
+    async fn resolve_bool_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<bool>> {
+        match self {
+            SuperpositionProvider::Remote(provider) => {
+                provider
+                    .resolve_bool_value(flag_key, evaluation_context)
+                    .await
+            }
+            SuperpositionProvider::Local(provider) => {
+                provider
+                    .resolve_bool_value(flag_key, evaluation_context)
+                    .await
+            }
+        }
+    }
+
+    async fn resolve_string_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<String>> {
+        match self {
+            SuperpositionProvider::Remote(provider) => {
+                provider
+                    .resolve_string_value(flag_key, evaluation_context)
+                    .await
+            }
+            SuperpositionProvider::Local(provider) => {
+                provider
+                    .resolve_string_value(flag_key, evaluation_context)
+                    .await
+            }
+        }
+    }
+
+    async fn resolve_int_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<i64>> {
+        match self {
+            SuperpositionProvider::Remote(provider) => {
+                provider
+                    .resolve_int_value(flag_key, evaluation_context)
+                    .await
+            }
+            SuperpositionProvider::Local(provider) => {
+                provider
+                    .resolve_int_value(flag_key, evaluation_context)
+                    .await
+            }
+        }
+    }
+
+    async fn resolve_float_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<f64>> {
+        match self {
+            SuperpositionProvider::Remote(provider) => {
+                provider
+                    .resolve_float_value(flag_key, evaluation_context)
+                    .await
+            }
+            SuperpositionProvider::Local(provider) => {
+                provider
+                    .resolve_float_value(flag_key, evaluation_context)
+                    .await
+            }
+        }
+    }
+
+    async fn resolve_struct_value(
+        &self,
+        flag_key: &str,
+        evaluation_context: &EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<StructValue>> {
+        match self {
+            SuperpositionProvider::Remote(provider) => {
+                provider
+                    .resolve_struct_value(flag_key, evaluation_context)
+                    .await
+            }
+            SuperpositionProvider::Local(provider) => {
+                provider
+                    .resolve_struct_value(flag_key, evaluation_context)
+                    .await
+            }
+        }
+    }
+
+    fn metadata(&self) -> &ProviderMetadata {
+        match self {
+            SuperpositionProvider::Remote(provider) => provider.metadata(),
+            SuperpositionProvider::Local(provider) => provider.metadata(),
+        }
+    }
+
+    fn status(&self) -> ProviderStatus {
+        match self {
+            SuperpositionProvider::Remote(provider) => provider.status(),
+            SuperpositionProvider::Local(provider) => provider.status(),
         }
     }
 }

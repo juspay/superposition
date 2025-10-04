@@ -5485,6 +5485,7 @@ dependencies = [
  "serde_json",
  "superposition_core",
  "superposition_sdk",
+ "superposition_toml",
  "superposition_types",
  "thiserror 1.0.58",
  "tokio",
@@ -5509,7 +5510,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_toml"
-version = "0.91.1"
+version = "0.95.1"
 dependencies = [
  "blake3",
  "clap 4.3.4",

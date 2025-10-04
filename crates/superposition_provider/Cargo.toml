@@ -30,6 +30,9 @@ superposition_sdk = { workspace = true, features = ["behavior-version-latest"] }
 # Superposition types for proper type conversion
 superposition_types = { workspace = true }
 
+# Superposition TOML for local provider
+superposition_toml = { workspace = true }
+
 
 [lints]
 workspace = true
