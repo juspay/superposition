@@ -6,13 +6,16 @@ use std::fs;
 use std::path::Path;
 use std::string::String;
 use superposition_core::eval_config;
-use superposition_types::{Cac, Condition, Context, OverrideWithKeys, Overrides};
+use superposition_types::{
+    database::models::cac::{DependencyGraph, DimensionType},
+    Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
+};
 use toml::{Table, Value as TomlValue};
 
 #[derive(Clone, Debug)]
 pub struct SuperpositionToml {
     file: String,
-    dimension_priority: HashMap<String, i64>,
+    supported_dimensions: HashMap<String, DimensionInfo>,
     default_config: Map<String, SerdeValue>,
     contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
@@ -42,7 +45,7 @@ impl SuperpositionToml {
 
         let mut superposition_toml: SuperpositionToml = SuperpositionToml {
             file: String::from(file),
-            dimension_priority: HashMap::new(),
+            supported_dimensions: HashMap::new(),
             contexts: Vec::new(),
             overrides: HashMap::new(),
             default_config: Map::new(),
@@ -101,7 +104,18 @@ impl SuperpositionToml {
                         return false;
                     }
 
-                    self.dimension_priority.insert(key.to_string(), index);
+                    self.supported_dimensions.insert(
+                        key.to_string(),
+                        DimensionInfo {
+                            position: index,
+                            schema: ExtendedMap::try_from(toml_value_to_serde_value(
+                                value.get("schema").unwrap().clone(),
+                            ))
+                            .unwrap(), // TODO
+                            dimension_type: DimensionType::Regular {},
+                            dependency_graph: DependencyGraph(HashMap::new()),
+                        },
+                    );
                     index += 1;
                 }
             } else {
@@ -221,7 +235,7 @@ impl SuperpositionToml {
                 SerdeValue::from(value_str.to_string())
             };
 
-            if self.dimension_priority.contains_key(&key) {
+            if self.supported_dimensions.contains_key(&key) {
                 map.insert(key, value);
             } else {
                 return Err(format!("un-declared dimension: {}", key).into()); // &str
@@ -239,23 +253,25 @@ impl SuperpositionToml {
 
     pub fn get_resolved_config(
         &self,
-        dimensions: &Map<String, SerdeValue>,
+        input_dimensions: &Map<String, SerdeValue>,
     ) -> Result<Map<String, SerdeValue>, String> {
         eval_config(
             self.default_config.clone(),
             &self.contexts,
             &self.overrides,
-            &dimensions,
+            &self.supported_dimensions,
+            &input_dimensions,
             superposition_core::MergeStrategy::MERGE,
             None,
         )
     }
 
-    fn compute_priority(&self, condition: Condition) -> i64 {
+    fn compute_priority(&self, condition: Condition) -> i32 {
         let mut priority = 0;
 
         for dimension in condition.iter() {
-            priority += self.dimension_priority.get(dimension.0).unwrap();
+            priority +=
+                1_i32 << self.supported_dimensions.get(dimension.0).unwrap().position;
         }
 
         priority
