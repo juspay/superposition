@@ -14,7 +14,7 @@ members = [
     "crates/experimentation_client",
     "crates/cac_client",
     "crates/frontend",
-    "crates/cac_toml",
+    "crates/superposition_toml",
     "crates/superposition",
     "crates/superposition_types",
     "crates/superposition_macros",
@@ -24,7 +24,7 @@ members = [
     "crates/superposition_sdk",
     "examples/experimentation_client_integration_example",
     "examples/cac_client_integration_example",
-    "examples/superposition-demo-app",
+    "examples/superposition-demo-app"
 ]
 
 [[workspace.metadata.leptos]]
@@ -81,6 +81,7 @@ superposition_macros = { path = "crates/superposition_macros", version = "0.91.1
 superposition_core = { path = "crates/superposition_core", version = "0.91.1" }
 superposition_provider = { path = "crates/superposition_provider", version = "0.91.1" }
 superposition_sdk = { path = "crates/superposition_sdk", version = "0.91.1" }
+superposition_toml = { path = "crates/superposition_toml", version = "0.91.1" }
 service_utils = { path = "crates/service_utils", version = "0.91.1" }
 
 [workspace.lints.clippy]

@@ -14,6 +14,7 @@ per_km_rate = 25.0
 per_km_rate = 15.0
 
 [context."city=Bangalore; vehicle_type=cab"]
+surge_factor = 1.0
 per_km_rate = 22.0
 
 [context."city=Delhi; vehicle_type=cab; hour_of_day=18"]

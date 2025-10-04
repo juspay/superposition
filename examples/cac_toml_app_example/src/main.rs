@@ -1,9 +1,7 @@
-#![deny(unused_crate_dependencies)]
-use cac_toml::ContextAwareConfig;
 use clap::{Arg, Command};
-use std::collections::HashMap;
+use serde_json::{Map, Value};
 use std::process;
-use toml::Value;
+use superposition_toml::SuperpositionToml;
 
 fn main() {
     let args = Command::new("CAC Demo App")
@@ -26,27 +24,25 @@ fn main() {
         )
         .get_matches();
 
-    let mut dimensions: HashMap<String, Value> = HashMap::new();
+    let mut dimensions: Map<String, Value> = Map::new();
 
     if let Some(values) = args.get_many::<String>("dimension") {
         for value in values {
             let parts: Vec<&str> = value.split('=').collect();
             if parts.len() == 2 {
-                dimensions.insert(
-                    parts[0].to_string(),
-                    toml::Value::String(parts[1].to_string()),
-                );
+                dimensions
+                    .insert(parts[0].to_string(), Value::String(parts[1].to_string()));
             }
         }
     }
 
     let file: String = args.get_one::<String>("file").unwrap().to_string();
 
-    let cac = ContextAwareConfig::parse(&file).unwrap_or_else(|_err| {
+    let config = SuperpositionToml::parse(&file).unwrap_or_else(|_err| {
         eprintln!("Could not parse file at {}", file);
         process::exit(-1);
     });
 
-    println!("{:#?}", cac.get_resolved_config(&dimensions));
+    println!("{:#?}", config.get_resolved_config(&dimensions));
     process::exit(0);
 }
