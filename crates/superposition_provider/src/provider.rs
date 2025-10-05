@@ -1,19 +1,18 @@
 use std::collections::HashMap;
 
+mod local_provider;
+mod remote_provider;
+
+pub use local_provider::SuperpositionLocalProvider;
+pub use remote_provider::SuperpositionRemoteProvider;
+
+use crate::types::*;
 use async_trait::async_trait;
-use log::{error, info};
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
-use serde_json::Value;
-use std::path::Path;
-use std::sync::Arc;
-use superposition_toml::SuperpositionToml;
-use tokio::sync::{mpsc, RwLock};
 
 use open_feature::{
     provider::FeatureProvider,
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
-    EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult,
-    StructValue,
+    EvaluationContext, EvaluationResult, StructValue,
 };
 use serde_json::Value;
 use superposition_types::DimensionInfo;
@@ -864,3 +863,4 @@ impl FeatureProvider for SuperpositionProvider {
         }
     }
 }
+

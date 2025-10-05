@@ -16,7 +16,7 @@ per_km_rate = 15.0
 
 [context."city=Bangalore; vehicle_type=cab"]
 surge_factor = 2.0
-per_km_rate = 22.0
+per_km_rate = 24.0
 festival_day = true
 
 [context."city=Delhi; vehicle_type=cab; hour_of_day=18"]
