@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use superposition_provider::{
     LocalRefreshStrategy, SuperpositionLocalProviderOptions, SuperpositionProvider,
 };
-use tokio::time::{Duration, sleep};
 
 #[tokio::main]
 async fn main() {
@@ -23,9 +22,6 @@ async fn main() {
 
     // Create a client
     let client = api.create_client();
-
-    // Wait for initialization
-    sleep(Duration::from_secs(3)).await;
 
     let mut context = EvaluationContext::default();
     context.targeting_key = Some("user_123".to_string());
