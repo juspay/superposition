@@ -1,5 +1,5 @@
 [package]
-name = "superposition_toml_app_example"
+name = "superposition_toml_app"
 version = "0.1.0"
 edition = "2021"
 
