@@ -33,6 +33,9 @@ superposition_types = { workspace = true }
 # Superposition TOML for local provider
 superposition_toml = { workspace = true }
 
+# File watching for local provider
+notify = "6.1"
+
 
 [lints]
 workspace = true
