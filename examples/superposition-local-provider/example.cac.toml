@@ -1,6 +1,7 @@
 [default-config]
 per_km_rate = { "value" = 20.0, "schema" = { "type" = "number" } }
 surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
+festival_day = { "value" = true, "schema" = { "type" = "boolean" } }
 
 [dimensions]
 city = { schema = { "type" = "string", "enum" = ["Bangalore", "Delhi"] } }
@@ -14,8 +15,9 @@ per_km_rate = 25.0
 per_km_rate = 15.0
 
 [context."city=Bangalore; vehicle_type=cab"]
-surge_factor = 1.0
+surge_factor = 2.0
 per_km_rate = 22.0
+festival_day = true
 
 [context."city=Delhi; vehicle_type=cab; hour_of_day=18"]
 surge_factor = 5.0

@@ -3,10 +3,12 @@ use crate::types::*;
 use crate::utils::ConversionUtils;
 use async_trait::async_trait;
 use log::{error, info};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use serde_json::Value;
+use std::path::Path;
 use std::sync::Arc;
 use superposition_toml::SuperpositionToml;
-use tokio::sync::RwLock;
+use tokio::sync::{mpsc, RwLock};
 
 use open_feature::{
     provider::FeatureProvider,
@@ -324,6 +326,7 @@ pub struct SuperpositionLocalProvider {
     status: RwLock<ProviderStatus>,
     options: SuperpositionLocalProviderOptions,
     toml_config: Arc<RwLock<Option<SuperpositionToml>>>,
+    _file_watcher: Option<RecommendedWatcher>,
 }
 
 impl SuperpositionLocalProvider {
@@ -335,6 +338,7 @@ impl SuperpositionLocalProvider {
             status: RwLock::new(ProviderStatus::NotReady),
             options,
             toml_config: Arc::new(RwLock::new(None)),
+            _file_watcher: None,
         }
     }
 
@@ -358,7 +362,9 @@ impl SuperpositionLocalProvider {
         &self,
         evaluation_context: &EvaluationContext,
     ) -> Result<serde_json::Map<String, Value>> {
-        let context = self.get_context_from_evaluation_context(evaluation_context).await;
+        let context = self
+            .get_context_from_evaluation_context(evaluation_context)
+            .await;
 
         // Load or reload config based on refresh strategy
         match self.options.refresh_strategy {
@@ -377,25 +383,86 @@ impl SuperpositionLocalProvider {
                 }
             }
             LocalRefreshStrategy::FileWatch | LocalRefreshStrategy::Manual => {
-                // Use cached config - for FileWatch, we'd need to implement file watching
-                // For now, just use cached config
+                // Use cached config - for FileWatch, config is automatically updated by file watcher
+                // For Manual, config is only updated through explicit reinitialization
             }
         }
 
         let config = self.toml_config.read().await;
         match config.as_ref() {
-            Some(toml_config) => {
-                toml_config.get_resolved_config(&context).map_err(|e| {
-                    SuperpositionError::ConfigError(format!(
-                        "Failed to resolve config: {}",
-                        e
-                    ))
-                })
-            }
+            Some(toml_config) => toml_config.get_resolved_config(&context).map_err(|e| {
+                SuperpositionError::ConfigError(format!(
+                    "Failed to resolve config: {}",
+                    e
+                ))
+            }),
             None => Err(SuperpositionError::ConfigError(
                 "No TOML config loaded".into(),
             )),
         }
+    }
+
+    async fn setup_file_watcher(&mut self) {
+        let config_clone = Arc::clone(&self.toml_config);
+        let file_path = self.options.file_path.clone();
+        
+        info!("Setting up file watcher for: {}", file_path);
+        
+        // Create a channel for file system events
+        let (tx, mut rx) = mpsc::channel(100);
+        
+        // Set up the file watcher
+        let mut watcher = match notify::recommended_watcher(move |res| {
+            if let Ok(event) = res {
+                if let Err(e) = tx.try_send(event) {
+                    error!("Failed to send file watcher event: {}", e);
+                }
+            }
+        }) {
+            Ok(watcher) => watcher,
+            Err(e) => {
+                error!("Failed to create file watcher: {}", e);
+                return;
+            }
+        };
+
+        // Watch the file
+        if let Err(e) = watcher.watch(Path::new(&file_path), RecursiveMode::NonRecursive) {
+            error!("Failed to watch file {}: {}", file_path, e);
+            return;
+        }
+
+        // Store the watcher to keep it alive
+        self._file_watcher = Some(watcher);
+
+        // Spawn a task to handle file change events
+        let file_path_clone = file_path.clone();
+        tokio::spawn(async move {
+            while let Some(event) = rx.recv().await {
+                match event.kind {
+                    notify::EventKind::Modify(_) | notify::EventKind::Create(_) => {
+                        info!("Detected file change, reloading configuration from: {}", file_path_clone);
+                        
+                        // Reload the TOML configuration
+                        match SuperpositionToml::parse(&file_path_clone) {
+                            Ok(toml_config) => {
+                                let mut config = config_clone.write().await;
+                                *config = Some(toml_config);
+                                info!("Configuration reloaded successfully");
+                            }
+                            Err(e) => {
+                                error!("Failed to reload configuration: {:?}", e);
+                            }
+                        }
+                    }
+                    _ => {
+                        // Ignore other event types like access, remove, etc.
+                    }
+                }
+            }
+        });
+
+        info!("File watcher setup completed for: {}", file_path);
     }
 }
 
@@ -411,9 +478,19 @@ impl FeatureProvider for SuperpositionLocalProvider {
         // Load initial TOML config
         match SuperpositionToml::parse(&self.options.file_path) {
             Ok(toml_config) => {
-                let mut config = self.toml_config.write().await;
-                *config = Some(toml_config);
-                info!("TOML configuration loaded successfully from: {}", self.options.file_path);
+                {
+                    let mut config = self.toml_config.write().await;
+                    *config = Some(toml_config);
+                }
+                info!(
+                    "TOML configuration loaded successfully from: {}",
+                    self.options.file_path
+                );
+
+                // Set up file watcher for FileWatch strategy
+                if matches!(self.options.refresh_strategy, LocalRefreshStrategy::FileWatch) {
+                    self.setup_file_watcher().await;
+                }
 
                 let mut status = self.status.write().await;
                 *status = ProviderStatus::Ready;
@@ -634,10 +711,14 @@ impl FeatureProvider for SuperpositionProvider {
     ) -> EvaluationResult<ResolutionDetails<bool>> {
         match self {
             SuperpositionProvider::Remote(provider) => {
-                provider.resolve_bool_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_bool_value(flag_key, evaluation_context)
+                    .await
             }
             SuperpositionProvider::Local(provider) => {
-                provider.resolve_bool_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_bool_value(flag_key, evaluation_context)
+                    .await
             }
         }
     }
@@ -649,10 +730,14 @@ impl FeatureProvider for SuperpositionProvider {
     ) -> EvaluationResult<ResolutionDetails<String>> {
         match self {
             SuperpositionProvider::Remote(provider) => {
-                provider.resolve_string_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_string_value(flag_key, evaluation_context)
+                    .await
             }
             SuperpositionProvider::Local(provider) => {
-                provider.resolve_string_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_string_value(flag_key, evaluation_context)
+                    .await
             }
         }
     }
@@ -664,10 +749,14 @@ impl FeatureProvider for SuperpositionProvider {
     ) -> EvaluationResult<ResolutionDetails<i64>> {
         match self {
             SuperpositionProvider::Remote(provider) => {
-                provider.resolve_int_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_int_value(flag_key, evaluation_context)
+                    .await
             }
             SuperpositionProvider::Local(provider) => {
-                provider.resolve_int_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_int_value(flag_key, evaluation_context)
+                    .await
             }
         }
     }
@@ -679,10 +768,14 @@ impl FeatureProvider for SuperpositionProvider {
     ) -> EvaluationResult<ResolutionDetails<f64>> {
         match self {
             SuperpositionProvider::Remote(provider) => {
-                provider.resolve_float_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_float_value(flag_key, evaluation_context)
+                    .await
             }
             SuperpositionProvider::Local(provider) => {
-                provider.resolve_float_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_float_value(flag_key, evaluation_context)
+                    .await
             }
         }
     }
@@ -694,10 +787,14 @@ impl FeatureProvider for SuperpositionProvider {
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         match self {
             SuperpositionProvider::Remote(provider) => {
-                provider.resolve_struct_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_struct_value(flag_key, evaluation_context)
+                    .await
             }
             SuperpositionProvider::Local(provider) => {
-                provider.resolve_struct_value(flag_key, evaluation_context).await
+                provider
+                    .resolve_struct_value(flag_key, evaluation_context)
+                    .await
             }
         }
     }
