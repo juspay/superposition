@@ -264,7 +264,7 @@ impl Condition {
     }
 
     pub fn get_map(&self) -> Map<String, Value> {
-        return self.0.clone();
+        self.0.clone()
     }
 }
 
