@@ -25,7 +25,11 @@ where
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
-    let range_max = 100 / experiment.variants.len();
+    let range_max = if experiment.variants.len() > 0 {
+        100 / experiment.variants.len()
+    } else {
+        100
+    };
     let experiment_rc = Rc::new(experiment);
     let handle_ramp_experiment = move |event: MouseEvent| {
         req_inprogress_ws.set(true);

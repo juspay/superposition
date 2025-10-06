@@ -260,6 +260,9 @@ fn assign_additional_buckets(
     }
     let variants = experiment.variants.clone().into_inner();
     let variants_len = variants.len();
+    if variants_len == 0 {
+        return Err(bad_argument!("Experiment must have at least one variant"));
+    }
 
     // Reverse the unassigned_buckets to fill from the front
     unassigned_buckets.reverse();
@@ -285,6 +288,9 @@ fn unassign_excess_buckets(
 ) {
     let variants = experiment.variants.clone().into_inner();
     let variants_len = variants.len();
+    if variants_len == 0 {
+        return;
+    }
     for variant in variants {
         for _ in 0..excess_count / variants_len {
             if let Some(bucket) = current_buckets
