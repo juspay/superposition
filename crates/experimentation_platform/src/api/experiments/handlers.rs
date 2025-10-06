@@ -138,7 +138,7 @@ async fn create(
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     // Checking if experiment has exactly 1 control variant, and
-    // atleast 1 experimental variant
+    // at least 1 experimental variant
     check_variant_types(&variants)?;
     let unique_override_keys: Vec<String> =
         extract_override_keys(&variants[0].overrides.clone().into_inner())
