@@ -738,7 +738,7 @@ where
                         Some(Err(_)) => {
                             return view! {
                                 <div>
-                                    "An error occured while fetching data for the existing context. Check if the context still exists. Discard the experiment if the context does not exist any more."
+                                    "An error occurred while fetching data for the existing context. Check if the context still exists. Discard the experiment if the context does not exist any more."
                                 </div>
                             }
                                 .into_view();

@@ -150,7 +150,7 @@ async fn create(
 
     if unique_ids_of_variants_from_req.len() != variants.len() {
         return Err(bad_argument!(
-            "Variant ids are expected to be unique. Provide unqiue variant IDs"
+            "Variant ids are expected to be unique. Provide unique variant IDs"
         ));
     }
 

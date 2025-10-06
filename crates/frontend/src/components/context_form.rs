@@ -472,7 +472,7 @@ pub fn context_form(
                                 });
                             let operator = Operator::from(&condition);
                             if schema_type.is_err() || enum_variants.is_err() {
-                                return view! { <span class="text-sm red">An error occured</span> }
+                                return view! { <span class="text-sm red">An error occurred</span> }
                                     .into_view();
                             }
                             let schema_type = store_value(schema_type.unwrap());

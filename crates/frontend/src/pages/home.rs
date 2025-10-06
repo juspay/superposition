@@ -305,7 +305,7 @@ pub fn home() -> impl IntoView {
                 }
                 _ => {
                     logging::log!(
-                        "no metadata recieved, default config is the config to be used"
+                        "no metadata received, default config is the config to be used"
                     );
                 }
             }
