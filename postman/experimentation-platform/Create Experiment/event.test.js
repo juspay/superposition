@@ -27,7 +27,7 @@ function fetch_context_n_test(context_id, expected_override_id, expected_overrid
 
 
         const variant_override_id = context.override_id;
-        const varaint_context = context.value;
+        const variant_context = context.value;
         const variant_override = context.override;
 
         console.log("Testing variant override id");
@@ -41,13 +41,13 @@ function fetch_context_n_test(context_id, expected_override_id, expected_overrid
         pm.expect(JSON.stringify(variant_override)).to.be.eq(JSON.stringify(expected_override));
 
         console.log("Testing variant context");
-        console.log("Context from CAC: \n", JSON.stringify(varaint_context, null, 2));
+        console.log("Context from CAC: \n", JSON.stringify(variant_context, null, 2));
         console.log("Expected Context: \n", JSON.stringify(expected_variant_context, null, 2));
-        pm.expect(JSON.stringify(varaint_context)).to.be.eq(JSON.stringify(expected_variant_context));
+        pm.expect(JSON.stringify(variant_context)).to.be.eq(JSON.stringify(expected_variant_context));
     });
 }
 
-function fetch_experiment_n_test(experiment_id, expected_context, expected_varaints, expected_variant_contexts) {
+function fetch_experiment_n_test(experiment_id, expected_context, expected_variants, expected_variant_contexts) {
     const options = {
         'method': 'GET',
         'url': `${host}/experiments/${experiment_id}`,
@@ -84,7 +84,7 @@ function fetch_experiment_n_test(experiment_id, expected_context, expected_varai
             delete variant_cpy.override_id;
             delete variant_cpy.context_id;
 
-            const expected_variant = expected_varaints.find((ev) => ev.id === variant_id);
+            const expected_variant = expected_variants.find((ev) => ev.id === variant_id);
             console.log("Actual Variant:", JSON.stringify(variant_cpy, null, 4));
             console.log("Expected Variant:", JSON.stringify(expected_variant, null, 4));
             pm.expect(JSON.stringify(variant_cpy)).to.be.eq(JSON.stringify(expected_variant));
@@ -137,7 +137,7 @@ pm.test("Test created contexts", function() {
         }
       ]
     };
-    const expected_varaints = [
+    const expected_variants = [
         {
             "id": `${experiment_id}-control`,
             "overrides": {
@@ -228,5 +228,5 @@ pm.test("Test created contexts", function() {
         }
     ];
 
-    fetch_experiment_n_test(experiment_id, expected_context, expected_varaints, expected_variant_contexts);
+    fetch_experiment_n_test(experiment_id, expected_context, expected_variants, expected_variant_contexts);
 });
