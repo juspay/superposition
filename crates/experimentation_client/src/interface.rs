@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     ffi::{c_char, c_ulong, CStr},
     sync::Arc,
 };
@@ -10,6 +11,7 @@ use std::{
     cell::RefCell,
     ffi::{c_int, CString},
 };
+use superposition_types::DimensionInfo;
 use tokio::{runtime::Runtime, task};
 
 thread_local! {
@@ -167,20 +169,30 @@ pub extern "C" fn expt_get_client(tenant: *const c_char) -> *mut Arc<Client> {
 #[no_mangle]
 pub extern "C" fn expt_get_applicable_variant(
     client: *mut Arc<Client>,
+    c_dimensions: *const c_char,
     c_context: *const c_char,
     identifier: *const c_char,
 ) -> *mut c_char {
+    let dimensions = unwrap_safe!(
+        cstring_to_rstring(c_dimensions),
+        return std::ptr::null_mut()
+    );
     let context =
         unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
     let identifier =
         unwrap_safe!(cstring_to_rstring(identifier), return std::ptr::null_mut());
 
+    let dimensions = unwrap_safe!(
+        serde_json::from_str::<HashMap<String, DimensionInfo>>(dimensions.as_str()),
+        return std::ptr::null_mut()
+    );
     let context = unwrap_safe!(
         serde_json::from_str::<Value>(context.as_str()),
         return std::ptr::null_mut()
     );
-    let variants_result = EXP_RUNTIME
-        .block_on(unsafe { (*client).get_applicable_variant(&context, &identifier) });
+    let variants_result = EXP_RUNTIME.block_on(unsafe {
+        (*client).get_applicable_variant(&dimensions, &context, &identifier)
+    });
     variants_result
         .map(|result| {
             serde_json::to_string(&result)

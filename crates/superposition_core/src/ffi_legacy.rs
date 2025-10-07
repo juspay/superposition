@@ -144,6 +144,14 @@ pub extern "C" fn core_get_resolved_config(
         }
     };
 
+    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
+        Ok(dimensions) => dimensions,
+        Err(e) => {
+            set_last_error(format!("Failed to parse dimensions: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
     if let Some(e_args) = experimentation {
         let toss = e_args
             .targeting_key
@@ -152,6 +160,7 @@ pub extern "C" fn core_get_resolved_config(
             % 100;
 
         match get_applicable_variants(
+            &dimensions,
             &e_args.experiments,
             &query_data,
             toss,
@@ -166,14 +175,6 @@ pub extern "C" fn core_get_resolved_config(
             }
         }
     }
-
-    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
-        Ok(dimensions) => dimensions,
-        Err(e) => {
-            set_last_error(format!("Failed to parse dimensions: {}", e));
-            return ptr::null_mut();
-        }
-    };
 
     // Call pure config resolution logic
     match config::eval_config(
@@ -291,6 +292,14 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
         }
     };
 
+    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
+        Ok(dimensions) => dimensions,
+        Err(e) => {
+            set_last_error(format!("Failed to parse dimensions: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
     if let Some(e_args) = experimentation {
         let toss = e_args
             .targeting_key
@@ -299,6 +308,7 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
             % 100;
 
         match get_applicable_variants(
+            &dimensions,
             &e_args.experiments,
             &query_data,
             toss,
@@ -313,14 +323,6 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
             }
         }
     }
-
-    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
-        Ok(dimensions) => dimensions,
-        Err(e) => {
-            set_last_error(format!("Failed to parse dimensions: {}", e));
-            return ptr::null_mut();
-        }
-    };
 
     // Call config resolution with reasoning
     match config::eval_config_with_reasoning(
@@ -399,11 +401,12 @@ pub extern "C" fn core_last_error_length() -> i32 {
 #[no_mangle]
 pub extern "C" fn core_get_applicable_variants(
     experiments_json: *const c_char,
+    dimensions: *const c_char,
     query_data_json: *const c_char,
     toss: i8,
     filter_prefixes_json: *const c_char,
 ) -> *mut c_char {
-    if experiments_json.is_null() || query_data_json.is_null() {
+    if experiments_json.is_null() || query_data_json.is_null() || dimensions.is_null() {
         set_last_error("Null pointer provided".into());
         return ptr::null_mut();
     }
@@ -424,6 +427,14 @@ pub extern "C" fn core_get_applicable_variants(
         }
     };
 
+    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
+        Ok(dimensions) => dimensions,
+        Err(e) => {
+            set_last_error(format!("Failed to parse dimensions: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
     let filter_prefixes: Option<Vec<String>> = if filter_prefixes_json.is_null() {
         None
     } else {
@@ -437,7 +448,13 @@ pub extern "C" fn core_get_applicable_variants(
     };
 
     // Call the experimentation logic
-    match get_applicable_variants(&experiments, &query_data, toss, filter_prefixes) {
+    match get_applicable_variants(
+        &dimensions,
+        &experiments,
+        &query_data,
+        toss,
+        filter_prefixes,
+    ) {
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
             Err(e) => {

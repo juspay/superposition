@@ -26,7 +26,7 @@ main = do
             runningExperiments   <- getRunningExperiments client
             satisfiedExperiments <- getSatisfiedExperiments client "{\"os\": \"android\", \"client\": \"1mg\"}" Nothing
             filteredExperiments <- getFilteredSatisfiedExperiments client (Just "{\"os\": \"android\"}") (Just "hyperpay")
-            variants             <- getApplicableVariants client "{\"os\": \"android\", \"client\": \"1mg\"}" "1mg-android"
+            variants             <- getApplicableVariants client "{}" "{\"os\": \"android\", \"client\": \"1mg\"}" "1mg-android"
             print "Running experiments"
             print runningExperiments
             print "experiments that satisfy context"

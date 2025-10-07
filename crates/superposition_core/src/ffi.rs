@@ -63,6 +63,7 @@ fn ffi_eval_logic(
             .unwrap_or(rand::rng().random_range(0..=99))
             % 100;
         let variants = get_applicable_variants(
+            &dimensions,
             &e_args.experiments,
             &_q,
             toss,
@@ -139,6 +140,7 @@ fn ffi_eval_config_with_reasoning(
 #[uniffi::export]
 fn ffi_get_applicable_variants(
     eargs: ExperimentationArgs,
+    dimensions_info: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, OperationError> {
@@ -151,8 +153,14 @@ fn ffi_get_applicable_variants(
         .parse::<i8>()
         .unwrap_or(rand::rng().random_range(0..=99))
         % 100;
-    let r = get_applicable_variants(&eargs.experiments, &_query_data, toss, prefix)
-        .map_err(OperationError::Unexpected)?;
+    let r = get_applicable_variants(
+        &dimensions_info,
+        &eargs.experiments,
+        &_query_data,
+        toss,
+        prefix,
+    )
+    .map_err(OperationError::Unexpected)?;
 
     Ok(r)
 }

@@ -18,7 +18,8 @@ use superposition_types::{
     database::models::experimentation::{
         Bucket, ExperimentGroup, ExperimentStatusType, GroupType, Variant,
     },
-    Overridden, PaginatedResponse,
+    logic::evaluate_cohort,
+    DimensionInfo, Overridden, PaginatedResponse,
 };
 pub use superposition_types::{
     api::experiments::ExperimentResponse, database::models::experimentation::Variants,
@@ -111,6 +112,7 @@ impl Client {
 
     pub async fn get_applicable_variant(
         &self,
+        dimensions_info: &HashMap<String, DimensionInfo>,
         context: &Value,
         identifier: &str,
     ) -> Result<Vec<String>, String> {
@@ -122,13 +124,18 @@ impl Client {
             .map(|(_, exp_group)| exp_group.clone())
             .collect::<Vec<_>>();
 
+        let context = Value::Object(evaluate_cohort(
+            dimensions_info,
+            &context.as_object().cloned().unwrap_or_default(),
+        ));
+
         let buckets =
-            get_applicable_buckets_from_group(&experiment_groups, context, identifier);
+            get_applicable_buckets_from_group(&experiment_groups, &context, identifier);
 
         let experiments = self.experiments.read().await;
 
         let applicable_variants =
-            get_applicable_variants_from_group_response(&experiments, context, &buckets);
+            get_applicable_variants_from_group_response(&experiments, &context, &buckets);
 
         Ok(applicable_variants)
     }

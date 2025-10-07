@@ -481,7 +481,7 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 2552:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 29145:
+    if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
@@ -614,6 +614,7 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning.argt
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants.argtypes = (
+    _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -1456,8 +1457,10 @@ def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "t
         _UniffiConverterOptionalTypeExperimentationArgs.lower(experimentation)))
 
 
-def ffi_get_applicable_variants(eargs: "ExperimentationArgs",query_data: "dict[str, str]",prefix: "typing.Optional[typing.List[str]]") -> "typing.List[str]":
+def ffi_get_applicable_variants(eargs: "ExperimentationArgs",dimensions_info: "dict[str, DimensionInfo]",query_data: "dict[str, str]",prefix: "typing.Optional[typing.List[str]]") -> "typing.List[str]":
     _UniffiConverterTypeExperimentationArgs.check_lower(eargs)
+    
+    _UniffiConverterMapStringTypeDimensionInfo.check_lower(dimensions_info)
     
     _UniffiConverterMapStringString.check_lower(query_data)
     
@@ -1465,6 +1468,7 @@ def ffi_get_applicable_variants(eargs: "ExperimentationArgs",query_data: "dict[s
     
     return _UniffiConverterSequenceString.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants,
         _UniffiConverterTypeExperimentationArgs.lower(eargs),
+        _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions_info),
         _UniffiConverterMapStringString.lower(query_data),
         _UniffiConverterOptionalSequenceString.lower(prefix)))
 
