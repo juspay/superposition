@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.43.2 - 2025-10-07
+#### Bug Fixes
+- cohort resolution in get applicable variants (#719) - (abe4bd4) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.91.1 [skip ci] - (1018c17) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.43.1 - 2025-09-30
 #### Bug Fixes
 - use dimension prefix for context in get and resolve config (#713) - (f9df4d7) - Ayush Jain

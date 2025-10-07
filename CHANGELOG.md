@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.91.2 - 2025-10-07
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.43.2
+- superposition_types bumped to superposition_types-v0.34.2
+- superposition_provider bumped to superposition_provider-v0.5.2
+- superposition_core bumped to superposition_core-v0.7.2
+- experimentation_client bumped to experimentation_client-v0.20.1
+- haskell_client bumped to haskell_client-v0.6.2
+### Global changes
+#### Bug Fixes
+- cohort resolution in get applicable variants (#719) - (abe4bd4) - Ayush Jain
+#### Continuous Integration
+- use custom runners for CI tests (#714) - (80dd35a) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.91.1 [skip ci] - (1018c17) - Superposition Bot
+
+- - -
+
 ## v0.91.1 - 2025-09-30
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.62.1
