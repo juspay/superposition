@@ -69,6 +69,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	validate-aws-connection
 	validate-psql-connection
 	uniffi-bindings
+	test-js-provider
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -364,3 +365,16 @@ uniffi-bindings:
 	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language kotlin --out-dir clients/java/bindings/src/main/kotlin
 	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
 	git apply uniffi/patches/*.patch
+
+test-js-provider: WASM_PACK_MODE=--profiling
+test-js-provider: setup superposition
+	sh ./scripts/setup_esm.sh
+	cd clients/javascript/provider-sdk-tests && npm ci
+	@./target/debug/superposition &
+	@echo "Awaiting superposition boot..."
+	@curl	--silent --retry 10 \
+				--connect-timeout 2 \
+				--retry-all-errors \
+				'http://localhost:8080/health' 2>&1 > /dev/null
+	node clients/javascript/provider-sdk-tests/index.js
+	-@pkill -f target/debug/superposition &
