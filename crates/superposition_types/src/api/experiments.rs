@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
@@ -155,32 +153,9 @@ pub struct ExperimentStateChangeRequest {
 
 /********** Applicable Variants API Type *************/
 #[derive(Debug, Deserialize)]
-#[serde(try_from = "HashMap<String,String>")]
 pub struct ApplicableVariantsQuery {
-    pub context: Map<String, Value>,
+    #[serde(alias = "toss", deserialize_with = "deserialize_identifier")]
     pub identifier: String,
-}
-
-impl TryFrom<HashMap<String, String>> for ApplicableVariantsQuery {
-    type Error = String;
-    fn try_from(mut value: HashMap<String, String>) -> Result<Self, Self::Error> {
-        let identifier = match value.remove("identifier") {
-            Some(v) => v,
-            None => value
-                .get("toss")
-                .ok_or_else(|| "'identifier' must be provided".to_string())?
-                .to_string(),
-        };
-        let value = value
-            .into_iter()
-            .map(|(key, value)| (key, value.parse().unwrap_or(Value::String(value))))
-            .collect::<Map<_, _>>();
-
-        Ok(Self {
-            identifier,
-            context: value,
-        })
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -188,15 +163,6 @@ pub struct ApplicableVariantsRequest {
     pub context: Map<String, Value>,
     #[serde(alias = "toss", deserialize_with = "deserialize_identifier")]
     pub identifier: String,
-}
-
-impl From<ApplicableVariantsRequest> for ApplicableVariantsQuery {
-    fn from(value: ApplicableVariantsRequest) -> Self {
-        Self {
-            context: value.context,
-            identifier: value.identifier,
-        }
-    }
 }
 
 fn deserialize_identifier<'de, D>(deserializer: D) -> Result<String, D::Error>

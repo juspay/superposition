@@ -104,6 +104,7 @@ class ConfigurationClient:
 
     def get_applicable_variants(self, context: Dict[str, str], toss: Optional[int] = None) -> list:
         if self.exp_config:
+            # No such function in exp_config
             return self.exp_config.get_applicable_variants(context, toss)
         else:
             return []
@@ -181,7 +182,7 @@ class ConfigurationClient:
                 experiments=self.exp_config.cached_experiments(),
                 targeting_key= targeting_key if targeting_key else "",
             )
-            return ffi_get_applicable_variants(experimentdata,context, prefix=None)
+            return ffi_get_applicable_variants(experimentdata, self.cac_config.cached_config.get('dimensions', {}), context, prefix=None)
         return []
 
     def _clear_eval_cache(self):

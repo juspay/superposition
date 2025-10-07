@@ -1,11 +1,11 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::experimentation::{
     Variant, VariantType, Variants,
 };
-use superposition_types::{Condition, Overridden};
+use superposition_types::{logic::evaluate_cohort, Condition, DimensionInfo, Overridden};
 
 use std::fmt;
 
@@ -40,13 +40,15 @@ pub struct ExperimentationArgs {
 pub type Experiments = Vec<FfiExperiment>;
 
 pub fn get_applicable_variants(
+    dimensions_info: &HashMap<String, DimensionInfo>,
     experiments: &Experiments,
     query_data: &Map<String, Value>,
     toss: i8,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, String> {
+    let context = evaluate_cohort(dimensions_info, query_data);
     let experiments: Vec<FfiExperiment> =
-        get_satisfied_experiments(experiments, query_data, prefix)?;
+        get_satisfied_experiments(experiments, &context, prefix)?;
     let mut variants: Vec<String> = Vec::new();
     for exp in experiments {
         if let Some(v) = decide_variant(exp.traffic_percentage, exp.variants, toss)? {

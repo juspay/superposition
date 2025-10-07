@@ -1,4 +1,6 @@
 #![deny(unused_crate_dependencies)]
+use std::collections::HashMap;
+
 use actix_web::{
     get, rt,
     web::{get, Data, Path},
@@ -42,7 +44,9 @@ async fn get_variants(
         "clientId": client_id,
         "os": platform
     });
-    let variant = state.get_applicable_variant(&contexts, &identifier).await;
+    let variant = state
+        .get_applicable_variant(&HashMap::new(), &contexts, &identifier)
+        .await;
     println!("variant value: {:?}", variant);
     HttpResponse::Ok().body("check your console")
 }
