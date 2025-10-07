@@ -60,13 +60,13 @@ public final class Organisation implements ApiResource {
     }
 
     @Override
-    public Schema put() {
-        return UpdateOrganisation.$SCHEMA;
+    public Schema read() {
+        return GetOrganisation.$SCHEMA;
     }
 
     @Override
-    public Schema read() {
-        return GetOrganisation.$SCHEMA;
+    public Schema update() {
+        return UpdateOrganisation.$SCHEMA;
     }
 
     @Override

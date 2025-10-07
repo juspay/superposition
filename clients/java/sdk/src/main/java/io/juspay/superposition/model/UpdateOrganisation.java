@@ -23,11 +23,11 @@ public final class UpdateOrganisation implements ApiOperation<UpdateOrganisation
     private static final UpdateOrganisation $INSTANCE = new UpdateOrganisation();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/superposition/organisations/{id}")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/superposition/organisations/{id}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
-        .putType(OrganisationNotFound.$ID, OrganisationNotFound.class, OrganisationNotFound::builder)
+        .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));

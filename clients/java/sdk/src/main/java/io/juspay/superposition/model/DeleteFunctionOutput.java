@@ -13,7 +13,7 @@ import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
 public final class DeleteFunctionOutput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#DeleteFunctionOutput");
+    public static final ShapeId $ID = ShapeId.from("smithy.api#Unit");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID).build();
 

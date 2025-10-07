@@ -23,7 +23,7 @@ public final class ListContexts implements ApiOperation<ListContextsInput, ListC
     private static final ListContexts $INSTANCE = new ListContexts();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("GET").code(200).uri(UriPattern.parse("/context/list")).build());
+            HttpTrait.builder().method("GET").code(200).uri(UriPattern.parse("/context")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

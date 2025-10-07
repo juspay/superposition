@@ -10,13 +10,11 @@ import qualified GHC.Show
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.ListDefaultConfigsInput
 import qualified Io.Superposition.Model.ListDefaultConfigsOutput
-import qualified Io.Superposition.Model.ResourceNotFound
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
 data ListDefaultConfigsError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
-    | ResourceNotFound Io.Superposition.Model.ResourceNotFound.ResourceNotFound
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
     | UnexpectedError (Data.Maybe.Maybe Io.Superposition.Utility.HttpMetadata) Data.Text.Text
@@ -30,7 +28,6 @@ instance Io.Superposition.Utility.OperationError ListDefaultConfigsError where
 
     getErrorParser status
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.InternalServerError.InternalServerError) = Just (fmap InternalServerError (Io.Superposition.Utility.responseParser @Io.Superposition.Model.InternalServerError.InternalServerError))
-        | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.ResourceNotFound.ResourceNotFound) = Just (fmap ResourceNotFound (Io.Superposition.Utility.responseParser @Io.Superposition.Model.ResourceNotFound.ResourceNotFound))
         | otherwise = Nothing
 
 

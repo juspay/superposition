@@ -15,6 +15,7 @@ service Superposition {
         Dimension
         Context
         Config
+        ConfigVersion
         AuditLog
         Function
         Organisation
@@ -32,24 +33,26 @@ service Superposition {
 @mixin
 structure PaginationParams {
     @httpQuery("count")
+    @documentation("Number of items to be returned in each page.")
     count: Integer
 
     @httpQuery("page")
+    @documentation("Page number to retrieve, starting from 1.")
     page: Integer
-    
+
     @httpQuery("all")
+    @documentation("If true, returns all requested items, ignoring pagination parameters page and count.")
     all: Boolean
 }
 
 @mixin
 structure WorkspaceMixin {
     @required
-    @httpHeader("x-tenant")
+    @httpHeader("x-workspace")
     workspace_id: String
 
     @required
     @httpHeader("x-org-id")
-    @default("juspay")
     org_id: String
 }
 
@@ -57,7 +60,6 @@ structure WorkspaceMixin {
 structure CreateWorkspaceMixin {
     @required
     @httpHeader("x-org-id")
-    @default("juspay")
     org_id: String
 }
 
@@ -77,6 +79,13 @@ structure InternalServerError {
 @httpError(404)
 @error("client")
 structure ResourceNotFound {}
+
+@mixin
+operation GetOperation {
+    errors: [
+        ResourceNotFound
+    ]
+}
 
 @timestampFormat("date-time")
 timestamp DateTime

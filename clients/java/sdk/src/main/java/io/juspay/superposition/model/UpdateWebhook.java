@@ -27,7 +27,7 @@ public final class UpdateWebhook implements ApiOperation<UpdateWebhookInput, Upd
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
-        .putType(WebhookNotFound.$ID, WebhookNotFound.class, WebhookNotFound::builder)
+        .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));

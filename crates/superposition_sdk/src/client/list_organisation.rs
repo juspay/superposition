@@ -3,9 +3,9 @@ impl super::Client {
     /// Constructs a fluent builder for the [`ListOrganisation`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder) operation.
                             ///
                             /// - The fluent builder is configurable:
-    ///   - [`count(i32)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::count) / [`set_count(Option<i32>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_count):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`page(i32)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::page) / [`set_page(Option<i32>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_page):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`all(bool)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::all) / [`set_all(Option<bool>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_all):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`count(i32)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::count) / [`set_count(Option<i32>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_count):<br>required: **false**<br>Number of items to be returned in each page.<br>
+    ///   - [`page(i32)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::page) / [`set_page(Option<i32>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_page):<br>required: **false**<br>Page number to retrieve, starting from 1.<br>
+    ///   - [`all(bool)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::all) / [`set_all(Option<bool>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_all):<br>required: **false**<br>If true, returns all requested items, ignoring pagination parameters page and count.<br>
                             /// - On success, responds with [`ListOrganisationOutput`](crate::operation::list_organisation::ListOrganisationOutput) with field(s):
     ///   - [`total_pages(Option<i32>)`](crate::operation::list_organisation::ListOrganisationOutput::total_pages): (undocumented)
     ///   - [`total_items(Option<i32>)`](crate::operation::list_organisation::ListOrganisationOutput::total_items): (undocumented)

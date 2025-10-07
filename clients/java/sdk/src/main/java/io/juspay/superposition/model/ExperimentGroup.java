@@ -17,7 +17,8 @@ public final class ExperimentGroup implements ApiResource {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ExperimentGroup");
     private static final ExperimentGroup $INSTANCE = new ExperimentGroup();
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
-        "org_id", PreludeSchemas.STRING);
+        "org_id", PreludeSchemas.STRING,
+        "id", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
         Map.entry("buckets", SharedSchemas.BUCKETS),
         Map.entry("description", PreludeSchemas.STRING),
@@ -31,15 +32,9 @@ public final class ExperimentGroup implements ApiResource {
         Map.entry("traffic_percentage", PreludeSchemas.INTEGER),
         Map.entry("name", PreludeSchemas.STRING),
         Map.entry("context", SharedSchemas.CONDITION),
-        Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST),
-        Map.entry("id", PreludeSchemas.STRING));
+        Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST));
 
-    private static final List<Schema> $OPERATIONS = List.of(ListExperimentGroups.$SCHEMA,
-        CreateExperimentGroup.$SCHEMA,
-        GetExperimentGroup.$SCHEMA,
-        UpdateExperimentGroup.$SCHEMA,
-        DeleteExperimentGroup.$SCHEMA,
-        AddMembersToGroup.$SCHEMA,
+    private static final List<Schema> $OPERATIONS = List.of(AddMembersToGroup.$SCHEMA,
         RemoveMembersFromGroup.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
@@ -67,6 +62,31 @@ public final class ExperimentGroup implements ApiResource {
     @Override
     public Map<String, Schema> properties() {
         return $PROPERTIES;
+    }
+
+    @Override
+    public Schema create() {
+        return CreateExperimentGroup.$SCHEMA;
+    }
+
+    @Override
+    public Schema read() {
+        return GetExperimentGroup.$SCHEMA;
+    }
+
+    @Override
+    public Schema update() {
+        return UpdateExperimentGroup.$SCHEMA;
+    }
+
+    @Override
+    public Schema delete() {
+        return DeleteExperimentGroup.$SCHEMA;
+    }
+
+    @Override
+    public Schema list() {
+        return ListExperimentGroups.$SCHEMA;
     }
 
     @Override

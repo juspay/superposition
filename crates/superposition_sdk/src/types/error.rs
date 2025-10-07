@@ -3,29 +3,9 @@ pub use crate::types::error::_internal_server_error::InternalServerError;
 
 pub use crate::types::error::_resource_not_found::ResourceNotFound;
 
-pub use crate::types::error::_webhook_not_found::WebhookNotFound;
-
-pub use crate::types::error::_workspace_not_found::WorkspaceNotFound;
-
-pub use crate::types::error::_type_templates_not_found::TypeTemplatesNotFound;
-
-pub use crate::types::error::_organisation_not_found::OrganisationNotFound;
-
-pub use crate::types::error::_function_not_found::FunctionNotFound;
-
-mod _function_not_found;
-
 mod _internal_server_error;
 
-mod _organisation_not_found;
-
 mod _resource_not_found;
-
-mod _type_templates_not_found;
-
-mod _webhook_not_found;
-
-mod _workspace_not_found;
 
 /// Builders
 pub mod builders;

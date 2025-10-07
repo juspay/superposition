@@ -199,7 +199,7 @@ builder
 #[derive(::std::fmt::Debug)]
 pub enum UpdateWebhookError {
     #[allow(missing_docs)] // documentation missing in model
-    WebhookNotFound(crate::types::error::WebhookNotFound),
+    ResourceNotFound(crate::types::error::ResourceNotFound),
     #[allow(missing_docs)] // documentation missing in model
     InternalServerError(crate::types::error::InternalServerError),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
@@ -227,14 +227,14 @@ impl UpdateWebhookError {
     /// 
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
-            Self::WebhookNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
+            Self::ResourceNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::Unhandled(e) => &e.meta,
         }
     }
-    /// Returns `true` if the error kind is `UpdateWebhookError::WebhookNotFound`.
-    pub fn is_webhook_not_found(&self) -> bool {
-        matches!(self, Self::WebhookNotFound(_))
+    /// Returns `true` if the error kind is `UpdateWebhookError::ResourceNotFound`.
+    pub fn is_resource_not_found(&self) -> bool {
+        matches!(self, Self::ResourceNotFound(_))
     }
     /// Returns `true` if the error kind is `UpdateWebhookError::InternalServerError`.
     pub fn is_internal_server_error(&self) -> bool {
@@ -244,7 +244,7 @@ impl UpdateWebhookError {
 impl ::std::error::Error for UpdateWebhookError {
     fn source(&self) -> ::std::option::Option<&(dyn ::std::error::Error + 'static)> {
         match self {
-            Self::WebhookNotFound(_inner) =>
+            Self::ResourceNotFound(_inner) =>
             ::std::option::Option::Some(_inner)
             ,
             Self::InternalServerError(_inner) =>
@@ -259,7 +259,7 @@ impl ::std::error::Error for UpdateWebhookError {
 impl ::std::fmt::Display for UpdateWebhookError {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match self {
-            Self::WebhookNotFound(_inner) =>
+            Self::ResourceNotFound(_inner) =>
             _inner.fmt(f)
             ,
             Self::InternalServerError(_inner) =>
@@ -286,7 +286,7 @@ impl ::aws_smithy_types::retry::ProvideErrorKind for UpdateWebhookError {
 impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for UpdateWebhookError {
     fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
-            Self::WebhookNotFound(_inner) =>
+            Self::ResourceNotFound(_inner) =>
             ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
             ,
             Self::InternalServerError(_inner) =>

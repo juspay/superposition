@@ -161,14 +161,14 @@ build builder = do
 
 instance Io.Superposition.Utility.IntoRequestBuilder UpdateOverridesExperimentInput where
     intoRequestBuilder self = do
-        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPut
+        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPatch
         Io.Superposition.Utility.setPath [
             "experiments",
             Io.Superposition.Utility.serializeElement (id' self),
             "overrides"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "variant_list" (variant_list self)

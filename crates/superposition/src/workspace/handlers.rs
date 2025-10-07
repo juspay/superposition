@@ -1,7 +1,7 @@
 use std::fs;
 
 use actix_web::{
-    get, post, put,
+    get, post, routes,
     web::{self, Json, Path, Query},
     Scope,
 };
@@ -135,7 +135,9 @@ async fn create_workspace(
     Ok(Json(response))
 }
 
+#[routes]
 #[put("/{workspace_name}")]
+#[patch("/{workspace_name}")]
 async fn update_workspace(
     workspace_name: web::Path<String>,
     request: Json<UpdateWorkspaceRequest>,

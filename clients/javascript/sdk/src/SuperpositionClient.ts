@@ -86,6 +86,10 @@ import {
   DeleteTypeTemplatesCommandOutput,
 } from "./commands/DeleteTypeTemplatesCommand";
 import {
+  DeleteWebhookCommandInput,
+  DeleteWebhookCommandOutput,
+} from "./commands/DeleteWebhookCommand";
+import {
   DiscardExperimentCommandInput,
   DiscardExperimentCommandOutput,
 } from "./commands/DiscardExperimentCommand";
@@ -105,6 +109,10 @@ import {
   GetContextFromConditionCommandInput,
   GetContextFromConditionCommandOutput,
 } from "./commands/GetContextFromConditionCommand";
+import {
+  GetDefaultConfigCommandInput,
+  GetDefaultConfigCommandOutput,
+} from "./commands/GetDefaultConfigCommand";
 import {
   GetDimensionCommandInput,
   GetDimensionCommandOutput,
@@ -130,13 +138,29 @@ import {
   GetResolvedConfigCommandOutput,
 } from "./commands/GetResolvedConfigCommand";
 import {
+  GetTypeTemplateCommandInput,
+  GetTypeTemplateCommandOutput,
+} from "./commands/GetTypeTemplateCommand";
+import {
   GetTypeTemplatesListCommandInput,
   GetTypeTemplatesListCommandOutput,
 } from "./commands/GetTypeTemplatesListCommand";
 import {
+  GetVersionCommandInput,
+  GetVersionCommandOutput,
+} from "./commands/GetVersionCommand";
+import {
+  GetWebhookByEventCommandInput,
+  GetWebhookByEventCommandOutput,
+} from "./commands/GetWebhookByEventCommand";
+import {
   GetWebhookCommandInput,
   GetWebhookCommandOutput,
 } from "./commands/GetWebhookCommand";
+import {
+  GetWorkspaceCommandInput,
+  GetWorkspaceCommandOutput,
+} from "./commands/GetWorkspaceCommand";
 import {
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
@@ -254,6 +278,10 @@ import {
   UpdateWorkspaceCommandOutput,
 } from "./commands/UpdateWorkspaceCommand";
 import {
+  ValidateContextCommandInput,
+  ValidateContextCommandOutput,
+} from "./commands/ValidateContextCommand";
+import {
   WeightRecomputeCommandInput,
   WeightRecomputeCommandOutput,
 } from "./commands/WeightRecomputeCommand";
@@ -343,19 +371,25 @@ export type ServiceInputTypes =
   | DeleteExperimentGroupCommandInput
   | DeleteFunctionCommandInput
   | DeleteTypeTemplatesCommandInput
+  | DeleteWebhookCommandInput
   | DiscardExperimentCommandInput
   | GetConfigCommandInput
   | GetConfigFastCommandInput
   | GetContextCommandInput
   | GetContextFromConditionCommandInput
+  | GetDefaultConfigCommandInput
   | GetDimensionCommandInput
   | GetExperimentCommandInput
   | GetExperimentGroupCommandInput
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
+  | GetTypeTemplateCommandInput
   | GetTypeTemplatesListCommandInput
+  | GetVersionCommandInput
+  | GetWebhookByEventCommandInput
   | GetWebhookCommandInput
+  | GetWorkspaceCommandInput
   | ListAuditLogsCommandInput
   | ListContextsCommandInput
   | ListDefaultConfigsCommandInput
@@ -385,6 +419,7 @@ export type ServiceInputTypes =
   | UpdateTypeTemplatesCommandInput
   | UpdateWebhookCommandInput
   | UpdateWorkspaceCommandInput
+  | ValidateContextCommandInput
   | WeightRecomputeCommandInput;
 
 /**
@@ -411,19 +446,25 @@ export type ServiceOutputTypes =
   | DeleteExperimentGroupCommandOutput
   | DeleteFunctionCommandOutput
   | DeleteTypeTemplatesCommandOutput
+  | DeleteWebhookCommandOutput
   | DiscardExperimentCommandOutput
   | GetConfigCommandOutput
   | GetConfigFastCommandOutput
   | GetContextCommandOutput
   | GetContextFromConditionCommandOutput
+  | GetDefaultConfigCommandOutput
   | GetDimensionCommandOutput
   | GetExperimentCommandOutput
   | GetExperimentGroupCommandOutput
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
+  | GetTypeTemplateCommandOutput
   | GetTypeTemplatesListCommandOutput
+  | GetVersionCommandOutput
+  | GetWebhookByEventCommandOutput
   | GetWebhookCommandOutput
+  | GetWorkspaceCommandOutput
   | ListAuditLogsCommandOutput
   | ListContextsCommandOutput
   | ListDefaultConfigsCommandOutput
@@ -453,6 +494,7 @@ export type ServiceOutputTypes =
   | UpdateTypeTemplatesCommandOutput
   | UpdateWebhookCommandOutput
   | UpdateWorkspaceCommandOutput
+  | ValidateContextCommandOutput
   | WeightRecomputeCommandOutput;
 
 /**

@@ -23,11 +23,11 @@ public final class UpdateTypeTemplates implements ApiOperation<UpdateTypeTemplat
     private static final UpdateTypeTemplates $INSTANCE = new UpdateTypeTemplates();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/types/{type_name}")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/types/{type_name}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
-        .putType(TypeTemplatesNotFound.$ID, TypeTemplatesNotFound.class, TypeTemplatesNotFound::builder)
+        .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));

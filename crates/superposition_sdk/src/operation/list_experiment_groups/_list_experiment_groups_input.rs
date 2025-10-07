@@ -3,14 +3,16 @@
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ListExperimentGroupsInput  {
+    /// Number of items to be returned in each page.
+    pub count: ::std::option::Option<i32>,
+    /// Page number to retrieve, starting from 1.
+    pub page: ::std::option::Option<i32>,
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub all: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub page: ::std::option::Option<i64>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub count: ::std::option::Option<i64>,
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
     pub name: ::std::option::Option<::std::string::String>,
     /// Filter by the user who created the experiment group.
@@ -21,12 +23,22 @@ pub struct ListExperimentGroupsInput  {
     pub sort_on: ::std::option::Option<crate::types::ExperimentGroupSortOn>,
     /// Sort order (ascending or descending).
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub all: ::std::option::Option<bool>,
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub group_type: ::std::option::Option<crate::types::GroupType>,
 }
 impl  ListExperimentGroupsInput  {
+    /// Number of items to be returned in each page.
+    pub fn count(&self) -> ::std::option::Option<i32> {
+        self.count
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn page(&self) -> ::std::option::Option<i32> {
+        self.page
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn all(&self) -> ::std::option::Option<bool> {
+        self.all
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -34,14 +46,6 @@ impl  ListExperimentGroupsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn page(&self) -> ::std::option::Option<i64> {
-        self.page
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn count(&self) -> ::std::option::Option<i64> {
-        self.count
     }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
     pub fn name(&self) -> ::std::option::Option<&str> {
@@ -63,10 +67,6 @@ impl  ListExperimentGroupsInput  {
     pub fn sort_by(&self) -> ::std::option::Option<&crate::types::SortBy> {
         self.sort_by.as_ref()
     }
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub fn all(&self) -> ::std::option::Option<bool> {
-        self.all
-    }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub fn group_type(&self) -> ::std::option::Option<&crate::types::GroupType> {
         self.group_type.as_ref()
@@ -83,19 +83,58 @@ impl ListExperimentGroupsInput {
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
 pub struct ListExperimentGroupsInputBuilder {
+    pub(crate) count: ::std::option::Option<i32>,
+    pub(crate) page: ::std::option::Option<i32>,
+    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) page: ::std::option::Option<i64>,
-    pub(crate) count: ::std::option::Option<i64>,
     pub(crate) name: ::std::option::Option<::std::string::String>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentGroupSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
-    pub(crate) all: ::std::option::Option<bool>,
     pub(crate) group_type: ::std::option::Option<crate::types::GroupType>,
 }
 impl ListExperimentGroupsInputBuilder {
+    /// Number of items to be returned in each page.
+    pub fn count(mut self, input: i32) -> Self {
+        self.count = ::std::option::Option::Some(input);
+        self
+    }
+    /// Number of items to be returned in each page.
+    pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
+        self.count = input; self
+    }
+    /// Number of items to be returned in each page.
+    pub fn get_count(&self) -> &::std::option::Option<i32> {
+        &self.count
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn page(mut self, input: i32) -> Self {
+        self.page = ::std::option::Option::Some(input);
+        self
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
+        self.page = input; self
+    }
+    /// Page number to retrieve, starting from 1.
+    pub fn get_page(&self) -> &::std::option::Option<i32> {
+        &self.page
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn all(mut self, input: bool) -> Self {
+        self.all = ::std::option::Option::Some(input);
+        self
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.all = input; self
+    }
+    /// If true, returns all requested items, ignoring pagination parameters page and count.
+    pub fn get_all(&self) -> &::std::option::Option<bool> {
+        &self.all
+    }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -123,32 +162,6 @@ impl ListExperimentGroupsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn page(mut self, input: i64) -> Self {
-        self.page = ::std::option::Option::Some(input);
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_page(mut self, input: ::std::option::Option<i64>) -> Self {
-        self.page = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_page(&self) -> &::std::option::Option<i64> {
-        &self.page
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn count(mut self, input: i64) -> Self {
-        self.count = ::std::option::Option::Some(input);
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_count(mut self, input: ::std::option::Option<i64>) -> Self {
-        self.count = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_count(&self) -> &::std::option::Option<i64> {
-        &self.count
     }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
     pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -215,19 +228,6 @@ impl ListExperimentGroupsInputBuilder {
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
         &self.sort_by
     }
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub fn all(mut self, input: bool) -> Self {
-        self.all = ::std::option::Option::Some(input);
-        self
-    }
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
-    }
-    /// If true, returns all experiment groups, ignoring pagination parameters page and count.
-    pub fn get_all(&self) -> &::std::option::Option<bool> {
-        &self.all
-    }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
         self.group_type = ::std::option::Option::Some(input);
@@ -245,13 +245,15 @@ impl ListExperimentGroupsInputBuilder {
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment_groups::ListExperimentGroupsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::list_experiment_groups::ListExperimentGroupsInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
+                count: self.count
                 ,
                 page: self.page
                 ,
-                count: self.count
+                all: self.all
+                ,
+                workspace_id: self.workspace_id
+                ,
+                org_id: self.org_id
                 ,
                 name: self.name
                 ,
@@ -262,8 +264,6 @@ impl ListExperimentGroupsInputBuilder {
                 sort_on: self.sort_on
                 ,
                 sort_by: self.sort_by
-                ,
-                all: self.all
                 ,
                 group_type: self.group_type
                 ,

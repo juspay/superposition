@@ -75,7 +75,7 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  * @see {@link TestCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
- * @throws {@link FunctionNotFound} (client fault)
+ * @throws {@link ResourceNotFound} (client fault)
  *
  * @throws {@link InternalServerError} (server fault)
  *

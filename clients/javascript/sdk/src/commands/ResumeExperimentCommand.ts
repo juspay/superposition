@@ -93,6 +93,8 @@ export interface ResumeExperimentCommandOutput extends ExperimentResponse, __Met
  * @see {@link ResumeExperimentCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
+ * @throws {@link ResourceNotFound} (client fault)
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}

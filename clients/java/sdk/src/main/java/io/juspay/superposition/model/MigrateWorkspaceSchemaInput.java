@@ -11,9 +11,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
-import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.DefaultTrait;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpLabelTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
@@ -25,9 +23,8 @@ public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("org_id", PreludeSchemas.STRING,
-                new DefaultTrait(Node.from("juspay")),
-                new RequiredTrait(),
-                new HttpHeaderTrait("x-org-id"))
+                new HttpHeaderTrait("x-org-id"),
+                new RequiredTrait())
         .putMember("workspace_name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
@@ -90,8 +87,8 @@ public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
     @SuppressWarnings("unchecked")
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
-            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, workspaceName);
-            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, workspaceName);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -121,9 +118,8 @@ public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
      * Builder for {@link MigrateWorkspaceSchemaInput}.
      */
     public static final class Builder implements ShapeBuilder<MigrateWorkspaceSchemaInput> {
-        private static final String ORG_ID_DEFAULT = "juspay";
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
-        private String orgId = ORG_ID_DEFAULT;
+        private String orgId;
         private String workspaceName;
 
         private Builder() {}
@@ -139,6 +135,7 @@ public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
          */
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
+            tracker.setMember($SCHEMA_ORG_ID);
             return this;
         }
 
@@ -162,8 +159,8 @@ public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
         @SuppressWarnings("unchecked")
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
-                case 0 -> workspaceName((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, value));
-                case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 0 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 1 -> workspaceName((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -172,6 +169,9 @@ public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
         public ShapeBuilder<MigrateWorkspaceSchemaInput> errorCorrection() {
             if (tracker.allSet()) {
                 return this;
+            }
+            if (!tracker.checkMember($SCHEMA_ORG_ID)) {
+                orgId("");
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_NAME)) {
                 workspaceName("");
@@ -197,8 +197,8 @@ public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
             @Override
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
-                    case 0 -> builder.workspaceName(de.readString(member));
-                    case 1 -> builder.orgId(de.readString(member));
+                    case 0 -> builder.orgId(de.readString(member));
+                    case 1 -> builder.workspaceName(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

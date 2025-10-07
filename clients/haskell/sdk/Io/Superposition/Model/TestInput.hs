@@ -131,7 +131,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder TestInput where
             "test"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serBody "application/json" (request self)
 

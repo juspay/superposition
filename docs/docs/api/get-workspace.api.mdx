@@ -1,0 +1,71 @@
+---
+id: get-workspace
+title: "GetWorkspace"
+description: "Retrieves detailed information about a specific workspace including its configuration and metadata."
+sidebar_label: "GetWorkspace"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vktv2zgQ/ivCnHYBOhGyyUW3dJvNBlgUizjFHgxDGItjm61EssORG0PQfy8oya9Y6QPY9mSZnOc3M9+wAU2hYOPFOAsZPJKwoQ2FRJOgKUknxi4dVxgFEly4WhJMgqfCLE2RfHb8MXgsKDG2KGtt7CoxEpLC2aVZ1TyoWZ1UJKhR8AIUOE/9zYOGDO5J/tuZAQUeGSsS4gDZrAGLFUEGe0d5d6DAxHA9yhoUhGJNFULWgGx9lA7Cxq6gVcD0qTZMGjLhmlq1N/g8cbyaGL0ztSbUxD9kbB5Pgnc2UIjyV2kaf04RPc4uuUrTZKcCCgpnhaxEJfS+NEUHyuWHEDWb80jc4gMVEjHiCKGY3u8LbMYid7xCa0JnPzf62zKvWjo468P7LklBqcO5kAKydQXZDO7e3b755+4tKHj7MO0/5wrESBnF9wBOe0MnxlFXxuZUoSlHw+hbMd8QB9Pjei7ChEI6X2xHr0sMkldOm6X5XiGUsWz7QYIMNApNxFR07P1HdCq0GsXxNtemIhszO8YXmXEbO1uoGsG9bVX3WXQRH1dv4VxJaDsXkQqKqN0qwLJ0n3N69sTRn+SBymWO3rPbYDluAGtxuXe+LlEoj73OblT0ZLJm3/L1muETIE9qOlKckaKeD8nYSJwC91ofqnO+Gp+bkSk56vtj7ngcaOPPgTPaNuJ2nV6fU84jBVdzQe+c/OVqq5Pr9PpAO62CmzGierBCbLGcEm+I75gdJzc/ha8qCgFXY6TRHnIfCWcMgr5R1y4ukhV1vuJOyOByD2y4bE6r0cYqUlGzkW23Y0JlZL29QG8u1iL+DSET39bRzmweaX4nPY0Z9kl8RWefVrwA9QLnv5+e/k168QRrWZOVAcjd8umGoxPoEIkLuDM6IDOtPbF3wQw6e2aDq/TqZpL+MUlvYpW9C1JhV5lh592TJMer9iSw5lDeX/QMGFASepZLX6LpWKPmjiP6Ks4O4xFAQfZiquYK1i5IlGuaBQZ6z2XbxuNPNXGs7VzBBtngIiI3a0CbEL81ZEssA30Fgt8eB0r6PXkt1B3Z2kgeGyzr+A8UfKTt+Yulnbdq98j43yPpPR49afbRxBdPf3tbFOTl6O5shGOn74fp/u4J2vYLf0CVgw==
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetWorkspace"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/workspaces/{workspace_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific workspace including its configuration and metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"workspace_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetWorkspace 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"workspace_name":{"type":"string"},"organisation_id":{"type":"string"},"organisation_name":{"type":"string"},"workspace_schema_name":{"type":"string"},"workspace_status":{"type":"string","enum":["ENABLED","DISABLED"],"title":"WorkspaceStatus"},"workspace_admin_email":{"type":"string"},"config_version":{"type":"string"},"created_by":{"type":"string"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"created_at":{"type":"string","format":"date-time"},"mandatory_dimensions":{"type":"array","items":{"type":"string"}},"strict_mode":{"type":"boolean"},"metrics":{},"allow_experiment_self_approval":{"type":"boolean"},"auto_populate_control":{"type":"boolean"}},"required":["allow_experiment_self_approval","auto_populate_control","created_at","created_by","last_modified_at","last_modified_by","organisation_id","organisation_name","strict_mode","workspace_admin_email","workspace_name","workspace_schema_name","workspace_status"],"title":"GetWorkspaceResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
