@@ -42,7 +42,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{ConfigVersion, ConfigVersionListItem},
-            ChangeReason, Description,
+            ChangeReason,
         },
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
         superposition_schema::superposition::workspaces,
@@ -446,35 +446,14 @@ fn construct_new_payload(
             },
         )?;
 
-    let description = match res.get("description") {
-        Some(Value::String(s)) => Some(s.clone()),
-        Some(_) => {
-            log::error!("construct new payload: Description is not a valid string");
-            return Err(bad_argument!("Description must be a string"));
-        }
-        None => None,
-    }
-    .map(Description::try_from)
-    .transpose()
-    .map_err(|e| unexpected_error!(e))?;
-
-    let change_reason = ChangeReason::try_from(
-        res.get("change_reason")
-            .and_then(|val| val.as_str())
-            .map(|s| s.to_string())
-            .ok_or_else(|| {
-                log::error!(
-                    "construct new payload: Change reason not present or invalid"
-                );
-                bad_argument!("Change reason is required and must be a string")
-            })?,
-    )
-    .map_err(|e| unexpected_error!(e))?;
+    let change_reason =
+        ChangeReason::try_from("Context updated during reduce operation".to_string())
+            .map_err(|e| unexpected_error!(e))?;
 
     Ok(PutRequest {
         context,
         r#override: override_,
-        description,
+        description: None,
         change_reason,
     })
 }
