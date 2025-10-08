@@ -6,6 +6,8 @@ import {
   CreateDimensionCommand,
   CreateDefaultConfigCommand,
   CreateContextCommand,
+  CreateExperimentCommand,
+  RampExperimentCommand
 } from "superposition-sdk";
 import assert from "assert";
 
@@ -237,12 +239,63 @@ async function create_overrides(org_id, workspace_id) {
   }
 }
 
+async function create_experiments(org_id, workspace_id) {
+    let experiments = [
+        {
+              workspace_id,
+              org_id,
+              name: "testexperiment",
+              context: {
+                city: "Bangalore",
+              },
+              variants: [
+                {
+                  id: "testexperiment-control",
+                  variant_type: "CONTROL",
+                  overrides: {
+                      "price": 10000
+                  },
+                },
+                {
+                  id: "testexperiment-experimental",
+                  variant_type: "EXPERIMENTAL",
+                  overrides: {
+                      "price": 8800
+                  }
+                }
+            ],
+            description: "test experimentation",
+            change_reason: "a reason",
+        }
+    ]
+    for (const experiment of experiments) {
+        const command = new CreateExperimentCommand(experiment);
+        try {
+          let response = await client.send(command);
+          console.log("Created experiment:", response);
+          const command_two = new RampExperimentCommand({
+            workspace_id,
+            org_id,
+            id: response.id,
+            change_reason: "ramp the experiment",
+            traffic_percentage: 25,
+            });
+          let response_two = await client.send(command_two);
+          console.log("Ramped experiment:", response_two);
+        } catch (e) {
+          console.error("Error occurred while creating experiment:", experiment, e);
+          throw e;
+        }
+    }
+}
+
 async function setupWithSDK(org_id, workspace_id) {
   console.log("\n=== Setting up test environment ===\n");
   await createWorkspace(org_id, workspace_id);
   await create_dimensions(org_id, workspace_id);
   await create_default_configs(org_id, workspace_id);
   await create_overrides(org_id, workspace_id);
+  await create_experiments(org_id, workspace_id);
   console.log("\n=== Setup complete ===\n");
 }
 
@@ -357,6 +410,25 @@ async function runDemo(org_id, workspace_id) {
       assert.strictEqual(currency, "Dollar", "Currency should be Dollar in Boston");
       console.log("  ✓ Test passed\n");
     }
+    // turn this on when bucketing is done for FFI legacy and uniffi
+    // console.log("Test 9: Experiment case: Bangalore pricing");
+    // {
+    //   const context_control = { city: "Bangalore", toss: 30 };
+    //   const price_control = await ofClient.getNumberValue("price", 0, context_control);
+    //   const currency_control = await ofClient.getStringValue("currency", "", context_control);
+
+    //   assert.strictEqual(price_control, 10000, "Price should be 10000 for Bangalore Control Variant");
+    //   assert.strictEqual(currency_control, "Rupee", "Currency should be Rupee in Bangalore");
+    //   console.log("  ✓ Control Test passed\n");
+
+    //   const context_variant = { city: "Bangalore", toss: 1 };
+    //   const price_variant = await ofClient.getNumberValue("price", 0, context_variant);
+    //   const currency_variant = await ofClient.getStringValue("currency", "", context_variant);
+
+    //   assert.strictEqual(price_variant, 8800, "Price should be 8800 for Bangalore Experimental Variant");
+    //   assert.strictEqual(currency_variant, "Rupee", "Currency should be Rupee in Bangalore");
+    //   console.log("  ✓ Experimental Test passed\n");
+    // }
 
     console.log("\n=== All tests passed! ===\n");
   } catch (error) {

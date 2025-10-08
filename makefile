@@ -70,6 +70,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	validate-psql-connection
 	uniffi-bindings
 	test-js-provider
+	test-py-provider
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -366,15 +367,22 @@ uniffi-bindings:
 	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
 	git apply uniffi/patches/*.patch
 
-test-js-provider: WASM_PACK_MODE=--profiling
-test-js-provider: setup superposition
-	sh ./scripts/setup_esm.sh
-	cd clients/javascript/provider-sdk-tests && npm ci
+provider-template: setup superposition
 	@./target/debug/superposition &
 	@echo "Awaiting superposition boot..."
 	@curl	--silent --retry 10 \
 				--connect-timeout 2 \
 				--retry-all-errors \
-				'http://localhost:8080/health' 2>&1 > /dev/null
+				'http://localhost:8080/health' 2>&1 > /dev/null	
+
+test-js-provider: provider-template
+	cd clients/javascript/provider-sdk-tests && npm ci
+	sh ./scripts/setup_provider_binaries.sh js
 	node clients/javascript/provider-sdk-tests/index.js
-	-@pkill -f target/debug/superposition &
+	-@pkill -f target/debug/superposition
+
+test-py-provider: provider-template
+	sh ./scripts/setup_provider_binaries.sh py
+	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
+	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
+	-@pkill -f target/debug/superposition
