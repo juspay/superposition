@@ -126,8 +126,8 @@ pub fn experiment_form(
         );
 
     let handle_variant_form_change =
-        move |updated_varaints: Vec<(String, VariantFormT)>| {
-            variants_ws.set_untracked(updated_varaints);
+        move |updated_variants: Vec<(String, VariantFormT)>| {
+            variants_ws.set_untracked(updated_variants);
         };
 
     let fn_environment = create_memo(move |_| {

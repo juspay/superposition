@@ -93,7 +93,7 @@ async fn create(
             _ => {
                 log::error!("Function creation failed with error: {e}");
                 Err(unexpected_error!(
-                    "An error occured please contact the admin."
+                    "An error occurred please contact the admin."
                 ))
             }
         },

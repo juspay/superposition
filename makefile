@@ -162,10 +162,7 @@ superposition:
 superposition-example:
 	cargo run --bin cac-demo-app
 
-superposition_legacy: CARGO_FLAGS += --features='$(FEATURES)
-superposition_legacy: CARGO_FLAGS += superposition_types/disable_db_data_validation
-superposition_legacy: CARGO_FLAGS += context_aware_config/disable_db_data_validation
-superposition_legacy: CARGO_FLAGS += experimentation_platform/disable_db_data_validation'
+superposition_legacy: CARGO_FLAGS += --features='$(FEATURES) superposition_types/disable_db_data_validation context_aware_config/disable_db_data_validation experimentation_platform/disable_db_data_validation'
 superposition_legacy:
 	cargo build $(CARGO_FLAGS) --bin superposition
 
@@ -217,10 +214,10 @@ test: setup frontend superposition
 	@echo "Running superposition"
 	@./target/debug/superposition &
 	@echo "Awaiting superposition boot..."
-## FIXME Curl doesn't retry.
 	@curl	--silent --retry 10 \
 				--connect-timeout 2 \
 				--retry-all-errors \
+				--retry-connrefused \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test
 	-@pkill -f target/debug/superposition &
@@ -232,10 +229,10 @@ test_jsonlogic: setup frontend superposition_jsonlogic
 	@echo "Running superposition"
 	@./target/debug/superposition &
 	@echo "Awaiting superposition boot..."
-## FIXME Curl doesn't retry.
 	@curl	--silent --retry 10 \
 				--connect-timeout 2 \
 				--retry-all-errors \
+				--retry-connrefused \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && export JSONLOGIC_ENABLED=true && bun test
 	-@pkill -f target/debug/superposition &
