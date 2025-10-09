@@ -1,11 +1,9 @@
 import asyncio
-import json
 import platform
 import traceback
 
 from openfeature import api
 from openfeature.evaluation_context import EvaluationContext
-from openfeature.client import OpenFeatureClient
 from smithy_core.documents import Document
 from superposition_provider.provider import SuperpositionProvider
 from superposition_provider.types import (

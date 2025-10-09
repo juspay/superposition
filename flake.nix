@@ -73,7 +73,7 @@
                 # go
               ];
             shellHook = ''
-              export JAVA_HOME=${pkgs.jdk17}/lib/openjdk
+              export JAVA_HOME=${pkgs.jdk17}
             '';
           };
 

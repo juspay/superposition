@@ -71,6 +71,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	uniffi-bindings
 	test-js-provider
 	test-py-provider
+	test-kotlin-provider
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -385,4 +386,9 @@ test-py-provider: provider-template
 	sh ./scripts/setup_provider_binaries.sh py
 	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
 	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
+	-@pkill -f target/debug/superposition
+
+test-kotlin-provider: provider-template
+	sh ./scripts/setup_provider_binaries.sh kotlin
+	cd clients/java && ./gradlew :provider-sdk-tests:run
 	-@pkill -f target/debug/superposition
