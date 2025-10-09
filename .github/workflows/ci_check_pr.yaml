@@ -95,7 +95,7 @@ jobs:
         runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         services:
             postgres:
-                image: postgres:12-alpine
+                image: public.ecr.aws/docker/library/postgres:15-alpine3.21
                 ports:
                     - 5432:5432
                 env:
@@ -227,3 +227,113 @@ jobs:
                       build/reports/
                       build/test-results/
                   retention-days: 7
+
+    provider-tests:
+        name: Provider Tests
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        strategy:
+            matrix:
+                provider: 
+                    - kotlin
+                    # - js
+                    # - py
+        services:
+            postgres:
+                image: public.ecr.aws/docker/library/postgres:15-alpine3.21
+                ports:
+                    - 5432:5432
+                env:
+                    POSTGRES_PASSWORD: "docker"
+                    POSTGRES_DB: "config"
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            
+            - name: Install postgres libs
+              run: |
+                sudo apt-get -y install postgresql libpq-dev
+                
+            - name: Install Bun
+              uses: oven-sh/setup-bun@v2
+              
+            - name: make binary executable
+              run: chmod +x scripts/setup_provider_binaries.sh
+
+            - name: Restore cache (if present)
+              uses: actions/cache/restore@v4
+              id: cache-restore
+              with:
+                path: |
+                  ~/.cargo/bin/
+                  ~/.cargo/registry/index/
+                  ~/.cargo/registry/cache/
+                  ~/.cargo/git/db/
+                  target/
+                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+                restore-keys: ${{ runner.os }}-cargo-test-
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.86.0
+                  targets: wasm32-unknown-unknown
+                  components: rustfmt, clippy
+
+            - name: Set up JDK 17 (for Kotlin tests)
+              if: matrix.provider == 'kotlin'
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "17"
+                  distribution: "temurin"
+            
+            - name: Make gradlew executable
+              if: matrix.provider == 'kotlin'
+              run: chmod +x clients/java/gradlew
+
+            - name: Run Gradle assemble
+              if: matrix.provider == 'kotlin'
+              run: cd clients/java && ./gradlew assemble
+
+            - name: Install Node.js (for JS tests)
+              if: matrix.provider == 'js'
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18.19.0
+                  
+            - name: Set up Python (for Python tests)
+              if: matrix.provider == 'py'
+              uses: actions/setup-python@v6
+              with:
+                  python-version: "3.12"
+            
+            - name: Install uv
+              if: matrix.provider == 'py'
+              uses: astral-sh/setup-uv@v3
+              with:
+                  version: "latest"
+
+            - name: Run provider tests
+              if: matrix.provider != 'py'
+              shell: bash
+              run: |
+                  cargo build --package superposition_core
+                  make test-${{ matrix.provider }}-provider
+              env:
+                  APP_ENV: "TEST"
+                  
+            - name: Run provider tests
+              if: matrix.provider == 'py'
+              shell: bash
+              run: |
+                  cargo build --package superposition_core
+                  export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+                  make test-${{ matrix.provider }}-provider
+              env:
+                  APP_ENV: "TEST"

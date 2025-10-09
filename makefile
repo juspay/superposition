@@ -378,17 +378,17 @@ provider-template: setup superposition
 
 test-js-provider: provider-template
 	cd clients/javascript/provider-sdk-tests && npm ci
-	sh ./scripts/setup_provider_binaries.sh js
+	bash ./scripts/setup_provider_binaries.sh js
 	node clients/javascript/provider-sdk-tests/index.js
 	-@pkill -f target/debug/superposition
 
 test-py-provider: provider-template
-	sh ./scripts/setup_provider_binaries.sh py
+	bash ./scripts/setup_provider_binaries.sh py
 	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
 	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
 	-@pkill -f target/debug/superposition
 
 test-kotlin-provider: provider-template
-	sh ./scripts/setup_provider_binaries.sh kotlin
+	bash ./scripts/setup_provider_binaries.sh kotlin
 	cd clients/java && ./gradlew :provider-sdk-tests:run
 	-@pkill -f target/debug/superposition
