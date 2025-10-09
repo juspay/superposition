@@ -53,6 +53,7 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  *   tables: "STRING_VALUE",
  *   action: "STRING_VALUE",
  *   username: "STRING_VALUE",
+ *   sort_by: "desc" || "asc",
  * };
  * const command = new ListAuditLogsCommand(input);
  * const response = await client.send(command);

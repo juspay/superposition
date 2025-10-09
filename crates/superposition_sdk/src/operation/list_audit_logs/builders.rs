@@ -236,5 +236,19 @@ impl ListAuditLogsFluentBuilder {
     pub fn get_username(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_username()
                 }
+    /// Sort order enumeration for list operations.
+    pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
+                    self.inner = self.inner.sort_by(input);
+                    self
+                }
+    /// Sort order enumeration for list operations.
+    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
+                    self.inner = self.inner.set_sort_by(input);
+                    self
+                }
+    /// Sort order enumeration for list operations.
+    pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
+                    self.inner.get_sort_by()
+                }
 }
 

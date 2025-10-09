@@ -1116,3 +1116,36 @@ pub mod experiment_groups {
         parse_json_response(response).await
     }
 }
+
+pub mod audit_log {
+    use superposition_types::{
+        api::audit_log::AuditQueryFilters, database::models::cac::EventLog,
+    };
+
+    use super::*;
+
+    pub async fn fetch(
+        filters: &AuditQueryFilters,
+        pagination: &PaginationParams,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<EventLog>, String> {
+        let host = use_host_server();
+        let url = format!(
+            "{}/audit?{}&{}",
+            host,
+            filters.to_query_param(),
+            pagination.to_query_param(),
+        );
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<Value>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+}

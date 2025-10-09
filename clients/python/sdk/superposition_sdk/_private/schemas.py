@@ -523,6 +523,31 @@ APPLICABLE_VARIANTS = Schema(
 
 )
 
+SORT_BY = Schema.collection(
+    id=ShapeID("io.superposition#SortBy"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "Desc": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="desc"),
+
+            ],
+        },
+
+        "Asc": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="asc"),
+
+            ],
+        },
+
+    }
+)
+
 LIST_AUDIT_LOGS_INPUT = Schema.collection(
     id=ShapeID("io.superposition#ListAuditLogsInput"),
 
@@ -625,6 +650,16 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="username"),
+
+            ],
+        },
+
+        "sort_by": {
+            "target": SORT_BY,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
 
             ],
         },
@@ -2790,31 +2825,6 @@ DIMENSION_MATCH_STRATEGY = Schema.collection(
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="subset"),
-
-            ],
-        },
-
-    }
-)
-
-SORT_BY = Schema.collection(
-    id=ShapeID("io.superposition#SortBy"),
-    shape_type=ShapeType.ENUM,
-    members={
-        "Desc": {
-            "target": UNIT,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="desc"),
-
-            ],
-        },
-
-        "Asc": {
-            "target": UNIT,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="asc"),
 
             ],
         },
