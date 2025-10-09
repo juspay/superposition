@@ -19,11 +19,11 @@ from superposition_sdk.models import (
     CreateContextInput,
     CreateDefaultConfigInput,
     CreateDimensionInput,
+    CreateOrganisationInput,
     CreateWorkspaceInput,
     DimensionTypeLOCAL_COHORT,
 )
 
-ORG_ID = "localorg"
 WORKSPACE_ID = "pyprovidertest"
 
 SUPERPOSITION_SDK_CONFIG = {
@@ -32,6 +32,21 @@ SUPERPOSITION_SDK_CONFIG = {
         "token": "12131",
     },
 }
+
+
+async def create_organisation(client) -> str:
+    input_data = CreateOrganisationInput(
+        name="pytestorg", admin_email="admin@pytestorg.com"
+    )
+    try:
+        response = await client.create_organisation(input_data)
+        print(
+            f"Organisation created successfully: {response.name} with ID: {response.id}"
+        )
+        return response.id
+    except Exception as e:
+        print("An exception occurred while creating organization:", e)
+        raise e
 
 
 async def create_workspace(client, org_id: str, workspace_name: str):
@@ -287,7 +302,9 @@ async def run_demo(org_id: str, workspace_id: str):
 
         # Test 3: Platinum customer - Sauyav, no city
         print("Test 3: Platinum customer - Sauyav (no city)")
-        evaluation_context = EvaluationContext(attributes={"name": "Sauyav", "city": "Boston"})
+        evaluation_context = EvaluationContext(
+            attributes={"name": "Sauyav", "city": "Boston"}
+        )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
 
@@ -305,7 +322,9 @@ async def run_demo(org_id: str, workspace_id: str):
         print("  ✓ Test passed\n")
 
         print("Test 5: Platinum customer - Sauyav with city Berlin")
-        evaluation_context = EvaluationContext(attributes={"name": "Sauyav", "city": "Berlin"})
+        evaluation_context = EvaluationContext(
+            attributes={"name": "Sauyav", "city": "Berlin"}
+        )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
 
@@ -314,7 +333,9 @@ async def run_demo(org_id: str, workspace_id: str):
         print("  ✓ Test passed\n")
 
         print("Test 6: Regular customer - John with city Boston")
-        evaluation_context = EvaluationContext(attributes={"name": "John", "city": "Boston"})
+        evaluation_context = EvaluationContext(
+            attributes={"name": "John", "city": "Boston"}
+        )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
 
@@ -332,7 +353,9 @@ async def run_demo(org_id: str, workspace_id: str):
         print("  ✓ Test passed\n")
 
         print("Test 8: Edge case customer - karbik with city Boston")
-        evaluation_context = EvaluationContext(attributes={"name": "karbik", "city": "Boston"})
+        evaluation_context = EvaluationContext(
+            attributes={"name": "karbik", "city": "Boston"}
+        )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
 
@@ -353,8 +376,9 @@ async def main():
     try:
         config = Config(endpoint_uri=SUPERPOSITION_SDK_CONFIG["endpoint"])
         client = Superposition(config)
-        await setup_with_sdk(client, ORG_ID, WORKSPACE_ID)
-        await run_demo(ORG_ID, WORKSPACE_ID)
+        org_id = await create_organisation(client)
+        await setup_with_sdk(client, org_id, WORKSPACE_ID)
+        await run_demo(org_id, WORKSPACE_ID)
     except Exception as error:
         print(f"\n❌ Test suite failed: {error}")
         exit(1)

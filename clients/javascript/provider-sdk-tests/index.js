@@ -7,11 +7,11 @@ import {
   CreateDefaultConfigCommand,
   CreateContextCommand,
   CreateExperimentCommand,
-  RampExperimentCommand
+  RampExperimentCommand,
+  CreateOrganisationCommand
 } from "superposition-sdk";
 import assert from "assert";
 
-const ORG_ID = "localorg";
 const WORKSPACE_ID = "jsprovidertest";
 
 const SuperpositionSDKConfig = {
@@ -22,6 +22,22 @@ const SuperpositionSDKConfig = {
 };
 
 const client = new SuperpositionClient(SuperpositionSDKConfig);
+
+async function createOrganisation() {
+  const command = new CreateOrganisationCommand({
+    name: "jstestorg",
+    admin_email: "admin@jstestorg.com"
+  });
+
+  try {
+    const response = await client.send(command);
+    console.log("Organisation created successfully:", response.name, "with ID:", response.id);
+    return response.id;
+  } catch (e) {
+    console.error("An exception occurred while creating organization:", e);
+    throw e;
+  }
+}
 
 async function createWorkspace(org_id, workspace_name) {
   let command = new CreateWorkspaceCommand({
@@ -445,6 +461,7 @@ console.log(
 );
 
 try {
+    const ORG_ID = await createOrganisation();
     await setupWithSDK(ORG_ID, WORKSPACE_ID);
     await runDemo(ORG_ID, WORKSPACE_ID);
 } catch (error) {

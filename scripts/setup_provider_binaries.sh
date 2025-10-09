@@ -2,11 +2,18 @@
 
 # Script to set up provider binaries following the same platform-based approach as release.yaml
 
+echo "$OSTYPE"
+echo "$PATH" | grep -q '/nix/store'
+in_nix=$?
+if [ $in_nix == 0 ]; then
+    echo "Inside nix shell, doing some stuff"
+fi
+
 if [[ $1 == "js"  ]]; then
-    if [[ "$OSTYPE" != "darwin"* && $in_nix != 0 ]]; then
-    	sed -i '' "s/import require\$\$1\$3 from '\.\.\/package\.json';/import require\$\$1\$3 from '..\/package.json' with {type: \"json\"};/" clients/javascript/open-feature-provider/dist/index.esm.js
+    if [[ "$OSTYPE" == "darwin"* && $in_nix != 0 ]]; then
+    	sed -i '' "s/import require\$\$1\$3 from '\.\.\/package\.json';/import require\$\$1\$3 from '..\/package.json' with {type: \"json\"};/" ./clients/javascript/open-feature-provider/dist/index.esm.js
     else
-    	sed -i "s/import require\$\$1\$3 from '\.\.\/package\.json';/import require\$\$1\$3 from '..\/package.json' with {type: \"json\"};/" clients/javascript/open-feature-provider/dist/index.esm.js
+    	sed -i "s/import require\$\$1\$3 from '\.\.\/package\.json';/import require\$\$1\$3 from '..\/package.json' with {type: \"json\"};/" ./clients/javascript/open-feature-provider/dist/index.esm.js
     fi
     mkdir -p clients/javascript/open-feature-provider/dist/native-lib
 fi
@@ -56,7 +63,7 @@ if [[ $1 == "js" ]]; then
     COPY_PATH="clients/javascript/open-feature-provider/dist/native-lib"
     FINAL_LIB_NAME="$LIB_NAME-$TARGET_TRIPLE.$LIB_EXTENSION"
 elif [[ $1 == "py" ]]; then
-    COPY_PATH="clients/python/provider-sdk-tests/.venv/lib/python3.12/site-packages/superposition_bindings"
+    COPY_PATH="$UV_PROJECT_ENVIRONMENT/lib/python3.12/site-packages/superposition_bindings"
     FINAL_LIB_NAME="$LIB_NAME-$TARGET_TRIPLE.$LIB_EXTENSION"
 elif [[ $1 == "kotlin" ]]; then
     # For Kotlin/Java, use platform-based directory structure like in release.yaml

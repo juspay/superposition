@@ -165,7 +165,7 @@ export class ConfigurationClient {
             throw new Error(`Failed to fetch configuration: ${errorMessage}`);
         }
     }
-
+    // TODO: defaultValue is taken but not used. Should it be used as a fallback?
     async getAllConfigValue(
         defaultValue: Record<string, any>,
         context: Record<string, any>,
@@ -186,6 +186,7 @@ export class ConfigurationClient {
 
                 const variantIds = await this.getApplicableVariants(
                     experiments,
+                    this.currentConfigData?.dimensions || {},
                     queryData,
                     identifier
                 );
@@ -222,6 +223,7 @@ export class ConfigurationClient {
     // Add method to get applicable variants
     private async getApplicableVariants(
         experiments: Experiment[],
+        dimensions: Record<string, Record<string, any>>,
         queryData: Record<string, any>,
         identifier: string,
         filterPrefixes?: string[]
@@ -229,6 +231,7 @@ export class ConfigurationClient {
         // This would use the native resolver's getApplicableVariants method
         return this.resolver.getApplicableVariants(
             experiments,
+            dimensions,
             queryData,
             identifier,
             filterPrefixes || []

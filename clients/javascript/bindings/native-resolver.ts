@@ -263,7 +263,7 @@ export class NativeResolver {
         const filterPrefixesJson =
             filterPrefixes.length > 0 ? JSON.stringify(filterPrefixes) : null;
 
-        console.log("🔧 Calling FFI getApplicableVariants with parameters:");
+        console.log("Calling FFI getApplicableVariants with parameters:");
         console.log("  experiments:", experiments);
         console.log("  userContext:", userContext);
         console.log("  identifier:", identifier);

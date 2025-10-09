@@ -19,7 +19,6 @@ import software.amazon.smithy.java.auth.api.AuthProperties
 import java.util.concurrent.CompletableFuture
 import kotlin.system.exitProcess
 
-const val ORG_ID = "localorg"
 const val WORKSPACE_ID = "kotlinprovidertest"
 
 data class SuperpositionSDKConfig(
@@ -476,10 +475,30 @@ class Main {
         }
     }
 
+    private fun create_organisation(): String {
+        val input = CreateOrganisationInput.builder()
+            .name("kttestorg")
+            .adminEmail("admin@kttestorg.com")
+            .build()
+
+        try {
+            val future = CompletableFuture.supplyAsync {
+                client.createOrganisation(input)
+            }
+            val response = future.join()
+            println("Organisation created successfully: ${response.name()} with ID: ${response.id()}")
+            return response.id()
+        } catch (e: Exception) {
+            println("An exception occurred while creating organization: $e")
+            throw e
+        }
+    }
+
     fun run() {
         println("Starting Superposition OpenFeature demo and tests (Kotlin)...")
 
         try {
+            val ORG_ID = create_organisation()
             setupWithSDK(ORG_ID, WORKSPACE_ID)
             runDemo(ORG_ID, WORKSPACE_ID)
         } catch (error: Exception) {
