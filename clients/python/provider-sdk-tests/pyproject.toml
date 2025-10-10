@@ -1,0 +1,21 @@
+[project]
+name = "provider-sdk-tests"
+version = "1.0.0"
+description = "Provider SDK tests for Superposition"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Superposition Team" }
+]
+license = { text = "Apache-2.0" }
+
+dependencies = [
+    "superposition-provider",
+    "superposition-sdk",
+    "openfeature-sdk==0.8.3"
+]
+
+[tool.uv.sources]
+superposition-provider = { path = "../provider", editable = true }
+superposition-sdk = { path = "../sdk", editable = true }
+superposition-bindings = { path = "../bindings", editable = true }
