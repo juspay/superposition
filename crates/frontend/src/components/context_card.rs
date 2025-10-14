@@ -40,19 +40,9 @@ fn context_options(
     #[prop(into)] handle_edit: Callback<(), ()>,
     #[prop(into)] handle_delete: Callback<(), ()>,
 ) -> impl IntoView {
-    let node_ref = create_node_ref::<html::Input>();
-
     view! {
         <div class="w-fit dropdown dropdown-left">
-            <label
-                tabindex="0"
-                class="btn btn-sm text-xs m-1 w-full"
-                on:click:undelegated=move |_| {
-                    if let Some(element) = node_ref.get() {
-                        let _ = element.focus();
-                    }
-                }
-            >
+            <label tabindex="0" class="btn btn-sm text-xs m-1 w-full">
                 <i class="ri-more-2-fill" />
             </label>
             <ul

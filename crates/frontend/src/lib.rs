@@ -3,6 +3,7 @@
 
 mod api;
 pub mod app;
+pub mod bindings;
 pub mod components;
 pub mod hoc;
 pub mod logic;

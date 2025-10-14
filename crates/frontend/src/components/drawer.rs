@@ -113,7 +113,9 @@ pub fn portal_drawer(
                             </button>
                         </div>
                         <div class="divider m-0" />
-                        <div class="p-4 relative overflow-y-scroll flex-1">{children()}</div>
+                        <div class="p-4 relative overflow-y-scroll flex-1 bg-white">
+                            {children()}
+                        </div>
                     </div>
                 </div>
             </div>

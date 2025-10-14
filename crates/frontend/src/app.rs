@@ -7,7 +7,7 @@ use crate::hoc::layout::{use_org, CommonLayout, Layout, Providers};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
-use crate::pages::dimension::DimensionPage;
+use crate::pages::dimension::{CreateDimension, DimensionPage, EditDimension};
 use crate::pages::dimensions::Dimensions;
 use crate::pages::experiment_group_listing::ExperimentGroupListing;
 use crate::pages::experiment_groups::ExperimentGroups;
@@ -50,6 +50,10 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                 <Script
                     type_="text/javascript"
                     src="https://cdn.jsdelivr.net/npm/@andypf/json-viewer@2.1.5/dist/iife/index.min.js"
+                />
+                <Script
+                    type_="text/javascript"
+                    src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"
                 />
                 {move || {
                     if base.is_empty() {
@@ -125,6 +129,12 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                     <Route ssr=SsrMode::Async path="/admin/:org_id/:tenant" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
+                        <Route ssr=SsrMode::Async path="dimensions/create" view=CreateDimension />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="dimensions/:dimension_name/edit"
+                            view=EditDimension
+                        />
                         <Route
                             ssr=SsrMode::Async
                             path="dimensions/:dimension_name"

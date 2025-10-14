@@ -37,94 +37,6 @@ pub fn is_constant(v: &serde_json::Value) -> bool {
 }
 
 impl Expression {
-    #[cfg(feature = "jsonlogic")]
-    fn try_from_expression_map(
-        source: &Map<String, serde_json::Value>,
-    ) -> Result<Self, &'static str> {
-        if let Some(operator) = source.keys().next() {
-            let operands = source[operator]
-                .as_array()
-                .cloned()
-                .ok_or("Invalid operands list for context")?;
-
-            let operand_0 = operands.first();
-            let operand_1 = operands.get(1);
-            let operand_2 = operands.get(2);
-
-            match (operator.as_str(), operand_0, operand_1, operand_2) {
-                ("==", Some(o1), Some(o2), None)
-                    if is_variable(o1) && is_constant(o2) =>
-                {
-                    return Ok(Expression::Is(o2.clone()));
-                }
-                ("<=", Some(o1), Some(o2), Some(o3))
-                    if is_variable(o2) && is_constant(o1) && is_constant(o3) =>
-                {
-                    return Ok(Expression::Between(o1.clone(), o3.clone()));
-                }
-                ("in", Some(o1), Some(o2), None)
-                    if is_variable(o1) && is_constant(o2) =>
-                {
-                    return Ok(Expression::In(o2.clone()));
-                }
-                ("in", Some(o1), Some(o2), None)
-                    if is_variable(o2) && is_constant(o1) =>
-                {
-                    return Ok(Expression::Has(o1.clone()));
-                }
-                _ => {
-                    return Ok(Expression::Other(operator.clone(), operands.clone()));
-                }
-            }
-        }
-
-        Err("not a valid expression map")
-    }
-
-    #[cfg(feature = "jsonlogic")]
-    fn to_expression_json(&self, var: &str) -> serde_json::Value {
-        match self {
-            Expression::Is(c) => {
-                json!({
-                    "==": [
-                        {"var": var},
-                        c
-                    ]
-                })
-            }
-            Expression::In(c) => {
-                json!({
-                    "in": [
-                        {"var": var},
-                        c
-                    ]
-                })
-            }
-            Expression::Has(c) => {
-                json!({
-                    "in": [
-                        c,
-                        {"var": var}
-                    ]
-                })
-            }
-            Expression::Between(c1, c2) => {
-                json!({
-                    "<=": [
-                        c1,
-                        {"var": var},
-                        c2
-                    ]
-                })
-            }
-            Expression::Other(operator, operands) => {
-                json!({
-                    operator: operands.clone()
-                })
-            }
-        }
-    }
-
     fn to_expression_query_str(&self, var: &str) -> Option<String> {
         match self {
             Expression::Is(c) => Some(format!("{var}={value}", value = c.html_display())),
@@ -288,53 +200,6 @@ impl Condition {
         }
     }
 
-    #[cfg(feature = "jsonlogic")]
-    fn try_var_from_condition_map(
-        source: &Map<String, serde_json::Value>,
-    ) -> Result<String, &'static str> {
-        if let Some(operator) = source.keys().next() {
-            return source[operator]
-                .as_array()
-                .ok_or("Invalid operands list for context")?
-                .iter()
-                .find_map(|o| {
-                    o.as_object().and_then(|v| {
-                        v.get("var").and_then(|s| s.as_str().map(|s| s.to_owned()))
-                    })
-                })
-                .ok_or("variable doesn't exist in operands");
-        }
-        Err("not a valid condition map")
-    }
-
-    #[cfg(feature = "jsonlogic")]
-    pub fn try_from_condition_map(
-        source: &Map<String, serde_json::Value>,
-    ) -> Result<Self, &'static str> {
-        let variable = Self::try_var_from_condition_map(source)?;
-        let expression = Expression::try_from_expression_map(source)?;
-
-        Ok(Condition {
-            variable,
-            expression,
-        })
-    }
-
-    #[cfg(feature = "jsonlogic")]
-    pub fn try_from_condition_json(
-        source: &serde_json::Value,
-    ) -> Result<Self, &'static str> {
-        let obj = source
-            .as_object()
-            .ok_or("not a valid condition value, should be an object")?;
-        Self::try_from_condition_map(obj)
-    }
-
-    #[cfg(feature = "jsonlogic")]
-    pub fn to_condition_json(&self) -> serde_json::Value {
-        self.expression.to_expression_json(&self.variable)
-    }
-
     pub fn to_condition_query_str(&self) -> Option<String> {
         self.expression.to_expression_query_str(&self.variable)
     }
@@ -367,10 +232,12 @@ impl Conditions {
                 .ok_or("failed to parse value of and as array")
                 .and_then(|arr| {
                     arr.iter()
-                        .map(Condition::try_from_condition_json)
+                        .map(jsonlogic::condition::try_from_condition_json)
                         .collect::<Result<Vec<Condition>, &'static str>>()
                 })?,
-            None => Condition::try_from_condition_map(context).map(|v| vec![v])?,
+            None => {
+                jsonlogic::condition::try_from_condition_map(context).map(|v| vec![v])?
+            }
         }))
     }
 
@@ -422,7 +289,7 @@ impl Conditions {
             String::from("and"),
             Value::Array(
                 self.iter()
-                    .map(|v| v.to_condition_json())
+                    .map(|v| jsonlogic::condition::to_condition_json(v))
                     .collect::<Vec<serde_json::Value>>(),
             ),
         )])
@@ -459,5 +326,159 @@ impl TryFrom<&ConfigContext> for Conditions {
     type Error = &'static str;
     fn try_from(context: &ConfigContext) -> Result<Self, Self::Error> {
         Self::from_context_json(&context.condition)
+    }
+}
+
+pub mod jsonlogic {
+    use super::*;
+
+    pub mod condition {
+        use super::*;
+
+        fn try_var_from_condition_map(
+            source: &Map<String, serde_json::Value>,
+        ) -> Result<String, &'static str> {
+            if let Some(operator) = source.keys().next() {
+                return source[operator]
+                    .as_array()
+                    .ok_or("Invalid operands list for context")?
+                    .iter()
+                    .find_map(|o| {
+                        o.as_object().and_then(|v| {
+                            v.get("var").and_then(|s| s.as_str().map(|s| s.to_owned()))
+                        })
+                    })
+                    .ok_or("variable doesn't exist in operands");
+            }
+            Err("not a valid condition map")
+        }
+
+        pub fn try_from_condition_map(
+            source: &Map<String, serde_json::Value>,
+        ) -> Result<Condition, &'static str> {
+            let variable = try_var_from_condition_map(source)?;
+            let expression = expression::try_from_expression_map(source)?;
+
+            Ok(Condition {
+                variable,
+                expression,
+            })
+        }
+
+        pub fn try_from_condition_json(
+            source: &serde_json::Value,
+        ) -> Result<Condition, &'static str> {
+            let obj = source
+                .as_object()
+                .ok_or("not a valid condition value, should be an object")?;
+            try_from_condition_map(obj)
+        }
+
+        pub fn to_condition_json(value: &Condition) -> serde_json::Value {
+            expression::to_expression_json(&value.expression, &value.variable)
+        }
+    }
+
+    pub mod expression {
+        use serde_json::json;
+
+        use super::*;
+
+        pub(super) fn try_from_expression_map(
+            source: &Map<String, serde_json::Value>,
+        ) -> Result<Expression, &'static str> {
+            if let Some(operator) = source.keys().next() {
+                let operands = source[operator]
+                    .as_array()
+                    .cloned()
+                    .ok_or("Invalid operands list for context")?;
+
+                let operand_0 = operands.first();
+                let operand_1 = operands.get(1);
+                let operand_2 = operands.get(2);
+
+                match (operator.as_str(), operand_0, operand_1, operand_2) {
+                    ("==", Some(o1), Some(o2), None)
+                        if is_variable(o1) && is_constant(o2) =>
+                    {
+                        return Ok(Expression::Is(o2.clone()));
+                    }
+                    #[cfg(feature = "jsonlogic")]
+                    ("<=", Some(o1), Some(o2), Some(o3))
+                        if is_variable(o2) && is_constant(o1) && is_constant(o3) =>
+                    {
+                        return Ok(Expression::Between(o1.clone(), o3.clone()));
+                    }
+                    #[cfg(feature = "jsonlogic")]
+                    ("in", Some(o1), Some(o2), None)
+                        if is_variable(o1) && is_constant(o2) =>
+                    {
+                        return Ok(Expression::In(o2.clone()));
+                    }
+                    ("in", Some(o1), Some(o2), None)
+                        if is_variable(o2) && is_constant(o1) =>
+                    {
+                        return Ok(Expression::Has(o1.clone()));
+                    }
+                    #[cfg(feature = "jsonlogic")]
+                    _ => {
+                        return Ok(Expression::Other(operator.clone(), operands.clone()));
+                    }
+                    #[cfg(not(feature = "jsonlogic"))]
+                    _ => return Err("unsupported operator"),
+                }
+            }
+
+            Err("not a valid expression map")
+        }
+
+        pub(crate) fn to_expression_json(
+            expr: &Expression,
+            var: &str,
+        ) -> serde_json::Value {
+            match expr {
+                Expression::Is(c) => {
+                    json!({
+                        "==": [
+                            {"var": var},
+                            c
+                        ]
+                    })
+                }
+                #[cfg(feature = "jsonlogic")]
+                Expression::In(c) => {
+                    json!({
+                        "in": [
+                            {"var": var},
+                            c
+                        ]
+                    })
+                }
+                Expression::Has(c) => {
+                    json!({
+                        "in": [
+                            c,
+                            {"var": var}
+                        ]
+                    })
+                }
+                #[cfg(feature = "jsonlogic")]
+                Expression::Between(c1, c2) => {
+                    json!({
+                        "<=": [
+                            c1,
+                            {"var": var},
+                            c2
+                        ]
+                    })
+                }
+                #[cfg(feature = "jsonlogic")]
+                Expression::Other(operator, operands) => {
+                    json!({
+                        operator: operands.clone()
+                    })
+                }
+            }
+        }
     }
 }

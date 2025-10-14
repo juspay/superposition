@@ -18,7 +18,6 @@ use crate::components::{
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::use_url_base;
 
 #[component]
 fn config_info(default_config: DefaultConfig) -> impl IntoView {
@@ -155,9 +154,8 @@ pub fn default_config() -> impl IntoView {
                 Ok(_) => {
                     logging::log!("Config deleted successfully");
                     let navigate = use_navigate();
-                    let base = use_url_base();
                     let redirect_url = format!(
-                        "{base}/admin/{}/{}/default-config",
+                        "/admin/{}/{}/default-config",
                         org.get().0,
                         workspace.get().0,
                     );

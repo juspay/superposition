@@ -7,7 +7,7 @@ pub fn change_form(
     #[prop(into)] title: String,
     #[prop(into)] placeholder: String,
     #[prop(into, default = String::new())] class: String,
-    #[prop(into, default = "textarea textarea-bordered w-full max-w-md".to_string())]
+    #[prop(into, default = "textarea textarea-bordered w-full".to_string())]
     textarea_class: String,
     #[prop(into)] value: String,
     #[prop(into)] on_change: Callback<String, ()>,
@@ -18,7 +18,7 @@ pub fn change_form(
         on_change.call(new_value.clone());
     };
     view! {
-        <div class=format!("form-control {class}")>
+        <div class=format!("form-control flex-1 max-w-md min-w-[300px] {class}")>
             <Label title />
             <textarea
                 type="text"

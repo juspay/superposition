@@ -1,8 +1,7 @@
 use std::collections::{HashMap, HashSet};
-use std::ops::Deref;
 
 use leptos::*;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::api::{
     dimension::DimensionResponse, workspace::WorkspaceResponse,
 };
@@ -24,9 +23,9 @@ pub fn condition_input(
     disabled: bool,
     resolve_mode: bool,
     allow_remove: bool,
-    condition: StoredValue<Condition>,
-    input_type: StoredValue<InputType>,
-    schema_type: StoredValue<SchemaType>,
+    condition: Condition,
+    input_type: InputType,
+    schema_type: SchemaType,
     autocomplete_callbacks: AutoCompleteCallbacks,
     #[prop(into)] on_remove: Callback<String, ()>,
     #[prop(into)] on_value_change: Callback<Expression, ()>,
@@ -34,14 +33,12 @@ pub fn condition_input(
     #[prop(default = String::new())] tooltip_text: String,
 ) -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
-    let (dimension, operator): (String, Operator) =
-        condition.with_value(|v| (v.variable.clone(), v.into()));
+    let (dimension, operator) = (condition.variable.clone(), Operator::from(&condition));
     let tooltip_text = StoredValue::new(tooltip_text);
 
     let autocomplete_callback = autocomplete_callbacks.get(&dimension).cloned();
 
-    let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.get_value().expression
-    {
+    let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.expression.clone() {
         Expression::Is(c) => {
             vec![(
                 c,
@@ -149,7 +146,6 @@ pub fn condition_input(
                             }
                         }
                     }
-
                     name="context-dimension-operator"
                     class="select select-bordered w-full max-w-xs text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
                 >
@@ -172,30 +168,22 @@ pub fn condition_input(
             <label class="label text-sm">
                 <span class="label-text">Value</span>
             </label>
-
             <div class="flex gap-x-6 items-center">
-
                 {inputs
                     .into_iter()
                     .enumerate()
                     .map(|(idx, (value, on_change)): (usize, (Value, Callback<Value, ()>))| {
                         view! {
                             <Input
-                                value=value
-                                schema_type=schema_type.get_value()
-                                on_change=on_change
-                                r#type=input_type.get_value()
-                                disabled=disabled
+                                value
+                                schema_type=schema_type.clone()
+                                on_change
+                                r#type=input_type.clone()
+                                disabled
                                 id=format!(
-                                    "{}-{}",
-                                    condition
-                                        .with_value(|v| {
-                                            format!(
-                                                "{}-{}",
-                                                v.variable,
-                                                (<&Condition as Into<Operator>>::into(v)),
-                                            )
-                                        }),
+                                    "{}-{}-{}",
+                                    condition.variable.clone(),
+                                    Operator::from(&condition),
                                     idx,
                                 )
                                 class="w-[450px]"
@@ -209,8 +197,11 @@ pub fn condition_input(
                     <button
                         class="btn btn-ghost btn-circle btn-sm"
                         disabled=disabled
-                        on:click=move |_| {
-                            on_remove.call(condition.with_value(|v| v.variable.clone()));
+                        on:click={
+                            let variable = condition.variable.clone();
+                            move |_| {
+                                on_remove.call(variable.clone());
+                            }
                         }
                     >
                         <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
@@ -287,7 +278,8 @@ pub fn context_form(
                 );
                 context.push(Condition::new_with_default_expression(
                     dimension.dimension.clone(),
-                    SchemaType::try_from(dimension.schema.deref()).unwrap_or_default(),
+                    SchemaType::try_from(&dimension.schema as &Map<String, Value>)
+                        .unwrap_or_default(),
                 ));
             }
             dimension
@@ -295,10 +287,10 @@ pub fn context_form(
                 .keys()
                 .filter(|key| **key != dimension.dimension)
                 .for_each(|dependency| {
-                    if let Some(r#type) = dimension_map
-                        .get_value()
-                        .get(dependency)
-                        .and_then(|d| SchemaType::try_from(d.schema.deref()).ok())
+                    if let Some(r#type) =
+                        dimension_map.get_value().get(dependency).and_then(|d| {
+                            SchemaType::try_from(&d.schema as &Map<String, Value>).ok()
+                        })
                     {
                         if !context.includes(dependency) {
                             context.push(Condition::new_with_default_expression(
@@ -368,8 +360,10 @@ pub fn context_form(
             } else {
                 context.push(Condition::new_with_default_expression(
                     selected_dimension.dimension.clone(),
-                    SchemaType::try_from(selected_dimension.schema.deref())
-                        .unwrap_or_default(),
+                    SchemaType::try_from(
+                        &selected_dimension.schema as &Map<String, Value>,
+                    )
+                    .unwrap_or_default(),
                 ));
             }
             context_ws.update(|v| {
@@ -400,8 +394,7 @@ pub fn context_form(
         });
     });
 
-    let get_tool_tip_text = move |condition: StoredValue<Condition>| -> String {
-        let variable = condition.get_value().variable;
+    let get_tool_tip_text = move |variable: String| -> String {
         if mandatory_dimensions_set.with_value(|s| s.contains(&variable)) {
             return "Mandatory Dimension".to_string();
         }
@@ -462,20 +455,23 @@ pub fn context_form(
                                 .with_value(|v| {
                                     v.get(&condition.variable)
                                         .map(|d| {
-                                            let dimension_schema = d.schema.clone();
+                                            let dimension_schema: &Map<String, Value> = &d.schema;
                                             (
-                                                SchemaType::try_from(dimension_schema.deref()),
-                                                EnumVariants::try_from(dimension_schema.deref()),
+                                                SchemaType::try_from(dimension_schema),
+                                                EnumVariants::try_from(dimension_schema),
                                             )
                                         })
                                         .unwrap_or((Err("".to_string()), Err("".to_string())))
                                 });
-                            let operator = Operator::from(&condition);
-                            if schema_type.is_err() || enum_variants.is_err() {
+                            let Ok(schema_type) = schema_type else {
                                 return view! { <span class="text-sm red">An error occured</span> }
                                     .into_view();
-                            }
-                            let schema_type = store_value(schema_type.unwrap());
+                            };
+                            let Ok(enum_variants) = enum_variants else {
+                                return view! { <span class="text-sm red">An error occured</span> }
+                                    .into_view();
+                            };
+                            let operator = Operator::from(&condition);
                             let is_mandatory = mandatory_dimensions_set
                                 .with_value(|v| v.contains(&condition.variable));
                             let has_context_dependency = context_dependencies
@@ -485,26 +481,26 @@ pub fn context_form(
                             } else {
                                 !disabled && !is_mandatory && !has_context_dependency
                             };
-                            let input_type = store_value(
-                                InputType::from((
-                                    schema_type.get_value(),
-                                    enum_variants.unwrap(),
-                                    operator,
-                                )),
-                            );
-                            let condition = store_value(condition);
+                            let input_type = InputType::from((
+                                schema_type.clone(),
+                                enum_variants,
+                                operator,
+                            ));
                             let on_remove = move |d_name| on_remove.call((idx, d_name));
                             let on_value_change = move |expression| {
                                 on_value_change.call((idx, expression))
                             };
-                            let on_operator_change = move |operator| {
-                                on_operator_change
-                                    .call((
-                                        idx,
-                                        Expression::from((schema_type.get_value(), operator)),
-                                    ))
+                            let on_operator_change = {
+                                let schema_type = schema_type.clone();
+                                move |operator| {
+                                    on_operator_change
+                                        .call((
+                                            idx,
+                                            Expression::from((schema_type.clone(), operator)),
+                                        ))
+                                }
                             };
-                            let tooltip_text = get_tool_tip_text(condition);
+                            let tooltip_text = get_tool_tip_text(condition.variable.clone());
                             view! {
                                 <ConditionInput
                                     disabled
