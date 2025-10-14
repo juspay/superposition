@@ -812,6 +812,22 @@ APPLICABLE_VARIANTS = APIOperation(
         ]
 )
 
+class SortBy(StrEnum):
+    """
+    Sort order enumeration for list operations.
+
+    """
+    DESC = "desc"
+    """
+    Descending order (Z-A, newest first)
+
+    """
+    ASC = "asc"
+    """
+    Ascending order (A-Z, oldest first)
+
+    """
+
 @dataclass(kw_only=True)
 class ListAuditLogsInput:
     """
@@ -832,6 +848,9 @@ class ListAuditLogsInput:
     :param action:
          Comma serparated list of actions.
 
+    :param sort_by:
+         Sort order enumeration for list operations.
+
     """
 
     workspace_id: str | None = None
@@ -844,6 +863,7 @@ class ListAuditLogsInput:
     tables: str | None = None
     action: str | None = None
     username: str | None = None
+    sort_by: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_AUDIT_LOGS_INPUT, self)
@@ -890,6 +910,9 @@ class ListAuditLogsInput:
 
                 case 9:
                     kwargs["username"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["username"])
+
+                case 10:
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["sort_by"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -3829,22 +3852,6 @@ class DimensionMatchStrategy(StrEnum):
     SUBSET = "subset"
     """
     Match the overrides which have the given context as subset
-
-    """
-
-class SortBy(StrEnum):
-    """
-    Sort order enumeration for list operations.
-
-    """
-    DESC = "desc"
-    """
-    Descending order (Z-A, newest first)
-
-    """
-    ASC = "asc"
-    """
-    Ascending order (A-Z, oldest first)
 
     """
 

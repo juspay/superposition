@@ -79,6 +79,14 @@
                         }
                     },
                     {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sort order enumeration for list operations.",
+                        "schema": {
+                            "$ref": "#/components/schemas/SortBy"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {

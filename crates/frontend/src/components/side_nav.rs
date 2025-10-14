@@ -70,6 +70,12 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             icon: "ri-webhook-line".to_string(),
             label: "Webhooks".to_string(),
         },
+        AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/audit-log"),
+            path: format!("{base}/admin/{org}/{tenant}/audit-log"),
+            icon: "ri-file-list-3-line".to_string(),
+            label: "Audit Log".to_string(),
+        },
     ]
 }
 

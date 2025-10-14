@@ -62,6 +62,10 @@ operation ListAuditLogs {
         @httpQuery("username")
         @notProperty
         username: String
+
+        @httpQuery("sort_by")
+        @notProperty
+        sort_by: SortBy
     }
 
     output := with [PaginatedResponse] {

@@ -213,11 +213,13 @@ impl<T> ListResponse<T> {
     PartialOrd,
     strum_macros::Display,
     strum_macros::EnumIter,
+    Default,
 )]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum SortBy {
     Desc,
+    #[default]
     Asc,
 }
 
@@ -234,12 +236,6 @@ impl SortBy {
             Self::Desc => "Descending".to_string(),
             Self::Asc => "Ascending".to_string(),
         }
-    }
-}
-
-impl Default for SortBy {
-    fn default() -> Self {
-        Self::Asc
     }
 }
 

@@ -166,7 +166,9 @@ pub fn type_page() -> impl IntoView {
                                         type_name=type_template_st
                                             .with_value(|t| t.type_name.clone())
                                         type_schema=type_template_st
-                                            .with_value(|t| Value::Object(t.type_schema.deref().clone()))
+                                            .with_value(|t| Value::Object(
+                                                t.type_schema.deref().clone(),
+                                            ))
                                         description=type_template_st
                                             .with_value(|t| t.description.deref().to_string())
                                         handle_submit=move |_| {
