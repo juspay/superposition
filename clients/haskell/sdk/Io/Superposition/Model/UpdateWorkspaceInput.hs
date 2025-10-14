@@ -174,7 +174,7 @@ build builder = do
 
 instance Io.Superposition.Utility.IntoRequestBuilder UpdateWorkspaceInput where
     intoRequestBuilder self = do
-        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPut
+        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPatch
         Io.Superposition.Utility.setPath [
             "workspaces",
             Io.Superposition.Utility.serializeElement (workspace_name self)

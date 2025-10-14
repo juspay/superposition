@@ -4,10 +4,7 @@ import {
   ServiceOutputTypes,
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
-import {
-  DeleteContextInput,
-  DeleteContextOutput,
-} from "../models/models_0";
+import { DeleteContextInput } from "../models/models_0";
 import {
   de_DeleteContextCommand,
   se_DeleteContextCommand,
@@ -32,7 +29,7 @@ export interface DeleteContextCommandInput extends DeleteContextInput {}
  *
  * The output of {@link DeleteContextCommand}.
  */
-export interface DeleteContextCommandOutput extends DeleteContextOutput, __MetadataBearer {}
+export interface DeleteContextCommandOutput extends __MetadataBearer {}
 
 /**
  * Permanently removes a context from the workspace. This operation cannot be undone and will affect config resolution.

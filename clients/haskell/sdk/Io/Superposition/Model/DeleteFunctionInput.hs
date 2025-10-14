@@ -101,7 +101,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder DeleteFunctionInput where
             Io.Superposition.Utility.serializeElement (function_name self)
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         
 

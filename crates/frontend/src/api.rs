@@ -215,7 +215,7 @@ pub mod dimensions {
 
         let response = request(
             url,
-            reqwest::Method::PUT,
+            reqwest::Method::PATCH,
             Some(payload),
             construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
         )
@@ -398,7 +398,7 @@ pub async fn fetch_context(
     let client = reqwest::Client::new();
     let host = use_host_server();
     let url = format!(
-        "{host}/context/list?{}&{}&{}",
+        "{host}/context?{}&{}&{}",
         pagination.to_query_param(),
         context_filters.to_query_param(),
         dimension_params.to_query_param()
@@ -587,7 +587,7 @@ pub mod workspaces {
 
         let response = request(
             url,
-            reqwest::Method::PUT,
+            reqwest::Method::PATCH,
             Some(payload),
             construct_request_headers(&[("x-org-id", org_id)])?,
         )

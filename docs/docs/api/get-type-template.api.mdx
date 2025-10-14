@@ -1,0 +1,71 @@
+---
+id: get-type-template
+title: "GetTypeTemplate"
+description: "Retrieves detailed information about a specific type template including its schema and metadata."
+sidebar_label: "GetTypeTemplate"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9VUtv2zAM/iuCTxuQNEG3XHLrhq7rZSva7BQUAWMztlo/VInKGhj+7yNt5+HE7WFdd4ojfXx9/EiVQYQutNqQLvJgGtwiWY1rdCpCAp1ipHS+KmwGAlCwLDwpUM5gqFc6VLQxqAgzkwIhQ8PURzqPlSanXJhgBgrySGXsLAKCs2AQFAZt7e064oBXSDP2MWtd8L0BC4xH64LpvAxy/sM4CbSovweBlkwNUMLfTZBgWtYIPndcQB4H1SCw+OS1RY5C1mM12Pl6HhY2Hupo6ypBiND+tbPfhX10BkJ8g797OXGmyB06wZ+Px/LTbc4RV4pBamvF0cIiJ8xJ7MCYVIc1y6MHJ8blaTLF8gFDEsat9IR0E3rPdF/e9e3LriCKtESF9ObQKRsel5KjZf084ma4htSjalwojuRD8haVdyw+lp5apfislykqURAXbLhmrrNRJCW28HEisqQE1cXNtWiMNKWS188mr+PwPXWFCeQxLiyCewnBd4TRYrl59Rro9HoQNCPEJ1wDDkkzu2yTgqNFVkQ8Sm+y7E2pI7L5UYGdfDu1danqybEn+KAznocSud/34ki9t61wv7aqrSrJ+PP486nuGVp4G+KPgr4VntcJo/bCZ6tJ37Rcs1/LQrxDu0Z7aS1LafIuE5OhcxD3zUu1L78nnT4KxAJiWX2BsKW2dDmhktdiUsjWjLHOQlbgNBhJUDcqdz2oZPVg6K2mTb1DXaYp2ZyB0WcJkfmCYNFeeLGe38vu2aLvpOKmqFdsdmXKRXA82t9nsxvVwBUwnitrid1uRDFd1oCaIXlgaqctU3eeuTWF060N0+Ua1+fj88lw/Gk4nkjXGUIZ1J1qdzFLTHVYO06u3Lf8fzx1LU2EzzRiM34cOG1vU0mkad68xjjGTvcjxA1JuDa5LcslOPxl06qS4yePVlrKn2uwGpZCGDc40k6+WRorSB2+UvWH23YnfFQvJdgeQi6DXS9n/sefvKs7D3F1z+D2rfvnSTTBDl7qXSLy9r5LqMN3vBOtAVyEIRo6uDtZGdXhiF5dzljdfwD0ukab
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetTypeTemplate"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/types/{type_name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific type template including its schema and metadata.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"type_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetTypeTemplate 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"type_name":{"type":"string"},"type_schema":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","type_name","type_schema"],"title":"GetTypeTemplateResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -41,9 +41,10 @@ import io.juspay.superposition.model.DeleteFunctionInput;
 import io.juspay.superposition.model.DeleteFunctionOutput;
 import io.juspay.superposition.model.DeleteTypeTemplatesInput;
 import io.juspay.superposition.model.DeleteTypeTemplatesOutput;
+import io.juspay.superposition.model.DeleteWebhookInput;
+import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
-import io.juspay.superposition.model.FunctionNotFound;
 import io.juspay.superposition.model.GetConfigFastInput;
 import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
@@ -52,6 +53,8 @@ import io.juspay.superposition.model.GetContextFromConditionInput;
 import io.juspay.superposition.model.GetContextFromConditionOutput;
 import io.juspay.superposition.model.GetContextInput;
 import io.juspay.superposition.model.GetContextOutput;
+import io.juspay.superposition.model.GetDefaultConfigInput;
+import io.juspay.superposition.model.GetDefaultConfigOutput;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
 import io.juspay.superposition.model.GetExperimentGroupInput;
@@ -64,10 +67,18 @@ import io.juspay.superposition.model.GetOrganisationInput;
 import io.juspay.superposition.model.GetOrganisationOutput;
 import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
+import io.juspay.superposition.model.GetTypeTemplateInput;
+import io.juspay.superposition.model.GetTypeTemplateOutput;
 import io.juspay.superposition.model.GetTypeTemplatesListInput;
 import io.juspay.superposition.model.GetTypeTemplatesListOutput;
+import io.juspay.superposition.model.GetVersionInput;
+import io.juspay.superposition.model.GetVersionOutput;
+import io.juspay.superposition.model.GetWebhookByEventInput;
+import io.juspay.superposition.model.GetWebhookByEventOutput;
 import io.juspay.superposition.model.GetWebhookInput;
 import io.juspay.superposition.model.GetWebhookOutput;
+import io.juspay.superposition.model.GetWorkspaceInput;
+import io.juspay.superposition.model.GetWorkspaceOutput;
 import io.juspay.superposition.model.InternalServerError;
 import io.juspay.superposition.model.ListAuditLogsInput;
 import io.juspay.superposition.model.ListAuditLogsOutput;
@@ -95,7 +106,6 @@ import io.juspay.superposition.model.MigrateWorkspaceSchemaInput;
 import io.juspay.superposition.model.MigrateWorkspaceSchemaOutput;
 import io.juspay.superposition.model.MoveContextInput;
 import io.juspay.superposition.model.MoveContextOutput;
-import io.juspay.superposition.model.OrganisationNotFound;
 import io.juspay.superposition.model.PauseExperimentInput;
 import io.juspay.superposition.model.PauseExperimentOutput;
 import io.juspay.superposition.model.PublishInput;
@@ -109,7 +119,6 @@ import io.juspay.superposition.model.ResumeExperimentInput;
 import io.juspay.superposition.model.ResumeExperimentOutput;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
-import io.juspay.superposition.model.TypeTemplatesNotFound;
 import io.juspay.superposition.model.UpdateDefaultConfigInput;
 import io.juspay.superposition.model.UpdateDefaultConfigOutput;
 import io.juspay.superposition.model.UpdateDimensionInput;
@@ -130,10 +139,10 @@ import io.juspay.superposition.model.UpdateWebhookInput;
 import io.juspay.superposition.model.UpdateWebhookOutput;
 import io.juspay.superposition.model.UpdateWorkspaceInput;
 import io.juspay.superposition.model.UpdateWorkspaceOutput;
-import io.juspay.superposition.model.WebhookNotFound;
+import io.juspay.superposition.model.ValidateContextInput;
+import io.juspay.superposition.model.ValidateContextOutput;
 import io.juspay.superposition.model.WeightRecomputeInput;
 import io.juspay.superposition.model.WeightRecomputeOutput;
-import io.juspay.superposition.model.WorkspaceNotFound;
 import software.amazon.smithy.aws.traits.protocols.RestJson1Trait;
 import software.amazon.smithy.java.aws.client.restjson.RestJsonClientProtocol;
 import software.amazon.smithy.java.client.core.Client;
@@ -191,6 +200,7 @@ public interface SuperpositionClient {
      * efficient batch processing.
      *
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     default BulkOperationOutput bulkOperation(BulkOperationInput input) {
         return bulkOperation(input, null);
@@ -201,6 +211,7 @@ public interface SuperpositionClient {
      * efficient batch processing.
      *
      * @throws InternalServerError
+     * @throws ResourceNotFound
      */
     BulkOperationOutput bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
 
@@ -208,6 +219,7 @@ public interface SuperpositionClient {
      * Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment
      * to a concluded state.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default ConcludeExperimentOutput concludeExperiment(ConcludeExperimentInput input) {
@@ -218,6 +230,7 @@ public interface SuperpositionClient {
      * Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment
      * to a concluded state.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     ConcludeExperimentOutput concludeExperiment(ConcludeExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -226,6 +239,7 @@ public interface SuperpositionClient {
      * Creates a new context with specified conditions and overrides. Contexts define conditional rules for
      * config management.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default CreateContextOutput createContext(CreateContextInput input) {
@@ -236,6 +250,7 @@ public interface SuperpositionClient {
      * Creates a new context with specified conditions and overrides. Contexts define conditional rules for
      * config management.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     CreateContextOutput createContext(CreateContextInput input, RequestOverrideConfig overrideConfig);
@@ -404,8 +419,8 @@ public interface SuperpositionClient {
      * Permanently removes a context from the workspace. This operation cannot be undone and will affect
      * config resolution.
      *
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     default DeleteContextOutput deleteContext(DeleteContextInput input) {
         return deleteContext(input, null);
@@ -415,8 +430,8 @@ public interface SuperpositionClient {
      * Permanently removes a context from the workspace. This operation cannot be undone and will affect
      * config resolution.
      *
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     DeleteContextOutput deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
 
@@ -424,8 +439,8 @@ public interface SuperpositionClient {
      * Permanently removes a default config entry from the workspace. This operation cannot be performed if
      * it affects config resolution for contexts that rely on this fallback value.
      *
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     default DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input) {
         return deleteDefaultConfig(input, null);
@@ -435,8 +450,8 @@ public interface SuperpositionClient {
      * Permanently removes a default config entry from the workspace. This operation cannot be performed if
      * it affects config resolution for contexts that rely on this fallback value.
      *
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
@@ -444,8 +459,8 @@ public interface SuperpositionClient {
      * Permanently removes a dimension from the workspace. This operation will fail if the dimension has
      * active dependencies or is referenced by existing configurations.
      *
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     default DeleteDimensionOutput deleteDimension(DeleteDimensionInput input) {
         return deleteDimension(input, null);
@@ -455,8 +470,8 @@ public interface SuperpositionClient {
      * Permanently removes a dimension from the workspace. This operation will fail if the dimension has
      * active dependencies or is referenced by existing configurations.
      *
-     * @throws InternalServerError
      * @throws ResourceNotFound
+     * @throws InternalServerError
      */
     DeleteDimensionOutput deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
 
@@ -482,8 +497,8 @@ public interface SuperpositionClient {
      * Permanently removes a function from the workspace, deleting both draft and published versions along
      * with all associated code. It fails if already in use
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
-     * @throws FunctionNotFound
      */
     default DeleteFunctionOutput deleteFunction(DeleteFunctionInput input) {
         return deleteFunction(input, null);
@@ -493,15 +508,15 @@ public interface SuperpositionClient {
      * Permanently removes a function from the workspace, deleting both draft and published versions along
      * with all associated code. It fails if already in use
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
-     * @throws FunctionNotFound
      */
     DeleteFunctionOutput deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Permanently removes a type template from the workspace. No checks performed while deleting
      *
-     * @throws TypeTemplatesNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default DeleteTypeTemplatesOutput deleteTypeTemplates(DeleteTypeTemplatesInput input) {
@@ -511,15 +526,36 @@ public interface SuperpositionClient {
     /**
      * Permanently removes a type template from the workspace. No checks performed while deleting
      *
-     * @throws TypeTemplatesNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     DeleteTypeTemplatesOutput deleteTypeTemplates(DeleteTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Permanently removes a webhook config from the workspace, stopping all future event notifications to
+     * that endpoint.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default DeleteWebhookOutput deleteWebhook(DeleteWebhookInput input) {
+        return deleteWebhook(input, null);
+    }
+
+    /**
+     * Permanently removes a webhook config from the workspace, stopping all future event notifications to
+     * that endpoint.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    DeleteWebhookOutput deleteWebhook(DeleteWebhookInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Discards an experiment without selecting a winner, effectively canceling the experiment and removing
      * its effects.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default DiscardExperimentOutput discardExperiment(DiscardExperimentInput input) {
@@ -530,6 +566,7 @@ public interface SuperpositionClient {
      * Discards an experiment without selecting a winner, effectively canceling the experiment and removing
      * its effects.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     DiscardExperimentOutput discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -609,6 +646,26 @@ public interface SuperpositionClient {
     GetContextFromConditionOutput getContextFromCondition(GetContextFromConditionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a specific default config entry by its key, including its value, schema, function
+     * mappings, and metadata.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default GetDefaultConfigOutput getDefaultConfig(GetDefaultConfigInput input) {
+        return getDefaultConfig(input, null);
+    }
+
+    /**
+     * Retrieves a specific default config entry by its key, including its value, schema, function
+     * mappings, and metadata.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    GetDefaultConfigOutput getDefaultConfig(GetDefaultConfigInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves detailed information about a specific dimension, including its schema, cohort dependency
      * graph, and configuration metadata.
      *
@@ -632,6 +689,7 @@ public interface SuperpositionClient {
      * Retrieves detailed information about a specific experiment, including its config, variants, status,
      * and metrics.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default GetExperimentOutput getExperiment(GetExperimentInput input) {
@@ -642,6 +700,7 @@ public interface SuperpositionClient {
      * Retrieves detailed information about a specific experiment, including its config, variants, status,
      * and metrics.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     GetExperimentOutput getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -668,7 +727,7 @@ public interface SuperpositionClient {
      * Retrieves detailed information about a specific function including its published and draft versions,
      * code, and metadata.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default GetFunctionOutput getFunction(GetFunctionInput input) {
@@ -679,7 +738,7 @@ public interface SuperpositionClient {
      * Retrieves detailed information about a specific function including its published and draft versions,
      * code, and metadata.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     GetFunctionOutput getFunction(GetFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -688,7 +747,7 @@ public interface SuperpositionClient {
      * Retrieves detailed information about a specific organisation including its status, contact details,
      * and administrative metadata.
      *
-     * @throws OrganisationNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default GetOrganisationOutput getOrganisation(GetOrganisationInput input) {
@@ -699,7 +758,7 @@ public interface SuperpositionClient {
      * Retrieves detailed information about a specific organisation including its status, contact details,
      * and administrative metadata.
      *
-     * @throws OrganisationNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     GetOrganisationOutput getOrganisation(GetOrganisationInput input, RequestOverrideConfig overrideConfig);
@@ -723,6 +782,24 @@ public interface SuperpositionClient {
     GetResolvedConfigOutput getResolvedConfig(GetResolvedConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific type template including its schema and metadata.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default GetTypeTemplateOutput getTypeTemplate(GetTypeTemplateInput input) {
+        return getTypeTemplate(input, null);
+    }
+
+    /**
+     * Retrieves detailed information about a specific type template including its schema and metadata.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    GetTypeTemplateOutput getTypeTemplate(GetTypeTemplateInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves a paginated list of all type templates in the workspace, including their schemas and
      * metadata for type management.
      *
@@ -741,9 +818,28 @@ public interface SuperpositionClient {
     GetTypeTemplatesListOutput getTypeTemplatesList(GetTypeTemplatesListInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a specific config version along with its metadata for audit and rollback purposes.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default GetVersionOutput getVersion(GetVersionInput input) {
+        return getVersion(input, null);
+    }
+
+    /**
+     * Retrieves a specific config version along with its metadata for audit and rollback purposes.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    GetVersionOutput getVersion(GetVersionInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves detailed information about a specific webhook config, including its events, headers, and
      * trigger history.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default GetWebhookOutput getWebhook(GetWebhookInput input) {
@@ -754,9 +850,48 @@ public interface SuperpositionClient {
      * Retrieves detailed information about a specific webhook config, including its events, headers, and
      * trigger history.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     GetWebhookOutput getWebhook(GetWebhookInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Retrieves a webhook configuration based on a specific event type, allowing users to find which
+     * webhook is set to trigger for that event.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default GetWebhookByEventOutput getWebhookByEvent(GetWebhookByEventInput input) {
+        return getWebhookByEvent(input, null);
+    }
+
+    /**
+     * Retrieves a webhook configuration based on a specific event type, allowing users to find which
+     * webhook is set to trigger for that event.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    GetWebhookByEventOutput getWebhookByEvent(GetWebhookByEventInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Retrieves detailed information about a specific workspace including its configuration and metadata.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default GetWorkspaceOutput getWorkspace(GetWorkspaceInput input) {
+        return getWorkspace(input, null);
+    }
+
+    /**
+     * Retrieves detailed information about a specific workspace including its configuration and metadata.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    GetWorkspaceOutput getWorkspace(GetWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves a paginated list of audit logs with support for filtering by date range, table names,
@@ -799,7 +934,6 @@ public interface SuperpositionClient {
      * schemas, and metadata.
      *
      * @throws InternalServerError
-     * @throws ResourceNotFound
      */
     default ListDefaultConfigsOutput listDefaultConfigs(ListDefaultConfigsInput input) {
         return listDefaultConfigs(input, null);
@@ -810,7 +944,6 @@ public interface SuperpositionClient {
      * schemas, and metadata.
      *
      * @throws InternalServerError
-     * @throws ResourceNotFound
      */
     ListDefaultConfigsOutput listDefaultConfigs(ListDefaultConfigsInput input, RequestOverrideConfig overrideConfig);
 
@@ -959,6 +1092,7 @@ public interface SuperpositionClient {
     /**
      * Migrates the workspace database schema to the new version of the template
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default MigrateWorkspaceSchemaOutput migrateWorkspaceSchema(MigrateWorkspaceSchemaInput input) {
@@ -968,6 +1102,7 @@ public interface SuperpositionClient {
     /**
      * Migrates the workspace database schema to the new version of the template
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     MigrateWorkspaceSchemaOutput migrateWorkspaceSchema(MigrateWorkspaceSchemaInput input, RequestOverrideConfig overrideConfig);
@@ -996,6 +1131,7 @@ public interface SuperpositionClient {
      * Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment
      * config for later resumption.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default PauseExperimentOutput pauseExperiment(PauseExperimentInput input) {
@@ -1006,6 +1142,7 @@ public interface SuperpositionClient {
      * Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment
      * config for later resumption.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     PauseExperimentOutput pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1014,7 +1151,7 @@ public interface SuperpositionClient {
      * Publishes the draft version of a function, making it the active version used for validation or
      * autocompletion in the system.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default PublishOutput publish(PublishInput input) {
@@ -1025,7 +1162,7 @@ public interface SuperpositionClient {
      * Publishes the draft version of a function, making it the active version used for validation or
      * autocompletion in the system.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     PublishOutput publish(PublishInput input, RequestOverrideConfig overrideConfig);
@@ -1034,6 +1171,7 @@ public interface SuperpositionClient {
      * Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or
      * rollback of experimental features.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default RampExperimentOutput rampExperiment(RampExperimentInput input) {
@@ -1044,6 +1182,7 @@ public interface SuperpositionClient {
      * Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or
      * rollback of experimental features.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     RampExperimentOutput rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1070,6 +1209,7 @@ public interface SuperpositionClient {
      * Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant
      * evaluation.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default ResumeExperimentOutput resumeExperiment(ResumeExperimentInput input) {
@@ -1080,6 +1220,7 @@ public interface SuperpositionClient {
      * Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant
      * evaluation.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     ResumeExperimentOutput resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1088,7 +1229,7 @@ public interface SuperpositionClient {
      * Executes a function in test mode with provided input parameters to validate its behavior before
      * publishing or deployment.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default TestOutput test(TestInput input) {
@@ -1099,7 +1240,7 @@ public interface SuperpositionClient {
      * Executes a function in test mode with provided input parameters to validate its behavior before
      * publishing or deployment.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     TestOutput test(TestInput input, RequestOverrideConfig overrideConfig);
@@ -1166,7 +1307,7 @@ public interface SuperpositionClient {
      * Updates the draft version of an existing function with new code, runtime version, or description
      * while preserving the published version.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default UpdateFunctionOutput updateFunction(UpdateFunctionInput input) {
@@ -1177,7 +1318,7 @@ public interface SuperpositionClient {
      * Updates the draft version of an existing function with new code, runtime version, or description
      * while preserving the published version.
      *
-     * @throws FunctionNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateFunctionOutput updateFunction(UpdateFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -1186,7 +1327,7 @@ public interface SuperpositionClient {
      * Updates an existing organisation's information including contact details, status, and administrative
      * properties.
      *
-     * @throws OrganisationNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default UpdateOrganisationOutput updateOrganisation(UpdateOrganisationInput input) {
@@ -1197,7 +1338,7 @@ public interface SuperpositionClient {
      * Updates an existing organisation's information including contact details, status, and administrative
      * properties.
      *
-     * @throws OrganisationNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateOrganisationOutput updateOrganisation(UpdateOrganisationInput input, RequestOverrideConfig overrideConfig);
@@ -1227,6 +1368,7 @@ public interface SuperpositionClient {
      * experiment behavior Updates the overrides for specific variants within an experiment, allowing
      * modification of experiment behavior while it is in the created state.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default UpdateOverridesExperimentOutput updateOverridesExperiment(UpdateOverridesExperimentInput input) {
@@ -1238,6 +1380,7 @@ public interface SuperpositionClient {
      * experiment behavior Updates the overrides for specific variants within an experiment, allowing
      * modification of experiment behavior while it is in the created state.
      *
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateOverridesExperimentOutput updateOverridesExperiment(UpdateOverridesExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1246,7 +1389,7 @@ public interface SuperpositionClient {
      * Updates an existing type template's schema definition and metadata while preserving its identifier
      * and usage history.
      *
-     * @throws TypeTemplatesNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default UpdateTypeTemplatesOutput updateTypeTemplates(UpdateTypeTemplatesInput input) {
@@ -1257,7 +1400,7 @@ public interface SuperpositionClient {
      * Updates an existing type template's schema definition and metadata while preserving its identifier
      * and usage history.
      *
-     * @throws TypeTemplatesNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateTypeTemplatesOutput updateTypeTemplates(UpdateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
@@ -1266,7 +1409,7 @@ public interface SuperpositionClient {
      * Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook
      * properties.
      *
-     * @throws WebhookNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default UpdateWebhookOutput updateWebhook(UpdateWebhookInput input) {
@@ -1277,7 +1420,7 @@ public interface SuperpositionClient {
      * Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook
      * properties.
      *
-     * @throws WebhookNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateWebhookOutput updateWebhook(UpdateWebhookInput input, RequestOverrideConfig overrideConfig);
@@ -1286,7 +1429,7 @@ public interface SuperpositionClient {
      * Updates an existing workspace configuration, allowing modification of admin settings, mandatory
      * dimensions, and workspace properties. Validates config version existence if provided.
      *
-     * @throws WorkspaceNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     default UpdateWorkspaceOutput updateWorkspace(UpdateWorkspaceInput input) {
@@ -1297,10 +1440,26 @@ public interface SuperpositionClient {
      * Updates an existing workspace configuration, allowing modification of admin settings, mandatory
      * dimensions, and workspace properties. Validates config version existence if provided.
      *
-     * @throws WorkspaceNotFound
+     * @throws ResourceNotFound
      * @throws InternalServerError
      */
     UpdateWorkspaceOutput updateWorkspace(UpdateWorkspaceInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Validates if a given context condition is well-formed
+     *
+     * @throws InternalServerError
+     */
+    default ValidateContextOutput validateContext(ValidateContextInput input) {
+        return validateContext(input, null);
+    }
+
+    /**
+     * Validates if a given context condition is well-formed
+     *
+     * @throws InternalServerError
+     */
+    ValidateContextOutput validateContext(ValidateContextInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Recalculates and updates the priority weights for all contexts in the workspace based on their

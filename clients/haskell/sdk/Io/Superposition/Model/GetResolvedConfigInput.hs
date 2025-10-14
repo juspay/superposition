@@ -171,7 +171,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetResolvedConfigInput wher
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "context_id" (context_id self)
         Io.Superposition.Utility.serQuery "version" (version self)
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-merge-strategy" (merge_strategy self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "context" (context self)

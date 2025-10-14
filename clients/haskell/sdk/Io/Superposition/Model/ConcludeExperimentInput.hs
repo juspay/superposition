@@ -141,7 +141,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ConcludeExperimentInput whe
             "conclude"
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "chosen_variant" (chosen_variant self)

@@ -10,13 +10,9 @@ resource Context {
     identifiers: {
         workspace_id: String
         org_id: String
+        id: String
     }
     properties: {
-        // FIXME This should have been an identifier but
-        // smithy does not allow PUT's w/o all identifiers
-        // in the request, so due to our create API, we had
-        // to move it here.
-        id: String
         value: Condition
         override: Overrides
         override_id: String
@@ -29,15 +25,18 @@ resource Context {
         last_modified_by: String
     }
     delete: DeleteContext
-    put: CreateContext
+    create: CreateContext
+    read: GetContext
+    list: ListContexts
     operations: [
         MoveContext
+    ]
+    collectionOperations: [
         UpdateOverride
-        GetContext
         GetContextFromCondition
-        ListContexts
         WeightRecompute
         BulkOperation
+        ValidateContext
     ]
 }
 
@@ -70,7 +69,7 @@ structure ContextResponse for Context {
 @idempotent
 @http(method: "PUT", uri: "/context")
 @tags(["Context Management"])
-operation CreateContext {
+operation CreateContext with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
         // TODO Find re-name functionality.
         @required
@@ -93,10 +92,23 @@ operation CreateContext {
     output: ContextResponse
 }
 
+@documentation("Validates if a given context condition is well-formed")
+@idempotent
+@http(method: "PUT", uri: "/context/validate")
+@tags(["Context Management"])
+operation ValidateContext {
+    input := for Context with [WorkspaceMixin] {
+        @required
+        @notProperty
+        context: Condition
+    }
+}
+
 @documentation("Retrieves detailed information about a specific context by its unique identifier, including conditions, overrides, and metadata.")
+@readonly
 @http(method: "GET", uri: "/context/{id}")
 @tags(["Context Management"])
-operation GetContext {
+operation GetContext with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -104,16 +116,12 @@ operation GetContext {
     }
 
     output: ContextResponse
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 @documentation("Updates the condition of the mentioned context, if a context with the new condition already exists, it merges the override and effectively deleting the old context")
 @http(method: "PUT", uri: "/context/move/{id}")
 @tags(["Context Management"])
-operation MoveContext {
+operation MoveContext with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -130,10 +138,6 @@ operation MoveContext {
     }
 
     output: ContextResponse
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 union ContextIdentifier {
@@ -157,7 +161,7 @@ structure UpdateContextOverrideRequest for Context {
 @documentation("Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.")
 @http(method: "PUT", uri: "/context/overrides")
 @tags(["Context Management"])
-operation UpdateOverride {
+operation UpdateOverride with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
         // REVIEW Should this be made a property?
         @httpHeader("x-config-tags")
@@ -171,16 +175,12 @@ operation UpdateOverride {
     }
 
     output: ContextResponse
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 @documentation("Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.")
 @http(method: "POST", uri: "/context/get")
 @tags(["Context Management"])
-operation GetContextFromCondition {
+operation GetContextFromCondition with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpPayload
         @notProperty
@@ -188,10 +188,6 @@ operation GetContextFromCondition {
     }
 
     output: ContextResponse
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 enum ContextFilterSortOn {
@@ -206,22 +202,10 @@ list ListContextOut {
 
 @documentation("Retrieves a paginated list of contexts with support for filtering by creation date, modification date, weight, and other criteria.")
 @readonly
-@http(method: "GET", uri: "/context/list")
+@http(method: "GET", uri: "/context")
 @tags(["Context Management"])
 operation ListContexts {
-    input := with [WorkspaceMixin] {
-        @httpQuery("page")
-        @notProperty
-        page: Integer
-
-        @httpQuery("count")
-        @notProperty
-        count: Integer
-        
-        @httpQuery("all")
-        @notProperty
-        all: Boolean
-
+    input := with [PaginationParams, WorkspaceMixin] {
         @httpQuery("prefix")
         @notProperty
         prefix: String
@@ -245,20 +229,13 @@ operation ListContexts {
         @httpQuery("plaintext")
         @notProperty
         plaintext: String
-        
+
         @httpQuery("dimension_match_strategy")
         @notProperty
         dimension_match_strategy: DimensionMatchStrategy
     }
 
-    output := {
-        @notProperty
-        total_pages: Integer
-
-        @notProperty
-        total_items: Integer
-
-        @notProperty
+    output := with [PaginatedResponse] {
         data: ListContextOut
     }
 }
@@ -267,7 +244,7 @@ operation ListContexts {
 @idempotent
 @http(method: "DELETE", uri: "/context/{id}", code: 201)
 @tags(["Context Management"])
-operation DeleteContext {
+operation DeleteContext with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -277,12 +254,6 @@ operation DeleteContext {
         @notProperty
         config_tags: String
     }
-
-    output := {}
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 structure WeightRecomputeResponse for Context {
@@ -370,7 +341,7 @@ structure BulkOperationOut {
 @documentation("Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.")
 @http(method: "PUT", uri: "/context/bulk-operations")
 @tags(["Context Management"])
-operation BulkOperation {
+operation BulkOperation with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpHeader("x-config-tags")
         @notProperty

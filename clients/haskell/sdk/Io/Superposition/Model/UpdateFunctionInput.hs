@@ -153,7 +153,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder UpdateFunctionInput where
             Io.Superposition.Utility.serializeElement (function_name self)
             ]
         
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "runtime_version" (runtime_version self)

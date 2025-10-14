@@ -70,7 +70,7 @@ export interface DeleteTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * @see {@link DeleteTypeTemplatesCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
- * @throws {@link TypeTemplatesNotFound} (client fault)
+ * @throws {@link ResourceNotFound} (client fault)
  *
  * @throws {@link InternalServerError} (server fault)
  *

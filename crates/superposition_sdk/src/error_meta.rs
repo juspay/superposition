@@ -4,19 +4,9 @@
 #[derive(::std::fmt::Debug)]
 pub enum Error {
     #[allow(missing_docs)] // documentation missing in model
-    FunctionNotFound(crate::types::error::FunctionNotFound),
-    #[allow(missing_docs)] // documentation missing in model
     InternalServerError(crate::types::error::InternalServerError),
     #[allow(missing_docs)] // documentation missing in model
-    OrganisationNotFound(crate::types::error::OrganisationNotFound),
-    #[allow(missing_docs)] // documentation missing in model
     ResourceNotFound(crate::types::error::ResourceNotFound),
-    #[allow(missing_docs)] // documentation missing in model
-    TypeTemplatesNotFound(crate::types::error::TypeTemplatesNotFound),
-    #[allow(missing_docs)] // documentation missing in model
-    WebhookNotFound(crate::types::error::WebhookNotFound),
-    #[allow(missing_docs)] // documentation missing in model
-    WorkspaceNotFound(crate::types::error::WorkspaceNotFound),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
     #[deprecated(note = "Matching `Unhandled` directly is not forwards compatible. Instead, match using a \
     variable wildcard pattern and check `.code()`:
@@ -29,13 +19,8 @@ pub enum Error {
 impl ::std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::FunctionNotFound(inner) => inner.fmt(f),
             Error::InternalServerError(inner) => inner.fmt(f),
-            Error::OrganisationNotFound(inner) => inner.fmt(f),
             Error::ResourceNotFound(inner) => inner.fmt(f),
-            Error::TypeTemplatesNotFound(inner) => inner.fmt(f),
-            Error::WebhookNotFound(inner) => inner.fmt(f),
-            Error::WorkspaceNotFound(inner) => inner.fmt(f),
             Error::Unhandled(_) => if let ::std::option::Option::Some(code) = ::aws_smithy_types::error::metadata::ProvideErrorMetadata::code(self) {
                                         write!(f, "unhandled error ({code})")
                                     } else {
@@ -52,13 +37,8 @@ impl From<::aws_smithy_types::error::operation::BuildError> for Error {
 impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for Error {
                 fn meta(&self) -> &::aws_smithy_types::error::metadata::ErrorMetadata {
                     match self {
-                        Self::FunctionNotFound(inner) => inner.meta(),
-Self::InternalServerError(inner) => inner.meta(),
-Self::OrganisationNotFound(inner) => inner.meta(),
+                        Self::InternalServerError(inner) => inner.meta(),
 Self::ResourceNotFound(inner) => inner.meta(),
-Self::TypeTemplatesNotFound(inner) => inner.meta(),
-Self::WebhookNotFound(inner) => inner.meta(),
-Self::WorkspaceNotFound(inner) => inner.meta(),
                         Self::Unhandled(inner) => &inner.meta,
                     }
                 }
@@ -122,6 +102,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::bulk_operation::BulkOperationError> for Error {
     fn from(err: crate::operation::bulk_operation::BulkOperationError) -> Self {
         match err {
+            crate::operation::bulk_operation::BulkOperationError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::bulk_operation::BulkOperationError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::bulk_operation::BulkOperationError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -143,6 +124,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::conclude_experiment::ConcludeExperimentError> for Error {
     fn from(err: crate::operation::conclude_experiment::ConcludeExperimentError) -> Self {
         match err {
+            crate::operation::conclude_experiment::ConcludeExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::conclude_experiment::ConcludeExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::conclude_experiment::ConcludeExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -164,6 +146,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_context::CreateContextError> for Error {
     fn from(err: crate::operation::create_context::CreateContextError) -> Self {
         match err {
+            crate::operation::create_context::CreateContextError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::create_context::CreateContextError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_context::CreateContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -462,7 +445,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::delete_function::DeleteFunctionError> for Error {
     fn from(err: crate::operation::delete_function::DeleteFunctionError) -> Self {
         match err {
-            crate::operation::delete_function::DeleteFunctionError::FunctionNotFound(inner) => Error::FunctionNotFound(inner),
+            crate::operation::delete_function::DeleteFunctionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::delete_function::DeleteFunctionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_function::DeleteFunctionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -484,9 +467,31 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::delete_type_templates::DeleteTypeTemplatesError> for Error {
     fn from(err: crate::operation::delete_type_templates::DeleteTypeTemplatesError) -> Self {
         match err {
-            crate::operation::delete_type_templates::DeleteTypeTemplatesError::TypeTemplatesNotFound(inner) => Error::TypeTemplatesNotFound(inner),
+            crate::operation::delete_type_templates::DeleteTypeTemplatesError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::delete_webhook::DeleteWebhookError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::delete_webhook::DeleteWebhookError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::delete_webhook::DeleteWebhookError> for Error {
+    fn from(err: crate::operation::delete_webhook::DeleteWebhookError) -> Self {
+        match err {
+            crate::operation::delete_webhook::DeleteWebhookError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_webhook::DeleteWebhookError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::delete_webhook::DeleteWebhookError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -506,6 +511,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::discard_experiment::DiscardExperimentError> for Error {
     fn from(err: crate::operation::discard_experiment::DiscardExperimentError) -> Self {
         match err {
+            crate::operation::discard_experiment::DiscardExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::discard_experiment::DiscardExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::discard_experiment::DiscardExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -597,6 +603,28 @@ impl From<crate::operation::get_context_from_condition::GetContextFromConditionE
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_default_config::GetDefaultConfigError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_default_config::GetDefaultConfigError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_default_config::GetDefaultConfigError> for Error {
+    fn from(err: crate::operation::get_default_config::GetDefaultConfigError) -> Self {
+        match err {
+            crate::operation::get_default_config::GetDefaultConfigError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_default_config::GetDefaultConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_default_config::GetDefaultConfigError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_dimension::GetDimensionError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_dimension::GetDimensionError, R>) -> Self {
         match err {
@@ -635,6 +663,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::get_experiment::GetExperimentError> for Error {
     fn from(err: crate::operation::get_experiment::GetExperimentError) -> Self {
         match err {
+            crate::operation::get_experiment::GetExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::get_experiment::GetExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::get_experiment::GetExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -678,7 +707,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::get_function::GetFunctionError> for Error {
     fn from(err: crate::operation::get_function::GetFunctionError) -> Self {
         match err {
-            crate::operation::get_function::GetFunctionError::FunctionNotFound(inner) => Error::FunctionNotFound(inner),
+            crate::operation::get_function::GetFunctionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::get_function::GetFunctionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::get_function::GetFunctionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -700,7 +729,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::get_organisation::GetOrganisationError> for Error {
     fn from(err: crate::operation::get_organisation::GetOrganisationError) -> Self {
         match err {
-            crate::operation::get_organisation::GetOrganisationError::OrganisationNotFound(inner) => Error::OrganisationNotFound(inner),
+            crate::operation::get_organisation::GetOrganisationError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::get_organisation::GetOrganisationError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::get_organisation::GetOrganisationError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -727,6 +756,28 @@ impl From<crate::operation::get_resolved_config::GetResolvedConfigError> for Err
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_type_template::GetTypeTemplateError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_type_template::GetTypeTemplateError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_type_template::GetTypeTemplateError> for Error {
+    fn from(err: crate::operation::get_type_template::GetTypeTemplateError) -> Self {
+        match err {
+            crate::operation::get_type_template::GetTypeTemplateError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_type_template::GetTypeTemplateError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_type_template::GetTypeTemplateError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_type_templates_list::GetTypeTemplatesListError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_type_templates_list::GetTypeTemplatesListError, R>) -> Self {
         match err {
@@ -748,6 +799,28 @@ impl From<crate::operation::get_type_templates_list::GetTypeTemplatesListError> 
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_version::GetVersionError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_version::GetVersionError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_version::GetVersionError> for Error {
+    fn from(err: crate::operation::get_version::GetVersionError) -> Self {
+        match err {
+            crate::operation::get_version::GetVersionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_version::GetVersionError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_version::GetVersionError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_webhook::GetWebhookError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_webhook::GetWebhookError, R>) -> Self {
         match err {
@@ -764,8 +837,53 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::get_webhook::GetWebhookError> for Error {
     fn from(err: crate::operation::get_webhook::GetWebhookError) -> Self {
         match err {
+            crate::operation::get_webhook::GetWebhookError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::get_webhook::GetWebhookError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::get_webhook::GetWebhookError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_webhook_by_event::GetWebhookByEventError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_webhook_by_event::GetWebhookByEventError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_webhook_by_event::GetWebhookByEventError> for Error {
+    fn from(err: crate::operation::get_webhook_by_event::GetWebhookByEventError) -> Self {
+        match err {
+            crate::operation::get_webhook_by_event::GetWebhookByEventError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_webhook_by_event::GetWebhookByEventError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_webhook_by_event::GetWebhookByEventError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_workspace::GetWorkspaceError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_workspace::GetWorkspaceError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_workspace::GetWorkspaceError> for Error {
+    fn from(err: crate::operation::get_workspace::GetWorkspaceError) -> Self {
+        match err {
+            crate::operation::get_workspace::GetWorkspaceError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_workspace::GetWorkspaceError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_workspace::GetWorkspaceError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -827,7 +945,6 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::list_default_configs::ListDefaultConfigsError> for Error {
     fn from(err: crate::operation::list_default_configs::ListDefaultConfigsError) -> Self {
         match err {
-            crate::operation::list_default_configs::ListDefaultConfigsError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::list_default_configs::ListDefaultConfigsError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::list_default_configs::ListDefaultConfigsError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1017,6 +1134,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError> for Error {
     fn from(err: crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError) -> Self {
         match err {
+            crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1060,6 +1178,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::pause_experiment::PauseExperimentError> for Error {
     fn from(err: crate::operation::pause_experiment::PauseExperimentError) -> Self {
         match err {
+            crate::operation::pause_experiment::PauseExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::pause_experiment::PauseExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::pause_experiment::PauseExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1081,7 +1200,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::publish::PublishError> for Error {
     fn from(err: crate::operation::publish::PublishError) -> Self {
         match err {
-            crate::operation::publish::PublishError::FunctionNotFound(inner) => Error::FunctionNotFound(inner),
+            crate::operation::publish::PublishError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::publish::PublishError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::publish::PublishError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1103,6 +1222,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::ramp_experiment::RampExperimentError> for Error {
     fn from(err: crate::operation::ramp_experiment::RampExperimentError) -> Self {
         match err {
+            crate::operation::ramp_experiment::RampExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::ramp_experiment::RampExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::ramp_experiment::RampExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1146,6 +1266,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::resume_experiment::ResumeExperimentError> for Error {
     fn from(err: crate::operation::resume_experiment::ResumeExperimentError) -> Self {
         match err {
+            crate::operation::resume_experiment::ResumeExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::resume_experiment::ResumeExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::resume_experiment::ResumeExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1167,7 +1288,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::test::TestError> for Error {
     fn from(err: crate::operation::test::TestError) -> Self {
         match err {
-            crate::operation::test::TestError::FunctionNotFound(inner) => Error::FunctionNotFound(inner),
+            crate::operation::test::TestError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::test::TestError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::test::TestError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1255,7 +1376,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::update_function::UpdateFunctionError> for Error {
     fn from(err: crate::operation::update_function::UpdateFunctionError) -> Self {
         match err {
-            crate::operation::update_function::UpdateFunctionError::FunctionNotFound(inner) => Error::FunctionNotFound(inner),
+            crate::operation::update_function::UpdateFunctionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_function::UpdateFunctionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_function::UpdateFunctionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1277,7 +1398,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::update_organisation::UpdateOrganisationError> for Error {
     fn from(err: crate::operation::update_organisation::UpdateOrganisationError) -> Self {
         match err {
-            crate::operation::update_organisation::UpdateOrganisationError::OrganisationNotFound(inner) => Error::OrganisationNotFound(inner),
+            crate::operation::update_organisation::UpdateOrganisationError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_organisation::UpdateOrganisationError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_organisation::UpdateOrganisationError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1321,6 +1442,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::update_overrides_experiment::UpdateOverridesExperimentError> for Error {
     fn from(err: crate::operation::update_overrides_experiment::UpdateOverridesExperimentError) -> Self {
         match err {
+            crate::operation::update_overrides_experiment::UpdateOverridesExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_overrides_experiment::UpdateOverridesExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_overrides_experiment::UpdateOverridesExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1342,7 +1464,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::update_type_templates::UpdateTypeTemplatesError> for Error {
     fn from(err: crate::operation::update_type_templates::UpdateTypeTemplatesError) -> Self {
         match err {
-            crate::operation::update_type_templates::UpdateTypeTemplatesError::TypeTemplatesNotFound(inner) => Error::TypeTemplatesNotFound(inner),
+            crate::operation::update_type_templates::UpdateTypeTemplatesError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_type_templates::UpdateTypeTemplatesError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_type_templates::UpdateTypeTemplatesError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1364,7 +1486,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::update_webhook::UpdateWebhookError> for Error {
     fn from(err: crate::operation::update_webhook::UpdateWebhookError) -> Self {
         match err {
-            crate::operation::update_webhook::UpdateWebhookError::WebhookNotFound(inner) => Error::WebhookNotFound(inner),
+            crate::operation::update_webhook::UpdateWebhookError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_webhook::UpdateWebhookError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_webhook::UpdateWebhookError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1386,9 +1508,30 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::update_workspace::UpdateWorkspaceError> for Error {
     fn from(err: crate::operation::update_workspace::UpdateWorkspaceError) -> Self {
         match err {
-            crate::operation::update_workspace::UpdateWorkspaceError::WorkspaceNotFound(inner) => Error::WorkspaceNotFound(inner),
+            crate::operation::update_workspace::UpdateWorkspaceError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_workspace::UpdateWorkspaceError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_workspace::UpdateWorkspaceError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::validate_context::ValidateContextError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::validate_context::ValidateContextError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::validate_context::ValidateContextError> for Error {
+    fn from(err: crate::operation::validate_context::ValidateContextError) -> Self {
+        match err {
+            crate::operation::validate_context::ValidateContextError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::validate_context::ValidateContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -1416,13 +1559,8 @@ impl From<crate::operation::weight_recompute::WeightRecomputeError> for Error {
 impl ::std::error::Error for Error {
     fn source(&self) -> std::option::Option<&(dyn ::std::error::Error + 'static)> {
         match self {
-            Error::FunctionNotFound(inner) => inner.source(),
             Error::InternalServerError(inner) => inner.source(),
-            Error::OrganisationNotFound(inner) => inner.source(),
             Error::ResourceNotFound(inner) => inner.source(),
-            Error::TypeTemplatesNotFound(inner) => inner.source(),
-            Error::WebhookNotFound(inner) => inner.source(),
-            Error::WorkspaceNotFound(inner) => inner.source(),
             Error::Unhandled(inner) => ::std::option::Option::Some(&*inner.source)
         }
     }

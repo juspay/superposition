@@ -73,7 +73,7 @@ pub async fn update_context(
     let url = format!("{host}/context/overrides");
     let response = request(
         url,
-        reqwest::Method::PUT,
+        reqwest::Method::PATCH,
         Some(request_payload),
         construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
     )

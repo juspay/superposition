@@ -6,7 +6,7 @@ import {
 } from "../SuperpositionClient";
 import {
   ListWorkspaceInput,
-  WorkspaceListResponse,
+  ListWorkspaceOutput,
 } from "../models/models_0";
 import {
   de_ListWorkspaceCommand,
@@ -32,7 +32,7 @@ export interface ListWorkspaceCommandInput extends ListWorkspaceInput {}
  *
  * The output of {@link ListWorkspaceCommand}.
  */
-export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __MetadataBearer {}
+export interface ListWorkspaceCommandOutput extends ListWorkspaceOutput, __MetadataBearer {}
 
 /**
  * Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.
@@ -50,10 +50,10 @@ export interface ListWorkspaceCommandOutput extends WorkspaceListResponse, __Met
  * };
  * const command = new ListWorkspaceCommand(input);
  * const response = await client.send(command);
- * // { // WorkspaceListResponse
- * //   total_pages: Number("long"), // required
- * //   total_items: Number("long"), // required
- * //   data: [ // WorkspaceList // required
+ * // { // ListWorkspaceOutput
+ * //   total_pages: Number("int"),
+ * //   total_items: Number("int"),
+ * //   data: [ // WorkspaceList
  * //     { // WorkspaceResponse
  * //       workspace_name: "STRING_VALUE", // required
  * //       organisation_id: "STRING_VALUE", // required
@@ -111,7 +111,7 @@ export class ListWorkspaceCommand extends $Command.classBuilder<ListWorkspaceCom
 declare protected static __types: {
   api: {
       input: ListWorkspaceInput;
-      output: WorkspaceListResponse;
+      output: ListWorkspaceOutput;
   };
   sdk: {
       input: ListWorkspaceCommandInput;

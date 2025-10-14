@@ -8,13 +8,15 @@ import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Io.Superposition.Model.InternalServerError
+import qualified Io.Superposition.Model.ResourceNotFound
 import qualified Io.Superposition.Model.ResumeExperimentInput
 import qualified Io.Superposition.Model.ResumeExperimentOutput
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
 data ResumeExperimentError =
-    InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
+    ResourceNotFound Io.Superposition.Model.ResourceNotFound.ResourceNotFound
+    | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
     | UnexpectedError (Data.Maybe.Maybe Io.Superposition.Utility.HttpMetadata) Data.Text.Text
@@ -27,6 +29,7 @@ instance Io.Superposition.Utility.OperationError ResumeExperimentError where
     mkUnexpectedError = UnexpectedError
 
     getErrorParser status
+        | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.ResourceNotFound.ResourceNotFound) = Just (fmap ResourceNotFound (Io.Superposition.Utility.responseParser @Io.Superposition.Model.ResourceNotFound.ResourceNotFound))
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.InternalServerError.InternalServerError) = Just (fmap InternalServerError (Io.Superposition.Utility.responseParser @Io.Superposition.Model.InternalServerError.InternalServerError))
         | otherwise = Nothing
 

@@ -54,19 +54,25 @@ from .deserialize import (
     _deserialize_delete_experiment_group,
     _deserialize_delete_function,
     _deserialize_delete_type_templates,
+    _deserialize_delete_webhook,
     _deserialize_discard_experiment,
     _deserialize_get_config,
     _deserialize_get_config_fast,
     _deserialize_get_context,
     _deserialize_get_context_from_condition,
+    _deserialize_get_default_config,
     _deserialize_get_dimension,
     _deserialize_get_experiment,
     _deserialize_get_experiment_group,
     _deserialize_get_function,
     _deserialize_get_organisation,
     _deserialize_get_resolved_config,
+    _deserialize_get_type_template,
     _deserialize_get_type_templates_list,
+    _deserialize_get_version,
     _deserialize_get_webhook,
+    _deserialize_get_webhook_by_event,
+    _deserialize_get_workspace,
     _deserialize_list_audit_logs,
     _deserialize_list_contexts,
     _deserialize_list_default_configs,
@@ -96,6 +102,7 @@ from .deserialize import (
     _deserialize_update_type_templates,
     _deserialize_update_webhook,
     _deserialize_update_workspace,
+    _deserialize_validate_context,
     _deserialize_weight_recompute,
 )
 from .models import (
@@ -147,6 +154,7 @@ from .models import (
     DELETE_EXPERIMENT_GROUP,
     DELETE_FUNCTION,
     DELETE_TYPE_TEMPLATES,
+    DELETE_WEBHOOK,
     DISCARD_EXPERIMENT,
     DeleteContextInput,
     DeleteContextOutput,
@@ -160,20 +168,27 @@ from .models import (
     DeleteFunctionOutput,
     DeleteTypeTemplatesInput,
     DeleteTypeTemplatesOutput,
+    DeleteWebhookInput,
+    DeleteWebhookOutput,
     DiscardExperimentInput,
     DiscardExperimentOutput,
     GET_CONFIG,
     GET_CONFIG_FAST,
     GET_CONTEXT,
     GET_CONTEXT_FROM_CONDITION,
+    GET_DEFAULT_CONFIG,
     GET_DIMENSION,
     GET_EXPERIMENT,
     GET_EXPERIMENT_GROUP,
     GET_FUNCTION,
     GET_ORGANISATION,
     GET_RESOLVED_CONFIG,
+    GET_TYPE_TEMPLATE,
     GET_TYPE_TEMPLATES_LIST,
+    GET_VERSION,
     GET_WEBHOOK,
+    GET_WEBHOOK_BY_EVENT,
+    GET_WORKSPACE,
     GetConfigFastInput,
     GetConfigFastOutput,
     GetConfigInput,
@@ -182,6 +197,8 @@ from .models import (
     GetContextFromConditionOutput,
     GetContextInput,
     GetContextOutput,
+    GetDefaultConfigInput,
+    GetDefaultConfigOutput,
     GetDimensionInput,
     GetDimensionOutput,
     GetExperimentGroupInput,
@@ -194,10 +211,18 @@ from .models import (
     GetOrganisationOutput,
     GetResolvedConfigInput,
     GetResolvedConfigOutput,
+    GetTypeTemplateInput,
+    GetTypeTemplateOutput,
     GetTypeTemplatesListInput,
     GetTypeTemplatesListOutput,
+    GetVersionInput,
+    GetVersionOutput,
+    GetWebhookByEventInput,
+    GetWebhookByEventOutput,
     GetWebhookInput,
     GetWebhookOutput,
+    GetWorkspaceInput,
+    GetWorkspaceOutput,
     LIST_AUDIT_LOGS,
     LIST_CONTEXTS,
     LIST_DEFAULT_CONFIGS,
@@ -286,6 +311,9 @@ from .models import (
     UpdateWebhookOutput,
     UpdateWorkspaceInput,
     UpdateWorkspaceOutput,
+    VALIDATE_CONTEXT,
+    ValidateContextInput,
+    ValidateContextOutput,
     WEIGHT_RECOMPUTE,
     WeightRecomputeInput,
     WeightRecomputeOutput,
@@ -311,19 +339,25 @@ from .serialize import (
     _serialize_delete_experiment_group,
     _serialize_delete_function,
     _serialize_delete_type_templates,
+    _serialize_delete_webhook,
     _serialize_discard_experiment,
     _serialize_get_config,
     _serialize_get_config_fast,
     _serialize_get_context,
     _serialize_get_context_from_condition,
+    _serialize_get_default_config,
     _serialize_get_dimension,
     _serialize_get_experiment,
     _serialize_get_experiment_group,
     _serialize_get_function,
     _serialize_get_organisation,
     _serialize_get_resolved_config,
+    _serialize_get_type_template,
     _serialize_get_type_templates_list,
+    _serialize_get_version,
     _serialize_get_webhook,
+    _serialize_get_webhook_by_event,
+    _serialize_get_workspace,
     _serialize_list_audit_logs,
     _serialize_list_contexts,
     _serialize_list_default_configs,
@@ -353,6 +387,7 @@ from .serialize import (
     _serialize_update_type_templates,
     _serialize_update_webhook,
     _serialize_update_workspace,
+    _serialize_validate_context,
     _serialize_weight_recompute,
 )
 
@@ -924,6 +959,33 @@ class Superposition:
             operation=DELETE_TYPE_TEMPLATES,
         )
 
+    async def delete_webhook(self, input: DeleteWebhookInput, plugins: list[Plugin] | None = None) -> DeleteWebhookOutput:
+        """
+        Permanently removes a webhook config from the workspace, stopping all future
+        event notifications to that endpoint.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_delete_webhook,
+            deserialize=_deserialize_delete_webhook,
+            config=self._config,
+            operation=DELETE_WEBHOOK,
+        )
+
     async def discard_experiment(self, input: DiscardExperimentInput, plugins: list[Plugin] | None = None) -> DiscardExperimentOutput:
         """
         Discards an experiment without selecting a winner, effectively canceling the
@@ -1056,6 +1118,33 @@ class Superposition:
             deserialize=_deserialize_get_context_from_condition,
             config=self._config,
             operation=GET_CONTEXT_FROM_CONDITION,
+        )
+
+    async def get_default_config(self, input: GetDefaultConfigInput, plugins: list[Plugin] | None = None) -> GetDefaultConfigOutput:
+        """
+        Retrieves a specific default config entry by its key, including its value,
+        schema, function mappings, and metadata.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_default_config,
+            deserialize=_deserialize_get_default_config,
+            config=self._config,
+            operation=GET_DEFAULT_CONFIG,
         )
 
     async def get_dimension(self, input: GetDimensionInput, plugins: list[Plugin] | None = None) -> GetDimensionOutput:
@@ -1219,6 +1308,33 @@ class Superposition:
             operation=GET_RESOLVED_CONFIG,
         )
 
+    async def get_type_template(self, input: GetTypeTemplateInput, plugins: list[Plugin] | None = None) -> GetTypeTemplateOutput:
+        """
+        Retrieves detailed information about a specific type template including its
+        schema and metadata.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_type_template,
+            deserialize=_deserialize_get_type_template,
+            config=self._config,
+            operation=GET_TYPE_TEMPLATE,
+        )
+
     async def get_type_templates_list(self, input: GetTypeTemplatesListInput, plugins: list[Plugin] | None = None) -> GetTypeTemplatesListOutput:
         """
         Retrieves a paginated list of all type templates in the workspace, including
@@ -1246,6 +1362,33 @@ class Superposition:
             operation=GET_TYPE_TEMPLATES_LIST,
         )
 
+    async def get_version(self, input: GetVersionInput, plugins: list[Plugin] | None = None) -> GetVersionOutput:
+        """
+        Retrieves a specific config version along with its metadata for audit and
+        rollback purposes.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_version,
+            deserialize=_deserialize_get_version,
+            config=self._config,
+            operation=GET_VERSION,
+        )
+
     async def get_webhook(self, input: GetWebhookInput, plugins: list[Plugin] | None = None) -> GetWebhookOutput:
         """
         Retrieves detailed information about a specific webhook config, including its
@@ -1271,6 +1414,60 @@ class Superposition:
             deserialize=_deserialize_get_webhook,
             config=self._config,
             operation=GET_WEBHOOK,
+        )
+
+    async def get_webhook_by_event(self, input: GetWebhookByEventInput, plugins: list[Plugin] | None = None) -> GetWebhookByEventOutput:
+        """
+        Retrieves a webhook configuration based on a specific event type, allowing users
+        to find which webhook is set to trigger for that event.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_webhook_by_event,
+            deserialize=_deserialize_get_webhook_by_event,
+            config=self._config,
+            operation=GET_WEBHOOK_BY_EVENT,
+        )
+
+    async def get_workspace(self, input: GetWorkspaceInput, plugins: list[Plugin] | None = None) -> GetWorkspaceOutput:
+        """
+        Retrieves detailed information about a specific workspace including its
+        configuration and metadata.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_workspace,
+            deserialize=_deserialize_get_workspace,
+            config=self._config,
+            operation=GET_WORKSPACE,
         )
 
     async def list_audit_logs(self, input: ListAuditLogsInput, plugins: list[Plugin] | None = None) -> ListAuditLogsOutput:
@@ -2058,6 +2255,32 @@ class Superposition:
             deserialize=_deserialize_update_workspace,
             config=self._config,
             operation=UPDATE_WORKSPACE,
+        )
+
+    async def validate_context(self, input: ValidateContextInput, plugins: list[Plugin] | None = None) -> ValidateContextOutput:
+        """
+        Validates if a given context condition is well-formed
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_validate_context,
+            deserialize=_deserialize_validate_context,
+            config=self._config,
+            operation=VALIDATE_CONTEXT,
         )
 
     async def weight_recompute(self, input: WeightRecomputeInput, plugins: list[Plugin] | None = None) -> WeightRecomputeOutput:

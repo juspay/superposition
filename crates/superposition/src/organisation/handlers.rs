@@ -1,5 +1,5 @@
 use actix_web::{
-    get, post, put,
+    get, post, routes,
     web::{self, Json, Query},
     Scope,
 };
@@ -70,7 +70,9 @@ pub async fn create_organisation(
     Ok(Json(new_org))
 }
 
+#[routes]
 #[put("/{org_id}")]
+#[patch("/{org_id}")]
 pub async fn update_organisation(
     org_id: web::Path<String>,
     request: web::Json<UpdateOrganisationRequest>,

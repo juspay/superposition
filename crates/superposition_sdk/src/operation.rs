@@ -60,6 +60,9 @@ pub mod delete_function;
 /// Types for the `DeleteTypeTemplates` operation.
 pub mod delete_type_templates;
 
+/// Types for the `DeleteWebhook` operation.
+pub mod delete_webhook;
+
 /// Types for the `DiscardExperiment` operation.
 pub mod discard_experiment;
 
@@ -74,6 +77,9 @@ pub mod get_context;
 
 /// Types for the `GetContextFromCondition` operation.
 pub mod get_context_from_condition;
+
+/// Types for the `GetDefaultConfig` operation.
+pub mod get_default_config;
 
 /// Types for the `GetDimension` operation.
 pub mod get_dimension;
@@ -93,11 +99,23 @@ pub mod get_organisation;
 /// Types for the `GetResolvedConfig` operation.
 pub mod get_resolved_config;
 
+/// Types for the `GetTypeTemplate` operation.
+pub mod get_type_template;
+
 /// Types for the `GetTypeTemplatesList` operation.
 pub mod get_type_templates_list;
 
+/// Types for the `GetVersion` operation.
+pub mod get_version;
+
 /// Types for the `GetWebhook` operation.
 pub mod get_webhook;
+
+/// Types for the `GetWebhookByEvent` operation.
+pub mod get_webhook_by_event;
+
+/// Types for the `GetWorkspace` operation.
+pub mod get_workspace;
 
 /// Types for the `ListAuditLogs` operation.
 pub mod list_audit_logs;
@@ -185,6 +203,9 @@ pub mod update_webhook;
 
 /// Types for the `UpdateWorkspace` operation.
 pub mod update_workspace;
+
+/// Types for the `ValidateContext` operation.
+pub mod validate_context;
 
 /// Types for the `WeightRecompute` operation.
 pub mod weight_recompute;

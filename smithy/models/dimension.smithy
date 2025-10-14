@@ -35,10 +35,10 @@ resource Dimension {
         dimension_type: DimensionType
     }
     list: ListDimensions
-    put: UpdateDimension
+    update: UpdateDimension
     delete: DeleteDimension
+    read: GetDimension
     operations: [
-        GetDimension
         CreateDimension
     ]
 }
@@ -134,9 +134,10 @@ operation ListDimensions {
 }
 
 @documentation("Retrieves detailed information about a specific dimension, including its schema, cohort dependency graph, and configuration metadata.")
+@readonly
 @http(method: "GET", uri: "/dimension/{dimension}")
 @tags(["Dimensions"])
-operation GetDimension {
+operation GetDimension with [GetOperation] {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -144,17 +145,13 @@ operation GetDimension {
     }
 
     output: DimensionExt
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 @documentation("Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.")
 @idempotent
-@http(method: "PUT", uri: "/dimension/{dimension}")
+@http(method: "PATCH", uri: "/dimension/{dimension}")
 @tags(["Dimensions"])
-operation UpdateDimension {
+operation UpdateDimension with [GetOperation] {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -175,26 +172,16 @@ operation UpdateDimension {
     }
 
     output: DimensionExt
-
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 @documentation("Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.")
 @idempotent
 @http(method: "DELETE", uri: "/dimension/{dimension}", code: 201)
 @tags(["Dimensions"])
-operation DeleteDimension {
+operation DeleteDimension with [GetOperation] {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
         @required
         $dimension
     }
-
-    output := {}
-
-    errors: [
-        ResourceNotFound
-    ]
 }

@@ -23,11 +23,11 @@ public final class UpdateWorkspace implements ApiOperation<UpdateWorkspaceInput,
     private static final UpdateWorkspace $INSTANCE = new UpdateWorkspace();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/workspaces/{workspace_name}")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/workspaces/{workspace_name}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
-        .putType(WorkspaceNotFound.$ID, WorkspaceNotFound.class, WorkspaceNotFound::builder)
+        .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));

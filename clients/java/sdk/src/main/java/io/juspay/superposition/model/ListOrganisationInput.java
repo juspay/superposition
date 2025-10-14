@@ -41,14 +41,23 @@ public final class ListOrganisationInput implements SerializableStruct {
         this.all = builder.all;
     }
 
+    /**
+     * Number of items to be returned in each page.
+     */
     public Integer count() {
         return count;
     }
 
+    /**
+     * Page number to retrieve, starting from 1.
+     */
     public Integer page() {
         return page;
     }
 
+    /**
+     * If true, returns all requested items, ignoring pagination parameters page and count.
+     */
     public Boolean all() {
         return all;
     }
@@ -144,6 +153,8 @@ public final class ListOrganisationInput implements SerializableStruct {
         }
 
         /**
+         * Number of items to be returned in each page.
+         *
          * @return this builder.
          */
         public Builder count(int count) {
@@ -152,6 +163,8 @@ public final class ListOrganisationInput implements SerializableStruct {
         }
 
         /**
+         * Page number to retrieve, starting from 1.
+         *
          * @return this builder.
          */
         public Builder page(int page) {
@@ -160,6 +173,8 @@ public final class ListOrganisationInput implements SerializableStruct {
         }
 
         /**
+         * If true, returns all requested items, ignoring pagination parameters page and count.
+         *
          * @return this builder.
          */
         public Builder all(boolean all) {

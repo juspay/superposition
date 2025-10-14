@@ -63,7 +63,7 @@ final class SharedSchemas {
         .build();
 
     static final Schema OVERRIDE_WITH_KEYS = Schema.listBuilder(ShapeId.from("io.superposition#OverrideWithKeys"),
-            LengthTrait.builder().max(1L).build())
+            LengthTrait.builder().min(1L).max(1L).build())
         .putMember("member", PreludeSchemas.STRING)
         .build();
 

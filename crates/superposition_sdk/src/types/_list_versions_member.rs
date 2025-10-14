@@ -8,8 +8,6 @@ pub struct ListVersionsMember  {
     #[allow(missing_docs)] // documentation missing in model
     pub config: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
-    pub config_hash: ::std::string::String,
-    #[allow(missing_docs)] // documentation missing in model
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::string::String,
@@ -24,10 +22,6 @@ impl  ListVersionsMember  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn config(&self) -> &::aws_smithy_types::Document {
         &self.config
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn config_hash(&self) -> &str {
-        use std::ops::Deref; self.config_hash.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -58,7 +52,6 @@ impl ListVersionsMember {
 pub struct ListVersionsMemberBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
     pub(crate) config: ::std::option::Option<::aws_smithy_types::Document>,
-    pub(crate) config_hash: ::std::option::Option<::std::string::String>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) tags: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
@@ -91,20 +84,6 @@ impl ListVersionsMemberBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.config
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
-    pub fn config_hash(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.config_hash = ::std::option::Option::Some(input.into());
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_hash(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_hash = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_config_hash(&self) -> &::std::option::Option<::std::string::String> {
-        &self.config_hash
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -156,7 +135,6 @@ impl ListVersionsMemberBuilder {
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::types::builders::ListVersionsMemberBuilder::id)
     /// - [`config`](crate::types::builders::ListVersionsMemberBuilder::config)
-    /// - [`config_hash`](crate::types::builders::ListVersionsMemberBuilder::config_hash)
     /// - [`created_at`](crate::types::builders::ListVersionsMemberBuilder::created_at)
     /// - [`description`](crate::types::builders::ListVersionsMemberBuilder::description)
     pub fn build(self) -> ::std::result::Result<crate::types::ListVersionsMember, ::aws_smithy_types::error::operation::BuildError> {
@@ -170,11 +148,6 @@ impl ListVersionsMemberBuilder {
                 config: self.config
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("config", "config was not specified but it is required when building ListVersionsMember")
-                    )?
-                ,
-                config_hash: self.config_hash
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("config_hash", "config_hash was not specified but it is required when building ListVersionsMember")
                     )?
                 ,
                 created_at: self.created_at

@@ -61,6 +61,9 @@ import io.juspay.superposition.model.DeleteFunctionOutput;
 import io.juspay.superposition.model.DeleteTypeTemplates;
 import io.juspay.superposition.model.DeleteTypeTemplatesInput;
 import io.juspay.superposition.model.DeleteTypeTemplatesOutput;
+import io.juspay.superposition.model.DeleteWebhook;
+import io.juspay.superposition.model.DeleteWebhookInput;
+import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperiment;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
@@ -76,6 +79,9 @@ import io.juspay.superposition.model.GetContextFromConditionInput;
 import io.juspay.superposition.model.GetContextFromConditionOutput;
 import io.juspay.superposition.model.GetContextInput;
 import io.juspay.superposition.model.GetContextOutput;
+import io.juspay.superposition.model.GetDefaultConfig;
+import io.juspay.superposition.model.GetDefaultConfigInput;
+import io.juspay.superposition.model.GetDefaultConfigOutput;
 import io.juspay.superposition.model.GetDimension;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
@@ -94,12 +100,24 @@ import io.juspay.superposition.model.GetOrganisationOutput;
 import io.juspay.superposition.model.GetResolvedConfig;
 import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
+import io.juspay.superposition.model.GetTypeTemplate;
+import io.juspay.superposition.model.GetTypeTemplateInput;
+import io.juspay.superposition.model.GetTypeTemplateOutput;
 import io.juspay.superposition.model.GetTypeTemplatesList;
 import io.juspay.superposition.model.GetTypeTemplatesListInput;
 import io.juspay.superposition.model.GetTypeTemplatesListOutput;
+import io.juspay.superposition.model.GetVersion;
+import io.juspay.superposition.model.GetVersionInput;
+import io.juspay.superposition.model.GetVersionOutput;
 import io.juspay.superposition.model.GetWebhook;
+import io.juspay.superposition.model.GetWebhookByEvent;
+import io.juspay.superposition.model.GetWebhookByEventInput;
+import io.juspay.superposition.model.GetWebhookByEventOutput;
 import io.juspay.superposition.model.GetWebhookInput;
 import io.juspay.superposition.model.GetWebhookOutput;
+import io.juspay.superposition.model.GetWorkspace;
+import io.juspay.superposition.model.GetWorkspaceInput;
+import io.juspay.superposition.model.GetWorkspaceOutput;
 import io.juspay.superposition.model.ListAuditLogs;
 import io.juspay.superposition.model.ListAuditLogsInput;
 import io.juspay.superposition.model.ListAuditLogsOutput;
@@ -187,6 +205,9 @@ import io.juspay.superposition.model.UpdateWebhookOutput;
 import io.juspay.superposition.model.UpdateWorkspace;
 import io.juspay.superposition.model.UpdateWorkspaceInput;
 import io.juspay.superposition.model.UpdateWorkspaceOutput;
+import io.juspay.superposition.model.ValidateContext;
+import io.juspay.superposition.model.ValidateContextInput;
+import io.juspay.superposition.model.ValidateContextOutput;
 import io.juspay.superposition.model.WeightRecompute;
 import io.juspay.superposition.model.WeightRecomputeInput;
 import io.juspay.superposition.model.WeightRecomputeOutput;
@@ -300,6 +321,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<DeleteWebhookOutput> deleteWebhook(DeleteWebhookInput input, RequestOverrideConfig overrideConfig) {return call(input, DeleteWebhook.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<DiscardExperimentOutput> discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig) {return call(input, DiscardExperiment.instance(), overrideConfig);
     }
 
@@ -317,6 +342,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<GetContextFromConditionOutput> getContextFromCondition(GetContextFromConditionInput input, RequestOverrideConfig overrideConfig) {return call(input, GetContextFromCondition.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<GetDefaultConfigOutput> getDefaultConfig(GetDefaultConfigInput input, RequestOverrideConfig overrideConfig) {return call(input, GetDefaultConfig.instance(), overrideConfig);
     }
 
     @Override
@@ -344,11 +373,27 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<GetTypeTemplateOutput> getTypeTemplate(GetTypeTemplateInput input, RequestOverrideConfig overrideConfig) {return call(input, GetTypeTemplate.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<GetTypeTemplatesListOutput> getTypeTemplatesList(GetTypeTemplatesListInput input, RequestOverrideConfig overrideConfig) {return call(input, GetTypeTemplatesList.instance(), overrideConfig);
     }
 
     @Override
+    public CompletableFuture<GetVersionOutput> getVersion(GetVersionInput input, RequestOverrideConfig overrideConfig) {return call(input, GetVersion.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<GetWebhookOutput> getWebhook(GetWebhookInput input, RequestOverrideConfig overrideConfig) {return call(input, GetWebhook.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<GetWebhookByEventOutput> getWebhookByEvent(GetWebhookByEventInput input, RequestOverrideConfig overrideConfig) {return call(input, GetWebhookByEvent.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<GetWorkspaceOutput> getWorkspace(GetWorkspaceInput input, RequestOverrideConfig overrideConfig) {return call(input, GetWorkspace.instance(), overrideConfig);
     }
 
     @Override
@@ -465,6 +510,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<UpdateWorkspaceOutput> updateWorkspace(UpdateWorkspaceInput input, RequestOverrideConfig overrideConfig) {return call(input, UpdateWorkspace.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<ValidateContextOutput> validateContext(ValidateContextInput input, RequestOverrideConfig overrideConfig) {return call(input, ValidateContext.instance(), overrideConfig);
     }
 
     @Override

@@ -37,7 +37,7 @@ pub fn de_list_experiment_groups_http_response(_response_status: u16, _response_
         #[allow(unused_mut)]
         let mut output = crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_experiment_groups::de_list_experiment_groups(_response_body, output).map_err(crate::operation::list_experiment_groups::ListExperimentGroupsError::unhandled)?;
-        crate::serde_util::list_experiment_groups_output_output_correct_errors(output).build().map_err(crate::operation::list_experiment_groups::ListExperimentGroupsError::unhandled)?
+        output.build()
     })
 }
 
@@ -55,7 +55,7 @@ pub fn ser_list_experiment_groups_headers(
                                 err
                             ))
                             })?;
-                            builder = builder.header("x-tenant", header_value);
+                            builder = builder.header("x-workspace", header_value);
     }
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();
@@ -89,14 +89,14 @@ pub(crate) fn de_list_experiment_groups(value: &[u8], mut builder: crate::operat
                     "total_items" => {
                         builder = builder.set_total_items(
                             ::aws_smithy_json::deserialize::token::expect_number_or_null(tokens.next())?
-                                                .map(i64::try_from)
+                                                .map(i32::try_from)
                                                 .transpose()?
                         );
                     }
                     "total_pages" => {
                         builder = builder.set_total_pages(
                             ::aws_smithy_json::deserialize::token::expect_number_or_null(tokens.next())?
-                                                .map(i64::try_from)
+                                                .map(i32::try_from)
                                                 .transpose()?
                         );
                     }

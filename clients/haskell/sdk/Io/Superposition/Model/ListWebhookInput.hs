@@ -129,7 +129,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListWebhookInput where
         Io.Superposition.Utility.serQuery "all" (all' self)
         Io.Superposition.Utility.serQuery "count" (count self)
         Io.Superposition.Utility.serQuery "page" (page self)
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         
 

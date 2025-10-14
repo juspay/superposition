@@ -94,7 +94,7 @@ public final class ListVersions implements ApiOperation<ListVersionsInput, ListV
 
     @Override
     public ApiResource boundResource() {
-        return Config.instance();
+        return ConfigVersion.instance();
     }
 }
 

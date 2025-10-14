@@ -13,22 +13,28 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
@@ -76,13 +82,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -149,13 +154,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -216,13 +220,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -327,13 +330,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -393,28 +395,31 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -450,225 +455,35 @@
             }
         },
         "/context": {
-            "put": {
-                "description": "Creates a new context with specified conditions and overrides. Contexts define conditional rules for config management.",
-                "operationId": "CreateContext",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateContextRequestContent"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "parameters": [
-                    {
-                        "name": "x-config-tags",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "x-org-id",
-                        "in": "header",
-                        "schema": {
-                            "type": "string",
-                            "default": "juspay"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "x-tenant",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "CreateContext 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CreateContextResponseContent"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Context Management"
-                ]
-            }
-        },
-        "/context/bulk-operations": {
-            "put": {
-                "description": "Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.",
-                "operationId": "BulkOperation",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/BulkOperationReq"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "parameters": [
-                    {
-                        "name": "x-config-tags",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "x-org-id",
-                        "in": "header",
-                        "schema": {
-                            "type": "string",
-                            "default": "juspay"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "x-tenant",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "BulkOperation 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BulkOperationOut"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Context Management"
-                ]
-            }
-        },
-        "/context/get": {
-            "post": {
-                "description": "Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.",
-                "operationId": "GetContextFromCondition",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/GetContextFromConditionInputPayload"
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "x-org-id",
-                        "in": "header",
-                        "schema": {
-                            "type": "string",
-                            "default": "juspay"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "x-tenant",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "GetContextFromCondition 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GetContextFromConditionResponseContent"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "ResourceNotFound 404 response"
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Context Management"
-                ]
-            }
-        },
-        "/context/list": {
             "get": {
                 "description": "Retrieves a paginated list of contexts with support for filtering by creation date, modification date, weight, and other criteria.",
                 "operationId": "ListContexts",
                 "parameters": [
                     {
-                        "name": "page",
+                        "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
-                        "name": "count",
+                        "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
@@ -726,13 +541,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -750,6 +564,203 @@
                                 }
                             }
                         }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Context Management"
+                ]
+            },
+            "put": {
+                "description": "Creates a new context with specified conditions and overrides. Contexts define conditional rules for config management.",
+                "operationId": "CreateContext",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateContextRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CreateContext 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateContextResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Context Management"
+                ]
+            }
+        },
+        "/context/bulk-operations": {
+            "put": {
+                "description": "Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.",
+                "operationId": "BulkOperation",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkOperationReq"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BulkOperation 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulkOperationOut"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Context Management"
+                ]
+            }
+        },
+        "/context/get": {
+            "post": {
+                "description": "Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.",
+                "operationId": "GetContextFromCondition",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetContextFromConditionInputPayload"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetContextFromCondition 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetContextFromConditionResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -794,13 +805,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -864,13 +874,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -908,6 +917,58 @@
                 ]
             }
         },
+        "/context/validate": {
+            "put": {
+                "description": "Validates if a given context condition is well-formed",
+                "operationId": "ValidateContext",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ValidateContextRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ValidateContext 200 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Context Management"
+                ]
+            }
+        },
         "/context/weight/recompute": {
             "put": {
                 "description": "Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.",
@@ -924,13 +985,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -989,13 +1049,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1041,13 +1100,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1093,35 +1151,47 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1139,9 +1209,6 @@
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -1176,13 +1243,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1234,13 +1300,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1270,7 +1335,65 @@
                     "Default Configuration"
                 ]
             },
-            "put": {
+            "get": {
+                "description": "Retrieves a specific default config entry by its key, including its value, schema, function mappings, and metadata.",
+                "operationId": "GetDefaultConfig",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetDefaultConfig 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDefaultConfigResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Default Configuration"
+                ]
+            },
+            "patch": {
                 "description": "Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.",
                 "operationId": "UpdateDefaultConfig",
                 "requestBody": {
@@ -1296,13 +1419,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1348,35 +1470,40 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1428,13 +1555,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1486,13 +1612,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1538,13 +1663,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1581,7 +1705,7 @@
                     "Dimensions"
                 ]
             },
-            "put": {
+            "patch": {
                 "description": "Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.",
                 "operationId": "UpdateDimension",
                 "requestBody": {
@@ -1607,13 +1731,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1657,17 +1780,30 @@
                 "operationId": "ListExperimentGroups",
                 "parameters": [
                     {
-                        "name": "page",
+                        "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
-                        "name": "count",
+                        "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
+                        }
+                    },
+                    {
+                        "name": "all",
+                        "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
@@ -1714,15 +1850,6 @@
                         }
                     },
                     {
-                        "name": "all",
-                        "in": "query",
-                        "description": "If true, returns all experiment groups, ignoring pagination parameters page and count.",
-                        "schema": {
-                            "type": "boolean",
-                            "description": "If true, returns all experiment groups, ignoring pagination parameters page and count."
-                        }
-                    },
-                    {
                         "name": "group_type",
                         "in": "query",
                         "description": "Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).",
@@ -1734,13 +1861,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1792,13 +1918,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1850,13 +1975,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1909,13 +2033,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -1978,13 +2101,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2049,13 +2171,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2120,13 +2241,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2170,24 +2290,30 @@
                 "operationId": "ListExperiment",
                 "parameters": [
                     {
-                        "name": "page",
+                        "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
-                        "name": "count",
+                        "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
@@ -2275,13 +2401,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2333,13 +2458,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2393,13 +2517,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2451,13 +2574,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2475,6 +2597,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2519,13 +2644,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2543,6 +2667,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2587,13 +2714,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2612,6 +2738,9 @@
                             }
                         }
                     },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -2629,7 +2758,7 @@
             }
         },
         "/experiments/{id}/overrides": {
-            "put": {
+            "patch": {
                 "description": "Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.",
                 "operationId": "UpdateOverridesExperiment",
                 "requestBody": {
@@ -2655,13 +2784,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2679,6 +2807,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2723,13 +2854,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2747,6 +2877,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2791,13 +2924,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2815,6 +2947,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2859,13 +2994,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2883,6 +3017,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2908,35 +3045,40 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -2988,13 +3130,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3046,13 +3187,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3065,7 +3205,7 @@
                         "description": "DeleteFunction 200 response"
                     },
                     "404": {
-                        "description": "FunctionNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3098,13 +3238,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3124,7 +3263,7 @@
                         }
                     },
                     "404": {
-                        "description": "FunctionNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3167,13 +3306,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3193,7 +3331,7 @@
                         }
                     },
                     "404": {
-                        "description": "FunctionNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3238,13 +3376,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3264,7 +3401,7 @@
                         }
                     },
                     "404": {
-                        "description": "FunctionNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3317,13 +3454,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3343,7 +3479,7 @@
                         }
                     },
                     "404": {
-                        "description": "FunctionNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3369,22 +3505,28 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     }
                 ],
@@ -3480,7 +3622,7 @@
                         }
                     },
                     "404": {
-                        "description": "OrganisationNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3497,7 +3639,7 @@
                     "Organisation Management"
                 ]
             },
-            "put": {
+            "patch": {
                 "description": "Updates an existing organisation's information including contact details, status, and administrative properties.",
                 "operationId": "UpdateOrganisation",
                 "requestBody": {
@@ -3531,7 +3673,7 @@
                         }
                     },
                     "404": {
-                        "description": "OrganisationNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3557,35 +3699,40 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3637,13 +3784,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3695,13 +3841,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3721,7 +3866,7 @@
                         }
                     },
                     "404": {
-                        "description": "TypeTemplatesNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3738,7 +3883,65 @@
                     "Type Templates"
                 ]
             },
-            "put": {
+            "get": {
+                "description": "Retrieves detailed information about a specific type template including its schema and metadata.",
+                "operationId": "GetTypeTemplate",
+                "parameters": [
+                    {
+                        "name": "type_name",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetTypeTemplate 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetTypeTemplateResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Type Templates"
+                ]
+            },
+            "patch": {
                 "description": "Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.",
                 "operationId": "UpdateTypeTemplates",
                 "requestBody": {
@@ -3764,13 +3967,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3790,7 +3992,7 @@
                         }
                     },
                     "404": {
-                        "description": "TypeTemplatesNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -3808,6 +4010,66 @@
                 ]
             }
         },
+        "/version/{id}": {
+            "get": {
+                "description": "Retrieves a specific config version along with its metadata for audit and rollback purposes.",
+                "operationId": "GetVersion",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetVersion 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetVersionResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
         "/webhook": {
             "get": {
                 "description": "Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.",
@@ -3816,35 +4078,40 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3896,13 +4163,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3937,7 +4203,118 @@
                 ]
             }
         },
+        "/webhook/event/{event}": {
+            "get": {
+                "description": "Retrieves a webhook configuration based on a specific event type, allowing users to find which webhook is set to trigger for that event.",
+                "operationId": "GetWebhookByEvent",
+                "parameters": [
+                    {
+                        "name": "event",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetWebhookByEvent 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetWebhookByEventResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Webhooks"
+                ]
+            }
+        },
         "/webhook/{name}": {
+            "delete": {
+                "description": "Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint.",
+                "operationId": "DeleteWebhook",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "DeleteWebhook 201 response"
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Webhooks"
+                ]
+            },
             "get": {
                 "description": "Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history.",
                 "operationId": "GetWebhook",
@@ -3954,13 +4331,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3978,6 +4354,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4020,13 +4399,12 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     },
                     {
-                        "name": "x-tenant",
+                        "name": "x-workspace",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -4046,7 +4424,7 @@
                         }
                     },
                     "404": {
-                        "description": "WebhookNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4072,30 +4450,35 @@
                     {
                         "name": "count",
                         "in": "query",
+                        "description": "Number of items to be returned in each page.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
                         }
                     },
                     {
                         "name": "page",
                         "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
                         }
                     },
                     {
                         "name": "all",
                         "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
                     },
                     {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     }
@@ -4144,8 +4527,7 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     }
@@ -4178,7 +4560,57 @@
             }
         },
         "/workspaces/{workspace_name}": {
-            "put": {
+            "get": {
+                "description": "Retrieves detailed information about a specific workspace including its configuration and metadata.",
+                "operationId": "GetWorkspace",
+                "parameters": [
+                    {
+                        "name": "workspace_name",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetWorkspace 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetWorkspaceResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Workspace Management"
+                ]
+            },
+            "patch": {
                 "description": "Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.",
                 "operationId": "UpdateWorkspace",
                 "requestBody": {
@@ -4204,8 +4636,7 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     }
@@ -4222,7 +4653,7 @@
                         }
                     },
                     "404": {
-                        "description": "WorkspaceNotFound 404 response"
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4257,8 +4688,7 @@
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
-                            "type": "string",
-                            "default": "juspay"
+                            "type": "string"
                         },
                         "required": true
                     }
@@ -4273,6 +4703,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4786,7 +5219,8 @@
                         "items": {
                             "type": "string"
                         },
-                        "maxItems": 1
+                        "maxItems": 1,
+                        "minItems": 1
                     }
                 }
             },
@@ -6608,6 +7042,56 @@
                     "id"
                 ]
             },
+            "GetDefaultConfigResponseContent": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "value": {},
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "function_name": {
+                        "type": "string",
+                        "description": "Optional"
+                    },
+                    "autocomplete_function_name": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "key",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "schema",
+                    "value"
+                ]
+            },
             "GetDimensionResponseContent": {
                 "type": "object",
                 "properties": {
@@ -6956,6 +7440,47 @@
                     }
                 }
             },
+            "GetTypeTemplateResponseContent": {
+                "type": "object",
+                "properties": {
+                    "type_name": {
+                        "type": "string"
+                    },
+                    "type_schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "type_name",
+                    "type_schema"
+                ]
+            },
             "GetTypeTemplatesListResponseContent": {
                 "type": "object",
                 "properties": {
@@ -6972,6 +7497,109 @@
                         }
                     }
                 }
+            },
+            "GetVersionResponseContent": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "config": {},
+                    "config_hash": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "config",
+                    "config_hash",
+                    "created_at",
+                    "description",
+                    "id"
+                ]
+            },
+            "GetWebhookByEventResponseContent": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "$ref": "#/components/schemas/HttpMethod"
+                    },
+                    "version": {
+                        "$ref": "#/components/schemas/Version"
+                    },
+                    "custom_headers": {
+                        "$ref": "#/components/schemas/Object"
+                    },
+                    "events": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "max_retries": {
+                        "type": "number"
+                    },
+                    "last_triggered_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "enabled",
+                    "events",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "max_retries",
+                    "method",
+                    "name",
+                    "url",
+                    "version"
+                ]
             },
             "GetWebhookResponseContent": {
                 "type": "object",
@@ -7042,6 +7670,77 @@
                     "name",
                     "url",
                     "version"
+                ]
+            },
+            "GetWorkspaceResponseContent": {
+                "type": "object",
+                "properties": {
+                    "workspace_name": {
+                        "type": "string"
+                    },
+                    "organisation_id": {
+                        "type": "string"
+                    },
+                    "organisation_name": {
+                        "type": "string"
+                    },
+                    "workspace_schema_name": {
+                        "type": "string"
+                    },
+                    "workspace_status": {
+                        "$ref": "#/components/schemas/WorkspaceStatus"
+                    },
+                    "workspace_admin_email": {
+                        "type": "string"
+                    },
+                    "config_version": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "mandatory_dimensions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "strict_mode": {
+                        "type": "boolean"
+                    },
+                    "metrics": {},
+                    "allow_experiment_self_approval": {
+                        "type": "boolean"
+                    },
+                    "auto_populate_control": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "allow_experiment_self_approval",
+                    "auto_populate_control",
+                    "created_at",
+                    "created_by",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "organisation_id",
+                    "organisation_name",
+                    "strict_mode",
+                    "workspace_admin_email",
+                    "workspace_name",
+                    "workspace_schema_name",
+                    "workspace_status"
                 ]
             },
             "GroupType": {
@@ -7140,7 +7839,6 @@
             },
             "ListExperimentGroupsResponseContent": {
                 "type": "object",
-                "description": "Output structure for the list experiment groups operation, including pagination details.",
                 "properties": {
                     "total_pages": {
                         "type": "number"
@@ -7155,12 +7853,7 @@
                         },
                         "description": "A list of experiment group responses."
                     }
-                },
-                "required": [
-                    "data",
-                    "total_items",
-                    "total_pages"
-                ]
+                }
             },
             "ListExperimentResponseContent": {
                 "type": "object",
@@ -7177,12 +7870,7 @@
                             "$ref": "#/components/schemas/ExperimentResponse"
                         }
                     }
-                },
-                "required": [
-                    "data",
-                    "total_items",
-                    "total_pages"
-                ]
+                }
             },
             "ListFunctionResponseContent": {
                 "type": "object",
@@ -7225,9 +7913,6 @@
                         "type": "string"
                     },
                     "config": {},
-                    "config_hash": {
-                        "type": "string"
-                    },
                     "created_at": {
                         "type": "string",
                         "format": "date-time"
@@ -7244,7 +7929,6 @@
                 },
                 "required": [
                     "config",
-                    "config_hash",
                     "created_at",
                     "description",
                     "id"
@@ -7265,12 +7949,7 @@
                             "$ref": "#/components/schemas/ListVersionsMember"
                         }
                     }
-                },
-                "required": [
-                    "data",
-                    "total_items",
-                    "total_pages"
-                ]
+                }
             },
             "ListWebhookResponseContent": {
                 "type": "object",
@@ -7287,12 +7966,7 @@
                             "$ref": "#/components/schemas/WebhookResponse"
                         }
                     }
-                },
-                "required": [
-                    "data",
-                    "total_items",
-                    "total_pages"
-                ]
+                }
             },
             "ListWorkspaceResponseContent": {
                 "type": "object",
@@ -7309,12 +7983,7 @@
                             "$ref": "#/components/schemas/WorkspaceResponse"
                         }
                     }
-                },
-                "required": [
-                    "data",
-                    "total_items",
-                    "total_pages"
-                ]
+                }
             },
             "MergeStrategy": {
                 "type": "string",
@@ -8945,6 +9614,17 @@
                     "workspace_name",
                     "workspace_schema_name",
                     "workspace_status"
+                ]
+            },
+            "ValidateContextRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/Condition"
+                    }
+                },
+                "required": [
+                    "context"
                 ]
             },
             "ValidateFunctionRequest": {

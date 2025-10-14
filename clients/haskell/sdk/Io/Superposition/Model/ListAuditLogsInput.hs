@@ -200,7 +200,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListAuditLogsInput where
         Io.Superposition.Utility.serQuery "action" (action self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serQuery "username" (username self)
-        Io.Superposition.Utility.serHeader "x-tenant" (workspace_id self)
+        Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         
 

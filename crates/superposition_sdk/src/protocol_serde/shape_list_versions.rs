@@ -37,7 +37,7 @@ pub fn de_list_versions_http_response(_response_status: u16, _response_headers: 
         #[allow(unused_mut)]
         let mut output = crate::operation::list_versions::builders::ListVersionsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_versions::de_list_versions(_response_body, output).map_err(crate::operation::list_versions::ListVersionsError::unhandled)?;
-        crate::serde_util::list_versions_output_output_correct_errors(output).build().map_err(crate::operation::list_versions::ListVersionsError::unhandled)?
+        output.build()
     })
 }
 
@@ -55,7 +55,7 @@ pub fn ser_list_versions_headers(
                                 err
                             ))
                             })?;
-                            builder = builder.header("x-tenant", header_value);
+                            builder = builder.header("x-workspace", header_value);
     }
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();

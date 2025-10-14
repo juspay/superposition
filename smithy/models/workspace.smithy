@@ -25,7 +25,8 @@ resource Workspace {
         auto_populate_control: Boolean
     }
     list: ListWorkspace
-    put: UpdateWorkspace
+    update: UpdateWorkspace
+    read: GetWorkspace
     operations: [
         CreateWorkspace
         MigrateWorkspaceSchema
@@ -140,20 +141,19 @@ list WorkspaceList {
     member: WorkspaceResponse
 }
 
-structure WorkspaceListResponse for Workspace {
-    @required
-    total_pages: Long
+@documentation("Retrieves detailed information about a specific workspace including its configuration and metadata.")
+@readonly
+@http(method: "GET", uri: "/workspaces/{workspace_name}")
+@tags(["Workspace Management"])
+operation GetWorkspace with [GetOperation] {
+    input := for Workspace with [CreateWorkspaceMixin] {
+        @httpLabel
+        @required
+        $workspace_name
+    }
 
-    @required
-    total_items: Long
-
-    @required
-    data: WorkspaceList
+    output: WorkspaceResponse
 }
-
-@httpError(404)
-@error("client")
-structure WorkspaceNotFound {}
 
 // Operations
 @documentation("Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.")
@@ -166,14 +166,11 @@ operation CreateWorkspace {
 
 @documentation("Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.")
 @idempotent
-@http(method: "PUT", uri: "/workspaces/{workspace_name}")
+@http(method: "PATCH", uri: "/workspaces/{workspace_name}")
 @tags(["Workspace Management"])
-operation UpdateWorkspace {
+operation UpdateWorkspace with [GetOperation] {
     input: UpdateWorkspaceRequest
     output: WorkspaceResponse
-    errors: [
-        WorkspaceNotFound
-    ]
 }
 
 @documentation("Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.")
@@ -182,14 +179,16 @@ operation UpdateWorkspace {
 @tags(["Workspace Management"])
 operation ListWorkspace {
     input := with [PaginationParams, CreateWorkspaceMixin] {}
-    output: WorkspaceListResponse
+    output := with [PaginatedResponse] {
+        data: WorkspaceList
+    }
 }
 
 @documentation("Migrates the workspace database schema to the new version of the template")
 @readonly
 @http(method: "POST", uri: "/workspaces/{workspace_name}/db/migrate")
 @tags(["Workspace Management"])
-operation MigrateWorkspaceSchema {
+operation MigrateWorkspaceSchema with [GetOperation] {
     input: MigrateWorkspaceSchemaRequest
     output: WorkspaceResponse
 }

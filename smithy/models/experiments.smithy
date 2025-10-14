@@ -6,9 +6,9 @@ resource Experiments {
     identifiers: {
         workspace_id: String
         org_id: String
+        id: String
     }
     properties: {
-        id: String
         created_at: DateTime
         created_by: String
         last_modified: DateTime
@@ -30,16 +30,18 @@ resource Experiments {
         experiment_group_id: String
     }
     read: GetExperiment
+    list: ListExperiment
+    create: CreateExperiment
     operations: [
-        ListExperiment
-        CreateExperiment
+        UpdateOverridesExperiment
         ConcludeExperiment
         DiscardExperiment
         RampExperiment
-        UpdateOverridesExperiment
-        ApplicableVariants
         PauseExperiment
         ResumeExperiment
+    ]
+    collectionOperations: [
+        ApplicableVariants
     ]
 }
 
@@ -210,20 +212,6 @@ list ExperimentList {
     member: ExperimentResponse
 }
 
-structure ExperimentListResponse for Experiments {
-    @required
-    @notProperty
-    total_pages: Long
-
-    @required
-    @notProperty
-    total_items: Long
-
-    @required
-    @notProperty
-    data: ExperimentList
-}
-
 structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
     @required
     $context
@@ -232,10 +220,6 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
     @notProperty
     identifier: String
 }
-
-@httpError(404)
-@error("client")
-structure ExperimentNotFound {}
 
 // Operations
 @documentation("Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.")
@@ -248,9 +232,9 @@ operation CreateExperiment {
 
 // Operations
 @documentation("Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.")
-@http(method: "PUT", uri: "/experiments/{id}/overrides")
+@http(method: "PATCH", uri: "/experiments/{id}/overrides")
 @tags(["Experimentation"])
-operation UpdateOverridesExperiment {
+operation UpdateOverridesExperiment with [GetOperation] {
     input: UpdateOverrideRequest
     output: ExperimentResponse
 }
@@ -259,7 +243,7 @@ operation UpdateOverridesExperiment {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/conclude")
 @tags(["Experimentation"])
-operation ConcludeExperiment {
+operation ConcludeExperiment with [GetOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -281,7 +265,7 @@ operation ConcludeExperiment {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/discard")
 @tags(["Experimentation"])
-operation DiscardExperiment {
+operation DiscardExperiment with [GetOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -298,7 +282,7 @@ operation DiscardExperiment {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/ramp")
 @tags(["Experimentation"])
-operation RampExperiment {
+operation RampExperiment with [GetOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -318,7 +302,7 @@ operation RampExperiment {
 @readonly
 @http(method: "GET", uri: "/experiments/{id}")
 @tags(["Experimentation"])
-operation GetExperiment {
+operation GetExperiment with [GetOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -333,19 +317,7 @@ operation GetExperiment {
 @http(method: "GET", uri: "/experiments")
 @tags(["Experimentation"])
 operation ListExperiment {
-    input := with [WorkspaceMixin] {
-        @httpQuery("page")
-        @notProperty
-        page: Long
-
-        @httpQuery("count")
-        @notProperty
-        count: Long
-
-        @httpQuery("all")
-        @notProperty
-        all: Boolean
-
+    input := with [PaginationParams, WorkspaceMixin] {
         @httpQuery("status")
         status: ExperimentStatusType
 
@@ -390,7 +362,9 @@ operation ListExperiment {
         dimension_match_strategy: DimensionMatchStrategy
     }
 
-    output: ExperimentListResponse
+    output := with [PaginatedResponse] {
+        data: ExperimentList
+    }
 }
 
 @documentation("Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection.")
@@ -405,7 +379,7 @@ operation ApplicableVariants {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/pause")
 @tags(["Experimentation"])
-operation PauseExperiment {
+operation PauseExperiment with [GetOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -422,7 +396,7 @@ operation PauseExperiment {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/resume")
 @tags(["Experimentation"])
-operation ResumeExperiment {
+operation ResumeExperiment with [GetOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required

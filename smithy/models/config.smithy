@@ -8,13 +8,11 @@ resource Config {
         org_id: String
     }
     properties: {
-        // FIXME Cannot keep this in identifiers :(
         version: String
         config: Document
         last_modified: DateTime
     }
     operations: [
-        ListVersions
         GetConfigFast
         GetConfig
         GetResolvedConfig
@@ -32,6 +30,7 @@ operation GetConfigFast {
         $config
 
         @httpHeader("x-config-version")
+        @notProperty
         $version
 
         @httpHeader("last-modified")
@@ -43,60 +42,7 @@ operation GetConfigFast {
     }
 }
 
-structure ListVersionsMember for Config {
-    @required
-    id: String
-
-    @required
-    $config
-
-    @required
-    config_hash: String
-
-    @required
-    created_at: DateTime
-
-    @required
-    description: String
-
-    tags: StringList
-}
-
-list ListVersionsOut {
-    member: ListVersionsMember
-}
-
-@documentation("Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes.")
-@readonly
-@http(method: "GET", uri: "/config/versions")
-@tags(["Configuration Management"])
-operation ListVersions {
-    input := with [WorkspaceMixin] {
-        @httpQuery("count")
-        @notProperty
-        count: Integer
-
-        @httpQuery("page")
-        @notProperty
-        page: Integer
-    }
-
-    output := {
-        @notProperty
-        @required
-        total_pages: Integer
-
-        @notProperty
-        @required
-        total_items: Integer
-
-        @notProperty
-        @required
-        data: ListVersionsOut
-    }
-}
-
-@length(max: 1)
+@length(max: 1, min: 1)
 list OverrideWithKeys {
     member: String
 }
@@ -219,5 +165,98 @@ operation GetResolvedConfig {
         @httpHeader("x-audit-id")
         @notProperty
         audit_id: String
+    }
+}
+
+resource ConfigVersion {
+    identifiers: {
+        workspace_id: String
+        org_id: String
+        id: String
+    }
+    properties: {
+        config_hash: String
+        created_at: DateTime
+        description: String
+        tags: StringList
+        config: Document
+    }
+    read: GetVersion
+    list: ListVersions
+    operations: []
+}
+
+@documentation("Retrieves a specific config version along with its metadata for audit and rollback purposes.")
+@readonly
+@http(method: "GET", uri: "/version/{id}")
+@tags(["Configuration Management"])
+operation GetVersion with [GetOperation] {
+    input := for ConfigVersion with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        $id
+    }
+
+    output: GetVersionResponse
+}
+
+structure ListVersionsMember for ConfigVersion {
+    @required
+    $id
+
+    @required
+    $config
+
+    @required
+    $created_at
+
+    @required
+    $description
+
+    $tags
+}
+
+structure GetVersionResponse for ConfigVersion {
+    @required
+    $id
+
+    @required
+    $config
+
+    @required
+    $config_hash
+
+    @required
+    $created_at
+
+    @required
+    $description
+
+    $tags
+}
+
+list ListVersionsOut {
+    member: ListVersionsMember
+}
+
+@documentation("Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes.")
+@readonly
+@http(method: "GET", uri: "/config/versions")
+@tags(["Configuration Management"])
+operation ListVersions {
+    input := with [WorkspaceMixin] {
+        @httpQuery("count")
+        @documentation("Number of items to be returned in each page.")
+        @notProperty
+        count: Integer
+
+        @httpQuery("page")
+        @documentation("Page number to retrieve, starting from 1.")
+        @notProperty
+        page: Integer
+    }
+
+    output := with [PaginatedResponse] {
+        data: ListVersionsOut
     }
 }

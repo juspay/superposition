@@ -13,10 +13,6 @@ enum ExperimentGroupSortOn {
     LastModifiedAt = "last_modified_at"
 }
 
-@httpError(404)
-@error("client")
-structure ExperimentGroupNotFound {}
-
 enum GroupType {
     USER_CREATED
     SYSTEM_GENERATED
@@ -40,9 +36,9 @@ resource ExperimentGroup {
     identifiers: {
         workspace_id: String
         org_id: String
+        id: String
     }
     properties: {
-        id: String
         context_hash: String
         name: String
         description: String
@@ -54,16 +50,16 @@ resource ExperimentGroup {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
-        buckets: Buckets,
-        group_type: GroupType,
+        buckets: Buckets
+        group_type: GroupType
     }
+    create: CreateExperimentGroup
+    update: UpdateExperimentGroup
+    delete: DeleteExperimentGroup
+    read: GetExperimentGroup
+    list: ListExperimentGroups
     operations: [
-        ListExperimentGroups,
-        CreateExperimentGroup,
-        GetExperimentGroup,
-        UpdateExperimentGroup,
-        DeleteExperimentGroup,
-        AddMembersToGroup,
+        AddMembersToGroup
         RemoveMembersFromGroup
     ]
 }
@@ -72,7 +68,7 @@ resource ExperimentGroup {
 structure ExperimentGroupResponse for ExperimentGroup {
     @required
     $id
-    
+
     @required
     $context_hash
 
@@ -155,19 +151,17 @@ structure ModifyMembersToGroupRequest for ExperimentGroup with [WorkspaceMixin] 
 @documentation("Adds members to an existing experiment group.")
 @http(method: "PATCH", uri: "/experiment-groups/{id}/add-members")
 @tags(["Experiment Groups"])
-operation AddMembersToGroup {
+operation AddMembersToGroup with [GetOperation] {
     input: ModifyMembersToGroupRequest
     output: ExperimentGroupResponse
-    errors: [ResourceNotFound]
 }
 
 @documentation("Removes members from an existing experiment group.")
 @http(method: "PATCH", uri: "/experiment-groups/{id}/remove-members")
 @tags(["Experiment Groups"])
-operation RemoveMembersFromGroup {
+operation RemoveMembersFromGroup with [GetOperation] {
     input: ModifyMembersToGroupRequest
     output: ExperimentGroupResponse
-    errors: [ResourceNotFound]
 }
 
 @documentation("Creates a new experiment group.")
@@ -182,14 +176,14 @@ operation CreateExperimentGroup {
 @readonly
 @http(method: "GET", uri: "/experiment-groups/{id}")
 @tags(["Experiment Groups"])
-operation GetExperimentGroup {
+operation GetExperimentGroup with [GetOperation] {
     input := for ExperimentGroup with [WorkspaceMixin] {
         @httpLabel
         @required
         $id
     }
+
     output: ExperimentGroupResponse
-    errors: [ResourceNotFound]
 }
 
 @documentation("Input structure for updating an existing experiment group.")
@@ -211,27 +205,26 @@ structure UpdateExperimentGroupRequest for ExperimentGroup with [WorkspaceMixin]
 }
 
 @documentation("Updates an existing experiment group. Allows partial updates to specified fields.")
+@idempotent
 @http(method: "PATCH", uri: "/experiment-groups/{id}")
 @tags(["Experiment Groups"])
-operation UpdateExperimentGroup {
+operation UpdateExperimentGroup with [GetOperation] {
     input: UpdateExperimentGroupRequest
     output: ExperimentGroupResponse
-    errors: [ResourceNotFound]
 }
 
 @documentation("Deletes an experiment group.")
+@idempotent
 @http(method: "DELETE", uri: "/experiment-groups/{id}")
 @tags(["Experiment Groups"])
-operation DeleteExperimentGroup {
+operation DeleteExperimentGroup with [GetOperation] {
     input := for ExperimentGroup with [WorkspaceMixin] {
         @httpLabel
         @required
         $id
     }
+
     output: ExperimentGroupResponse
-    errors: [
-        ResourceNotFound
-    ]
 }
 
 @documentation("A list of experiment group responses.")
@@ -239,35 +232,12 @@ list ExperimentGroupList {
     member: ExperimentGroupResponse
 }
 
-@documentation("Output structure for the list experiment groups operation, including pagination details.")
-structure ListExperimentGroupsResponse for ExperimentGroup {
-    @required
-    @notProperty
-    total_pages: Long
-
-    @required
-    @notProperty
-    total_items: Long
-
-    @required
-    @notProperty
-    data: ExperimentGroupList
-}
-
 @documentation("Lists experiment groups, with support for filtering and pagination.")
 @readonly
 @http(method: "GET", uri: "/experiment-groups")
 @tags(["Experiment Groups"])
 operation ListExperimentGroups {
-    input := with [WorkspaceMixin] {
-        @httpQuery("page")
-        @notProperty
-        page: Long
-
-        @httpQuery("count")
-        @notProperty
-        count: Long
-
+    input := with [PaginationParams, WorkspaceMixin] {
         @httpQuery("name")
         @documentation("Filter by experiment group name (exact match or substring, depending on backend implementation).")
         name: String
@@ -290,14 +260,12 @@ operation ListExperimentGroups {
         @notProperty
         sort_by: SortBy
 
-        @httpQuery("all")
-        @documentation("If true, returns all experiment groups, ignoring pagination parameters page and count.")
-        @notProperty
-        all: Boolean
-
         @httpQuery("group_type")
         @documentation("Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).")
         group_type: GroupType
     }
-    output: ListExperimentGroupsResponse
+
+    output := with [PaginatedResponse] {
+        data: ExperimentGroupList
+    }
 }

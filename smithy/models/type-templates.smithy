@@ -19,8 +19,9 @@ resource TypeTemplates {
         last_modified_by: String
     }
     list: GetTypeTemplatesList
-    put: UpdateTypeTemplates
+    update: UpdateTypeTemplates
     delete: DeleteTypeTemplates
+    read: GetTypeTemplate
     operations: [
         CreateTypeTemplates
     ]
@@ -84,9 +85,19 @@ list TypeTemplatesList {
     member: TypeTemplatesResponse
 }
 
-@httpError(404)
-@error("client")
-structure TypeTemplatesNotFound {}
+@documentation("Retrieves detailed information about a specific type template including its schema and metadata.")
+@readonly
+@http(method: "GET", uri: "/types/{type_name}")
+@tags(["Type Templates"])
+operation GetTypeTemplate with [GetOperation] {
+    input := for TypeTemplates with [WorkspaceMixin] {
+        @httpLabel
+        @required
+        $type_name
+    }
+
+    output: TypeTemplatesResponse
+}
 
 // Operations
 @documentation("Creates a new type template with specified schema definition, providing reusable type definitions for config validation.")
@@ -110,21 +121,18 @@ operation GetTypeTemplatesList {
 
 @documentation("Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.")
 @idempotent
-@http(method: "PUT", uri: "/types/{type_name}")
+@http(method: "PATCH", uri: "/types/{type_name}")
 @tags(["Type Templates"])
-operation UpdateTypeTemplates {
+operation UpdateTypeTemplates with [GetOperation] {
     input: UpdateTypeTemplatesRequest
     output: TypeTemplatesResponse
-    errors: [
-        TypeTemplatesNotFound
-    ]
 }
 
 @documentation("Permanently removes a type template from the workspace. No checks performed while deleting")
 @idempotent
 @http(method: "DELETE", uri: "/types/{type_name}")
 @tags(["Type Templates"])
-operation DeleteTypeTemplates {
+operation DeleteTypeTemplates with [GetOperation] {
     input := for TypeTemplates with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -132,8 +140,4 @@ operation DeleteTypeTemplates {
     }
 
     output: TypeTemplatesResponse
-
-    errors: [
-        TypeTemplatesNotFound
-    ]
 }

@@ -59,6 +59,8 @@ pub(crate) mod shape_delete_function;
 
 pub(crate) mod shape_delete_type_templates;
 
+pub(crate) mod shape_delete_webhook;
+
 pub(crate) mod shape_discard_experiment;
 
 pub(crate) mod shape_get_config;
@@ -77,6 +79,8 @@ pub fn serialize_document(input: &::aws_smithy_types::Document) -> ::std::vec::V
 
 pub(crate) mod shape_get_context_from_condition_input;
 
+pub(crate) mod shape_get_default_config;
+
 pub(crate) mod shape_get_dimension;
 
 pub(crate) mod shape_get_experiment;
@@ -89,9 +93,17 @@ pub(crate) mod shape_get_organisation;
 
 pub(crate) mod shape_get_resolved_config;
 
+pub(crate) mod shape_get_type_template;
+
 pub(crate) mod shape_get_type_templates_list;
 
+pub(crate) mod shape_get_version;
+
 pub(crate) mod shape_get_webhook;
+
+pub(crate) mod shape_get_webhook_by_event;
+
+pub(crate) mod shape_get_workspace;
 
 pub(crate) mod shape_list_audit_logs;
 
@@ -157,6 +169,8 @@ pub(crate) mod shape_update_webhook;
 
 pub(crate) mod shape_update_workspace;
 
+pub(crate) mod shape_validate_context;
+
 pub(crate) mod shape_weight_recompute;
 
 pub(crate) fn or_empty_doc(data: &[u8]) -> &[u8] {
@@ -197,8 +211,6 @@ pub(crate) mod shape_create_workspace_input;
 
 pub(crate) mod shape_discard_experiment_input;
 
-pub(crate) mod shape_function_not_found;
-
 pub(crate) mod shape_get_config_fast_output;
 
 pub(crate) mod shape_get_config_input;
@@ -213,8 +225,6 @@ pub(crate) mod shape_internal_server_error;
 
 pub(crate) mod shape_move_context_input;
 
-pub(crate) mod shape_organisation_not_found;
-
 pub(crate) mod shape_pause_experiment_input;
 
 pub(crate) mod shape_publish_input;
@@ -226,8 +236,6 @@ pub(crate) mod shape_remove_members_from_group_input;
 pub(crate) mod shape_resource_not_found;
 
 pub(crate) mod shape_resume_experiment_input;
-
-pub(crate) mod shape_type_templates_not_found;
 
 pub(crate) mod shape_update_default_config_input;
 
@@ -247,9 +255,7 @@ pub(crate) mod shape_update_webhook_input;
 
 pub(crate) mod shape_update_workspace_input;
 
-pub(crate) mod shape_webhook_not_found;
-
-pub(crate) mod shape_workspace_not_found;
+pub(crate) mod shape_validate_context_input;
 
 pub(crate) mod shape_audit_log_list;
 

@@ -43,8 +43,11 @@ impl ServiceRequestExt for ServiceRequest {
     }
 
     fn get_workspace_id(&self) -> Option<WorkspaceId> {
-        self.get_header("x-tenant")
+        self.get_header("x-workspace")
+            .or_else(|| self.get_header("x-tenant"))
+            .or_else(|| self.get_path_param("{workspace}"))
             .or_else(|| self.get_path_param("{tenant}"))
+            .or_else(|| self.get_query_param("workspace"))
             .or_else(|| self.get_query_param("tenant"))
             .map(String::from)
             .map(WorkspaceId)

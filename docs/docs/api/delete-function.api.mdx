@@ -5,7 +5,7 @@ description: "Permanently removes a function from the workspace, deleting both d
 sidebar_label: "DeleteFunction"
 hide_title: true
 hide_table_of_contents: true
-api: eJzNVE1P20AQ/SurPbWSQyJKLrnRElSkqkJATwhVE3scL6y9y+wasCz/987YTpoolPbQSs0l6903X2/eTKszDCkZH42r9EJfIpVQYRVtowhL94RBgcrrKhWAysmVKhaonh09BA8pJipDi9FUa7VysVAZQR4VVJny9cqaUGCmnpACW7Mn6xj3bBgH1ioIwaUGIkNSl+GRuogqB2ODMjkDCCFrlKlUHVAn2nkkkCwuMk70TKLi+ZgYP3sgKPmKgl7ctrriD4ZtMv/efyfaSJEeYsHnkBZYgl60OjZewCES16G7RBM+1oaQA0WqsUu2/l4mjtYTk21cFZwj0hvOEiY4h9pGvrqvmbLmN/4jVlDFP/Z/6OxOboJnvjEI/ng2k7/9Pu/TpxijNkbi8mR2cmizQX918dzV3GFG7VnNX4t0UXFPKrDXSKyDJZEjNd8Nl+jUMYZrZlvw3pq0b/P0PoiD9rB0t7rHVCjyJKKIZii0xBBgja9wxLlFEy2+ns7VmMmnMY1OfmwBa5HStuygmVlWWOFEf73qsdcdi2mhpxulTds9zXXSO0xrMrHphRlKln9zBN4cFTH6jwiEdFqLk9s7ad4GfS1lD5W9YbOtVR56te2S//nm5lINcAWM5/JGdjeSEtNVD+hpMlXueqcjXdc1E+xdMKPNOMr8cjw7nk9mHyazubSeIZEXh5iOSh4UpnYmdC+19mfX/+elM5Ib8SVOvQWeSS62JisFDJ2/3e4Yhi/29w13s2BiBNS2Kwj4jWzXyfVjjSR64OMTkIGVsM3qyEyQMyssBxvwDdLeXY1j/179Ks/xEqpGOge2li8+PmBzsBq7OzYYt81fT2QIuLM7t8nI6vsnobZrdC/U8Hqapuh33w62Trc76mfLL8ubJY/HD0g+ffk=
+api: eJzNVEtP20AQ/iurPbVSQiJKLrnRElSkqkJATwhVE3scL6y9y+waiCz/9874kcYK5dCH1Fyy3v3m9c03U+sUQ0LGR+NKvdSXSAWUWEa7VYSFe8KgQGVVmQhAZeQKFXNUz44egocEJypFi9GUG7V2MVcpQRYVlKny1dqakGOqnpACW7Mn6xj3bBgH1ioIwSUGIkMSl+KRuogqA2ODMhkDCCHdKlOqKqCeaOeRQLK4SDnRM4mK531i/OyBoOArCnp5W+uSPxg2ZP69/Z5oI0V6iDmfQ5JjAXpZ67j1Ag6RuA7dTDThY2UIOVCkCpvJzt/L1NFmatLBVc45Iv22sx2Nf+DvTm6CZ34xCP54Ppe/cV/HdCnGqMFIXJ7MTw5trjC4ihL86uK5q7ijjBpZLV6LdFFyD0qw10jc9xWRI7XYDzfRiWNMGcUWvLcmads6uw/ioD4s3a3vMYnSYxIRRNMVWmAIsMFXOOLcookWX0/nqs/kU59GIz+2gI1IRw8kBc3MsqJyJ3prVY6tzlg8Sz0blDWrRxprpHeYVGTithViKFju2yPw5iiP0X9EIKTTSpzc3knzBvS1lN1V9obNrlZ54Fhj8j/f3FyqDq6A8Vxez+4gKTFdt4CWJlNmrnXa03VdMcHeBdPb9KPLL8fz48V0/mE6X0jrGRJ5UYhpL+ZOYWpvIkep1T+7/j8vmZ7ciC9x5i3wTHKxFVkpoOv87W6nMHw53i/czZyJEVBdryHgN7JNI9ePFZLogY9PQAbWwjarIzVBzqywDGzAN0h7d9WP/Xv1qzz7Syi30jmwlXzx8QG3B6uwuWODftv89US6gHu7cpeMbL9/Emp/k46idYDTJEEf994OFk+zP+1nqy+rmxVPyA9BWHoW
 sidebar_class_name: "delete api-method"
 info_path: docs/api/superposition
 custom_edit_url: null
@@ -47,7 +47,7 @@ Permanently removes a function from the workspace, deleting both draft and publi
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string","default":"juspay"},"required":true},{"name":"x-tenant","in":"header","schema":{"type":"string"},"required":true}]}
+  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
 >
   
 </ParamsDetails>
@@ -62,7 +62,7 @@ Permanently removes a function from the workspace, deleting both draft and publi
 <StatusCodes
   id={undefined}
   label={undefined}
-  responses={{"200":{"description":"DeleteFunction 200 response"},"404":{"description":"FunctionNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  responses={{"200":{"description":"DeleteFunction 200 response"},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
 >
   
 </StatusCodes>

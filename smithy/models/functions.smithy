@@ -25,7 +25,7 @@ resource Function {
         function_type: FunctionTypes
     }
     read: GetFunction
-    put: UpdateFunction
+    update: UpdateFunction
     delete: DeleteFunction
     list: ListFunction
     operations: [
@@ -160,10 +160,6 @@ list FunctionListResponse {
     member: FunctionResponse
 }
 
-@httpError(404)
-@error("client")
-structure FunctionNotFound {}
-
 // Operations
 @documentation("Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.")
 @http(method: "POST", uri: "/function")
@@ -177,7 +173,7 @@ operation CreateFunction {
 @readonly
 @http(method: "GET", uri: "/function/{function_name}")
 @tags(["Functions"])
-operation GetFunction {
+operation GetFunction with [GetOperation] {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -185,10 +181,6 @@ operation GetFunction {
     }
 
     output: FunctionResponse
-
-    errors: [
-        FunctionNotFound
-    ]
 }
 
 @documentation("Retrieves a paginated list of all functions in the workspace with their basic information and current status.")
@@ -206,37 +198,28 @@ operation ListFunction {
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}")
 @tags(["Functions"])
-operation UpdateFunction {
+operation UpdateFunction with [GetOperation] {
     input: UpdateFunctionRequest
     output: FunctionResponse
-    errors: [
-        FunctionNotFound
-    ]
 }
 
 @documentation("Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use")
 @idempotent
 @http(method: "DELETE", uri: "/function/{function_name}")
 @tags(["Functions"])
-operation DeleteFunction {
+operation DeleteFunction with [GetOperation] {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
         $function_name
     }
-
-    output := {}
-
-    errors: [
-        FunctionNotFound
-    ]
 }
 
 @documentation("Executes a function in test mode with provided input parameters to validate its behavior before publishing or deployment.")
 @idempotent
 @http(method: "POST", uri: "/function/{function_name}/{stage}/test")
 @tags(["Functions"])
-operation Test {
+operation Test with [GetOperation] {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -254,17 +237,13 @@ operation Test {
     }
 
     output: FunctionExecutionResponse
-
-    errors: [
-        FunctionNotFound
-    ]
 }
 
 @documentation("Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.")
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}/publish")
 @tags(["Functions"])
-operation Publish {
+operation Publish with [GetOperation] {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -275,8 +254,4 @@ operation Publish {
     }
 
     output: FunctionResponse
-
-    errors: [
-        FunctionNotFound
-    ]
 }
