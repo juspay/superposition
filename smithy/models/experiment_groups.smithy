@@ -154,6 +154,7 @@ structure ModifyMembersToGroupRequest for ExperimentGroup with [WorkspaceMixin] 
 
 @documentation("Adds members to an existing experiment group.")
 @http(method: "PATCH", uri: "/experiment-groups/{id}/add-members")
+@tags(["Experiment Groups"])
 operation AddMembersToGroup {
     input: ModifyMembersToGroupRequest
     output: ExperimentGroupResponse
@@ -162,6 +163,7 @@ operation AddMembersToGroup {
 
 @documentation("Removes members from an existing experiment group.")
 @http(method: "PATCH", uri: "/experiment-groups/{id}/remove-members")
+@tags(["Experiment Groups"])
 operation RemoveMembersFromGroup {
     input: ModifyMembersToGroupRequest
     output: ExperimentGroupResponse
@@ -170,6 +172,7 @@ operation RemoveMembersFromGroup {
 
 @documentation("Creates a new experiment group.")
 @http(method: "POST", uri: "/experiment-groups")
+@tags(["Experiment Groups"])
 operation CreateExperimentGroup {
     input: CreateExperimentGroupRequest
     output: ExperimentGroupResponse
@@ -178,6 +181,7 @@ operation CreateExperimentGroup {
 @documentation("Retrieves an existing experiment group by its ID.")
 @readonly
 @http(method: "GET", uri: "/experiment-groups/{id}")
+@tags(["Experiment Groups"])
 operation GetExperimentGroup {
     input := for ExperimentGroup with [WorkspaceMixin] {
         @httpLabel
@@ -208,6 +212,7 @@ structure UpdateExperimentGroupRequest for ExperimentGroup with [WorkspaceMixin]
 
 @documentation("Updates an existing experiment group. Allows partial updates to specified fields.")
 @http(method: "PATCH", uri: "/experiment-groups/{id}")
+@tags(["Experiment Groups"])
 operation UpdateExperimentGroup {
     input: UpdateExperimentGroupRequest
     output: ExperimentGroupResponse
@@ -216,6 +221,7 @@ operation UpdateExperimentGroup {
 
 @documentation("Deletes an experiment group.")
 @http(method: "DELETE", uri: "/experiment-groups/{id}")
+@tags(["Experiment Groups"])
 operation DeleteExperimentGroup {
     input := for ExperimentGroup with [WorkspaceMixin] {
         @httpLabel
@@ -251,6 +257,7 @@ structure ListExperimentGroupsResponse for ExperimentGroup {
 @documentation("Lists experiment groups, with support for filtering and pagination.")
 @readonly
 @http(method: "GET", uri: "/experiment-groups")
+@tags(["Experiment Groups"])
 operation ListExperimentGroups {
     input := with [WorkspaceMixin] {
         @httpQuery("page")

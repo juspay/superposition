@@ -35,7 +35,7 @@ export interface ListOrganisationCommandInput extends ListOrganisationInput {}
 export interface ListOrganisationCommandOutput extends ListOrganisationOutput, __MetadataBearer {}
 
 /**
- * Retrieves a paginated list of all organisations with their basic information and status details.
+ * Retrieves a paginated list of all organisations with their basic information, creation details, and current status.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript

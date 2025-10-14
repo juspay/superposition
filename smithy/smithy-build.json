@@ -1,6 +1,8 @@
 {
   "version": "0.1",
-  "sources": ["models/"],
+  "sources": [
+    "models/"
+  ],
   "outputDirectory": "output",
   "maven": {
     "dependencies": [
@@ -21,20 +23,22 @@
   },
   "plugins": {
     "rust-client-codegen": {
-        "runtimeConfig": {
-            "version": "1.2.5"
-        },
-        "codegen": {
-          "addMessageToErrors": true,
-          "renameErrors": true
-          ,"enableNewSmithyRuntime": "orchestrator"
-        },
-        "service": "io.superposition#Superposition",
-        "module": "superposition_sdk",
-        "moduleVersion": "0.1.0",
-        "moduleDescription": "Rust SDK to work with Superposition",
-        "moduleAuthors": ["superposition@juspay.in"],
-        "moduleRepository": "https://github.com/juspay/superposition"
+      "runtimeConfig": {
+        "version": "1.2.5"
+      },
+      "codegen": {
+        "addMessageToErrors": true,
+        "renameErrors": true,
+        "enableNewSmithyRuntime": "orchestrator"
+      },
+      "service": "io.superposition#Superposition",
+      "module": "superposition_sdk",
+      "moduleVersion": "0.1.0",
+      "moduleDescription": "Rust SDK to work with Superposition",
+      "moduleAuthors": [
+        "superposition@juspay.in"
+      ],
+      "moduleRepository": "https://github.com/juspay/superposition"
     },
     "typescript-client-codegen": {
       "package": "superposition-sdk",
@@ -61,7 +65,20 @@
       "protocol": "aws.protocols#restJson1",
       "version": "3.0.2",
       "tags": true,
-      "supportedTags": ["deprecated"],
+      "supportedTags": [
+        "Configuration Management",
+        "Context Management",
+        "Default Configuration",
+        "Dimensions",
+        "Experimentation",
+        "Experiment Groups",
+        "Functions",
+        "Organisation Management",
+        "Type Templates",
+        "Webhooks",
+        "Workspace Management",
+        "Audit & Monitoring"
+      ],
       "defaultBlobFormat": "byte",
       "keepUnusedComponents": false,
       "substitutions": {

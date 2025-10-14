@@ -303,8 +303,6 @@ smithy-clients: smithy-build
 smithy-api-docs: smithy-build
 	rm -rf docs/docs/api
 	mkdir -p docs/docs/api
-# FIXME: Remove this and make the sidebar generation automatic with proper TAGS
-	git restore docs/docs/api/sidebar.ts
 	cp $(SMITHY_BUILD_SRC)/openapi/Superposition.openapi.json docs/docs/api/
 	cd docs && npm ci && npm run openapi-docs
 

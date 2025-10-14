@@ -91,6 +91,7 @@ structure TypeTemplatesNotFound {}
 // Operations
 @documentation("Creates a new type template with specified schema definition, providing reusable type definitions for config validation.")
 @http(method: "POST", uri: "/types")
+@tags(["Type Templates"])
 operation CreateTypeTemplates {
     input: CreateTypeTemplatesRequest
     output: TypeTemplatesResponse
@@ -99,6 +100,7 @@ operation CreateTypeTemplates {
 @documentation("Retrieves a paginated list of all type templates in the workspace, including their schemas and metadata for type management.")
 @readonly
 @http(method: "GET", uri: "/types")
+@tags(["Type Templates"])
 operation GetTypeTemplatesList {
     input := with [PaginationParams, WorkspaceMixin] {}
     output := with [PaginatedResponse] {
@@ -109,6 +111,7 @@ operation GetTypeTemplatesList {
 @documentation("Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.")
 @idempotent
 @http(method: "PUT", uri: "/types/{type_name}")
+@tags(["Type Templates"])
 operation UpdateTypeTemplates {
     input: UpdateTypeTemplatesRequest
     output: TypeTemplatesResponse
@@ -120,6 +123,7 @@ operation UpdateTypeTemplates {
 @documentation("Permanently removes a type template from the workspace. No checks performed while deleting")
 @idempotent
 @http(method: "DELETE", uri: "/types/{type_name}")
+@tags(["Type Templates"])
 operation DeleteTypeTemplates {
     input := for TypeTemplates with [WorkspaceMixin] {
         @httpLabel

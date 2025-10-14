@@ -329,8 +329,8 @@ public interface SuperpositionClient {
     CreateFunctionOutput createFunction(CreateFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Creates a new organisation with specified details including name, admin contact, and organisational
-     * information.
+     * Creates a new organisation with specified name and administrator email. This is the top-level entity
+     * that contains workspaces and manages organizational-level settings.
      *
      * @throws InternalServerError
      */
@@ -339,8 +339,8 @@ public interface SuperpositionClient {
     }
 
     /**
-     * Creates a new organisation with specified details including name, admin contact, and organisational
-     * information.
+     * Creates a new organisation with specified name and administrator email. This is the top-level entity
+     * that contains workspaces and manages organizational-level settings.
      *
      * @throws InternalServerError
      */
@@ -885,7 +885,8 @@ public interface SuperpositionClient {
     ListFunctionOutput listFunction(ListFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Retrieves a paginated list of all organisations with their basic information and status details.
+     * Retrieves a paginated list of all organisations with their basic information, creation details, and
+     * current status.
      *
      * @throws InternalServerError
      */
@@ -894,7 +895,8 @@ public interface SuperpositionClient {
     }
 
     /**
-     * Retrieves a paginated list of all organisations with their basic information and status details.
+     * Retrieves a paginated list of all organisations with their basic information, creation details, and
+     * current status.
      *
      * @throws InternalServerError
      */

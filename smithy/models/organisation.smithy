@@ -99,8 +99,9 @@ list OrganisationList {
 structure OrganisationNotFound {}
 
 // Operations
-@documentation("Creates a new organisation with specified details including name, admin contact, and organisational information.")
+@documentation("Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings.")
 @http(method: "POST", uri: "/superposition/organisations")
+@tags(["Organisation Management"])
 operation CreateOrganisation {
     input: CreateOrganisationRequest
     output: OrganisationResponse
@@ -109,6 +110,7 @@ operation CreateOrganisation {
 @documentation("Retrieves detailed information about a specific organisation including its status, contact details, and administrative metadata.")
 @readonly
 @http(method: "GET", uri: "/superposition/organisations/{id}")
+@tags(["Organisation Management"])
 operation GetOrganisation {
     input := for Organisation {
         @httpLabel
@@ -126,6 +128,7 @@ operation GetOrganisation {
 @documentation("Updates an existing organisation's information including contact details, status, and administrative properties.")
 @idempotent
 @http(method: "PUT", uri: "/superposition/organisations/{id}")
+@tags(["Organisation Management"])
 operation UpdateOrganisation {
     input: UpdateOrganisationRequest
     output: OrganisationResponse
@@ -134,9 +137,10 @@ operation UpdateOrganisation {
     ]
 }
 
-@documentation("Retrieves a paginated list of all organisations with their basic information and status details.")
+@documentation("Retrieves a paginated list of all organisations with their basic information, creation details, and current status.")
 @readonly
 @http(method: "GET", uri: "/superposition/organisations")
+@tags(["Organisation Management"])
 operation ListOrganisation {
     input := with [PaginationParams] {}
     output := with [PaginatedResponse] {

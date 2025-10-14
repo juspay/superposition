@@ -35,7 +35,7 @@ export interface CreateOrganisationCommandInput extends CreateOrganisationReques
 export interface CreateOrganisationCommandOutput extends OrganisationResponse, __MetadataBearer {}
 
 /**
- * Creates a new organisation with specified details including name, admin contact, and organisational information.
+ * Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
