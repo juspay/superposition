@@ -46,7 +46,7 @@ impl Default for CohortSchemaFormat {
 #[derive(Clone)]
 enum Action {
     None,
-    View(&'static str, Value),
+    View(&'static str, Option<String>, Value),
     Add(DimensionResponse),
     Update(String, DimensionResponse),
     Remove(String),
@@ -94,19 +94,21 @@ pub fn cohort_schema(
         view! {
             <div
                 class=format!(
-                    "sortable-item w-full p-3 flex justify-between items-center bg-white border rounded-lg shadow-sm transition-shadow {}",
-                    if disabled { "cursor-not-allowed opacity-80" } else { "hover:shadow-md" },
+                    "sortable-item max-w-[inherit] w-full p-3 flex justify-between items-center gap-3 bg-white border rounded-lg shadow-sm transition-shadow {}",
+                    if disabled { "" } else { "hover:shadow-md" },
                 )
                 data-id=index.to_string()
             >
-                <div class="flex items-center gap-3">
-                    <div class=format!(
-                        "{} text-purple-500 hover:text-purple-700 select-none flex items-center justify-center w-8 h-8 bg-purple-50 rounded border border-purple-200",
-                        if disabled { "" } else { "drag-handle cursor-grab" },
-                    )>"⋮⋮"</div>
-                    <div class="flex-1">
-                        <span class="font-medium text-purple-700">{item_st.get_value()}</span>
-                    </div>
+                <div class=format!(
+                    "{} w-8 h-8 text-purple-500 select-none flex items-center justify-center",
+                    if disabled {
+                        "cursor-not-allowed opacity-50"
+                    } else {
+                        "drag-handle bg-purple-50 rounded border border-purple-200 cursor-grab hover:text-purple-700"
+                    },
+                )>"⋮⋮"</div>
+                <div class="w-full font-medium text-purple-700 text-ellipsis overflow-hidden whitespace-nowrap">
+                    {item_st.get_value()}
                 </div>
                 <div class="flex items-center gap-4">
                     {match (inactive, cohort_based_on.get_value()) {
@@ -139,6 +141,7 @@ pub fn cohort_schema(
                                             .set(
                                                 Action::View(
                                                     "Cohort Enum Definition",
+                                                    Some(item_st.get_value()),
                                                     cohort_schema_format_rws
                                                         .with(|s| {
                                                             s.definitions
@@ -169,7 +172,7 @@ pub fn cohort_schema(
                     class="max-w-md"
                 />
             </Show>
-            <div class="flex flex-col gap-2">
+            <div class="max-w-md flex flex-col gap-2">
                 <div
                     class="px-1 text-sm text-blue-500 underline underline-offset-2 cursor-pointer"
                     on:click=move |_| {
@@ -177,6 +180,7 @@ pub fn cohort_schema(
                             .set(
                                 Action::View(
                                     "Cohort Schema Definition",
+                                    None,
                                     serde_json::to_value(cohort_schema_format_rws.get())
                                         .unwrap_or_default(),
                                 ),
@@ -209,22 +213,21 @@ pub fn cohort_schema(
                     class="space-y-2"
                     animation=200
                     render_item=move |(index, item)| item_renderer(index, item, false)
+                    disabled=view_only
                 />
                 <div class="flex flex-col justify-center items-center gap-3">
-                    <div
-                        class="w-full px-2 py-1 flex justify-center items-center text-xs text-gray-600 font-mono bg-gray-100 rounded"
-                        class:cursor-not-allowed=view_only
-                        class:opacity-80=view_only
-                        class:cursor-pointer=!view_only
-                        class:hover:bg-gray-200=!view_only
-                        on:click=move |_| {
-                            if let Some(cohort_based_on) = cohort_based_on.get_value() {
-                                action_rws.set(Action::Add(cohort_based_on));
+                    <Show when=move || !view_only>
+                        <div
+                            class="w-full px-2 py-1 flex justify-center items-center text-xs text-gray-600 font-mono bg-gray-100 rounded cursor-pointer hover:bg-gray-200"
+                            on:click=move |_| {
+                                if let Some(cohort_based_on) = cohort_based_on.get_value() {
+                                    action_rws.set(Action::Add(cohort_based_on));
+                                }
                             }
-                        }
-                    >
-                        "Add +"
-                    </div>
+                        >
+                            "Add +"
+                        </div>
+                    </Show>
                     {item_renderer(
                         cohort_schema_format_rws.with(|s| s.r#enum.len()),
                         "otherwise".to_string(),
@@ -239,13 +242,17 @@ pub fn cohort_schema(
         {move || {
             match action_rws.get() {
                 Action::None => ().into_view(),
-                Action::View(label, value) => {
+                Action::View(label, description, value) => {
                     let value = StoredValue::new(value);
                     view! {
                         <PortalDrawer
                             title=label
                             handle_close=move |_| action_rws.set(Action::None)
                         >
+                            {match description.clone() {
+                                None => ().into_view(),
+                                Some(desc) => view! { <Label title=desc /> }.into_view(),
+                            }}
                             <EditorProvider>
                                 <Input
                                     id="cohort-schema-definition-preview"

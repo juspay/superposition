@@ -484,9 +484,7 @@ pub fn dimension_form(
                                                                     logging::log!("selected item {:?}", selected_item);
                                                                     dimension_type_template_ws.set(selected_item.type_name);
                                                                     dimension_schema_ws
-                                                                        .set(
-                                                                            Value::Object(selected_item.type_schema.deref().clone()),
-                                                                        );
+                                                                        .set(Value::from(selected_item.type_schema));
                                                                 }
                                                             />
                                                             <EditorProvider>
@@ -718,8 +716,8 @@ pub fn change_log_summary(
                         view! {
                             <JsonChangeSummary
                                 title="Schema changes"
-                                old_values=Some(Value::Object(dim.schema.deref().clone()))
-                                new_values=new_schema.map(|m| Value::Object(m.deref().clone()))
+                                old_values=Some(Value::from(dim.schema))
+                                new_values=new_schema.map(Value::from)
                             />
                             <ChangeSummary
                                 title="Other changes"

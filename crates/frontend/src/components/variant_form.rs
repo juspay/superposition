@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    ops::Deref,
-};
+use std::collections::{HashMap, HashSet};
 
 use chrono::Local;
 use leptos::*;
@@ -66,7 +63,12 @@ where
     let key_to_type = StoredValue::new(
         default_config
             .iter()
-            .map(|d| (d.key.clone(), SchemaType::try_from(d.schema.deref()).ok()))
+            .map(|d| {
+                (
+                    d.key.clone(),
+                    SchemaType::try_from(&d.schema as &Map<String, Value>).ok(),
+                )
+            })
             .collect::<HashMap<String, Option<SchemaType>>>(),
     );
     let default_config = StoredValue::new(default_config);
@@ -136,7 +138,9 @@ where
         move |(resolved_config, default_config): (Map<String, Value>, DefaultConfig)| {
             let config_key = default_config.key;
 
-            if let Ok(config_type) = SchemaType::try_from(default_config.schema.deref()) {
+            if let Ok(config_type) =
+                SchemaType::try_from(&default_config.schema as &Map<String, Value>)
+            {
                 let def_value = config_type.default_value();
                 let resolved_val = workspace_settings
                     .with_value(|w| w.auto_populate_control)

@@ -1,10 +1,7 @@
-use std::{
-    collections::{HashMap, HashSet},
-    ops::Deref,
-};
+use std::collections::{HashMap, HashSet};
 
 use leptos::*;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::database::models::cac::DefaultConfig;
 
 use crate::{
@@ -144,7 +141,9 @@ pub fn override_form(
     let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
         let config_key = default_config.key;
 
-        if let Ok(config_type) = SchemaType::try_from(default_config.schema.deref()) {
+        if let Ok(config_type) =
+            SchemaType::try_from(&default_config.schema as &Map<String, Value>)
+        {
             let def_value = if auto_fill_from_default {
                 default_config.value
             } else {
@@ -248,12 +247,12 @@ pub fn override_form(
 
                             key=|(config_key, _)| config_key.to_string()
                             children=move |(config_key, config_value)| {
-                                let schema = default_config_map
+                                let schema: &Map<String, Value> = &default_config_map
                                     .get(&config_key)
                                     .map(|config| config.schema.clone())
                                     .unwrap_or_default();
-                                let schema_type = SchemaType::try_from(schema.deref());
-                                let enum_variants = EnumVariants::try_from(schema.deref());
+                                let schema_type = SchemaType::try_from(schema);
+                                let enum_variants = EnumVariants::try_from(schema);
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)

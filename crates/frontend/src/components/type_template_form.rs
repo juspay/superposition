@@ -287,10 +287,8 @@ pub fn change_log_summary(
                         view! {
                             <JsonChangeSummary
                                 title
-                                old_values=Some(
-                                    Value::Object(type_temp.type_schema.deref().clone()),
-                                )
-                                new_values=new_schema.map(|m| Value::Object(m.deref().clone()))
+                                old_values=Some(Value::from(type_temp.type_schema))
+                                new_values=new_schema.map(Value::from)
                             />
                             <ChangeSummary
                                 title="Other changes"

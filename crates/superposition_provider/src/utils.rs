@@ -125,7 +125,7 @@ impl ConversionUtils {
                                 ))
                             })?;
                         let dim_info = DimensionInfo {
-                            schema: ExtendedMap(schema),
+                            schema: ExtendedMap::from(schema),
                             position: dimension_info.position().unwrap_or_default(),
                             dimension_type: dimension_info
                                 .dimension_type()

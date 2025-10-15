@@ -161,7 +161,7 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                                             id="type-schema"
                                             class="rounded-md resize-y w-[28rem]"
                                             schema_type=SchemaType::Single(JsonSchemaType::Object)
-                                            value=Value::Object(dimension.schema.0)
+                                            value=Value::from(dimension.schema)
                                             on_change=move |_| {}
                                             r#type=InputType::Monaco(vec![])
                                         />
@@ -175,7 +175,7 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                                     <div class="stat-title">"Cohort Schema"</div>
                                     <EditorProvider>
                                         <CohortSchema
-                                            dimension_schema=Value::Object(dimension.schema.0)
+                                            dimension_schema=Value::from(dimension.schema)
                                             on_change=move |_| ()
                                             hide_label=true
                                         />
@@ -414,7 +414,7 @@ pub fn edit_dimension() -> impl IntoView {
                         position=*dimension.position as u32
                         dimension_name=dimension.dimension.clone()
                         dimension_type=dimension.dimension_type.clone()
-                        dimension_schema=Value::Object(dimension.schema.deref().clone())
+                        dimension_schema=Value::from(dimension.schema)
                         validation_function_name=dimension.function_name.clone()
                         autocomplete_function_name=dimension.autocomplete_function_name.clone()
                         description=dimension.description.deref().to_string()
