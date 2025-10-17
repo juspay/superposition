@@ -11,7 +11,7 @@ import {
     GetConfigCommand,
     GetConfigCommandInput,
 } from "superposition-sdk";
-import { ExperimentationClient, Experiment } from "./experimentation-client";
+import { ExperimentationClient, Experiment, ExperimentGroup } from "./experimentation-client";
 import { ExperimentationOptions } from "./types";
 
 export class ConfigurationClient {
@@ -180,12 +180,14 @@ export class ConfigurationClient {
             if (this.experimentationClient && targetingKey) {
                 const experiments =
                     await this.experimentationClient.getExperiments();
+                const experiment_groups = await this.experimentationClient.getExperimentGroups();
                 const identifier =
                     this.experimentationOptions?.defaultIdentifier ||
                     (targetingKey ? targetingKey : "default");
 
                 const variantIds = await this.getApplicableVariants(
                     experiments,
+                    experiment_groups,
                     this.currentConfigData?.dimensions || {},
                     queryData,
                     identifier
@@ -223,6 +225,7 @@ export class ConfigurationClient {
     // Add method to get applicable variants
     private async getApplicableVariants(
         experiments: Experiment[],
+        experiment_groups: ExperimentGroup[],
         dimensions: Record<string, Record<string, any>>,
         queryData: Record<string, any>,
         identifier: string,
@@ -231,6 +234,7 @@ export class ConfigurationClient {
         // This would use the native resolver's getApplicableVariants method
         return this.resolver.getApplicableVariants(
             experiments,
+            experiment_groups,
             dimensions,
             queryData,
             identifier,

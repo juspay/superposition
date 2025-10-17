@@ -1,9 +1,10 @@
 use std::collections::{HashMap, HashSet};
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::experimentation::{
-    Variant, VariantType, Variants,
+    Bucket, Buckets, GroupType, Variant, Variants,
 };
 use superposition_types::{logic::evaluate_cohort, Condition, DimensionInfo, Overridden};
 
@@ -30,32 +31,154 @@ pub struct FfiExperiment {
     pub context: Condition,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]
+pub struct FfiExperimentGroup {
+    pub id: String,
+    pub context: Condition,
+    pub traffic_percentage: u8,
+    pub member_experiment_ids: Vec<String>,
+    pub group_type: GroupType,
+    pub buckets: Buckets,
+}
+
 #[derive(Serialize, Deserialize, Debug, uniffi::Record)]
 pub struct ExperimentationArgs {
     pub experiments: Vec<FfiExperiment>,
+    pub experiment_groups: Vec<FfiExperimentGroup>,
     // Named as per OpenFeature verbiage.
     pub targeting_key: String,
 }
 
 pub type Experiments = Vec<FfiExperiment>;
 
+pub type ExperimentGroups = Vec<FfiExperimentGroup>;
+
 pub fn get_applicable_variants(
     dimensions_info: &HashMap<String, DimensionInfo>,
     experiments: &Experiments,
+    experiment_groups: &ExperimentGroups,
     query_data: &Map<String, Value>,
-    toss: i8,
+    identifier: &str,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, String> {
-    let context = evaluate_cohort(dimensions_info, query_data);
-    let experiments: Vec<FfiExperiment> =
-        get_satisfied_experiments(experiments, &context, prefix)?;
-    let mut variants: Vec<String> = Vec::new();
-    for exp in experiments {
-        if let Some(v) = decide_variant(exp.traffic_percentage, exp.variants, toss)? {
-            variants.push(v.id)
-        }
+    let context = Value::Object(evaluate_cohort(dimensions_info, query_data));
+
+    let buckets =
+        get_applicable_buckets_from_group(experiment_groups, &context, identifier);
+
+    let experiments: HashMap<String, FfiExperiment> = get_satisfied_experiments(
+        experiments,
+        &context.as_object().cloned().unwrap_or_default(),
+        prefix,
+    )?
+    .into_iter()
+    .map(|exp| (exp.id.clone(), exp.clone()))
+    .collect();
+
+    let applicable_variants =
+        get_applicable_variants_from_group_response(&experiments, &context, &buckets);
+
+    Ok(applicable_variants)
+}
+
+pub fn get_applicable_buckets_from_group(
+    experiment_groups: &ExperimentGroups,
+    context: &Value,
+    identifier: &str,
+) -> Vec<(usize, Bucket)> {
+    if identifier.is_empty() {
+        return vec![];
     }
-    Ok(variants)
+
+    experiment_groups
+        .iter()
+        .filter_map(|exp_group| {
+            let hashed_percentage = calculate_bucket_index(identifier, &exp_group.id);
+            log::info!(
+                "Identifier: {}, Experiment Group ID: {}, Hashed Percentage: {}",
+                identifier,
+                exp_group.id,
+                hashed_percentage
+            );
+            let exp_context = &exp_group.context;
+
+            cfg_if::cfg_if! {
+                if #[cfg(feature = "jsonlogic")] {
+                    let valid_context = exp_context.is_empty()
+                        || jsonlogic::apply(&Value::Object(exp_context.clone().into()), context)
+                            == Ok(Value::Bool(true));
+                } else {
+                    let valid_context = superposition_types::apply(
+                        exp_context,
+                        &context.as_object().cloned().unwrap_or_default(),
+                    );
+                }
+            }
+
+            let res =
+                valid_context && exp_group.traffic_percentage >= hashed_percentage as u8;
+
+            res.then_some(
+                exp_group
+                    .buckets
+                    .get(hashed_percentage)
+                    .and_then(Clone::clone),
+            )
+            .flatten()
+            .and_then(|b| {
+                if exp_group.group_type == GroupType::SystemGenerated {
+                    Some((hashed_percentage, b))
+                } else if exp_group.traffic_percentage > 0 {
+                    Some((
+                        (hashed_percentage * 100) / exp_group.traffic_percentage as usize,
+                        b,
+                    ))
+                } else {
+                    None
+                }
+            })
+        })
+        .collect()
+}
+
+pub fn get_applicable_variants_from_group_response(
+    experiments: &HashMap<String, FfiExperiment>,
+    context: &Value,
+    bucket_response: &[(usize, Bucket)],
+) -> Vec<String> {
+    bucket_response
+        .iter()
+        .filter_map(|(toss, bucket)| {
+            experiments.get(&bucket.experiment_id).and_then(|exp| {
+                cfg_if::cfg_if! {
+                    if #[cfg(feature = "jsonlogic")] {
+                        let valid_context = exp.context.is_empty()
+                            || jsonlogic::apply(
+                                &Value::Object(exp.context.clone().into()),
+                                context,
+                            ) == Ok(Value::Bool(true));
+                    } else {
+                        let valid_context = superposition_types::apply(
+                            &exp.context,
+                            &context.as_object().cloned().unwrap_or_default(),
+                        );
+                    }
+                }
+
+                let res = valid_context
+                    && (exp.traffic_percentage as usize * exp.variants.len()) >= *toss;
+
+                res.then_some(bucket.variant_id.clone())
+            })
+        })
+        .collect()
+}
+
+#[inline]
+pub fn calculate_bucket_index(identifier: &str, group_id: &str) -> usize {
+    let mut hasher = DefaultHasher::new();
+    (identifier, group_id).hash(&mut hasher);
+    (hasher.finish() % 100) as usize
 }
 
 pub fn get_satisfied_experiments(
@@ -123,32 +246,4 @@ fn filter_experiments_by_prefix(
             }
         })
         .collect()
-}
-
-fn decide_variant(
-    traffic: u8,
-    applicable_variants: Variants,
-    toss: i8,
-) -> Result<Option<Variant>, String> {
-    if toss < 0 {
-        for variant in applicable_variants.iter() {
-            if variant.variant_type == VariantType::EXPERIMENTAL {
-                return Ok(Some(variant.clone()));
-            }
-        }
-    }
-    let variant_count = applicable_variants.len() as u8;
-    let range = (traffic * variant_count) as i32;
-    if (toss as i32) >= range {
-        return Ok(None);
-    }
-    let buckets = (1..=variant_count)
-        .map(|i| (traffic * i) as i8)
-        .collect::<Vec<i8>>();
-    let index = buckets
-        .into_iter()
-        .position(|x| toss < x)
-        .ok_or_else(|| "Unable to fetch variant's index".to_string())
-        .map_err_to_string()?;
-    Ok(applicable_variants.get(index).cloned())
 }

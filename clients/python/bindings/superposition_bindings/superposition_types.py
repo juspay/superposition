@@ -890,6 +890,42 @@ class _UniffiConverterString:
             return builder.finalize()
 
 
+class Bucket:
+    variant_id: "str"
+    experiment_id: "str"
+    def __init__(self, *, variant_id: "str", experiment_id: "str"):
+        self.variant_id = variant_id
+        self.experiment_id = experiment_id
+
+    def __str__(self):
+        return "Bucket(variant_id={}, experiment_id={})".format(self.variant_id, self.experiment_id)
+
+    def __eq__(self, other):
+        if self.variant_id != other.variant_id:
+            return False
+        if self.experiment_id != other.experiment_id:
+            return False
+        return True
+
+class _UniffiConverterTypeBucket(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return Bucket(
+            variant_id=_UniffiConverterString.read(buf),
+            experiment_id=_UniffiConverterString.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterString.check_lower(value.variant_id)
+        _UniffiConverterString.check_lower(value.experiment_id)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterString.write(value.variant_id, buf)
+        _UniffiConverterString.write(value.experiment_id, buf)
+
+
 class Context:
     id: "str"
     condition: "Condition"
@@ -1382,6 +1418,33 @@ class _UniffiConverterOptionalString(_UniffiConverterRustBuffer):
 
 
 
+class _UniffiConverterOptionalTypeBucket(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        if value is not None:
+            _UniffiConverterTypeBucket.check_lower(value)
+
+    @classmethod
+    def write(cls, value, buf):
+        if value is None:
+            buf.write_u8(0)
+            return
+
+        buf.write_u8(1)
+        _UniffiConverterTypeBucket.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        flag = buf.read_u8()
+        if flag == 0:
+            return None
+        elif flag == 1:
+            return _UniffiConverterTypeBucket.read(buf)
+        else:
+            raise InternalError("Unexpected flag byte for optional type")
+
+
+
 class _UniffiConverterSequenceString(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, value):
@@ -1428,6 +1491,31 @@ class _UniffiConverterSequenceTypeVariant(_UniffiConverterRustBuffer):
 
         return [
             _UniffiConverterTypeVariant.read(buf) for i in range(count)
+        ]
+
+
+
+class _UniffiConverterSequenceOptionalTypeBucket(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        for item in value:
+            _UniffiConverterOptionalTypeBucket.check_lower(item)
+
+    @classmethod
+    def write(cls, value, buf):
+        items = len(value)
+        buf.write_i32(items)
+        for item in value:
+            _UniffiConverterOptionalTypeBucket.write(item, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative sequence length")
+
+        return [
+            _UniffiConverterOptionalTypeBucket.read(buf) for i in range(count)
         ]
 
 
@@ -1495,6 +1583,28 @@ class _UniffiConverterMapStringSequenceString(_UniffiConverterRustBuffer):
             val = _UniffiConverterSequenceString.read(buf)
             d[key] = val
         return d
+
+
+class _UniffiConverterTypeBuckets:
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterSequenceOptionalTypeBucket.write(value, buf)
+
+    @staticmethod
+    def read(buf):
+        return _UniffiConverterSequenceOptionalTypeBucket.read(buf)
+
+    @staticmethod
+    def lift(value):
+        return _UniffiConverterSequenceOptionalTypeBucket.lift(value)
+
+    @staticmethod
+    def check_lower(value):
+        return _UniffiConverterSequenceOptionalTypeBucket.check_lower(value)
+
+    @staticmethod
+    def lower(value):
+        return _UniffiConverterSequenceOptionalTypeBucket.lower(value)
 
 
 class _UniffiConverterTypeCondition:
@@ -1651,6 +1761,7 @@ class _UniffiConverterTypeVariants:
         return _UniffiConverterSequenceTypeVariant.lower(value)
 
 # objects.
+Buckets = typing.List[typing.Optional[Bucket]]
 Condition = dict[str, str]
 DependencyGraph = dict[str, typing.List[str]]
 ExtendedMap = dict[str, str]
@@ -1668,6 +1779,7 @@ __all__ = [
     "ExperimentType",
     "GroupType",
     "VariantType",
+    "Bucket",
     "Context",
     "DimensionInfo",
     "Variant",

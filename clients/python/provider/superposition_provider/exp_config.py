@@ -2,9 +2,9 @@ import json
 import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar, Generic
-from superposition_bindings.superposition_client import FfiExperiment
+from superposition_bindings.superposition_client import FfiExperiment, FfiExperimentGroup
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions, ExperimentationOptions
-from superposition_sdk.client import Superposition, Config, ListExperimentInput
+from superposition_sdk.client import Superposition, Config, ListExperimentInput, ListExperimentGroupsInput
 import asyncio
 from datetime import datetime, timedelta
 from superposition_bindings.superposition_types import Variant, VariantType
@@ -73,6 +73,7 @@ class ExperimentationConfig():
         self.superposition_options = superposition_options
         self.options = experiment_options
         self.cached_experiments = None
+        self.cached_experiment_groups = None
         self.last_updated = None
         self.evaluation_cache: Dict[str, Dict[str, Any]] = {}
         self._polling_task = None
@@ -82,10 +83,12 @@ class ExperimentationConfig():
             while True:
                 try:
                     latest_exp_list = await self._get_experiments(self.superposition_options)
-                    if latest_exp_list is not None:
+                    latest_exp_grp_list = await self._get_experiment_groups(self.superposition_options)
+                    if latest_exp_list is not None and latest_exp_grp_list is not None:
                         self.cached_experiments = latest_exp_list
+                        self.cached_experiment_groups = latest_exp_grp_list
                         self.last_updated = datetime.utcnow()
-                        logger.info("Experiment List fetched successfully.")
+                        logger.info("Experiment List and Experiment Group List updated successfully.")
 
                 except Exception as e:
                     logger.error(f"Polling error: {e}")
@@ -93,11 +96,14 @@ class ExperimentationConfig():
                 await asyncio.sleep(interval)
 
         latest_exp_list = await self._get_experiments(self.superposition_options)
+        latest_exp_grp_list = await self._get_experiment_groups(self.superposition_options)
         logger.info("response from experimentation: " + str(latest_exp_list))
-        if latest_exp_list is not None:
+        logger.info("response from experimentation groups: " + str(latest_exp_grp_list))
+        if latest_exp_list is not None and latest_exp_grp_list is not None:
             self.cached_experiments = latest_exp_list
+            self.cached_experiment_groups = latest_exp_grp_list
             self.last_updated = datetime.utcnow()
-            logger.info("Experiment List fetched successfully.")
+            logger.info("Experiment List and Experiment Group List fetched successfully.")
         
         match self.options.refresh_strategy:
             case PollingStrategy(interval=interval, timeout=timeout):
@@ -185,6 +191,67 @@ class ExperimentationConfig():
             # Log the error and return empty config as fallback
             logger.error(f"Error fetching config from Superposition: {e}")
             return None
+        
+    @staticmethod
+    async def _get_experiment_groups(superposition_options: SuperpositionOptions) -> Optional[Dict[str, Any]]:
+        """
+        Fetch configuration from Superposition service using the generated Python SDK.
+        
+        Args:
+            superposition_options: Options containing endpoint, token, org_id, workspace_id
+            
+        Returns:
+            Dict containing the configuration data
+        """
+        try:
+            # Create SDK config
+            sdk_config = Config(
+                endpoint_uri=superposition_options.endpoint
+            )
+            
+            # Create Superposition client
+            client = Superposition(config=sdk_config)
+            
+           
+
+            list_exp_grp_input = ListExperimentGroupsInput(
+                workspace_id=superposition_options.workspace_id,
+                org_id=superposition_options.org_id,
+                all=True
+            )
+            
+
+            response = await client.list_experiment_groups(list_exp_grp_input)
+           
+            exp_grp_list = response.data
+            logger.info(f"Fetched {len(exp_grp_list)} experiment groups from Superposition")
+            trimmed_exp_grp_list = []
+            for exp_gr in exp_grp_list:
+                condition = {}
+                for key, value in exp_gr.context.items():
+                    condition[key] = json.dumps(document_to_python_value(value))
+                 
+                    
+                trimmed_exp_grp = FfiExperimentGroup(
+                    id=exp_gr.id,
+                    context=condition,
+                    member_experiment_ids=exp_gr.member_experiment_ids,
+                    traffic_percentage=exp_gr.traffic_percentage,
+                    group_type=exp_gr.group_type,
+                    buckets=exp_gr.buckets
+                )
+
+
+                trimmed_exp_grp_list.append(trimmed_exp_grp)
+                
+            
+            return trimmed_exp_grp_list
+            
+        except Exception as e:
+            # Log the error and return empty config as fallback
+            logger.error(f"Error fetching config from Superposition: {e}")
+            return None
+    
     
     async def on_demand_config(self, ttl, use_stale) -> dict:
         """Get config on-demand based on TTL or fall back to stale if needed."""
@@ -198,10 +265,12 @@ class ExperimentationConfig():
             try:
                 logger.debug("TTL expired. Fetching config on-demand.")
                 latest_exp_list = await self._get_experiments(self.superposition_options)
+                latest_exp_grp_list = await self._get_experiment_groups(self.superposition_options)
 
-                if latest_exp_list is not None:
-                    logger.info("Experiment List fetched successfully.")
+                if latest_exp_list is not None and latest_exp_grp_list is not None:
+                    logger.info("Experiment List and Experiment Group List updated successfully on-demand.")
                     self.cached_experiments = latest_exp_list
+                    self.cached_experiment_groups = latest_exp_grp_list
                     self.last_updated = datetime.utcnow()
                 
             except Exception as e:

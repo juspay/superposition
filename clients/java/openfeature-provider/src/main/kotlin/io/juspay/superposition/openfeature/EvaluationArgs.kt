@@ -5,12 +5,15 @@ import dev.openfeature.sdk.EvaluationContext
 import dev.openfeature.sdk.Value
 import io.juspay.superposition.model.ContextPartial
 import io.juspay.superposition.model.ExperimentResponse
+import io.juspay.superposition.model.ExperimentGroupResponse
 import io.juspay.superposition.model.GetConfigOutput
 import software.amazon.smithy.java.core.serde.document.Document
 import uniffi.superposition_client.*
+import uniffi.superposition_types.Buckets
 import uniffi.superposition_types.Context
 import uniffi.superposition_types.DimensionInfo
 import uniffi.superposition_types.DimensionType
+import uniffi.superposition_types.GroupType
 import uniffi.superposition_types.Variant
 import uniffi.superposition_types.VariantType
 
@@ -82,6 +85,25 @@ internal class EvaluationArgs {
                 er.trafficPercentage().toUByte(),
                 variants,
                 serializeDocumentValues(er.context())
+            )
+        }
+
+        private fun toFfiGroupType(gt: io.juspay.superposition.model.GroupType): GroupType {
+            return when (gt) {
+                io.juspay.superposition.model.GroupType.USER_CREATED -> GroupType.USER_CREATED
+                else -> GroupType.SYSTEM_GENERATED
+            }
+        }
+
+        @JvmStatic
+        fun toFfiExperimentGroup(er: ExperimentGroupResponse): FfiExperimentGroup {
+            return FfiExperimentGroup(
+                er.id(),
+                serializeDocumentValues(er.context()),
+                er.trafficPercentage().toUByte(),
+                er.memberExperimentIds(),
+                toFfiGroupType(er.groupType()),
+                er.buckets() as Buckets
             )
         }
     }

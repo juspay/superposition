@@ -1,5 +1,4 @@
 // src/ffi.rs
-use rand::Rng;
 use serde_json::{Map, Value};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -7,7 +6,7 @@ use std::ffi::{c_char, CStr, CString};
 use std::ptr;
 
 use crate::config::{self, MergeStrategy};
-use crate::experiment::ExperimentationArgs;
+use crate::experiment::{ExperimentGroups, ExperimentationArgs};
 use crate::{get_applicable_variants, Experiments};
 use superposition_types::{Context, DimensionInfo, Overrides};
 // Thread-local storage for error handling
@@ -153,17 +152,14 @@ pub extern "C" fn core_get_resolved_config(
     };
 
     if let Some(e_args) = experimentation {
-        let toss = e_args
-            .targeting_key
-            .parse::<i8>()
-            .unwrap_or(rand::rng().random_range(0..=99))
-            % 100;
+        let identifier = e_args.targeting_key;
 
         match get_applicable_variants(
             &dimensions,
             &e_args.experiments,
+            &e_args.experiment_groups,
             &query_data,
-            toss,
+            &identifier,
             filter_prefixes.clone(),
         ) {
             Ok(variants) => {
@@ -301,17 +297,14 @@ pub extern "C" fn core_get_resolved_config_with_reasoning(
     };
 
     if let Some(e_args) = experimentation {
-        let toss = e_args
-            .targeting_key
-            .parse::<i8>()
-            .unwrap_or(rand::rng().random_range(0..=99))
-            % 100;
+        let identifier = e_args.targeting_key;
 
         match get_applicable_variants(
             &dimensions,
             &e_args.experiments,
+            &e_args.experiment_groups,
             &query_data,
-            toss,
+            &identifier,
             filter_prefixes.clone(),
         ) {
             Ok(variants) => {
@@ -401,9 +394,10 @@ pub extern "C" fn core_last_error_length() -> i32 {
 #[no_mangle]
 pub extern "C" fn core_get_applicable_variants(
     experiments_json: *const c_char,
+    experiment_groups_json: *const c_char,
     dimensions: *const c_char,
     query_data_json: *const c_char,
-    toss: i8,
+    identifier: *const c_char,
     filter_prefixes_json: *const c_char,
 ) -> *mut c_char {
     if experiments_json.is_null() || query_data_json.is_null() || dimensions.is_null() {
@@ -415,6 +409,14 @@ pub extern "C" fn core_get_applicable_variants(
         Ok(experiments) => experiments,
         Err(e) => {
             set_last_error(format!("Failed to parse experiments: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    let experiment_groups = match parse_json::<ExperimentGroups>(experiment_groups_json) {
+        Ok(groups) => groups,
+        Err(e) => {
+            set_last_error(format!("Failed to parse experiment_groups: {}", e));
             return ptr::null_mut();
         }
     };
@@ -447,12 +449,21 @@ pub extern "C" fn core_get_applicable_variants(
         }
     };
 
+    let identifier = match c_str_to_string(identifier) {
+        Ok(id) => id,
+        Err(e) => {
+            set_last_error(format!("Failed to parse identifier: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
     // Call the experimentation logic
     match get_applicable_variants(
         &dimensions,
         &experiments,
+        &experiment_groups,
         &query_data,
-        toss,
+        &identifier,
         filter_prefixes,
     ) {
         Ok(result) => match serde_json::to_string(&result) {

@@ -172,6 +172,7 @@ pub extern "C" fn expt_get_applicable_variant(
     c_dimensions: *const c_char,
     c_context: *const c_char,
     identifier: *const c_char,
+    filter_prefix: *const c_char,
 ) -> *mut c_char {
     let dimensions = unwrap_safe!(
         cstring_to_rstring(c_dimensions),
@@ -190,8 +191,18 @@ pub extern "C" fn expt_get_applicable_variant(
         serde_json::from_str::<Value>(context.as_str()),
         return std::ptr::null_mut()
     );
+    let prefix_list = if filter_prefix.is_null() {
+        None
+    } else {
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_prefix),
+            return std::ptr::null_mut()
+        );
+        let prefix_list = filter_string.split(',').map(String::from).collect();
+        Some(prefix_list)
+    };
     let variants_result = EXP_RUNTIME.block_on(unsafe {
-        (*client).get_applicable_variant(&dimensions, &context, &identifier)
+        (*client).get_applicable_variant(&dimensions, &context, &identifier, prefix_list)
     });
     variants_result
         .map(|result| {

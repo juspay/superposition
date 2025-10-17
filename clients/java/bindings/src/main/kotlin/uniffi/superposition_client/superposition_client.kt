@@ -30,21 +30,30 @@ import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
+import uniffi.superposition_types.Bucket
+import uniffi.superposition_types.Buckets
 import uniffi.superposition_types.Condition
 import uniffi.superposition_types.Context
 import uniffi.superposition_types.DimensionInfo
+import uniffi.superposition_types.FfiConverterTypeBucket
+import uniffi.superposition_types.FfiConverterTypeBuckets
 import uniffi.superposition_types.FfiConverterTypeCondition
 import uniffi.superposition_types.FfiConverterTypeContext
 import uniffi.superposition_types.FfiConverterTypeDimensionInfo
+import uniffi.superposition_types.FfiConverterTypeGroupType
 import uniffi.superposition_types.FfiConverterTypeOverrides
 import uniffi.superposition_types.FfiConverterTypeVariant
 import uniffi.superposition_types.FfiConverterTypeVariants
+import uniffi.superposition_types.GroupType
 import uniffi.superposition_types.Overrides
 import uniffi.superposition_types.Variant
 import uniffi.superposition_types.Variants
+import uniffi.superposition_types.RustBuffer as RustBufferBucket
+import uniffi.superposition_types.RustBuffer as RustBufferBuckets
 import uniffi.superposition_types.RustBuffer as RustBufferCondition
 import uniffi.superposition_types.RustBuffer as RustBufferContext
 import uniffi.superposition_types.RustBuffer as RustBufferDimensionInfo
+import uniffi.superposition_types.RustBuffer as RustBufferGroupType
 import uniffi.superposition_types.RustBuffer as RustBufferOverrides
 import uniffi.superposition_types.RustBuffer as RustBufferVariant
 import uniffi.superposition_types.RustBuffer as RustBufferVariants
@@ -1106,6 +1115,7 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 data class ExperimentationArgs (
     var `experiments`: List<FfiExperiment>, 
+    var `experimentGroups`: List<FfiExperimentGroup>, 
     var `targetingKey`: kotlin.String
 ) {
     
@@ -1119,17 +1129,20 @@ public object FfiConverterTypeExperimentationArgs: FfiConverterRustBuffer<Experi
     override fun read(buf: ByteBuffer): ExperimentationArgs {
         return ExperimentationArgs(
             FfiConverterSequenceTypeFfiExperiment.read(buf),
+            FfiConverterSequenceTypeFfiExperimentGroup.read(buf),
             FfiConverterString.read(buf),
         )
     }
 
     override fun allocationSize(value: ExperimentationArgs) = (
             FfiConverterSequenceTypeFfiExperiment.allocationSize(value.`experiments`) +
+            FfiConverterSequenceTypeFfiExperimentGroup.allocationSize(value.`experimentGroups`) +
             FfiConverterString.allocationSize(value.`targetingKey`)
     )
 
     override fun write(value: ExperimentationArgs, buf: ByteBuffer) {
             FfiConverterSequenceTypeFfiExperiment.write(value.`experiments`, buf)
+            FfiConverterSequenceTypeFfiExperimentGroup.write(value.`experimentGroups`, buf)
             FfiConverterString.write(value.`targetingKey`, buf)
     }
 }
@@ -1171,6 +1184,54 @@ public object FfiConverterTypeFfiExperiment: FfiConverterRustBuffer<FfiExperimen
             FfiConverterUByte.write(value.`trafficPercentage`, buf)
             FfiConverterTypeVariants.write(value.`variants`, buf)
             FfiConverterTypeCondition.write(value.`context`, buf)
+    }
+}
+
+
+
+data class FfiExperimentGroup (
+    var `id`: kotlin.String, 
+    var `context`: Condition, 
+    var `trafficPercentage`: kotlin.UByte, 
+    var `memberExperimentIds`: List<kotlin.String>, 
+    var `groupType`: GroupType, 
+    var `buckets`: Buckets
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiExperimentGroup: FfiConverterRustBuffer<FfiExperimentGroup> {
+    override fun read(buf: ByteBuffer): FfiExperimentGroup {
+        return FfiExperimentGroup(
+            FfiConverterString.read(buf),
+            FfiConverterTypeCondition.read(buf),
+            FfiConverterUByte.read(buf),
+            FfiConverterSequenceString.read(buf),
+            FfiConverterTypeGroupType.read(buf),
+            FfiConverterTypeBuckets.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiExperimentGroup) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterTypeCondition.allocationSize(value.`context`) +
+            FfiConverterUByte.allocationSize(value.`trafficPercentage`) +
+            FfiConverterSequenceString.allocationSize(value.`memberExperimentIds`) +
+            FfiConverterTypeGroupType.allocationSize(value.`groupType`) +
+            FfiConverterTypeBuckets.allocationSize(value.`buckets`)
+    )
+
+    override fun write(value: FfiExperimentGroup, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterTypeCondition.write(value.`context`, buf)
+            FfiConverterUByte.write(value.`trafficPercentage`, buf)
+            FfiConverterSequenceString.write(value.`memberExperimentIds`, buf)
+            FfiConverterTypeGroupType.write(value.`groupType`, buf)
+            FfiConverterTypeBuckets.write(value.`buckets`, buf)
     }
 }
 
@@ -1301,6 +1362,38 @@ public object FfiConverterOptionalTypeExperimentationArgs: FfiConverterRustBuffe
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeBucket: FfiConverterRustBuffer<Bucket?> {
+    override fun read(buf: ByteBuffer): Bucket? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeBucket.read(buf)
+    }
+
+    override fun allocationSize(value: Bucket?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeBucket.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Bucket?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeBucket.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<kotlin.String>?> {
     override fun read(buf: ByteBuffer): List<kotlin.String>? {
         if (buf.get().toInt() == 0) {
@@ -1389,6 +1482,34 @@ public object FfiConverterSequenceTypeFfiExperiment: FfiConverterRustBuffer<List
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeFfiExperimentGroup: FfiConverterRustBuffer<List<FfiExperimentGroup>> {
+    override fun read(buf: ByteBuffer): List<FfiExperimentGroup> {
+        val len = buf.getInt()
+        return List<FfiExperimentGroup>(len) {
+            FfiConverterTypeFfiExperimentGroup.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<FfiExperimentGroup>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeFfiExperimentGroup.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<FfiExperimentGroup>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeFfiExperimentGroup.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeContext: FfiConverterRustBuffer<List<Context>> {
     override fun read(buf: ByteBuffer): List<Context> {
         val len = buf.getInt()
@@ -1435,6 +1556,34 @@ public object FfiConverterSequenceTypeVariant: FfiConverterRustBuffer<List<Varia
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeVariant.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceOptionalTypeBucket: FfiConverterRustBuffer<List<Bucket?>> {
+    override fun read(buf: ByteBuffer): List<Bucket?> {
+        val len = buf.getInt()
+        return List<Bucket?>(len) {
+            FfiConverterOptionalTypeBucket.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Bucket?>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterOptionalTypeBucket.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Bucket?>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterOptionalTypeBucket.write(it, buf)
         }
     }
 }
@@ -1555,6 +1704,12 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
         }
     }
 }
+
+
+
+
+
+
 
 
 

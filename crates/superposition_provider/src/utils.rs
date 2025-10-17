@@ -1,11 +1,15 @@
 use std::collections::HashMap;
 
+use aws_smithy_types::Document;
 use log::debug;
 use serde_json::{json, Map, Value};
+use superposition_core::experiment::{ExperimentGroups, FfiExperimentGroup};
 use superposition_core::{Experiments, FfiExperiment};
+use superposition_sdk::operation::list_experiment_groups::ListExperimentGroupsOutput;
+use superposition_sdk::types::GroupType as SdkGroupType;
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::database::models::experimentation::{
-    Variant, VariantType, Variants,
+    Bucket, Buckets, GroupType as DbGroupType, Variant, VariantType, Variants,
 };
 use superposition_types::{
     Cac, Condition, Config, Context, DimensionInfo, Exp, ExtendedMap, OverrideWithKeys,
@@ -25,16 +29,7 @@ impl ConversionUtils {
         // Convert default configs - these are already Value types
         let default_configs = response
             .default_configs()
-            .map(|configs| {
-                configs
-                    .iter()
-                    .map(|(key, doc)| {
-                        // Convert Document to serde_json::Value
-                        let value = Self::document_to_value(doc)?;
-                        Ok((key.clone(), value))
-                    })
-                    .collect::<Result<Map<String, Value>>>()
-            })
+            .map(Self::convert_condition_document)
             .unwrap_or_else(|| Ok(Map::new()))?;
 
         // Convert overrides - HashMap<String, HashMap<String, Document>>
@@ -43,11 +38,7 @@ impl ConversionUtils {
             .map(|override_map| {
                 let mut result_map = HashMap::new();
                 for (override_key, inner_map) in override_map {
-                    let mut override_values = Map::new();
-                    for (config_key, doc) in inner_map {
-                        let value = Self::document_to_value(doc)?;
-                        override_values.insert(config_key.clone(), value);
-                    }
+                    let override_values = Self::convert_condition_document(inner_map)?;
 
                     // Create Overrides directly from Map<String, Value>
                     let overrides_obj = Cac::<Overrides>::try_from(override_values)
@@ -69,10 +60,7 @@ impl ConversionUtils {
                 // Convert condition Document to Map<String, Value>
                 let mut condition_map = Map::new();
                 if let Some(condition) = context_partial.condition() {
-                    for (key, doc) in condition.iter() {
-                        let value = Self::document_to_value(doc)?;
-                        condition_map.insert(key.clone(), value);
-                    }
+                    condition_map = Self::convert_condition_document(condition)?;
                 }
 
                 // Create Condition directly from Map<String, Value>
@@ -351,6 +339,18 @@ impl ConversionUtils {
             dimensions,
         })
     }
+
+    fn convert_condition_document(
+        context: &HashMap<String, Document>,
+    ) -> Result<Map<String, Value>> {
+        let mut condition_map = Map::new();
+        for (key, doc) in context {
+            let value = Self::document_to_value(doc)?;
+            condition_map.insert(key.clone(), value);
+        }
+        Ok(condition_map)
+    }
+
     /// Convert list_experiment SDK response to structured experiment data
     pub fn convert_experiments_response(
         response: &superposition_sdk::operation::list_experiment::ListExperimentOutput,
@@ -362,11 +362,7 @@ impl ConversionUtils {
 
         for exp in exp_list {
             // Convert experiment context (condition)
-            let mut condition_map = Map::new();
-            for (key, doc) in exp.context() {
-                let value = Self::document_to_value(doc)?;
-                condition_map.insert(key.clone(), value);
-            }
+            let condition_map = Self::convert_condition_document(exp.context())?;
 
             // Convert variants
             let mut variants: Variants = Variants::new(vec![]);
@@ -423,6 +419,63 @@ impl ConversionUtils {
         }
 
         Ok(trimmed_exp_list)
+    }
+
+    pub fn convert_experiment_groups_response(
+        response: &ListExperimentGroupsOutput,
+    ) -> Result<ExperimentGroups> {
+        debug!("Converting experiment groups response");
+
+        let group_list = response.data();
+        let mut trimmed_group_list: ExperimentGroups = Vec::new();
+
+        for exp_group in group_list {
+            // Convert experiment context (condition)
+            let condition_map = Self::convert_condition_document(exp_group.context())?;
+
+            let context = Exp::<Condition>::try_from(condition_map)
+                .map_err(|e| {
+                    SuperpositionError::SerializationError(format!(
+                        "Invalid condition: {}",
+                        e
+                    ))
+                })?
+                .into_inner();
+            let group_type = match exp_group.group_type {
+                SdkGroupType::SystemGenerated => DbGroupType::SystemGenerated,
+                SdkGroupType::UserCreated => DbGroupType::UserCreated,
+                _ => {
+                    return Err(SuperpositionError::SerializationError(
+                        "Unknown group type".to_string(),
+                    ))
+                }
+            };
+
+            let experiment_group = FfiExperimentGroup {
+                id: exp_group.id.clone(),
+                context,
+                traffic_percentage: exp_group.traffic_percentage as u8,
+                member_experiment_ids: exp_group.member_experiment_ids().to_vec(),
+                group_type,
+                buckets: Buckets::try_from(
+                    exp_group
+                        .buckets
+                        .iter()
+                        .map(|b| {
+                            b.as_ref().map(|bucket| Bucket {
+                                variant_id: bucket.variant_id.clone(),
+                                experiment_id: bucket.experiment_id.clone(),
+                            })
+                        })
+                        .collect::<Vec<_>>(),
+                )
+                .map_err(SuperpositionError::SerializationError)?,
+            };
+
+            trimmed_group_list.push(experiment_group);
+        }
+
+        Ok(trimmed_group_list)
     }
 
     /// Convert AWS Smithy Document to serde_json::Value

@@ -3,10 +3,12 @@ use std::sync::Arc;
 
 use log::{debug, error, info, warn};
 use serde_json::Value;
+use superposition_core::experiment::ExperimentGroups;
 use superposition_core::{
     eval_config, get_applicable_variants, Experiments, MergeStrategy,
 };
 use superposition_types::{Config, DimensionInfo};
+use tokio::join;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
@@ -266,6 +268,7 @@ pub struct ExperimentationConfig {
     superposition_options: SuperpositionOptions,
     options: ExperimentationOptions,
     cached_experiments: Arc<RwLock<Option<Experiments>>>,
+    cached_experiment_groups: Arc<RwLock<Option<ExperimentGroups>>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     evaluation_cache: RwLock<HashMap<String, HashMap<String, Value>>>,
     polling_task: RwLock<Option<JoinHandle<()>>>,
@@ -280,6 +283,7 @@ impl ExperimentationConfig {
             superposition_options,
             options,
             cached_experiments: Arc::new(RwLock::new(None)),
+            cached_experiment_groups: Arc::new(RwLock::new(None)),
             last_updated: Arc::new(RwLock::new(None)),
             evaluation_cache: RwLock::new(HashMap::new()),
             polling_task: RwLock::new(None),
@@ -289,22 +293,37 @@ impl ExperimentationConfig {
     pub async fn create_config(&self) -> Result<()> {
         info!("Creating Experimentation configuration...");
 
-        // Fetch initial experiments
-        let latest_experiments = self.get_experiments(&self.superposition_options).await;
-        match latest_experiments {
-            Ok(Some(experiments)) => {
+        // Fetch initial experiments and experiment groups
+        let (latest_experiments, latest_experiment_groups) = join!(
+            self.get_experiments(&self.superposition_options),
+            self.get_experiment_groups(&self.superposition_options)
+        );
+        match (latest_experiments, latest_experiment_groups) {
+            (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
                 let mut cached_experiments = self.cached_experiments.write().await;
                 *cached_experiments = Some(experiments);
+                let mut cached_experiment_groups =
+                    self.cached_experiment_groups.write().await;
+                *cached_experiment_groups = Some(experiment_groups);
                 let mut last_updated = self.last_updated.write().await;
                 *last_updated = Some(chrono::Utc::now());
                 info!("Experiments fetched successfully");
             }
-            Ok(None) => {
-                warn!("No experiments found");
+            (Ok(None), Ok(None)) => {
+                warn!("No experiments or experiment groups returned from initial fetch");
             }
-            Err(e) => {
-                error!("Failed to fetch initial experiments: {}", e);
+            (Err(e), _) | (_, Err(e)) => {
+                error!(
+                    "Failed to fetch initial experiments or experiment groups: {}",
+                    e
+                );
                 return Err(e);
+            }
+            (_, _) => {
+                error!("Failed to fetch either experiments or experiment groups");
+                return Err(SuperpositionError::ConfigError(
+                    "Failed to fetch either experiments or experiment groups".into(),
+                ));
             }
         }
 
@@ -333,24 +352,34 @@ impl ExperimentationConfig {
     async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
         let superposition_options = self.superposition_options.clone();
         let cached_experiments = self.cached_experiments.clone();
+        let cached_experiment_groups = self.cached_experiment_groups.clone();
         let last_updated = self.last_updated.clone();
 
         tokio::spawn(async move {
             loop {
-                match Self::get_experiments_static(&superposition_options).await {
-                    Ok(Some(experiments)) => {
+                let (experiments_result, groups_result) = join!(
+                    Self::get_experiments_static(&superposition_options),
+                    Self::get_experiment_groups_static(&superposition_options)
+                );
+                match (experiments_result, groups_result) {
+                    (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
                         let mut cached = cached_experiments.write().await;
                         *cached = Some(experiments);
+                        let mut cached_groups = cached_experiment_groups.write().await;
+                        *cached_groups = Some(experiment_groups);
                         let mut updated = last_updated.write().await;
                         *updated = Some(chrono::Utc::now());
-                        debug!("Experiments updated via polling");
+                        debug!("Experiments and Experiment Groups updated via polling");
                     }
-                    Ok(None) => {
-                        warn!("No experiments returned from polling");
+                    (Ok(None), Ok(None)) => {
+                        warn!(
+                            "No experiments or experiment groups returned from polling"
+                        );
                     }
-                    Err(e) => {
-                        error!("Experiments polling error: {}", e);
+                    (Err(e), _) | (_, Err(e)) => {
+                        error!("Polling error: {}", e);
                     }
+                    _ => {}
                 }
                 sleep(Duration::from_secs(interval)).await;
             }
@@ -371,22 +400,32 @@ impl ExperimentationConfig {
         };
 
         if should_refresh {
-            debug!("TTL expired. Fetching experiments on-demand");
-            match self.get_experiments(&self.superposition_options).await {
-                Ok(Some(experiments)) => {
+            debug!("TTL expired. Fetching experiments and experiment groups on-demand");
+            let (experiments_result, groups_result) = join!(
+                self.get_experiments(&self.superposition_options),
+                self.get_experiment_groups(&self.superposition_options)
+            );
+            match (experiments_result, groups_result) {
+                (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
                     let mut cached_experiments = self.cached_experiments.write().await;
                     *cached_experiments = Some(experiments.clone());
+                    let mut cached_experiment_groups =
+                        self.cached_experiment_groups.write().await;
+                    *cached_experiment_groups = Some(experiment_groups);
                     let mut last_updated_mut = self.last_updated.write().await;
                     *last_updated_mut = Some(chrono::Utc::now());
-                    info!("Experiments fetched successfully on-demand");
+                    info!("Experiments and Experiment Groups fetched successfully on-demand");
                     return Ok(experiments);
                 }
-                Err(e) => {
-                    warn!("On-demand experiments fetch failed: {}", e);
+                (Err(e), _) | (_, Err(e)) => {
+                    warn!(
+                        "On-demand experiments and experiment groups fetch failed: {}",
+                        e
+                    );
                     if !use_stale {
                         return Err(e);
                     }
-                    info!("Using stale experiments due to error");
+                    info!("Using stale experiments and experiment groups due to error");
                 }
                 _ => {}
             }
@@ -405,6 +444,13 @@ impl ExperimentationConfig {
         options: &SuperpositionOptions,
     ) -> Result<Option<Experiments>> {
         Self::get_experiments_static(options).await
+    }
+
+    async fn get_experiment_groups(
+        &self,
+        options: &SuperpositionOptions,
+    ) -> Result<Option<ExperimentGroups>> {
+        Self::get_experiment_groups_static(options).await
     }
 
     async fn get_experiments_static(
@@ -450,9 +496,55 @@ impl ExperimentationConfig {
         Ok(Some(experiments))
     }
 
+    async fn get_experiment_groups_static(
+        options: &SuperpositionOptions,
+    ) -> Result<Option<ExperimentGroups>> {
+        use superposition_sdk::{Client, Config as SdkConfig};
+
+        info!("Fetching experiment groups from Superposition service using SDK");
+
+        // Create SDK config
+        let sdk_config = SdkConfig::builder()
+            .endpoint_url(&options.endpoint)
+            .bearer_token(options.token.clone().into())
+            .behavior_version_latest()
+            .build();
+
+        // Create Superposition client
+        let client = Client::from_conf(sdk_config);
+
+        let response = client
+            .list_experiment_groups()
+            .workspace_id(&options.workspace_id)
+            .org_id(&options.org_id)
+            .all(true)
+            .send()
+            .await
+            .map_err(|e| {
+                SuperpositionError::NetworkError(format!(
+                    "Failed to list experiment groups: {}",
+                    e
+                ))
+            })?;
+
+        let experiment_groups =
+            ConversionUtils::convert_experiment_groups_response(&response)?;
+
+        info!(
+            "Successfully fetched and converted {} experiment groups",
+            experiment_groups.len()
+        );
+        Ok(Some(experiment_groups))
+    }
+
     pub async fn get_cached_experiments(&self) -> Option<Experiments> {
         let cached_experiments = self.cached_experiments.read().await;
         cached_experiments.clone()
+    }
+
+    pub async fn get_cached_experiment_groups(&self) -> Option<ExperimentGroups> {
+        let cached_experiment_groups = self.cached_experiment_groups.read().await;
+        cached_experiment_groups.clone()
     }
 
     pub async fn close(&self) -> Result<()> {
@@ -475,30 +567,35 @@ impl ExperimentationConfig {
         &self,
         dimensions_info: &HashMap<String, DimensionInfo>,
         contexts: &serde_json::Map<String, Value>,
-        identifier: Option<i8>,
+        identifier: Option<String>,
     ) -> Result<Vec<String>> {
         let cached_experiments = self.cached_experiments.read().await;
-        if let Some(cached_experiments) = cached_experiments.as_ref() {
-            // Use get_applicable_variants from superposition_core
-            get_applicable_variants(
-                dimensions_info,
-                cached_experiments,
-                contexts,
-                identifier.unwrap_or_default(),
-                None,
-            )
-            .map_err(|e| {
-                SuperpositionError::ConfigError(format!(
-                    "Failed to get applicable variants: {}",
-                    e
-                ))
-            })
-        } else {
-            // TODO: should we fail if experiments are not present?
-            info!("No cached experiments available");
-            Err(SuperpositionError::ConfigError(
-                "No cached experiments available".into(),
-            ))
+        let cached_experiment_groups = self.cached_experiment_groups.read().await;
+
+        match (
+            cached_experiments.as_ref(),
+            cached_experiment_groups.as_ref(),
+        ) {
+            (Some(experiments), Some(experiment_groups)) => {
+                // Use get_applicable_variants from superposition_core
+                get_applicable_variants(
+                    dimensions_info,
+                    experiments,
+                    experiment_groups,
+                    contexts,
+                    &identifier.unwrap_or_default(),
+                    None,
+                )
+                .map_err(|e| {
+                    SuperpositionError::ConfigError(format!(
+                        "Failed to get applicable variants: {}",
+                        e
+                    ))
+                })
+            }
+            _ => Err(SuperpositionError::ConfigError(
+                "No cached experiments or experiment groups available".into(),
+            )),
         }
     }
 }
