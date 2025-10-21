@@ -720,8 +720,17 @@ impl ConversionUtils {
                 // StructValue is just a struct with a fields HashMap, not a complex conversion
                 Ok(open_feature::StructValue { fields })
             }
+            Value::Array(list) => {
+                let mut fields = HashMap::new();
+                for (index, item) in list.iter().enumerate() {
+                    let open_feature_value =
+                        Self::serde_value_to_openfeature_value(item)?;
+                    fields.insert(index.to_string(), open_feature_value);
+                }
+                Ok(open_feature::StructValue { fields })
+            }
             _ => Err(SuperpositionError::ConfigError(format!(
-                "Cannot convert {:?} to StructValue - must be an object",
+                "Cannot convert {:?} to StructValue - flag must be an object/array",
                 value
             ))),
         }
