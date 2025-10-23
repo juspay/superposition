@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.92.0 - 2025-10-23
+### Package updates
+- frontend bumped to frontend-v0.45.0
+- context_aware_config bumped to context_aware_config-v0.63.0
+- superposition_sdk bumped to superposition_sdk-v0.9.0
+- superposition_types bumped to superposition_types-v0.35.0
+- haskell_client bumped to haskell_client-v0.7.0
+- experimentation_platform bumped to experimentation_platform-v0.44.0
+### Global changes
+#### Features
+- **(audit-log)** add UI for Audit Log API (#594) - (1288eac) - Natarajan Kannan
+- automated sidebar tag creation based on smithy models (#708) - (89b3634) - sauraww
+#### Miscellaneous Chores
+- **(smithy)** Add improvements (#717) - (15c3556) - Ayush Jain
+- **(version)** v0.91.2 [skip ci] - (083e1df) - Superposition Bot
+
+- - -
+
 ## v0.91.2 - 2025-10-07
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.43.2

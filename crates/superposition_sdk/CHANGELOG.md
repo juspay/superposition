@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.9.0 - 2025-10-23
+#### Features
+- **(audit-log)** add UI for Audit Log API (#594) - (1288eac) - Natarajan Kannan
+- automated sidebar tag creation based on smithy models (#708) - (89b3634) - sauraww
+#### Miscellaneous Chores
+- **(smithy)** Add improvements (#717) - (15c3556) - Ayush Jain
+- **(version)** v0.91.1 [skip ci] - (1018c17) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.8.1 - 2025-09-30
 #### Bug Fixes
 - **(cohorts)** eval logic and update providers (#715) - (e99aa25) - Ayush Jain

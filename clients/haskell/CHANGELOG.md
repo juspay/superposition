@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.7.0 - 2025-10-23
+#### Features
+- **(audit-log)** add UI for Audit Log API (#594) - (1288eac) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(smithy)** Add improvements (#717) - (15c3556) - Ayush Jain
+- **(version)** v0.91.2 [skip ci] - (083e1df) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.6.2 - 2025-10-07
 #### Bug Fixes
 - cohort resolution in get applicable variants (#719) - (abe4bd4) - Ayush Jain
