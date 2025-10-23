@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.35.0 - 2025-10-23
+#### Features
+- **(audit-log)** add UI for Audit Log API (#594) - (1288eac) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.91.2 [skip ci] - (083e1df) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.34.2 - 2025-10-07
 #### Bug Fixes
 - cohort resolution in get applicable variants (#719) - (abe4bd4) - Ayush Jain
