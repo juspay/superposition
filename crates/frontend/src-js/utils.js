@@ -33,9 +33,7 @@ export function newSuggestionsProvider(triggers, suggestions) {
                 suggestions: suggestions.map((s) => ({
                     // This is the text that shows up in the completion hover.
                     label: toStr(s),
-                    // FIXME Coupling w/ private Enum, this can break w/ a newer version of
-                    // monaco.
-                    kind: 15, // Maps to the `Enum` varaint of `Kind`.
+                    kind: monaco.languages.CompletionItemKind.Enum,
                     insertText: toStr(s),
                     detail: "Enum variant",
                     documentation: "Json Enum",

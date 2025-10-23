@@ -139,7 +139,7 @@ async fn create(
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     // Checking if experiment has exactly 1 control variant, and
-    // atleast 1 experimental variant
+    // at least 1 experimental variant
     check_variant_types(&variants)?;
     let unique_override_keys: Vec<String> =
         extract_override_keys(&variants[0].overrides.clone().into_inner())
@@ -151,7 +151,7 @@ async fn create(
 
     if unique_ids_of_variants_from_req.len() != variants.len() {
         return Err(bad_argument!(
-            "Variant ids are expected to be unique. Provide unqiue variant IDs"
+            "Variant ids are expected to be unique. Provide unique variant IDs"
         ));
     }
 
