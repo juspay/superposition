@@ -97,4 +97,5 @@ getResolvedConfig params = do
   traverse_ freeNonNull [dc, ctx, ovrs, qry, mergeS, pfltr, exp, ebuf]
   pure $ case (res, err) of
     (Just cfg, []) -> Right cfg
+    (Nothing, []) -> Left "null pointer returned"
     _ -> Left err

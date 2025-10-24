@@ -15,6 +15,12 @@ cradle:
     - path: "open-feature/lib"
       component: "lib:open-feature"
 
+    - path: "open-feature-provider/lib"
+      component: "lib:superposition-open-feature-provider"
+
+    - path: "open-feature-provider/test"
+      component: "superposition-open-feature-provider:test:superposition-open-feature-provider-test"
+
     - path: "sdk/./"
       component: "lib:SuperpositionSDK"
 
