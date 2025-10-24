@@ -12,7 +12,7 @@ java {
     }
 }
 
-extra["displayName"] = "Superposition Foreign Function Interface"
+extra["displayName"] = "Superposition Core Java Bindings"
 description = "Bindings for some of superpositions core functions."
 
 dependencies {
