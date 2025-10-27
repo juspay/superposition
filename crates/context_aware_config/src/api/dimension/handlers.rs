@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use actix_web::{
     delete, get, post, routes,
     web::{self, Data, Json, Path, Query},
@@ -65,7 +63,7 @@ async fn create(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let create_req = req.into_inner();
-    let schema_value = Value::Object(create_req.schema.deref().clone());
+    let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let num_rows = dimensions
@@ -262,7 +260,7 @@ async fn update(
     let update_req = req.into_inner();
 
     if let Some(new_schema) = update_req.schema.clone() {
-        let schema_value = Value::Object(new_schema.deref().clone());
+        let schema_value = Value::from(&new_schema);
         match dimension_data.dimension_type {
             DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
                 #[cfg(not(feature = "jsonlogic"))]

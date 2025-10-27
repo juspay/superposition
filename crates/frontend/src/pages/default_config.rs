@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use leptos::*;
 use leptos_router::{use_navigate, use_params_map, A};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::database::models::cac::DefaultConfig;
 
 use crate::api::{delete_default_config, get_default_config};
@@ -18,14 +18,14 @@ use crate::components::{
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::use_url_base;
 
 #[component]
 fn config_info(default_config: DefaultConfig) -> impl IntoView {
-    let Ok(schema_type) = SchemaType::try_from(default_config.schema.deref()) else {
+    let schema: &Map<String, Value> = &default_config.schema;
+    let Ok(schema_type) = SchemaType::try_from(schema) else {
         return view! { <span class="text-red-500">"Invalid schema"</span> }.into_view();
     };
-    let Ok(enum_variants) = EnumVariants::try_from(default_config.schema.deref()) else {
+    let Ok(enum_variants) = EnumVariants::try_from(schema) else {
         return view! { <span class="text-red-500">"Invalid schema"</span> }.into_view();
     };
     let input_type = InputType::from((schema_type.clone(), enum_variants));
@@ -61,7 +61,7 @@ fn config_info(default_config: DefaultConfig) -> impl IntoView {
                                 id="type-schema"
                                 class="rounded-md resize-y w-full max-w-md"
                                 schema_type=SchemaType::Single(JsonSchemaType::Object)
-                                value=Value::Object(default_config.schema.deref().clone())
+                                value=Value::from(default_config.schema)
                                 on_change=move |_| {}
                                 r#type=InputType::Monaco(vec![])
                             />
@@ -155,9 +155,8 @@ pub fn default_config() -> impl IntoView {
                 Ok(_) => {
                     logging::log!("Config deleted successfully");
                     let navigate = use_navigate();
-                    let base = use_url_base();
                     let redirect_url = format!(
-                        "{base}/admin/{}/{}/default-config",
+                        "/admin/{}/{}/default-config",
                         org.get().0,
                         workspace.get().0,
                     );
@@ -229,7 +228,7 @@ pub fn default_config() -> impl IntoView {
                                         config_value=default_config_st
                                             .with_value(|s| s.value.clone())
                                         type_schema=default_config_st
-                                            .with_value(|s| Value::Object(s.schema.deref().clone()))
+                                            .with_value(|s| Value::from(&s.schema))
                                         description=default_config_st
                                             .with_value(|s| s.description.deref().to_string())
                                         validation_function_name=default_config_st

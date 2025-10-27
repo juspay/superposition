@@ -35,7 +35,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
-use uniffi::deps::anyhow;
 
 pub use config::{
     Condition, Config, Context, DimensionInfo, OverrideWithKeys, Overrides,
@@ -248,21 +247,34 @@ pub type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
-pub struct ExtendedMap(pub Map<String, Value>);
-uniffi::custom_type!(ExtendedMap, HashMap<String, String>, {
-    lower: |v| {
-        v.iter().map(|(k, v)| (
-            k.clone(), serde_json::to_string(v).unwrap()
-        )).collect::<HashMap<String, String>>()
-    },
-    try_lift: |v| {
-        v.iter().map(|(k, s)| {
-            serde_json::from_str::<Value>(s)
-                .map(|v| (k.clone(), v))
-                .map_err(|err| anyhow::anyhow!(err.to_string()))
-        }).collect::<Result<Map<String, Value>, anyhow::Error>>().map(ExtendedMap)
+pub struct ExtendedMap(Map<String, Value>);
+uniffi::custom_type!(ExtendedMap, HashMap<String, String>);
+
+impl TryFrom<HashMap<String, String>> for ExtendedMap {
+    type Error = std::io::Error;
+    fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {
+        value
+            .into_iter()
+            .map(|(k, s)| {
+                serde_json::from_str::<Value>(&s)
+                    .map(|v| (k, v))
+                    .map_err(|err| {
+                        std::io::Error::new(std::io::ErrorKind::InvalidData, err)
+                    })
+            })
+            .collect::<Result<Map<String, Value>, Self::Error>>()
+            .map(Self)
     }
-});
+}
+
+impl From<ExtendedMap> for HashMap<String, String> {
+    fn from(value: ExtendedMap) -> Self {
+        value
+            .iter()
+            .map(|(k, v)| (k.clone(), serde_json::to_string(v).unwrap()))
+            .collect::<Self>()
+    }
+}
 
 impl TryFrom<Value> for ExtendedMap {
     type Error = String;
@@ -270,8 +282,26 @@ impl TryFrom<Value> for ExtendedMap {
         value
             .as_object()
             .cloned()
-            .map(ExtendedMap)
+            .map(Self)
             .ok_or_else(|| "expected a JSON object".to_string())
+    }
+}
+
+impl From<ExtendedMap> for Value {
+    fn from(value: ExtendedMap) -> Self {
+        Self::Object(value.0)
+    }
+}
+
+impl From<&ExtendedMap> for Value {
+    fn from(value: &ExtendedMap) -> Self {
+        Self::Object(value.0.clone())
+    }
+}
+
+impl From<Map<String, Value>> for ExtendedMap {
+    fn from(value: Map<String, Value>) -> Self {
+        Self(value)
     }
 }
 

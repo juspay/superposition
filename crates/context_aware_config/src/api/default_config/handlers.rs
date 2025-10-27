@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use actix_web::{
     delete, get, post, routes,
     web::{Data, Json, Path, Query},
@@ -90,7 +88,7 @@ async fn create_default_config(
         autocomplete_function_name: req.autocomplete_function_name,
     };
 
-    let schema = Value::Object(default_config.schema.deref().clone());
+    let schema = Value::from(&default_config.schema);
     let schema_compile_result = JSONSchema::options()
         .with_draft(Draft::Draft7)
         .compile(&schema);
@@ -204,7 +202,7 @@ async fn update_default_config(
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
     if let Some(ref schema) = req.schema {
-        let schema = Value::Object(schema.deref().clone());
+        let schema = Value::from(schema);
 
         let jschema = JSONSchema::options()
             .with_draft(Draft::Draft7)

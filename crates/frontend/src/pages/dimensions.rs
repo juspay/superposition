@@ -6,9 +6,7 @@ use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 use superposition_types::database::models::cac::DimensionType;
 
 use crate::api::dimensions;
-use crate::components::button::Button;
-use crate::components::dimension_form::DimensionForm;
-use crate::components::drawer::PortalDrawer;
+use crate::components::button::ButtonAnchor;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::{
     default_column_formatter, ColumnSortable, Expandable,
@@ -23,17 +21,10 @@ use crate::components::{
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{DimensionTypeOptions, OrganisationId, Tenant};
 
-#[derive(Clone)]
-enum Action {
-    Create,
-    None,
-}
-
 #[component]
 pub fn dimensions() -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let action_rws = RwSignal::new(Action::None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -128,11 +119,11 @@ pub fn dimensions() -> impl IntoView {
                                 icon="ri-ruler-2-fill"
                                 number=value.total_items.to_string()
                             />
-                            <Button
-                                class="self-end"
+                            <ButtonAnchor
+                                class="self-end h-10"
                                 text="Create Dimension"
                                 icon_class="ri-add-line"
-                                on_click=move |_| action_rws.set(Action::Create)
+                                href="create"
                             />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
@@ -148,27 +139,6 @@ pub fn dimensions() -> impl IntoView {
                         </div>
                     </div>
                 }
-            }}
-            {move || match action_rws.get() {
-                Action::Create => {
-                    view! {
-                        <PortalDrawer
-                            title="Create New Dimension"
-                            handle_close=move |_| action_rws.set(Action::None)
-                        >
-                            <DimensionForm
-                                dimensions=dimensions_resource.get().unwrap_or_default().data
-                                handle_submit=move |_| {
-                                    pagination_params_rws.update(|f| f.reset_page());
-                                    dimensions_resource.refetch();
-                                    action_rws.set(Action::None);
-                                }
-                            />
-                        </PortalDrawer>
-                    }
-                        .into_view()
-                }
-                Action::None => view! {}.into_view(),
             }}
         </Suspense>
     }

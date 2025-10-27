@@ -20,7 +20,6 @@ use crate::components::{
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::use_url_base;
 
 #[component]
 fn webhook_info(webhook: Webhook) -> impl IntoView {
@@ -141,12 +140,8 @@ pub fn webhook() -> impl IntoView {
                 Ok(_) => {
                     logging::log!("Webhook deleted successfully");
                     let navigate = use_navigate();
-                    let base = use_url_base();
-                    let redirect_url = format!(
-                        "{base}/admin/{}/{}/webhooks",
-                        org.get().0,
-                        workspace.get().0,
-                    );
+                    let redirect_url =
+                        format!("/admin/{}/{}/webhooks", org.get().0, workspace.get().0,);
                     navigate(&redirect_url, Default::default());
                     enqueue_alert(
                         String::from("Webhook deleted successfully"),

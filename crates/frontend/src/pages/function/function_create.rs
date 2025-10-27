@@ -6,7 +6,6 @@ use superposition_types::database::models::cac::Function;
 use crate::{
     components::function_form::FunctionEditor,
     types::{OrganisationId, Tenant},
-    utils::use_url_base,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -25,9 +24,8 @@ pub fn create_function_view() -> impl IntoView {
             <FunctionEditor
                 edit=false
                 handle_submit=move |_| {
-                    let base = use_url_base();
                     let redirect_url = format!(
-                        "{base}/admin/{}/{}/function",
+                        "/admin/{}/{}/function",
                         org.get().0,
                         workspace.get().0,
                     );

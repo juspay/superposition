@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 use chrono::{DateTime, Utc};
 use leptos::{leptos_dom::helpers::debounce, *};
@@ -7,11 +7,14 @@ use web_sys::MouseEvent;
 
 use crate::{
     components::{
+        alert::AlertType,
+        badge::GrayPill,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        form::label::Label,
         menu::SelectionMenu,
         monaco_editor::{Languages, MonacoEditor},
     },
-    providers::editor_provider::use_editor,
+    providers::{alert_provider::enqueue_alert, editor_provider::use_editor},
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     types::AutoCompleteCallback,
     utils::get_element_by_id,
@@ -655,4 +658,94 @@ pub fn input(
             }
         }
     }
+}
+
+#[component]
+fn array_input<T: Clone + PartialEq + 'static + ToString + FromStr>(
+    options: Vec<T>,
+    on_change: Callback<Vec<T>>,
+    unique: bool,
+) -> impl IntoView {
+    let options_rws = RwSignal::new(options);
+
+    view! {
+        <div class="form-control">
+            <Label title="Options" description="Press enter to add option" class="max-w-md" />
+            <div class="flex flex-col gap-2">
+                <input
+                    type="text"
+                    placeholder="Press enter to add"
+                    class="input input-bordered w-full max-w-md"
+                    on:keydown=move |ev| {
+                        let value = event_target_value(&ev);
+                        if ev.key() == "Enter" {
+                            ev.prevent_default();
+                            let value = value.trim().to_string();
+                            if !value.is_empty() {
+                                let Ok(value_t) = value.parse::<T>() else {
+                                    enqueue_alert(
+                                        "Invalid input value".to_string(),
+                                        AlertType::Error,
+                                        5000,
+                                    );
+                                    return;
+                                };
+                                if !unique || !options_rws.get().contains(&value_t) {
+                                    options_rws.update(|opts| opts.push(value_t));
+                                    on_change.call(options_rws.get());
+                                } else {
+                                    enqueue_alert(
+                                        "Option already exists".to_string(),
+                                        AlertType::Error,
+                                        5000,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                />
+                <div class="flex flex-wrap gap-2">
+                    {move || {
+                        options_rws
+                            .get()
+                            .into_iter()
+                            .enumerate()
+                            .map(|(idx, item)| {
+                                view! {
+                                    <GrayPill
+                                        text=item.to_string()
+                                        on_delete=move |_| {
+                                            options_rws
+                                                .update(|opts| {
+                                                    opts.remove(idx);
+                                                });
+                                            on_change.call(options_rws.get());
+                                        }
+                                    />
+                                }
+                            })
+                            .collect_view()
+                    }}
+                </div>
+            </div>
+        </div>
+    }
+}
+
+#[component]
+pub fn number_array_input(
+    options: Vec<f64>,
+    #[prop(into)] on_change: Callback<Vec<f64>>,
+    #[prop(default = false)] unique: bool,
+) -> impl IntoView {
+    view! { <ArrayInput options on_change unique /> }
+}
+
+#[component]
+pub fn string_array_input(
+    options: Vec<String>,
+    #[prop(into)] on_change: Callback<Vec<String>>,
+    #[prop(default = false)] unique: bool,
+) -> impl IntoView {
+    view! { <ArrayInput options on_change unique /> }
 }

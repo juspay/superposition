@@ -276,7 +276,7 @@ pub fn default_config_form(
                         options
                             .push(TypeTemplate {
                                 type_name: "Custom JSON Schema".to_string(),
-                                type_schema: ExtendedMap(
+                                type_schema: ExtendedMap::from(
                                     Map::from_iter([
                                         ("type".to_string(), Value::String("object".to_string())),
                                     ]),
@@ -328,16 +328,15 @@ pub fn default_config_form(
                                     dropdown_options=options
                                     on_select=Callback::new(move |selected_item: TypeTemplate| {
                                         logging::log!("selected item {:?}", selected_item);
-                                        let type_schema = selected_item.type_schema.clone();
-                                        let parsed_schema_type = SchemaType::try_from(
-                                            type_schema.deref(),
-                                        );
+                                        let type_schema: &Map<String, Value> = &selected_item
+                                            .type_schema;
+                                        let parsed_schema_type = SchemaType::try_from(type_schema);
                                         let parsed_enum_variants = EnumVariants::try_from(
-                                            type_schema.deref(),
+                                            type_schema,
                                         );
                                         config_type_ws.set(selected_item.type_name);
                                         config_schema_ws
-                                            .set(Value::Object(type_schema.deref().clone()));
+                                            .set(Value::from(selected_item.type_schema));
                                         if let (Ok(schema_type), Ok(enum_variants)) = (
                                             parsed_schema_type,
                                             parsed_enum_variants,
@@ -657,8 +656,8 @@ pub fn change_log_summary(
                             />
                             <JsonChangeSummary
                                 title="Schema changes"
-                                old_values=Some(Value::Object(default.schema.deref().clone()))
-                                new_values=new_schema.map(|m| Value::Object(m.deref().clone()))
+                                old_values=Some(Value::from(default.schema))
+                                new_values=new_schema.map(Value::from)
                             />
                             <ChangeSummary
                                 title="Other changes"

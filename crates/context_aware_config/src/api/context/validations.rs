@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Deref};
+use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema, ValidationError};
@@ -118,7 +118,7 @@ pub fn validate_dimensions(
                     expected_dimension_name
                 ))?;
 
-                let schema_value = Value::Object(dimension_data.schema.deref().clone());
+                let schema_value = Value::from(&dimension_data.schema);
                 validate_context_jsonschema(object_key, &dimension_value, &schema_value)?;
             }
             arr.iter().try_for_each(|x| {
@@ -139,7 +139,7 @@ pub fn validate_dimensions(
             .get(dimension)
             .ok_or(bad_argument!("No matching dimension ({}) found", dimension))?;
 
-        let schema_value = Value::Object(dimension_data.schema.deref().clone());
+        let schema_value = Value::from(&dimension_data.schema);
         validate_context_jsonschema(value, &schema_value)?;
     }
     Ok(())

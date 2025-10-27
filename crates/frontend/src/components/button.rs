@@ -69,7 +69,7 @@ pub fn button_anchor(
     #[prop(into, default = String::from("ri-edit-2-line"))] icon_class: String,
     #[prop(default = false)] loading: bool,
     #[prop(default = ButtonStyle::Fill)] style: ButtonStyle,
-    #[prop(optional)] force_style: Option<String>,
+    #[prop(into, optional)] force_style: Option<String>,
 ) -> impl IntoView {
     let common_style =
         "flex justify-center items-center gap-2 font-medium text-sm text-center";
