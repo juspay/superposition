@@ -71,6 +71,7 @@
               jdk21_headless
               gradle_jdk17
               uv
+              git
               # go client
               # go
             ];

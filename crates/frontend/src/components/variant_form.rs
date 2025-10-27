@@ -390,6 +390,7 @@ where
                                                         <OverrideForm
                                                             id=key.get_value()
                                                             overrides=overrides.get_value()
+                                                            context=context.get()
                                                             default_config=default_config.get_value()
                                                             handle_change=handle_change
                                                             show_add_override=false
@@ -404,6 +405,7 @@ where
                                                         <OverrideForm
                                                             id=key.get_value()
                                                             overrides=overrides.get_value()
+                                                            context=context.get()
                                                             default_config=default_config.get_value()
                                                             handle_change=handle_change
                                                             show_add_override=false
@@ -444,6 +446,7 @@ pub fn delete_variant(
     edit: bool,
     key: String,
     variant: VariantFormT,
+    context: Conditions,
     default_config: Vec<DefaultConfig>,
     label: String,
     #[prop(default = true)] show_remove_btn: bool,
@@ -453,6 +456,7 @@ pub fn delete_variant(
     fn_environment: Memo<Value>,
 ) -> impl IntoView {
     let variant_rws = RwSignal::new(variant);
+    let context = StoredValue::new(context);
     let override_keys = Signal::derive(move || {
         variant_rws
             .get()
@@ -564,6 +568,7 @@ pub fn delete_variant(
                                 disabled=true
                                 id=key.get_value()
                                 overrides=variant_rws.get().overrides
+                                context=context.get_value()
                                 default_config=default_config.get_value()
                                 handle_change=on_override_change
                                 show_add_override=false
@@ -603,6 +608,7 @@ pub fn delete_variant_form<HC>(
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
+    let context = StoredValue::new(context);
     let variants_rws = RwSignal::new(variants);
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -621,7 +627,7 @@ where
             let context_data = match context_data {
                 Some(data) => Ok(data),
                 None => get_context_from_condition(
-                    &context.as_context_json(),
+                    &context.get_value().as_context_json(),
                     &tenant,
                     &org_id,
                 )
@@ -631,7 +637,7 @@ where
             match context_data {
                 Ok((context_id, overrides)) => {
                     let resolved_config = resolve_config(
-                        &context.as_query_string(),
+                        &context.get_value().as_query_string(),
                         false,
                         Some(&context_id),
                         &tenant,
@@ -784,6 +790,7 @@ where
                                         edit=edit
                                         key=key
                                         variant=variant.clone()
+                                        context=context.get_value()
                                         show_remove_btn=idx != 1 && !edit
                                         default_config=default_config.clone()
                                         label=format!("Variant {idx}")

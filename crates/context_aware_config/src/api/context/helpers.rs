@@ -11,6 +11,7 @@ use service_utils::service::types::SchemaName;
 #[cfg(feature = "jsonlogic")]
 use superposition_macros::bad_argument;
 use superposition_macros::{unexpected_error, validation_error};
+use superposition_types::api::functions::KeyType;
 use superposition_types::{
     api::{
         context::PutRequest,
@@ -115,7 +116,14 @@ pub fn validate_condition_with_functions(
             if let (function_name, Some(function_code)) =
                 (functions_map.name.clone(), functions_map.code.clone())
             {
-                validate_value_with_function(&function_name, &function_code, key, value)?;
+                validate_value_with_function(
+                    &function_name,
+                    &function_code,
+                    key,
+                    value,
+                    &KeyType::Dimension,
+                    &Value::Object(context_map.clone()),
+                )?;
             }
         }
     }
@@ -176,6 +184,7 @@ pub fn validate_condition_with_strict_mode(
 pub fn validate_override_with_functions(
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
+    context: &Map<String, Value>,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
@@ -196,7 +205,14 @@ pub fn validate_override_with_functions(
             if let (function_name, Some(function_code)) =
                 (functions_map.name.clone(), functions_map.code.clone())
             {
-                validate_value_with_function(&function_name, &function_code, key, value)?;
+                validate_value_with_function(
+                    &function_name,
+                    &function_code,
+                    key,
+                    value,
+                    &KeyType::ConfigKey,
+                    &Value::Object(context.clone()),
+                )?;
             }
         }
     }
@@ -241,12 +257,16 @@ pub fn validate_value_with_function(
     function: &FunctionCode,
     key: &String,
     value: &Value,
+    r#type: &KeyType,
+    context: &Value,
 ) -> superposition::Result<()> {
     match execute_fn(
         function,
         &FunctionExecutionRequest::ValidateFunctionRequest {
             key: key.clone(),
             value: value.to_owned(),
+            r#type: r#type.to_owned(),
+            context: context.to_owned(),
         },
     ) {
         Err((err, stdout)) => {
@@ -315,7 +335,12 @@ pub fn create_ctx_from_put_req(
     let change_reason = req.change_reason.clone();
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_override_with_functions(conn, &r_override, schema_name)?;
+    validate_override_with_functions(
+        conn,
+        &r_override,
+        &ctx_condition.clone(),
+        schema_name,
+    )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;

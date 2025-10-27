@@ -9,7 +9,7 @@ use diesel::{
     TextExpressionMethods,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::Value;
+use serde_json::{json, Value};
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
@@ -18,9 +18,12 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    api::default_config::{
-        DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
-        DefaultConfigUpdateRequest,
+    api::{
+        default_config::{
+            DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
+            DefaultConfigUpdateRequest,
+        },
+        functions::KeyType,
     },
     custom_query::PaginationParams,
     database::{
@@ -114,7 +117,7 @@ async fn create_default_config(
         ));
     }
 
-    if let Err(e) = validate_and_get_function_code(
+    if let Err(e) = validate_default_config_with_function(
         &mut conn,
         default_config.function_name.as_ref(),
         &default_config.key,
@@ -225,7 +228,7 @@ async fn update_default_config(
     let validation_function_name: Option<String> =
         req.function_name.clone().unwrap_or(existing.function_name);
 
-    if let Err(e) = validate_and_get_function_code(
+    if let Err(e) = validate_default_config_with_function(
         &mut conn,
         validation_function_name.as_ref(),
         &key_str,
@@ -270,7 +273,7 @@ async fn update_default_config(
     Ok(http_resp.json(db_row))
 }
 
-fn validate_and_get_function_code(
+fn validate_default_config_with_function(
     conn: &mut DBConnection,
     function_name: Option<&String>,
     key: &str,
@@ -286,6 +289,8 @@ fn validate_and_get_function_code(
                 &f_code,
                 &key.to_string(),
                 value,
+                &KeyType::ConfigKey,
+                &json!({}), // TODO: check if can send NONE
             )?;
         }
     }

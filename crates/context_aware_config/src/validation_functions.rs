@@ -121,22 +121,33 @@ fn generate_fn_code(
     function_args: &FunctionExecutionRequest,
 ) -> String {
     let (function_invocation, output_check) = match function_args {
-        FunctionExecutionRequest::ValidateFunctionRequest { key, value } => (
+        FunctionExecutionRequest::ValidateFunctionRequest {
+            key,
+            value,
+            r#type,
+            context,
+        } => (
             FunctionType::Validation
                 .get_fn_signature()
                 .replace("{key}", format!("\"{}\"", &key).as_str())
-                .replace("{value}", &value.to_string()),
+                .replace("{value}", &value.to_string())
+                .replace("{type}", &format!("\"{}\"", &r#type.to_string()))
+                .replace("{context}", &context.to_string()),
             "output!=true",
         ),
         FunctionExecutionRequest::AutocompleteFunctionRequest {
             name,
             prefix,
+            r#type,
+            context,
             environment,
         } => (
             FunctionType::Autocomplete
                 .get_fn_signature()
                 .replace("{name}", format!("\"{}\"", &name).as_str())
                 .replace("{prefix}", format!("\"{}\"", &prefix).as_str())
+                .replace("{type}", &format!("\"{}\"", &r#type.to_string()))
+                .replace("{context}", &context.to_string())
                 .replace("{environment}", &environment.to_string()),
             "!(Array.isArray(output))",
         ),

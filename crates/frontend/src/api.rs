@@ -16,7 +16,8 @@ use superposition_types::{
             ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
         },
         functions::{
-            FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
+            FunctionExecutionRequest, FunctionExecutionResponse, KeyType,
+            ListFunctionFilters,
         },
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
         workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
@@ -750,6 +751,8 @@ pub async fn get_context_from_condition(
 pub async fn execute_autocomplete_function(
     name: &str,
     value: &str,
+    r#type: &KeyType,
+    context: &Value,
     environment: &Value,
     fn_name: &str,
     tenant: &str,
@@ -761,6 +764,8 @@ pub async fn execute_autocomplete_function(
         name: name.to_owned(),
         prefix: value.to_owned(),
         environment: environment.clone(),
+        r#type: r#type.clone(),
+        context: context.clone(),
     };
     let resp = request(
         url.clone(),

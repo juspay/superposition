@@ -1,14 +1,17 @@
 use std::collections::{HashMap, HashSet};
 
 use leptos::*;
-use serde_json::Value;
-use superposition_types::database::models::cac::DefaultConfig;
+use serde_json::{Map, Value};
+use superposition_types::{
+    api::functions::KeyType, database::models::cac::DefaultConfig,
+};
 
 use crate::{
     components::{
         dropdown::{Dropdown, DropdownDirection},
         input::{Input, InputType},
     },
+    logic::Conditions,
     schema::{EnumVariants, SchemaType},
     types::{AutoCompleteCallbacks, OrganisationId, Tenant},
     utils::autocomplete_fn_generator,
@@ -115,6 +118,7 @@ fn override_input(
 #[component]
 pub fn override_form(
     overrides: Vec<(String, Value)>,
+    context: Conditions,
     default_config: Vec<DefaultConfig>,
     #[prop(into)] handle_change: Callback<Vec<(String, Value)>, ()>,
     #[prop(default = false)] auto_fill_from_default: bool,
@@ -195,6 +199,13 @@ pub fn override_form(
                 d.key.clone(),
                 d.autocomplete_function_name.clone(),
                 fn_environment,
+                &KeyType::ConfigKey,
+                {
+                    &context
+                        .iter()
+                        .map(|c| (c.variable.clone(), c.expression.to_value().clone()))
+                        .collect::<Map<String, Value>>()
+                },
                 workspace.get_untracked().0,
                 org_id.get_untracked().0,
             )

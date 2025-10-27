@@ -212,6 +212,7 @@ fn form(
 
             <OverrideForm
                 overrides=overrides_rs.get_untracked()
+                context=context_rs.get_untracked()
                 default_config=default_config
                 handle_change=move |new_overrides| overrides_ws.set(new_overrides)
                 fn_environment

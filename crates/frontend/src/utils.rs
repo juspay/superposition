@@ -8,7 +8,8 @@ use reqwest::{
     StatusCode,
 };
 use serde::de::DeserializeOwned;
-use serde_json::Value;
+use serde_json::{Map, Value};
+use superposition_types::api::functions::KeyType;
 use url::Url;
 use wasm_bindgen::JsCast;
 
@@ -325,11 +326,15 @@ pub fn autocomplete_fn_generator(
     key: String,
     autocomplete_fn_name: Option<String>,
     environment: Memo<Value>,
+    r#type: &KeyType,
+    context: &Map<String, Value>,
     tenant: String,
     org_id: String,
 ) -> Option<(String, AutoCompleteCallback)> {
     let fn_name = autocomplete_fn_name?;
     let return_key = key.clone();
+    let context = Value::Object(context.clone());
+    let r#type = r#type.clone();
     let callback = Callback::new(
         move |(value, suggestions): (String, WriteSignal<Vec<String>>)| {
             let key_copy = key.clone();
@@ -337,11 +342,16 @@ pub fn autocomplete_fn_generator(
             let environment = environment.get();
             let org_id = org_id.clone();
             let tenant = tenant.clone();
+            let type_clone = r#type.clone();
+            let context_copy = context.clone();
             logging::log!("Calling {fn_copy} for {key} {value} {}", environment);
+
             leptos::spawn_local(async move {
                 match execute_autocomplete_function(
                 &key_copy,
                 &value,
+                &type_clone,
+                &context_copy,
                 &environment,
                 &fn_copy,
                 &tenant,

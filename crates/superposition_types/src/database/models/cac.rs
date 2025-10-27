@@ -143,9 +143,12 @@ pub enum FunctionType {
 impl FunctionType {
     pub fn get_fn_signature(&self) -> String {
         match self {
-            FunctionType::Validation => "validate({key}, {value})".to_string(),
+            FunctionType::Validation => {
+                "validate({key}, {value}, {type}, {context})".to_string()
+            }
             FunctionType::Autocomplete => {
-                "autocomplete({name}, {prefix}, {environment})".to_string()
+                "autocomplete({name}, {prefix}, {type}, {context}, {environment})"
+                    .to_string()
             }
         }
     }

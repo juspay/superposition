@@ -1,7 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
 use leptos::*;
-use serde_json::Value;
+use serde_json::{Map, Value};
+use superposition_types::api::functions::KeyType;
 use superposition_types::api::{
     dimension::DimensionResponse, workspace::WorkspaceResponse,
 };
@@ -259,7 +260,13 @@ pub fn context_form(
             .map(|dim| dim.dimension)
             .collect::<HashSet<_>>(),
     );
+    let context = StoredValue::new(context);
     let autocomplete_callbacks = Signal::derive(move || {
+        let ctx_value = context
+            .get_value()
+            .iter()
+            .map(|c| (c.variable.clone(), c.expression.to_value().clone()))
+            .collect::<Map<String, Value>>();
         dimensions
             .get_value()
             .into_iter()
@@ -268,6 +275,8 @@ pub fn context_form(
                     d.dimension.clone(),
                     d.autocomplete_function_name.clone(),
                     fn_environment,
+                    &KeyType::Dimension,
+                    &ctx_value,
                     workspace.get_untracked().0,
                     org_id.get_untracked().0,
                 )
@@ -304,7 +313,7 @@ pub fn context_form(
         };
 
     let (context_rs, context_ws) = create_signal({
-        let mut context = context;
+        let mut context = context.get_value();
         if !disabled && !resolve_mode {
             mandatory_dimensions
                 .get_value()

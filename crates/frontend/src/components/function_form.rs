@@ -396,7 +396,7 @@ pub fn test_form(
         <div class="w-full 2.5xl:max-w-xl flex flex-col gap-5">
             <div class="w-full flex 2.5xl:flex-col flex-wrap 2.5xl:flex-nowrap gap-5">
                 {move || match function_args_rs.get_untracked() {
-                    FunctionExecutionRequest::ValidateFunctionRequest { key, value } => {
+                    FunctionExecutionRequest::ValidateFunctionRequest { key, value, r#type, context } => {
                         view! {
                             <div class="form-control w-full max-w-md">
                                 <Label title="Key Name" />
@@ -461,6 +461,8 @@ pub fn test_form(
                     FunctionExecutionRequest::AutocompleteFunctionRequest {
                         name,
                         prefix,
+                        r#type,
+                        context,
                         environment,
                     } => {
                         view! {

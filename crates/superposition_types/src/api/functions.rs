@@ -3,6 +3,7 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use strum_macros::Display;
 use superposition_derives::{IsEmpty, QueryParam};
 
 #[cfg(feature = "diesel_derives")]
@@ -88,15 +89,25 @@ pub struct TestParam {
     pub stage: Stage,
 }
 
+#[derive(Debug, Display, Clone, Serialize, Deserialize)]
+pub enum KeyType {
+    ConfigKey,
+    Dimension,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FunctionExecutionRequest {
     ValidateFunctionRequest {
         key: String,
         value: Value,
+        r#type: KeyType,
+        context: Value,
     },
     AutocompleteFunctionRequest {
         name: String,
         prefix: String,
+        r#type: KeyType,
+        context: Value,
         environment: Value,
     },
 }
@@ -106,12 +117,16 @@ impl FunctionExecutionRequest {
         Self::ValidateFunctionRequest {
             key: String::new(),
             value: Value::String(String::new()),
+            r#type: KeyType::ConfigKey,
+            context: json!({}),
         }
     }
     pub fn autocomplete_default() -> Self {
         Self::AutocompleteFunctionRequest {
             name: String::new(),
             prefix: String::new(),
+            r#type: KeyType::Dimension,
+            context: json!({}),
             environment: json!({
                 "context": [],
                 "overrides": {}
