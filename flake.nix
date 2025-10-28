@@ -32,15 +32,6 @@
           config,
           ...
         }:
-        let
-          ## In nixpkgs, `gradle` is a wrapped bin & resets the JAVA_HOME env.
-          ## So to workaround it using a gradle property to point to the
-          ## nix store jdk.
-          ## FIXME Figure out a way to avoid this.
-          gradle_jdk17 = (
-            pkgs.writeShellScriptBin "gradle" "${pkgs.gradle_8}/bin/gradle -Porg.gradle.java.installations.paths=${pkgs.jdk17_headless}/lib/openjdk \${@}"
-          );
-        in
         {
           formatter = pkgs.nixpkgs-fmt;
           packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix { };
@@ -51,39 +42,41 @@
               config.pre-commit.devShell
             ];
             # Add your devShell tools here
-            packages = with pkgs; [
-              bun
-              self'.packages.smithy-cli
-              docker-compose
-              gnumake
-              # Why do we need this?
-              stdenv.cc
-              awscli2
-              jq
-              nodejs_24
-              nixpkgs-fmt
-              bacon
-              cargo-watch
-              diesel-cli
-              leptosfmt
-              wasm-pack
-              yq
-              jdk21_headless
-              gradle_jdk17
-              uv
-              # go client
-              # go
-            ];
+            packages =
+              let
+                jdk = pkgs.jdk17;
+              in
+              with pkgs;
+              [
+                bun
+                self'.packages.smithy-cli
+                docker-compose
+                gnumake
+                # Why do we need this?
+                stdenv.cc
+                awscli2
+                jq
+                nodejs_24
+                nixpkgs-fmt
+                bacon
+                cargo-watch
+                diesel-cli
+                leptosfmt
+                wasm-pack
+                yq
+                (callPackage gradle-packages.gradle_8 {
+                    java = jdk;
+                })
+                jdk
+                uv
+                # go client
+                # go
+              ];
             shellHook = ''
-              export JAVA_HOME=${pkgs.jdk17_headless}/lib/openjdk
+              export JAVA_HOME=${pkgs.jdk17}
             '';
           };
-          checks = {
-            compile-java = pkgs.writeShellScript "compile-java" ''
-              cd clients/java
-              ${gradle_jdk17} ffi:build sdk:build open-feature-provider:bulid
-            '';
-          };
+
         };
     };
 }

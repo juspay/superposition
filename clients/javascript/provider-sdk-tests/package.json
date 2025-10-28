@@ -1,0 +1,14 @@
+{
+  "name": "provider-sdk-tests",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "superposition-provider": "file:../open-feature-provider",
+    "superposition-sdk": "file:../sdk",
+    "@openfeature/server-sdk": "^1.13.0"
+  }
+}

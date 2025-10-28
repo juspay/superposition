@@ -69,6 +69,9 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	validate-aws-connection
 	validate-psql-connection
 	uniffi-bindings
+	test-js-provider
+	test-py-provider
+	test-kotlin-provider
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -362,3 +365,28 @@ uniffi-bindings:
 	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language kotlin --out-dir clients/java/bindings/src/main/kotlin
 	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
 	git apply uniffi/patches/*.patch
+
+provider-template: setup superposition
+	@./target/debug/superposition &
+	@echo "Awaiting superposition boot..."
+	@curl	--silent --retry 10 \
+				--connect-timeout 2 \
+				--retry-all-errors \
+				'http://localhost:8080/health' 2>&1 > /dev/null	
+
+test-js-provider: provider-template
+	cd clients/javascript/provider-sdk-tests && npm ci
+	bash ./scripts/setup_provider_binaries.sh js
+	node clients/javascript/provider-sdk-tests/index.js
+	-@pkill -f target/debug/superposition
+
+test-py-provider: provider-template
+	bash ./scripts/setup_provider_binaries.sh py
+	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
+	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
+	-@pkill -f target/debug/superposition
+
+test-kotlin-provider: provider-template
+	bash ./scripts/setup_provider_binaries.sh kotlin
+	cd clients/java && ./gradlew :provider-sdk-tests:run
+	-@pkill -f target/debug/superposition

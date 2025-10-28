@@ -6,3 +6,4 @@ rootProject.name = "superposition-java-clients"
 include("openfeature-provider")
 include("sdk")
 include("bindings")
+include("provider-sdk-tests")
