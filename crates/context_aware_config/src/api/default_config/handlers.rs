@@ -23,7 +23,7 @@ use superposition_types::{
             DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
             DefaultConfigUpdateRequest,
         },
-        functions::KeyType,
+        functions::{FunctionExecutionRequest, KeyType},
     },
     custom_query::PaginationParams,
     database::{
@@ -287,10 +287,12 @@ fn validate_default_config_with_function(
             validate_value_with_function(
                 f_name.as_str(),
                 &f_code,
-                &key.to_string(),
-                value,
-                &KeyType::ConfigKey,
-                &json!({}), // TODO: check if can send NONE
+                &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                    key: key.to_string(),
+                    value: value.clone(),
+                    r#type: KeyType::ConfigKey,
+                    context: json!({}), // TODO: check if can send NONE
+                },
             )?;
         }
     }

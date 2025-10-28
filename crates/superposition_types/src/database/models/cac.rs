@@ -136,27 +136,30 @@ pub struct DefaultConfig {
 )]
 pub enum FunctionType {
     #[default]
-    Validation,
-    Autocomplete,
+    ValueValidation,
+    ValueCompute,
+    ContextValidation,
 }
 
 impl FunctionType {
     pub fn get_fn_signature(&self) -> String {
         match self {
-            FunctionType::Validation => {
+            FunctionType::ValueValidation => {
                 "validate({key}, {value}, {type}, {context})".to_string()
             }
-            FunctionType::Autocomplete => {
+            FunctionType::ValueCompute => {
                 "autocomplete({name}, {prefix}, {type}, {context}, {environment})"
                     .to_string()
             }
+            FunctionType::ContextValidation => "validate_context({context})".to_string(),
         }
     }
 
     pub fn get_js_fn_name(&self) -> String {
         match self {
-            FunctionType::Validation => "validate".to_string(),
-            FunctionType::Autocomplete => "autocomplete".to_string(),
+            FunctionType::ValueValidation => "validate".to_string(),
+            FunctionType::ValueCompute => "autocomplete".to_string(),
+            FunctionType::ContextValidation => "validate_context".to_string(),
         }
     }
 }

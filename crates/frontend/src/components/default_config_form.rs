@@ -448,7 +448,7 @@ pub fn default_config_form(
                         functions
                             .iter()
                             .for_each(|ele| {
-                                if ele.function_type == FunctionType::Validation {
+                                if ele.function_type == FunctionType::ValueValidation {
                                     validation_function_names.push(ele.function_name.clone());
                                 } else {
                                     autocomplete_function_names.push(ele.function_name.clone());

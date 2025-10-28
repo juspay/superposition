@@ -97,32 +97,35 @@ pub enum KeyType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FunctionExecutionRequest {
-    ValidateFunctionRequest {
+    ValueValidationFunctionRequest {
         key: String,
         value: Value,
         r#type: KeyType,
         context: Value,
     },
-    AutocompleteFunctionRequest {
+    ValueComputeFunctionRequest {
         name: String,
         prefix: String,
         r#type: KeyType,
         context: Value,
         environment: Value,
     },
+    ContextValidationFunctionRequest {
+        context: Value,
+    },
 }
 
 impl FunctionExecutionRequest {
-    pub fn validation_default() -> Self {
-        Self::ValidateFunctionRequest {
+    pub fn value_validation_default() -> Self {
+        Self::ValueValidationFunctionRequest {
             key: String::new(),
             value: Value::String(String::new()),
             r#type: KeyType::ConfigKey,
             context: json!({}),
         }
     }
-    pub fn autocomplete_default() -> Self {
-        Self::AutocompleteFunctionRequest {
+    pub fn value_compute_default() -> Self {
+        Self::ValueComputeFunctionRequest {
             name: String::new(),
             prefix: String::new(),
             r#type: KeyType::Dimension,
@@ -132,6 +135,9 @@ impl FunctionExecutionRequest {
                 "overrides": {}
             }),
         }
+    }
+    pub fn context_validation_default() -> Self {
+        Self::ContextValidationFunctionRequest { context: json!({}) }
     }
 }
 

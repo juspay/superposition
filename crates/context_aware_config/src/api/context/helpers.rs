@@ -27,6 +27,7 @@ use superposition_types::{
     result as superposition, Cac, Condition, DBConnection, Overrides, User,
 };
 
+use crate::api::functions::helpers::get_context_validation_function;
 use crate::helpers::DimensionData;
 use crate::validation_functions::execute_fn;
 use crate::{
@@ -109,6 +110,18 @@ pub fn validate_condition_with_functions(
         .filter_map(|(key_, f_name)| f_name.map(|func| (key_, func)))
         .collect();
 
+    let context_validation_function = get_context_validation_function(conn, schema_name)?;
+
+    if let Some(function_code) = context_validation_function {
+        validate_value_with_function(
+            "context_validation_function",
+            &function_code,
+            &FunctionExecutionRequest::ContextValidationFunctionRequest {
+                context: Value::Object(context_map.clone()),
+            },
+        )?;
+    }
+
     let dimension_functions_map =
         get_functions_map(conn, new_keys_function_array, schema_name)?;
     for (key, value) in context_map.iter() {
@@ -119,10 +132,12 @@ pub fn validate_condition_with_functions(
                 validate_value_with_function(
                     &function_name,
                     &function_code,
-                    key,
-                    value,
-                    &KeyType::Dimension,
-                    &Value::Object(context_map.clone()),
+                    &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                        key: key.clone(),
+                        value: value.to_owned(),
+                        r#type: KeyType::Dimension,
+                        context: Value::Object(context_map.clone()),
+                    },
                 )?;
             }
         }
@@ -208,10 +223,12 @@ pub fn validate_override_with_functions(
                 validate_value_with_function(
                     &function_name,
                     &function_code,
-                    key,
-                    value,
-                    &KeyType::ConfigKey,
-                    &Value::Object(context.clone()),
+                    &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                        key: key.clone(),
+                        value: value.to_owned(),
+                        r#type: KeyType::ConfigKey,
+                        context: Value::Object(context.clone()),
+                    },
                 )?;
             }
         }
@@ -255,22 +272,22 @@ fn get_functions_map(
 pub fn validate_value_with_function(
     _fun_name: &str,
     function: &FunctionCode,
-    key: &String,
-    value: &Value,
-    r#type: &KeyType,
-    context: &Value,
+    args: &FunctionExecutionRequest,
 ) -> superposition::Result<()> {
-    match execute_fn(
-        function,
-        &FunctionExecutionRequest::ValidateFunctionRequest {
-            key: key.clone(),
-            value: value.to_owned(),
-            r#type: r#type.to_owned(),
-            context: context.to_owned(),
-        },
-    ) {
+    match execute_fn(function, args) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or(String::new());
+            let key = match args {
+                FunctionExecutionRequest::ValueValidationFunctionRequest {
+                    key, ..
+                } => key,
+                FunctionExecutionRequest::ValueComputeFunctionRequest {
+                    name, ..
+                } => name,
+                FunctionExecutionRequest::ContextValidationFunctionRequest {
+                    context,
+                } => &context.to_string(),
+            };
             log::error!("function validation failed for {key} with error: {err}");
             Err(validation_error!(
                 "Function validation failed for {} with error {}. {}",
@@ -284,7 +301,7 @@ pub fn validate_value_with_function(
             stdout,
             function_type,
         }) => match function_type {
-            FunctionType::Validation => {
+            FunctionType::ValueValidation => {
                 log::debug!("Function execution returned: {:?}", fn_output);
                 if fn_output.is_boolean() && fn_output == Value::Bool(true) {
                     Ok(())
@@ -295,7 +312,18 @@ pub fn validate_value_with_function(
                         ))
                 }
             }
-            FunctionType::Autocomplete => Ok(()),
+            FunctionType::ValueCompute => Ok(()),
+            FunctionType::ContextValidation => {
+                log::debug!("Function execution returned: {:?}", fn_output);
+                if fn_output.is_boolean() && fn_output == Value::Bool(true) {
+                    Ok(())
+                } else {
+                    log::error!("Validation function returned false, logs are {stdout}");
+                    Err(validation_error!(
+                            "The validation function returned false, please check your inputs",
+                        ))
+                }
+            }
         },
     }
 }

@@ -121,13 +121,13 @@ fn generate_fn_code(
     function_args: &FunctionExecutionRequest,
 ) -> String {
     let (function_invocation, output_check) = match function_args {
-        FunctionExecutionRequest::ValidateFunctionRequest {
+        FunctionExecutionRequest::ValueValidationFunctionRequest {
             key,
             value,
             r#type,
             context,
         } => (
-            FunctionType::Validation
+            FunctionType::ValueValidation
                 .get_fn_signature()
                 .replace("{key}", format!("\"{}\"", &key).as_str())
                 .replace("{value}", &value.to_string())
@@ -135,14 +135,14 @@ fn generate_fn_code(
                 .replace("{context}", &context.to_string()),
             "output!=true",
         ),
-        FunctionExecutionRequest::AutocompleteFunctionRequest {
+        FunctionExecutionRequest::ValueComputeFunctionRequest {
             name,
             prefix,
             r#type,
             context,
             environment,
         } => (
-            FunctionType::Autocomplete
+            FunctionType::ValueCompute
                 .get_fn_signature()
                 .replace("{name}", format!("\"{}\"", &name).as_str())
                 .replace("{prefix}", format!("\"{}\"", &prefix).as_str())
@@ -150,6 +150,12 @@ fn generate_fn_code(
                 .replace("{context}", &context.to_string())
                 .replace("{environment}", &environment.to_string()),
             "!(Array.isArray(output))",
+        ),
+        FunctionExecutionRequest::ContextValidationFunctionRequest { context } => (
+            FunctionType::ContextValidation
+                .get_fn_signature()
+                .replace("{context}", &context.to_string()),
+            "output!=true",
         ),
     };
     FUNCTION_EXECUTION_SNIPPET
@@ -191,12 +197,15 @@ pub fn execute_fn(
                 Err((stderr, Some(stdout)))
             } else {
                 let function_type = match args {
-                    FunctionExecutionRequest::ValidateFunctionRequest { .. } => {
-                        FunctionType::Validation
+                    FunctionExecutionRequest::ValueValidationFunctionRequest {
+                        ..
+                    } => FunctionType::ValueValidation,
+                    FunctionExecutionRequest::ValueComputeFunctionRequest { .. } => {
+                        FunctionType::ValueCompute
                     }
-                    FunctionExecutionRequest::AutocompleteFunctionRequest { .. } => {
-                        FunctionType::Autocomplete
-                    }
+                    FunctionExecutionRequest::ContextValidationFunctionRequest {
+                        ..
+                    } => FunctionType::ContextValidation,
                 };
                 let stdout_vec = stdout.trim().split('|').collect::<Vec<_>>();
                 let fn_output = stdout_vec

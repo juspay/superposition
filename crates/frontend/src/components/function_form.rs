@@ -30,6 +30,8 @@ use super::dropdown::utils::DropdownOption;
 
 const VALIDATE_TEMPLATE_FN: &str = r#"// key: string - dimension or config name
 // value: string - obeys the json schema type defined, json parse this if you want an object
+// type: string - type of key being validated
+// context: object - the entire context object
 // returns: boolean
 async function validate(key, value) {
     return true;
@@ -38,10 +40,19 @@ async function validate(key, value) {
 
 const AUTOCOMPLETE_TEMPLATE_FN: &str = r#"// name: string - dimension or config name
 // prefix: string - characters entered in the input field
+// type: string - type of key being validated
+// context: object - the entire context object
 // environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
 // returns: [string]
 async function autocomplete(name, prefix, environment) {
     return [];
+}
+"#;
+
+const CONTEXT_VALIDATION_TEMPLATE_FN: &str = r#"// context: object - the entire context object
+// returns: boolean
+async function validateContext(context) {
+    return true;
 }
 "#;
 
@@ -75,7 +86,7 @@ pub fn function_editor(
     #[prop(into, default = String::from(VALIDATE_TEMPLATE_FN))] function: String,
     #[prop(into, default = String::new())] runtime_version: String,
     #[prop(into, default = String::new())] description: String,
-    #[prop(default = FunctionType::Validation)] function_type: FunctionType,
+    #[prop(default = FunctionType::ValueValidation)] function_type: FunctionType,
     #[prop(into)] handle_submit: Callback<()>,
     #[prop(into)] on_cancel: Callback<()>,
     #[prop(into, default = Signal::derive(|| Mode::Editor))] mode: Signal<Mode>,
@@ -136,11 +147,14 @@ pub fn function_editor(
                     function_name=function_name_rws.get()
                     function_args=function_type_rws
                         .with(|f| match f {
-                            FunctionType::Validation => {
-                                FunctionExecutionRequest::validation_default()
+                            FunctionType::ValueValidation => {
+                                FunctionExecutionRequest::value_validation_default()
                             }
-                            FunctionType::Autocomplete => {
-                                FunctionExecutionRequest::autocomplete_default()
+                            FunctionType::ValueCompute => {
+                                FunctionExecutionRequest::value_compute_default()
+                            }
+                            FunctionType::ContextValidation => {
+                                FunctionExecutionRequest::context_validation_default()
                             }
                         })
                     stage=selected_tab.get()
@@ -263,8 +277,9 @@ fn edit_form(
                             dropdown_options=FunctionType::iter().collect()
                             on_select=move |selected: FunctionType| {
                                 let code = match selected {
-                                    FunctionType::Validation => VALIDATE_TEMPLATE_FN,
-                                    FunctionType::Autocomplete => AUTOCOMPLETE_TEMPLATE_FN,
+                                    FunctionType::ValueValidation => VALIDATE_TEMPLATE_FN,
+                                    FunctionType::ValueCompute => AUTOCOMPLETE_TEMPLATE_FN,
+                                    FunctionType::ContextValidation => CONTEXT_VALIDATION_TEMPLATE_FN,
                                 };
                                 function_code_rws.set(code.to_string());
                                 function_type_rws.set(selected);
@@ -396,7 +411,7 @@ pub fn test_form(
         <div class="w-full 2.5xl:max-w-xl flex flex-col gap-5">
             <div class="w-full flex 2.5xl:flex-col flex-wrap 2.5xl:flex-nowrap gap-5">
                 {move || match function_args_rs.get_untracked() {
-                    FunctionExecutionRequest::ValidateFunctionRequest { key, value, r#type, context } => {
+                    FunctionExecutionRequest::ValueValidationFunctionRequest { key, value, r#type, context } => {
                         view! {
                             <div class="form-control w-full max-w-md">
                                 <Label title="Key Name" />
@@ -406,7 +421,7 @@ pub fn test_form(
                                     on:input=move |ev| {
                                         function_args_ws
                                             .update(|args| {
-                                                if let FunctionExecutionRequest::ValidateFunctionRequest {
+                                                if let FunctionExecutionRequest::ValueValidationFunctionRequest {
                                                     key,
                                                     ..
                                                 } = args {
@@ -436,7 +451,7 @@ pub fn test_form(
                                             Ok(test_val) => {
                                                 function_args_ws
                                                     .update(|args| {
-                                                        if let FunctionExecutionRequest::ValidateFunctionRequest {
+                                                        if let FunctionExecutionRequest::ValueValidationFunctionRequest {
                                                             value,
                                                             ..
                                                         } = args {
@@ -458,7 +473,7 @@ pub fn test_form(
                             </div>
                         }
                     }
-                    FunctionExecutionRequest::AutocompleteFunctionRequest {
+                    FunctionExecutionRequest::ValueComputeFunctionRequest {
                         name,
                         prefix,
                         r#type,
@@ -474,7 +489,7 @@ pub fn test_form(
                                     on:input=move |ev| {
                                         function_args_ws
                                             .update(|args| {
-                                                if let FunctionExecutionRequest::AutocompleteFunctionRequest {
+                                                if let FunctionExecutionRequest::ValueComputeFunctionRequest {
                                                     name,
                                                     ..
                                                 } = args {
@@ -497,7 +512,7 @@ pub fn test_form(
                                     on:input=move |ev| {
                                         function_args_ws
                                             .update(|args| {
-                                                if let FunctionExecutionRequest::AutocompleteFunctionRequest {
+                                                if let FunctionExecutionRequest::ValueComputeFunctionRequest {
                                                     prefix,
                                                     ..
                                                 } = args {
@@ -527,7 +542,7 @@ pub fn test_form(
                                             Ok(test_val) => {
                                                 function_args_ws
                                                     .update(|args| {
-                                                        if let FunctionExecutionRequest::AutocompleteFunctionRequest {
+                                                        if let FunctionExecutionRequest::ValueComputeFunctionRequest {
                                                             environment,
                                                             ..
                                                         } = args {
@@ -546,6 +561,46 @@ pub fn test_form(
                                 >
                                     {environment.to_string()}
                                 </textarea>
+                            </div>
+                        }
+                    }
+                    FunctionExecutionRequest::ContextValidationFunctionRequest { context } => {
+                        view! {
+                            <div class="form-control w-full max-w-md">
+                                <Label title="Context" />
+                                <textarea
+                                    type="text"
+                                    class="input input-bordered"
+                                    name="value"
+                                    id="value"
+                                    placeholder="value"
+                                    on:change=move |ev| {
+                                        let value = event_target_value(&ev);
+                                        match from_str::<Value>(&value) {
+                                            Ok(test_val) => {
+                                                function_args_ws
+                                                    .update(|args| {
+                                                        if let FunctionExecutionRequest::ContextValidationFunctionRequest {
+                                                            context,
+                                                            ..
+                                                        } = args {
+                                                            *context = test_val;
+                                                        }
+                                                    });
+                                                set_error_message.set("".to_string());
+                                                out_message_ws.set(None);
+                                            }
+                                            Err(_) => {
+                                                set_error_message.set("".to_string());
+                                                out_message_ws.set(None);
+                                            }
+                                        };
+                                    }
+                                >
+                                    {context.to_string()}
+                                </textarea>
+                            </div>
+                            <div> // Remove
                             </div>
                         }
                     }

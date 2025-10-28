@@ -102,4 +102,12 @@ ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT TRUE;
 
 UPDATE superposition.workspaces SET auto_populate_control = FALSE;
 
+CREATE TYPE public.function_types_new AS ENUM (
+  'VALUE-VALIDATION',
+  'VALUE-COMPUTE',
+  'CONTEXT-VALIDATION',
+);
+
+-- TODO: Need to drop the old one and rename this one here
+
 COMMIT;

@@ -760,7 +760,7 @@ pub async fn execute_autocomplete_function(
 ) -> Result<Vec<String>, String> {
     let host = use_host_server();
     let url = format!("{}/function/{}/PUBLISHED/test", host, fn_name);
-    let payload = FunctionExecutionRequest::AutocompleteFunctionRequest {
+    let payload = FunctionExecutionRequest::ValueComputeFunctionRequest {
         name: name.to_owned(),
         prefix: value.to_owned(),
         environment: environment.clone(),
