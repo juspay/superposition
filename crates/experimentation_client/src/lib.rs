@@ -14,7 +14,7 @@ use reqwest::StatusCode;
 use serde_json::Value;
 use superposition_types::{
     api::experiments::ExperimentListFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams, QueryParam},
+    custom_query::{PaginationParams, QueryParam},
     database::models::experimentation::{
         Bucket, ExperimentGroup, ExperimentStatusType, GroupType, Variant,
     },
@@ -370,7 +370,7 @@ async fn get_experiments(
     tenant: String,
 ) -> Result<ExperimentStore, String> {
     let list_filters = ExperimentListFilters {
-        status: Some(CommaSeparatedQParams(ExperimentStatusType::active_list())),
+        status: Some(ExperimentStatusType::active_list()),
         from_date: None,
         to_date: None,
         experiment_name: None,

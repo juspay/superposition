@@ -3,8 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
 use superposition_types::{
-    api::audit_log::AuditQueryFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    api::audit_log::AuditQueryFilters, custom_query::PaginationParams,
 };
 
 use crate::components::{
@@ -20,11 +19,11 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
     let force_open_rws = RwSignal::new(true);
 
     fn filter_index<T: Display + FromStr + Clone>(
-        items: &Option<CommaSeparatedQParams<T>>,
+        items: &Option<Vec<T>>,
         index: usize,
-    ) -> Option<CommaSeparatedQParams<T>> {
+    ) -> Option<Vec<T>> {
         items.clone().and_then(|mut items| {
-            items.0.remove(index);
+            items.remove(index);
             (!items.is_empty()).then_some(items)
         })
     }
@@ -110,7 +109,7 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
                                 label="Action"
                                 items=filters_rws
                                     .with(|f| {
-                                        f.action.as_ref().map(|p| p.0.clone()).unwrap_or_default()
+                                        f.action.clone().unwrap_or_default()
                                     })
                                 on_delete=move |idx| {
                                     filters_rws.update(|f| f.action = filter_index(&f.action, idx))
@@ -124,7 +123,7 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
                                 label="Table"
                                 items=filters_rws
                                     .with(|f| {
-                                        f.table.as_ref().map(|p| p.0.clone()).unwrap_or_default()
+                                        f.table.clone().unwrap_or_default()
                                     })
                                 on_delete=move |idx| {
                                     filters_rws.update(|f| f.table = filter_index(&f.table, idx))
@@ -224,11 +223,11 @@ pub fn audit_log_filter_widget(
                 <GlassyPills
                     selected=Signal::derive(move || {
                         filters_buffer_rws
-                            .with(|f| f.action.clone().map(|p| p.0).unwrap_or_default())
+                            .with(|f| f.action.clone().unwrap_or_default())
                     })
                     title="Action"
                     on_click=move |items| {
-                        filters_buffer_rws.update(|f| f.action = Some(CommaSeparatedQParams(items)))
+                        filters_buffer_rws.update(|f| f.action = Some(items))
                     }
                 />
 
@@ -259,7 +258,7 @@ pub fn audit_log_filter_widget(
                         id="audit-table-filter"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         value=move || {
-                            filters_buffer_rws.with(|f| f.table.clone().map(|d| d.to_string()))
+                            filters_buffer_rws.with(|f| f.table.clone().map(|d| d.join(",")))
                         }
                         placeholder="eg: experiments,contexts"
                         on:change=move |event| {
@@ -272,7 +271,7 @@ pub fn audit_log_filter_widget(
                                         .filter(|s| !s.is_empty())
                                         .collect();
                                     (!table_list.is_empty())
-                                        .then_some(CommaSeparatedQParams(table_list))
+                                        .then_some(table_list)
                                 })
                                 .flatten();
                             filters_buffer_rws.update(|filter| filter.table = tables);

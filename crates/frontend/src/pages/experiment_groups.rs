@@ -9,7 +9,7 @@ use superposition_types::{
         experiments::{ExperimentListFilters, ExperimentResponse},
         workspace::WorkspaceResponse,
     },
-    custom_query::{CommaSeparatedQParams, DimensionQuery, PaginationParams},
+    custom_query::{DimensionQuery, PaginationParams},
     database::models::{experimentation::ExperimentGroup, ChangeReason},
 };
 
@@ -178,7 +178,7 @@ pub fn experiment_groups() -> impl IntoView {
     > = create_blocking_resource(source, |(group_id, tenant, org_id)| async move {
         let group_future = fetch(&group_id, &tenant, &org_id);
         let filters = ExperimentListFilters {
-            experiment_group_ids: Some(CommaSeparatedQParams(vec![group_id.clone()])),
+            experiment_group_ids: Some(Vec::from([group_id.clone()])),
             ..ExperimentListFilters::default()
         };
         let pagination = PaginationParams::all_entries();

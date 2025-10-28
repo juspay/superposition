@@ -2,8 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use leptos::*;
 use superposition_types::{
-    api::default_config::DefaultConfigFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    api::default_config::DefaultConfigFilters, custom_query::PaginationParams,
 };
 use web_sys::MouseEvent;
 
@@ -22,11 +21,11 @@ pub(super) fn filter_summary(
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
     fn filter_index<T: Display + FromStr + Clone>(
-        items: &Option<CommaSeparatedQParams<T>>,
+        items: &Option<Vec<T>>,
         index: usize,
-    ) -> Option<CommaSeparatedQParams<T>> {
+    ) -> Option<Vec<T>> {
         items.clone().and_then(|mut items| {
-            items.0.remove(index);
+            items.remove(index);
             (!items.is_empty()).then_some(items)
         })
     }

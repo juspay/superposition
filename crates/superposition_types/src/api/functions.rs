@@ -8,7 +8,7 @@ use superposition_derives::{IsEmpty, QueryParam};
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::functions;
 use crate::{
-    custom_query::{CommaSeparatedQParams, QueryParam},
+    custom_query::QueryParam,
     database::models::{
         cac::{FunctionCode, FunctionType},
         ChangeReason, Description,
@@ -131,6 +131,5 @@ pub struct FunctionExecutionResponse {
     Debug, Default, Clone, Serialize, Deserialize, PartialEq, IsEmpty, QueryParam,
 )]
 pub struct ListFunctionFilters {
-    #[query_param(skip_if_empty)]
-    pub function_type: Option<CommaSeparatedQParams<FunctionType>>,
+    pub function_type: Option<Vec<FunctionType>>,
 }

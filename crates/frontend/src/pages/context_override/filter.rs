@@ -7,10 +7,7 @@ use superposition_types::{
         context::ContextListFilters, dimension::DimensionResponse,
         workspace::WorkspaceResponse, DimensionMatchStrategy,
     },
-    custom_query::{
-        CommaSeparatedStringQParams, CustomQuery, DimensionQuery, PaginationParams,
-        QueryMap,
-    },
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, QueryMap},
 };
 use web_sys::MouseEvent;
 
@@ -42,9 +39,9 @@ pub fn context_filter_summary(
     let summary_expanded =
         Signal::derive(move || force_open_rws.get() || !scrolled_to_top.get());
 
-    let filter_index = |items: &Option<CommaSeparatedStringQParams>, index| {
+    let filter_index = |items: &Option<Vec<String>>, index| {
         items.clone().and_then(|mut items| {
-            items.0.remove(index);
+            items.remove(index);
             (!items.is_empty()).then_some(items)
         })
     };
@@ -168,7 +165,6 @@ pub fn context_filter_summary(
                                 label="Key prefix"
                                 items=context_filters_rws
                                     .with(|f| f.prefix.clone().unwrap_or_default())
-                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| f.prefix = filter_index(&f.prefix, idx))
@@ -199,7 +195,6 @@ pub fn context_filter_summary(
                                 label="Created by"
                                 items=context_filters_rws
                                     .with(|f| f.created_by.clone().unwrap_or_default())
-                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| f.created_by = filter_index(&f.created_by, idx))
@@ -213,7 +208,6 @@ pub fn context_filter_summary(
                                 label="Last Modified by"
                                 items=context_filters_rws
                                     .with(|f| f.last_modified_by.clone().unwrap_or_default())
-                                    .0
                                 on_delete=move |idx| {
                                     context_filters_rws
                                         .update(|f| {
@@ -356,7 +350,7 @@ pub fn context_filter_drawer(
                         placeholder="eg: user@superposition.io"
                         value=move || {
                             context_filters_rws
-                                .with(|f| f.created_by.clone().map(|d| d.to_string()))
+                                .with(|f| f.created_by.clone().map(|d| d.join(",")))
                         }
                         on:change=move |event| {
                             let user_names = event_target_value(&event);
@@ -380,7 +374,7 @@ pub fn context_filter_drawer(
                         placeholder="eg: user@superposition.io"
                         value=move || {
                             context_filters_rws
-                                .with(|f| f.last_modified_by.clone().map(|d| d.to_string()))
+                                .with(|f| f.last_modified_by.clone().map(|d| d.join(",")))
                         }
                         on:change=move |event| {
                             let user_names = event_target_value(&event);

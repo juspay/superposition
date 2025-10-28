@@ -1,7 +1,7 @@
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::experiment_groups;
 use crate::{
-    custom_query::{CommaSeparatedQParams, QueryParam},
+    custom_query::QueryParam,
     database::models::{
         experimentation::{
             i64_vec_deserialize, i64_vec_formatter, GroupType, TrafficPercentage,
@@ -70,8 +70,7 @@ pub struct ExpGroupFilters {
     pub last_modified_by: Option<String>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
-    #[query_param(skip_if_empty)]
-    pub group_type: Option<CommaSeparatedQParams<GroupType>>,
+    pub group_type: Option<Vec<GroupType>>,
 }
 
 // default with group type which contains only usercreated as value
@@ -83,9 +82,7 @@ impl Default for ExpGroupFilters {
             last_modified_by: None,
             sort_on: Some(SortOn::default()),
             sort_by: Some(SortBy::Desc),
-            group_type: Some(CommaSeparatedQParams(
-                vec![GroupType::UserCreated].into_iter().collect(),
-            )),
+            group_type: Some(Vec::from([GroupType::UserCreated])),
         }
     }
 }

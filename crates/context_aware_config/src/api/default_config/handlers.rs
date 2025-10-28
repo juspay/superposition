@@ -33,6 +33,8 @@ use superposition_types::{
     result as superposition, DBConnection, PaginatedResponse, User,
 };
 
+use actix_web_lab::extract::Query as MultiValueQuery;
+
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
 use crate::{
@@ -308,7 +310,7 @@ fn fetch_default_key(
 async fn list_default_configs(
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
-    filters: Query<DefaultConfigFilters>,
+    filters: MultiValueQuery<DefaultConfigFilters>,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;

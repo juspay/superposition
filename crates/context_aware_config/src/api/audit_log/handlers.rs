@@ -13,13 +13,15 @@ use superposition_types::{
     result as superposition, PaginatedResponse, SortBy,
 };
 
+use actix_web_lab::extract::Query as MultiValueQuery;
+
 pub fn endpoints() -> Scope {
     Scope::new("").service(get_audit_logs)
 }
 
 #[get("")]
 async fn get_audit_logs(
-    filters: Query<AuditQueryFilters>,
+    filters: MultiValueQuery<AuditQueryFilters>,
     pagination_params: Query<PaginationParams>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -38,10 +40,10 @@ async fn get_audit_logs(
     let query_builder = |filters: &AuditQueryFilters| {
         let mut builder = event_log::event_log.schema_name(&schema_name).into_boxed();
         if let Some(tables) = filters.table.clone() {
-            builder = builder.filter(event_log::table_name.eq_any(tables.0));
+            builder = builder.filter(event_log::table_name.eq_any(tables));
         }
         if let Some(actions) = filters.action.clone() {
-            builder = builder.filter(event_log::action.eq_any(actions.0));
+            builder = builder.filter(event_log::action.eq_any(actions));
         }
         if let Some(username) = filters.username.clone() {
             builder = builder.filter(event_log::user_name.eq(username));

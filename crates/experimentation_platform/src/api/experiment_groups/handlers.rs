@@ -50,6 +50,8 @@ use crate::api::{
     },
 };
 
+use actix_web_lab::extract::Query as MultiValueQuery;
+
 pub fn endpoints(scope: Scope) -> Scope {
     scope
         .service(create_experiment_group)
@@ -234,7 +236,7 @@ async fn remove_members_to_group(
 #[get("")]
 async fn list_experiment_groups(
     pagination_params: Query<PaginationParams>,
-    filters: Query<ExpGroupFilters>,
+    filters: MultiValueQuery<ExpGroupFilters>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<ExperimentGroup>>> {
@@ -256,8 +258,8 @@ async fn list_experiment_groups(
                 .filter(experiment_groups::last_modified_by.eq(last_modified_by.clone()));
         }
         if let Some(group_type) = &filters.group_type {
-            builder = builder
-                .filter(experiment_groups::group_type.eq_any(group_type.0.clone()));
+            builder =
+                builder.filter(experiment_groups::group_type.eq_any(group_type.clone()));
         }
         builder
     };

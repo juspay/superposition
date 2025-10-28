@@ -32,6 +32,8 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
+use actix_web_lab::extract::Query as MultiValueQuery;
+
 const WORKSPACE_TEMPLATE_PATH: &str = "workspace_template.sql";
 
 fn setup_workspace_schema(
@@ -185,7 +187,7 @@ async fn update_workspace(
 async fn list_workspaces(
     db_conn: DbConnection,
     pagination_filters: Query<PaginationParams>,
-    filters: Query<WorkspaceListFilters>,
+    filters: MultiValueQuery<WorkspaceListFilters>,
     org_id: OrganisationId,
 ) -> superposition::Result<Json<PaginatedResponse<WorkspaceResponse>>> {
     let DbConnection(mut conn) = db_conn;

@@ -39,6 +39,7 @@ assets-dir = "crates/frontend/assets"
 
 [workspace.dependencies]
 actix-web = "4.5.0"
+actix-web-lab = "0.24.3"
 anyhow = "1.0.75"
 aws-sdk-kms = { version = "1.38.0" }
 base64 = "0.21.2"

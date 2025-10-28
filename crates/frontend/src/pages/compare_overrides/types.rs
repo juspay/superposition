@@ -11,14 +11,14 @@ use superposition_types::{
 
 #[derive(PartialEq, Clone, IsEmpty, QueryParam)]
 pub(super) struct PageParams {
-    pub(super) grouped: bool,
+    pub(super) grouped: Option<bool>,
     pub(super) prefix: Option<String>,
 }
 
 impl Default for PageParams {
     fn default() -> Self {
         Self {
-            grouped: true,
+            grouped: Some(true),
             prefix: None,
         }
     }
@@ -36,7 +36,7 @@ impl<'de> Deserialize<'de> for PageParams {
         }
         let helper = PageParamsHelper::deserialize(deserializer)?;
         Ok(Self {
-            grouped: helper.prefix.is_some() || helper.grouped.unwrap_or(true),
+            grouped: Some(helper.prefix.is_some() || helper.grouped.unwrap_or(true)),
             prefix: helper.prefix,
         })
     }

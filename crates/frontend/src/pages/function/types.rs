@@ -4,13 +4,13 @@ use superposition_types::{api::functions::Stage, custom_query::QueryParam, IsEmp
 
 #[derive(Deserialize, PartialEq, Clone, IsEmpty, QueryParam)]
 pub(super) struct PageParams {
-    pub(super) tab: Stage,
+    pub(super) tab: Option<Stage>,
 }
 
 impl Default for PageParams {
     fn default() -> Self {
         Self {
-            tab: Stage::Published,
+            tab: Some(Stage::Published),
         }
     }
 }

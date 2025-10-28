@@ -1,5 +1,3 @@
-use std::{cmp::min, collections::HashSet};
-
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
 use crate::{
@@ -13,6 +11,8 @@ use crate::{
     },
     helpers::{add_config_version, calculate_context_weight},
 };
+use actix_web_lab::extract::Query as MultiValueQuery;
+use std::{cmp::min, collections::HashSet};
 
 use actix_web::{
     delete, get, post, put, routes,
@@ -285,7 +285,7 @@ async fn get_context(
 #[get("/list")]
 #[get("")]
 async fn list_contexts(
-    filter_params: superposition_query::Query<ContextListFilters>,
+    filter_params: MultiValueQuery<ContextListFilters>,
     pagination_params: superposition_query::Query<PaginationParams>,
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
@@ -307,11 +307,11 @@ async fn list_contexts(
     let get_base_query = || {
         let mut builder = contexts.schema_name(&schema_name).into_boxed();
         if let Some(creators) = filter_params.created_by.clone() {
-            builder = builder.filter(created_by.eq_any(creators.0))
+            builder = builder.filter(created_by.eq_any(creators))
         }
 
         if let Some(last_modifiers) = filter_params.last_modified_by.clone() {
-            builder = builder.filter(last_modified_by.eq_any(last_modifiers.0))
+            builder = builder.filter(last_modified_by.eq_any(last_modifiers))
         }
 
         if let Some(plaintext) = filter_params.plaintext.clone() {
@@ -342,7 +342,7 @@ async fn list_contexts(
     let paginated_response = if perform_in_memory_filter {
         let mut all_contexts: Vec<Context> = base_query.load(&mut conn)?;
         if let Some(prefix) = filter_params.prefix {
-            let prefix_list = HashSet::from_iter(prefix.0);
+            let prefix_list = HashSet::from_iter(prefix);
             all_contexts = all_contexts
                 .into_iter()
                 .filter_map(|mut context| {

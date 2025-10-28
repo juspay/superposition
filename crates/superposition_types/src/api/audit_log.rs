@@ -7,19 +7,16 @@ use strum::IntoEnumIterator;
 use superposition_derives::TextToSql;
 use superposition_derives::{IsEmpty, QueryParam};
 
-use crate::{
-    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams, QueryParam},
-    IsEmpty, SortBy,
-};
+use crate::{custom_query::QueryParam, IsEmpty, SortBy};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, QueryParam, IsEmpty)]
 pub struct AuditQueryFilters {
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
     #[query_param(skip_if_empty)]
-    pub table: Option<CommaSeparatedStringQParams>,
+    pub table: Option<Vec<String>>,
     #[query_param(skip_if_empty)]
-    pub action: Option<CommaSeparatedQParams<AuditAction>>,
+    pub action: Option<Vec<AuditAction>>,
     #[query_param(skip_if_empty)]
     pub username: Option<String>,
     pub sort_by: Option<SortBy>,
@@ -57,7 +54,7 @@ impl From<&AuditAction> for String {
 impl Default for AuditQueryFilters {
     fn default() -> Self {
         Self {
-            action: Some(CommaSeparatedQParams(AuditAction::iter().collect())),
+            action: Some(AuditAction::iter().collect()),
             from_date: None,
             to_date: None,
             table: None,

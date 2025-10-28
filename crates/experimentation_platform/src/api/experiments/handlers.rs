@@ -11,6 +11,7 @@ use actix_web::{
     web::{self, Data, Json, Path, Query},
     Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
+use actix_web_lab::extract::Query as MultiValueQuery;
 use chrono::{DateTime, Utc};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
@@ -936,7 +937,7 @@ async fn get_applicable_variants(
 async fn list_experiments(
     req: HttpRequest,
     pagination_params: superposition_query::Query<PaginationParams>,
-    filters: superposition_query::Query<ExperimentListFilters>,
+    filters: MultiValueQuery<ExperimentListFilters>,
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -970,19 +971,17 @@ async fn list_experiments(
             .schema_name(&schema_name)
             .into_boxed();
         if let Some(ref states) = filters.status {
-            builder = builder.filter(experiments::status.eq_any(states.0.clone()));
+            builder = builder.filter(experiments::status.eq_any(states.clone()));
         }
         if let Some(ref experiment_name) = filters.experiment_name {
             builder =
                 builder.filter(experiments::name.like(format!("%{}%", experiment_name)));
         }
         if let Some(ref created_by) = filters.created_by {
-            builder =
-                builder.filter(experiments::created_by.eq_any(created_by.0.clone()));
+            builder = builder.filter(experiments::created_by.eq_any(created_by.clone()));
         }
         if let Some(experiment_ids) = filters.experiment_ids.clone() {
             let experiment_ids: HashSet<i64> = experiment_ids
-                .0
                 .iter()
                 .filter_map(|i| i.parse::<i64>().ok())
                 .collect();
@@ -990,7 +989,6 @@ async fn list_experiments(
         }
         if let Some(experiment_group_ids) = filters.experiment_group_ids.clone() {
             let experiment_group_ids: HashSet<i64> = experiment_group_ids
-                .0
                 .iter()
                 .filter_map(|i| i.parse::<i64>().ok())
                 .collect();

@@ -306,7 +306,7 @@ pub fn compare_overrides() -> impl IntoView {
                         expand,
                     );
                     let page_params = page_params_rws.get();
-                    if page_params.grouped {
+                    if let Some(true) = page_params.grouped {
                         let cols = filtered_rows
                             .first()
                             .map(|row| row.keys().cloned().collect())
@@ -328,7 +328,7 @@ pub fn compare_overrides() -> impl IntoView {
                                         on:click=move |_| {
                                             page_params_rws
                                                 .update(|params| {
-                                                    params.grouped = !params.grouped;
+                                                    params.grouped = params.grouped.map(|b| !b);
                                                     params.prefix = None;
                                                 });
                                         }

@@ -148,14 +148,14 @@ pub fn function_page() -> impl IntoView {
                                                 href=get_updated_query("tab", Some(tab.to_string()))
                                                 attr:role="tab"
                                                 class=move || {
-                                                    if page_params_rws.with(|p| p.tab == tab) {
+                                                    if page_params_rws.with(|p| p.tab == Some(tab)) {
                                                         "tab tab-active [--tab-border-color:#a651f5] text-center font-bold"
                                                     } else {
                                                         "tab text-center font-bold"
                                                     }
                                                 }
                                                 on:click=move |_| {
-                                                    page_params_rws.update(|p| p.tab = tab);
+                                                    page_params_rws.update(|p| p.tab = Some(tab));
                                                     mode_rws.set(Mode::Viewer);
                                                 }
                                             >
@@ -168,7 +168,7 @@ pub fn function_page() -> impl IntoView {
                             <div class="h-12 flex gap-2">
                                 <div class="flex justify-end join">
                                     <Show when=move || {
-                                        page_params_rws.with(|p| p.tab == Stage::Draft)
+                                        page_params_rws.with(|p| p.tab == Some(Stage::Draft))
                                             && mode_rws.get() == Mode::Viewer
                                             && function
                                                 .published_at
@@ -182,7 +182,7 @@ pub fn function_page() -> impl IntoView {
                                         />
                                     </Show>
                                     <Show when=move || {
-                                        page_params_rws.with(|p| p.tab == Stage::Draft)
+                                        page_params_rws.with(|p| p.tab == Some(Stage::Draft))
                                             && mode_rws.get() == Mode::Viewer
                                     }>
                                         <Button
@@ -204,7 +204,7 @@ pub fn function_page() -> impl IntoView {
                             </div>
                         </div>
                         {
-                            let selected_tab = page_params_rws.with(|p| p.tab);
+                            let selected_tab = page_params_rws.with(|p| p.tab).unwrap_or(Stage::Draft);
                             let (version, action_time, action_by) = match selected_tab {
                                 Stage::Published => {
                                     (
@@ -234,7 +234,7 @@ pub fn function_page() -> impl IntoView {
                         <FunctionEditor
                             function_name=function_st.with_value(|f| f.function_name.clone())
                             function=function_st
-                                .with_value(|f| match page_params_rws.with(|p| p.tab) {
+                                .with_value(|f| match page_params_rws.with(|p| p.tab).unwrap_or(Stage::Draft) {
                                     Stage::Published => {
                                         f.published_code
                                             .clone()
@@ -256,7 +256,7 @@ pub fn function_page() -> impl IntoView {
                                 mode_rws.set(Mode::Viewer);
                             }
                             mode=mode_rws
-                            selected_tab=Signal::derive(move || page_params_rws.with(|p| p.tab))
+                            selected_tab=Signal::derive(move || page_params_rws.with(|p| p.tab).unwrap_or(Stage::Draft))
                             on_cancel=move |_| mode_rws.set(Mode::Viewer)
                         />
                         <Show when=move || show_publish_popup.get()>

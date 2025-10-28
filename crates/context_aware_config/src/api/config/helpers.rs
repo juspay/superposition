@@ -1,9 +1,7 @@
-use superposition_types::{
-    custom_query::CommaSeparatedStringQParams, result as superposition, Config,
-};
+use superposition_types::{result as superposition, Config};
 
 pub fn apply_prefix_filter_to_config(
-    prefix: &Option<CommaSeparatedStringQParams>,
+    prefix: &Option<Vec<String>>,
     mut config: Config,
 ) -> superposition::Result<Config> {
     if let Some(prefix) = prefix {

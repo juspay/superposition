@@ -1,18 +1,15 @@
-use std::{collections::HashMap, fmt::Display, str::FromStr};
+use std::collections::HashMap;
 
 use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
     de::{self, DeserializeOwned},
-    Deserialize, Deserializer, Serialize,
+    Deserialize, Deserializer,
 };
 use serde_json::{Map, Value};
 #[cfg(feature = "experimentation")]
-use strum::IntoEnumIterator;
 use superposition_derives::{IsEmpty, QueryParam};
 
-#[cfg(feature = "experimentation")]
-use crate::database::models::experimentation::ExperimentStatusType;
 use crate::IsEmpty;
 
 pub trait QueryParam {
@@ -295,52 +292,6 @@ impl<'de> Deserialize<'de> for PaginationParams {
             page: helper.page,
             all: helper.all,
         })
-    }
-}
-
-#[derive(Debug, Clone, Deref, PartialEq, Default)]
-#[deref(forward)]
-pub struct CommaSeparatedQParams<T: Display + FromStr>(pub Vec<T>);
-
-impl<T: Display + FromStr> Display for CommaSeparatedQParams<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str_arr = self.0.iter().map(|s| s.to_string()).collect::<Vec<_>>();
-        write!(f, "{}", str_arr.join(","))
-    }
-}
-
-impl<'de, T: Display + FromStr> Deserialize<'de> for CommaSeparatedQParams<T> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let items = String::deserialize(deserializer)?
-            .split(',')
-            .map(|item| item.trim().to_string())
-            .map(|s| T::from_str(&s))
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|_| {
-                serde::de::Error::custom(String::from("Error in converting type"))
-            })?;
-        Ok(Self(items))
-    }
-}
-
-impl<T: Display + FromStr> Serialize for CommaSeparatedQParams<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-pub type CommaSeparatedStringQParams = CommaSeparatedQParams<String>;
-
-#[cfg(feature = "experimentation")]
-impl Default for CommaSeparatedQParams<ExperimentStatusType> {
-    fn default() -> Self {
-        Self(ExperimentStatusType::iter().collect())
     }
 }
 

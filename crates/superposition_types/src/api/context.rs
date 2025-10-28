@@ -4,7 +4,7 @@ use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::{
     api::DimensionMatchStrategy,
-    custom_query::{CommaSeparatedStringQParams, QueryParam},
+    custom_query::QueryParam,
     database::models::{cac::Context, ChangeReason, Description},
     Cac, Condition, IsEmpty, Overrides, SortBy,
 };
@@ -38,14 +38,11 @@ impl Default for SortOn {
 
 #[derive(Deserialize, PartialEq, Default, Clone, IsEmpty, QueryParam)]
 pub struct ContextListFilters {
-    #[query_param(skip_if_empty)]
-    pub prefix: Option<CommaSeparatedStringQParams>,
+    pub prefix: Option<Vec<String>>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
-    #[query_param(skip_if_empty)]
-    pub created_by: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
-    pub last_modified_by: Option<CommaSeparatedStringQParams>,
+    pub created_by: Option<Vec<String>>,
+    pub last_modified_by: Option<Vec<String>>,
     pub plaintext: Option<String>,
     pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }

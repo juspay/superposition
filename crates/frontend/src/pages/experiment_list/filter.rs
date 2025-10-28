@@ -8,9 +8,7 @@ use superposition_types::{
         experiments::ExperimentListFilters, workspace::WorkspaceResponse,
         DimensionMatchStrategy,
     },
-    custom_query::{
-        CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
-    },
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, QueryMap},
 };
 use web_sys::MouseEvent;
 
@@ -40,11 +38,11 @@ pub(super) fn filter_summary(
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
     fn filter_index<T: Display + FromStr + Clone>(
-        items: &Option<CommaSeparatedQParams<T>>,
+        items: &Option<Vec<T>>,
         index: usize,
-    ) -> Option<CommaSeparatedQParams<T>> {
+    ) -> Option<Vec<T>> {
         items.clone().and_then(|mut items| {
-            items.0.remove(index);
+            items.remove(index);
             (!items.is_empty()).then_some(items)
         })
     }
@@ -198,9 +196,7 @@ pub(super) fn filter_summary(
                             <ListPills
                                 label="Status"
                                 items=filters_rws
-                                    .with(|f| {
-                                        f.status.as_ref().map(|p| p.0.clone()).unwrap_or_default()
-                                    })
+                                    .with(|f| f.status.clone().unwrap_or_default())
                                 on_delete=move |idx| {
                                     filters_rws.update(|f| f.status = filter_index(&f.status, idx))
                                 }
@@ -229,12 +225,7 @@ pub(super) fn filter_summary(
                             <ListPills
                                 label="Created by"
                                 items=filters_rws
-                                    .with(|f| {
-                                        f.created_by
-                                            .as_ref()
-                                            .map(|p| p.0.clone())
-                                            .unwrap_or_default()
-                                    })
+                                    .with(|f| f.created_by.clone().unwrap_or_default())
                                 on_delete=move |idx| {
                                     filters_rws
                                         .update(|f| f.created_by = filter_index(&f.created_by, idx))
@@ -247,12 +238,7 @@ pub(super) fn filter_summary(
                             <ListPills
                                 label="IDs"
                                 items=filters_rws
-                                    .with(|f| {
-                                        f.experiment_ids
-                                            .as_ref()
-                                            .map(|p| p.0.clone())
-                                            .unwrap_or_default()
-                                    })
+                                    .with(|f| f.experiment_ids.clone().unwrap_or_default())
                                 on_delete=move |idx| {
                                     filters_rws
                                         .update(|f| {
@@ -440,11 +426,11 @@ pub(super) fn experiment_table_filter_widget(
                 <GlassyPills
                     selected=Signal::derive(move || {
                         filters_buffer_rws
-                            .with(|f| f.status.clone().map(|p| p.0).unwrap_or_default())
+                            .with(|f| f.status.clone().unwrap_or_default())
                     })
                     title="Experiment Status"
                     on_click=move |items| {
-                        filters_buffer_rws.update(|f| f.status = Some(CommaSeparatedQParams(items)))
+                        filters_buffer_rws.update(|f| f.status = Some(items))
                     }
                 /> <div class="form-control">
                     <Label title="Experiment Name" />
@@ -476,14 +462,19 @@ pub(super) fn experiment_table_filter_widget(
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         value=move || {
                             filters_buffer_rws
-                                .with(|f| f.experiment_ids.clone().map(|d| d.to_string()))
+                                .with(|f| f.experiment_ids.clone().map(|d| d.join(",")))
                         }
                         placeholder="eg: 7259558160762015744"
                         on:change=move |event| {
                             let ids = event_target_value(&event);
-                            let ids = (!ids.is_empty())
-                                .then(|| serde_json::from_value(Value::String(ids)).ok())
-                                .flatten();
+                            let ids = ids.split(",")
+                                .map(|s| s.trim().to_string())
+                                .collect::<Vec<String>>();
+                            let ids = if ids.is_empty() {
+                                None
+                            } else {
+                                Some(ids)
+                            };
                             filters_buffer_rws.update(|filter| filter.experiment_ids = ids);
                         }
                     />
@@ -498,12 +489,17 @@ pub(super) fn experiment_table_filter_widget(
                         id="experiment-user-filter"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
                         placeholder="eg: user@superposition.io"
-                        value=move || filters_buffer_rws.get().created_by.map(|d| d.to_string())
+                        value=move || filters_buffer_rws.get().created_by.map(|d| d.join(","))
                         on:change=move |event| {
                             let user_names = event_target_value(&event);
-                            let user_names = (!user_names.is_empty())
-                                .then(|| serde_json::from_value(Value::String(user_names)).ok())
-                                .flatten();
+                            let user_names = user_names.split(",")
+                                .map(|s| s.trim().to_string())
+                                .collect::<Vec<String>>();
+                            let user_names = if user_names.is_empty() {
+                                None
+                            } else {
+                                Some(user_names)
+                            };
                             filters_buffer_rws.update(|filter| filter.created_by = user_names);
                         }
                     />
@@ -515,6 +511,10 @@ pub(super) fn experiment_table_filter_widget(
                         on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             let filters = filters_buffer_rws.get();
+                            logging::log!(
+                                "Applying experiment filters: {:?}",
+                                filters.status,
+                            );
                             let dimension_params = dimension_buffer_rws.get();
                             batch(|| {
                                 filters_rws.set(filters);
@@ -531,6 +531,7 @@ pub(super) fn experiment_table_filter_widget(
                         on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             batch(|| {
+                                logging::log!("Resetting experiment filters");
                                 filters_rws.set(ExperimentListFilters::default());
                                 dimension_params_rws.set(DimensionQuery::default());
                                 pagination_params_rws.update(|f| f.reset_page());

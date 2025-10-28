@@ -10,7 +10,7 @@ use superposition_derives::{IsEmpty, QueryParam};
 use crate::database::schema::experiments;
 use crate::{
     api::{deserialize_option_i64, i64_option_formatter, DimensionMatchStrategy},
-    custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams, QueryParam},
+    custom_query::QueryParam,
     database::models::{
         experimentation::{
             Experiment, ExperimentStatusType, ExperimentType, TrafficPercentage, Variant,
@@ -194,17 +194,13 @@ impl Default for ExperimentSortOn {
 
 #[derive(Deserialize, Serialize, Clone, PartialEq, IsEmpty, QueryParam)]
 pub struct ExperimentListFilters {
-    #[query_param(skip_if_empty)]
-    pub status: Option<CommaSeparatedQParams<ExperimentStatusType>>,
+    pub status: Option<Vec<ExperimentStatusType>>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
     pub experiment_name: Option<String>,
-    #[query_param(skip_if_empty)]
-    pub experiment_ids: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
-    pub experiment_group_ids: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
-    pub created_by: Option<CommaSeparatedStringQParams>,
+    pub experiment_ids: Option<Vec<String>>,
+    pub experiment_group_ids: Option<Vec<String>>,
+    pub created_by: Option<Vec<String>>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
     pub global_experiments_only: Option<bool>,
@@ -214,16 +210,11 @@ pub struct ExperimentListFilters {
 impl Default for ExperimentListFilters {
     fn default() -> Self {
         Self {
-            status: Some(CommaSeparatedQParams(
-                CommaSeparatedQParams::<ExperimentStatusType>::default()
-                    .iter()
-                    .filter(|&s| {
-                        *s != ExperimentStatusType::DISCARDED
-                            && *s != ExperimentStatusType::CONCLUDED
-                    })
-                    .copied()
-                    .collect::<Vec<_>>(),
-            )),
+            status: Some(Vec::from([
+                ExperimentStatusType::CREATED,
+                ExperimentStatusType::INPROGRESS,
+                ExperimentStatusType::PAUSED,
+            ])),
             from_date: None,
             to_date: None,
             experiment_name: None,

@@ -4,14 +4,14 @@ use superposition_types::{custom_query::QueryParam, IsEmpty};
 
 #[derive(PartialEq, Clone, IsEmpty, QueryParam)]
 pub struct PageParams {
-    pub grouped: bool,
+    pub grouped: Option<bool>,
     pub prefix: Option<String>,
 }
 
 impl Default for PageParams {
     fn default() -> Self {
         Self {
-            grouped: true,
+            grouped: Some(true),
             prefix: None,
         }
     }
@@ -29,7 +29,7 @@ impl<'de> Deserialize<'de> for PageParams {
         }
         let helper = PageParamsHelper::deserialize(deserializer)?;
         Ok(Self {
-            grouped: helper.prefix.is_some() || helper.grouped.unwrap_or(true),
+            grouped: Some(helper.prefix.is_some() || helper.grouped.unwrap_or(true)),
             prefix: helper.prefix,
         })
     }

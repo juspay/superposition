@@ -26,6 +26,8 @@ use crate::validation_functions;
 
 use super::helpers::fetch_function;
 
+use actix_web_lab::extract::Query as MultiValueQuery;
+
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create)
@@ -156,7 +158,7 @@ async fn get(
 async fn list_functions(
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
-    filters: Query<ListFunctionFilters>,
+    filters: MultiValueQuery<ListFunctionFilters>,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
@@ -164,7 +166,7 @@ async fn list_functions(
     let query_builder = |f: &ListFunctionFilters| {
         let mut builder = functions::functions.schema_name(&schema_name).into_boxed();
         if let Some(ref fntype) = f.function_type {
-            builder = builder.filter(functions::function_type.eq_any(fntype.0.clone()));
+            builder = builder.filter(functions::function_type.eq_any(fntype.clone()));
         }
         builder
     };

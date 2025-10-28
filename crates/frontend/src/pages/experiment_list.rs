@@ -118,6 +118,7 @@ pub fn experiment_list() -> impl IntoView {
     );
 
     let handle_submit_experiment_form = move |_| {
+        logging::log!("Firing handle submit form");
         filters_rws.set(ExperimentListFilters::default());
         pagination_params_rws.update(|f| f.reset_page());
         combined_resource.refetch();

@@ -231,46 +231,40 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
         let field_name = field.ident.unwrap();
         let field_str = field_name.to_string();
 
-        // detect if field has #[query_param(skip_if_empty)]
-        let mut skip_if_empty = false;
-        for attr in &field.attrs {
-            if attr.path().is_ident("query_param") {
-                let ident: syn::Ident = match attr.parse_args() {
-                    Ok(v) => v,
-                    Err(_) => continue,
-                };
-                if ident == "skip_if_empty" {
-                    skip_if_empty = true;
-                }
-            }
-        }
-
         // check if the type is Option<_>
         let is_option = matches!(&field.ty, Type::Path(type_path) if type_path.path.segments.first().is_some_and(|seg| seg.ident == "Option"));
 
-        if is_option && skip_if_empty {
+        // Query params have to be optional
+        if !is_option {
+            return syn::Error::new_spanned(
+                struct_name,
+                "QueryParam has to be optional, i.e., of type Option<T>",
+            )
+            .to_compile_error()
+            .into();
+        }
+
+        let is_vector = matches!(&field.ty, Type::Path(type_path) if type_path.path.segments.first().is_some_and(|seg| {
+            seg.ident == "Option" && matches!(seg.arguments.clone(), syn::PathArguments::AngleBracketed(args) if args.args.first().is_some_and(|generic_arg| {
+                matches!(generic_arg, syn::GenericArgument::Type(Type::Path(type_path)) if type_path.path.segments.first().is_some_and(|seg| seg.ident == "Vec"))
+            }))
+        }));
+
+        if is_vector {
             query_parts.push(quote! {
                 if let Some(value) = &self.#field_name {
                     if !value.is_empty() {
-                        query_params.push(format!("{}={}", #field_str, value));
+                        for v in value {
+                            query_params.push(format!("{}={}", #field_str, v));
+                        }
                     }
-                }
-            });
-        } else if is_option && !skip_if_empty {
-            query_parts.push(quote! {
-                if let Some(value) = &self.#field_name {
-                    query_params.push(format!("{}={}", #field_str, value));
-                }
-            });
-        } else if skip_if_empty {
-            query_parts.push(quote! {
-                if !self.#field_name.is_empty() {
-                    query_params.push(format!("{}={}", #field_str, self.#field_name));
                 }
             });
         } else {
             query_parts.push(quote! {
-                query_params.push(format!("{}={}", #field_str, self.#field_name));
+                if let Some(value) = &self.#field_name {
+                    query_params.push(format!("{}={}", #field_str, value));
+                }
             });
         }
     }

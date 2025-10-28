@@ -2,8 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use leptos::*;
 use superposition_types::{
-    api::experiment_groups::ExpGroupFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    api::experiment_groups::ExpGroupFilters, custom_query::PaginationParams,
 };
 use web_sys::MouseEvent;
 
@@ -20,11 +19,11 @@ pub(super) fn filter_summary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Int
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
     fn filter_index<T: Display + FromStr + Clone>(
-        items: &Option<CommaSeparatedQParams<T>>,
+        items: &Option<Vec<T>>,
         index: usize,
-    ) -> Option<CommaSeparatedQParams<T>> {
+    ) -> Option<Vec<T>> {
         items.clone().and_then(|mut items| {
-            items.0.remove(index);
+            items.remove(index);
             (!items.is_empty()).then_some(items)
         })
     }
@@ -127,12 +126,7 @@ pub(super) fn filter_summary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Int
                             <ListPills
                                 label="Type"
                                 items=filters_rws
-                                    .with(|f| {
-                                        f.group_type
-                                            .as_ref()
-                                            .map(|p| p.0.clone())
-                                            .unwrap_or_default()
-                                    })
+                                    .with(|f| f.group_type.clone().unwrap_or_default())
                                 on_delete=move |idx| {
                                     filters_rws
                                         .update(|f| f.group_type = filter_index(&f.group_type, idx))
@@ -224,12 +218,12 @@ pub(super) fn experiment_group_filter_widget(
                 <GlassyPills
                     selected=Signal::derive(move || {
                         filters_buffer_rws
-                            .with(|f| f.group_type.clone().map(|p| p.0).unwrap_or_default())
+                            .with(|f| f.group_type.clone().unwrap_or_default())
                     })
                     title="Group Type"
                     on_click=move |items| {
                         filters_buffer_rws
-                            .update(|f| f.group_type = Some(CommaSeparatedQParams(items)))
+                            .update(|f| f.group_type = Some(items))
                     }
                 />
                 <div class="flex justify-end gap-2">

@@ -51,7 +51,7 @@ pub fn default_config_list() -> impl IntoView {
         Query::<PageParams>::extract_non_empty(&query_string).into_inner()
     });
     let pagination_params_rws = use_signal_from_query(move |query_string| {
-        if page_params_rws.get_untracked().grouped {
+        if let Some(true) = page_params_rws.get_untracked().grouped {
             PaginationParams::all_entries()
         } else {
             Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
@@ -168,7 +168,7 @@ pub fn default_config_list() -> impl IntoView {
                     .collect::<Vec<Map<String, Value>>>();
                 let mut filtered_rows = table_rows;
                 let page_params = page_params_rws.get();
-                if page_params.grouped {
+                if let Some(true) = page_params.grouped {
                     let cols = filtered_rows
                         .first()
                         .map(|row| row.keys().cloned().collect())
@@ -182,7 +182,7 @@ pub fn default_config_list() -> impl IntoView {
                 }
                 let total_default_config_keys = default_config.total_items.to_string();
                 let pagination_params = pagination_params_rws.get();
-                let (current_page, total_pages) = if page_params.grouped {
+                let (current_page, total_pages) = if let Some(true) = page_params.grouped {
                     (1, 1)
                 } else {
                     (pagination_params.page.unwrap_or_default(), default_config.total_pages)
@@ -208,11 +208,11 @@ pub fn default_config_list() -> impl IntoView {
                                         batch(|| {
                                             page_params_rws
                                                 .update(|params| {
-                                                    params.grouped = !params.grouped;
+                                                    params.grouped = params.grouped.map(|g| !g);
                                                     params.prefix = None;
                                                 });
                                             let grouped = page_params_rws.with(|p| p.grouped);
-                                            if !grouped {
+                                            if let Some(true) = grouped.map(|g| !g) {
                                                 pagination_params_rws.set(PaginationParams::default());
                                             }
                                         });
