@@ -548,7 +548,7 @@ parseOutput ::
   HttpResponse ->
   IO (Either e t)
 parseOutput rawBody response = do
-  body <- HTTP.brRead (HTTP.responseBody response)
+  body <- mconcat <$> HTTP.brConsume (HTTP.responseBody response)
   let status = HTTP.responseStatus response
       code = HTTP.statusCode status
       parseInput = (response, Raw body)
@@ -564,4 +564,3 @@ parseOutput rawBody response = do
         (Right v, _) -> Left v
         (Left e, _) -> Left $ mkDeSerializationError metadata (pack e)
       Nothing -> pure $ Left $ mkUnexpectedError (Just metadata) "Un-expected status code."
-
