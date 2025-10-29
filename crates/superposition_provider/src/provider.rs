@@ -91,6 +91,44 @@ impl SuperpositionProvider {
         }
     }
 
+    pub async fn init(&self) -> Result<()> {
+        // Initialize CAC config
+        if let Some(cac_config) = &self.cac_config {
+            match cac_config.create_config().await {
+                Ok(_) => info!("CAC configuration initialized successfully"),
+                Err(e) => {
+                    error!("Failed to initialize CAC configuration: {}", e);
+                    return Err(SuperpositionError::ConfigError(format!(
+                        "Failed to initialize CAC configuration: {}",
+                        e
+                    )));
+                }
+            }
+        }
+
+        // Initialize experimentation config if available
+        if let Some(exp_config) = &self.exp_config {
+            match exp_config.create_config().await {
+                Ok(_) => info!("Experimentation configuration initialized successfully"),
+                Err(e) => {
+                    error!("Failed to initialize experimentation configuration: {}", e);
+                    return Err(SuperpositionError::ConfigError(format!(
+                        "Failed to initialize experimentation configuration: {}",
+                        e
+                    )));
+                }
+            }
+        };
+        Ok(())
+    }
+
+    pub async fn resolve_full_config(
+        &self,
+        evaluation_context: &EvaluationContext,
+    ) -> Result<serde_json::Map<String, Value>> {
+        self.eval_config(evaluation_context).await
+    }
+
     async fn eval_config(
         &self,
         evaluation_context: &EvaluationContext,
@@ -129,35 +167,14 @@ impl SuperpositionProvider {
 impl FeatureProvider for SuperpositionProvider {
     async fn initialize(&mut self, _context: &EvaluationContext) {
         info!("Initializing SuperpositionProvider...");
-
-        let mut status = self.status.write().await;
-        *status = ProviderStatus::NotReady;
-        drop(status);
-
-        // Initialize CAC config
-        if let Some(cac_config) = &self.cac_config {
-            match cac_config.create_config().await {
-                Ok(_) => info!("CAC configuration initialized successfully"),
-                Err(e) => {
-                    error!("Failed to initialize CAC configuration: {}", e);
-                    let mut status = self.status.write().await;
-                    *status = ProviderStatus::Error;
-                    return;
-                }
-            }
+        {
+            let mut status = self.status.write().await;
+            *status = ProviderStatus::NotReady;
         }
-
-        // Initialize experimentation config if available
-        if let Some(exp_config) = &self.exp_config {
-            match exp_config.create_config().await {
-                Ok(_) => info!("Experimentation configuration initialized successfully"),
-                Err(e) => {
-                    error!("Failed to initialize experimentation configuration: {}", e);
-                    let mut status = self.status.write().await;
-                    *status = ProviderStatus::Error;
-                    return;
-                }
-            }
+        if (self.init().await).is_err() {
+            let mut status = self.status.write().await;
+            *status = ProviderStatus::Error;
+            return;
         }
 
         let mut status = self.status.write().await;

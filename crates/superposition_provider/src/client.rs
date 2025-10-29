@@ -179,6 +179,7 @@ impl CacConfig {
         let sdk_config = SdkConfig::builder()
             .endpoint_url(&options.endpoint)
             .bearer_token(options.token.clone().into())
+            .behavior_version_latest()
             .build();
 
         // Create Superposition client
@@ -192,13 +193,14 @@ impl CacConfig {
             .send()
             .await
             .map_err(|e| {
-                SuperpositionError::NetworkError(format!("Failed to get config: {}", e))
+                let error = format!("Failed to get config: {}", e);
+                SuperpositionError::NetworkError(error)
             })?;
 
         // Use ConversionUtils to convert to proper Config type
         let config = ConversionUtils::convert_get_config_response(&response)?;
 
-        info!("Successfully fetched and converted config with {} contexts, {} overrides, {} default configs", 
+        info!("Successfully fetched and converted config with {} contexts, {} overrides, {} default configs",
               config.contexts.len(), config.overrides.len(), config.default_configs.len());
 
         Ok(config)
@@ -418,6 +420,7 @@ impl ExperimentationConfig {
         let sdk_config = SdkConfig::builder()
             .endpoint_url(&options.endpoint)
             .bearer_token(options.token.clone().into())
+            .behavior_version_latest()
             .build();
 
         // Create Superposition client
@@ -491,6 +494,8 @@ impl ExperimentationConfig {
                 ))
             })
         } else {
+            // TODO: should we fail if experiments are not present?
+            info!("No cached experiments available");
             Err(SuperpositionError::ConfigError(
                 "No cached experiments available".into(),
             ))
