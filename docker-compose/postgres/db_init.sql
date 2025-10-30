@@ -1444,4 +1444,36 @@ ALTER TABLE localorg_test.dimensions
     DROP COLUMN IF EXISTS dependencies,
     DROP COLUMN IF EXISTS dependents;
 
+CREATE TABLE IF NOT EXISTS localorg_dev.variables (
+    name VARCHAR PRIMARY KEY,
+    value TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by VARCHAR NOT NULL,
+    last_modified_by VARCHAR NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_variables_created_at ON localorg_dev.variables(created_at);
+CREATE INDEX IF NOT EXISTS idx_variables_last_modified_at ON localorg_dev.variables(last_modified_at); 
+
+CREATE TRIGGER variables_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.variables FOR EACH ROW EXECUTE FUNCTION localorg_dev.event_logger();
+
+CREATE TABLE IF NOT EXISTS localorg_test.variables (
+    name VARCHAR PRIMARY KEY,
+    value TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by VARCHAR NOT NULL,
+    last_modified_by VARCHAR NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_variables_created_at ON localorg_test.variables(created_at);
+CREATE INDEX IF NOT EXISTS idx_variables_last_modified_at ON localorg_test.variables(last_modified_at);
+
+CREATE TRIGGER variables_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.variables FOR EACH ROW EXECUTE FUNCTION localorg_test.event_logger();
+
 COMMIT;

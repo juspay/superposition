@@ -159,6 +159,10 @@ final class SharedSchemas {
         .putMember("member", OrganisationResponse.$SCHEMA)
         .build();
 
+    static final Schema VARIABLE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#VariableList"))
+        .putMember("member", VariableResponse.$SCHEMA)
+        .build();
+
     static final Schema WEBHOOK_LIST = Schema.listBuilder(ShapeId.from("io.superposition#WebhookList"))
         .putMember("member", WebhookResponse.$SCHEMA)
         .build();

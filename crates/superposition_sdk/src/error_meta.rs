@@ -299,6 +299,27 @@ impl From<crate::operation::create_type_templates::CreateTypeTemplatesError> for
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::create_variable::CreateVariableError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::create_variable::CreateVariableError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::create_variable::CreateVariableError> for Error {
+    fn from(err: crate::operation::create_variable::CreateVariableError) -> Self {
+        match err {
+            crate::operation::create_variable::CreateVariableError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::create_variable::CreateVariableError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::create_webhook::CreateWebhookError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::create_webhook::CreateWebhookError, R>) -> Self {
         match err {
@@ -470,6 +491,28 @@ impl From<crate::operation::delete_type_templates::DeleteTypeTemplatesError> for
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::delete_variable::DeleteVariableError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::delete_variable::DeleteVariableError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::delete_variable::DeleteVariableError> for Error {
+    fn from(err: crate::operation::delete_variable::DeleteVariableError) -> Self {
+        match err {
+            crate::operation::delete_variable::DeleteVariableError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_variable::DeleteVariableError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::delete_variable::DeleteVariableError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -799,6 +842,28 @@ impl From<crate::operation::get_type_templates_list::GetTypeTemplatesListError> 
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_variable::GetVariableError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_variable::GetVariableError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_variable::GetVariableError> for Error {
+    fn from(err: crate::operation::get_variable::GetVariableError) -> Self {
+        match err {
+            crate::operation::get_variable::GetVariableError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_variable::GetVariableError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_variable::GetVariableError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_version::GetVersionError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_version::GetVersionError, R>) -> Self {
         match err {
@@ -1052,6 +1117,27 @@ impl From<crate::operation::list_organisation::ListOrganisationError> for Error 
         match err {
             crate::operation::list_organisation::ListOrganisationError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::list_organisation::ListOrganisationError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_variables::ListVariablesError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_variables::ListVariablesError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::list_variables::ListVariablesError> for Error {
+    fn from(err: crate::operation::list_variables::ListVariablesError) -> Self {
+        match err {
+            crate::operation::list_variables::ListVariablesError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::list_variables::ListVariablesError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }
@@ -1467,6 +1553,28 @@ impl From<crate::operation::update_type_templates::UpdateTypeTemplatesError> for
             crate::operation::update_type_templates::UpdateTypeTemplatesError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_type_templates::UpdateTypeTemplatesError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_type_templates::UpdateTypeTemplatesError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::update_variable::UpdateVariableError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::update_variable::UpdateVariableError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::update_variable::UpdateVariableError> for Error {
+    fn from(err: crate::operation::update_variable::UpdateVariableError) -> Self {
+        match err {
+            crate::operation::update_variable::UpdateVariableError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_variable::UpdateVariableError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::update_variable::UpdateVariableError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }

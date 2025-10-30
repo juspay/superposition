@@ -23,6 +23,7 @@ use crate::{
         form::label::Label,
         input::{Input, InputType, Toggle},
         skeleton::{Skeleton, SkeletonVariant},
+        tip::Tip,
     },
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
     schema::{JsonSchemaType, SchemaType::Single},
@@ -299,6 +300,13 @@ pub fn webhook_form(
                     title="Custom Headers"
                     description="Custom headers are optional and can be used to pass additional information with the webhook request."
                 />
+                <Tip
+                    message="Reference variables using"
+                    code_snippet="{{VARS.KEY_NAME}}"
+                    example="{{VARS.API_KEY}}"
+                    class="mb-3"
+                />
+
                 <EditorProvider>
                     <Input
                         id="custom_headers"

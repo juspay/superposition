@@ -23,12 +23,6 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             label: "Experiment Groups".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/function"),
-            path: format!("{base}/admin/{org}/{tenant}/function"),
-            icon: "ri-code-box-fill".to_string(),
-            label: "Functions".to_string(),
-        },
-        AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/dimensions"),
             path: format!("{base}/admin/{org}/{tenant}/dimensions"),
             icon: "ri-ruler-2-fill".to_string(),
@@ -59,16 +53,28 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             label: "Type Templates".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/config/versions"),
-            path: format!("{base}/admin/{org}/{tenant}/config/versions"),
-            icon: "ri-camera-lens-fill".to_string(),
-            label: "Config Versions".to_string(),
+            key: format!("{base}/admin/{org}/{tenant}/variables"),
+            path: format!("{base}/admin/{org}/{tenant}/variables"),
+            icon: "ri-braces-line".to_string(),
+            label: "Variables".to_string(),
+        },
+        AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/function"),
+            path: format!("{base}/admin/{org}/{tenant}/function"),
+            icon: "ri-code-box-fill".to_string(),
+            label: "Functions".to_string(),
         },
         AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/webhooks"),
             path: format!("{base}/admin/{org}/{tenant}/webhooks"),
             icon: "ri-webhook-line".to_string(),
             label: "Webhooks".to_string(),
+        },
+        AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/config/versions"),
+            path: format!("{base}/admin/{org}/{tenant}/config/versions"),
+            icon: "ri-camera-lens-fill".to_string(),
+            label: "Config Versions".to_string(),
         },
         AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/audit-log"),

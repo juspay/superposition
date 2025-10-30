@@ -128,6 +128,8 @@ mod create_organisation;
 
 mod create_type_templates;
 
+mod create_variable;
+
 mod create_webhook;
 
 mod create_workspace;
@@ -171,6 +173,8 @@ mod delete_function;
 
 mod delete_type_templates;
 
+mod delete_variable;
+
 mod delete_webhook;
 
 mod discard_experiment;
@@ -201,6 +205,8 @@ mod get_type_template;
 
 mod get_type_templates_list;
 
+mod get_variable;
+
 mod get_version;
 
 mod get_webhook;
@@ -224,6 +230,8 @@ mod list_experiment_groups;
 mod list_function;
 
 mod list_organisation;
+
+mod list_variables;
 
 mod list_versions;
 
@@ -262,6 +270,8 @@ mod update_override;
 mod update_overrides_experiment;
 
 mod update_type_templates;
+
+mod update_variable;
 
 mod update_webhook;
 

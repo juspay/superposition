@@ -1,0 +1,71 @@
+---
+id: list-variables
+title: "ListVariables"
+description: "Retrieves a paginated list of all variables in the workspace with optional filtering and sorting."
+sidebar_label: "ListVariables"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vk1v20gM/SsDnbqAnLgpcsmtLYptgMVukWR7CQKDlmhrWmlGyxm5NQz/9yVHki3ZihAnSC6WpeHHI/nI4SZK0SWkS6+tia6iG/SkcYVOgSphqQ14TFWunVd2oSDP1QpIwzxnCW2Uz1D9svTTlZDwP+0zZYMpyNVC5x5Jm6UCkypnyfP/syiObIkEInSdsse/2Pb31iaflkBQIGu66Op+Exl+YanEVsbzqRaQ/1VIa37pQ/+7KuZIAlN7LJzyVs1REfqKDMfAaBGSTKJCQeGSDAuIrjaRX5fiwgT9l5ndbuMdZPkyjvgbS6jarZilJvexch5CttSCbKHenwL36Ta7WLmw41CvF8pTxWbqwF2gAiELOyFISE2s9NLYUPGGOqyr9vUMOQpkCNUcjGpubY5g3sZ/NwPhcZCCI3TOi/WenvB6Zs1TVeMIuTjM7NZhQigtNgNhdw7Ozwqb6oWuPz3Ekdc+FwNtj9yyw3/MMYb5eryCoqcspcwLgdC0oFpYatq77Uo3WJgd/pdYbWMXG/wK/NuJUGx9Wvci+z2xtJzotA0tQ0gD6R8tTRwJKzQhzxZhTM/YblS9wN6DfHElR8TjiuUvplN59NPSG2qKRVSrIyW3xiNPM9aCssx1EhJ0/sOJ6uYYip3/wEToUZKk0+vasbce8plw2h2PBcZdn4fOGDxPwXe9ABEECh0oPOK9zulAulaQV8MnvRQNnCcZmCXOuCHcYxJNszDXx47BDxGXOVnIiQSOE68Z//aw5R4xfNSXTzTfY8/9QYAHvd+JrZ+qAfcDsON2oNT5HxgcNy0Dt4e4AhP6hIl79OpY6zG7Nfm5YfQ2mL4c6ohrliBeC26RVkhfiHhCXL5KXxTonFy9Q2N7F8YAnKFgRAOWsolE+x2Fs8EXSmZle1liAAA+45fzVWePcZhUpP06bDGu4NVofQalPsu8Lz8hENLHSrTuH2SktNK3EmQdx4jOLjI5OJrJX+/uvqlaXAHLczBNLttBF27aIBCSos3CBqPtIK44naV1utHhDLna9MX04nIy/TCZXkpbsIgvwOzHQWCH6m5zBz2/K/GbLJpNkjz+9udlDjzxGXRFuSCpS3YfrbplzTgg+bjZzMHhv5Rvt/K5vlCljql2IsyVX0DucCS+E7fRQag/cd1ZfZvBGkVypT0dyClL5giKZpt9JohXWh9H8NYb7TjcWrI3N8dF98veM/Nw2ro0Et5+5dsjeYh3bA5jJW7Xm9OY++6muRr+UOMYOsvZM9Nxgqvu6tbzVgt8TBIsu11ydINsu2P7zy93PPn+BzW4M48=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ListVariables"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/variables"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves a paginated list of all variables in the workspace with optional filtering and sorting.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"count","in":"query","description":"Number of items to be returned in each page.","schema":{"type":"number","description":"Number of items to be returned in each page."}},{"name":"page","in":"query","description":"Page number to retrieve, starting from 1.","schema":{"type":"number","description":"Page number to retrieve, starting from 1."}},{"name":"all","in":"query","description":"If true, returns all requested items, ignoring pagination parameters page and count.","schema":{"type":"boolean","description":"If true, returns all requested items, ignoring pagination parameters page and count."}},{"name":"name","in":"query","schema":{"type":"string"}},{"name":"sort_on","in":"query","schema":{"type":"string","enum":["name","created_at","last_modified_at"],"title":"VariableSortOn"}},{"name":"sort_by","in":"query","description":"Sort order enumeration for list operations.","schema":{"type":"string","description":"Sort order enumeration for list operations.","enum":["desc","asc"],"title":"SortBy"}},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"ListVariables 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","name","value"],"title":"VariableResponse"}}},"required":["data","total_items","total_pages"],"title":"ListVariablesResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
