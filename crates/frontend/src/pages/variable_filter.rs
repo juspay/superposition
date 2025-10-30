@@ -1,0 +1,143 @@
+use leptos::*;
+use superposition_types::{
+    api::variables::VariableFilters, custom_query::PaginationParams,
+};
+use web_sys::MouseEvent;
+
+use crate::components::{
+    badge::GrayPill,
+    button::{Button, ButtonStyle},
+    drawer::{close_drawer, Drawer, DrawerBtn},
+    form::label::Label,
+};
+
+#[component]
+pub fn filter_summary(filters_rws: RwSignal<VariableFilters>) -> impl IntoView {
+    let force_open_rws = RwSignal::new(true);
+
+    view! {
+        <Show when=move || {
+            let filters_empty = filters_rws.with(|f| f.name.is_none());
+            !filters_empty
+        }>
+            <div class="flex gap-2">
+                <div
+                    class="h-max max-w-[1000px] pt-1 px-0.5 border-[1.5px] border-solid border-purple-400 rounded-[10px] cursor-pointer"
+                    on:click=move |_| force_open_rws.update(|f| *f = !*f)
+                >
+                    <i class=move || {
+                        format!(
+                            "{} ri-xl text-purple-800",
+                            if force_open_rws.get() {
+                                "ri-filter-2-fill"
+                            } else {
+                                "ri-filter-2-line"
+                            },
+                        )
+                    } />
+                    <i class=move || {
+                        format!(
+                            "{} ri-xl text-gray-500",
+                            if force_open_rws.get() {
+                                "ri-arrow-up-s-line"
+                            } else {
+                                "ri-arrow-down-s-line"
+                            },
+                        )
+                    } />
+                </div>
+                <div class=move || {
+                    format!(
+                        "{} flex flex-col gap-1 overflow-hidden",
+                        if force_open_rws.get() { "max-h-[1000px]" } else { "max-h-0" },
+                    )
+                }>
+                    {move || {
+                        filters_rws
+                            .with(|f| f.name.clone())
+                            .map(|name| {
+                                view! {
+                                    <div class="flex gap-2 items-center">
+                                        <span class="text-xs">"Name"</span>
+                                        <GrayPill
+                                            text=name
+                                            on_delete=move |_| {
+                                                filters_rws.update(|f| f.name = None);
+                                            }
+                                        />
+                                    </div>
+                                }
+                            })
+                    }}
+                </div>
+            </div>
+        </Show>
+    }
+}
+
+#[component]
+pub fn variable_filter_widget(
+    pagination_params_rws: RwSignal<PaginationParams>,
+    filters_rws: RwSignal<VariableFilters>,
+) -> impl IntoView {
+    let filters = filters_rws.get_untracked();
+    let filters_buffer_rws = create_rw_signal(filters.clone());
+
+    view! {
+        <DrawerBtn
+            drawer_id="variable_filter_drawer"
+            class="!h-9 !min-h-[32px] !w-fit px-2"
+            style=ButtonStyle::Outline
+            text="Filters"
+            icon_class="ri-filter-3-line"
+        />
+        <Drawer
+            id="variable_filter_drawer"
+            header="Variable Filters"
+            handle_close=move || close_drawer("variable_filter_drawer")
+        >
+            <div class="flex flex-col gap-5">
+                <div class="form-control">
+                    <Label title="Variable Name" />
+                    <input
+                        type="text"
+                        id="variable-name-filter"
+                        placeholder="eg: API_KEY"
+                        class="input input-bordered rounded-md resize-y w-full max-w-md"
+                        value=filters_buffer_rws.get_untracked().name
+                        on:change=move |event| {
+                            let name = event_target_value(&event);
+                            let name = if name.is_empty() { None } else { Some(name) };
+                            filters_buffer_rws.update(|f| f.name = name);
+                        }
+                    />
+                </div>
+                <div class="flex justify-end gap-2">
+                    <Button
+                        class="h-12 w-48"
+                        text="Submit"
+                        icon_class="ri-send-plane-line"
+                        on_click=move |event: MouseEvent| {
+                            event.prevent_default();
+                            let filter = filters_buffer_rws.get();
+                            pagination_params_rws.update(|f| f.reset_page());
+                            filters_rws.set(filter);
+                            close_drawer("variable_filter_drawer")
+                        }
+                    />
+                    <Button
+                        class="h-12 w-48"
+                        text="Reset"
+                        on_click=move |event: MouseEvent| {
+                            event.prevent_default();
+                            let filters = VariableFilters::default();
+                            pagination_params_rws.update(|f| f.reset_page());
+                            filters_rws.set(filters);
+                            close_drawer("variable_filter_drawer")
+                        }
+                    />
+                </div>
+            </div>
+        </Drawer>
+    }
+}

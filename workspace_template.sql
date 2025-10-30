@@ -686,3 +686,25 @@ ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
 ALTER TABLE {replaceme}.dimensions 
     DROP COLUMN IF EXISTS dependencies,
     DROP COLUMN IF EXISTS dependents;
+
+CREATE TABLE IF NOT EXISTS {replaceme}.variables (
+    name VARCHAR PRIMARY KEY,
+    value TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by VARCHAR NOT NULL,
+    last_modified_by VARCHAR NOT NULL
+);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_variables_created_at ON {replaceme}.variables(created_at);
+CREATE INDEX IF NOT EXISTS idx_variables_last_modified_at ON {replaceme}.variables(last_modified_at);
+
+-- Add audit trigger for the variables table
+DO $$ BEGIN
+    CREATE TRIGGER variables_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.variables FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;

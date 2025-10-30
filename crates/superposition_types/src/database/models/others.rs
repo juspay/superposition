@@ -1,8 +1,9 @@
 #[cfg(feature = "diesel_derives")]
-use super::super::schema::webhooks;
+use super::super::schema::{variables, webhooks};
 use super::{ChangeReason, Description, NonEmptyString};
+use crate::RegexEnum;
 use chrono::{DateTime, Utc};
-use derive_more::{AsRef, Deref, Into};
+use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
     deserialize::FromSqlRow,
@@ -161,4 +162,63 @@ impl From<Map<String, Value>> for CustomHeaders {
     fn from(value: Map<String, Value>) -> Self {
         Self(value)
     }
+}
+
+#[derive(
+    Debug, Serialize, Deserialize, AsRef, Deref, DerefMut, Clone, PartialEq, Into,
+)]
+#[serde(try_from = "String")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, TextFromSql, TextToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
+pub struct VariableName(pub String);
+
+impl VariableName {
+    pub fn validate(name: String) -> Result<Self, String> {
+        let name = name.trim();
+
+        if name.is_empty() {
+            return Err("Variable name cannot be empty".to_string());
+        }
+        if name.len() > 50 {
+            return Err("Variable name cannot exceed 50 characters".to_string());
+        }
+
+        RegexEnum::VariableName
+            .match_regex(name)
+            .map(|_| Self(name.to_string()))
+    }
+}
+
+impl TryFrom<String> for VariableName {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::validate(value)
+    }
+}
+
+impl From<&VariableName> for String {
+    fn from(value: &VariableName) -> Self {
+        value.0.clone()
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(name)))]
+pub struct Variable {
+    pub name: VariableName,
+    pub value: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
+    pub created_at: DateTime<Utc>,
+    pub last_modified_at: DateTime<Utc>,
+    pub created_by: String,
+    pub last_modified_by: String,
 }

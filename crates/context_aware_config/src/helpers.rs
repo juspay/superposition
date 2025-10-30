@@ -305,6 +305,8 @@ fn compute_value_with_function(
     key: &str,
     context: Map<String, Value>,
     overrides: Map<String, Value>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
 ) -> superposition::Result<Value> {
     match execute_fn(
         function,
@@ -313,6 +315,8 @@ fn compute_value_with_function(
             prefix: String::new(),
             environment: FunctionEnvironment { context, overrides },
         },
+        conn,
+        schema_name,
     ) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
@@ -393,6 +397,8 @@ fn evaluate_remote_cohorts_dependency(
                 based_on,
                 modified_context.clone(),
                 Map::new(),
+                conn,
+                schema_name,
             )?;
 
             modified_context.insert(cohort_dimension.clone(), value);
