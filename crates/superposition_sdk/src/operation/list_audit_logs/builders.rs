@@ -194,32 +194,42 @@ impl ListAuditLogsFluentBuilder {
     pub fn get_to_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
                     self.inner.get_to_date()
                 }
-    /// Comma serparated list of tables.
+    /// 
+    /// Appends an item to `tables`.
+    /// 
+    /// To override the contents of this collection use [`set_tables`](Self::set_tables).
+    /// 
+    #[allow(missing_docs)] // documentation missing in model
     pub fn tables(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.tables(input.into());
-                    self
-                }
-    /// Comma serparated list of tables.
-    pub fn set_tables(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                        self.inner = self.inner.tables(input.into());
+                        self
+                    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_tables(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_tables(input);
                     self
                 }
-    /// Comma serparated list of tables.
-    pub fn get_tables(&self) -> &::std::option::Option<::std::string::String> {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_tables(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_tables()
                 }
-    /// Comma serparated list of actions.
-    pub fn action(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.action(input.into());
-                    self
-                }
-    /// Comma serparated list of actions.
-    pub fn set_action(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    /// 
+    /// Appends an item to `action`.
+    /// 
+    /// To override the contents of this collection use [`set_action`](Self::set_action).
+    /// 
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn action(mut self, input: crate::types::AuditAction) -> Self {
+                        self.inner = self.inner.action(input);
+                        self
+                    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_action(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>) -> Self {
                     self.inner = self.inner.set_action(input);
                     self
                 }
-    /// Comma serparated list of actions.
-    pub fn get_action(&self) -> &::std::option::Option<::std::string::String> {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_action(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>> {
                     self.inner.get_action()
                 }
     #[allow(missing_docs)] // documentation missing in model

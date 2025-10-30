@@ -45,7 +45,9 @@ export interface GetResolvedConfigCommandOutput extends GetResolvedConfigOutput,
  * const input = { // GetResolvedConfigInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   prefix: "STRING_VALUE",
+ *   prefix: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
  *   version: "STRING_VALUE",
  *   show_reasoning: true || false,
  *   merge_strategy: "MERGE" || "REPLACE",

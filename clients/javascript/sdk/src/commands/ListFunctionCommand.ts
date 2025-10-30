@@ -48,6 +48,9 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   function_type: [ // FunctionTypesList
+ *     "VALIDATION" || "AUTOCOMPLETE",
+ *   ],
  * };
  * const command = new ListFunctionCommand(input);
  * const response = await client.send(command);

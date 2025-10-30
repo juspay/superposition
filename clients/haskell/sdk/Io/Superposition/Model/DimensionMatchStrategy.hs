@@ -11,8 +11,8 @@ import qualified Io.Superposition.Utility
 
 -- Enum implementation for DimensionMatchStrategy
 data DimensionMatchStrategy =
-    Exact
-    | Subset
+    EXACT
+    | SUBSET
     deriving (
         GHC.Generics.Generic,
         Data.Eq.Eq,
@@ -20,24 +20,24 @@ data DimensionMatchStrategy =
     )
 
 instance Data.Aeson.ToJSON DimensionMatchStrategy where
-    toJSON Exact = Data.Aeson.String $ Data.Text.pack "exact"
-    toJSON Subset = Data.Aeson.String $ Data.Text.pack "subset"
+    toJSON EXACT = Data.Aeson.String $ Data.Text.pack "exact"
+    toJSON SUBSET = Data.Aeson.String $ Data.Text.pack "subset"
 
 instance Data.Aeson.FromJSON DimensionMatchStrategy where
     parseJSON = Data.Aeson.withText "DimensionMatchStrategy" $ \v ->
         case v of
-            "exact" -> pure Exact
-            "subset" -> pure Subset
+            "exact" -> pure EXACT
+            "subset" -> pure SUBSET
             _ -> fail $ "Unknown value for DimensionMatchStrategy: " <> Data.Text.unpack v
         
     
 
 instance Io.Superposition.Utility.SerDe DimensionMatchStrategy where
-    serializeElement Exact = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "exact"
-    serializeElement Subset = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "subset"
+    serializeElement EXACT = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "exact"
+    serializeElement SUBSET = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "subset"
     deSerializeElement bs = case Data.Text.Encoding.decodeUtf8 bs of
-        "exact" -> Right Exact
-        "subset" -> Right Subset
+        "exact" -> Right EXACT
+        "subset" -> Right SUBSET
         e -> Left ("Failed to de-serialize DimensionMatchStrategy, encountered unknown variant: " ++ (show bs))
     
 

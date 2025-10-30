@@ -2,6 +2,8 @@
 package io.juspay.superposition.model;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -39,9 +41,9 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 new HttpQueryTrait("from_date"))
         .putMember("to_date", SharedSchemas.DATE_TIME,
                 new HttpQueryTrait("to_date"))
-        .putMember("tables", PreludeSchemas.STRING,
+        .putMember("tables", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("table"))
-        .putMember("action", PreludeSchemas.STRING,
+        .putMember("action", SharedSchemas.AUDIT_ACTION_LIST,
                 new HttpQueryTrait("action"))
         .putMember("username", PreludeSchemas.STRING,
                 new HttpQueryTrait("username"))
@@ -68,8 +70,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
     private final transient Boolean all;
     private final transient Instant fromDate;
     private final transient Instant toDate;
-    private final transient String tables;
-    private final transient String action;
+    private final transient List<String> tables;
+    private final transient List<AuditAction> action;
     private final transient String username;
     private final transient SortBy sortBy;
 
@@ -81,8 +83,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
         this.all = builder.all;
         this.fromDate = builder.fromDate;
         this.toDate = builder.toDate;
-        this.tables = builder.tables;
-        this.action = builder.action;
+        this.tables = builder.tables == null ? null : Collections.unmodifiableList(builder.tables);
+        this.action = builder.action == null ? null : Collections.unmodifiableList(builder.action);
         this.username = builder.username;
         this.sortBy = builder.sortBy;
     }
@@ -124,18 +126,26 @@ public final class ListAuditLogsInput implements SerializableStruct {
         return toDate;
     }
 
-    /**
-     * Comma serparated list of tables.
-     */
-    public String tables() {
+    public List<String> tables() {
+        if (tables == null) {
+            return Collections.emptyList();
+        }
         return tables;
     }
 
-    /**
-     * Comma serparated list of actions.
-     */
-    public String action() {
+    public boolean hasTables() {
+        return tables != null;
+    }
+
+    public List<AuditAction> action() {
+        if (action == null) {
+            return Collections.emptyList();
+        }
         return action;
+    }
+
+    public boolean hasAction() {
+        return action != null;
     }
 
     public String username() {
@@ -203,10 +213,10 @@ public final class ListAuditLogsInput implements SerializableStruct {
             serializer.writeTimestamp($SCHEMA_TO_DATE, toDate);
         }
         if (tables != null) {
-            serializer.writeString($SCHEMA_TABLES, tables);
+            serializer.writeList($SCHEMA_TABLES, tables, tables.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (action != null) {
-            serializer.writeString($SCHEMA_ACTION, action);
+            serializer.writeList($SCHEMA_ACTION, action, action.size(), SharedSerde.AuditActionListSerializer.INSTANCE);
         }
         if (username != null) {
             serializer.writeString($SCHEMA_USERNAME, username);
@@ -277,8 +287,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
         private Boolean all;
         private Instant fromDate;
         private Instant toDate;
-        private String tables;
-        private String action;
+        private List<String> tables;
+        private List<AuditAction> action;
         private String username;
         private SortBy sortBy;
 
@@ -356,21 +366,17 @@ public final class ListAuditLogsInput implements SerializableStruct {
         }
 
         /**
-         * Comma serparated list of tables.
-         *
          * @return this builder.
          */
-        public Builder tables(String tables) {
+        public Builder tables(List<String> tables) {
             this.tables = tables;
             return this;
         }
 
         /**
-         * Comma serparated list of actions.
-         *
          * @return this builder.
          */
-        public Builder action(String action) {
+        public Builder action(List<AuditAction> action) {
             this.action = action;
             return this;
         }
@@ -408,8 +414,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
                 case 5 -> fromDate((Instant) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, value));
                 case 6 -> toDate((Instant) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, value));
-                case 7 -> tables((String) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, value));
-                case 8 -> action((String) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, value));
+                case 7 -> tables((List<String>) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, value));
+                case 8 -> action((List<AuditAction>) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, value));
                 case 9 -> username((String) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, value));
                 case 10 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
@@ -455,8 +461,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
                     case 4 -> builder.all(de.readBoolean(member));
                     case 5 -> builder.fromDate(de.readTimestamp(member));
                     case 6 -> builder.toDate(de.readTimestamp(member));
-                    case 7 -> builder.tables(de.readString(member));
-                    case 8 -> builder.action(de.readString(member));
+                    case 7 -> builder.tables(SharedSerde.deserializeStringList(member, de));
+                    case 8 -> builder.action(SharedSerde.deserializeAuditActionList(member, de));
                     case 9 -> builder.username(de.readString(member));
                     case 10 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());

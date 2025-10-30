@@ -48,11 +48,17 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   prefix: "STRING_VALUE",
+ *   prefix: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
  *   sort_on: "last_modified_at" || "created_at" || "weight",
  *   sort_by: "desc" || "asc",
- *   created_by: "STRING_VALUE",
- *   last_modified_by: "STRING_VALUE",
+ *   created_by: [
+ *     "STRING_VALUE",
+ *   ],
+ *   last_modified_by: [
+ *     "STRING_VALUE",
+ *   ],
  *   plaintext: "STRING_VALUE",
  *   dimension_match_strategy: "exact" || "subset",
  * };

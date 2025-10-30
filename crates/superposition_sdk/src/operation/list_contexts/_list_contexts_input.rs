@@ -14,15 +14,15 @@ pub struct ListContextsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub prefix: ::std::option::Option<::std::string::String>,
+    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub sort_on: ::std::option::Option<crate::types::ContextFilterSortOn>,
     /// Sort order enumeration for list operations.
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
     #[allow(missing_docs)] // documentation missing in model
-    pub created_by: ::std::option::Option<::std::string::String>,
+    pub created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub last_modified_by: ::std::option::Option<::std::string::String>,
+    pub last_modified_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub plaintext: ::std::option::Option<::std::string::String>,
     /// Strategy to follow while filter items based on the context
@@ -50,8 +50,11 @@ impl  ListContextsInput  {
         self.org_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn prefix(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
+    pub fn prefix(&self) -> &[::std::string::String] {
         self.prefix.as_deref()
+        .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn sort_on(&self) -> ::std::option::Option<&crate::types::ContextFilterSortOn> {
@@ -62,12 +65,18 @@ impl  ListContextsInput  {
         self.sort_by.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn created_by(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.created_by.is_none()`.
+    pub fn created_by(&self) -> &[::std::string::String] {
         self.created_by.as_deref()
+        .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn last_modified_by(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.last_modified_by.is_none()`.
+    pub fn last_modified_by(&self) -> &[::std::string::String] {
         self.last_modified_by.as_deref()
+        .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn plaintext(&self) -> ::std::option::Option<&str> {
@@ -94,11 +103,11 @@ pub struct ListContextsInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) prefix: ::std::option::Option<::std::string::String>,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ContextFilterSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
-    pub(crate) created_by: ::std::option::Option<::std::string::String>,
-    pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
+    pub(crate) created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) last_modified_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) plaintext: ::std::option::Option<::std::string::String>,
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
@@ -170,17 +179,22 @@ impl ListContextsInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Appends an item to `prefix`.
+    ///
+    /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
+    ///
     pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.prefix = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.prefix.unwrap_or_default();
+                        v.push(input.into());
+                        self.prefix = ::std::option::Option::Some(v);
+                        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.prefix = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.prefix
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -209,30 +223,40 @@ impl ListContextsInputBuilder {
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
         &self.sort_by
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Appends an item to `created_by`.
+    ///
+    /// To override the contents of this collection use [`set_created_by`](Self::set_created_by).
+    ///
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.created_by = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.created_by.unwrap_or_default();
+                        v.push(input.into());
+                        self.created_by = ::std::option::Option::Some(v);
+                        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_created_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.created_by = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_created_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.created_by
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Appends an item to `last_modified_by`.
+    ///
+    /// To override the contents of this collection use [`set_last_modified_by`](Self::set_last_modified_by).
+    ///
     pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.last_modified_by = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.last_modified_by.unwrap_or_default();
+                        v.push(input.into());
+                        self.last_modified_by = ::std::option::Option::Some(v);
+                        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.last_modified_by = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.last_modified_by
     }
     #[allow(missing_docs)] // documentation missing in model

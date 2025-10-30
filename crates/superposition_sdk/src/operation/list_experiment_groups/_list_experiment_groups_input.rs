@@ -24,7 +24,7 @@ pub struct ListExperimentGroupsInput  {
     /// Sort order (ascending or descending).
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub group_type: ::std::option::Option<crate::types::GroupType>,
+    pub group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
 }
 impl  ListExperimentGroupsInput  {
     /// Number of items to be returned in each page.
@@ -68,8 +68,11 @@ impl  ListExperimentGroupsInput  {
         self.sort_by.as_ref()
     }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn group_type(&self) -> ::std::option::Option<&crate::types::GroupType> {
-        self.group_type.as_ref()
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.group_type.is_none()`.
+    pub fn group_type(&self) -> &[crate::types::GroupType] {
+        self.group_type.as_deref()
+        .unwrap_or_default()
     }
 }
 impl ListExperimentGroupsInput {
@@ -93,7 +96,7 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentGroupSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
-    pub(crate) group_type: ::std::option::Option<crate::types::GroupType>,
+    pub(crate) group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
 }
 impl ListExperimentGroupsInputBuilder {
     /// Number of items to be returned in each page.
@@ -228,17 +231,23 @@ impl ListExperimentGroupsInputBuilder {
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
         &self.sort_by
     }
+    /// Appends an item to `group_type`.
+    ///
+    /// To override the contents of this collection use [`set_group_type`](Self::set_group_type).
+    ///
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
-        self.group_type = ::std::option::Option::Some(input);
-        self
+        let mut v = self.group_type.unwrap_or_default();
+                        v.push(input);
+                        self.group_type = ::std::option::Option::Some(v);
+                        self
     }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn set_group_type(mut self, input: ::std::option::Option<crate::types::GroupType>) -> Self {
+    pub fn set_group_type(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>) -> Self {
         self.group_type = input; self
     }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn get_group_type(&self) -> &::std::option::Option<crate::types::GroupType> {
+    pub fn get_group_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::GroupType>> {
         &self.group_type
     }
     /// Consumes the builder and constructs a [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).

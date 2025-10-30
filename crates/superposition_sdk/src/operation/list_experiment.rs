@@ -152,57 +152,65 @@ fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mu
     }
     if let ::std::option::Option::Some(inner_4) = &_input.status {
          {
-            query.push_kv("status", &::aws_smithy_http::query::fmt_string(inner_4));
+            for inner_5 in inner_4 {
+                query.push_kv("status", &::aws_smithy_http::query::fmt_string(inner_5));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_5) = &_input.from_date {
+    if let ::std::option::Option::Some(inner_6) = &_input.from_date {
          {
-            query.push_kv("from_date", &::aws_smithy_http::query::fmt_timestamp(inner_5, ::aws_smithy_types::date_time::Format::DateTime)?);
+            query.push_kv("from_date", &::aws_smithy_http::query::fmt_timestamp(inner_6, ::aws_smithy_types::date_time::Format::DateTime)?);
         }
     }
-    if let ::std::option::Option::Some(inner_6) = &_input.to_date {
+    if let ::std::option::Option::Some(inner_7) = &_input.to_date {
          {
-            query.push_kv("to_date", &::aws_smithy_http::query::fmt_timestamp(inner_6, ::aws_smithy_types::date_time::Format::DateTime)?);
+            query.push_kv("to_date", &::aws_smithy_http::query::fmt_timestamp(inner_7, ::aws_smithy_types::date_time::Format::DateTime)?);
         }
     }
-    if let ::std::option::Option::Some(inner_7) = &_input.experiment_name {
+    if let ::std::option::Option::Some(inner_8) = &_input.experiment_name {
          {
-            query.push_kv("experiment_name", &::aws_smithy_http::query::fmt_string(inner_7));
+            query.push_kv("experiment_name", &::aws_smithy_http::query::fmt_string(inner_8));
         }
     }
-    if let ::std::option::Option::Some(inner_8) = &_input.experiment_ids {
+    if let ::std::option::Option::Some(inner_9) = &_input.experiment_ids {
          {
-            query.push_kv("experiment_ids", &::aws_smithy_http::query::fmt_string(inner_8));
+            for inner_10 in inner_9 {
+                query.push_kv("experiment_ids", &::aws_smithy_http::query::fmt_string(inner_10));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_9) = &_input.experiment_group_ids {
+    if let ::std::option::Option::Some(inner_11) = &_input.experiment_group_ids {
          {
-            query.push_kv("experiment_group_ids", &::aws_smithy_http::query::fmt_string(inner_9));
+            for inner_12 in inner_11 {
+                query.push_kv("experiment_group_ids", &::aws_smithy_http::query::fmt_string(inner_12));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_10) = &_input.created_by {
+    if let ::std::option::Option::Some(inner_13) = &_input.created_by {
          {
-            query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_10));
+            for inner_14 in inner_13 {
+                query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_14));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_11) = &_input.sort_on {
+    if let ::std::option::Option::Some(inner_15) = &_input.sort_on {
          {
-            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_11));
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_15));
         }
     }
-    if let ::std::option::Option::Some(inner_12) = &_input.sort_by {
+    if let ::std::option::Option::Some(inner_16) = &_input.sort_by {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_12));
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_16));
         }
     }
-    if let ::std::option::Option::Some(inner_13) = &_input.global_experiments_only {
+    if let ::std::option::Option::Some(inner_17) = &_input.global_experiments_only {
          {
-            query.push_kv("global_experiments_only", ::aws_smithy_types::primitive::Encoder::from(*inner_13).encode());
+            query.push_kv("global_experiments_only", ::aws_smithy_types::primitive::Encoder::from(*inner_17).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_14) = &_input.dimension_match_strategy {
+    if let ::std::option::Option::Some(inner_18) = &_input.dimension_match_strategy {
          {
-            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_14));
+            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_18));
         }
     }
     ::std::result::Result::Ok(())

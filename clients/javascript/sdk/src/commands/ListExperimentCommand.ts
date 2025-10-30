@@ -48,13 +48,21 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   status: "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED" || "PAUSED",
+ *   status: [ // ExperimentStatusTypeList
+ *     "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED" || "PAUSED",
+ *   ],
  *   from_date: new Date("TIMESTAMP"),
  *   to_date: new Date("TIMESTAMP"),
  *   experiment_name: "STRING_VALUE",
- *   experiment_ids: "STRING_VALUE",
- *   experiment_group_ids: "STRING_VALUE",
- *   created_by: "STRING_VALUE",
+ *   experiment_ids: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
+ *   experiment_group_ids: [
+ *     "STRING_VALUE",
+ *   ],
+ *   created_by: [
+ *     "STRING_VALUE",
+ *   ],
  *   sort_on: "last_modified_at" || "created_at",
  *   sort_by: "desc" || "asc",
  *   global_experiments_only: true || false,

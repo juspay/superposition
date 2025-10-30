@@ -2,6 +2,8 @@
 package io.juspay.superposition.model;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -35,7 +37,7 @@ public final class ListExperimentInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
-        .putMember("status", ExperimentStatusType.$SCHEMA,
+        .putMember("status", SharedSchemas.EXPERIMENT_STATUS_TYPE_LIST,
                 new HttpQueryTrait("status"))
         .putMember("from_date", SharedSchemas.DATE_TIME,
                 new HttpQueryTrait("from_date"))
@@ -43,11 +45,11 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpQueryTrait("to_date"))
         .putMember("experiment_name", PreludeSchemas.STRING,
                 new HttpQueryTrait("experiment_name"))
-        .putMember("experiment_ids", PreludeSchemas.STRING,
+        .putMember("experiment_ids", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("experiment_ids"))
-        .putMember("experiment_group_ids", PreludeSchemas.STRING,
+        .putMember("experiment_group_ids", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("experiment_group_ids"))
-        .putMember("created_by", PreludeSchemas.STRING,
+        .putMember("created_by", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("created_by"))
         .putMember("sort_on", ExperimentSortOn.$SCHEMA,
                 new HttpQueryTrait("sort_on"))
@@ -81,13 +83,13 @@ public final class ListExperimentInput implements SerializableStruct {
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
-    private final transient ExperimentStatusType status;
+    private final transient List<ExperimentStatusType> status;
     private final transient Instant fromDate;
     private final transient Instant toDate;
     private final transient String experimentName;
-    private final transient String experimentIds;
-    private final transient String experimentGroupIds;
-    private final transient String createdBy;
+    private final transient List<String> experimentIds;
+    private final transient List<String> experimentGroupIds;
+    private final transient List<String> createdBy;
     private final transient ExperimentSortOn sortOn;
     private final transient SortBy sortBy;
     private final transient Boolean globalExperimentsOnly;
@@ -99,13 +101,13 @@ public final class ListExperimentInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
-        this.status = builder.status;
+        this.status = builder.status == null ? null : Collections.unmodifiableList(builder.status);
         this.fromDate = builder.fromDate;
         this.toDate = builder.toDate;
         this.experimentName = builder.experimentName;
-        this.experimentIds = builder.experimentIds;
-        this.experimentGroupIds = builder.experimentGroupIds;
-        this.createdBy = builder.createdBy;
+        this.experimentIds = builder.experimentIds == null ? null : Collections.unmodifiableList(builder.experimentIds);
+        this.experimentGroupIds = builder.experimentGroupIds == null ? null : Collections.unmodifiableList(builder.experimentGroupIds);
+        this.createdBy = builder.createdBy == null ? null : Collections.unmodifiableList(builder.createdBy);
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
         this.globalExperimentsOnly = builder.globalExperimentsOnly;
@@ -141,8 +143,15 @@ public final class ListExperimentInput implements SerializableStruct {
         return orgId;
     }
 
-    public ExperimentStatusType status() {
+    public List<ExperimentStatusType> status() {
+        if (status == null) {
+            return Collections.emptyList();
+        }
         return status;
+    }
+
+    public boolean hasStatus() {
+        return status != null;
     }
 
     public Instant fromDate() {
@@ -157,16 +166,37 @@ public final class ListExperimentInput implements SerializableStruct {
         return experimentName;
     }
 
-    public String experimentIds() {
+    public List<String> experimentIds() {
+        if (experimentIds == null) {
+            return Collections.emptyList();
+        }
         return experimentIds;
     }
 
-    public String experimentGroupIds() {
+    public boolean hasExperimentIds() {
+        return experimentIds != null;
+    }
+
+    public List<String> experimentGroupIds() {
+        if (experimentGroupIds == null) {
+            return Collections.emptyList();
+        }
         return experimentGroupIds;
     }
 
-    public String createdBy() {
+    public boolean hasExperimentGroupIds() {
+        return experimentGroupIds != null;
+    }
+
+    public List<String> createdBy() {
+        if (createdBy == null) {
+            return Collections.emptyList();
+        }
         return createdBy;
+    }
+
+    public boolean hasCreatedBy() {
+        return createdBy != null;
     }
 
     public ExperimentSortOn sortOn() {
@@ -241,7 +271,7 @@ public final class ListExperimentInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (status != null) {
-            serializer.writeString($SCHEMA_STATUS, status.value());
+            serializer.writeList($SCHEMA_STATUS, status, status.size(), SharedSerde.ExperimentStatusTypeListSerializer.INSTANCE);
         }
         if (fromDate != null) {
             serializer.writeTimestamp($SCHEMA_FROM_DATE, fromDate);
@@ -253,13 +283,13 @@ public final class ListExperimentInput implements SerializableStruct {
             serializer.writeString($SCHEMA_EXPERIMENT_NAME, experimentName);
         }
         if (experimentIds != null) {
-            serializer.writeString($SCHEMA_EXPERIMENT_IDS, experimentIds);
+            serializer.writeList($SCHEMA_EXPERIMENT_IDS, experimentIds, experimentIds.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (experimentGroupIds != null) {
-            serializer.writeString($SCHEMA_EXPERIMENT_GROUP_IDS, experimentGroupIds);
+            serializer.writeList($SCHEMA_EXPERIMENT_GROUP_IDS, experimentGroupIds, experimentGroupIds.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (createdBy != null) {
-            serializer.writeString($SCHEMA_CREATED_BY, createdBy);
+            serializer.writeList($SCHEMA_CREATED_BY, createdBy, createdBy.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (sortOn != null) {
             serializer.writeString($SCHEMA_SORT_ON, sortOn.value());
@@ -344,13 +374,13 @@ public final class ListExperimentInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
-        private ExperimentStatusType status;
+        private List<ExperimentStatusType> status;
         private Instant fromDate;
         private Instant toDate;
         private String experimentName;
-        private String experimentIds;
-        private String experimentGroupIds;
-        private String createdBy;
+        private List<String> experimentIds;
+        private List<String> experimentGroupIds;
+        private List<String> createdBy;
         private ExperimentSortOn sortOn;
         private SortBy sortBy;
         private Boolean globalExperimentsOnly;
@@ -416,7 +446,7 @@ public final class ListExperimentInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder status(ExperimentStatusType status) {
+        public Builder status(List<ExperimentStatusType> status) {
             this.status = status;
             return this;
         }
@@ -448,7 +478,7 @@ public final class ListExperimentInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder experimentIds(String experimentIds) {
+        public Builder experimentIds(List<String> experimentIds) {
             this.experimentIds = experimentIds;
             return this;
         }
@@ -456,7 +486,7 @@ public final class ListExperimentInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder experimentGroupIds(String experimentGroupIds) {
+        public Builder experimentGroupIds(List<String> experimentGroupIds) {
             this.experimentGroupIds = experimentGroupIds;
             return this;
         }
@@ -464,7 +494,7 @@ public final class ListExperimentInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder createdBy(String createdBy) {
+        public Builder createdBy(List<String> createdBy) {
             this.createdBy = createdBy;
             return this;
         }
@@ -516,13 +546,13 @@ public final class ListExperimentInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 5 -> status((ExperimentStatusType) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, value));
+                case 5 -> status((List<ExperimentStatusType>) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, value));
                 case 6 -> fromDate((Instant) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, value));
                 case 7 -> toDate((Instant) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, value));
                 case 8 -> experimentName((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_NAME, member, value));
-                case 9 -> experimentIds((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, value));
-                case 10 -> experimentGroupIds((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, value));
-                case 11 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 9 -> experimentIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, value));
+                case 10 -> experimentGroupIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, value));
+                case 11 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
                 case 12 -> sortOn((ExperimentSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 case 13 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 case 14 -> globalExperimentsOnly((boolean) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, value));
@@ -568,13 +598,13 @@ public final class ListExperimentInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-                    case 5 -> builder.status(ExperimentStatusType.builder().deserializeMember(de, member).build());
+                    case 5 -> builder.status(SharedSerde.deserializeExperimentStatusTypeList(member, de));
                     case 6 -> builder.fromDate(de.readTimestamp(member));
                     case 7 -> builder.toDate(de.readTimestamp(member));
                     case 8 -> builder.experimentName(de.readString(member));
-                    case 9 -> builder.experimentIds(de.readString(member));
-                    case 10 -> builder.experimentGroupIds(de.readString(member));
-                    case 11 -> builder.createdBy(de.readString(member));
+                    case 9 -> builder.experimentIds(SharedSerde.deserializeStringList(member, de));
+                    case 10 -> builder.experimentGroupIds(SharedSerde.deserializeStringList(member, de));
+                    case 11 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
                     case 12 -> builder.sortOn(ExperimentSortOn.builder().deserializeMember(de, member).build());
                     case 13 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     case 14 -> builder.globalExperimentsOnly(de.readBoolean(member));
