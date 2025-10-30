@@ -141,14 +141,7 @@ impl AuthNHandler {
         let mut auth = auth_provider.split('+');
 
         let ap: Arc<dyn Authenticator> = match auth.next() {
-            Some("DISABLED") => Arc::new(DisabledAuthenticator::new(
-                get_from_env_unsafe::<String>("LOCAL_ORGS")
-                    .unwrap()
-                    .split(',')
-                    .map(String::from)
-                    .collect(),
-                path_prefix,
-            )),
+            Some("DISABLED") => Arc::new(DisabledAuthenticator::new(path_prefix)),
             Some("OIDC") => {
                 let url = Url::parse(auth.next().unwrap())
                     .map_err(|e| e.to_string())
