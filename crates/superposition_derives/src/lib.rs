@@ -204,20 +204,6 @@ pub fn derive_is_empty(input: TokenStream) -> TokenStream {
 /// - `#[query_param(iterable)]`: Iterate over the field and create multiple query parameters with the same key
 /// - `#[query_param(skip_if_empty, iterable)]`: Combine both behaviors
 ///
-/// Examples:
-/// ```rust
-/// #[derive(QueryParam)]
-/// struct MyQuery {
-///     name: String,                              // Always included: "name=value"
-///     #[query_param(skip_if_empty)]
-///     optional: Option<String>,                  // Only if Some and not empty
-///     #[query_param(iterable)]
-///     tags: Vec<String>,                         // Multiple: "tags=tag1&tags=tag2"
-///     #[query_param(skip_if_empty, iterable)]
-///     categories: Option<Vec<String>>,           // Multiple if Some and not empty
-/// }
-/// ```
-///
 #[proc_macro_derive(QueryParam, attributes(query_param))]
 pub fn derive_query_param(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

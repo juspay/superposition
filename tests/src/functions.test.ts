@@ -33,7 +33,7 @@ describe("Function Operations", () => {
             description: "Test validate function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.Validation,
+            function_type: FunctionTypes.VALIDATION,
         });
 
         try {
@@ -51,7 +51,7 @@ describe("Function Operations", () => {
             const getResponse = await superpositionClient.send(getCommand);
 
             expect(getResponse.function_name).toBe(validateFunctionName);
-            expect(getResponse.function_type).toBe(FunctionTypes.Validation);
+            expect(getResponse.function_type).toBe(FunctionTypes.VALIDATION);
         } catch (error) {
             console.error(error);
             throw error;
@@ -77,7 +77,7 @@ describe("Function Operations", () => {
             description: "Test autocomplete function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.Autocomplete,
+            function_type: FunctionTypes.AUTOCOMPLETE,
         });
 
         try {
@@ -95,7 +95,7 @@ describe("Function Operations", () => {
             const getResponse = await superpositionClient.send(getCommand);
 
             expect(getResponse.function_name).toBe(autocompleteFunctionName);
-            expect(getResponse.function_type).toBe(FunctionTypes.Autocomplete);
+            expect(getResponse.function_type).toBe(FunctionTypes.AUTOCOMPLETE);
         } catch (error) {
             console.error(error);
             throw error;
@@ -196,7 +196,7 @@ describe("Function Operations", () => {
             description: "Test validate function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.Validation,
+            function_type: FunctionTypes.VALIDATION,
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
         });
@@ -222,7 +222,7 @@ describe("Function Operations", () => {
             description: "Test validate function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.Autocomplete,
+            function_type: FunctionTypes.AUTOCOMPLETE,
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
         });

@@ -91,7 +91,7 @@ describe("Default Config API Integration Tests", () => {
                 description: "Test validate function",
                 change_reason: "Initial creation",
                 runtime_version: "1",
-                function_type: FunctionTypes.Validation,
+                function_type: FunctionTypes.VALIDATION,
             })
         );
         // Track created function
@@ -107,7 +107,7 @@ describe("Default Config API Integration Tests", () => {
                 description: "Test validate function",
                 change_reason: "Initial creation",
                 runtime_version: "1",
-                function_type: FunctionTypes.Validation,
+                function_type: FunctionTypes.VALIDATION,
             })
         );
         // Track created function
@@ -122,7 +122,7 @@ describe("Default Config API Integration Tests", () => {
                 description: "Test autocomplete function",
                 change_reason: "Initial creation",
                 runtime_version: "1",
-                function_type: FunctionTypes.Autocomplete,
+                function_type: FunctionTypes.AUTOCOMPLETE,
             })
         );
 

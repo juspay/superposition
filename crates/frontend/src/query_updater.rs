@@ -91,38 +91,29 @@ pub fn use_signal_from_query<T: Clone + PartialEq>(
 /// meant for single valued query params only
 pub fn use_update_url_query() -> impl Fn(&str, Option<String>) -> String {
     |param: &str, value: Option<String>| {
-        let mut params = use_location().search.get_untracked().clone();
+        let mut params = use_location()
+            .search
+            .get_untracked()
+            .split("&")
+            .map(String::from)
+            .collect::<Vec<_>>();
 
-        // find range of the param in the query string starting from `{param}=` to immediately next `&` or end of string
-        let range = params.find(&format!("{}=", param)).map(|start| {
-            let end = params[start..]
-                .find('&')
-                .map(|e| e + start)
-                .unwrap_or(params.len());
-            (start, end)
-        });
-
-        if let Some((start, end)) = range {
-            if let Some(value) = value {
-                let end = if end == params.len() {
-                    end
-                } else {
-                    end + 1 // include the '&' character
-                };
-                params.replace_range(start..end, &format!("{param}={value}"));
-            } else {
-                params.replace_range(start..end, "");
-            }
-        } else {
-            if let Some(value) = value {
-                if params.is_empty() {
-                    params.push_str(&format!("{}={}", param, value));
-                } else {
-                    params.push_str(&format!("&{}={}", param, value));
+        if let Some(value) = value {
+            let mut found = false;
+            for p in params.iter_mut() {
+                if p.starts_with(&format!("{param}=")) {
+                    *p = format!("{param}={value}");
+                    found = true;
+                    break;
                 }
             }
+            if !found {
+                params.push(format!("{param}={value}"));
+            }
+        } else {
+            params.retain(|p| !p.starts_with(&format!("{param}=")));
         }
 
-        format!("?{params}")
+        format!("?{}", params.join("&"))
     }
 }
