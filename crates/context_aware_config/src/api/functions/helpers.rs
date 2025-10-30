@@ -1,9 +1,9 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::SchemaName;
+use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_types::{
     database::{
-        models::cac::{Function, FunctionCode},
-        schema::{self, functions::dsl::functions},
+        models::cac::{Function, FunctionCode, Variable as DbVariable},
+        schema::{self, functions::dsl::functions, variables::dsl as variables},
     },
     result as superposition, DBConnection,
 };
@@ -47,4 +47,23 @@ pub fn get_published_functions_by_names(
         .load(conn)?;
 
     Ok(function)
+}
+
+pub fn substitute_variables(
+    code: &str,
+    db_conn: &mut DbConnection,
+    schema_name: SchemaName,
+) -> superposition::Result<FunctionCode> {
+    let DbConnection(conn) = db_conn;
+    let vars: Vec<DbVariable> =
+        variables::variables.schema_name(&schema_name).load(conn)?;
+
+    let mut processed_code = code.to_string();
+
+    for var in vars {
+        let placeholder = format!("{{{}}}", var.name);
+        let value = format!("\"{}\"", var.value);
+        processed_code = processed_code.replace(&placeholder, &value);
+    }
+    Ok(FunctionCode(processed_code))
 }

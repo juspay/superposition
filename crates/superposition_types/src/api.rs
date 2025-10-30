@@ -19,6 +19,7 @@ pub mod experiment_groups;
 pub mod experiments;
 pub mod functions;
 pub mod type_templates;
+pub mod variables;
 pub mod webhook;
 pub mod workspace;
 

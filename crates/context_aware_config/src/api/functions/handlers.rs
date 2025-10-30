@@ -24,7 +24,7 @@ use validation_functions::{compile_fn, execute_fn};
 
 use crate::validation_functions;
 
-use super::helpers::fetch_function;
+use super::helpers::{fetch_function, substitute_variables};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -224,28 +224,31 @@ async fn delete_function(
 async fn test(
     params: Path<TestParam>,
     request: Json<FunctionExecutionRequest>,
-    db_conn: DbConnection,
+    mut db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
+    let DbConnection(ref mut conn) = db_conn;
     let path_params = params.into_inner();
     let fun_name: &String = &path_params.function_name.into();
     let req = request.into_inner();
-    let function = fetch_function(fun_name, &mut conn, &schema_name)?;
+    let function = fetch_function(fun_name, conn, &schema_name)?;
 
-    let result = match path_params.stage {
-        Stage::Draft => execute_fn(&function.draft_code, &req),
+    let code = match path_params.stage {
+        Stage::Draft => {
+            substitute_variables(&function.draft_code, &mut db_conn, schema_name)?
+        }
         Stage::Published => match function.published_code {
-            Some(code) => execute_fn(&code, &req),
+            Some(ref code) => substitute_variables(code, &mut db_conn, schema_name)?,
             None => {
                 log::error!("Function test failed: function not published yet");
-                Err((
-                    "Function test failed as function not published yet".to_owned(),
-                    None,
-                ))
+                return Err(bad_argument!(
+                    "Function test failed as function not published yet"
+                ));
             }
         },
     };
+
+    let result = execute_fn(&code, &req);
 
     match result {
         Ok(res) => Ok(HttpResponse::Ok().json(res)),
