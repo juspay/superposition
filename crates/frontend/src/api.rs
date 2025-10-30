@@ -20,6 +20,7 @@ use superposition_types::{
             FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
             ListFunctionFilters, Stage,
         },
+        variables::{CreateVariableRequest, UpdateVariableRequest},
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
         workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
     },
@@ -28,6 +29,7 @@ use superposition_types::{
         cac::{Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
+        others::{Variable, VariableName},
         ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
     },
     Config, PaginatedResponse,
@@ -930,6 +932,124 @@ pub async fn get_webhook(
     .await?;
 
     parse_json_response(response).await
+}
+
+pub mod variables {
+
+    use superposition_types::api::variables::VariableFilters;
+
+    use super::*;
+
+    pub async fn fetch(
+        filters: &VariableFilters,
+        pagination_params: &PaginationParams,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<Variable>, String> {
+        let host = get_host();
+        let url = format!(
+            "{host}/variables?{}&{}",
+            filters.to_query_param(),
+            pagination_params.to_query_param()
+        );
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn create(
+        name: String,
+        value: String,
+        description: String,
+        change_reason: String,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<Variable, String> {
+        let payload = CreateVariableRequest {
+            name: VariableName::try_from(name)?,
+            value,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+        };
+
+        let host = get_host();
+        let url = format!("{host}/variables");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn get(
+        variable_name: &str,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<Variable, String> {
+        let host = get_host();
+        let url = format!("{host}/variables/{}", variable_name);
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update(
+        variable_name: String,
+        payload: UpdateVariableRequest,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<Variable, String> {
+        let host = get_host();
+        let url = format!("{host}/variables/{variable_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        variable_name: String,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = get_host();
+        let url = format!("{host}/variables/{variable_name}");
+
+        request(
+            url,
+            reqwest::Method::DELETE,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        Ok(())
+    }
 }
 
 pub mod experiment_groups {

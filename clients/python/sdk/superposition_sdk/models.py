@@ -62,6 +62,9 @@ from ._private.schemas import (
     CREATE_TYPE_TEMPLATES as _SCHEMA_CREATE_TYPE_TEMPLATES,
     CREATE_TYPE_TEMPLATES_INPUT as _SCHEMA_CREATE_TYPE_TEMPLATES_INPUT,
     CREATE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT,
+    CREATE_VARIABLE as _SCHEMA_CREATE_VARIABLE,
+    CREATE_VARIABLE_INPUT as _SCHEMA_CREATE_VARIABLE_INPUT,
+    CREATE_VARIABLE_OUTPUT as _SCHEMA_CREATE_VARIABLE_OUTPUT,
     CREATE_WEBHOOK as _SCHEMA_CREATE_WEBHOOK,
     CREATE_WEBHOOK_INPUT as _SCHEMA_CREATE_WEBHOOK_INPUT,
     CREATE_WEBHOOK_OUTPUT as _SCHEMA_CREATE_WEBHOOK_OUTPUT,
@@ -87,6 +90,9 @@ from ._private.schemas import (
     DELETE_TYPE_TEMPLATES as _SCHEMA_DELETE_TYPE_TEMPLATES,
     DELETE_TYPE_TEMPLATES_INPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
     DELETE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
+    DELETE_VARIABLE as _SCHEMA_DELETE_VARIABLE,
+    DELETE_VARIABLE_INPUT as _SCHEMA_DELETE_VARIABLE_INPUT,
+    DELETE_VARIABLE_OUTPUT as _SCHEMA_DELETE_VARIABLE_OUTPUT,
     DELETE_WEBHOOK as _SCHEMA_DELETE_WEBHOOK,
     DELETE_WEBHOOK_INPUT as _SCHEMA_DELETE_WEBHOOK_INPUT,
     DELETE_WEBHOOK_OUTPUT as _SCHEMA_DELETE_WEBHOOK_OUTPUT,
@@ -139,6 +145,9 @@ from ._private.schemas import (
     GET_TYPE_TEMPLATES_LIST_OUTPUT as _SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT,
     GET_TYPE_TEMPLATE_INPUT as _SCHEMA_GET_TYPE_TEMPLATE_INPUT,
     GET_TYPE_TEMPLATE_OUTPUT as _SCHEMA_GET_TYPE_TEMPLATE_OUTPUT,
+    GET_VARIABLE as _SCHEMA_GET_VARIABLE,
+    GET_VARIABLE_INPUT as _SCHEMA_GET_VARIABLE_INPUT,
+    GET_VARIABLE_OUTPUT as _SCHEMA_GET_VARIABLE_OUTPUT,
     GET_VERSION as _SCHEMA_GET_VERSION,
     GET_VERSION_INPUT as _SCHEMA_GET_VERSION_INPUT,
     GET_VERSION_OUTPUT as _SCHEMA_GET_VERSION_OUTPUT,
@@ -176,6 +185,9 @@ from ._private.schemas import (
     LIST_ORGANISATION as _SCHEMA_LIST_ORGANISATION,
     LIST_ORGANISATION_INPUT as _SCHEMA_LIST_ORGANISATION_INPUT,
     LIST_ORGANISATION_OUTPUT as _SCHEMA_LIST_ORGANISATION_OUTPUT,
+    LIST_VARIABLES as _SCHEMA_LIST_VARIABLES,
+    LIST_VARIABLES_INPUT as _SCHEMA_LIST_VARIABLES_INPUT,
+    LIST_VARIABLES_OUTPUT as _SCHEMA_LIST_VARIABLES_OUTPUT,
     LIST_VERSIONS as _SCHEMA_LIST_VERSIONS,
     LIST_VERSIONS_INPUT as _SCHEMA_LIST_VERSIONS_INPUT,
     LIST_VERSIONS_MEMBER as _SCHEMA_LIST_VERSIONS_MEMBER,
@@ -238,6 +250,9 @@ from ._private.schemas import (
     UPDATE_TYPE_TEMPLATES as _SCHEMA_UPDATE_TYPE_TEMPLATES,
     UPDATE_TYPE_TEMPLATES_INPUT as _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT,
     UPDATE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT,
+    UPDATE_VARIABLE as _SCHEMA_UPDATE_VARIABLE,
+    UPDATE_VARIABLE_INPUT as _SCHEMA_UPDATE_VARIABLE_INPUT,
+    UPDATE_VARIABLE_OUTPUT as _SCHEMA_UPDATE_VARIABLE_OUTPUT,
     UPDATE_WEBHOOK as _SCHEMA_UPDATE_WEBHOOK,
     UPDATE_WEBHOOK_INPUT as _SCHEMA_UPDATE_WEBHOOK_INPUT,
     UPDATE_WEBHOOK_OUTPUT as _SCHEMA_UPDATE_WEBHOOK_OUTPUT,
@@ -248,6 +263,7 @@ from ._private.schemas import (
     VALIDATE_CONTEXT_INPUT as _SCHEMA_VALIDATE_CONTEXT_INPUT,
     VALIDATE_CONTEXT_OUTPUT as _SCHEMA_VALIDATE_CONTEXT_OUTPUT,
     VALIDATE_FUNCTION_REQUEST as _SCHEMA_VALIDATE_FUNCTION_REQUEST,
+    VARIABLE_RESPONSE as _SCHEMA_VARIABLE_RESPONSE,
     VARIANT as _SCHEMA_VARIANT,
     VARIANT_UPDATE_REQUEST as _SCHEMA_VARIANT_UPDATE_REQUEST,
     WEBHOOK_RESPONSE as _SCHEMA_WEBHOOK_RESPONSE,
@@ -6014,6 +6030,153 @@ ShapeID("smithy.api#httpBearerAuth")
         ]
 )
 
+@dataclass(kw_only=True)
+class CreateVariableInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+    value: str | None = None
+    description: str | None = None
+    change_reason: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CREATE_VARIABLE_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.name is not None:
+            serializer.write_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["name"], self.name)
+
+        if self.value is not None:
+            serializer.write_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["value"], self.value)
+
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["description"], self.description)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["change_reason"], self.change_reason)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["name"])
+
+                case 3:
+                    kwargs["value"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["value"])
+
+                case 4:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["description"])
+
+                case 5:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["change_reason"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CREATE_VARIABLE_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class CreateVariableOutput:
+
+    name: str
+
+    value: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CREATE_VARIABLE_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["value"], self.value)
+        serializer.write_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["value"] = de.read_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["value"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["description"])
+
+                case 3:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["change_reason"])
+
+                case 4:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["created_by"])
+
+                case 5:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["created_at"])
+
+                case 6:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["last_modified_by"])
+
+                case 7:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CREATE_VARIABLE_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CREATE_VARIABLE_OUTPUT, consumer=_consumer)
+        return kwargs
+
+CREATE_VARIABLE = APIOperation(
+        input = CreateVariableInput,
+        output = CreateVariableOutput,
+        schema = _SCHEMA_CREATE_VARIABLE,
+        input_schema = _SCHEMA_CREATE_VARIABLE_INPUT,
+        output_schema = _SCHEMA_CREATE_VARIABLE_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
 def _serialize_events(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
@@ -7652,6 +7815,132 @@ DELETE_TYPE_TEMPLATES = APIOperation(
         schema = _SCHEMA_DELETE_TYPE_TEMPLATES,
         input_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
         output_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class DeleteVariableInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DELETE_VARIABLE_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_DELETE_VARIABLE_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_VARIABLE_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_DELETE_VARIABLE_INPUT.members["name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DELETE_VARIABLE_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class DeleteVariableOutput:
+
+    name: str
+
+    value: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DELETE_VARIABLE_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["value"], self.value)
+        serializer.write_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["value"] = de.read_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["value"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["description"])
+
+                case 3:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["change_reason"])
+
+                case 4:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["created_by"])
+
+                case 5:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["created_at"])
+
+                case 6:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["last_modified_by"])
+
+                case 7:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DELETE_VARIABLE_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DELETE_VARIABLE_OUTPUT, consumer=_consumer)
+        return kwargs
+
+DELETE_VARIABLE = APIOperation(
+        input = DeleteVariableInput,
+        output = DeleteVariableOutput,
+        schema = _SCHEMA_DELETE_VARIABLE,
+        input_schema = _SCHEMA_DELETE_VARIABLE_INPUT,
+        output_schema = _SCHEMA_DELETE_VARIABLE_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
@@ -12561,6 +12850,132 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class GetVariableInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_VARIABLE_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_VARIABLE_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_VARIABLE_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_GET_VARIABLE_INPUT.members["name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_VARIABLE_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetVariableOutput:
+
+    name: str
+
+    value: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_VARIABLE_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["value"], self.value)
+        serializer.write_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_GET_VARIABLE_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_GET_VARIABLE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["value"] = de.read_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["value"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["description"])
+
+                case 3:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["change_reason"])
+
+                case 4:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["created_by"])
+
+                case 5:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_VARIABLE_OUTPUT.members["created_at"])
+
+                case 6:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_VARIABLE_OUTPUT.members["last_modified_by"])
+
+                case 7:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_GET_VARIABLE_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_VARIABLE_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_VARIABLE = APIOperation(
+        input = GetVariableInput,
+        output = GetVariableOutput,
+        schema = _SCHEMA_GET_VARIABLE,
+        input_schema = _SCHEMA_GET_VARIABLE_INPUT,
+        output_schema = _SCHEMA_GET_VARIABLE_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class GetWebhookInput:
 
     workspace_id: str | None = None
@@ -13306,6 +13721,252 @@ LIST_ORGANISATION = APIOperation(
         schema = _SCHEMA_LIST_ORGANISATION,
         input_schema = _SCHEMA_LIST_ORGANISATION_INPUT,
         output_schema = _SCHEMA_LIST_ORGANISATION_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+class VariableSortOn(StrEnum):
+    NAME = "name"
+    CREATED_AT = "created_at"
+    LAST_MODIFIED_AT = "last_modified_at"
+
+@dataclass(kw_only=True)
+class ListVariablesInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    :param name:
+         Filter by variable name (exact match or substring, depending on backend
+         implementation).
+
+    :param created_by:
+         Filter by the user who created the variable
+
+    :param last_modified_by:
+         Filter by the user who last modified the variable
+
+    :param sort_on:
+         Field to sort the results by.
+
+    :param sort_by:
+         Sort order (ascending or descending).
+
+    """
+
+    count: int | None = None
+    page: int | None = None
+    all: bool | None = None
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+    created_by: str | None = None
+    last_modified_by: str | None = None
+    sort_on: str | None = None
+    sort_by: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_VARIABLES_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_VARIABLES_INPUT.members["count"])
+
+                case 1:
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_VARIABLES_INPUT.members["page"])
+
+                case 2:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_VARIABLES_INPUT.members["all"])
+
+                case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["workspace_id"])
+
+                case 4:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["org_id"])
+
+                case 5:
+                    kwargs["name"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["name"])
+
+                case 6:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["created_by"])
+
+                case 7:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["last_modified_by"])
+
+                case 8:
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["sort_on"])
+
+                case 9:
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["sort_by"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_VARIABLES_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class VariableResponse:
+
+    name: str
+
+    value: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_VARIABLE_RESPONSE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_VARIABLE_RESPONSE.members["name"], self.name)
+        serializer.write_string(_SCHEMA_VARIABLE_RESPONSE.members["value"], self.value)
+        serializer.write_string(_SCHEMA_VARIABLE_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_VARIABLE_RESPONSE.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_VARIABLE_RESPONSE.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_VARIABLE_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_VARIABLE_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_VARIABLE_RESPONSE.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_VARIABLE_RESPONSE.members["name"])
+
+                case 1:
+                    kwargs["value"] = de.read_string(_SCHEMA_VARIABLE_RESPONSE.members["value"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_VARIABLE_RESPONSE.members["description"])
+
+                case 3:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_VARIABLE_RESPONSE.members["change_reason"])
+
+                case 4:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_VARIABLE_RESPONSE.members["created_by"])
+
+                case 5:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_VARIABLE_RESPONSE.members["created_at"])
+
+                case 6:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_VARIABLE_RESPONSE.members["last_modified_by"])
+
+                case 7:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_VARIABLE_RESPONSE.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_VARIABLE_RESPONSE, consumer=_consumer)
+        return kwargs
+
+def _serialize_variable_list(serializer: ShapeSerializer, schema: Schema, value: list[VariableResponse]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_variable_list(deserializer: ShapeDeserializer, schema: Schema) -> list[VariableResponse]:
+    result: list[VariableResponse] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(VariableResponse.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class ListVariablesOutput:
+
+    total_pages: int
+
+    total_items: int
+
+    data: list[VariableResponse]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_VARIABLES_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_integer(_SCHEMA_LIST_VARIABLES_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_VARIABLES_OUTPUT.members["total_items"], self.total_items)
+        _serialize_variable_list(serializer, _SCHEMA_LIST_VARIABLES_OUTPUT.members["data"], self.data)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_VARIABLES_OUTPUT.members["total_pages"])
+
+                case 1:
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_VARIABLES_OUTPUT.members["total_items"])
+
+                case 2:
+                    kwargs["data"] = _deserialize_variable_list(de, _SCHEMA_LIST_VARIABLES_OUTPUT.members["data"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_VARIABLES_OUTPUT, consumer=_consumer)
+        return kwargs
+
+LIST_VARIABLES = APIOperation(
+        input = ListVariablesInput,
+        output = ListVariablesOutput,
+        schema = _SCHEMA_LIST_VARIABLES,
+        input_schema = _SCHEMA_LIST_VARIABLES_INPUT,
+        output_schema = _SCHEMA_LIST_VARIABLES_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
@@ -14333,6 +14994,151 @@ UPDATE_TYPE_TEMPLATES = APIOperation(
         schema = _SCHEMA_UPDATE_TYPE_TEMPLATES,
         input_schema = _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT,
         output_schema = _SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class UpdateVariableInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+    value: str | None = None
+    description: str | None = None
+    change_reason: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UPDATE_VARIABLE_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.value is not None:
+            serializer.write_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["value"], self.value)
+
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["description"], self.description)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["change_reason"], self.change_reason)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["name"])
+
+                case 3:
+                    kwargs["value"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["value"])
+
+                case 4:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["description"])
+
+                case 5:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["change_reason"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_UPDATE_VARIABLE_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class UpdateVariableOutput:
+
+    name: str
+
+    value: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UPDATE_VARIABLE_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["value"], self.value)
+        serializer.write_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["value"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["value"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["description"])
+
+                case 3:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["change_reason"])
+
+                case 4:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["created_by"])
+
+                case 5:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["created_at"])
+
+                case 6:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["last_modified_by"])
+
+                case 7:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_UPDATE_VARIABLE_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_UPDATE_VARIABLE_OUTPUT, consumer=_consumer)
+        return kwargs
+
+UPDATE_VARIABLE = APIOperation(
+        input = UpdateVariableInput,
+        output = UpdateVariableOutput,
+        schema = _SCHEMA_UPDATE_VARIABLE,
+        input_schema = _SCHEMA_UPDATE_VARIABLE_INPUT,
+        output_schema = _SCHEMA_UPDATE_VARIABLE_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,

@@ -1,11 +1,14 @@
 use std::{process::Command, str};
 
+use service_utils::service::types::SchemaName;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
     database::models::cac::{FunctionCode, FunctionType},
-    result as superposition,
+    result as superposition, DBConnection,
 };
+
+use crate::api::functions::helpers::inject_variables_into_code;
 
 static FUNCTION_ENV_VARIABLES: &str =
     "HTTP_PROXY,HTTPS_PROXY,HTTP_PROXY_HOST,HTTP_PROXY_PORT,NO_PROXY";
@@ -159,8 +162,17 @@ fn generate_wrapper_runtime(code_str: &str) -> String {
 pub fn execute_fn(
     code_str: &FunctionCode,
     args: &FunctionExecutionRequest,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
-    let exec_code = generate_fn_code(code_str, args);
+    let code =
+        inject_variables_into_code(code_str, conn, schema_name).map_err(|err| {
+            let err_msg = format!("Failed to inject variables: {:?}", err);
+            log::error!("{}", err_msg);
+            (err_msg, None)
+        })?;
+
+    let exec_code = generate_fn_code(&code, args);
     log::trace!("{}", format!("Running function code: {:?}", exec_code));
     let output = Command::new("node")
         .arg("-e")

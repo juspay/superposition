@@ -1,0 +1,71 @@
+---
+id: delete-variable
+title: "DeleteVariable"
+description: "Permanently deletes a variable from the workspace."
+sidebar_label: "DeleteVariable"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VU1vm0AQ/SurPbUSjq00vvjWNq4aqaqiJO3FsqI1jM0mwJLZJQ1C/PfO8GVjYytKmxOw8+b78baQAVgfdeq0SeRMXgPGKoHERbkIIAIHVijxrFCrVQRijSYWLgTxx+CjTZUPZ9KTJgVUHOAqoBCXldvvxoXMqUIV0xFaOVsUMqEPglUPT2rOmioX0rv1Q4iVnBXS5SljrEOdbGTpSYSnTCNQfIcZlF4X5mVkcDPSQRsqBBUAvjlY19c/xFvyiU1NYsEy/nwy4Ud/0P0pCcKI1omS+SZxtAR2U2kaab8a7/jBsm9xWItZPYDveNbIy3C6zly3NVDxs4qyYUuvygG7H6pkA/cIyh5DkM1BcL/KT5qVOzR7cm2If2SRAYFGTlP95BMp6+5jE+i1Ph64D3p9+N4CF3sN9urt9dYf1UD6gbK9lvX1/IkoTrsIDuhw0zDha0ODsuQqLyYXhzwiqMnQh5/GfTNZEghCbZlEXtMh9l1RXExUdAv4DDhHNCim70LBGKxVmyGuldvuB8oZGgF7qA2riGwnZXmIJC6hYempFauSHBKUmRy3wmXHBU++5P8Y/Ay1yystsrF2YX6mUn0WOpd+UVb7nzP2XSxZF/btoBCwAyy30W55HHXHx2N2I+DzPQLN5Pe7u2tRoYUiODXdzLwVH/ZcsZ3XeqKy16Sp4KfyVIBqSTpZmypos6zbjNabGqsbH9qYrUOfT86no8mn0WTKFRLE0V2y1aGG5GLnathTm45zb7uHmrYdvLhxGinSbyojw4hD14xYyI4RhJ9VddEWQyqVjUVB84VfGJUlHz9lgMyTpde5VawJtOV3YtxaRRZOtPHhplGWj+JYfc2hSvJOF2aSXh8hb2/JkrjYXkT/PX+dZ+ca7WrgH+BdUu1esr1sNeCz70PqdmwH+lPu/vSX8x/zuzlR9S9LAwtR
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteVariable"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/variables/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently deletes a variable from the workspace.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"DeleteVariable 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","name","value"],"title":"DeleteVariableResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

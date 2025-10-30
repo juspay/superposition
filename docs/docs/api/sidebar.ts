@@ -491,6 +491,48 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Variables",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "api/list-variables",
+          label: "ListVariables",
+          customProps: {},
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "api/create-variable",
+          label: "CreateVariable",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "api/delete-variable",
+          label: "DeleteVariable",
+          customProps: {},
+          className: "api-method delete",
+        },
+        {
+          type: "doc",
+          id: "api/get-variable",
+          label: "GetVariable",
+          customProps: {},
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "api/update-variable",
+          label: "UpdateVariable",
+          customProps: {},
+          className: "api-method patch",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Webhooks",
       collapsed: false,
       items: [

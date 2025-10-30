@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     env::VarError,
     fmt::{self, Display},
     str::FromStr,
@@ -9,6 +10,7 @@ use anyhow::anyhow;
 use chrono::Utc;
 use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
@@ -16,16 +18,23 @@ use reqwest::{
 };
 use serde::Serialize;
 #[cfg(feature = "jsonlogic")]
-use serde_json::{Map, Value};
+use serde_json::Map;
+use serde_json::Value;
 #[cfg(feature = "jsonlogic")]
 use superposition_types::Condition;
 use superposition_types::{
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
-    database::models::others::{HttpMethod, Webhook, WebhookEvent},
+    database::models::others::{HttpMethod, Variable, Webhook, WebhookEvent},
     result::{self},
+    PaginatedResponse,
 };
 
 use crate::service::types::{AppState, WorkspaceContext};
+
+static VAR_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
+    regex::Regex::new(r"\{\{VARS\.([A-Z0-9_]+)\}\}")
+        .expect("Invalid variable regex pattern")
+});
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
@@ -301,7 +310,6 @@ pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {
     }).collect()
 }
 
-use once_cell::sync::Lazy;
 static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, String> {
@@ -396,39 +404,90 @@ where
         return true;
     }
 
-    let mut header_array = vec![
-        (
-            HeadersEnum::ConfigVersion.to_string(),
-            config_version_opt.clone().unwrap_or_default(),
-        ),
-        (
-            HeadersEnum::WorkspaceId.to_string(),
-            workspace_request.workspace_id.to_string(),
-        ),
-    ];
-
-    webhook.custom_headers.iter().for_each(|(key, value)| {
-        let value = value
-            .as_str()
-            .map(String::from)
-            .unwrap_or_else(|| value.to_string());
-
-        let header_value = if let Some(decrypted) = state.encrypted_keys.get(&value) {
-            decrypted.to_string()
-        } else {
-            value.clone()
+    let substitute_variables =
+        |template: &Value, variables: &HashMap<String, String>| -> String {
+            match template {
+                Value::String(s) => VAR_REGEX
+                    .replace_all(s, |caps: &regex::Captures| {
+                        caps.get(1)
+                            .map(|m| m.as_str())
+                            .and_then(|key| variables.get(key).map(String::as_str))
+                            .unwrap_or(s.as_str())
+                    })
+                    .into_owned(),
+                other => other.to_string(),
+            }
         };
-        header_array.push((key.clone(), header_value));
+    let has_variables = webhook.custom_headers.values().any(|value_json| {
+        value_json
+            .as_str()
+            .map(|s| VAR_REGEX.is_match(s))
+            .unwrap_or_default()
     });
 
-    let mut headers = HeaderMap::new();
-    header_array.iter().for_each(|(name, value)| {
-        let h_name = HeaderName::from_str(name);
-        let h_value = HeaderValue::from_str(value);
+    let variables_map = if has_variables {
+        let variables_url = format!("{}/variables", state.cac_host);
 
-        if let (Ok(key), Ok(value)) = (h_name, h_value) {
-            headers.insert(key, value);
+        let headers = match construct_request_headers(&[
+            ("x-tenant", &workspace_request.workspace_id),
+            ("x-org-id", &workspace_request.organisation_id),
+            (
+                "Authorization",
+                &format!("Internal {}", state.superposition_token),
+            ),
+        ]) {
+            Ok(h) => h,
+            Err(e) => {
+                log::error!("Failed to construct request headers: {}", e);
+                return false;
+            }
+        };
+
+        match request::<(), PaginatedResponse<Variable>>(
+            variables_url,
+            reqwest::Method::GET,
+            None,
+            headers,
+        )
+        .await
+        {
+            Ok(res) => res
+                .data
+                .into_iter()
+                .map(|v| (v.name.to_string(), v.value))
+                .collect::<HashMap<_, _>>(),
+            Err(e) => {
+                log::error!("Failed to fetch variables: {}", e);
+                HashMap::new()
+            }
         }
+    } else {
+        HashMap::new()
+    };
+
+    let mut headers = HeaderMap::new();
+
+    let insert_header = |headers: &mut HeaderMap, name: &str, value: &str| {
+        if let (Ok(k), Ok(v)) = (HeaderName::from_str(name), HeaderValue::from_str(value))
+        {
+            headers.insert(k, v);
+        }
+    };
+
+    insert_header(
+        &mut headers,
+        &HeadersEnum::ConfigVersion.to_string(),
+        &config_version_opt.clone().unwrap_or_default(),
+    );
+    insert_header(
+        &mut headers,
+        &HeadersEnum::WorkspaceId.to_string(),
+        &workspace_request.workspace_id,
+    );
+
+    webhook.custom_headers.iter().for_each(|(key, value_str)| {
+        let rendered = substitute_variables(value_str, &variables_map);
+        insert_header(&mut headers, key, &rendered);
     });
 
     let request_builder = match webhook.method {
@@ -456,20 +515,16 @@ where
         .await;
 
     match response {
+        Ok(res) if res.status() == StatusCode::OK => {
+            log::info!("webhook call succeeded: {:?}", res.status());
+            true
+        }
         Ok(res) => {
-            match res.status() {
-                StatusCode::OK => {
-                    log::info!("webhook call succeeded: {:?}", res.status());
-                    true
-                }
-                _ => {
-                    log::error!("Webhook call failed with status code: {:?}, response headers: {:?}", res.status(), res.headers());
-                    false
-                }
-            }
+            log::error!("Webhook failed: {:?} - {:?}", res.status(), res.headers());
+            false
         }
         Err(err) => {
-            log::error!("Webhook call failed with error: {:?}", err);
+            log::error!("Webhook call failed: {:?}", err);
             false
         }
     }

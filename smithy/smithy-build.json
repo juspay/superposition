@@ -77,7 +77,8 @@
         "Type Templates",
         "Webhooks",
         "Workspace Management",
-        "Audit & Monitoring"
+        "Audit & Monitoring",
+        "Variables"
       ],
       "defaultBlobFormat": "byte",
       "keepUnusedComponents": false,

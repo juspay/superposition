@@ -231,23 +231,27 @@ async fn test(
     let req = request.into_inner();
     let function = fetch_function(fun_name, &mut conn, &schema_name)?;
 
-    let result = match path_params.stage {
-        Stage::Draft => execute_fn(&function.draft_code, &req),
+    let code = match path_params.stage {
+        Stage::Draft => function.draft_code,
         Stage::Published => match function.published_code {
-            Some(code) => execute_fn(&code, &req),
-            None => Err((
-                "Function test failed as function not published yet".to_owned(),
-                None,
-            )),
+            Some(code) => code,
+            None => {
+                log::error!("Function test failed: function not published yet");
+                return Err(bad_argument!(
+                    "Function test failed as function not published yet"
+                ));
+            }
         },
-    }
-    .map_err(|(e, stdout)| {
-        bad_argument!(
-            "Function failed with error: {}, stdout: {:?}",
-            e,
-            stdout.unwrap_or_default()
-        )
-    })?;
+    };
+
+    let result =
+        execute_fn(&code, &req, &mut conn, &schema_name).map_err(|(e, stdout)| {
+            bad_argument!(
+                "Function failed with error: {}, stdout: {:?}",
+                e,
+                stdout.unwrap_or_default()
+            )
+        })?;
 
     Ok(Json(result))
 }

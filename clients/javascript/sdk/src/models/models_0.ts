@@ -1375,6 +1375,32 @@ export interface TypeTemplatesResponse {
 
 /**
  * @public
+ */
+export interface CreateVariableInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+  value: string | undefined;
+  description: string | undefined;
+  change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface VariableResponse {
+  name: string | undefined;
+  value: string | undefined;
+  description: string | undefined;
+  change_reason: string | undefined;
+  created_by: string | undefined;
+  created_at: Date | undefined;
+  last_modified_by: string | undefined;
+  last_modified_at: Date | undefined;
+}
+
+/**
+ * @public
  * @enum
  */
 export const HttpMethod = {
@@ -1616,6 +1642,15 @@ export interface DeleteTypeTemplatesInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   type_name: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface DeleteVariableInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
 }
 
 /**
@@ -2195,6 +2230,15 @@ export interface GetTypeTemplatesListOutput {
 /**
  * @public
  */
+export interface GetVariableInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface GetWebhookInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -2248,6 +2292,84 @@ export interface ListOrganisationOutput {
   total_pages: number | undefined;
   total_items: number | undefined;
   data: (OrganisationResponse)[] | undefined;
+}
+
+/**
+ * @public
+ * @enum
+ */
+export const VariableSortOn = {
+  CREATED_AT: "created_at",
+  LAST_MODIFIED_AT: "last_modified_at",
+  NAME: "name",
+} as const
+/**
+ * @public
+ */
+export type VariableSortOn = typeof VariableSortOn[keyof typeof VariableSortOn]
+
+/**
+ * @public
+ */
+export interface ListVariablesInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * Filter by variable name (exact match or substring, depending on backend implementation).
+   * @public
+   */
+  name?: string | undefined;
+
+  /**
+   * Filter by the user who created the variable
+   * @public
+   */
+  created_by?: string | undefined;
+
+  /**
+   * Filter by the user who last modified the variable
+   * @public
+   */
+  last_modified_by?: string | undefined;
+
+  /**
+   * Field to sort the results by.
+   * @public
+   */
+  sort_on?: VariableSortOn | undefined;
+
+  /**
+   * Sort order (ascending or descending).
+   * @public
+   */
+  sort_by?: SortBy | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListVariablesOutput {
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (VariableResponse)[] | undefined;
 }
 
 /**
@@ -2353,6 +2475,18 @@ export interface UpdateTypeTemplatesRequest {
    */
   type_schema: Record<string, __DocumentType> | undefined;
 
+  description?: string | undefined;
+  change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface UpdateVariableInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+  value?: string | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
 }

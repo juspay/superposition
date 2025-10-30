@@ -15,6 +15,8 @@ use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
     function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
 };
+use crate::pages::variable::Variable;
+use crate::pages::variables_list::VariablesList;
 use crate::pages::{
     audit_log::AuditLog, context_override::ContextOverride,
     default_config::DefaultConfig, default_config_list::DefaultConfigList,
@@ -191,6 +193,9 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
 
                         <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
+
+                        <Route ssr=SsrMode::Async path="variables" view=VariablesList />
+                        <Route ssr=SsrMode::Async path="variables/:variable_name" view=Variable />
                     </Route>
                 // <Route
                 // path="/*any"

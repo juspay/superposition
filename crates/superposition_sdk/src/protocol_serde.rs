@@ -43,6 +43,8 @@ pub(crate) mod shape_create_organisation;
 
 pub(crate) mod shape_create_type_templates;
 
+pub(crate) mod shape_create_variable;
+
 pub(crate) mod shape_create_webhook;
 
 pub(crate) mod shape_create_workspace;
@@ -58,6 +60,8 @@ pub(crate) mod shape_delete_experiment_group;
 pub(crate) mod shape_delete_function;
 
 pub(crate) mod shape_delete_type_templates;
+
+pub(crate) mod shape_delete_variable;
 
 pub(crate) mod shape_delete_webhook;
 
@@ -97,6 +101,8 @@ pub(crate) mod shape_get_type_template;
 
 pub(crate) mod shape_get_type_templates_list;
 
+pub(crate) mod shape_get_variable;
+
 pub(crate) mod shape_get_version;
 
 pub(crate) mod shape_get_webhook;
@@ -120,6 +126,8 @@ pub(crate) mod shape_list_experiment_groups;
 pub(crate) mod shape_list_function;
 
 pub(crate) mod shape_list_organisation;
+
+pub(crate) mod shape_list_variables;
 
 pub(crate) mod shape_list_versions;
 
@@ -167,6 +175,8 @@ pub(crate) mod shape_update_overrides_experiment;
 
 pub(crate) mod shape_update_type_templates;
 
+pub(crate) mod shape_update_variable;
+
 pub(crate) mod shape_update_webhook;
 
 pub(crate) mod shape_update_workspace;
@@ -204,6 +214,8 @@ pub(crate) mod shape_create_function_input;
 pub(crate) mod shape_create_organisation_input;
 
 pub(crate) mod shape_create_type_templates_input;
+
+pub(crate) mod shape_create_variable_input;
 
 pub(crate) mod shape_create_webhook_input;
 
@@ -248,6 +260,8 @@ pub(crate) mod shape_update_organisation_input;
 pub(crate) mod shape_update_overrides_experiment_input;
 
 pub(crate) mod shape_update_type_templates_input;
+
+pub(crate) mod shape_update_variable_input;
 
 pub(crate) mod shape_update_webhook_input;
 
@@ -317,6 +331,8 @@ pub(crate) mod shape_type_templates_list;
 
 pub(crate) mod shape_update_context_override_request;
 
+pub(crate) mod shape_variable_list;
+
 pub(crate) mod shape_variant;
 
 pub(crate) mod shape_variant_update_request;
@@ -362,6 +378,8 @@ pub(crate) mod shape_organisation_response;
 pub(crate) mod shape_type_templates_response;
 
 pub(crate) mod shape_validate_function_request;
+
+pub(crate) mod shape_variable_response;
 
 pub(crate) mod shape_webhook_response;
 

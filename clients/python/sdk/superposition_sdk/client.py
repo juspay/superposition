@@ -46,6 +46,7 @@ from .deserialize import (
     _deserialize_create_function,
     _deserialize_create_organisation,
     _deserialize_create_type_templates,
+    _deserialize_create_variable,
     _deserialize_create_webhook,
     _deserialize_create_workspace,
     _deserialize_delete_context,
@@ -54,6 +55,7 @@ from .deserialize import (
     _deserialize_delete_experiment_group,
     _deserialize_delete_function,
     _deserialize_delete_type_templates,
+    _deserialize_delete_variable,
     _deserialize_delete_webhook,
     _deserialize_discard_experiment,
     _deserialize_get_config,
@@ -69,6 +71,7 @@ from .deserialize import (
     _deserialize_get_resolved_config,
     _deserialize_get_type_template,
     _deserialize_get_type_templates_list,
+    _deserialize_get_variable,
     _deserialize_get_version,
     _deserialize_get_webhook,
     _deserialize_get_webhook_by_event,
@@ -81,6 +84,7 @@ from .deserialize import (
     _deserialize_list_experiment_groups,
     _deserialize_list_function,
     _deserialize_list_organisation,
+    _deserialize_list_variables,
     _deserialize_list_versions,
     _deserialize_list_webhook,
     _deserialize_list_workspace,
@@ -100,6 +104,7 @@ from .deserialize import (
     _deserialize_update_override,
     _deserialize_update_overrides_experiment,
     _deserialize_update_type_templates,
+    _deserialize_update_variable,
     _deserialize_update_webhook,
     _deserialize_update_workspace,
     _deserialize_validate_context,
@@ -124,6 +129,7 @@ from .models import (
     CREATE_FUNCTION,
     CREATE_ORGANISATION,
     CREATE_TYPE_TEMPLATES,
+    CREATE_VARIABLE,
     CREATE_WEBHOOK,
     CREATE_WORKSPACE,
     ConcludeExperimentInput,
@@ -144,6 +150,8 @@ from .models import (
     CreateOrganisationOutput,
     CreateTypeTemplatesInput,
     CreateTypeTemplatesOutput,
+    CreateVariableInput,
+    CreateVariableOutput,
     CreateWebhookInput,
     CreateWebhookOutput,
     CreateWorkspaceInput,
@@ -154,6 +162,7 @@ from .models import (
     DELETE_EXPERIMENT_GROUP,
     DELETE_FUNCTION,
     DELETE_TYPE_TEMPLATES,
+    DELETE_VARIABLE,
     DELETE_WEBHOOK,
     DISCARD_EXPERIMENT,
     DeleteContextInput,
@@ -168,6 +177,8 @@ from .models import (
     DeleteFunctionOutput,
     DeleteTypeTemplatesInput,
     DeleteTypeTemplatesOutput,
+    DeleteVariableInput,
+    DeleteVariableOutput,
     DeleteWebhookInput,
     DeleteWebhookOutput,
     DiscardExperimentInput,
@@ -185,6 +196,7 @@ from .models import (
     GET_RESOLVED_CONFIG,
     GET_TYPE_TEMPLATE,
     GET_TYPE_TEMPLATES_LIST,
+    GET_VARIABLE,
     GET_VERSION,
     GET_WEBHOOK,
     GET_WEBHOOK_BY_EVENT,
@@ -215,6 +227,8 @@ from .models import (
     GetTypeTemplateOutput,
     GetTypeTemplatesListInput,
     GetTypeTemplatesListOutput,
+    GetVariableInput,
+    GetVariableOutput,
     GetVersionInput,
     GetVersionOutput,
     GetWebhookByEventInput,
@@ -231,6 +245,7 @@ from .models import (
     LIST_EXPERIMENT_GROUPS,
     LIST_FUNCTION,
     LIST_ORGANISATION,
+    LIST_VARIABLES,
     LIST_VERSIONS,
     LIST_WEBHOOK,
     LIST_WORKSPACE,
@@ -250,6 +265,8 @@ from .models import (
     ListFunctionOutput,
     ListOrganisationInput,
     ListOrganisationOutput,
+    ListVariablesInput,
+    ListVariablesOutput,
     ListVersionsInput,
     ListVersionsOutput,
     ListWebhookInput,
@@ -289,6 +306,7 @@ from .models import (
     UPDATE_OVERRIDE,
     UPDATE_OVERRIDES_EXPERIMENT,
     UPDATE_TYPE_TEMPLATES,
+    UPDATE_VARIABLE,
     UPDATE_WEBHOOK,
     UPDATE_WORKSPACE,
     UpdateDefaultConfigInput,
@@ -307,6 +325,8 @@ from .models import (
     UpdateOverridesExperimentOutput,
     UpdateTypeTemplatesInput,
     UpdateTypeTemplatesOutput,
+    UpdateVariableInput,
+    UpdateVariableOutput,
     UpdateWebhookInput,
     UpdateWebhookOutput,
     UpdateWorkspaceInput,
@@ -331,6 +351,7 @@ from .serialize import (
     _serialize_create_function,
     _serialize_create_organisation,
     _serialize_create_type_templates,
+    _serialize_create_variable,
     _serialize_create_webhook,
     _serialize_create_workspace,
     _serialize_delete_context,
@@ -339,6 +360,7 @@ from .serialize import (
     _serialize_delete_experiment_group,
     _serialize_delete_function,
     _serialize_delete_type_templates,
+    _serialize_delete_variable,
     _serialize_delete_webhook,
     _serialize_discard_experiment,
     _serialize_get_config,
@@ -354,6 +376,7 @@ from .serialize import (
     _serialize_get_resolved_config,
     _serialize_get_type_template,
     _serialize_get_type_templates_list,
+    _serialize_get_variable,
     _serialize_get_version,
     _serialize_get_webhook,
     _serialize_get_webhook_by_event,
@@ -366,6 +389,7 @@ from .serialize import (
     _serialize_list_experiment_groups,
     _serialize_list_function,
     _serialize_list_organisation,
+    _serialize_list_variables,
     _serialize_list_versions,
     _serialize_list_webhook,
     _serialize_list_workspace,
@@ -385,6 +409,7 @@ from .serialize import (
     _serialize_update_override,
     _serialize_update_overrides_experiment,
     _serialize_update_type_templates,
+    _serialize_update_variable,
     _serialize_update_webhook,
     _serialize_update_workspace,
     _serialize_validate_context,
@@ -741,6 +766,32 @@ class Superposition:
             operation=CREATE_TYPE_TEMPLATES,
         )
 
+    async def create_variable(self, input: CreateVariableInput, plugins: list[Plugin] | None = None) -> CreateVariableOutput:
+        """
+        Creates a new variable with the specified name and value.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_create_variable,
+            deserialize=_deserialize_create_variable,
+            config=self._config,
+            operation=CREATE_VARIABLE,
+        )
+
     async def create_webhook(self, input: CreateWebhookInput, plugins: list[Plugin] | None = None) -> CreateWebhookOutput:
         """
         Creates a new webhook config to receive HTTP notifications when specified events
@@ -957,6 +1008,32 @@ class Superposition:
             deserialize=_deserialize_delete_type_templates,
             config=self._config,
             operation=DELETE_TYPE_TEMPLATES,
+        )
+
+    async def delete_variable(self, input: DeleteVariableInput, plugins: list[Plugin] | None = None) -> DeleteVariableOutput:
+        """
+        Permanently deletes a variable from the workspace.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_delete_variable,
+            deserialize=_deserialize_delete_variable,
+            config=self._config,
+            operation=DELETE_VARIABLE,
         )
 
     async def delete_webhook(self, input: DeleteWebhookInput, plugins: list[Plugin] | None = None) -> DeleteWebhookOutput:
@@ -1362,6 +1439,32 @@ class Superposition:
             operation=GET_TYPE_TEMPLATES_LIST,
         )
 
+    async def get_variable(self, input: GetVariableInput, plugins: list[Plugin] | None = None) -> GetVariableOutput:
+        """
+        Retrieves detailed information about a specific variable by its name.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_variable,
+            deserialize=_deserialize_get_variable,
+            config=self._config,
+            operation=GET_VARIABLE,
+        )
+
     async def get_version(self, input: GetVersionInput, plugins: list[Plugin] | None = None) -> GetVersionOutput:
         """
         Retrieves a specific config version along with its metadata for audit and
@@ -1684,6 +1787,33 @@ class Superposition:
             deserialize=_deserialize_list_organisation,
             config=self._config,
             operation=LIST_ORGANISATION,
+        )
+
+    async def list_variables(self, input: ListVariablesInput, plugins: list[Plugin] | None = None) -> ListVariablesOutput:
+        """
+        Retrieves a paginated list of all variables in the workspace with optional
+        filtering and sorting.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_list_variables,
+            deserialize=_deserialize_list_variables,
+            config=self._config,
+            operation=LIST_VARIABLES,
         )
 
     async def list_versions(self, input: ListVersionsInput, plugins: list[Plugin] | None = None) -> ListVersionsOutput:
@@ -2200,6 +2330,32 @@ class Superposition:
             deserialize=_deserialize_update_type_templates,
             config=self._config,
             operation=UPDATE_TYPE_TEMPLATES,
+        )
+
+    async def update_variable(self, input: UpdateVariableInput, plugins: list[Plugin] | None = None) -> UpdateVariableOutput:
+        """
+        Updates an existing variable's value, description, or tags.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_update_variable,
+            deserialize=_deserialize_update_variable,
+            config=self._config,
+            operation=UPDATE_VARIABLE,
         )
 
     async def update_webhook(self, input: UpdateWebhookInput, plugins: list[Plugin] | None = None) -> UpdateWebhookOutput:
