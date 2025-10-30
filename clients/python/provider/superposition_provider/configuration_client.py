@@ -68,6 +68,7 @@ class ConfigurationClient:
         if self.exp_config:
             experimentdata = ExperimentationArgs(
                 experiments=self.exp_config.cached_experiments,
+                experiment_groups=self.exp_config.cached_experiment_groups,
                 targeting_key= targeting_key if targeting_key else "",
             )
         try:
@@ -180,6 +181,7 @@ class ConfigurationClient:
         if self.exp_config:
             experimentdata = ExperimentationArgs(
                 experiments=self.exp_config.cached_experiments(),
+                experiment_groups=self.exp_config.cached_experiment_groups(),
                 targeting_key= targeting_key if targeting_key else "",
             )
             return ffi_get_applicable_variants(experimentdata, self.cac_config.cached_config.get('dimensions', {}), context, prefix=None)

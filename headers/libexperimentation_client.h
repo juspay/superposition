@@ -22,7 +22,8 @@ struct Arc_Client *expt_get_client(const char *tenant);
 char *expt_get_applicable_variant(struct Arc_Client *client,
                                   const char *c_dimensions,
                                   const char *c_context,
-                                  const char *identifier);
+                                  const char *identifier,
+                                  const char *filter_prefix);
 
 char *expt_get_satisfied_experiments(struct Arc_Client *client,
                                      const char *c_context,

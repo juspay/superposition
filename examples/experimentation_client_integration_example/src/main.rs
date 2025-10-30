@@ -45,7 +45,7 @@ async fn get_variants(
         "os": platform
     });
     let variant = state
-        .get_applicable_variant(&HashMap::new(), &contexts, &identifier)
+        .get_applicable_variant(&HashMap::new(), &contexts, &identifier, None)
         .await;
     println!("variant value: {:?}", variant);
     HttpResponse::Ok().body("check your console")

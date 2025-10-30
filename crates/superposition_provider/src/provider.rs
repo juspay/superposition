@@ -140,11 +140,7 @@ impl SuperpositionProvider {
         let dimensions_info = self.get_dimensions_info().await;
         let variant_ids = if let Some(exp_config) = &self.exp_config {
             exp_config
-                .get_applicable_variants(
-                    &dimensions_info,
-                    &context,
-                    targeting_key.unwrap_or_default().parse::<i8>().ok(),
-                )
+                .get_applicable_variants(&dimensions_info, &context, targeting_key)
                 .await?
         } else {
             vec![]

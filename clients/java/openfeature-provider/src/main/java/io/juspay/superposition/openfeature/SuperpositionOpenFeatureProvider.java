@@ -16,6 +16,7 @@ import dev.openfeature.sdk.*;
 import com.google.gson.Gson;
 import uniffi.superposition_client.ExperimentationArgs;
 import uniffi.superposition_client.FfiExperiment;
+import uniffi.superposition_client.FfiExperimentGroup;
 import uniffi.superposition_client.OperationException;
 
 import java.util.List;
@@ -72,6 +73,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     private final SuperpositionAsyncClient sdk;
     private final RefreshJob<EvaluationArgs> configRefresh;
     private final Optional<RefreshJob<List<FfiExperiment>>> expRefresh;
+    private final Optional<RefreshJob<List<FfiExperimentGroup>>> expGroupRefresh;
     private Optional<EvaluationContext> defaultCtx;
     private final Optional<EvaluationArgs> fallbackArgs;
 
@@ -94,6 +96,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             options.refreshStrategy,
             () -> sdk.getConfig(getConfigInput).thenApply(EvaluationArgs::new)
         );
+
         if (options.experimentationOptions != null) {
             var listExpInput = ListExperimentInput.builder()
                 .orgId(options.orgId)
@@ -111,8 +114,26 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
                             .toList()
                         ))
             );
+
+            // New logic for experiment_groups
+            var listExpGroupInput = ListExperimentGroupsInput.builder()
+                .orgId(options.orgId)
+                .workspaceId(options.workspaceId)
+                .build();
+            this.expGroupRefresh = Optional.of(
+                RefreshJob.create(
+                    options.experimentationOptions.refreshStrategy,
+                    () -> sdk.listExperimentGroups(listExpGroupInput)
+                        .thenApply(g -> g
+                            .data()
+                            .stream()
+                            .map(EvaluationArgs.Helpers::toFfiExperimentGroup)
+                            .toList()
+                        ))
+            );
         } else {
             this.expRefresh = Optional.empty();
+            this.expGroupRefresh = Optional.empty();
         }
     }
 
@@ -129,6 +150,12 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         }
         if (expRefresh.isPresent()) {
             var r = expRefresh.get();
+            if (r instanceof RefreshJob.Poll) {
+                ((RefreshJob.Poll<?>) r).start();
+            }
+        }
+        if (expGroupRefresh.isPresent()) {
+            var r = expGroupRefresh.get();
             if (r instanceof RefreshJob.Poll) {
                 ((RefreshJob.Poll<?>) r).start();
             }
@@ -274,16 +301,17 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
 
     private ExperimentationArgs getExperimentationArgs(EvaluationContext ctx) {
         var job = expRefresh.orElse(null);
+        var jobGroups = expGroupRefresh.orElse(null);
         var tkey = ctx.getTargetingKey();
         if (tkey != null) {
             log.debug("Targeting-key is: {}", tkey);
-            if (job == null) {
+            if (job == null || jobGroups == null) {
                 log.warn("Attempting to use targeting-key w/o setting up experimentation.");
-            } else if (job.getOutput().isEmpty()) {
+            } else if (job.getOutput().isEmpty() || jobGroups.getOutput().isEmpty()) {
                 log.error("Experimentation data is not available.");
             } else {
                 log.debug("Using experimentation output: {}", job.getOutput().get());
-                return new ExperimentationArgs(job.getOutput().get(), tkey);
+                return new ExperimentationArgs(job.getOutput().get(), jobGroups.getOutput().get(), tkey);
             }
         }
         return null;

@@ -28,21 +28,30 @@ import itertools
 import traceback
 import typing
 import platform
+from .superposition_types import Bucket
+from .superposition_types import Buckets
 from .superposition_types import Condition
 from .superposition_types import Context
 from .superposition_types import DimensionInfo
+from .superposition_types import GroupType
 from .superposition_types import Overrides
 from .superposition_types import Variant
 from .superposition_types import Variants
+from .superposition_types import _UniffiConverterTypeBucket
+from .superposition_types import _UniffiConverterTypeBuckets
 from .superposition_types import _UniffiConverterTypeCondition
 from .superposition_types import _UniffiConverterTypeContext
 from .superposition_types import _UniffiConverterTypeDimensionInfo
+from .superposition_types import _UniffiConverterTypeGroupType
 from .superposition_types import _UniffiConverterTypeOverrides
 from .superposition_types import _UniffiConverterTypeVariant
 from .superposition_types import _UniffiConverterTypeVariants
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferBucket
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferBuckets
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferCondition
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferContext
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferDimensionInfo
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferGroupType
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferOverrides
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferVariant
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferVariants
@@ -956,16 +965,20 @@ class _UniffiConverterString:
 
 class ExperimentationArgs:
     experiments: "typing.List[FfiExperiment]"
+    experiment_groups: "typing.List[FfiExperimentGroup]"
     targeting_key: "str"
-    def __init__(self, *, experiments: "typing.List[FfiExperiment]", targeting_key: "str"):
+    def __init__(self, *, experiments: "typing.List[FfiExperiment]", experiment_groups: "typing.List[FfiExperimentGroup]", targeting_key: "str"):
         self.experiments = experiments
+        self.experiment_groups = experiment_groups
         self.targeting_key = targeting_key
 
     def __str__(self):
-        return "ExperimentationArgs(experiments={}, targeting_key={})".format(self.experiments, self.targeting_key)
+        return "ExperimentationArgs(experiments={}, experiment_groups={}, targeting_key={})".format(self.experiments, self.experiment_groups, self.targeting_key)
 
     def __eq__(self, other):
         if self.experiments != other.experiments:
+            return False
+        if self.experiment_groups != other.experiment_groups:
             return False
         if self.targeting_key != other.targeting_key:
             return False
@@ -976,17 +989,20 @@ class _UniffiConverterTypeExperimentationArgs(_UniffiConverterRustBuffer):
     def read(buf):
         return ExperimentationArgs(
             experiments=_UniffiConverterSequenceTypeFfiExperiment.read(buf),
+            experiment_groups=_UniffiConverterSequenceTypeFfiExperimentGroup.read(buf),
             targeting_key=_UniffiConverterString.read(buf),
         )
 
     @staticmethod
     def check_lower(value):
         _UniffiConverterSequenceTypeFfiExperiment.check_lower(value.experiments)
+        _UniffiConverterSequenceTypeFfiExperimentGroup.check_lower(value.experiment_groups)
         _UniffiConverterString.check_lower(value.targeting_key)
 
     @staticmethod
     def write(value, buf):
         _UniffiConverterSequenceTypeFfiExperiment.write(value.experiments, buf)
+        _UniffiConverterSequenceTypeFfiExperimentGroup.write(value.experiment_groups, buf)
         _UniffiConverterString.write(value.targeting_key, buf)
 
 
@@ -1038,6 +1054,70 @@ class _UniffiConverterTypeFfiExperiment(_UniffiConverterRustBuffer):
         _UniffiConverterUInt8.write(value.traffic_percentage, buf)
         _UniffiConverterTypeVariants.write(value.variants, buf)
         _UniffiConverterTypeCondition.write(value.context, buf)
+
+
+class FfiExperimentGroup:
+    id: "str"
+    context: "Condition"
+    traffic_percentage: "int"
+    member_experiment_ids: "typing.List[str]"
+    group_type: "GroupType"
+    buckets: "Buckets"
+    def __init__(self, *, id: "str", context: "Condition", traffic_percentage: "int", member_experiment_ids: "typing.List[str]", group_type: "GroupType", buckets: "Buckets"):
+        self.id = id
+        self.context = context
+        self.traffic_percentage = traffic_percentage
+        self.member_experiment_ids = member_experiment_ids
+        self.group_type = group_type
+        self.buckets = buckets
+
+    def __str__(self):
+        return "FfiExperimentGroup(id={}, context={}, traffic_percentage={}, member_experiment_ids={}, group_type={}, buckets={})".format(self.id, self.context, self.traffic_percentage, self.member_experiment_ids, self.group_type, self.buckets)
+
+    def __eq__(self, other):
+        if self.id != other.id:
+            return False
+        if self.context != other.context:
+            return False
+        if self.traffic_percentage != other.traffic_percentage:
+            return False
+        if self.member_experiment_ids != other.member_experiment_ids:
+            return False
+        if self.group_type != other.group_type:
+            return False
+        if self.buckets != other.buckets:
+            return False
+        return True
+
+class _UniffiConverterTypeFfiExperimentGroup(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return FfiExperimentGroup(
+            id=_UniffiConverterString.read(buf),
+            context=_UniffiConverterTypeCondition.read(buf),
+            traffic_percentage=_UniffiConverterUInt8.read(buf),
+            member_experiment_ids=_UniffiConverterSequenceString.read(buf),
+            group_type=_UniffiConverterTypeGroupType.read(buf),
+            buckets=_UniffiConverterTypeBuckets.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterString.check_lower(value.id)
+        _UniffiConverterTypeCondition.check_lower(value.context)
+        _UniffiConverterUInt8.check_lower(value.traffic_percentage)
+        _UniffiConverterSequenceString.check_lower(value.member_experiment_ids)
+        _UniffiConverterTypeGroupType.check_lower(value.group_type)
+        _UniffiConverterTypeBuckets.check_lower(value.buckets)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterString.write(value.id, buf)
+        _UniffiConverterTypeCondition.write(value.context, buf)
+        _UniffiConverterUInt8.write(value.traffic_percentage, buf)
+        _UniffiConverterSequenceString.write(value.member_experiment_ids, buf)
+        _UniffiConverterTypeGroupType.write(value.group_type, buf)
+        _UniffiConverterTypeBuckets.write(value.buckets, buf)
 
 
 
@@ -1161,6 +1241,33 @@ class _UniffiConverterOptionalTypeExperimentationArgs(_UniffiConverterRustBuffer
 
 
 
+class _UniffiConverterOptionalTypeBucket(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        if value is not None:
+            _UniffiConverterTypeBucket.check_lower(value)
+
+    @classmethod
+    def write(cls, value, buf):
+        if value is None:
+            buf.write_u8(0)
+            return
+
+        buf.write_u8(1)
+        _UniffiConverterTypeBucket.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        flag = buf.read_u8()
+        if flag == 0:
+            return None
+        elif flag == 1:
+            return _UniffiConverterTypeBucket.read(buf)
+        else:
+            raise InternalError("Unexpected flag byte for optional type")
+
+
+
 class _UniffiConverterOptionalSequenceString(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, value):
@@ -1238,6 +1345,31 @@ class _UniffiConverterSequenceTypeFfiExperiment(_UniffiConverterRustBuffer):
 
 
 
+class _UniffiConverterSequenceTypeFfiExperimentGroup(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        for item in value:
+            _UniffiConverterTypeFfiExperimentGroup.check_lower(item)
+
+    @classmethod
+    def write(cls, value, buf):
+        items = len(value)
+        buf.write_i32(items)
+        for item in value:
+            _UniffiConverterTypeFfiExperimentGroup.write(item, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative sequence length")
+
+        return [
+            _UniffiConverterTypeFfiExperimentGroup.read(buf) for i in range(count)
+        ]
+
+
+
 class _UniffiConverterSequenceTypeContext(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, value):
@@ -1284,6 +1416,31 @@ class _UniffiConverterSequenceTypeVariant(_UniffiConverterRustBuffer):
 
         return [
             _UniffiConverterTypeVariant.read(buf) for i in range(count)
+        ]
+
+
+
+class _UniffiConverterSequenceOptionalTypeBucket(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        for item in value:
+            _UniffiConverterOptionalTypeBucket.check_lower(item)
+
+    @classmethod
+    def write(cls, value, buf):
+        items = len(value)
+        buf.write_i32(items)
+        for item in value:
+            _UniffiConverterOptionalTypeBucket.write(item, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative sequence length")
+
+        return [
+            _UniffiConverterOptionalTypeBucket.read(buf) for i in range(count)
         ]
 
 
@@ -1387,11 +1544,17 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # objects.
 
+# External type Bucket: `from .superposition_types import Bucket`
+
 # External type Context: `from .superposition_types import Context`
 
 # External type DimensionInfo: `from .superposition_types import DimensionInfo`
 
 # External type Variant: `from .superposition_types import Variant`
+
+# External type GroupType: `from .superposition_types import GroupType`
+
+# External type Buckets: `from .superposition_types import Buckets`
 
 # External type Condition: `from .superposition_types import Condition`
 
@@ -1479,6 +1642,7 @@ __all__ = [
     "OperationError",
     "ExperimentationArgs",
     "FfiExperiment",
+    "FfiExperimentGroup",
     "ffi_eval_config",
     "ffi_eval_config_with_reasoning",
     "ffi_get_applicable_variants",

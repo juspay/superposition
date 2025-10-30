@@ -1058,6 +1058,38 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 
+data class Bucket (
+    var `variantId`: kotlin.String, 
+    var `experimentId`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBucket: FfiConverterRustBuffer<Bucket> {
+    override fun read(buf: ByteBuffer): Bucket {
+        return Bucket(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Bucket) = (
+            FfiConverterString.allocationSize(value.`variantId`) +
+            FfiConverterString.allocationSize(value.`experimentId`)
+    )
+
+    override fun write(value: Bucket, buf: ByteBuffer) {
+            FfiConverterString.write(value.`variantId`, buf)
+            FfiConverterString.write(value.`experimentId`, buf)
+    }
+}
+
+
+
 data class Context (
     var `id`: kotlin.String, 
     var `condition`: Condition, 
@@ -1429,6 +1461,38 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeBucket: FfiConverterRustBuffer<Bucket?> {
+    override fun read(buf: ByteBuffer): Bucket? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeBucket.read(buf)
+    }
+
+    override fun allocationSize(value: Bucket?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeBucket.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Bucket?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeBucket.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
     override fun read(buf: ByteBuffer): List<kotlin.String> {
         val len = buf.getInt()
@@ -1475,6 +1539,34 @@ public object FfiConverterSequenceTypeVariant: FfiConverterRustBuffer<List<Varia
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeVariant.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceOptionalTypeBucket: FfiConverterRustBuffer<List<Bucket?>> {
+    override fun read(buf: ByteBuffer): List<Bucket?> {
+        val len = buf.getInt()
+        return List<Bucket?>(len) {
+            FfiConverterOptionalTypeBucket.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Bucket?>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterOptionalTypeBucket.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Bucket?>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterOptionalTypeBucket.write(it, buf)
         }
     }
 }
@@ -1556,6 +1648,16 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
         }
     }
 }
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Buckets = List<Bucket?>
+public typealias FfiConverterTypeBuckets = FfiConverterSequenceOptionalTypeBucket
 
 
 

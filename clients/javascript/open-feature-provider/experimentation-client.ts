@@ -1,4 +1,4 @@
-import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput, ListExperimentGroupsCommandInput, ListExperimentGroupsCommand, GroupType } from 'superposition-sdk';
+import { SuperpositionClient, ListExperimentCommand, ListExperimentCommandInput, ListExperimentGroupsCommandInput, ListExperimentGroupsCommand, GroupType, Bucket } from 'superposition-sdk';
 import { SuperpositionOptions, ExperimentationOptions, PollingStrategy, OnDemandStrategy } from './types';
 
 export interface Variant {
@@ -22,6 +22,7 @@ export interface ExperimentGroup {
     member_experiment_ids: string[];
     traffic_percentage: number;
     group_type: GroupType;
+    buckets: (Bucket)[];
 }
 
 export class ExperimentationClient {
@@ -175,7 +176,8 @@ export class ExperimentationClient {
                     context: this.normalizeToStringRecord(exp_group.context),
                     traffic_percentage: exp_group.traffic_percentage || 100,
                     member_experiment_ids: exp_group.member_experiment_ids || [],
-                    group_type: exp_group.group_type as GroupType || GroupType.USER_CREATED
+                    group_type: exp_group.group_type as GroupType || GroupType.USER_CREATED,
+                    buckets: exp_group.buckets || []
                 });
             }
 

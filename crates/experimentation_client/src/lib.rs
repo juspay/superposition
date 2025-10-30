@@ -115,6 +115,7 @@ impl Client {
         dimensions_info: &HashMap<String, DimensionInfo>,
         context: &Value,
         identifier: &str,
+        prefix: Option<Vec<String>>,
     ) -> Result<Vec<String>, String> {
         let experiment_groups = self
             .experiment_groups
@@ -132,7 +133,12 @@ impl Client {
         let buckets =
             get_applicable_buckets_from_group(&experiment_groups, &context, identifier);
 
-        let experiments = self.experiments.read().await;
+        let experiments = self
+            .get_satisfied_experiments(&context, prefix)
+            .await?
+            .into_iter()
+            .map(|exp| (exp.id.clone(), exp.clone()))
+            .collect::<HashMap<_, _>>();
 
         let applicable_variants =
             get_applicable_variants_from_group_response(&experiments, &context, &buckets);
@@ -274,6 +280,10 @@ pub fn get_applicable_buckets_from_group(
     context: &Value,
     identifier: &str,
 ) -> Vec<(usize, Bucket)> {
+    if identifier.is_empty() {
+        return vec![];
+    }
+
     experiment_groups
         .iter()
         .filter_map(|exp_group| {
@@ -312,11 +322,13 @@ pub fn get_applicable_buckets_from_group(
             .and_then(|b| {
                 if exp_group.group_type == GroupType::SystemGenerated {
                     Some((hashed_percentage, b))
-                } else {
-                    (*exp_group.traffic_percentage > 0).then_some((
+                } else if *exp_group.traffic_percentage > 0 {
+                    Some((
                         (hashed_percentage * 100) / *exp_group.traffic_percentage as usize,
                         b,
                     ))
+                } else {
+                    None
                 }
             })
         })

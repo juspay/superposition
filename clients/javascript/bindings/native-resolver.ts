@@ -239,6 +239,7 @@ export class NativeResolver {
 
     getApplicableVariants(
         experiments: any[],
+        experiment_groups: any[],
         dimensions: Record<string, Record<string, any>>,
         userContext: Record<string, any>,
         identifier: string,
@@ -258,19 +259,22 @@ export class NativeResolver {
         }
 
         const experimentsJson = JSON.stringify(experiments);
+        const experimentGroupsJson = JSON.stringify(experiment_groups);
         const userContextJson = JSON.stringify(userContext);
         const dimensionsJson = JSON.stringify(dimensions);
         const filterPrefixesJson =
             filterPrefixes.length > 0 ? JSON.stringify(filterPrefixes) : null;
 
         console.log("Calling FFI getApplicableVariants with parameters:");
-        console.log("  experiments:", experiments);
+        console.log("  experiments:", experiments.length);
+        console.log("  experimentGroups:", experiment_groups.length);
         console.log("  userContext:", userContext);
         console.log("  identifier:", identifier);
         console.log("  filterPrefixes:", filterPrefixes);
 
         const result = this.lib.core_get_applicable_variants(
             experimentsJson,
+            experimentGroupsJson,
             dimensionsJson,
             userContextJson,
             identifier,

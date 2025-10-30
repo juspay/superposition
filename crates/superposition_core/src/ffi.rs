@@ -1,4 +1,3 @@
-use rand::Rng;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use superposition_types::{Context, DimensionInfo, Overrides};
@@ -57,16 +56,13 @@ fn ffi_eval_logic(
     if let Some(e_args) = experimentation {
         // NOTE Parsing to allow for testing. This has to be migrated to the new
         // bucketing procedure.
-        let toss = e_args
-            .targeting_key
-            .parse::<i8>()
-            .unwrap_or(rand::rng().random_range(0..=99))
-            % 100;
+        let identifier = e_args.targeting_key;
         let variants = get_applicable_variants(
             &dimensions,
             &e_args.experiments,
+            &e_args.experiment_groups,
             &_q,
-            toss,
+            &identifier,
             filter_prefixes.clone(),
         )
         .map_err(OperationError::Unexpected)?;
@@ -147,17 +143,13 @@ fn ffi_get_applicable_variants(
     let _query_data = json_from_map(query_data.clone())
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
-    // TODO Migrate to new bucketing procedure.
-    let toss = eargs
-        .targeting_key
-        .parse::<i8>()
-        .unwrap_or(rand::rng().random_range(0..=99))
-        % 100;
+    let identifier = eargs.targeting_key;
     let r = get_applicable_variants(
         &dimensions_info,
         &eargs.experiments,
+        &eargs.experiment_groups,
         &_query_data,
-        toss,
+        &identifier,
         prefix,
     )
     .map_err(OperationError::Unexpected)?;

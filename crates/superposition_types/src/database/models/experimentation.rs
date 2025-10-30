@@ -13,6 +13,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
+use uniffi::deps::anyhow;
 
 use crate::{Condition, Contextual, Exp, Overridden, Overrides};
 
@@ -440,6 +441,7 @@ where
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+#[derive(uniffi::Record)]
 pub struct Bucket {
     pub variant_id: String,
     pub experiment_id: String,
@@ -503,3 +505,10 @@ impl ToSql<Array<Nullable<Json>>, Pg> for Buckets {
         )
     }
 }
+
+uniffi::custom_type!(Buckets, Vec<Option<Bucket>>, {
+    try_lift: |val: Vec<Option<Bucket>>| {
+        Buckets::try_from(val).map_err(|e| anyhow::anyhow!(e))
+    },
+    lower: |obj: Buckets| obj.0.to_vec(),
+});
