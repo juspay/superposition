@@ -4,7 +4,7 @@ use superposition_provider::{
     SuperpositionProviderOptions,
 };
 use superposition_sdk::{
-    types::{DimensionType, WorkspaceStatus},
+    types::{DimensionType, Variant, WorkspaceStatus},
     Client, Config,
 };
 
@@ -287,6 +287,48 @@ async fn create_overrides(client: &Client, org_id: &str, workspace_id: &str) {
     println!("  - Created override: karbik -> price 1");
 }
 
+async fn create_experiments(client: &Client, org_id: &str, workspace_id: &str) {
+    println!("Creating experiment:");
+
+    use aws_smithy_types::Document;
+
+    client
+        .create_experiment()
+        .workspace_id(workspace_id)
+        .org_id(org_id)
+        .name("Kolkata Pricing Experiment")
+        .context("city", Document::from("Kolkata"))
+        .variants(
+            Variant::builder()
+                .id("control".to_string())
+                .variant_type(superposition_sdk::types::VariantType::Control)
+                .overrides(Document::Object(
+                    [("price".to_string(), Document::from(10000))]
+                        .into_iter()
+                        .collect(),
+                ))
+                .build()
+                .expect("Failed to build control variant"),
+        )
+        .variants(
+            Variant::builder()
+                .id("Experimental".to_string())
+                .variant_type(superposition_sdk::types::VariantType::Experimental)
+                .overrides(Document::Object(
+                    [("price".to_string(), Document::from(7000))]
+                        .into_iter()
+                        .collect(),
+                ))
+                .build()
+                .expect("Failed to build Experimental variant"),
+        )
+        .description("A test experiment")
+        .change_reason("adding test experiment")
+        .send()
+        .await
+        .expect("Failed to create experiment");
+}
+
 async fn setup_with_sdk(org_id: &str, workspace_id: &str) {
     println!("\n=== Setting up test environment ===\n");
 
@@ -296,6 +338,7 @@ async fn setup_with_sdk(org_id: &str, workspace_id: &str) {
     create_dimensions(&client, org_id, workspace_id).await;
     create_default_configs(&client, org_id, workspace_id).await;
     create_overrides(&client, org_id, workspace_id).await;
+    create_experiments(&client, org_id, workspace_id).await;
 
     println!("\n=== Setup complete ===\n");
 }
@@ -477,6 +520,30 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
         assert_eq!(price, 1.0, "Price should be 1 for karbik");
         assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
         println!("  ✓ Test passed\n");
+    }
+
+    // Test 9: Experiment case - Kolkata pricing
+    println!("Test 9: Experiment case: Kolkata pricing");
+    {
+        let ctx = EvaluationContext::default()
+            .with_custom_field("city", "Kolkata")
+            .with_targeting_key("test");
+        let price = client
+            .get_float_value("price", Some(&ctx), None)
+            .await
+            .unwrap();
+        let currency = client
+            .get_string_value("currency", Some(&ctx), None)
+            .await
+            .unwrap();
+        println!("  Retrieved price: {}, currency: {}", price, currency);
+
+        assert!(
+            price == 10000.0 || price == 7000.0,
+            "Price should be either 10000 (control) or 7000 (experiment) "
+        );
+        assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+        println!("  ✓ Experiment test passed ");
     }
 
     println!("\n=== All tests passed! ===\n");

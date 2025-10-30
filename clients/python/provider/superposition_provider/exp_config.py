@@ -3,7 +3,8 @@ import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 from superposition_bindings.superposition_client import FfiExperiment, FfiExperimentGroup
-from superposition_sdk.models import ExperimentStatusType
+from superposition_sdk.models import ExperimentStatusType, GroupType as SDKGroupType
+from superposition_bindings.superposition_types import GroupType
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ExperimentationOptions
 from superposition_sdk.client import Superposition, Config, ListExperimentInput, ListExperimentGroupsInput
 import asyncio
@@ -68,6 +69,10 @@ def document_to_python_value(doc: Document) -> Any:
                 return float(val)
             return val
 
+def to_group_type(sdk_group_type: SDKGroupType) -> GroupType:
+    if sdk_group_type == SDKGroupType.USER_CREATED:
+        return GroupType.USER_CREATED
+    return GroupType.SYSTEM_GENERATED
 
 class ExperimentationConfig():
     def __init__(self, superposition_options: SuperpositionOptions, experiment_options: ExperimentationOptions):
@@ -193,7 +198,7 @@ class ExperimentationConfig():
             # Log the error and return empty config as fallback
             logger.error(f"Error fetching config from Superposition: {e}")
             return None
-        
+
     @staticmethod
     async def _get_experiment_groups(superposition_options: SuperpositionOptions) -> Optional[Dict[str, Any]]:
         """
@@ -239,7 +244,7 @@ class ExperimentationConfig():
                     context=condition,
                     member_experiment_ids=exp_gr.member_experiment_ids,
                     traffic_percentage=exp_gr.traffic_percentage,
-                    group_type=exp_gr.group_type,
+                    group_type=to_group_type(exp_gr.group_type),
                     buckets=exp_gr.buckets
                 )
 
