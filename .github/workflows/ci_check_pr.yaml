@@ -237,6 +237,7 @@ jobs:
                     - kotlin
                     - js
                     - py
+                    - rust
         services:
             postgres:
                 image: public.ecr.aws/docker/library/postgres:15-alpine3.21

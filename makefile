@@ -72,6 +72,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	test-js-provider
 	test-py-provider
 	test-kotlin-provider
+	test-rust-provider
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -389,4 +390,8 @@ test-py-provider: provider-template
 test-kotlin-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh kotlin
 	cd clients/java && ./gradlew :provider-sdk-tests:run
+	-@pkill -f target/debug/superposition
+
+test-rust-provider: provider-template
+	cargo test --package superposition_provider --test integration_test -- --nocapture --ignored
 	-@pkill -f target/debug/superposition
