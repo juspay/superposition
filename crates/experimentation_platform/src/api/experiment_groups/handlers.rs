@@ -1,6 +1,6 @@
 use actix_web::{
     delete, get, patch, post,
-    web::{self, Data, Json, Query},
+    web::{self, Data, Json},
     Scope,
 };
 use chrono::Utc;
@@ -19,7 +19,7 @@ use superposition_types::{
         ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
         ExpGroupUpdateRequest, SortOn,
     },
-    custom_query::PaginationParams,
+    custom_query::{self as superposition_query, CustomQuery, PaginationParams},
     database::{
         models::{
             experimentation::{
@@ -233,13 +233,12 @@ async fn remove_members_to_group(
 
 #[get("")]
 async fn list_experiment_groups(
-    pagination_params: Query<PaginationParams>,
-    filters: Query<ExpGroupFilters>,
+    pagination_params: superposition_query::Query<PaginationParams>,
+    filters: superposition_query::Query<ExpGroupFilters>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<ExperimentGroup>>> {
     let DbConnection(mut conn) = db_conn;
-    let pagination_params = pagination_params.into_inner();
     let query_builder = |filters: &ExpGroupFilters| {
         let mut builder = experiment_groups::experiment_groups
             .schema_name(&schema_name)

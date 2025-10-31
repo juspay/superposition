@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -34,15 +36,15 @@ public final class ListContextsInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
-        .putMember("prefix", PreludeSchemas.STRING,
+        .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
         .putMember("sort_on", ContextFilterSortOn.$SCHEMA,
                 new HttpQueryTrait("sort_on"))
         .putMember("sort_by", SortBy.$SCHEMA,
                 new HttpQueryTrait("sort_by"))
-        .putMember("created_by", PreludeSchemas.STRING,
+        .putMember("created_by", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("created_by"))
-        .putMember("last_modified_by", PreludeSchemas.STRING,
+        .putMember("last_modified_by", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("last_modified_by"))
         .putMember("plaintext", PreludeSchemas.STRING,
                 new HttpQueryTrait("plaintext"))
@@ -68,11 +70,11 @@ public final class ListContextsInput implements SerializableStruct {
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
-    private final transient String prefix;
+    private final transient List<String> prefix;
     private final transient ContextFilterSortOn sortOn;
     private final transient SortBy sortBy;
-    private final transient String createdBy;
-    private final transient String lastModifiedBy;
+    private final transient List<String> createdBy;
+    private final transient List<String> lastModifiedBy;
     private final transient String plaintext;
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
 
@@ -82,11 +84,11 @@ public final class ListContextsInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
-        this.prefix = builder.prefix;
+        this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
-        this.createdBy = builder.createdBy;
-        this.lastModifiedBy = builder.lastModifiedBy;
+        this.createdBy = builder.createdBy == null ? null : Collections.unmodifiableList(builder.createdBy);
+        this.lastModifiedBy = builder.lastModifiedBy == null ? null : Collections.unmodifiableList(builder.lastModifiedBy);
         this.plaintext = builder.plaintext;
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
     }
@@ -120,8 +122,15 @@ public final class ListContextsInput implements SerializableStruct {
         return orgId;
     }
 
-    public String prefix() {
+    public List<String> prefix() {
+        if (prefix == null) {
+            return Collections.emptyList();
+        }
         return prefix;
+    }
+
+    public boolean hasPrefix() {
+        return prefix != null;
     }
 
     public ContextFilterSortOn sortOn() {
@@ -132,12 +141,26 @@ public final class ListContextsInput implements SerializableStruct {
         return sortBy;
     }
 
-    public String createdBy() {
+    public List<String> createdBy() {
+        if (createdBy == null) {
+            return Collections.emptyList();
+        }
         return createdBy;
     }
 
-    public String lastModifiedBy() {
+    public boolean hasCreatedBy() {
+        return createdBy != null;
+    }
+
+    public List<String> lastModifiedBy() {
+        if (lastModifiedBy == null) {
+            return Collections.emptyList();
+        }
         return lastModifiedBy;
+    }
+
+    public boolean hasLastModifiedBy() {
+        return lastModifiedBy != null;
     }
 
     public String plaintext() {
@@ -200,7 +223,7 @@ public final class ListContextsInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (prefix != null) {
-            serializer.writeString($SCHEMA_PREFIX, prefix);
+            serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (sortOn != null) {
             serializer.writeString($SCHEMA_SORT_ON, sortOn.value());
@@ -209,10 +232,10 @@ public final class ListContextsInput implements SerializableStruct {
             serializer.writeString($SCHEMA_SORT_BY, sortBy.value());
         }
         if (createdBy != null) {
-            serializer.writeString($SCHEMA_CREATED_BY, createdBy);
+            serializer.writeList($SCHEMA_CREATED_BY, createdBy, createdBy.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (lastModifiedBy != null) {
-            serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
+            serializer.writeList($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy, lastModifiedBy.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (plaintext != null) {
             serializer.writeString($SCHEMA_PLAINTEXT, plaintext);
@@ -283,11 +306,11 @@ public final class ListContextsInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
-        private String prefix;
+        private List<String> prefix;
         private ContextFilterSortOn sortOn;
         private SortBy sortBy;
-        private String createdBy;
-        private String lastModifiedBy;
+        private List<String> createdBy;
+        private List<String> lastModifiedBy;
         private String plaintext;
         private DimensionMatchStrategy dimensionMatchStrategy;
 
@@ -351,7 +374,7 @@ public final class ListContextsInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder prefix(String prefix) {
+        public Builder prefix(List<String> prefix) {
             this.prefix = prefix;
             return this;
         }
@@ -375,7 +398,7 @@ public final class ListContextsInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder createdBy(String createdBy) {
+        public Builder createdBy(List<String> createdBy) {
             this.createdBy = createdBy;
             return this;
         }
@@ -383,7 +406,7 @@ public final class ListContextsInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder lastModifiedBy(String lastModifiedBy) {
+        public Builder lastModifiedBy(List<String> lastModifiedBy) {
             this.lastModifiedBy = lastModifiedBy;
             return this;
         }
@@ -419,11 +442,11 @@ public final class ListContextsInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 5 -> prefix((String) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 5 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
                 case 6 -> sortOn((ContextFilterSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 case 7 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 8 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 9 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 8 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 9 -> lastModifiedBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 10 -> plaintext((String) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, value));
                 case 11 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
@@ -467,11 +490,11 @@ public final class ListContextsInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-                    case 5 -> builder.prefix(de.readString(member));
+                    case 5 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
                     case 6 -> builder.sortOn(ContextFilterSortOn.builder().deserializeMember(de, member).build());
                     case 7 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 8 -> builder.createdBy(de.readString(member));
-                    case 9 -> builder.lastModifiedBy(de.readString(member));
+                    case 8 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
+                    case 9 -> builder.lastModifiedBy(SharedSerde.deserializeStringList(member, de));
                     case 10 -> builder.plaintext(de.readString(member));
                     case 11 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());

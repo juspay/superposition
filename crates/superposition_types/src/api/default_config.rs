@@ -17,6 +17,7 @@ use crate::{
     Debug, Clone, PartialEq, Serialize, Deserialize, Default, QueryParam, IsEmpty,
 )]
 pub struct DefaultConfigFilters {
+    #[query_param(skip_if_empty)]
     pub name: Option<String>,
 }
 

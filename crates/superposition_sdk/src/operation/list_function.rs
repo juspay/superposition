@@ -150,6 +150,13 @@ fn uri_query(_input: &crate::operation::list_function::ListFunctionInput, mut ou
             query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
         }
     }
+    if let ::std::option::Option::Some(inner_4) = &_input.function_type {
+         {
+            for inner_5 in inner_4 {
+                query.push_kv("function_type", &::aws_smithy_http::query::fmt_string(inner_5));
+            }
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

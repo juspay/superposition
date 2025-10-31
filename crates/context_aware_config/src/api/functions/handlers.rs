@@ -1,6 +1,6 @@
 use actix_web::{
     delete, get, patch, post,
-    web::{Json, Path, Query},
+    web::{Json, Path},
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
@@ -13,7 +13,7 @@ use superposition_types::{
         FunctionStateChangeRequest, ListFunctionFilters, Stage, TestParam,
         UpdateFunctionRequest,
     },
-    custom_query::PaginationParams,
+    custom_query::{self as superposition_query, PaginationParams},
     database::{
         models::cac::{Function, FunctionType},
         schema::{self, functions::dsl as functions},
@@ -155,12 +155,11 @@ async fn get(
 #[get("")]
 async fn list_functions(
     db_conn: DbConnection,
-    pagination: Query<PaginationParams>,
-    filters: Query<ListFunctionFilters>,
+    pagination: superposition_query::Query<PaginationParams>,
+    filters: superposition_query::Query<ListFunctionFilters>,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
-    let filters = filters.into_inner();
     let query_builder = |f: &ListFunctionFilters| {
         let mut builder = functions::functions.schema_name(&schema_name).into_boxed();
         if let Some(ref fntype) = f.function_type {

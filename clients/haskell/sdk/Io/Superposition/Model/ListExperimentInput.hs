@@ -60,13 +60,13 @@ data ListExperimentInput = ListExperimentInput {
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
-    status :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType,
+    status :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType),
     from_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     experiment_name :: Data.Maybe.Maybe Data.Text.Text,
-    experiment_ids :: Data.Maybe.Maybe Data.Text.Text,
-    experiment_group_ids :: Data.Maybe.Maybe Data.Text.Text,
-    created_by :: Data.Maybe.Maybe Data.Text.Text,
+    experiment_ids :: Data.Maybe.Maybe ([] Data.Text.Text),
+    experiment_group_ids :: Data.Maybe.Maybe ([] Data.Text.Text),
+    created_by :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     global_experiments_only :: Data.Maybe.Maybe Bool,
@@ -128,13 +128,13 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType,
+    statusBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType),
     from_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     experiment_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    experiment_idsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    experiment_group_idsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    experiment_idsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    experiment_group_idsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    created_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool,
@@ -185,7 +185,7 @@ setOrgId :: Data.Text.Text -> ListExperimentInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
-setStatus :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType -> ListExperimentInputBuilder ()
+setStatus :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType) -> ListExperimentInputBuilder ()
 setStatus value =
    Control.Monad.State.Strict.modify (\s -> (s { statusBuilderState = value }))
 
@@ -201,15 +201,15 @@ setExperimentName :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentInputBuild
 setExperimentName value =
    Control.Monad.State.Strict.modify (\s -> (s { experiment_nameBuilderState = value }))
 
-setExperimentIds :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentInputBuilder ()
+setExperimentIds :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder ()
 setExperimentIds value =
    Control.Monad.State.Strict.modify (\s -> (s { experiment_idsBuilderState = value }))
 
-setExperimentGroupIds :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentInputBuilder ()
+setExperimentGroupIds :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder ()
 setExperimentGroupIds value =
    Control.Monad.State.Strict.modify (\s -> (s { experiment_group_idsBuilderState = value }))
 
-setCreatedBy :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentInputBuilder ()
+setCreatedBy :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder ()
 setCreatedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = value }))
 

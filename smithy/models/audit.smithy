@@ -35,6 +35,16 @@ list AuditLogList {
     member: AuditLogFull
 }
 
+enum AuditAction {
+    INSERT
+    UPDATE
+    DELETE
+}
+
+list AuditActionList {
+    member: AuditAction
+}
+
 @documentation("Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes.")
 @readonly
 @http(method: "GET", uri: "/audit")
@@ -49,15 +59,13 @@ operation ListAuditLogs {
         @notProperty
         to_date: DateTime
 
-        /// Comma serparated list of tables.
         @httpQuery("table")
         @notProperty
-        tables: String
+        tables: StringList
 
-        /// Comma serparated list of actions.
         @httpQuery("action")
         @notProperty
-        action: String
+        action: AuditActionList
 
         @httpQuery("username")
         @notProperty

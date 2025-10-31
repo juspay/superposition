@@ -30,7 +30,7 @@ import qualified Network.HTTP.Types.Method
 data GetConfigInput = GetConfigInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
-    prefix :: Data.Maybe.Maybe Data.Text.Text,
+    prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     version :: Data.Maybe.Maybe Data.Text.Text,
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
@@ -65,7 +65,7 @@ instance Data.Aeson.FromJSON GetConfigInput where
 data GetConfigInputBuilderState = GetConfigInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    prefixBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
@@ -91,7 +91,7 @@ setOrgId :: Data.Text.Text -> GetConfigInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
-setPrefix :: Data.Maybe.Maybe Data.Text.Text -> GetConfigInputBuilder ()
+setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> GetConfigInputBuilder ()
 setPrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
 

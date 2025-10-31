@@ -45,7 +45,9 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * const input = { // GetConfigInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   prefix: "STRING_VALUE",
+ *   prefix: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
  *   version: "STRING_VALUE",
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",

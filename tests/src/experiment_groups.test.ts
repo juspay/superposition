@@ -853,8 +853,8 @@ describe("Experiment Groups API Integration Tests", () => {
                 new ListExperimentGroupsCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    sort_on: ExperimentGroupSortOn.CreatedAt,
-                    sort_by: SortBy.Desc,
+                    sort_on: ExperimentGroupSortOn.CREATED_AT,
+                    sort_by: SortBy.DESC,
                     count: 5,
                 })
             );

@@ -152,37 +152,43 @@ fn uri_query(_input: &crate::operation::list_contexts::ListContextsInput, mut ou
     }
     if let ::std::option::Option::Some(inner_4) = &_input.prefix {
          {
-            query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_4));
+            for inner_5 in inner_4 {
+                query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_5));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_5) = &_input.sort_on {
+    if let ::std::option::Option::Some(inner_6) = &_input.sort_on {
          {
-            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_5));
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_6));
         }
     }
-    if let ::std::option::Option::Some(inner_6) = &_input.sort_by {
+    if let ::std::option::Option::Some(inner_7) = &_input.sort_by {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_6));
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_7));
         }
     }
-    if let ::std::option::Option::Some(inner_7) = &_input.created_by {
+    if let ::std::option::Option::Some(inner_8) = &_input.created_by {
          {
-            query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_7));
+            for inner_9 in inner_8 {
+                query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_9));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_8) = &_input.last_modified_by {
+    if let ::std::option::Option::Some(inner_10) = &_input.last_modified_by {
          {
-            query.push_kv("last_modified_by", &::aws_smithy_http::query::fmt_string(inner_8));
+            for inner_11 in inner_10 {
+                query.push_kv("last_modified_by", &::aws_smithy_http::query::fmt_string(inner_11));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_9) = &_input.plaintext {
+    if let ::std::option::Option::Some(inner_12) = &_input.plaintext {
          {
-            query.push_kv("plaintext", &::aws_smithy_http::query::fmt_string(inner_9));
+            query.push_kv("plaintext", &::aws_smithy_http::query::fmt_string(inner_12));
         }
     }
-    if let ::std::option::Option::Some(inner_10) = &_input.dimension_match_strategy {
+    if let ::std::option::Option::Some(inner_13) = &_input.dimension_match_strategy {
          {
-            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_10));
+            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_13));
         }
     }
     ::std::result::Result::Ok(())

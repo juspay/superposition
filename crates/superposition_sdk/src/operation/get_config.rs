@@ -137,12 +137,14 @@ fn uri_query(_input: &crate::operation::get_config::GetConfigInput, mut output: 
     let mut query = ::aws_smithy_http::query::Writer::new(output);
     if let ::std::option::Option::Some(inner_1) = &_input.prefix {
          {
-            query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_1));
+            for inner_2 in inner_1 {
+                query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_2));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_2) = &_input.version {
+    if let ::std::option::Option::Some(inner_3) = &_input.version {
          {
-            query.push_kv("version", &::aws_smithy_http::query::fmt_string(inner_2));
+            query.push_kv("version", &::aws_smithy_http::query::fmt_string(inner_3));
         }
     }
     ::std::result::Result::Ok(())

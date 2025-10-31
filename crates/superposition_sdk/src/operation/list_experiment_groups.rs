@@ -177,7 +177,9 @@ fn uri_query(_input: &crate::operation::list_experiment_groups::ListExperimentGr
     }
     if let ::std::option::Option::Some(inner_9) = &_input.group_type {
          {
-            query.push_kv("group_type", &::aws_smithy_http::query::fmt_string(inner_9));
+            for inner_10 in inner_9 {
+                query.push_kv("group_type", &::aws_smithy_http::query::fmt_string(inner_10));
+            }
         }
     }
     ::std::result::Result::Ok(())

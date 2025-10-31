@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
 
@@ -12,18 +12,21 @@ pub struct ContextPayload {
     pub context: Map<String, Value>,
 }
 
-#[derive(Deserialize, Serialize, IsEmpty, QueryParam, Default)]
+#[derive(Deserialize, IsEmpty, QueryParam, Default)]
 pub struct ConfigQuery {
-    pub version: Option<String>,
     #[query_param(skip_if_empty)]
+    pub version: Option<String>,
+    #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
 }
 
-#[derive(Deserialize, Serialize, IsEmpty, QueryParam, Default)]
+#[derive(Deserialize, IsEmpty, QueryParam, Default)]
 pub struct ResolveConfigQuery {
+    #[query_param(skip_if_empty)]
     pub version: Option<String>,
     pub show_reasoning: Option<bool>,
-    pub context_id: Option<String>,
     #[query_param(skip_if_empty)]
+    pub context_id: Option<String>,
+    #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
 }

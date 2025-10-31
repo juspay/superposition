@@ -17,10 +17,10 @@ pub struct ListAuditLogsInput  {
     pub from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
     pub to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
-    /// Comma serparated list of tables.
-    pub tables: ::std::option::Option<::std::string::String>,
-    /// Comma serparated list of actions.
-    pub action: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub tables: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub action: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>,
     #[allow(missing_docs)] // documentation missing in model
     pub username: ::std::option::Option<::std::string::String>,
     /// Sort order enumeration for list operations.
@@ -55,13 +55,19 @@ impl  ListAuditLogsInput  {
     pub fn to_date(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
         self.to_date.as_ref()
     }
-    /// Comma serparated list of tables.
-    pub fn tables(&self) -> ::std::option::Option<&str> {
+    #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.tables.is_none()`.
+    pub fn tables(&self) -> &[::std::string::String] {
         self.tables.as_deref()
+        .unwrap_or_default()
     }
-    /// Comma serparated list of actions.
-    pub fn action(&self) -> ::std::option::Option<&str> {
+    #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.action.is_none()`.
+    pub fn action(&self) -> &[crate::types::AuditAction] {
         self.action.as_deref()
+        .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn username(&self) -> ::std::option::Option<&str> {
@@ -90,8 +96,8 @@ pub struct ListAuditLogsInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
-    pub(crate) tables: ::std::option::Option<::std::string::String>,
-    pub(crate) action: ::std::option::Option<::std::string::String>,
+    pub(crate) tables: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) action: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>,
     pub(crate) username: ::std::option::Option<::std::string::String>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
 }
@@ -189,30 +195,40 @@ impl ListAuditLogsInputBuilder {
     pub fn get_to_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.to_date
     }
-    /// Comma serparated list of tables.
+    /// Appends an item to `tables`.
+    ///
+    /// To override the contents of this collection use [`set_tables`](Self::set_tables).
+    ///
     pub fn tables(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.tables = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.tables.unwrap_or_default();
+                        v.push(input.into());
+                        self.tables = ::std::option::Option::Some(v);
+                        self
     }
-    /// Comma serparated list of tables.
-    pub fn set_tables(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_tables(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.tables = input; self
     }
-    /// Comma serparated list of tables.
-    pub fn get_tables(&self) -> &::std::option::Option<::std::string::String> {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_tables(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.tables
     }
-    /// Comma serparated list of actions.
-    pub fn action(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.action = ::std::option::Option::Some(input.into());
-        self
+    /// Appends an item to `action`.
+    ///
+    /// To override the contents of this collection use [`set_action`](Self::set_action).
+    ///
+    pub fn action(mut self, input: crate::types::AuditAction) -> Self {
+        let mut v = self.action.unwrap_or_default();
+                        v.push(input);
+                        self.action = ::std::option::Option::Some(v);
+                        self
     }
-    /// Comma serparated list of actions.
-    pub fn set_action(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_action(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>) -> Self {
         self.action = input; self
     }
-    /// Comma serparated list of actions.
-    pub fn get_action(&self) -> &::std::option::Option<::std::string::String> {
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_action(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>> {
         &self.action
     }
     #[allow(missing_docs)] // documentation missing in model

@@ -8,7 +8,7 @@ pub struct GetConfigInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub prefix: ::std::option::Option<::std::string::String>,
+    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
@@ -24,8 +24,11 @@ impl  GetConfigInput  {
         self.org_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn prefix(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
+    pub fn prefix(&self) -> &[::std::string::String] {
         self.prefix.as_deref()
+        .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(&self) -> ::std::option::Option<&str> {
@@ -49,7 +52,7 @@ impl GetConfigInput {
 pub struct GetConfigInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) prefix: ::std::option::Option<::std::string::String>,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -82,17 +85,22 @@ impl GetConfigInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Appends an item to `prefix`.
+    ///
+    /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
+    ///
     pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.prefix = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.prefix.unwrap_or_default();
+                        v.push(input.into());
+                        self.prefix = ::std::option::Option::Some(v);
+                        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.prefix = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.prefix
     }
     #[allow(missing_docs)] // documentation missing in model

@@ -57,6 +57,10 @@ enum ExperimentStatusType {
     PAUSED
 }
 
+list ExperimentStatusTypeList {
+    member: ExperimentStatusType
+}
+
 enum ExperimentType {
     DEFAULT
     DELETE_OVERRIDES
@@ -68,8 +72,8 @@ enum VariantType {
 }
 
 enum ExperimentSortOn {
-    LastModifiedAt = "last_modified_at"
-    CreatedAt = "created_at"
+    LAST_MODIFIED_AT = "last_modified_at"
+    CREATED_AT = "created_at"
 }
 
 structure Variant {
@@ -319,7 +323,7 @@ operation GetExperiment with [GetOperation] {
 operation ListExperiment {
     input := with [PaginationParams, WorkspaceMixin] {
         @httpQuery("status")
-        status: ExperimentStatusType
+        status: ExperimentStatusTypeList
 
         @httpQuery("from_date")
         @notProperty
@@ -335,15 +339,15 @@ operation ListExperiment {
 
         @httpQuery("experiment_ids")
         @notProperty
-        experiment_ids: String
+        experiment_ids: StringList
 
         @httpQuery("experiment_group_ids")
         @notProperty
-        experiment_group_ids: String
+        experiment_group_ids: StringList
 
         @httpQuery("created_by")
         @notProperty
-        created_by: String
+        created_by: StringList
 
         @httpQuery("sort_on")
         @notProperty

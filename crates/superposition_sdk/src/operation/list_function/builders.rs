@@ -166,5 +166,24 @@ impl ListFunctionFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
+    /// 
+    /// Appends an item to `function_type`.
+    /// 
+    /// To override the contents of this collection use [`set_function_type`](Self::set_function_type).
+    /// 
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn function_type(mut self, input: crate::types::FunctionTypes) -> Self {
+                        self.inner = self.inner.function_type(input);
+                        self
+                    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_function_type(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>>) -> Self {
+                    self.inner = self.inner.set_function_type(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_function_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>> {
+                    self.inner.get_function_type()
+                }
 }
 

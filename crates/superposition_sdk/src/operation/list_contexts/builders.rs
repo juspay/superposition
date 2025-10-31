@@ -166,18 +166,23 @@ impl ListContextsFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
+    /// 
+    /// Appends an item to `prefix`.
+    /// 
+    /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.prefix(input.into());
-                    self
-                }
+                        self.inner = self.inner.prefix(input.into());
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_prefix(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_prefix()
                 }
     #[allow(missing_docs)] // documentation missing in model
@@ -208,32 +213,42 @@ impl ListContextsFluentBuilder {
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
                     self.inner.get_sort_by()
                 }
+    /// 
+    /// Appends an item to `created_by`.
+    /// 
+    /// To override the contents of this collection use [`set_created_by`](Self::set_created_by).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.created_by(input.into());
-                    self
-                }
+                        self.inner = self.inner.created_by(input.into());
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_created_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_created_by(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_created_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_created_by()
                 }
+    /// 
+    /// Appends an item to `last_modified_by`.
+    /// 
+    /// To override the contents of this collection use [`set_last_modified_by`](Self::set_last_modified_by).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.last_modified_by(input.into());
-                    self
-                }
+                        self.inner = self.inner.last_modified_by(input.into());
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_last_modified_by(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_last_modified_by()
                 }
     #[allow(missing_docs)] // documentation missing in model

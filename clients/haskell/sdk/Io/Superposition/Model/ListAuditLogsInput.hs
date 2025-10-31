@@ -37,6 +37,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.AuditAction
 import qualified Io.Superposition.Model.SortBy
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
@@ -49,8 +50,8 @@ data ListAuditLogsInput = ListAuditLogsInput {
     all' :: Data.Maybe.Maybe Bool,
     from_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_date :: Data.Maybe.Maybe Data.Time.UTCTime,
-    tables :: Data.Maybe.Maybe Data.Text.Text,
-    action :: Data.Maybe.Maybe Data.Text.Text,
+    tables :: Data.Maybe.Maybe ([] Data.Text.Text),
+    action :: Data.Maybe.Maybe ([] Io.Superposition.Model.AuditAction.AuditAction),
     username :: Data.Maybe.Maybe Data.Text.Text,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
@@ -102,8 +103,8 @@ data ListAuditLogsInputBuilderState = ListAuditLogsInputBuilderState {
     all'BuilderState :: Data.Maybe.Maybe Bool,
     from_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
-    tablesBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    actionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    tablesBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    actionBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.AuditAction.AuditAction),
     usernameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
@@ -155,11 +156,11 @@ setToDate :: Data.Maybe.Maybe Data.Time.UTCTime -> ListAuditLogsInputBuilder ()
 setToDate value =
    Control.Monad.State.Strict.modify (\s -> (s { to_dateBuilderState = value }))
 
-setTables :: Data.Maybe.Maybe Data.Text.Text -> ListAuditLogsInputBuilder ()
+setTables :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListAuditLogsInputBuilder ()
 setTables value =
    Control.Monad.State.Strict.modify (\s -> (s { tablesBuilderState = value }))
 
-setAction :: Data.Maybe.Maybe Data.Text.Text -> ListAuditLogsInputBuilder ()
+setAction :: Data.Maybe.Maybe ([] Io.Superposition.Model.AuditAction.AuditAction) -> ListAuditLogsInputBuilder ()
 setAction value =
    Control.Monad.State.Strict.modify (\s -> (s { actionBuilderState = value }))
 

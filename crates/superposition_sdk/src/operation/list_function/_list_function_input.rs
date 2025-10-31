@@ -13,6 +13,8 @@ pub struct ListFunctionInput  {
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub function_type: ::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>>,
 }
 impl  ListFunctionInput  {
     /// Number of items to be returned in each page.
@@ -35,6 +37,13 @@ impl  ListFunctionInput  {
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.function_type.is_none()`.
+    pub fn function_type(&self) -> &[crate::types::FunctionTypes] {
+        self.function_type.as_deref()
+        .unwrap_or_default()
+    }
 }
 impl ListFunctionInput {
     /// Creates a new builder-style object to manufacture [`ListFunctionInput`](crate::operation::list_function::ListFunctionInput).
@@ -52,6 +61,7 @@ pub struct ListFunctionInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) function_type: ::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>>,
 }
 impl ListFunctionInputBuilder {
     /// Number of items to be returned in each page.
@@ -121,6 +131,24 @@ impl ListFunctionInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
+    /// Appends an item to `function_type`.
+    ///
+    /// To override the contents of this collection use [`set_function_type`](Self::set_function_type).
+    ///
+    pub fn function_type(mut self, input: crate::types::FunctionTypes) -> Self {
+        let mut v = self.function_type.unwrap_or_default();
+                        v.push(input);
+                        self.function_type = ::std::option::Option::Some(v);
+                        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_function_type(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>>) -> Self {
+        self.function_type = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_function_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>> {
+        &self.function_type
+    }
     /// Consumes the builder and constructs a [`ListFunctionInput`](crate::operation::list_function::ListFunctionInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_function::ListFunctionInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -134,6 +162,8 @@ impl ListFunctionInputBuilder {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
+                ,
+                function_type: self.function_type
                 ,
             }
         )

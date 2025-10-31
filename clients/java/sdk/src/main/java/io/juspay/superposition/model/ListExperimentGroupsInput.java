@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -44,7 +46,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 new HttpQueryTrait("sort_on"))
         .putMember("sort_by", SortBy.$SCHEMA,
                 new HttpQueryTrait("sort_by"))
-        .putMember("group_type", GroupType.$SCHEMA,
+        .putMember("group_type", SharedSchemas.GROUP_TYPE_LIST,
                 new HttpQueryTrait("group_type"))
         .build();
 
@@ -70,7 +72,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     private final transient String lastModifiedBy;
     private final transient ExperimentGroupSortOn sortOn;
     private final transient SortBy sortBy;
-    private final transient GroupType groupType;
+    private final transient List<GroupType> groupType;
 
     private ListExperimentGroupsInput(Builder builder) {
         this.count = builder.count;
@@ -83,7 +85,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         this.lastModifiedBy = builder.lastModifiedBy;
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
-        this.groupType = builder.groupType;
+        this.groupType = builder.groupType == null ? null : Collections.unmodifiableList(builder.groupType);
     }
 
     /**
@@ -153,8 +155,15 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     /**
      * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
      */
-    public GroupType groupType() {
+    public List<GroupType> groupType() {
+        if (groupType == null) {
+            return Collections.emptyList();
+        }
         return groupType;
+    }
+
+    public boolean hasGroupType() {
+        return groupType != null;
     }
 
     @Override
@@ -223,7 +232,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             serializer.writeString($SCHEMA_SORT_BY, sortBy.value());
         }
         if (groupType != null) {
-            serializer.writeString($SCHEMA_GROUP_TYPE, groupType.value());
+            serializer.writeList($SCHEMA_GROUP_TYPE, groupType, groupType.size(), SharedSerde.GroupTypeListSerializer.INSTANCE);
         }
     }
 
@@ -291,7 +300,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         private String lastModifiedBy;
         private ExperimentGroupSortOn sortOn;
         private SortBy sortBy;
-        private GroupType groupType;
+        private List<GroupType> groupType;
 
         private Builder() {}
 
@@ -405,7 +414,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
          *
          * @return this builder.
          */
-        public Builder groupType(GroupType groupType) {
+        public Builder groupType(List<GroupType> groupType) {
             this.groupType = groupType;
             return this;
         }
@@ -430,7 +439,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 case 7 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 8 -> sortOn((ExperimentGroupSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 case 9 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 10 -> groupType((GroupType) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
+                case 10 -> groupType((List<GroupType>) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -477,7 +486,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                     case 7 -> builder.lastModifiedBy(de.readString(member));
                     case 8 -> builder.sortOn(ExperimentGroupSortOn.builder().deserializeMember(de, member).build());
                     case 9 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 10 -> builder.groupType(GroupType.builder().deserializeMember(de, member).build());
+                    case 10 -> builder.groupType(SharedSerde.deserializeGroupTypeList(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

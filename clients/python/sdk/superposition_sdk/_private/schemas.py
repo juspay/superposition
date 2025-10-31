@@ -527,11 +527,57 @@ APPLICABLE_VARIANTS = Schema(
 
 )
 
+AUDIT_ACTION = Schema.collection(
+    id=ShapeID("io.superposition#AuditAction"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "INSERT": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="INSERT"),
+
+            ],
+        },
+
+        "UPDATE": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="UPDATE"),
+
+            ],
+        },
+
+        "DELETE": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="DELETE"),
+
+            ],
+        },
+
+    }
+)
+
+AUDIT_ACTION_LIST = Schema.collection(
+    id=ShapeID("io.superposition#AuditActionList"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": AUDIT_ACTION,
+            "index": 0,
+        },
+
+    }
+)
+
 SORT_BY = Schema.collection(
     id=ShapeID("io.superposition#SortBy"),
     shape_type=ShapeType.ENUM,
     members={
-        "Desc": {
+        "DESC": {
             "target": UNIT,
             "index": 0,
             "traits": [
@@ -540,7 +586,7 @@ SORT_BY = Schema.collection(
             ],
         },
 
-        "Asc": {
+        "ASC": {
             "target": UNIT,
             "index": 1,
             "traits": [
@@ -628,7 +674,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
         },
 
         "tables": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -638,7 +684,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
         },
 
         "action": {
-            "target": STRING,
+            "target": AUDIT_ACTION_LIST,
             "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -1583,7 +1629,7 @@ GET_CONFIG_INPUT = Schema.collection(
         },
 
         "prefix": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2035,7 +2081,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
         },
 
         "prefix": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2937,7 +2983,7 @@ DIMENSION_MATCH_STRATEGY = Schema.collection(
     id=ShapeID("io.superposition#DimensionMatchStrategy"),
     shape_type=ShapeType.ENUM,
     members={
-        "Exact": {
+        "EXACT": {
             "target": UNIT,
             "index": 0,
             "traits": [
@@ -2946,7 +2992,7 @@ DIMENSION_MATCH_STRATEGY = Schema.collection(
             ],
         },
 
-        "Subset": {
+        "SUBSET": {
             "target": UNIT,
             "index": 1,
             "traits": [
@@ -2962,7 +3008,7 @@ CONTEXT_FILTER_SORT_ON = Schema.collection(
     id=ShapeID("io.superposition#ContextFilterSortOn"),
     shape_type=ShapeType.ENUM,
     members={
-        "LastModifiedAt": {
+        "LAST_MODIFIED_AT": {
             "target": UNIT,
             "index": 0,
             "traits": [
@@ -2971,7 +3017,7 @@ CONTEXT_FILTER_SORT_ON = Schema.collection(
             ],
         },
 
-        "CreatedAt": {
+        "CREATED_AT": {
             "target": UNIT,
             "index": 1,
             "traits": [
@@ -2980,7 +3026,7 @@ CONTEXT_FILTER_SORT_ON = Schema.collection(
             ],
         },
 
-        "Weight": {
+        "WEIGHT": {
             "target": UNIT,
             "index": 2,
             "traits": [
@@ -3048,7 +3094,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
         },
 
         "prefix": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -3078,7 +3124,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
         },
 
         "created_by": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -3088,7 +3134,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
         },
 
         "last_modified_by": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -4617,7 +4663,7 @@ FUNCTION_TYPES = Schema.collection(
     id=ShapeID("io.superposition#FunctionTypes"),
     shape_type=ShapeType.ENUM,
     members={
-        "Validation": {
+        "VALIDATION": {
             "target": UNIT,
             "index": 0,
             "traits": [
@@ -4626,7 +4672,7 @@ FUNCTION_TYPES = Schema.collection(
             ],
         },
 
-        "Autocomplete": {
+        "AUTOCOMPLETE": {
             "target": UNIT,
             "index": 1,
             "traits": [
@@ -4918,7 +4964,7 @@ ORG_STATUS = Schema.collection(
     id=ShapeID("io.superposition#OrgStatus"),
     shape_type=ShapeType.ENUM,
     members={
-        "Active": {
+        "ACTIVE": {
             "target": UNIT,
             "index": 0,
             "traits": [
@@ -4927,7 +4973,7 @@ ORG_STATUS = Schema.collection(
             ],
         },
 
-        "Inactive": {
+        "INACTIVE": {
             "target": UNIT,
             "index": 1,
             "traits": [
@@ -4936,7 +4982,7 @@ ORG_STATUS = Schema.collection(
             ],
         },
 
-        "PendingKyb": {
+        "PENDING_KYB": {
             "target": UNIT,
             "index": 2,
             "traits": [
@@ -8139,11 +8185,23 @@ GET_EXPERIMENT_GROUP = Schema(
 
 )
 
+GROUP_TYPE_LIST = Schema.collection(
+    id=ShapeID("io.superposition#GroupTypeList"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": GROUP_TYPE,
+            "index": 0,
+        },
+
+    }
+)
+
 EXPERIMENT_GROUP_SORT_ON = Schema.collection(
     id=ShapeID("io.superposition#ExperimentGroupSortOn"),
     shape_type=ShapeType.ENUM,
     members={
-        "Name": {
+        "NAME": {
             "target": UNIT,
             "index": 0,
             "traits": [
@@ -8152,7 +8210,7 @@ EXPERIMENT_GROUP_SORT_ON = Schema.collection(
             ],
         },
 
-        "CreatedAt": {
+        "CREATED_AT": {
             "target": UNIT,
             "index": 1,
             "traits": [
@@ -8161,7 +8219,7 @@ EXPERIMENT_GROUP_SORT_ON = Schema.collection(
             ],
         },
 
-        "LastModifiedAt": {
+        "LAST_MODIFIED_AT": {
             "target": UNIT,
             "index": 2,
             "traits": [
@@ -8276,7 +8334,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
         },
 
         "group_type": {
-            "target": GROUP_TYPE,
+            "target": GROUP_TYPE_LIST,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="group_type"),
@@ -9329,7 +9387,7 @@ EXPERIMENT_SORT_ON = Schema.collection(
     id=ShapeID("io.superposition#ExperimentSortOn"),
     shape_type=ShapeType.ENUM,
     members={
-        "LastModifiedAt": {
+        "LAST_MODIFIED_AT": {
             "target": UNIT,
             "index": 0,
             "traits": [
@@ -9338,13 +9396,25 @@ EXPERIMENT_SORT_ON = Schema.collection(
             ],
         },
 
-        "CreatedAt": {
+        "CREATED_AT": {
             "target": UNIT,
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="created_at"),
 
             ],
+        },
+
+    }
+)
+
+EXPERIMENT_STATUS_TYPE_LIST = Schema.collection(
+    id=ShapeID("io.superposition#ExperimentStatusTypeList"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": EXPERIMENT_STATUS_TYPE,
+            "index": 0,
         },
 
     }
@@ -9406,7 +9476,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
         },
 
         "status": {
-            "target": EXPERIMENT_STATUS_TYPE,
+            "target": EXPERIMENT_STATUS_TYPE_LIST,
             "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="status"),
@@ -9445,7 +9515,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
         },
 
         "experiment_ids": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -9455,7 +9525,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
         },
 
         "experiment_group_ids": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -9465,7 +9535,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
         },
 
         "created_by": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -10751,6 +10821,18 @@ GET_FUNCTION = Schema(
 
 )
 
+FUNCTION_TYPES_LIST = Schema.collection(
+    id=ShapeID("io.superposition#FunctionTypesList"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": FUNCTION_TYPES,
+            "index": 0,
+        },
+
+    }
+)
+
 LIST_FUNCTION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#ListFunctionInput"),
 
@@ -10802,6 +10884,15 @@ LIST_FUNCTION_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
                 Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "function_type": {
+            "target": FUNCTION_TYPES_LIST,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="function_type"),
 
             ],
         },

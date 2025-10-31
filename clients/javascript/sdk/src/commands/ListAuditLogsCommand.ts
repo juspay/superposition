@@ -50,8 +50,12 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  *   all: true || false,
  *   from_date: new Date("TIMESTAMP"),
  *   to_date: new Date("TIMESTAMP"),
- *   tables: "STRING_VALUE",
- *   action: "STRING_VALUE",
+ *   tables: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
+ *   action: [ // AuditActionList
+ *     "INSERT" || "UPDATE" || "DELETE",
+ *   ],
  *   username: "STRING_VALUE",
  *   sort_by: "desc" || "asc",
  * };

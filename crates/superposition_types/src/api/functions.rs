@@ -127,10 +127,8 @@ pub struct FunctionExecutionResponse {
     pub function_type: FunctionType,
 }
 
-#[derive(
-    Debug, Default, Clone, Serialize, Deserialize, PartialEq, IsEmpty, QueryParam,
-)]
+#[derive(Debug, Default, Clone, Deserialize, PartialEq, IsEmpty, QueryParam)]
 pub struct ListFunctionFilters {
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub function_type: Option<CommaSeparatedQParams<FunctionType>>,
 }

@@ -5,6 +5,7 @@ use superposition_types::{custom_query::QueryParam, IsEmpty};
 #[derive(PartialEq, Clone, IsEmpty, QueryParam)]
 pub struct PageParams {
     pub grouped: bool,
+    #[query_param(skip_if_empty)]
     pub prefix: Option<String>,
 }
 

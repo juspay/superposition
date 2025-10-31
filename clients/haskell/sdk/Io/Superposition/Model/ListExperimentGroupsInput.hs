@@ -53,7 +53,7 @@ data ListExperimentGroupsInput = ListExperimentGroupsInput {
     last_modified_by :: Data.Maybe.Maybe Data.Text.Text,
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentGroupSortOn.ExperimentGroupSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    group_type :: Data.Maybe.Maybe Io.Superposition.Model.GroupType.GroupType
+    group_type :: Data.Maybe.Maybe ([] Io.Superposition.Model.GroupType.GroupType)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -106,7 +106,7 @@ data ListExperimentGroupsInputBuilderState = ListExperimentGroupsInputBuilderSta
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentGroupSortOn.ExperimentGroupSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    group_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.GroupType.GroupType
+    group_typeBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.GroupType.GroupType)
 } deriving (
   GHC.Generics.Generic
   )
@@ -168,7 +168,7 @@ setSortBy :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy -> ListExperi
 setSortBy value =
    Control.Monad.State.Strict.modify (\s -> (s { sort_byBuilderState = value }))
 
-setGroupType :: Data.Maybe.Maybe Io.Superposition.Model.GroupType.GroupType -> ListExperimentGroupsInputBuilder ()
+setGroupType :: Data.Maybe.Maybe ([] Io.Superposition.Model.GroupType.GroupType) -> ListExperimentGroupsInputBuilder ()
 setGroupType value =
    Control.Monad.State.Strict.modify (\s -> (s { group_typeBuilderState = value }))
 

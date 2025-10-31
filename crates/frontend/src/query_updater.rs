@@ -1,5 +1,5 @@
 use leptos::*;
-use leptos_router::{use_location, use_navigate, use_query_map, NavigateOptions};
+use leptos_router::{use_location, use_navigate, NavigateOptions};
 use superposition_types::custom_query::QueryParam;
 
 use crate::utils::use_service_prefix;
@@ -33,7 +33,7 @@ pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn DisplayDefault>> + 'st
             format!("?{}", desired_query)
         };
 
-        let current_query_string = location.query.with_untracked(|q| q.to_query_string());
+        let current_query_string = location.search.get_untracked();
         if current_query_string != query_string {
             let path = location.pathname.get_untracked();
             let prefix_stripped_path = path
@@ -64,9 +64,9 @@ pub fn use_param_updater(source: impl Fn() -> Vec<Box<dyn DisplayDefault>> + 'st
 
 fn use_query_string() -> Memo<String> {
     Memo::new(move |_| {
-        use_query_map()
+        use_location()
+            .search
             .try_get()
-            .map(|q| q.to_query_string())
             .map(|s| s.strip_prefix('?').map(String::from).unwrap_or(s))
             .unwrap_or_default()
     })
@@ -88,14 +88,32 @@ pub fn use_signal_from_query<T: Clone + PartialEq>(
     signal
 }
 
+/// meant for single valued query params only
 pub fn use_update_url_query() -> impl Fn(&str, Option<String>) -> String {
     |param: &str, value: Option<String>| {
-        let mut params = use_query_map().get_untracked().clone();
+        let mut params = use_location()
+            .search
+            .get_untracked()
+            .split("&")
+            .map(String::from)
+            .collect::<Vec<_>>();
+
         if let Some(value) = value {
-            params.insert(param.to_string(), value);
+            let mut found = false;
+            for p in params.iter_mut() {
+                if p.starts_with(&format!("{param}=")) {
+                    *p = format!("{param}={value}");
+                    found = true;
+                    break;
+                }
+            }
+            if !found {
+                params.push(format!("{param}={value}"));
+            }
         } else {
-            params.remove(param);
+            params.retain(|p| !p.starts_with(&format!("{param}=")));
         }
-        params.to_query_string()
+
+        format!("?{}", params.join("&"))
     }
 }

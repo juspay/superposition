@@ -62,6 +62,7 @@ library
                         Io.Superposition.Model.CreateExperimentInput,
                         Io.Superposition.Model.DeleteExperimentGroupOutput,
                         Io.Superposition.Model.UpdateTypeTemplatesOutput,
+                        Io.Superposition.Model.AuditAction,
                         Io.Superposition.Model.UpdateDimensionInput,
                         Io.Superposition.Model.GetContextOutput,
                         Io.Superposition.Command.GetFunction,

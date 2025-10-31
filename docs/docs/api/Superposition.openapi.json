@@ -56,20 +56,26 @@
                     {
                         "name": "table",
                         "in": "query",
-                        "description": "Comma serparated list of tables.",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
-                            "description": "Comma serparated list of tables."
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "action",
                         "in": "query",
-                        "description": "Comma serparated list of actions.",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
-                            "description": "Comma serparated list of actions."
-                        }
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/AuditAction"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "username",
@@ -147,9 +153,14 @@
                     {
                         "name": "prefix",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "version",
@@ -302,9 +313,14 @@
                     {
                         "name": "prefix",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "version",
@@ -497,9 +513,14 @@
                     {
                         "name": "prefix",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "sort_on",
@@ -519,16 +540,26 @@
                     {
                         "name": "created_by",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "last_modified_by",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "plaintext",
@@ -1861,9 +1892,15 @@
                         "name": "group_type",
                         "in": "query",
                         "description": "Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).",
+                        "style": "form",
                         "schema": {
-                            "$ref": "#/components/schemas/GroupType"
-                        }
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/GroupType"
+                            },
+                            "description": "Filter by the type of group (USER_CREATED or SYSTEM_GENERATED)."
+                        },
+                        "explode": true
                     },
                     {
                         "name": "x-org-id",
@@ -2327,9 +2364,14 @@
                     {
                         "name": "status",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "$ref": "#/components/schemas/ExperimentStatusType"
-                        }
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/ExperimentStatusType"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "from_date",
@@ -2357,23 +2399,38 @@
                     {
                         "name": "experiment_ids",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "experiment_group_ids",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "created_by",
                         "in": "query",
+                        "style": "form",
                         "schema": {
-                            "type": "string"
-                        }
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "sort_on",
@@ -3076,6 +3133,18 @@
                             "type": "boolean",
                             "description": "If true, returns all requested items, ignoring pagination parameters page and count."
                         }
+                    },
+                    {
+                        "name": "function_type",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/FunctionTypes"
+                            }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "x-org-id",
@@ -4856,6 +4925,14 @@
                 },
                 "required": [
                     "data"
+                ]
+            },
+            "AuditAction": {
+                "type": "string",
+                "enum": [
+                    "INSERT",
+                    "UPDATE",
+                    "DELETE"
                 ]
             },
             "AuditLogFull": {

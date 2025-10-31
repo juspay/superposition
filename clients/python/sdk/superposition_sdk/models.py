@@ -812,6 +812,29 @@ APPLICABLE_VARIANTS = APIOperation(
         ]
 )
 
+class AuditAction(StrEnum):
+    INSERT = "INSERT"
+    UPDATE = "UPDATE"
+    DELETE = "DELETE"
+
+def _serialize_audit_action_list(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+def _deserialize_audit_action_list(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+    deserializer.read_list(schema, _read_value)
+    return result
+
 class SortBy(StrEnum):
     """
     Sort order enumeration for list operations.
@@ -842,12 +865,6 @@ class ListAuditLogsInput:
          If true, returns all requested items, ignoring pagination parameters page and
          count.
 
-    :param tables:
-         Comma serparated list of tables.
-
-    :param action:
-         Comma serparated list of actions.
-
     :param sort_by:
          Sort order enumeration for list operations.
 
@@ -860,8 +877,8 @@ class ListAuditLogsInput:
     all: bool | None = None
     from_date: datetime | None = None
     to_date: datetime | None = None
-    tables: str | None = None
-    action: str | None = None
+    tables: list[str] | None = None
+    action: list[str] | None = None
     username: str | None = None
     sort_by: str | None = None
 
@@ -903,10 +920,10 @@ class ListAuditLogsInput:
                     kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["to_date"])
 
                 case 7:
-                    kwargs["tables"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["tables"])
+                    kwargs["tables"] = _deserialize_string_list(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["tables"])
 
                 case 8:
-                    kwargs["action"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["action"])
+                    kwargs["action"] = _deserialize_audit_action_list(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["action"])
 
                 case 9:
                     kwargs["username"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["username"])
@@ -2218,7 +2235,7 @@ class GetConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
-    prefix: str | None = None
+    prefix: list[str] | None = None
     version: str | None = None
     context: dict[str, Document] | None = None
 
@@ -2246,7 +2263,7 @@ class GetConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["prefix"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["prefix"])
 
                 case 3:
                     kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
@@ -2808,7 +2825,7 @@ class GetResolvedConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
-    prefix: str | None = None
+    prefix: list[str] | None = None
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
@@ -2839,7 +2856,7 @@ class GetResolvedConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["prefix"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["prefix"])
 
                 case 3:
                     kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["version"])
@@ -3887,11 +3904,11 @@ class ListContextsInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
-    prefix: str | None = None
+    prefix: list[str] | None = None
     sort_on: str | None = None
     sort_by: str | None = None
-    created_by: str | None = None
-    last_modified_by: str | None = None
+    created_by: list[str] | None = None
+    last_modified_by: list[str] | None = None
     plaintext: str | None = None
     dimension_match_strategy: str | None = None
 
@@ -3927,7 +3944,7 @@ class ListContextsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["prefix"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
 
                 case 6:
                     kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_on"])
@@ -3936,10 +3953,10 @@ class ListContextsInput:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_by"])
 
                 case 8:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
 
                 case 9:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
+                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
 
                 case 10:
                     kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
@@ -8868,6 +8885,24 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
         ]
 )
 
+def _serialize_group_type_list(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+def _deserialize_group_type_list(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+    deserializer.read_list(schema, _read_value)
+    return result
+
 class ExperimentGroupSortOn(StrEnum):
     NAME = "name"
     """
@@ -8930,7 +8965,7 @@ class ListExperimentGroupsInput:
     last_modified_by: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
-    group_type: str | None = None
+    group_type: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT, self)
@@ -8979,7 +9014,7 @@ class ListExperimentGroupsInput:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_by"])
 
                 case 10:
-                    kwargs["group_type"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
+                    kwargs["group_type"] = _deserialize_group_type_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9965,6 +10000,24 @@ class ExperimentSortOn(StrEnum):
     LAST_MODIFIED_AT = "last_modified_at"
     CREATED_AT = "created_at"
 
+def _serialize_experiment_status_type_list(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+def _deserialize_experiment_status_type_list(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+    deserializer.read_list(schema, _read_value)
+    return result
+
 @dataclass(kw_only=True)
 class ListExperimentInput:
     """
@@ -9992,13 +10045,13 @@ class ListExperimentInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
-    status: str | None = None
+    status: list[str] | None = None
     from_date: datetime | None = None
     to_date: datetime | None = None
     experiment_name: str | None = None
-    experiment_ids: str | None = None
-    experiment_group_ids: str | None = None
-    created_by: str | None = None
+    experiment_ids: list[str] | None = None
+    experiment_group_ids: list[str] | None = None
+    created_by: list[str] | None = None
     sort_on: str | None = None
     sort_by: str | None = None
     global_experiments_only: bool | None = None
@@ -10036,7 +10089,7 @@ class ListExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["status"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["status"])
+                    kwargs["status"] = _deserialize_experiment_status_type_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["status"])
 
                 case 6:
                     kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["from_date"])
@@ -10048,13 +10101,13 @@ class ListExperimentInput:
                     kwargs["experiment_name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_name"])
 
                 case 9:
-                    kwargs["experiment_ids"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_ids"])
+                    kwargs["experiment_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_ids"])
 
                 case 10:
-                    kwargs["experiment_group_ids"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_group_ids"])
+                    kwargs["experiment_group_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_group_ids"])
 
                 case 11:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
 
                 case 12:
                     kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_on"])
@@ -11247,6 +11300,24 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
         ]
 )
 
+def _serialize_function_types_list(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+def _deserialize_function_types_list(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+    deserializer.read_list(schema, _read_value)
+    return result
+
 @dataclass(kw_only=True)
 class ListFunctionInput:
     """
@@ -11268,6 +11339,7 @@ class ListFunctionInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    function_type: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_FUNCTION_INPUT, self)
@@ -11299,6 +11371,9 @@ class ListFunctionInput:
 
                 case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_FUNCTION_INPUT.members["org_id"])
+
+                case 5:
+                    kwargs["function_type"] = _deserialize_function_types_list(de, _SCHEMA_LIST_FUNCTION_INPUT.members["function_type"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

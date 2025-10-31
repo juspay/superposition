@@ -939,7 +939,7 @@ export const se_GetConfigCommand = async(
   });
   b.bp("/config");
   const query: any = map({
-    [_p]: [,input[_p]!],
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_v]: [,input[_v]!],
   });
   let body: any;
@@ -1163,7 +1163,7 @@ export const se_GetResolvedConfigCommand = async(
   });
   b.bp("/config/resolve");
   const query: any = map({
-    [_p]: [,input[_p]!],
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1328,8 +1328,8 @@ export const se_ListAuditLogsCommand = async(
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
-    [_ta]: [,input[_t]!],
-    [_ac]: [,input[_ac]!],
+    [_ta]: [() => input.tables !== void 0, () => ((input[_t]! || []))],
+    [_ac]: [() => input.action !== void 0, () => ((input[_ac]! || []))],
     [_u]: [,input[_u]!],
     [_sb]: [,input[_sb]!],
   });
@@ -1358,11 +1358,11 @@ export const se_ListContextsCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
-    [_p]: [,input[_p]!],
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
-    [_cb]: [,input[_cb]!],
-    [_lmb]: [,input[_lmb]!],
+    [_cb]: [() => input.created_by !== void 0, () => ((input[_cb]! || []))],
+    [_lmb]: [() => input.last_modified_by !== void 0, () => ((input[_lmb]! || []))],
     [_pl]: [,input[_pl]!],
     [_dms]: [,input[_dms]!],
   });
@@ -1444,13 +1444,13 @@ export const se_ListExperimentCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
-    [_s]: [,input[_s]!],
+    [_s]: [() => input.status !== void 0, () => ((input[_s]! || []))],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
     [_en]: [,input[_en]!],
-    [_ei]: [,input[_ei]!],
-    [_egi]: [,input[_egi]!],
-    [_cb]: [,input[_cb]!],
+    [_ei]: [() => input.experiment_ids !== void 0, () => ((input[_ei]! || []))],
+    [_egi]: [() => input.experiment_group_ids !== void 0, () => ((input[_egi]! || []))],
+    [_cb]: [() => input.created_by !== void 0, () => ((input[_cb]! || []))],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
     [_geo]: [() => input.global_experiments_only !== void 0, () => (input[_geo]!.toString())],
@@ -1486,7 +1486,7 @@ export const se_ListExperimentGroupsCommand = async(
     [_lmb]: [,input[_lmb]!],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
-    [_gt]: [,input[_gt]!],
+    [_gt]: [() => input.group_type !== void 0, () => ((input[_gt]! || []))],
   });
   let body: any;
   b.m("GET")
@@ -1513,6 +1513,7 @@ export const se_ListFunctionCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+    [_ft]: [() => input.function_type !== void 0, () => ((input[_ft]! || []))],
   });
   let body: any;
   b.m("GET")
@@ -5304,6 +5305,7 @@ const de_CommandError = async(
   const _ei = "experiment_ids";
   const _en = "experiment_name";
   const _fd = "from_date";
+  const _ft = "function_type";
   const _geo = "global_experiments_only";
   const _gt = "group_type";
   const _lm = "last-modified";

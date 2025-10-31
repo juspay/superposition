@@ -878,7 +878,7 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
 
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
-        query_params.append(("prefix", input.prefix))
+        query_params.extend(("prefix", e) for e in input.prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
 
@@ -1205,7 +1205,7 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
 
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
-        query_params.append(("prefix", input.prefix))
+        query_params.extend(("prefix", e) for e in input.prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
@@ -1460,9 +1460,9 @@ async def _serialize_list_audit_logs(input: ListAuditLogsInput, config: Config) 
     if input.to_date is not None:
         query_params.append(("to_date", serialize_rfc3339(ensure_utc(input.to_date))))
     if input.tables is not None:
-        query_params.append(("table", input.tables))
+        query_params.extend(("table", e) for e in input.tables)
     if input.action is not None:
-        query_params.append(("action", input.action))
+        query_params.extend(("action", e) for e in input.action)
     if input.username is not None:
         query_params.append(("username", input.username))
     if input.sort_by is not None:
@@ -1505,15 +1505,15 @@ async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> 
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.prefix is not None:
-        query_params.append(("prefix", input.prefix))
+        query_params.extend(("prefix", e) for e in input.prefix)
     if input.sort_on is not None:
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:
         query_params.append(("sort_by", input.sort_by))
     if input.created_by is not None:
-        query_params.append(("created_by", input.created_by))
+        query_params.extend(("created_by", e) for e in input.created_by)
     if input.last_modified_by is not None:
-        query_params.append(("last_modified_by", input.last_modified_by))
+        query_params.extend(("last_modified_by", e) for e in input.last_modified_by)
     if input.plaintext is not None:
         query_params.append(("plaintext", input.plaintext))
     if input.dimension_match_strategy is not None:
@@ -1632,7 +1632,7 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.status is not None:
-        query_params.append(("status", input.status))
+        query_params.extend(("status", e) for e in input.status)
     if input.from_date is not None:
         query_params.append(("from_date", serialize_rfc3339(ensure_utc(input.from_date))))
     if input.to_date is not None:
@@ -1640,11 +1640,11 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
     if input.experiment_name is not None:
         query_params.append(("experiment_name", input.experiment_name))
     if input.experiment_ids is not None:
-        query_params.append(("experiment_ids", input.experiment_ids))
+        query_params.extend(("experiment_ids", e) for e in input.experiment_ids)
     if input.experiment_group_ids is not None:
-        query_params.append(("experiment_group_ids", input.experiment_group_ids))
+        query_params.extend(("experiment_group_ids", e) for e in input.experiment_group_ids)
     if input.created_by is not None:
-        query_params.append(("created_by", input.created_by))
+        query_params.extend(("created_by", e) for e in input.created_by)
     if input.sort_on is not None:
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:
@@ -1701,7 +1701,7 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
     if input.sort_by is not None:
         query_params.append(("sort_by", input.sort_by))
     if input.group_type is not None:
-        query_params.append(("group_type", input.group_type))
+        query_params.extend(("group_type", e) for e in input.group_type)
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1739,6 +1739,8 @@ async def _serialize_list_function(input: ListFunctionInput, config: Config) -> 
         query_params.append(("page", str(input.page)))
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
+    if input.function_type is not None:
+        query_params.extend(("function_type", e) for e in input.function_type)
 
     query = join_query_params(params=query_params, prefix=query)
 

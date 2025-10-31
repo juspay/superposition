@@ -37,15 +37,17 @@ string Weight
 @documentation("Sort order enumeration for list operations.")
 enum SortBy {
     @documentation("Descending order (Z-A, newest first)")
-    Desc = "desc"
+    DESC = "desc"
+
     @documentation("Ascending order (A-Z, oldest first)")
-    Asc = "asc"
+    ASC = "asc"
 }
 
 @documentation("Strategy to follow while filter items based on the context")
 enum DimensionMatchStrategy {
     @documentation("Match the overrides which have the exact context")
-    Exact = "exact"
+    EXACT = "exact"
+
     @documentation("Match the overrides which have the given context as subset")
-    Subset = "subset"
+    SUBSET = "subset"
 }

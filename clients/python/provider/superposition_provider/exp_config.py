@@ -1,9 +1,10 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Any, Dict, Optional, TypeVar, Generic
+from typing import Any, Dict, Optional, TypeVar
 from superposition_bindings.superposition_client import FfiExperiment, FfiExperimentGroup
-from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions, ExperimentationOptions
+from superposition_sdk.models import ExperimentStatusType
+from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ExperimentationOptions
 from superposition_sdk.client import Superposition, Config, ListExperimentInput, ListExperimentGroupsInput
 import asyncio
 from datetime import datetime, timedelta
@@ -141,7 +142,8 @@ class ExperimentationConfig():
             list_exp_input = ListExperimentInput(
                 workspace_id=superposition_options.workspace_id,
                 org_id=superposition_options.org_id,
-                all=True
+                all=True,
+                status=[ExperimentStatusType.CREATED, ExperimentStatusType.INPROGRESS]
             )
             
 

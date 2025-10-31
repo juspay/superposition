@@ -162,22 +162,26 @@ fn uri_query(_input: &crate::operation::list_audit_logs::ListAuditLogsInput, mut
     }
     if let ::std::option::Option::Some(inner_6) = &_input.tables {
          {
-            query.push_kv("table", &::aws_smithy_http::query::fmt_string(inner_6));
+            for inner_7 in inner_6 {
+                query.push_kv("table", &::aws_smithy_http::query::fmt_string(inner_7));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_7) = &_input.action {
+    if let ::std::option::Option::Some(inner_8) = &_input.action {
          {
-            query.push_kv("action", &::aws_smithy_http::query::fmt_string(inner_7));
+            for inner_9 in inner_8 {
+                query.push_kv("action", &::aws_smithy_http::query::fmt_string(inner_9));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_8) = &_input.username {
+    if let ::std::option::Option::Some(inner_10) = &_input.username {
          {
-            query.push_kv("username", &::aws_smithy_http::query::fmt_string(inner_8));
+            query.push_kv("username", &::aws_smithy_http::query::fmt_string(inner_10));
         }
     }
-    if let ::std::option::Option::Some(inner_9) = &_input.sort_by {
+    if let ::std::option::Option::Some(inner_11) = &_input.sort_by {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_9));
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_11));
         }
     }
     ::std::result::Result::Ok(())

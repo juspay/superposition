@@ -336,7 +336,7 @@ describe("Experiments API", () => {
             const contextsCmd = new ListContextsCommand({
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
-                prefix: "pmTestKey",
+                prefix: ["pmTestKey"],
                 count: 100,
                 page: 1,
             });

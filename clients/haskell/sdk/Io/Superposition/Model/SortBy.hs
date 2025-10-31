@@ -11,8 +11,8 @@ import qualified Io.Superposition.Utility
 
 -- Enum implementation for SortBy
 data SortBy =
-    Desc
-    | Asc
+    DESC
+    | ASC
     deriving (
         GHC.Generics.Generic,
         Data.Eq.Eq,
@@ -20,24 +20,24 @@ data SortBy =
     )
 
 instance Data.Aeson.ToJSON SortBy where
-    toJSON Desc = Data.Aeson.String $ Data.Text.pack "desc"
-    toJSON Asc = Data.Aeson.String $ Data.Text.pack "asc"
+    toJSON DESC = Data.Aeson.String $ Data.Text.pack "desc"
+    toJSON ASC = Data.Aeson.String $ Data.Text.pack "asc"
 
 instance Data.Aeson.FromJSON SortBy where
     parseJSON = Data.Aeson.withText "SortBy" $ \v ->
         case v of
-            "desc" -> pure Desc
-            "asc" -> pure Asc
+            "desc" -> pure DESC
+            "asc" -> pure ASC
             _ -> fail $ "Unknown value for SortBy: " <> Data.Text.unpack v
         
     
 
 instance Io.Superposition.Utility.SerDe SortBy where
-    serializeElement Desc = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "desc"
-    serializeElement Asc = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "asc"
+    serializeElement DESC = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "desc"
+    serializeElement ASC = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "asc"
     deSerializeElement bs = case Data.Text.Encoding.decodeUtf8 bs of
-        "desc" -> Right Desc
-        "asc" -> Right Asc
+        "desc" -> Right DESC
+        "asc" -> Right ASC
         e -> Left ("Failed to de-serialize SortBy, encountered unknown variant: " ++ (show bs))
     
 

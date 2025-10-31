@@ -83,7 +83,7 @@ operation GetConfig {
     input := with [WorkspaceMixin] {
         @httpQuery("prefix")
         @notProperty
-        prefix: String
+        prefix: StringList
 
         @httpQuery("version")
         @notProperty
@@ -130,7 +130,7 @@ operation GetResolvedConfig {
     input := with [WorkspaceMixin] {
         @httpQuery("prefix")
         @notProperty
-        prefix: String
+        prefix: StringList
 
         @httpQuery("version")
         @notProperty

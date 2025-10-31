@@ -12,13 +12,13 @@ use crate::{
     IsEmpty, SortBy,
 };
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, QueryParam, IsEmpty)]
+#[derive(Debug, Clone, PartialEq, Deserialize, QueryParam, IsEmpty)]
 pub struct AuditQueryFilters {
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub table: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub action: Option<CommaSeparatedQParams<AuditAction>>,
     #[query_param(skip_if_empty)]
     pub username: Option<String>,
