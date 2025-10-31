@@ -305,7 +305,7 @@ class Main {
                         .orgId(orgId)
                         .id(response.id())
                         .changeReason("ramp the experiment")
-                        .trafficPercentage(25)
+                        .trafficPercentage(50)
                         .build()
     
                     val rampFuture = CompletableFuture.supplyAsync {
@@ -461,6 +461,22 @@ class Main {
                 check(price == 1.0) { "Price should be 1 for karbik, got $price" }
                 check(currency == "Dollar") { "Currency should be Dollar in Boston, got $currency" }
                 println("  ✓ Test passed\n")
+            }
+
+            // Test 9: Experimentation - Bangalore customer
+            println("Test 9: Experimentation - Bangalore customer")
+            run {
+                val context = ImmutableContext(mapOf(
+                    "city" to Value("Bangalore"),
+                    "targetingKey" to Value("")
+                ))
+
+                val price = ofClient.getDoubleValue("price", 0.0, context)
+                val currency = ofClient.getStringValue("currency", "", context)
+
+                check(price == 10000.0) { "Price should be 10000 for control variant, got $price" }
+                check(currency == "Rupee") { "Currency should be default Rupee, got $currency" }
+                println(" ✓ Control Test passed\n")
             }
 
             println("\n=== All tests passed! ===\n")

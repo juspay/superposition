@@ -19,6 +19,7 @@ from superposition_sdk.models import (
     CreateContextInput,
     CreateDefaultConfigInput,
     CreateDimensionInput,
+    CreateExperimentInput,
     CreateOrganisationInput,
     CreateWorkspaceInput,
     DimensionTypeLOCAL_COHORT,
@@ -236,6 +237,57 @@ async def create_overrides(client, org_id: str, workspace_id: str):
             print(f"Error occurred while creating override: {override}", e)
             raise e
 
+async def create_experiments(client, org_id: str, workspace_id: str):
+    experiments = [
+        {
+            "workspace_id": workspace_id,
+            "org_id": org_id,
+            "name": "Test Experiment",
+            "context": {
+                "city": Document("Boston"),
+            },
+            "variants": [
+                {
+                    "id": "test-control",
+                    "variant_type": "CONTROL",
+                    "overrides": {
+                        "price": Document(10000)
+                    }
+                },
+                {
+                    "id": "test-experimental",
+                    "variant_type": "EXPERIMENTAL",
+                    "overrides": {
+                        "price": Document(7000)
+                    }
+                }
+            ],
+            "description": "A test experiment for Boston customers",
+            "change_reason": "adding test experiment",
+        }
+    ]
+
+    print("Creating experiments:")
+    for experiment in experiments:
+        input_data = CreateExperimentInput(**experiment)
+        try:
+            response = await client.create_experiment(input_data)
+            print(f"  - Created experiment: {response}")
+            ramp_input = {
+                "workspace_id": workspace_id,
+                "org_id": org_id,
+                "id": response.id,
+                "change_reason": "ramp the experiment",
+                "traffic_percentage": 50,
+            }
+            await client.ramp_experiment(ramp_input)
+            print(f"  - Ramped experiment to 50% traffic: {response.id}")
+
+        except Exception as e:
+            print(f"Error occurred while creating experiment: {experiment}", e)
+            raise e
+
+    
 
 async def setup_with_sdk(client, org_id: str, workspace_id: str):
     print("\n=== Setting up test environment ===\n")
@@ -243,6 +295,7 @@ async def setup_with_sdk(client, org_id: str, workspace_id: str):
     await create_dimensions(client, org_id, workspace_id)
     await create_default_configs(client, org_id, workspace_id)
     await create_overrides(client, org_id, workspace_id)
+    await create_experiments(client, org_id, workspace_id)
     print("\n=== Setup complete ===\n")
 
 
@@ -362,6 +415,16 @@ async def run_demo(org_id: str, workspace_id: str):
         assert price == 1, "Price should be 1 for karbik"
         assert currency == "Dollar", "Currency should be Dollar in Boston"
         print("  ✓ Test passed\n")
+
+        print("Test 9: Experiment case: Boston pricing")
+        evaluation_context = EvaluationContext(
+            attributes={"city": "Boston"}
+        )
+        price = client.get_integer_value("price", 0, evaluation_context, "")
+        currency = client.get_string_value("currency", "", evaluation_context, "")
+        assert price == 10000, "Price should be 10000 for Boston Control Variant"
+        assert currency == "Dollar", "Currency should be Dollar in Boston"
+        print("  ✓ Control Test passed\n")
 
         print("\n=== All tests passed! ===\n")
     except Exception as error:
