@@ -70,7 +70,7 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //   last_modified_by: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
- * //   dependency_graph: { // DepedendencyGraph // required
+ * //   dependency_graph: { // DependencyGraph // required
  * //     "<keys>": [ // StringList
  * //       "STRING_VALUE",
  * //     ],

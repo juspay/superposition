@@ -104,7 +104,7 @@ class Main {
                 .workspaceId(workspaceId)
                 .orgId(orgId)
                 .dimension("customers")
-                .position(3)
+                .position(1)
                 .schemaMember(mapOf(
                     "type" to Document.of("string"),
                     "enum" to Document.of(listOf(

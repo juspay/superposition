@@ -1212,6 +1212,8 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
         query_params.append(("show_reasoning", ('true' if input.show_reasoning else 'false')))
     if input.context_id is not None:
         query_params.append(("context_id", input.context_id))
+    if input.resolve_remote is not None:
+        query_params.append(("resolve_remote", ('true' if input.resolve_remote else 'false')))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -2464,7 +2466,7 @@ async def _serialize_update_override(input: UpdateOverrideInput, config: Config)
             scheme="https",
             query=query,
         ),
-        method="PUT",
+        method="PATCH",
         fields=headers,
         body=body,
     )

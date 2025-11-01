@@ -98,37 +98,28 @@ impl ConversionUtils {
                     .map(|(key, dimension_info)| {
                         let schema = dimension_info
                             .schema()
-                            .and_then(|map| {
-                                map.iter()
-                                    .map(|(k, v)| {
-                                        Self::document_to_value(v)
-                                            .map(|val| (k.clone(), val))
-                                    })
-                                    .collect::<Result<Map<String, Value>>>()
-                                    .ok()
+                            .iter()
+                            .map(|(k, v)| {
+                                Self::document_to_value(v).map(|val| (k.clone(), val))
                             })
-                            .ok_or_else(|| {
+                            .collect::<Result<Map<String, Value>>>()
+                            .map_err(|e| {
                                 SuperpositionError::ConfigError(format!(
-                                    "Missing or invalid schema for dimension '{key}'",
+                                    "Invalid schema for dimension '{key}': {e}",
                                 ))
                             })?;
                         let dim_info = DimensionInfo {
                             schema: ExtendedMap::from(schema),
-                            position: dimension_info.position().unwrap_or_default(),
-                            dimension_type: dimension_info
-                                .dimension_type()
-                                .map(Self::try_dimension_type)
-                                .ok_or_else(|| {
-                                    SuperpositionError::ConfigError(format!(
-                                        "Missing or invalid dimension_type for dimension '{key}'",
-                                    ))
-                                })??,
+                            position: dimension_info.position(),
+                            dimension_type: Self::try_dimension_type(
+                                dimension_info.dimension_type(),
+                            )?,
                             dependency_graph: DependencyGraph(
-                                dimension_info
-                                    .dependency_graph()
-                                    .cloned()
-                                    .unwrap_or_default(),
+                                dimension_info.dependency_graph().clone(),
                             ),
+                            autocomplete_function_name: dimension_info
+                                .autocomplete_function_name()
+                                .map(String::from),
                         };
                         Ok((key.clone(), dim_info))
                     })

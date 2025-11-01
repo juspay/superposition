@@ -403,7 +403,10 @@ pub fn dimension_form(
                                                             dropdown_options=dimension_options.get_value()
                                                             on_select=move |selected_item: String| {
                                                                 logging::log!("selected item {:?}", selected_item);
-                                                                if cohort_based_on_rs.get() != selected_item {
+                                                                if cohort_based_on_rs.get() != selected_item
+                                                                    && dimension_type_rs.get()
+                                                                        == DimensionTypeOptions::LocalCohort
+                                                                {
                                                                     dimension_schema_ws
                                                                         .set(
                                                                             serde_json::to_value(CohortSchemaFormat::default())

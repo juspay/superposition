@@ -76,7 +76,7 @@ final class SharedSchemas {
         .putMember("value", PreludeSchemas.DOCUMENT)
         .build();
 
-    static final Schema DEPEDENDENCY_GRAPH = Schema.mapBuilder(ShapeId.from("io.superposition#DepedendencyGraph"))
+    static final Schema DEPENDENCY_GRAPH = Schema.mapBuilder(ShapeId.from("io.superposition#DependencyGraph"))
         .putMember("key", PreludeSchemas.STRING)
         .putMember("value", SharedSchemas.STRING_LIST)
         .build();

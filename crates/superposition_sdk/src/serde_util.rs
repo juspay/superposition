@@ -696,6 +696,14 @@ if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types
                 builder
             }
 
+pub(crate) fn dimension_info_correct_errors(mut builder: crate::types::builders::DimensionInfoBuilder) -> crate::types::builders::DimensionInfoBuilder {
+                if builder.schema.is_none() { builder.schema = Some(Default::default()) }
+if builder.position.is_none() { builder.position = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
+if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn experiment_group_response_correct_errors(mut builder: crate::types::builders::ExperimentGroupResponseBuilder) -> crate::types::builders::ExperimentGroupResponseBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.context_hash.is_none() { builder.context_hash = Some(Default::default()) }

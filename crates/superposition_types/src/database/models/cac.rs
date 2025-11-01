@@ -331,7 +331,7 @@ impl TryFrom<i32> for Position {
     type Error = String;
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if value < 0 {
-            Err("Position should be greater than equal to 0".to_string())
+            Err("Position should be greater than or equal to 0".to_string())
         } else {
             Ok(Self(value))
         }

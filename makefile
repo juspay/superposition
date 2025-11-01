@@ -280,9 +280,9 @@ smithy-clients: smithy-build
 	rm -rf clients/javascript/sdk
 	mkdir -p clients/javascript/sdk
 	git restore clients/javascript/sdk/README.md
-	git restore clients/javascript/sdk/LICENSE
 	cp -r $(SMITHY_BUILD_SRC)/typescript-client-codegen/*\
 				clients/javascript/sdk
+	git restore clients/javascript/sdk/LICENSE
 
 	rm -rf crates/superposition_sdk
 	mkdir -p crates/superposition_sdk

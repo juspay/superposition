@@ -3,9 +3,9 @@ use std::collections::{HashMap, HashSet};
 use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::api::{
-    dimension::DimensionResponse, workspace::WorkspaceResponse,
+    dimension::DimensionResponse, functions::FunctionEnvironment,
+    workspace::WorkspaceResponse,
 };
-use superposition_types::database::models::cac::DimensionType;
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
@@ -220,7 +220,7 @@ pub fn condition_input(
 pub fn context_form(
     context: Conditions,
     dimensions: Vec<DimensionResponse>,
-    fn_environment: Memo<Value>,
+    fn_environment: Memo<FunctionEnvironment>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(into, default = String::new())] heading_sub_text: String,
@@ -282,24 +282,6 @@ pub fn context_form(
                         .unwrap_or_default(),
                 ));
             }
-            dimension
-                .dependency_graph
-                .keys()
-                .filter(|key| **key != dimension.dimension)
-                .for_each(|dependency| {
-                    if let Some(r#type) =
-                        dimension_map.get_value().get(dependency).and_then(|d| {
-                            SchemaType::try_from(&d.schema as &Map<String, Value>).ok()
-                        })
-                    {
-                        if !context.includes(dependency) {
-                            context.push(Condition::new_with_default_expression(
-                                dependency.clone(),
-                                r#type.clone(),
-                            ));
-                        }
-                    }
-                });
         };
 
     let (context_rs, context_ws) = create_signal({
@@ -326,27 +308,6 @@ pub fn context_form(
             .get()
             .iter()
             .map(|condition| condition.variable.clone())
-            .collect::<HashSet<_>>()
-    });
-
-    let context_dependencies = Signal::derive(move || {
-        used_dimensions
-            .get()
-            .iter()
-            .flat_map(|dimension| {
-                dimension_map
-                    .get_value()
-                    .get(dimension)
-                    .cloned()
-                    .map(|d| {
-                        d.dependency_graph
-                            .keys()
-                            .filter(|key| **key != d.dimension)
-                            .cloned()
-                            .collect::<HashSet<String>>()
-                    })
-                    .unwrap_or_default()
-            })
             .collect::<HashSet<_>>()
     });
 
@@ -398,17 +359,6 @@ pub fn context_form(
         if mandatory_dimensions_set.with_value(|s| s.contains(&variable)) {
             return "Mandatory Dimension".to_string();
         }
-        if context_dependencies.get().contains(&variable) {
-            if let Some(dim) = dimension_map.get_value().get(&variable) {
-                match dim.dimension_type {
-                    DimensionType::Regular {} => return String::new(),
-                    DimensionType::LocalCohort(ref cohort_based_on)
-                    | DimensionType::RemoteCohort(ref cohort_based_on) => {
-                        return format!("Required by: {cohort_based_on}",)
-                    }
-                }
-            }
-        }
         String::new()
     };
 
@@ -442,11 +392,10 @@ pub fn context_form(
 
                         key=move |(idx, condition)| {
                             format!(
-                                "{}-{}-{}-{}",
+                                "{}-{}-{}",
                                 condition.variable,
                                 idx,
                                 condition.expression.to_operator(),
-                                context_dependencies.with(|v| v.contains(&condition.variable)),
                             )
                         }
 
@@ -474,12 +423,10 @@ pub fn context_form(
                             let operator = Operator::from(&condition);
                             let is_mandatory = mandatory_dimensions_set
                                 .with_value(|v| v.contains(&condition.variable));
-                            let has_context_dependency = context_dependencies
-                                .with(|v| v.contains(&condition.variable));
                             let allow_remove = if resolve_mode {
                                 !disabled
                             } else {
-                                !disabled && !is_mandatory && !has_context_dependency
+                                !disabled && !is_mandatory
                             };
                             let input_type = InputType::from((
                                 schema_type.clone(),

@@ -92,7 +92,7 @@ async function create_dimensions(org_id, workspace_id) {
       workspace_id,
       org_id,
       dimension: "customers",
-      position: 3,
+      position: 1,
       schema: {
           "type": "string",
           "enum": ["platinum", "gold", "otherwise"],

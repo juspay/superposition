@@ -155,6 +155,11 @@ fn uri_query(_input: &crate::operation::get_resolved_config::GetResolvedConfigIn
             query.push_kv("context_id", &::aws_smithy_http::query::fmt_string(inner_4));
         }
     }
+    if let ::std::option::Option::Some(inner_5) = &_input.resolve_remote {
+         {
+            query.push_kv("resolve_remote", ::aws_smithy_types::primitive::Encoder::from(*inner_5).encode());
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

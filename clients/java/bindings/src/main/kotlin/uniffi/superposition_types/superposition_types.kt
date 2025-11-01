@@ -1138,7 +1138,8 @@ data class DimensionInfo (
     var `schema`: ExtendedMap, 
     var `position`: kotlin.Int, 
     var `dimensionType`: DimensionType, 
-    var `dependencyGraph`: DependencyGraph
+    var `dependencyGraph`: DependencyGraph, 
+    var `autocompleteFunctionName`: kotlin.String?
 ) {
     
     companion object
@@ -1154,6 +1155,7 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterInt.read(buf),
             FfiConverterTypeDimensionType.read(buf),
             FfiConverterTypeDependencyGraph.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -1161,7 +1163,8 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterTypeExtendedMap.allocationSize(value.`schema`) +
             FfiConverterInt.allocationSize(value.`position`) +
             FfiConverterTypeDimensionType.allocationSize(value.`dimensionType`) +
-            FfiConverterTypeDependencyGraph.allocationSize(value.`dependencyGraph`)
+            FfiConverterTypeDependencyGraph.allocationSize(value.`dependencyGraph`) +
+            FfiConverterOptionalString.allocationSize(value.`autocompleteFunctionName`)
     )
 
     override fun write(value: DimensionInfo, buf: ByteBuffer) {
@@ -1169,6 +1172,7 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterInt.write(value.`position`, buf)
             FfiConverterTypeDimensionType.write(value.`dimensionType`, buf)
             FfiConverterTypeDependencyGraph.write(value.`dependencyGraph`, buf)
+            FfiConverterOptionalString.write(value.`autocompleteFunctionName`, buf)
     }
 }
 
@@ -1387,6 +1391,36 @@ public object FfiConverterTypeGroupType: FfiConverterRustBuffer<GroupType> {
     override fun allocationSize(value: GroupType) = 4UL
 
     override fun write(value: GroupType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class MergeStrategy {
+    
+    MERGE,
+    REPLACE;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeMergeStrategy: FfiConverterRustBuffer<MergeStrategy> {
+    override fun read(buf: ByteBuffer) = try {
+        MergeStrategy.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: MergeStrategy) = 4UL
+
+    override fun write(value: MergeStrategy, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

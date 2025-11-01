@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::str;
 
 use cac_client::utils::json_to_sorted_string;
@@ -14,25 +14,31 @@ use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::{
         context::PutRequest,
-        functions::{FunctionExecutionRequest, FunctionExecutionResponse},
+        functions::{
+            FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
+        },
     },
     database::{
         models::{
-            cac::{Context, DependencyGraph, FunctionCode, FunctionType},
+            cac::{Context, DependencyGraph, DimensionType, FunctionCode},
             Description,
         },
-        schema::{contexts, default_configs::dsl, dimensions},
+        schema::{
+            contexts, default_configs::dsl, dimensions, functions::dsl as functions,
+        },
     },
-    logic::evaluate_cohort,
+    logic::{dimensions_to_start_from, evaluate_local_cohorts},
     result as superposition, Cac, Condition, DBConnection, DimensionInfo, Overrides,
     User,
 };
 
-use crate::api::dimension::fetch_dimensions_info_map;
-use crate::helpers::calculate_context_weight;
-use crate::validation_functions::execute_fn;
 use crate::{
-    api::functions::helpers::get_published_functions_by_names, helpers::get_workspace,
+    api::dimension::fetch_dimensions_info_map,
+    helpers::{calculate_context_weight, get_workspace},
+};
+use crate::{
+    api::functions::helpers::get_published_functions_by_names,
+    validation_functions::execute_fn,
 };
 
 use super::types::FunctionsInfo;
@@ -60,36 +66,6 @@ pub fn validate_condition_with_mandatory_dimensions(
     Ok(())
 }
 
-pub fn validate_condition_with_dependent_dimensions(
-    conn: &mut DBConnection,
-    context_map: &Map<String, Value>,
-    schema_name: &SchemaName,
-) -> superposition::Result<()> {
-    use dimensions::dsl;
-    let keys = context_map.keys();
-    let dependency_lists: Vec<DependencyGraph> = dsl::dimensions
-        .filter(dsl::dimension.eq_any(keys))
-        .select(dsl::dependency_graph)
-        .schema_name(schema_name)
-        .load::<DependencyGraph>(conn)?;
-    let dependency_list: HashSet<String> = dependency_lists
-        .iter()
-        .flat_map(|obj| obj.keys())
-        .cloned()
-        .collect();
-
-    let all_dependencies_present = dependency_list
-        .iter()
-        .all(|dimension| context_map.contains_key(dimension));
-    if !all_dependencies_present {
-        return Err(validation_error!(
-            "The context should contain all the dependent dimensions : {:?}.",
-            dependency_list,
-        ));
-    }
-    Ok(())
-}
-
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
     context_map: &Map<String, Value>,
@@ -104,7 +80,7 @@ pub fn validate_condition_with_functions(
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()
-        .filter_map(|(key_, f_name)| f_name.map(|func| (key_, func)))
+        .filter_map(|(key, f_name)| f_name.map(|func| (key, func)))
         .collect();
 
     let dimension_functions_map =
@@ -236,7 +212,7 @@ fn get_functions_map(
 }
 
 pub fn validate_value_with_function(
-    _fun_name: &str,
+    fun_name: &str,
     function: &FunctionCode,
     key: &String,
     value: &Value,
@@ -249,33 +225,32 @@ pub fn validate_value_with_function(
         },
     ) {
         Err((err, stdout)) => {
-            let stdout = stdout.unwrap_or(String::new());
-            log::error!("function validation failed for {key} with error: {err}");
+            let stdout = stdout.unwrap_or_default();
+            log::error!(
+                "function {fun_name} validation failed for {key} with error: {err}"
+            );
             Err(validation_error!(
-                "Function validation failed for {} with error {}. {}",
+                "Function {fun_name} validation failed for {} with error {}. {}",
                 key,
                 err,
                 stdout
             ))
         }
         Ok(FunctionExecutionResponse {
-            fn_output,
-            stdout,
-            function_type,
-        }) => match function_type {
-            FunctionType::Validation => {
-                log::debug!("Function execution returned: {:?}", fn_output);
-                if fn_output.is_boolean() && fn_output == Value::Bool(true) {
-                    Ok(())
-                } else {
-                    log::error!("Validation function returned false, logs are {stdout}");
-                    Err(validation_error!(
-                            "The validation function returned false, please check your inputs",
-                        ))
-                }
+            fn_output, stdout, ..
+        }) => {
+            log::debug!("Function execution returned: {:?}", fn_output);
+            if fn_output.as_bool().unwrap_or_default() {
+                Ok(())
+            } else {
+                log::error!(
+                    "Validation function {fun_name} returned false, logs are {stdout}"
+                );
+                Err(validation_error!(
+                    "Validation function {fun_name} returned false, please check your inputs",
+                ))
             }
-            FunctionType::Autocomplete => Ok(()),
-        },
+        }
     }
 }
 
@@ -410,11 +385,178 @@ pub fn update_override_of_existing_ctx(
     db_update_override(conn, new_ctx, user, schema_name)
 }
 
+fn compute_value_with_function(
+    fun_name: &str,
+    function: &FunctionCode,
+    key: &str,
+    context: Map<String, Value>,
+    overrides: Map<String, Value>,
+) -> superposition::Result<Value> {
+    match execute_fn(
+        function,
+        &FunctionExecutionRequest::AutocompleteFunctionRequest {
+            name: key.to_string(),
+            prefix: String::new(),
+            environment: FunctionEnvironment { context, overrides },
+        },
+    ) {
+        Err((err, stdout)) => {
+            let stdout = stdout.unwrap_or_default();
+            log::error!(
+                "function {fun_name} computation failed for {key} with error: {err}"
+            );
+            Err(validation_error!(
+                "Function {fun_name} computation failed for {} with error {}. {}",
+                key,
+                err,
+                stdout
+            ))
+        }
+        Ok(FunctionExecutionResponse {
+            fn_output, stdout, ..
+        }) => {
+            log::debug!("Function execution returned: {:?}", fn_output);
+            match fn_output {
+                Value::Array(arr) if arr.len() == 1 => Ok(arr[0].clone()),
+                _ => {
+                    log::error!(
+                        "Computation function {fun_name} returned invalid output, logs are {stdout}"
+                    );
+                    Err(validation_error!(
+                        "Computation function {fun_name} returned invalid output, please check your inputs",
+                    ))
+                }
+            }
+        }
+    }
+}
+
+/// Evaluates dependencies of local cohort dimensions recursively using depth-first traversal
+fn evaluate_remote_cohorts_dependency(
+    dimension: &str,
+    dependency_graph: &DependencyGraph,
+    dimensions: &HashMap<String, DimensionInfo>,
+    modified_context: &mut Map<String, Value>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let mut stack = dependency_graph
+        .get(dimension)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|d| (d, dimension.to_string()))
+        .collect::<Vec<_>>();
+
+    // Depth-first traversal of dependencies
+    while let Some((ref cohort_dimension, ref based_on)) = stack.pop() {
+        if let Some(data) = dimensions.get(cohort_dimension) {
+            if matches!(data.dimension_type, DimensionType::LocalCohort(_)) {
+                continue;
+            }
+
+            let Some(ref autocomplete_fn) = data.autocomplete_function_name else {
+                return Err(validation_error!(
+                    "Value compute function not found for {cohort_dimension}",
+                ));
+            };
+
+            let fn_code = functions::functions
+                .filter(functions::function_name.eq(autocomplete_fn))
+                .select(functions::published_code)
+                .schema_name(schema_name)
+                .first::<Option<FunctionCode>>(conn)?
+                .ok_or_else(|| {
+                    validation_error!(
+                        "Published code not found for function {}",
+                        autocomplete_fn
+                    )
+                })?;
+
+            let value = compute_value_with_function(
+                autocomplete_fn,
+                &fn_code,
+                based_on,
+                modified_context.clone(),
+                Map::new(),
+            )?;
+
+            modified_context.insert(cohort_dimension.clone(), value);
+
+            stack.extend(
+                dependency_graph
+                    .get(cohort_dimension)
+                    .cloned()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|d| (d, cohort_dimension.clone()))
+                    .collect::<Vec<_>>(),
+            );
+        }
+    }
+    Ok(())
+}
+
+/// Evaluates all remote cohort dimensions based on the provided query data and dimension definitions
+/// First, all remote cohort dependents of regular and remote dimensions are evaluated, starting from
+/// the dimensions present in query_data such that for each tree in the dependency graph,
+/// the node closest to root from query_data is picked for each branch of the tree.
+/// Next, local cohort dimensions from query_data are inserted into the modified context.
+///
+/// Values of regular and local cohort dimensions in query_data are not modified.
+/// Returned value, might have a different value for remote cohort dimensions based on its based on dimensions,
+/// if the value provided for the remote cohort was incorrect in the query data.
+pub fn evaluate_remote_cohorts(
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Map<String, Value>> {
+    let mut modified_context = Map::new();
+
+    // First, evaluate all remote cohort dimensions and their dependencies
+    for dimension_key in dimensions_to_start_from(dimensions, query_data) {
+        if let Some(value) = query_data.get(&dimension_key) {
+            if let Some(data) = dimensions.get(&dimension_key) {
+                match data.dimension_type {
+                    DimensionType::LocalCohort(_) => continue,
+                    DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
+                        modified_context.insert(dimension_key.to_string(), value.clone());
+                        evaluate_remote_cohorts_dependency(
+                            &dimension_key,
+                            &data.dependency_graph,
+                            dimensions,
+                            &mut modified_context,
+                            conn,
+                            schema_name,
+                        )?;
+                    }
+                }
+            }
+        }
+    }
+
+    // Next, insert local cohort dimensions from query_data into modified_context
+    for (dimension_key, value) in query_data {
+        if let Some(data) = dimensions.get(dimension_key) {
+            if matches!(data.dimension_type, DimensionType::LocalCohort(_)) {
+                modified_context.insert(dimension_key.to_string(), value.clone());
+            }
+        }
+    }
+
+    Ok(modified_context)
+}
+
 fn validate_cohort_dimension_values(
     dimensions: &HashMap<String, DimensionInfo>,
     context_map: &Map<String, Value>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    let evaluated_context = evaluate_cohort(dimensions, context_map);
+    let remote_evaluated_context =
+        evaluate_remote_cohorts(dimensions, context_map, conn, schema_name)?;
+    let evaluated_context = evaluate_local_cohorts(dimensions, &remote_evaluated_context);
 
     for (dimension_key, value) in context_map {
         if let Some(evaluated_value) = evaluated_context.get(dimension_key) {
@@ -455,7 +597,6 @@ pub fn validate_ctx(
         context_map,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
-    validate_condition_with_dependent_dimensions(conn, context_map, schema_name)?;
     let dimension_info_map = fetch_dimensions_info_map(conn, schema_name)?;
     validate_dimensions(
         #[cfg(feature = "jsonlogic")]
@@ -463,7 +604,12 @@ pub fn validate_ctx(
         &condition_val,
         &dimension_info_map,
     )?;
-    validate_cohort_dimension_values(&dimension_info_map, context_map)?;
+    validate_cohort_dimension_values(
+        &dimension_info_map,
+        context_map,
+        conn,
+        schema_name,
+    )?;
     validate_condition_with_functions(conn, context_map, schema_name)?;
     Ok(dimension_info_map)
 }

@@ -1167,6 +1167,7 @@ export const se_GetResolvedConfigCommand = async(
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
+    [_rr]: [() => input.resolve_remote !== void 0, () => (input[_rr]!.toString())],
   });
   let body: any;
   body = JSON.stringify(take(input, {
@@ -1992,7 +1993,7 @@ export const se_UpdateOverrideCommand = async(
     body = {};
   }
   body = JSON.stringify(body);
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -4760,7 +4761,7 @@ const de_CommandError = async(
     }) as any;
   }
 
-  // de_DepedendencyGraph omitted.
+  // de_DependencyGraph omitted.
 
   /**
    * deserializeAws_restJson1DimensionData
@@ -4824,6 +4825,7 @@ const de_CommandError = async(
     context: __SerdeContext
   ): DimensionInfo => {
     return take(output, {
+      'autocomplete_function_name': __expectString,
       'dependency_graph': _json,
       'dimension_type': (_: any) => _json(__expectUnion(_)),
       'position': __expectInt32,
@@ -5315,6 +5317,7 @@ const de_CommandError = async(
   const _p = "prefix";
   const _pa = "page";
   const _pl = "plaintext";
+  const _rr = "resolve_remote";
   const _s = "status";
   const _sb = "sort_by";
   const _so = "sort_on";

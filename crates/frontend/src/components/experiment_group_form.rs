@@ -1,11 +1,12 @@
 use std::ops::Deref;
 
 use leptos::*;
-use serde_json::{json, Map, Number, Value};
+use serde_json::{Map, Number, Value};
 use superposition_types::{
     api::{
         dimension::DimensionResponse,
         experiment_groups::{ExpGroupMemberRequest, ExpGroupUpdateRequest},
+        functions::FunctionEnvironment,
     },
     database::models::ChangeReason,
 };
@@ -189,12 +190,9 @@ pub fn experiment_group_form(
     let update_request_rws = RwSignal::new(None);
     let loading_rws = create_rw_signal(false);
 
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
-        json!({
-            "context": context,
-            "overrides": [],
-        })
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rs.get().as_context_json(),
+        overrides: Map::new(),
     });
 
     let on_submit = move |_| {

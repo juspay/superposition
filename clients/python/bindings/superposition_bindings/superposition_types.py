@@ -988,14 +988,16 @@ class DimensionInfo:
     position: "int"
     dimension_type: "DimensionType"
     dependency_graph: "DependencyGraph"
-    def __init__(self, *, schema: "ExtendedMap", position: "int", dimension_type: "DimensionType", dependency_graph: "DependencyGraph"):
+    autocomplete_function_name: "typing.Optional[str]"
+    def __init__(self, *, schema: "ExtendedMap", position: "int", dimension_type: "DimensionType", dependency_graph: "DependencyGraph", autocomplete_function_name: "typing.Optional[str]"):
         self.schema = schema
         self.position = position
         self.dimension_type = dimension_type
         self.dependency_graph = dependency_graph
+        self.autocomplete_function_name = autocomplete_function_name
 
     def __str__(self):
-        return "DimensionInfo(schema={}, position={}, dimension_type={}, dependency_graph={})".format(self.schema, self.position, self.dimension_type, self.dependency_graph)
+        return "DimensionInfo(schema={}, position={}, dimension_type={}, dependency_graph={}, autocomplete_function_name={})".format(self.schema, self.position, self.dimension_type, self.dependency_graph, self.autocomplete_function_name)
 
     def __eq__(self, other):
         if self.schema != other.schema:
@@ -1005,6 +1007,8 @@ class DimensionInfo:
         if self.dimension_type != other.dimension_type:
             return False
         if self.dependency_graph != other.dependency_graph:
+            return False
+        if self.autocomplete_function_name != other.autocomplete_function_name:
             return False
         return True
 
@@ -1016,6 +1020,7 @@ class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
             position=_UniffiConverterInt32.read(buf),
             dimension_type=_UniffiConverterTypeDimensionType.read(buf),
             dependency_graph=_UniffiConverterTypeDependencyGraph.read(buf),
+            autocomplete_function_name=_UniffiConverterOptionalString.read(buf),
         )
 
     @staticmethod
@@ -1024,6 +1029,7 @@ class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
         _UniffiConverterInt32.check_lower(value.position)
         _UniffiConverterTypeDimensionType.check_lower(value.dimension_type)
         _UniffiConverterTypeDependencyGraph.check_lower(value.dependency_graph)
+        _UniffiConverterOptionalString.check_lower(value.autocomplete_function_name)
 
     @staticmethod
     def write(value, buf):
@@ -1031,6 +1037,7 @@ class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
         _UniffiConverterInt32.write(value.position, buf)
         _UniffiConverterTypeDimensionType.write(value.dimension_type, buf)
         _UniffiConverterTypeDependencyGraph.write(value.dependency_graph, buf)
+        _UniffiConverterOptionalString.write(value.autocomplete_function_name, buf)
 
 
 class Variant:
@@ -1347,6 +1354,44 @@ class _UniffiConverterTypeGroupType(_UniffiConverterRustBuffer):
         if value == GroupType.USER_CREATED:
             buf.write_i32(1)
         if value == GroupType.SYSTEM_GENERATED:
+            buf.write_i32(2)
+
+
+
+
+
+
+
+class MergeStrategy(enum.Enum):
+    MERGE = 0
+    
+    REPLACE = 1
+    
+
+
+class _UniffiConverterTypeMergeStrategy(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        variant = buf.read_i32()
+        if variant == 1:
+            return MergeStrategy.MERGE
+        if variant == 2:
+            return MergeStrategy.REPLACE
+        raise InternalError("Raw enum value doesn't match any cases")
+
+    @staticmethod
+    def check_lower(value):
+        if value == MergeStrategy.MERGE:
+            return
+        if value == MergeStrategy.REPLACE:
+            return
+        raise ValueError(value)
+
+    @staticmethod
+    def write(value, buf):
+        if value == MergeStrategy.MERGE:
+            buf.write_i32(1)
+        if value == MergeStrategy.REPLACE:
             buf.write_i32(2)
 
 
@@ -1778,6 +1823,7 @@ __all__ = [
     "ExperimentStatusType",
     "ExperimentType",
     "GroupType",
+    "MergeStrategy",
     "VariantType",
     "Bucket",
     "Context",

@@ -8,7 +8,7 @@ use futures::join;
 use leptos::*;
 use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use strum::IntoEnumIterator;
 use superposition_macros::box_params;
 use superposition_types::{
@@ -16,6 +16,7 @@ use superposition_types::{
         context::{ContextListFilters, SortOn, UpdateRequest},
         default_config::DefaultConfigFilters,
         dimension::DimensionResponse,
+        functions::FunctionEnvironment,
         workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
@@ -107,13 +108,9 @@ fn form(
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let update_request_rws = RwSignal::new(None);
 
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
-        let overrides = overrides_rs.get();
-        json!({
-            "context": context,
-            "overrides": overrides,
-        })
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rs.get().as_context_json(),
+        overrides: Map::from_iter(overrides_rs.get()),
     });
 
     let on_submit = move || {

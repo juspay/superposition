@@ -8,7 +8,7 @@ use reqwest::{
     StatusCode,
 };
 use serde::de::DeserializeOwned;
-use serde_json::Value;
+use superposition_types::api::functions::FunctionEnvironment;
 use url::Url;
 use wasm_bindgen::JsCast;
 
@@ -324,7 +324,7 @@ pub fn set_function(selected_function: FunctionsName, value: &mut Option<String>
 pub fn autocomplete_fn_generator(
     key: String,
     autocomplete_fn_name: Option<String>,
-    environment: Memo<Value>,
+    environment: Memo<FunctionEnvironment>,
     tenant: String,
     org_id: String,
 ) -> Option<(String, AutoCompleteCallback)> {
@@ -337,7 +337,7 @@ pub fn autocomplete_fn_generator(
             let environment = environment.get();
             let org_id = org_id.clone();
             let tenant = tenant.clone();
-            logging::log!("Calling {fn_copy} for {key} {value} {}", environment);
+            logging::log!("Calling {fn_copy} for {key} {value}");
             leptos::spawn_local(async move {
                 match execute_autocomplete_function(
                 &key_copy,
@@ -350,6 +350,7 @@ pub fn autocomplete_fn_generator(
             .await
             {
                 Ok(vec) => suggestions.set(vec),
+                // TODO: Handle error properly, in case of error the loader is stuck
                 Err(err) => logging::error!("An error occurred while running the autocomplete function: {err}"),
             };
             });

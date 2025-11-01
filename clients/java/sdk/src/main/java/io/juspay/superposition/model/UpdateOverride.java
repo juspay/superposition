@@ -23,7 +23,7 @@ public final class UpdateOverride implements ApiOperation<UpdateOverrideInput, U
     private static final UpdateOverride $INSTANCE = new UpdateOverride();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/context/overrides")).build());
+            HttpTrait.builder().method("PATCH").code(200).uri(UriPattern.parse("/context/overrides")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

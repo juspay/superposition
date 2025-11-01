@@ -30,7 +30,16 @@ pub(crate) fn de_dimension_info<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
                             }
                             "dependency_graph" => {
                                 builder = builder.set_dependency_graph(
-                                    crate::protocol_serde::shape_depedendency_graph::de_depedendency_graph(tokens)?
+                                    crate::protocol_serde::shape_dependency_graph::de_dependency_graph(tokens)?
+                                );
+                            }
+                            "autocomplete_function_name" => {
+                                builder = builder.set_autocomplete_function_name(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
                                 );
                             }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
@@ -39,7 +48,7 @@ pub(crate) fn de_dimension_info<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
                     other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
                 }
             }
-            Ok(Some(builder.build()))
+            Ok(Some(crate::serde_util::dimension_info_correct_errors(builder).build().map_err(|err|::aws_smithy_json::deserialize::error::DeserializeError::custom_source("Response was invalid", err))?))
         }
         _ => {
             Err(::aws_smithy_json::deserialize::error::DeserializeError::custom("expected start object or null"))
