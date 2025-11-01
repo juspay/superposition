@@ -328,6 +328,15 @@
                         }
                     },
                     {
+                        "name": "resolve_remote",
+                        "in": "query",
+                        "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution."
+                        }
+                    },
+                    {
                         "name": "x-merge-strategy",
                         "in": "header",
                         "schema": {
@@ -857,7 +866,7 @@
             }
         },
         "/context/overrides": {
-            "put": {
+            "patch": {
                 "description": "Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.",
                 "operationId": "UpdateOverride",
                 "requestBody": {
@@ -5518,7 +5527,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -6400,7 +6409,7 @@
                     "type_schema"
                 ]
             },
-            "DepedendencyGraph": {
+            "DependencyGraph": {
                 "type": "object",
                 "additionalProperties": {
                     "type": "array",
@@ -6451,7 +6460,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -6490,9 +6499,18 @@
                         "$ref": "#/components/schemas/DimensionType"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
+                    },
+                    "autocomplete_function_name": {
+                        "type": "string"
                     }
-                }
+                },
+                "required": [
+                    "dependency_graph",
+                    "dimension_type",
+                    "position",
+                    "schema"
+                ]
             },
             "DimensionMatchStrategy": {
                 "type": "string",
@@ -7136,7 +7154,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -8913,7 +8931,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"

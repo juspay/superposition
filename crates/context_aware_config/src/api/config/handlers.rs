@@ -1,16 +1,16 @@
-use std::{collections::HashMap, str::FromStr};
+use std::collections::HashMap;
 
 use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
 use actix_http::StatusCode;
 use actix_web::{
     get, put, routes,
-    web::{Json, Path, Query},
+    web::{Header, Json, Path, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 #[cfg(feature = "high-performance-mode")]
 use actix_web::{http::header::ContentType, web::Data};
-use cac_client::{eval_cac, eval_cac_with_reasoning, MergeStrategy};
+use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
 use diesel::{
     dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl,
@@ -32,7 +32,7 @@ use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     api::{
-        config::{ConfigQuery, ContextPayload, ResolveConfigQuery},
+        config::{ConfigQuery, ContextPayload, MergeStrategy, ResolveConfigQuery},
         context::PutRequest,
     },
     custom_query::{
@@ -52,11 +52,11 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::api::context::{self, helpers::query_description};
-use crate::helpers::generate_cac;
-use crate::{
-    api::dimension::fetch_dimensions_info_map, helpers::calculate_context_weight,
+use crate::api::{
+    context::{self, helpers::query_description},
+    dimension::fetch_dimensions_info_map,
 };
+use crate::helpers::{calculate_context_weight, evaluate_remote_cohorts, generate_cac};
 
 use super::helpers::apply_prefix_filter_to_config;
 
@@ -796,6 +796,7 @@ async fn get_config(
 async fn get_resolved_config(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
+    merge_strategy: Header<MergeStrategy>,
     db_conn: DbConnection,
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
@@ -824,13 +825,7 @@ async fn get_resolved_config(
 
     config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
 
-    let merge_strategy = req
-        .headers()
-        .get("x-merge-strategy")
-        .and_then(|header_value: &HeaderValue| header_value.to_str().ok())
-        .and_then(|val| MergeStrategy::from_str(val).ok())
-        .unwrap_or_default();
-
+    let merge_strategy = merge_strategy.into_inner();
     let show_reason = query_filters.show_reasoning.unwrap_or_default();
 
     if let Some(context_id) = query_filters.context_id {
@@ -847,7 +842,7 @@ async fn get_resolved_config(
     }
 
     let is_smithy: bool;
-    let query_data = if req.method() == actix_web::http::Method::GET {
+    let mut query_data = if req.method() == actix_web::http::Method::GET {
         is_smithy = false;
         dimension_params.into_inner()
     } else {
@@ -860,6 +855,16 @@ async fn get_resolved_config(
         .context
         .into()
     };
+
+    if query_filters.resolve_remote.unwrap_or_default() {
+        query_data = QueryMap::from(evaluate_remote_cohorts(
+            &config.dimensions,
+            &query_data,
+            &mut conn,
+            &workspace_context.schema_name,
+        )?);
+    }
+
     let response = if show_reason {
         eval_cac_with_reasoning(&config, &query_data, merge_strategy).map_err(|err| {
             log::error!("failed to eval cac with err: {}", err);

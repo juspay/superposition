@@ -7,12 +7,11 @@ use serde_json::{Map, Value};
 #[cfg(feature = "jsonlogic")]
 use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::SchemaName;
-use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_macros::unexpected_error;
 use superposition_types::{
-    api::dimension::DimensionName,
     database::{
         models::{
-            cac::{Context, DependencyGraph, Dimension, DimensionType, Position},
+            cac::{Context, DependencyGraph, Dimension, DimensionType},
             ChangeReason,
         },
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
@@ -34,14 +33,7 @@ pub fn get_dimension_usage_context_ids(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<Vec<String>> {
-    let result: Vec<Context> =
-        contexts
-            .schema_name(schema_name)
-            .load(conn)
-            .map_err(|err| {
-                log::error!("failed to fetch contexts with error: {}", err);
-                db_error!(err)
-            })?;
+    let result: Vec<Context> = contexts.schema_name(schema_name).load(conn)?;
 
     let mut context_ids = vec![];
     for context in result.iter() {
@@ -65,33 +57,6 @@ pub fn get_dimension_usage_context_ids(
         }
     }
     Ok(context_ids)
-}
-
-pub fn validate_dimension_position(
-    dimension_name: DimensionName,
-    dimension_position: Position,
-    max_allowed: i64,
-) -> superposition::Result<()> {
-    let dimension_name: String = dimension_name.into();
-    let dimension_position: i32 = dimension_position.into();
-    match (dimension_name.as_str(), dimension_position) {
-        ("variantIds", 0) => Ok(()),
-        ("variantIds", d_position) => {
-            log::error!("invalid position: {d_position} for dimension: variantIds",);
-            Err(bad_argument!("variantIds' position should be equal to 0"))
-        }
-        (_, 0) => {
-            log::error!("invalid position: 0 for dimension: {dimension_name}",);
-            Err(bad_argument!("Oth position is reserved for variantIds"))
-        }
-        (_, d_position) if d_position as i64 > max_allowed => {
-            log::error!("position {d_position} value exceeds total number of dimensions {max_allowed}");
-            Err(bad_argument!(
-                "position value exceeds total number of dimensions"
-            ))
-        }
-        _ => Ok(()),
-    }
 }
 
 /// Update the dependency graph of the cohorted dimension
@@ -187,22 +152,33 @@ pub fn fetch_dimensions_info_map(
             position,
             dimension_type,
             dependency_graph,
+            autocomplete_function_name,
         ))
         .order_by(position.asc())
         .schema_name(schema_name)
-        .load::<(String, ExtendedMap, i32, DimensionType, DependencyGraph)>(conn)?
+        .load::<(
+            String,
+            ExtendedMap,
+            i32,
+            DimensionType,
+            DependencyGraph,
+            Option<String>,
+        )>(conn)?
         .into_iter()
-        .map(|(key, schema_value, pos, dim_type, dep_graph)| {
-            (
-                key,
-                DimensionInfo {
-                    schema: schema_value,
-                    position: pos,
-                    dimension_type: dim_type,
-                    dependency_graph: dep_graph,
-                },
-            )
-        })
+        .map(
+            |(key, schema_value, pos, dim_type, dep_graph, auto_complete_fn)| {
+                (
+                    key,
+                    DimensionInfo {
+                        schema: schema_value,
+                        position: pos,
+                        dimension_type: dim_type,
+                        dependency_graph: dep_graph,
+                        autocomplete_function_name: auto_complete_fn,
+                    },
+                )
+            },
+        )
         .collect();
 
     Ok(dimensions_map)

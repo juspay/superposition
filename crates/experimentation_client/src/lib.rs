@@ -18,7 +18,7 @@ use superposition_types::{
     database::models::experimentation::{
         Bucket, ExperimentGroup, ExperimentStatusType, GroupType, Variant,
     },
-    logic::evaluate_cohort,
+    logic::evaluate_local_cohorts,
     DimensionInfo, Overridden, PaginatedResponse,
 };
 pub use superposition_types::{
@@ -125,7 +125,7 @@ impl Client {
             .map(|(_, exp_group)| exp_group.clone())
             .collect::<Vec<_>>();
 
-        let context = Value::Object(evaluate_cohort(
+        let context = Value::Object(evaluate_local_cohorts(
             dimensions_info,
             &context.as_object().cloned().unwrap_or_default(),
         ));

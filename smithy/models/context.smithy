@@ -159,7 +159,7 @@ structure UpdateContextOverrideRequest for Context {
 }
 
 @documentation("Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.")
-@http(method: "PUT", uri: "/context/overrides")
+@http(method: "PATCH", uri: "/context/overrides")
 @tags(["Context Management"])
 operation UpdateOverride with [GetOperation] {
     input := for Context with [WorkspaceMixin] {

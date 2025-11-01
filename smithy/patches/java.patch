@@ -16,7 +16,7 @@ index 0de33755..a0155187 100644
 -        "position", PreludeSchemas.INTEGER,
 -        "last_modified_by", PreludeSchemas.STRING,
 -        "created_by", PreludeSchemas.STRING,
--        "dependency_graph", SharedSchemas.DEPEDENDENCY_GRAPH,
+-        "dependency_graph", SharedSchemas.DEPENDENCY_GRAPH,
 -        "last_modified_at", SharedSchemas.DATE_TIME);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
 +        Map.entry("schema", SharedSchemas.OBJECT),
@@ -29,7 +29,7 @@ index 0de33755..a0155187 100644
 +        Map.entry("position", PreludeSchemas.INTEGER),
 +        Map.entry("last_modified_by", PreludeSchemas.STRING),
 +        Map.entry("created_by", PreludeSchemas.STRING),
-+        Map.entry("dependency_graph", SharedSchemas.DEPEDENDENCY_GRAPH),
++        Map.entry("dependency_graph", SharedSchemas.DEPENDENCY_GRAPH),
 +        Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
  
      private static final List<Schema> $OPERATIONS = List.of(CreateDimension.$SCHEMA);

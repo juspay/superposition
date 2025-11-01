@@ -820,7 +820,7 @@ pub async fn validate_control_overrides(
         user,
         state,
         &DimensionQuery::from(context.clone()),
-        &ResolveConfigQuery::default(),
+        ResolveConfigQuery::default(),
         workspace_request,
     )
     .await?;

@@ -759,11 +759,12 @@ export interface DimensionInfo {
    * Generic key-value object structure used for flexible data representation throughout the API.
    * @public
    */
-  schema?: Record<string, __DocumentType> | undefined;
+  schema: Record<string, __DocumentType> | undefined;
 
-  position?: number | undefined;
-  dimension_type?: DimensionType | undefined;
-  dependency_graph?: Record<string, (string)[]> | undefined;
+  position: number | undefined;
+  dimension_type: DimensionType | undefined;
+  dependency_graph: Record<string, (string)[]> | undefined;
+  autocomplete_function_name?: string | undefined;
 }
 
 /**
@@ -826,6 +827,12 @@ export interface GetResolvedConfigInput {
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
   context_id?: string | undefined;
+  /**
+   * Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+   * @public
+   */
+  resolve_remote?: boolean | undefined;
+
   /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.

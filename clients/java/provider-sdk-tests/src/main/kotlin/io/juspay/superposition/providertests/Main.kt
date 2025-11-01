@@ -104,7 +104,7 @@ class Main {
                 .workspaceId(workspaceId)
                 .orgId(orgId)
                 .dimension("customers")
-                .position(3)
+                .position(1)
                 .schemaMember(mapOf(
                     "type" to Document.of("string"),
                     "enum" to Document.of(listOf(
@@ -241,10 +241,7 @@ class Main {
             CreateContextInput.builder()
                 .workspaceId(workspaceId)
                 .orgId(orgId)
-                .context(mapOf(
-                    "name" to Document.of("karbik"),
-                    "customers" to Document.of("otherwise")
-                ))
+                .context(mapOf("name" to Document.of("karbik")))
                 .override(mapOf("price" to Document.of(1)))
                 .description("edge case customer karbik")
                 .changeReason("testing")

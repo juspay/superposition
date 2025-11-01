@@ -17,7 +17,7 @@ use itertools::Itertools;
 use mini_moka::sync::Cache;
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde_json::{Map, Value};
-use strum_macros::Display;
+pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{Config, Context};
 use tokio::sync::RwLock;
 use utils::{core::MapError, json_to_sorted_string};
@@ -25,29 +25,6 @@ use utils::{core::MapError, json_to_sorted_string};
 static CACHE_MAX_CAPACITY: u64 = 10 * 1024 * 1024; //in mb
 static CACHE_TTL: u64 = 180 * 60; //in minutes
 static CACHE_TTI: u64 = 30 * 60; //in minutes
-
-#[derive(strum_macros::EnumString, Clone, Display)]
-#[strum(serialize_all = "snake_case")]
-pub enum MergeStrategy {
-    MERGE,
-    REPLACE,
-}
-
-impl Default for MergeStrategy {
-    fn default() -> Self {
-        Self::MERGE
-    }
-}
-
-impl From<String> for MergeStrategy {
-    fn from(value: String) -> Self {
-        match value.to_lowercase().as_str() {
-            "replace" => Self::REPLACE,
-            "merge" => Self::MERGE,
-            _ => Self::default(),
-        }
-    }
-}
 
 #[repr(C)]
 #[derive(Clone)]

@@ -41,10 +41,12 @@ import uniffi.superposition_types.FfiConverterTypeCondition
 import uniffi.superposition_types.FfiConverterTypeContext
 import uniffi.superposition_types.FfiConverterTypeDimensionInfo
 import uniffi.superposition_types.FfiConverterTypeGroupType
+import uniffi.superposition_types.FfiConverterTypeMergeStrategy
 import uniffi.superposition_types.FfiConverterTypeOverrides
 import uniffi.superposition_types.FfiConverterTypeVariant
 import uniffi.superposition_types.FfiConverterTypeVariants
 import uniffi.superposition_types.GroupType
+import uniffi.superposition_types.MergeStrategy
 import uniffi.superposition_types.Overrides
 import uniffi.superposition_types.Variant
 import uniffi.superposition_types.Variants
@@ -54,6 +56,7 @@ import uniffi.superposition_types.RustBuffer as RustBufferCondition
 import uniffi.superposition_types.RustBuffer as RustBufferContext
 import uniffi.superposition_types.RustBuffer as RustBufferDimensionInfo
 import uniffi.superposition_types.RustBuffer as RustBufferGroupType
+import uniffi.superposition_types.RustBuffer as RustBufferMergeStrategy
 import uniffi.superposition_types.RustBuffer as RustBufferOverrides
 import uniffi.superposition_types.RustBuffer as RustBufferVariant
 import uniffi.superposition_types.RustBuffer as RustBufferVariants
@@ -811,9 +814,9 @@ internal interface UniffiLib : Library {
     }
 
     // FFI functions
-    fun uniffi_superposition_core_fn_func_ffi_eval_config(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBuffer.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_superposition_core_fn_func_ffi_eval_config(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBuffer.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`dimensionsInfo`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -943,10 +946,10 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 19563.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 61169.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 2552.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 47981.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234.toShort()) {
@@ -1234,36 +1237,6 @@ public object FfiConverterTypeFfiExperimentGroup: FfiConverterRustBuffer<FfiExpe
             FfiConverterTypeBuckets.write(value.`buckets`, buf)
     }
 }
-
-
-
-
-enum class MergeStrategy {
-    
-    MERGE,
-    REPLACE;
-    companion object
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeMergeStrategy: FfiConverterRustBuffer<MergeStrategy> {
-    override fun read(buf: ByteBuffer) = try {
-        MergeStrategy.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: MergeStrategy) = 4UL
-
-    override fun write(value: MergeStrategy, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
 
 
 
@@ -1704,6 +1677,8 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
         }
     }
 }
+
+
 
 
 

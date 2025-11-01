@@ -123,7 +123,7 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                     }
                     "dependency_graph" => {
                         builder = builder.set_dependency_graph(
-                            crate::protocol_serde::shape_depedendency_graph::de_depedendency_graph(tokens)?
+                            crate::protocol_serde::shape_dependency_graph::de_dependency_graph(tokens)?
                         );
                     }
                     "description" => {

@@ -269,7 +269,7 @@ pub(crate) mod shape_condition;
 
 pub(crate) mod shape_context_list;
 
-pub(crate) mod shape_depedendency_graph;
+pub(crate) mod shape_dependency_graph;
 
 pub(crate) mod shape_dimension_data;
 

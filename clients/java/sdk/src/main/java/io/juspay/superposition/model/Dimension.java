@@ -27,7 +27,7 @@ public final class Dimension implements ApiResource {
         Map.entry("position", PreludeSchemas.INTEGER),
         Map.entry("last_modified_by", PreludeSchemas.STRING),
         Map.entry("created_by", PreludeSchemas.STRING),
-        Map.entry("dependency_graph", SharedSchemas.DEPEDENDENCY_GRAPH),
+        Map.entry("dependency_graph", SharedSchemas.DEPENDENCY_GRAPH),
         Map.entry("last_modified_at", SharedSchemas.DATE_TIME));
 
     private static final List<Schema> $OPERATIONS = List.of(CreateDimension.$SCHEMA);

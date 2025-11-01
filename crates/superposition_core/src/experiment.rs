@@ -6,7 +6,9 @@ use serde_json::{Map, Value};
 use superposition_types::database::models::experimentation::{
     Bucket, Buckets, GroupType, Variant, Variants,
 };
-use superposition_types::{logic::evaluate_cohort, Condition, DimensionInfo, Overridden};
+use superposition_types::{
+    logic::evaluate_local_cohorts, Condition, DimensionInfo, Overridden,
+};
 
 use std::fmt;
 
@@ -61,7 +63,7 @@ pub fn get_applicable_variants(
     identifier: &str,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, String> {
-    let context = Value::Object(evaluate_cohort(dimensions_info, query_data));
+    let context = Value::Object(evaluate_local_cohorts(dimensions_info, query_data));
 
     let buckets =
         get_applicable_buckets_from_group(experiment_groups, &context, identifier);

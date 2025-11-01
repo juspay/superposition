@@ -194,6 +194,20 @@ impl GetResolvedConfigFluentBuilder {
     pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_context_id()
                 }
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub fn resolve_remote(mut self, input: bool) -> Self {
+                    self.inner = self.inner.resolve_remote(input);
+                    self
+                }
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub fn set_resolve_remote(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_resolve_remote(input);
+                    self
+                }
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub fn get_resolve_remote(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_resolve_remote()
+                }
     /// 
     /// Adds a key-value pair to `context`.
     /// 

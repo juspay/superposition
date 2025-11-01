@@ -1,14 +1,16 @@
 // src/ffi.rs
-use serde_json::{Map, Value};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr, CString};
 use std::ptr;
 
+use serde_json::{Map, Value};
+use superposition_types::{Context, DimensionInfo, Overrides};
+
 use crate::config::{self, MergeStrategy};
 use crate::experiment::{ExperimentGroups, ExperimentationArgs};
 use crate::{get_applicable_variants, Experiments};
-use superposition_types::{Context, DimensionInfo, Overrides};
+
 // Thread-local storage for error handling
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };

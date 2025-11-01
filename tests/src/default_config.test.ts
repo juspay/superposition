@@ -279,7 +279,7 @@ describe("Default Config API Integration Tests", () => {
 
             const cmd = new CreateDefaultConfigCommand(input);
             expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Function validation failed for test-key-2 with error Error: The function did not return a value that was expected. Check the return type and logic of the function\n. "
+                "Function false_validation validation failed for test-key-2 with error Error: The function did not return a value that was expected. Check the return type and logic of the function\n. "
             );
         });
 
@@ -327,7 +327,7 @@ describe("Default Config API Integration Tests", () => {
             };
             const cmd = new CreateDefaultConfigCommand(input);
             expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Function non_existent_function doesn't exist."
+                "Function non_existent_function doesn't exist / function code not published yet."
             );
         });
     });
