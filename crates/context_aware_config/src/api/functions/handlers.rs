@@ -20,9 +20,8 @@ use superposition_types::{
     },
     result as superposition, PaginatedResponse, User,
 };
-use validation_functions::{compile_fn, execute_fn};
 
-use crate::validation_functions;
+use crate::validation_functions::{compile_fn, execute_fn};
 
 use super::helpers::fetch_function;
 

@@ -1694,8 +1694,8 @@ OBJECT = Schema.collection(
     }
 )
 
-DEPEDENDENCY_GRAPH = Schema.collection(
-    id=ShapeID("io.superposition#DepedendencyGraph"),
+DEPENDENCY_GRAPH = Schema.collection(
+    id=ShapeID("io.superposition#DependencyGraph"),
     shape_type=ShapeType.MAP,
     members={
         "key": {
@@ -1740,21 +1740,42 @@ DIMENSION_INFO = Schema.collection(
         "schema": {
             "target": OBJECT,
             "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
         },
 
         "position": {
             "target": INTEGER,
             "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
         },
 
         "dimension_type": {
             "target": DIMENSION_TYPE,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
         },
 
         "dependency_graph": {
-            "target": DEPEDENDENCY_GRAPH,
+            "target": DEPENDENCY_GRAPH,
             "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 4,
         },
 
     }
@@ -2084,9 +2105,19 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "resolve_remote": {
+            "target": BOOLEAN,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
+
+            ],
+        },
+
         "context": {
             "target": CONTEXT_MAP,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -3458,7 +3489,7 @@ UPDATE_OVERRIDE = Schema(
                 "Context Management",
             )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "PUT",
+                "method": "PATCH",
                 "uri": "/context/overrides",
             })),
 
@@ -4043,7 +4074,7 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": DEPEDENDENCY_GRAPH,
+            "target": DEPENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -7193,7 +7224,7 @@ GET_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": DEPEDENDENCY_GRAPH,
+            "target": DEPENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -7393,7 +7424,7 @@ DIMENSION_EXT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": DEPEDENDENCY_GRAPH,
+            "target": DEPENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -7653,7 +7684,7 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
         },
 
         "dependency_graph": {
-            "target": DEPEDENDENCY_GRAPH,
+            "target": DEPENDENCY_GRAPH,
             "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),

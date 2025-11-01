@@ -2379,13 +2379,13 @@ def _deserialize_object(deserializer: ShapeDeserializer, schema: Schema) -> dict
     deserializer.read_map(schema, _read_value)
     return result
 
-def _serialize_depedendency_graph(serializer: ShapeSerializer, schema: Schema, value: dict[str, list[str]]) -> None:
+def _serialize_dependency_graph(serializer: ShapeSerializer, schema: Schema, value: dict[str, list[str]]) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
         for k, v in value.items():
             m.entry(k, lambda vs: _serialize_string_list(vs, value_schema, v))
 
-def _deserialize_depedendency_graph(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, list[str]]:
+def _deserialize_dependency_graph(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, list[str]]:
     result: dict[str, list[str]] = {}
     value_schema = schema.members["value"]
     def _read_value(k: str, d: ShapeDeserializer):
@@ -2528,31 +2528,31 @@ class DimensionInfo:
     """
 
     :param schema:
-         Generic key-value object structure used for flexible data representation
-         throughout the API.
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
 
     """
 
-    schema: dict[str, Document] | None = None
-    position: int | None = None
-    dimension_type: DimensionType | None = None
-    dependency_graph: dict[str, list[str]] | None = None
+    schema: dict[str, Document]
+
+    position: int
+
+    dimension_type: DimensionType
+
+    dependency_graph: dict[str, list[str]]
+
+    autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DIMENSION_INFO, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.schema is not None:
-            _serialize_object(serializer, _SCHEMA_DIMENSION_INFO.members["schema"], self.schema)
-
-        if self.position is not None:
-            serializer.write_integer(_SCHEMA_DIMENSION_INFO.members["position"], self.position)
-
-        if self.dimension_type is not None:
-            serializer.write_struct(_SCHEMA_DIMENSION_INFO.members["dimension_type"], self.dimension_type)
-
-        if self.dependency_graph is not None:
-            _serialize_depedendency_graph(serializer, _SCHEMA_DIMENSION_INFO.members["dependency_graph"], self.dependency_graph)
+        _serialize_object(serializer, _SCHEMA_DIMENSION_INFO.members["schema"], self.schema)
+        serializer.write_integer(_SCHEMA_DIMENSION_INFO.members["position"], self.position)
+        serializer.write_struct(_SCHEMA_DIMENSION_INFO.members["dimension_type"], self.dimension_type)
+        _serialize_dependency_graph(serializer, _SCHEMA_DIMENSION_INFO.members["dependency_graph"], self.dependency_graph)
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_DIMENSION_INFO.members["autocomplete_function_name"], self.autocomplete_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2574,7 +2574,10 @@ class DimensionInfo:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 3:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_DIMENSION_INFO.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_DIMENSION_INFO.members["dependency_graph"])
+
+                case 4:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_INFO.members["autocomplete_function_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2801,6 +2804,10 @@ class MergeStrategy(StrEnum):
 class GetResolvedConfigInput:
     """
 
+    :param resolve_remote:
+         Intended for control resolution. If true, evaluates and includes remote
+         cohort-based contexts during config resolution.
+
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
@@ -2813,6 +2820,7 @@ class GetResolvedConfigInput:
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
     context_id: str | None = None
+    resolve_remote: bool | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2854,6 +2862,9 @@ class GetResolvedConfigInput:
                     kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 7:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 8:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -5003,7 +5014,7 @@ class CreateDimensionOutput:
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_dependency_graph(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -5052,7 +5063,7 @@ class CreateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -7932,7 +7943,7 @@ class GetDimensionOutput:
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_dependency_graph(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -7981,7 +7992,7 @@ class GetDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -8124,7 +8135,7 @@ class DimensionExt:
         serializer.write_string(_SCHEMA_DIMENSION_EXT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_DIMENSION_EXT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_DIMENSION_EXT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_DIMENSION_EXT.members["dependency_graph"], self.dependency_graph)
+        _serialize_dependency_graph(serializer, _SCHEMA_DIMENSION_EXT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_DIMENSION_EXT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -8173,7 +8184,7 @@ class DimensionExt:
                     kwargs["created_by"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_DIMENSION_EXT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_DIMENSION_EXT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -8403,7 +8414,7 @@ class UpdateDimensionOutput:
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_dependency_graph(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
@@ -8452,7 +8463,7 @@ class UpdateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)

@@ -1,19 +1,5 @@
 use std::{cmp::min, collections::HashSet};
 
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
-use crate::{
-    api::{
-        context::{
-            hash,
-            helpers::{query_description, validate_ctx},
-            operations,
-        },
-        dimension::fetch_dimensions_info_map,
-    },
-    helpers::{add_config_version, calculate_context_weight},
-};
-
 use actix_web::{
     delete, get, post, put, routes,
     web::{Data, Json, Path},
@@ -53,6 +39,18 @@ use superposition_types::{
     result as superposition, Contextual, ListResponse, Overridden, PaginatedResponse,
     SortBy, User,
 };
+
+use crate::api::{
+    context::{
+        hash,
+        helpers::{query_description, validate_ctx},
+        operations,
+    },
+    dimension::fetch_dimensions_info_map,
+};
+#[cfg(feature = "high-performance-mode")]
+use crate::helpers::put_config_in_redis;
+use crate::helpers::{add_config_version, calculate_context_weight};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -132,7 +130,9 @@ async fn put_handler(
     Ok(http_resp.json(put_response))
 }
 
+#[routes]
 #[put("/overrides")]
+#[patch("/overrides")]
 async fn update_override_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,

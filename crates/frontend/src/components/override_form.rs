@@ -2,7 +2,9 @@ use std::collections::{HashMap, HashSet};
 
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_types::database::models::cac::DefaultConfig;
+use superposition_types::{
+    api::functions::FunctionEnvironment, database::models::cac::DefaultConfig,
+};
 
 use crate::{
     components::{
@@ -123,7 +125,7 @@ pub fn override_form(
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, optional)] handle_key_remove: Option<Callback<String, ()>>,
     #[prop(default = false)] disabled: bool,
-    fn_environment: Memo<Value>,
+    fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView {
     let id = store_value(id);
     let default_config = store_value(default_config);

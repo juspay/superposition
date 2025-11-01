@@ -65,7 +65,7 @@ use superposition_types::{
             experiments::dsl as experiments,
         },
     },
-    logic::evaluate_cohort,
+    logic::evaluate_local_cohorts,
     result as superposition, Cac, Condition, Contextual, Exp, ListResponse, Overrides,
     PaginatedResponse, SortBy, User,
 };
@@ -884,7 +884,7 @@ async fn get_applicable_variants(
         .load::<ExperimentGroup>(&mut conn)?;
 
     let (config, _) = fetch_cac_config(&state, &workspace_request).await?;
-    let context = Value::Object(evaluate_cohort(&config.dimensions, &context));
+    let context = Value::Object(evaluate_local_cohorts(&config.dimensions, &context));
 
     let buckets =
         get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);

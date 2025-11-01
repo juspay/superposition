@@ -9,7 +9,7 @@ union DimensionType {
     REMOTE_COHORT: String
 }
 
-map DepedendencyGraph {
+map DependencyGraph {
     key: String
     value: StringList
 }
@@ -26,7 +26,7 @@ resource Dimension {
         function_name: String
         description: String
         change_reason: String
-        dependency_graph: DepedendencyGraph
+        dependency_graph: DependencyGraph
         created_at: DateTime
         created_by: String
         last_modified_at: DateTime

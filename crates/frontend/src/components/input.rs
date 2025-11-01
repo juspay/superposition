@@ -332,6 +332,7 @@ fn basic_input(
                             let target_id = id.clone();
                             let dropdown_id = format!("{}-autocomplete", id);
                             suggestions_loading_rws.set(false);
+                            // TODO: Handle loading state properly, this is not the correct way
                             view! {
                                 <SelectionMenu
                                     id=dropdown_id

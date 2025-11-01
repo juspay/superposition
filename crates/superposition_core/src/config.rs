@@ -1,27 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
 use serde_json::{json, Map, Value};
+pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{
-    logic::evaluate_cohort, Config, Context, DimensionInfo, Overrides,
+    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, Overrides,
 };
-
-#[derive(Clone, Debug, PartialEq, strum_macros::Display, Default, uniffi::Enum)]
-#[strum(serialize_all = "snake_case")]
-pub enum MergeStrategy {
-    #[default]
-    MERGE,
-    REPLACE,
-}
-
-impl From<&str> for MergeStrategy {
-    fn from(value: &str) -> Self {
-        match value.to_lowercase().as_str() {
-            "replace" => Self::REPLACE,
-            "merge" => Self::MERGE,
-            _ => Self::default(),
-        }
-    }
-}
 
 pub fn eval_config(
     default_config: Map<String, Value>,
@@ -48,7 +31,7 @@ pub fn eval_config(
         }
     }
 
-    let modified_query_data = evaluate_cohort(&config.dimensions, query_data);
+    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
 
     let overrides_map: Map<String, Value> = get_overrides(
         &modified_query_data,
@@ -97,7 +80,7 @@ pub fn eval_config_with_reasoning(
         }));
     };
 
-    let modified_query_data = evaluate_cohort(&config.dimensions, query_data);
+    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
 
     let overrides_map = get_overrides(
         &modified_query_data,

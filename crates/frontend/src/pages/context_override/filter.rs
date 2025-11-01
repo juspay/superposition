@@ -1,11 +1,12 @@
 use std::ops::Deref;
 
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use superposition_types::{
     api::{
         context::ContextListFilters, dimension::DimensionResponse,
-        workspace::WorkspaceResponse, DimensionMatchStrategy,
+        functions::FunctionEnvironment, workspace::WorkspaceResponse,
+        DimensionMatchStrategy,
     },
     custom_query::{
         CommaSeparatedStringQParams, CustomQuery, DimensionQuery, PaginationParams,
@@ -250,13 +251,11 @@ pub fn context_filter_drawer(
             .collect::<Conditions>(),
     );
 
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
-        json!({
-            "context": context,
-            "overrides": [],
-        })
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rs.get().as_context_json(),
+        overrides: Map::new(),
     });
+
     view! {
         <Drawer
             id="context_filter_drawer"

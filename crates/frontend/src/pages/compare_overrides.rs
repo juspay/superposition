@@ -4,10 +4,13 @@ use std::collections::{hash_map::Entry, HashMap};
 
 use leptos::*;
 use leptos_router::A;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
-    api::{config::ResolveConfigQuery, workspace::WorkspaceResponse},
+    api::{
+        config::ResolveConfigQuery, functions::FunctionEnvironment,
+        workspace::WorkspaceResponse,
+    },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query},
 };
 use types::{ComparisonTable, ContextList, PageParams};
@@ -187,12 +190,10 @@ pub fn compare_overrides() -> impl IntoView {
             });
             resolved_config_map
         });
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
-        json!({
-            "context": context,
-            "overrides": [],
-        })
+
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rs.get().as_context_json(),
+        overrides: Map::new(),
     });
 
     let redirect_url = move |prefix: Option<String>| -> String {

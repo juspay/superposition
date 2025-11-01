@@ -92,7 +92,7 @@ async function create_dimensions(org_id, workspace_id) {
       workspace_id,
       org_id,
       dimension: "customers",
-      position: 3,
+      position: 1,
       schema: {
           "type": "string",
           "enum": ["platinum", "gold", "otherwise"],
@@ -232,7 +232,6 @@ async function create_overrides(org_id, workspace_id) {
       org_id,
       context: {
         name: "karbik",
-        customers: "otherwise",
       },
       override: {
         price: 1,

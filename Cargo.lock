@@ -1208,8 +1208,6 @@ dependencies = [
  "once_cell",
  "reqwest",
  "serde_json",
- "strum",
- "strum_macros",
  "superposition_types",
  "tokio",
 ]

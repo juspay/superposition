@@ -182,6 +182,34 @@ describe("Context API Integration Tests", () => {
                 position: 9,
                 description: "Dimension for conflict tests",
             },
+            {
+                dimension: "regular",
+                schema: { type: "string" },
+                position: 10,
+                description: "Dimension for conflicted context test",
+            },
+            {
+                dimension: "local_cohort",
+                schema: {
+                    definitions: {
+                        test: {
+                            "==": [
+                                {
+                                    var: "regular",
+                                },
+                                "test",
+                            ],
+                        },
+                    },
+                    enum: ["test", "otherwise"],
+                    type: "string",
+                },
+                position: 10,
+                description: "Dimension for conflicted context test",
+                dimension_type: {
+                    LOCAL_COHORT: "regular",
+                },
+            },
         ];
 
         // Create each dimension, ignoring already exists errors
@@ -192,6 +220,7 @@ describe("Context API Integration Tests", () => {
                     org_id: testOrgId,
                     dimension: dim.dimension,
                     schema: dim.schema,
+                    dimension_type: dim.dimension_type,
                     position: dim.position,
                     description: dim.description,
                     change_reason: `Create ${dim.dimension} dimension for tests`,
@@ -663,6 +692,44 @@ describe("Context API Integration Tests", () => {
             // TODO: Write a display fmt for JSONSchema enum to get rid of Single from the message
             expect(client.send(cmd)).rejects.toThrow(
                 "schema validation failed for key1: value doesn't match the required type(s) `Single(String)`"
+            );
+        });
+
+        test("should fail when both based on dimension and dependent dimension are provided", async () => {
+            const context = ENV.jsonlogic_enabled
+                ? {
+                      and: [
+                          {
+                              "==": [{ var: "clientId" }, "test"],
+                          },
+                          {
+                              "==": [{ var: "regular" }, "test"],
+                          },
+                          {
+                              "==": [{ var: "local_cohort" }, "test"],
+                          },
+                      ],
+                  }
+                : {
+                      clientId: "test",
+                      regular: "test",
+                      local_cohort: "test",
+                  };
+
+            const cmd = new CreateContextCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                override: {
+                    key1: "value1",
+                },
+                context,
+                description:
+                    "Testing context with both regular and local cohort dimensions",
+                change_reason: "Testing dependent dimension validation",
+            });
+
+            await expect(client.send(cmd)).rejects.toThrow(
+                "Dependent dimensions are not required in context when parent dimension is provided: [local_cohort depends on regular]."
             );
         });
     });

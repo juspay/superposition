@@ -44,7 +44,7 @@ public final class DimensionExt implements SerializableStruct {
                 new RequiredTrait())
         .putMember("created_by", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("dependency_graph", SharedSchemas.DEPEDENDENCY_GRAPH,
+        .putMember("dependency_graph", SharedSchemas.DEPENDENCY_GRAPH,
                 new RequiredTrait())
         .putMember("dimension_type", DimensionType.$SCHEMA,
                 new RequiredTrait())
@@ -217,7 +217,7 @@ public final class DimensionExt implements SerializableStruct {
         serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
         serializer.writeTimestamp($SCHEMA_CREATED_AT, createdAt);
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
-        serializer.writeMap($SCHEMA_DEPENDENCY_GRAPH, dependencyGraph, dependencyGraph.size(), SharedSerde.DepedendencyGraphSerializer.INSTANCE);
+        serializer.writeMap($SCHEMA_DEPENDENCY_GRAPH, dependencyGraph, dependencyGraph.size(), SharedSerde.DependencyGraphSerializer.INSTANCE);
         if (dimensionType != null) {
             serializer.writeStruct($SCHEMA_DIMENSION_TYPE, dimensionType);
         }
@@ -541,7 +541,7 @@ public final class DimensionExt implements SerializableStruct {
                     case 6 -> builder.lastModifiedBy(de.readString(member));
                     case 7 -> builder.createdAt(de.readTimestamp(member));
                     case 8 -> builder.createdBy(de.readString(member));
-                    case 9 -> builder.dependencyGraph(SharedSerde.deserializeDepedendencyGraph(member, de));
+                    case 9 -> builder.dependencyGraph(SharedSerde.deserializeDependencyGraph(member, de));
                     case 10 -> builder.dimensionType(DimensionType.builder().deserializeMember(de, member).build());
                     case 11 -> builder.functionName(de.readString(member));
                     case 12 -> builder.autocompleteFunctionName(de.readString(member));

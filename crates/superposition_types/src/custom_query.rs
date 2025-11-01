@@ -104,7 +104,7 @@ where
     }
 }
 
-#[cfg(feature = "server")]
+#[cfg(all(feature = "server", feature = "result"))]
 impl<T> actix_web::FromRequest for DimensionQuery<T>
 where
     T: DeserializeOwned,
@@ -119,7 +119,8 @@ where
         use std::future::ready;
         ready(
             Self::extract_query(req.query_string())
-                .map_err(actix_web::error::ErrorBadRequest),
+                .map_err(crate::result::AppError::BadArgument)
+                .map_err(Into::into),
         )
     }
 }
@@ -151,7 +152,7 @@ where
     }
 }
 
-#[cfg(feature = "server")]
+#[cfg(all(feature = "server", feature = "result"))]
 impl<T> actix_web::FromRequest for Query<T>
 where
     T: DeserializeOwned,
@@ -166,7 +167,8 @@ where
         use std::future::ready;
         ready(
             Self::extract_query(req.query_string())
-                .map_err(actix_web::error::ErrorBadRequest),
+                .map_err(crate::result::AppError::BadArgument)
+                .map_err(Into::into),
         )
     }
 }

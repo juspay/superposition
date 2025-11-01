@@ -6,11 +6,12 @@ mod workspace;
 
 use idgenerator::{IdGeneratorOptions, IdInstance};
 use std::{io::Result, time::Duration};
+use superposition_macros::bad_argument;
 
 use actix_files::Files;
 use actix_web::{
     middleware::{Compress, Condition, Logger},
-    web::{self, get, scope, Data, PathConfig},
+    web::{self, get, scope, Data, PathConfig, QueryConfig},
     App, HttpResponse, HttpServer,
 };
 use context_aware_config::api::*;
@@ -121,9 +122,8 @@ async fn main() -> Result<()> {
             // Conditionally add request/response logging middleware for development
             .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger))
             .app_data(app_state.clone())
-            .app_data(PathConfig::default().error_handler(|err, _| {
-                actix_web::error::ErrorBadRequest(err)
-            }))
+            .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
+            .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))

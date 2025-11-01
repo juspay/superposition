@@ -1,5 +1,5 @@
-use std::process::Command;
-use std::str;
+use std::{process::Command, str};
+
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
@@ -137,7 +137,10 @@ fn generate_fn_code(
                 .get_fn_signature()
                 .replace("{name}", format!("\"{}\"", &name).as_str())
                 .replace("{prefix}", format!("\"{}\"", &prefix).as_str())
-                .replace("{environment}", &environment.to_string()),
+                .replace(
+                    "{environment}",
+                    &serde_json::to_string(&environment).unwrap_or_default(),
+                ),
             "!(Array.isArray(output))",
         ),
     };
