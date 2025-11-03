@@ -6,9 +6,9 @@ import {
     DeleteDefaultConfigCommand,
     FunctionTypes,
     PublishCommand,
+    type UpdateDefaultConfigCommandOutput,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
-import type { UpdateDefaultConfigCommandOutput } from "superposition-sdk";
 
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
 

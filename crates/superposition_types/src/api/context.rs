@@ -93,7 +93,7 @@ pub enum ContextAction {
     Put(PutRequest),
     Replace(UpdateRequest),
     Delete(String),
-    Move((String, MoveRequest)),
+    Move { id: String, request: MoveRequest },
 }
 
 #[derive(Deserialize, Serialize, Debug)]

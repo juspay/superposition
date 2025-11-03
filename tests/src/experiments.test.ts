@@ -31,6 +31,7 @@ import {
     CreateContextCommand,
     CreateWorkspaceCommand,
 } from "@juspay/superposition-sdk";
+import { type DocumentType } from "@smithy/types";
 import { superpositionClient, ENV } from "../env.ts";
 import { expect, describe, test, beforeAll, afterAll } from "bun:test";
 import { nanoid } from "nanoid";
@@ -47,17 +48,18 @@ describe("Experiments API", () => {
     const defaultChangeReason = "Automated Test";
     const defaultDescription = "Created by automated test";
 
-    const experiment1Context = ENV.jsonlogic_enabled
-        ? {
-              and: [
-                  { "==": [{ var: "os" }, "ios"] },
-                  { "==": [{ var: "clientId" }, "testClientCac1"] },
-              ],
-          }
-        : {
-              os: "ios",
-              clientId: "testClientCac1",
-          };
+    const experiment1Context: Record<string, DocumentType> =
+        ENV.jsonlogic_enabled
+            ? {
+                  and: [
+                      { "==": [{ var: "os" }, "ios"] },
+                      { "==": [{ var: "clientId" }, "testClientCac1"] },
+                  ],
+              }
+            : {
+                  os: "ios",
+                  clientId: "testClientCac1",
+              };
     const experiment1InitialVariants: Omit<
         Variant,
         "id" | "context_id" | "override_id"
@@ -75,17 +77,18 @@ describe("Experiments API", () => {
         },
     ];
 
-    const experiment2Context = ENV.jsonlogic_enabled
-        ? {
-              and: [
-                  { "==": [{ var: "os" }, "ios"] },
-                  { "==": [{ var: "clientId" }, "testClientCac02"] },
-              ],
-          }
-        : {
-              os: "ios",
-              clientId: "testClientCac02",
-          };
+    const experiment2Context: Record<string, DocumentType> =
+        ENV.jsonlogic_enabled
+            ? {
+                  and: [
+                      { "==": [{ var: "os" }, "ios"] },
+                      { "==": [{ var: "clientId" }, "testClientCac02"] },
+                  ],
+              }
+            : {
+                  os: "ios",
+                  clientId: "testClientCac02",
+              };
     const experiment2InitialVariants: Omit<
         Variant,
         "id" | "context_id" | "override_id"
@@ -104,17 +107,18 @@ describe("Experiments API", () => {
     ];
 
     // Experiment group context (common base for both experiments)
-    const experimentGroupContext = ENV.jsonlogic_enabled
-        ? {
-              and: [
-                  { "==": [{ var: "os" }, "ios"] },
-                  { "==": [{ var: "clientId" }, "testClientCac1"] },
-              ],
-          }
-        : {
-              os: "ios",
-              clientId: "testClientCac1",
-          };
+    const experimentGroupContext: Record<string, DocumentType> =
+        ENV.jsonlogic_enabled
+            ? {
+                  and: [
+                      { "==": [{ var: "os" }, "ios"] },
+                      { "==": [{ var: "clientId" }, "testClientCac1"] },
+                  ],
+              }
+            : {
+                  os: "ios",
+                  clientId: "testClientCac1",
+              };
 
     const auto_populate_test_workspace = `temptestexp${Date.now() % 10000}`;
 
@@ -127,8 +131,12 @@ describe("Experiments API", () => {
                 page: 1,
             });
             const out = await superpositionClient.send(cmd);
-            const dimensions = out.data || [];
-            const requiredDimensions = [
+            const dimensions = out.data ?? [];
+            const requiredDimensions: Array<{
+                name: string;
+                description: string;
+                schema: Record<string, DocumentType>;
+            }> = [
                 {
                     name: "clientId",
                     description: "Client dimension for testing",
@@ -180,7 +188,7 @@ describe("Experiments API", () => {
             const defaultConfigOut = await superpositionClient.send(
                 defaultConfigCmg
             );
-            const defaultConfigs = defaultConfigOut.data || [];
+            const defaultConfigs = defaultConfigOut.data ?? [];
 
             for (const [key, value] of Object.entries(defaultConfigsNeeded)) {
                 const existingConfig = defaultConfigs.find(
@@ -251,7 +259,7 @@ describe("Experiments API", () => {
             const experimentsOut = await superpositionClient.send(
                 experimentsCmd
             );
-            const experiments = experimentsOut.data || [];
+            const experiments = experimentsOut.data ?? [];
             for (const experiment of experiments) {
                 if (experiment.name && experiment.name.includes("-from-test")) {
                     if (
@@ -341,7 +349,7 @@ describe("Experiments API", () => {
                 page: 1,
             });
             const contextsOut = await superpositionClient.send(contextsCmd);
-            const contexts = contextsOut.data || [];
+            const contexts = contextsOut.data ?? [];
             for (const context of contexts) {
                 const deleteCmd = new DeleteContextCommand({
                     workspace_id: ENV.workspace_id,
@@ -361,7 +369,7 @@ describe("Experiments API", () => {
             const defaultConfigsOut = await superpositionClient.send(
                 defaultConfigsCmd
             );
-            const defaultConfigs = defaultConfigsOut.data || [];
+            const defaultConfigs = defaultConfigsOut.data ?? [];
             for (const config of defaultConfigs) {
                 const deleteCmd = new DeleteDefaultConfigCommand({
                     workspace_id: ENV.workspace_id,
@@ -442,7 +450,7 @@ describe("Experiments API", () => {
             expect(out.traffic_percentage).toBe(0);
             const allInitialOverrideKeys1 = new Set<string>();
             experiment1InitialVariants.forEach((v) =>
-                Object.keys(v.overrides).forEach((k) =>
+                Object.keys(v.overrides ?? {}).forEach((k) =>
                     allInitialOverrideKeys1.add(k)
                 )
             );
@@ -459,10 +467,10 @@ describe("Experiments API", () => {
                 VariantType.EXPERIMENTAL
             );
             expect(out.variants?.[0].overrides).toEqual(
-                experiment1InitialVariants[0].overrides
+                experiment1InitialVariants[0].overrides ?? {}
             );
             expect(out.variants?.[1].overrides).toEqual(
-                experiment1InitialVariants[1].overrides
+                experiment1InitialVariants[1].overrides ?? {}
             );
             expect(out.variants?.[0].context_id).toBeString();
             expect(out.variants?.[1].context_id).toBeString();
@@ -482,7 +490,9 @@ describe("Experiments API", () => {
                             getContextCmd
                         );
                         expect(contextOut).toBeDefined();
-                        expect(contextOut.override).toEqual(variant.overrides);
+                        expect(contextOut.override).toEqual(
+                            variant.overrides ?? {}
+                        );
                     } else {
                         throw new Error(
                             `Variant ${variant.id} created without a context_id`
@@ -526,10 +536,10 @@ describe("Experiments API", () => {
             expect(out.name).toBe("experiment-1-from-test");
             expect(out.status).toBe(ExperimentStatusType.CREATED);
             expect(out.traffic_percentage).toBe(0);
-            expect(out.experiment_group_id).toBe(experimentGroupId); // Verify group ID is set
+            expect(out.experiment_group_id).toBe(experimentGroupId ?? ""); // Verify group ID is set
             const allInitialOverrideKeys1 = new Set<string>();
             experiment1InitialVariants.forEach((v) =>
-                Object.keys(v.overrides).forEach((k) =>
+                Object.keys(v.overrides ?? {}).forEach((k) =>
                     allInitialOverrideKeys1.add(k)
                 )
             );
@@ -546,10 +556,10 @@ describe("Experiments API", () => {
                 VariantType.EXPERIMENTAL
             );
             expect(out.variants?.[0].overrides).toEqual(
-                experiment1InitialVariants[0].overrides
+                experiment1InitialVariants[0].overrides ?? {}
             );
             expect(out.variants?.[1].overrides).toEqual(
-                experiment1InitialVariants[1].overrides
+                experiment1InitialVariants[1].overrides ?? {}
             );
             expect(out.variants?.[0].context_id).toBeString();
             expect(out.variants?.[1].context_id).toBeString();
@@ -569,7 +579,9 @@ describe("Experiments API", () => {
                             getContextCmd
                         );
                         expect(contextOut).toBeDefined();
-                        expect(contextOut.override).toEqual(variant.overrides);
+                        expect(contextOut.override).toEqual(
+                            variant.overrides ?? {}
+                        );
                     } else {
                         throw new Error(
                             `Variant ${variant.id} created without a context_id`
@@ -600,11 +612,11 @@ describe("Experiments API", () => {
             expect(out).toBeDefined();
             expect(out.id).toBe(experimentId1);
             expect(out.name).toBe("experiment-1-from-test");
-            expect(out.experiment_group_id).toBe(experimentGroupId); // Verify group ID is preserved
+            expect(out.experiment_group_id).toBe(experimentGroupId ?? ""); // Verify group ID is preserved
             expect(out.variants).toHaveLength(
                 experiment1InitialVariants.length
             );
-            expect(out.variants).toEqual(experiment1Variants);
+            expect(out.variants).toEqual(experiment1Variants ?? []);
         } catch (e: any) {
             console.error(
                 "Error in test '2. Get Experiment 1':",
@@ -679,13 +691,15 @@ describe("Experiments API", () => {
             const createContextCmd = new CreateContextCommand({
                 workspace_id: auto_populate_test_workspace,
                 org_id: ENV.org_id,
-                context: experiment1Context,
-                override: {
-                    pmTestKey1: "new-control",
-                    pmTestKey2: "new-control",
+                request: {
+                    context: experiment1Context,
+                    override: {
+                        pmTestKey1: "new-control",
+                        pmTestKey2: "new-control",
+                    },
+                    description: "Context for auto-populate control test",
+                    change_reason: "Testing auto-populate control",
                 },
-                description: "Context for auto-populate control test",
-                change_reason: "Testing auto-populate control",
             });
 
             contextResponse = await superpositionClient.send(createContextCmd);
@@ -712,7 +726,7 @@ describe("Experiments API", () => {
                                   pmTestKey2: "new-control",
                               }
                             : variant.overrides,
-                }));
+                })) ?? [];
 
             const updateOverridesCmd = new UpdateOverridesExperimentCommand({
                 workspace_id: auto_populate_test_workspace,
@@ -804,7 +818,7 @@ describe("Experiments API", () => {
 
             const allUpdatedOverrideKeys = new Set<string>();
             updatedVariants.forEach((uv) =>
-                Object.keys(uv.overrides).forEach((k) =>
+                Object.keys(uv.overrides ?? {}).forEach((k) =>
                     allUpdatedOverrideKeys.add(k)
                 )
             );
@@ -856,7 +870,9 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
+            expect(updatedExp.experiment_group_id).toBe(
+                experimentGroupId ?? ""
+            );
         } catch (e: any) {
             console.error(
                 "Error in test '3.3 Ramp Experiment 1':",
@@ -971,7 +987,7 @@ describe("Experiments API", () => {
             expect(out.experiment_group_id).toBeUndefined();
             const allInitialOverrideKeys2 = new Set<string>();
             experiment2InitialVariants.forEach((v) =>
-                Object.keys(v.overrides).forEach((k) =>
+                Object.keys(v.overrides ?? {}).forEach((k) =>
                     allInitialOverrideKeys2.add(k)
                 )
             );
@@ -986,10 +1002,10 @@ describe("Experiments API", () => {
                 VariantType.EXPERIMENTAL
             );
             expect(out.variants?.[0].overrides).toEqual(
-                experiment2InitialVariants[0].overrides
+                experiment2InitialVariants[0].overrides ?? {}
             );
             expect(out.variants?.[1].overrides).toEqual(
-                experiment2InitialVariants[1].overrides
+                experiment2InitialVariants[1].overrides ?? {}
             );
             expect(out.variants?.[0].context_id).toBeString();
             expect(out.variants?.[1].context_id).toBeString();
@@ -1009,7 +1025,9 @@ describe("Experiments API", () => {
                             getContextCmd
                         );
                         expect(contextOut).toBeDefined();
-                        expect(contextOut.override).toEqual(variant.overrides);
+                        expect(contextOut.override).toEqual(
+                            variant.overrides ?? {}
+                        );
                     } else {
                         throw new Error(
                             `Variant ${variant.id} created without a context_id`
@@ -1077,7 +1095,7 @@ describe("Experiments API", () => {
 
             const allUpdatedOverrideKeys = new Set<string>();
             updatedVariants.forEach((uv) =>
-                Object.keys(uv.overrides).forEach((k) =>
+                Object.keys(uv.overrides ?? {}).forEach((k) =>
                     allUpdatedOverrideKeys.add(k)
                 )
             );
@@ -1112,10 +1130,10 @@ describe("Experiments API", () => {
                     expect(contextOut).toBeDefined();
 
                     expect(contextOut.override).toEqual(
-                        updatedVariantRequest.overrides
+                        updatedVariantRequest.overrides ?? {}
                     );
                     expect(returnedVariant.overrides).toEqual(
-                        updatedVariantRequest.overrides
+                        updatedVariantRequest.overrides ?? {}
                     );
                 }
             }
@@ -1158,7 +1176,9 @@ describe("Experiments API", () => {
             const updatedExp = await superpositionClient.send(getCmd);
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
-            expect(updatedExp.experiment_group_id).toBe(experimentGroupId);
+            expect(updatedExp.experiment_group_id).toBe(
+                experimentGroupId ?? ""
+            );
         } catch (e: any) {
             console.error(
                 "Error in test '7. Ramp Experiment 2':",

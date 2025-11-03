@@ -1,8 +1,4 @@
-from typing import Optional, Any, Dict, List
-from openfeature.provider import AbstractProvider, Metadata as ProviderMetadata, ProviderStatus
-from openfeature.evaluation_context import EvaluationContext
-from openfeature.flag_evaluation import FlagResolutionDetails
-from openfeature.hook import Hook
+from openfeature.provider import AbstractProvider, Metadata as ProviderMetadata
 import asyncio
 import json
 import logging
@@ -12,19 +8,12 @@ from .types import SuperpositionOptions, SuperpositionProviderOptions, Configura
 
 logger = logging.getLogger(__name__)
 
-from openfeature.client import OpenFeatureClient
 from openfeature.hook import Hook
 from openfeature.evaluation_context import EvaluationContext
 from openfeature.provider import ProviderStatus
 from openfeature.flag_evaluation import (
-    FlagEvaluationDetails,
-    FlagEvaluationOptions,
     FlagResolutionDetails,
-    FlagType,
-    Reason,
 )
-
-from typing import Any, Optional
 
 class SuperpositionProvider(AbstractProvider):
     def __init__(self, provider_options: SuperpositionProviderOptions):
@@ -34,7 +23,7 @@ class SuperpositionProvider(AbstractProvider):
         # self.events = EventHandler()
         self.options = provider_options
         self.client = None
-            
+
         # )
     async def initialize(self, context: Optional[EvaluationContext] = None):
         try:
@@ -69,15 +58,15 @@ class SuperpositionProvider(AbstractProvider):
         except Exception as e:
             self.status = ProviderStatus.ERROR
     def _do_initialize(self, context: Optional[EvaluationContext]):
-        self.cached_config = self.client.eval(context or EvaluationContext({}))
-    
+        self.cached_config = self.client.eval(context or EvaluationContext(attributes={}))
+
     async def shutdown(self):
         """
         Shutdown the provider and clean up all resources.
         This includes stopping polling tasks, clearing caches, and closing connections.
         """
         logger.info("Shutting down SuperpositionProvider...")
-        
+
         try:
             # Stop polling tasks if running
             if self.client and hasattr(self.client, '_polling_task') and self.client._polling_task:
@@ -89,17 +78,17 @@ class SuperpositionProvider(AbstractProvider):
                     logger.debug("Polling task cancelled successfully")
                 except Exception as e:
                     logger.warning(f"Error while cancelling polling task: {e}")
-            
+
             # Clear evaluation cache if it exists
             if self.client and hasattr(self.client, '_clear_eval_cache'):
                 logger.debug("Clearing evaluation cache...")
                 self.client._clear_eval_cache()
-            
+
             # Reset cached configuration
             if self.client and hasattr(self.client, 'cached_config'):
                 self.client.cached_config = None
                 self.client.last_updated = None
-            
+
             # Close the client if it has a close method
             if self.client and hasattr(self.client, 'close'):
                 logger.debug("Closing client connection...")
@@ -107,30 +96,34 @@ class SuperpositionProvider(AbstractProvider):
                     await self.client.close()
                 else:
                     self.client.close()
-            
+
             # Reset client reference
             self.client = None
-            
+
             # Update provider status
             self.status = ProviderStatus.NOT_READY
-            
+
             # Clear hooks if any
             self.hooks.clear()
-            
+
             logger.info("SuperpositionProvider shutdown completed successfully")
-            
+
         except Exception as e:
             logger.error(f"Error during provider shutdown: {e}")
             # Even if there's an error, ensure we're in a clean state
             self.client = None
             self.status = ProviderStatus.FATAL
             raise
+
     def get_context_from_evaluation_context(self, evaluation_context: EvaluationContext) -> Tuple[Dict[str, str], Optional[str]]:
-        if evaluation_context is None or evaluation_context.attributes is None:
-            return ({}, None)
-        else:
-            context =  {k: json.dumps(v) for k, v in evaluation_context.attributes.items()}
-            return (context, evaluation_context.targeting_key)
+        if evaluation_context is None:
+            return {}, None
+
+        if evaluation_context.attributes is None:
+            return {}, evaluation_context.targeting_key
+
+        context = {k: json.dumps(v) for k, v in evaluation_context.attributes.items()}
+        return context, evaluation_context.targeting_key
 
     def resolve_all_config_details(self, default_value: Any, evaluation_context: EvaluationContext) -> FlagResolutionDetails[Any]:
         """
@@ -142,28 +135,28 @@ class SuperpositionProvider(AbstractProvider):
         val= self.client.get_all_config_value(default_value, context, targeting_key)
         print("Resolved all config details:", val)
         return val
-    
-    def resolve_boolean_details(self, flag_key: str, default_value: bool, evaluation_context: EvaluationContext) -> FlagResolutionDetails[bool]:
+
+    def resolve_boolean_details(self, flag_key: str, default_value: bool, evaluation_context: Optional[EvaluationContext] = None) -> FlagResolutionDetails[bool]:
         (context, targeting_key) = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_boolean_value(flag_key, default_value, context, targeting_key)
         return FlagResolutionDetails(val)
 
-    def resolve_string_details(self, flag_key: str, default_value: str, evaluation_context: EvaluationContext) -> FlagResolutionDetails[str]:
+    def resolve_string_details(self, flag_key: str, default_value: str, evaluation_context: Optional[EvaluationContext] = None) -> FlagResolutionDetails[str]:
         (context, targeting_key) = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_string_value(flag_key, default_value, context, targeting_key)
         return FlagResolutionDetails(val)
 
-    def resolve_integer_details(self, flag_key: str, default_value: int, evaluation_context: EvaluationContext) -> FlagResolutionDetails[int]:
+    def resolve_integer_details(self, flag_key: str, default_value: int, evaluation_context: Optional[EvaluationContext] = None) -> FlagResolutionDetails[int]:
         (context, targeting_key) = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_integer_value(flag_key, default_value, context, targeting_key)
         return FlagResolutionDetails(val)
 
-    def resolve_float_details(self, flag_key: str, default_value: float, evaluation_context: EvaluationContext) -> FlagResolutionDetails[float]:
+    def resolve_float_details(self, flag_key: str, default_value: float, evaluation_context: Optional[EvaluationContext] = None) -> FlagResolutionDetails[float]:
         (context, targeting_key) = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_float_value(flag_key, default_value, context, targeting_key)
         return FlagResolutionDetails(val)
 
-    def resolve_object_details(self, flag_key: str, default_value: Any, evaluation_context: EvaluationContext) -> FlagResolutionDetails[Any]:
+    def resolve_object_details(self, flag_key: str, default_value: Any, evaluation_context: Optional[EvaluationContext] = None) -> FlagResolutionDetails[Any]:
         (context, targeting_key) = self.get_context_from_evaluation_context(evaluation_context)
         val = self.client.get_object_value(flag_key, default_value, context, targeting_key)
         return FlagResolutionDetails(val)
@@ -175,7 +168,7 @@ class SuperpositionProvider(AbstractProvider):
         """
         (context, targeting_key) = self.get_context_from_evaluation_context(evaluation_context)
         return self.client.get_all_config_value(default_value, context, targeting_key)
-     
+
     def get_metadata(self) -> ProviderMetadata:
         return self.metadata
 

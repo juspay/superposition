@@ -9,7 +9,7 @@ union DimensionType {
     REMOTE_COHORT: String
 }
 
-map DepedendencyGraph {
+map DependencyGraph {
     key: String
     value: StringList
 }
@@ -26,7 +26,7 @@ resource Dimension {
         function_name: String
         description: String
         change_reason: String
-        dependency_graph: DepedendencyGraph
+        dependency_graph: DependencyGraph
         created_at: DateTime
         created_by: String
         last_modified_at: DateTime
@@ -43,8 +43,7 @@ resource Dimension {
     ]
 }
 
-@mixin
-structure DimensionMixin for Dimension {
+structure DimensionResponse for Dimension {
     @required
     $dimension
 
@@ -81,15 +80,14 @@ structure DimensionMixin for Dimension {
     $dimension_type
 
     $autocomplete_function_name
-}
 
-structure DimensionExt with [DimensionMixin] {
     @notProperty
+    @required
     mandatory: Boolean
 }
 
-list DimensionExtList {
-    member: DimensionExt
+list DimensionList {
+    member: DimensionResponse
 }
 
 @documentation("Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.")
@@ -119,7 +117,7 @@ operation CreateDimension {
         $autocomplete_function_name
     }
 
-    output: DimensionExt
+    output: DimensionResponse
 }
 
 @documentation("Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata.")
@@ -128,8 +126,10 @@ operation CreateDimension {
 @tags(["Dimensions"])
 operation ListDimensions {
     input := with [PaginationParams, WorkspaceMixin] {}
+
     output := with [PaginatedResponse] {
-        data: DimensionExtList
+        @required
+        data: DimensionList
     }
 }
 
@@ -144,7 +144,7 @@ operation GetDimension with [GetOperation] {
         $dimension
     }
 
-    output: DimensionExt
+    output: DimensionResponse
 }
 
 @documentation("Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.")
@@ -161,6 +161,7 @@ operation UpdateDimension with [GetOperation] {
 
         $position
 
+        @documentation("To unset the function name, pass \"null\" string.")
         $function_name
 
         $description
@@ -168,15 +169,16 @@ operation UpdateDimension with [GetOperation] {
         @required
         $change_reason
 
+        @documentation("To unset the function name, pass \"null\" string.")
         $autocomplete_function_name
     }
 
-    output: DimensionExt
+    output: DimensionResponse
 }
 
 @documentation("Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.")
 @idempotent
-@http(method: "DELETE", uri: "/dimension/{dimension}", code: 201)
+@http(method: "DELETE", uri: "/dimension/{dimension}", code: 204)
 @tags(["Dimensions"])
 operation DeleteDimension with [GetOperation] {
     input := for Dimension with [WorkspaceMixin] {

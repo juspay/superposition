@@ -57,7 +57,7 @@ structure WorkspaceMixin {
 }
 
 @mixin
-structure CreateWorkspaceMixin {
+structure OrganisationMixin {
     @required
     @httpHeader("x-org-id")
     org_id: String
@@ -65,7 +65,10 @@ structure CreateWorkspaceMixin {
 
 @mixin
 structure PaginatedResponse {
+    @required
     total_pages: Integer
+
+    @required
     total_items: Integer
 }
 

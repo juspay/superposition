@@ -11,19 +11,19 @@ logger = logging.getLogger(__name__)
 
 
 class ConfigurationClient:
-    def __init__(self, superposition_options: SuperpositionOptions, 
-                 cac_options: ConfigurationOptions, 
+    def __init__(self, superposition_options: SuperpositionOptions,
+                 cac_options: ConfigurationOptions,
                  exp_options: Optional[ExperimentationOptions] = None):
         self.superposition_options = superposition_options
         self.cac_options = cac_options
         self.exp_options = exp_options
-        
+
         # Initialize the CAC client
         self.cac_config = CacConfig(
             superposition_options=superposition_options,
             options=cac_options
         )
-        
+
         # Initialize the experimentation client if options are provided
         self.exp_config = None
         if exp_options:
@@ -31,7 +31,7 @@ class ConfigurationClient:
                 superposition_options=superposition_options,
                 experiment_options=exp_options
             )
-        
+
         self._polling_task = None
         self.cached_config = None
         self.last_updated = None
@@ -39,25 +39,25 @@ class ConfigurationClient:
     async def create_config(self):
         """Initialize both CAC and experimentation clients"""
         logger.info("Creating SuperpositionClient configuration...")
-        
+
         # Initialize CAC client
         await self.cac_config.create_config()
-        
+
         # Initialize experimentation client if available
         if self.exp_config:
             logger.info("Creating ExperimentationClient configuration...")
             await self.exp_config.create_config()
-            
+
         logger.info("SuperpositionClient configuration created successfully")
 
     def start_polling(self):
         """Start polling for both CAC and experimentation updates"""
         logger.info("Starting polling for SuperpositionClient...")
-        
+
         # Start CAC polling
         if hasattr(self.cac_config, 'start_polling_update'):
             self.cac_config.start_polling_update()
-        
+
         # Start experimentation polling
         if self.exp_config and hasattr(self.exp_config, 'start_polling_update'):
             self.exp_config.start_polling_update()
@@ -98,14 +98,7 @@ class ConfigurationClient:
         except Exception as e:
             logger.error(f"Evaluation failed: {e}")
             raise
-    
 
-    def get_applicable_variants(self, context: Dict[str, str], toss: Optional[int] = None) -> list:
-        if self.exp_config:
-            # No such function in exp_config
-            return self.exp_config.get_applicable_variants(context, toss)
-        else:
-            return []
 
     def get_all_config_value(self,  default_value: Any, context: Dict[str, str],  targeting_key: Optional[str]) -> Any:
         """Get all configuration details for a flag"""
@@ -125,9 +118,9 @@ class ConfigurationClient:
         except Exception as e:
             logger.error(f"Error getting boolean value for {flag_key}: {e}")
             return default_value
-       
 
-    def get_string_value(self, flag_key: str, default_value: str, context: Dict[str, str], targeting_key: Optional[str]) -> bool:
+
+    def get_string_value(self, flag_key: str, default_value: str, context: Dict[str, str], targeting_key: Optional[str]) -> str:
         """Get string value from CAC client"""
 
         try:
@@ -137,9 +130,9 @@ class ConfigurationClient:
         except Exception as e:
             logger.error(f"Error getting string value for {flag_key}: {e}")
             return default_value
-        
 
-    def get_integer_value(self, flag_key: str, default_value: int, context: Dict[str, str], targeting_key: Optional[str]) -> bool:
+
+    def get_integer_value(self, flag_key: str, default_value: int, context: Dict[str, str], targeting_key: Optional[str]) -> int:
         """Get integer value from CAC client"""
         try:
             config = self.eval(context, targeting_key)
@@ -148,8 +141,8 @@ class ConfigurationClient:
         except Exception as e:
             logger.error(f"Error getting integer value for {flag_key}: {e}")
             return default_value
-    
-    def get_float_value(self, flag_key: str, default_value: float, context: Dict[str, str], targeting_key: Optional[str]) -> bool:
+
+    def get_float_value(self, flag_key: str, default_value: float, context: Dict[str, str], targeting_key: Optional[str]) -> float:
         """Get float value from CAC client"""
         try:
             config = self.eval(context, targeting_key)
@@ -161,7 +154,7 @@ class ConfigurationClient:
 
 
 
-    def get_object_value(self, flag_key: str, default_value: object, context: Dict[str, str], targeting_key: Optional[str]) -> bool:
+    def get_object_value(self, flag_key: str, default_value: object, context: Dict[str, str], targeting_key: Optional[str]) -> object:
         """Get object value from CAC client"""
         try:
             config = self.eval(context, targeting_key)
@@ -173,7 +166,7 @@ class ConfigurationClient:
 
     # Experimentation Client methods
 
-    def get_applicable_variant(self, context: Dict[str, Any], targeting_key: Optional[str] = None) -> list:
+    def get_applicable_variants(self, context: Dict[str, Any], targeting_key: Optional[str] = None) -> list:
         """Get applicable variant from experimentation client"""
         if self.exp_config:
             experimentdata = ExperimentationArgs(
@@ -219,19 +212,19 @@ class ConfigurationClient:
             return int(value)
         except (TypeError, ValueError):
             return default
-    def _to_float(self, value: Any, default: int) -> int:
+    def _to_float(self, value: Any, default: float) -> float:
         try:
             return float(value)
         except (TypeError, ValueError):
             return default
-    def _to_object(self, value: Any, default: Any) -> Any:
+    def _to_object(self, value: Any, default: object) -> object:
         if isinstance(value, dict): return value
         return default
-        
+
     async def close(self):
         """Close the SuperpositionClient and clean up resources"""
         logger.info("Closing SuperpositionClient...")
-        
+
         try:
             # Cancel polling task if running
             if self._polling_task and not self._polling_task.done():
@@ -247,7 +240,7 @@ class ConfigurationClient:
                 if asyncio.iscoroutinefunction(self.cac_config.close):
                     await self.cac_config.close()
                 else:
-                    self.cac_config.close()
+                    await self.cac_config.close()
 
             # Close experimentation client
             if self.exp_config and hasattr(self.exp_config, 'free_client'):
@@ -255,9 +248,9 @@ class ConfigurationClient:
 
             # Clear cached data
             self._clear_eval_cache()
-            
+
             logger.info("SuperpositionClient closed successfully")
-            
+
         except Exception as e:
             logger.error(f"Error while closing SuperpositionClient: {e}")
             raise

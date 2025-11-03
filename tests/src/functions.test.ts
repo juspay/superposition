@@ -286,12 +286,9 @@ describe("Function Operations", () => {
             change_reason: "Publishing for testing",
         });
 
-        try {
-            await superpositionClient.send(publishCommand);
-            expect(true).toBe(false);
-        } catch (error) {
-            expect(error).toBeDefined();
-        }
+        expect(superpositionClient.send(publishCommand)).rejects.toThrow(
+            "No records found. Please refine or correct your search parameters"
+        );
     });
 
     // Cleanup

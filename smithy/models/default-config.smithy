@@ -48,13 +48,12 @@ structure DefaultConfigMixin for DefaultConfig {
     @required
     $change_reason
 
-    /// Optional
     $function_name
 
     $autocomplete_function_name
 }
 
-structure DefaultConfigFull for DefaultConfig with [DefaultConfigMixin] {
+structure DefaultConfigResponse for DefaultConfig with [DefaultConfigMixin] {
     @required
     $created_at
 
@@ -69,7 +68,7 @@ structure DefaultConfigFull for DefaultConfig with [DefaultConfigMixin] {
 }
 
 list ListDefaultConfigOut {
-    member: DefaultConfigFull
+    member: DefaultConfigResponse
 }
 
 @documentation("Retrieves a specific default config entry by its key, including its value, schema, function mappings, and metadata.")
@@ -83,7 +82,7 @@ operation GetDefaultConfig with [GetOperation] {
         $key
     }
 
-    output: DefaultConfigFull
+    output: DefaultConfigResponse
 }
 
 // Operations
@@ -92,7 +91,7 @@ operation GetDefaultConfig with [GetOperation] {
 @tags(["Default Configuration"])
 operation CreateDefaultConfig {
     input := with [DefaultConfigMixin, WorkspaceMixin] {}
-    output: DefaultConfigFull
+    output: DefaultConfigResponse
 }
 
 @documentation("Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.")
@@ -107,6 +106,7 @@ operation ListDefaultConfigs {
     }
 
     output := with [PaginatedResponse] {
+        @required
         data: ListDefaultConfigOut
     }
 }
@@ -128,19 +128,21 @@ operation UpdateDefaultConfig with [GetOperation] {
 
         $schema
 
+        @documentation("To unset the function name, pass \"null\" string.")
         $function_name
 
         $description
 
+        @documentation("To unset the function name, pass \"null\" string.")
         $autocomplete_function_name
     }
 
-    output: DefaultConfigFull
+    output: DefaultConfigResponse
 }
 
 @documentation("Permanently removes a default config entry from the workspace. This operation cannot be performed if it affects config resolution for contexts that rely on this fallback value.")
 @idempotent
-@http(method: "DELETE", uri: "/default-config/{key}", code: 201)
+@http(method: "DELETE", uri: "/default-config/{key}", code: 204)
 @tags(["Default Configuration"])
 operation DeleteDefaultConfig with [GetOperation] {
     input := for DefaultConfig with [WorkspaceMixin] {

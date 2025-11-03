@@ -246,6 +246,47 @@ pub struct Function {
     pub created_at: DateTime<Utc>,
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Deserialize,
+    Serialize,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+    strum_macros::Display,
+)]
+#[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, TextToSql, TextFromSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = diesel::sql_types::Text))]
+pub enum EventAction {
+    Insert,
+    Update,
+    Delete,
+}
+
+#[cfg(feature = "diesel_derives")]
+impl TryFrom<String> for EventAction {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::from_str(&value).map_err(|e| e.to_string())
+    }
+}
+
+impl From<&EventAction> for String {
+    fn from(value: &EventAction) -> Self {
+        value.to_string()
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable, Insertable))]
 #[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
@@ -256,7 +297,7 @@ pub struct EventLog {
     pub table_name: String,
     pub user_name: String,
     pub timestamp: DateTime<Utc>,
-    pub action: String,
+    pub action: EventAction,
     pub original_data: Option<Value>,
     pub new_data: Option<Value>,
     pub query: String,
@@ -417,8 +458,9 @@ where
 {
     let opt: Result<Value, _> = Deserialize::deserialize(deserializer);
     match opt {
-        Ok(Value::String(func_name)) => Ok(Some(Some(func_name))),
         Ok(Value::Null) => Ok(Some(None)),
+        Ok(Value::String(func_name)) if func_name == "null" => Ok(Some(None)),
+        Ok(Value::String(func_name)) => Ok(Some(Some(func_name))),
         Err(_) => Ok(None), // If the field is missing, return None instead of throwing an errors
         _ => {
             log::error!("Expected a string or null literal as the function name.");

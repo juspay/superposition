@@ -88,7 +88,7 @@ structure Variant {
     override_id: String
 
     @required
-    overrides: Document
+    overrides: Overrides
 }
 
 list ListVariant {
@@ -185,7 +185,7 @@ structure VariantUpdateRequest {
     id: String
 
     @required
-    overrides: Document
+    overrides: Overrides
 }
 
 list ListVariantUpdateRequest {
@@ -209,6 +209,7 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
 
     $metrics
 
+    @documentation("To unset experiment group, pass \"null\" string.")
     $experiment_group_id
 }
 
@@ -367,6 +368,7 @@ operation ListExperiment {
     }
 
     output := with [PaginatedResponse] {
+        @required
         data: ExperimentList
     }
 }

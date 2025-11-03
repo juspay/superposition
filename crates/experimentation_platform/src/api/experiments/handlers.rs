@@ -525,7 +525,10 @@ pub async fn conclude(
                         description: Some(description.clone()),
                         change_reason: change_reason.clone(),
                     };
-                    operations.push(ContextAction::Move((context_id, context_move_req)));
+                    operations.push(ContextAction::Move {
+                        id: context_id,
+                        request: context_move_req,
+                    });
                 }
                 (ExperimentType::DeleteOverrides, VariantType::CONTROL) => {
                     operations.push(ContextAction::Delete(context_id));

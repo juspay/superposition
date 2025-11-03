@@ -1,5 +1,5 @@
-import { OpenFeature } from '@openfeature/server-sdk';
-import { SuperpositionProvider } from 'superposition-provider';
+import { OpenFeature } from "@openfeature/server-sdk";
+import { SuperpositionProvider } from "superposition-provider";
 import {
   SuperpositionClient,
   CreateWorkspaceCommand,
@@ -8,7 +8,7 @@ import {
   CreateContextCommand,
   CreateExperimentCommand,
   RampExperimentCommand,
-  CreateOrganisationCommand
+  CreateOrganisationCommand,
 } from "superposition-sdk";
 import assert from "assert";
 
@@ -26,12 +26,17 @@ const client = new SuperpositionClient(SuperpositionSDKConfig);
 async function createOrganisation() {
   const command = new CreateOrganisationCommand({
     name: "jstestorg",
-    admin_email: "admin@jstestorg.com"
+    admin_email: "admin@jstestorg.com",
   });
 
   try {
     const response = await client.send(command);
-    console.log("Organisation created successfully:", response.name, "with ID:", response.id);
+    console.log(
+      "Organisation created successfully:",
+      response.name,
+      "with ID:",
+      response.id
+    );
     return response.id;
   } catch (e) {
     console.error("An exception occurred while creating organization:", e);
@@ -94,22 +99,16 @@ async function create_dimensions(org_id, workspace_id) {
       dimension: "customers",
       position: 3,
       schema: {
-          "type": "string",
-          "enum": ["platinum", "gold", "otherwise"],
-          "definitions": {
-              "platinum": {
-                  "in": [
-                      {"var": "name"},
-                      ["Agush", "Sauyav"]
-                  ]
-              },
-              "gold": {
-                  "in": [
-                      {"var": "name"},
-                      ["Angit", "Bhrey"]
-                  ]
-              }
-          }
+        type: "string",
+        enum: ["platinum", "gold", "otherwise"],
+        definitions: {
+          platinum: {
+            in: [{ var: "name" }, ["Agush", "Sauyav"]],
+          },
+          gold: {
+            in: [{ var: "name" }, ["Angit", "Bhrey"]],
+          },
+        },
       },
       description: "customers dimension",
       change_reason: "adding customers dimension",
@@ -129,7 +128,7 @@ async function create_dimensions(org_id, workspace_id) {
       console.error(
         "Error occurred while creating dimension:",
         dimension.dimension,
-        e,
+        e
       );
       throw e;
     }
@@ -171,7 +170,11 @@ async function create_default_configs(org_id, workspace_id) {
       let response = await client.send(command);
       console.log("  - Created config:", response.key);
     } catch (e) {
-      console.error("Error occurred while creating config:", config.key, e);
+      console.error(
+        "Error occurred while creating config:",
+        config.key,
+        e
+      );
       throw e;
     }
   }
@@ -182,63 +185,73 @@ async function create_overrides(org_id, workspace_id) {
     {
       workspace_id,
       org_id,
-      context: {
-        city: "Boston",
+      request: {
+        context: {
+          city: "Boston",
+        },
+        override: {
+          currency: "Dollar",
+        },
+        description: "Bostonian",
+        change_reason: "testing",
       },
-      override: {
-        currency: "Dollar",
-      },
-      description: "Bostonian",
-      change_reason: "testing",
     },
     {
       workspace_id,
       org_id,
-      context: {
-        city: "Berlin",
+      request: {
+        context: {
+          city: "Berlin",
+        },
+        override: {
+          currency: "Euro",
+        },
+        description: "Berlin",
+        change_reason: "testing",
       },
-      override: {
-        currency: "Euro",
-      },
-      description: "Berlin",
-      change_reason: "testing",
     },
     {
       workspace_id,
       org_id,
-      context: {
-          customers: "platinum"
+      request: {
+        context: {
+          customers: "platinum",
+        },
+        override: {
+          price: 5000,
+        },
+        description: "platinum customer",
+        change_reason: "testing",
       },
-      override: {
-        price: 5000,
-      },
-      description: "platinum customer",
-      change_reason: "testing",
     },
     {
       workspace_id,
       org_id,
-      context: {
-        customers: "gold",
+      request: {
+        context: {
+          customers: "gold",
+        },
+        override: {
+          price: 8000,
+        },
+        description: "gold customers",
+        change_reason: "testing",
       },
-      override: {
-        price: 8000,
-      },
-      description: "gold customers",
-      change_reason: "testing",
     },
     {
       workspace_id,
       org_id,
-      context: {
-        name: "karbik",
-        customers: "otherwise",
+      request: {
+        context: {
+          name: "karbik",
+          customers: "otherwise",
+        },
+        override: {
+          price: 1,
+        },
+        description: "edge case customer karbik",
+        change_reason: "testing",
       },
-      override: {
-        price: 1,
-      },
-      description: "edge case customer karbik",
-      change_reason: "testing",
     },
   ];
 
@@ -249,60 +262,68 @@ async function create_overrides(org_id, workspace_id) {
       let response = await client.send(command);
       console.log("Created override:", JSON.stringify(response.context));
     } catch (e) {
-      console.error("Error occurred while creating override:", override, e);
+      console.error(
+        "Error occurred while creating override:",
+        override,
+        e
+      );
       throw e;
     }
   }
 }
 
 async function create_experiments(org_id, workspace_id) {
-    let experiments = [
+  let experiments = [
+    {
+      workspace_id,
+      org_id,
+      name: "testexperiment",
+      context: {
+        city: "Bangalore",
+      },
+      variants: [
         {
-              workspace_id,
-              org_id,
-              name: "testexperiment",
-              context: {
-                city: "Bangalore",
-              },
-              variants: [
-                {
-                  id: "testexperiment-control",
-                  variant_type: "CONTROL",
-                  overrides: {
-                      "price": 10000
-                  },
-                },
-                {
-                  id: "testexperiment-experimental",
-                  variant_type: "EXPERIMENTAL",
-                  overrides: {
-                      "price": 8800
-                  }
-                }
-            ],
-            description: "test experimentation",
-            change_reason: "a reason",
-        }
-    ]
-    for (const experiment of experiments) {
-        const command = new CreateExperimentCommand(experiment);
-        try {
-          let response = await client.send(command);
-          console.log("Created experiment:", response);
-          const command_two = new RampExperimentCommand({
-            workspace_id,
-            org_id,
-            id: response.id,
-            change_reason: "ramp the experiment",
-            traffic_percentage: 50,
-            });
-          let response_two = await client.send(command_two);
-          console.log("Ramped experiment:", response_two);
-        } catch (e) {
-          console.error("Error occurred while creating experiment:", experiment, e);
-          throw e;
-        }
+          id: "testexperiment-control",
+          variant_type: "CONTROL",
+          overrides: {
+            price: 10000,
+          },
+        },
+        {
+          id: "testexperiment-experimental",
+          variant_type: "EXPERIMENTAL",
+          overrides: {
+            price: 8800,
+          },
+        },
+      ],
+      description: "test experimentation",
+      change_reason: "a reason",
+    },
+  ];
+  for (const experiment of experiments) {
+    const command = new CreateExperimentCommand(experiment);
+    try {
+      let response = await client.send(command);
+      console.log("Created experiment:", response);
+      const command_two = new RampExperimentCommand({
+        workspace_id,
+        org_id,
+        id: response.id,
+        change_reason: "ramp the experiment",
+        traffic_percentage: 50,
+      });
+      let response_two = await client.send(command_two);
+      console.log("Ramped experiment:", response_two);
+    } catch (e) {
+      console.error(
+        "Error occurred while creating experiment:",
+        experiment,
+        e
+      );
+      throw e;
     }
+  }
 }
 
 async function setupWithSDK(org_id, workspace_id) {
@@ -341,10 +362,18 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = {};
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
       assert.strictEqual(price, 10000, "Default price should be 10000");
-      assert.strictEqual(currency, "Rupee", "Default currency should be Rupee");
+      assert.strictEqual(
+        currency,
+        "Rupee",
+        "Default currency should be Rupee"
+      );
       console.log("  ✓ Test passed\n");
     }
 
@@ -353,10 +382,22 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = { name: "Agush" };
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
-      assert.strictEqual(price, 5000, "Price should be default 5000 (platinum customer)");
-      assert.strictEqual(currency, "Rupee", "Currency should be default Rupee");
+      assert.strictEqual(
+        price,
+        5000,
+        "Price should be default 5000 (platinum customer)"
+      );
+      assert.strictEqual(
+        currency,
+        "Rupee",
+        "Currency should be default Rupee"
+      );
       console.log("  ✓ Test passed\n");
     }
 
@@ -365,7 +406,11 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = { name: "Sauyav", city: "Boston" };
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
       assert.strictEqual(price, 5000, "Price should be 5000");
       assert.strictEqual(currency, "Dollar", "Currency should be dollar");
@@ -376,10 +421,18 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = { name: "John" };
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
       assert.strictEqual(price, 10000, "Price should be default 10000");
-      assert.strictEqual(currency, "Rupee", "Currency should be default Rupee");
+      assert.strictEqual(
+        currency,
+        "Rupee",
+        "Currency should be default Rupee"
+      );
       console.log("  ✓ Test passed\n");
     }
 
@@ -387,10 +440,18 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = { name: "Sauyav", city: "Berlin" };
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
       assert.strictEqual(price, 5000, "Price should be 5000");
-      assert.strictEqual(currency, "Euro", "Currency should be Euro in Berlin");
+      assert.strictEqual(
+        currency,
+        "Euro",
+        "Currency should be Euro in Berlin"
+      );
       console.log("  ✓ Test passed\n");
     }
 
@@ -398,10 +459,18 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = { name: "John", city: "Boston" };
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
       assert.strictEqual(price, 10000, "Price should be default 10000");
-      assert.strictEqual(currency, "Dollar", "Currency should be Dollar in Boston");
+      assert.strictEqual(
+        currency,
+        "Dollar",
+        "Currency should be Dollar in Boston"
+      );
       console.log("  ✓ Test passed\n");
     }
 
@@ -409,10 +478,18 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = { name: "karbik" };
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
       assert.strictEqual(price, 1, "Price should be 1 for karbik");
-      assert.strictEqual(currency, "Rupee", "Currency should be default Rupee");
+      assert.strictEqual(
+        currency,
+        "Rupee",
+        "Currency should be default Rupee"
+      );
       console.log("  ✓ Test passed\n");
     }
 
@@ -420,10 +497,18 @@ async function runDemo(org_id, workspace_id) {
     {
       const context = { name: "karbik", city: "Boston" };
       const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
+      const currency = await ofClient.getStringValue(
+        "currency",
+        "",
+        context
+      );
 
       assert.strictEqual(price, 1, "Price should be 1 for karbik");
-      assert.strictEqual(currency, "Dollar", "Currency should be Dollar in Boston");
+      assert.strictEqual(
+        currency,
+        "Dollar",
+        "Currency should be Dollar in Boston"
+      );
       console.log("  ✓ Test passed\n");
     }
     console.log("Test 9: Experiment case: Bangalore pricing");
@@ -443,20 +528,20 @@ async function runDemo(org_id, workspace_id) {
     console.error("\n❌ Error running tests:", error);
     throw error;
   } finally {
-      await OpenFeature.close();
-      console.log("OpenFeature closed successfully");
+    await OpenFeature.close();
+    console.log("OpenFeature closed successfully");
   }
 }
 
 console.log(
-"Starting Superposition OpenFeature demo and tests (JavaScript)...",
+  "Starting Superposition OpenFeature demo and tests (JavaScript)..."
 );
 
 try {
-    const ORG_ID = await createOrganisation();
-    await setupWithSDK(ORG_ID, WORKSPACE_ID);
-    await runDemo(ORG_ID, WORKSPACE_ID);
+  const ORG_ID = await createOrganisation();
+  await setupWithSDK(ORG_ID, WORKSPACE_ID);
+  await runDemo(ORG_ID, WORKSPACE_ID);
 } catch (error) {
-    console.error("\n❌ Test suite failed:", error);
-    process.exit(1);
+  console.error("\n❌ Test suite failed:", error);
+  process.exit(1);
 }

@@ -132,7 +132,9 @@ operation UpdateOrganisation with [GetOperation] {
 @tags(["Organisation Management"])
 operation ListOrganisation {
     input := with [PaginationParams] {}
+
     output := with [PaginatedResponse] {
+        @required
         data: OrganisationList
     }
 }

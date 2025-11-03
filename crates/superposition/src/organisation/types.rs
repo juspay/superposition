@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use superposition_types::database::models::OrgStatus;
+use superposition_types::database::models::{NonEmptyString, OrgStatus};
 
 // Request payload for creating an organisation
 #[derive(Deserialize)]
@@ -8,7 +8,7 @@ pub struct CreateOrganisationRequest {
     pub contact_email: Option<String>,
     pub contact_phone: Option<String>,
     pub admin_email: String,
-    pub name: String,
+    pub name: NonEmptyString,
     pub sector: Option<String>,
 }
 

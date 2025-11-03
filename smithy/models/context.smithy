@@ -44,24 +44,34 @@ structure ContextResponse for Context {
     @required
     $id
 
+    @required
     $value
 
+    @required
     $override
 
+    @required
     $override_id
 
+    @required
     $weight
 
+    @required
     $description
 
+    @required
     $change_reason
 
+    @required
     $created_at
 
+    @required
     $created_by
 
+    @required
     $last_modified_at
 
+    @required
     $last_modified_by
 }
 
@@ -71,22 +81,14 @@ structure ContextResponse for Context {
 @tags(["Context Management"])
 operation CreateContext with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
-        // TODO Find re-name functionality.
-        @required
-        @notProperty
-        context: Condition
-
         @httpHeader("x-config-tags")
         @notProperty
         config_tags: String
 
+        @httpPayload
+        @notProperty
         @required
-        $override
-
-        $description
-
-        @required
-        $change_reason
+        request: ContextPut
     }
 
     output: ContextResponse
@@ -127,14 +129,10 @@ operation MoveContext with [GetOperation] {
         @required
         $id
 
-        @required
+        @httpPayload
         @notProperty
-        context: Condition
-
-        $description
-
         @required
-        $change_reason
+        request: ContextMove
     }
 
     output: ContextResponse
@@ -159,7 +157,7 @@ structure UpdateContextOverrideRequest for Context {
 }
 
 @documentation("Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.")
-@http(method: "PUT", uri: "/context/overrides")
+@http(method: "PATCH", uri: "/context/overrides")
 @tags(["Context Management"])
 operation UpdateOverride with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
@@ -236,13 +234,14 @@ operation ListContexts {
     }
 
     output := with [PaginatedResponse] {
+        @required
         data: ListContextOut
     }
 }
 
 @documentation("Permanently removes a context from the workspace. This operation cannot be undone and will affect config resolution.")
 @idempotent
-@http(method: "DELETE", uri: "/context/{id}", code: 201)
+@http(method: "DELETE", uri: "/context/{id}", code: 204)
 @tags(["Context Management"])
 operation DeleteContext with [GetOperation] {
     input := for Context with [WorkspaceMixin] {
@@ -257,9 +256,16 @@ operation DeleteContext with [GetOperation] {
 }
 
 structure WeightRecomputeResponse for Context {
+    @required
     $id
+
+    @required
     condition: Condition
+
+    @required
     old_weight: Weight
+
+    @required
     new_weight: Weight
 }
 
@@ -297,8 +303,6 @@ structure ContextPut for Context {
 }
 
 structure ContextMove for Context {
-    $id
-
     @required
     context: Condition
 
@@ -308,19 +312,23 @@ structure ContextMove for Context {
     $change_reason
 }
 
+structure ContextMoveBulkRequest {
+    @required
+    id: String
+
+    @required
+    request: ContextMove
+}
+
 union ContextAction {
     PUT: ContextPut
     REPLACE: UpdateContextOverrideRequest
     DELETE: String
-    MOVE: ContextMove
+    MOVE: ContextMoveBulkRequest
 }
 
 list BulkOperationList {
     member: ContextAction
-}
-
-structure BulkOperationReq {
-    operations: BulkOperationList
 }
 
 union ContextActionOut for Context {
@@ -334,10 +342,6 @@ list BulkOperationOutList {
     member: ContextActionOut
 }
 
-structure BulkOperationOut {
-    output: BulkOperationOutList
-}
-
 @documentation("Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.")
 @http(method: "PUT", uri: "/context/bulk-operations")
 @tags(["Context Management"])
@@ -347,15 +351,13 @@ operation BulkOperation with [GetOperation] {
         @notProperty
         config_tags: String
 
-        @httpPayload
         @required
         @notProperty
-        bulk_operation: BulkOperationReq
+        operations: BulkOperationList
     }
 
     output := {
-        @httpPayload
-        @notProperty
-        bulk_operation_output: BulkOperationOut
+        @required
+        output: BulkOperationOutList
     }
 }

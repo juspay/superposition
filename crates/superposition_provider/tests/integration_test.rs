@@ -4,7 +4,7 @@ use superposition_provider::{
     SuperpositionProviderOptions,
 };
 use superposition_sdk::{
-    types::{DimensionType, Variant, WorkspaceStatus},
+    types::{ContextPut, DimensionType, Variant, WorkspaceStatus},
     Client, Config,
 };
 
@@ -220,10 +220,15 @@ async fn create_overrides(client: &Client, org_id: &str, workspace_id: &str) {
         .create_context()
         .workspace_id(workspace_id)
         .org_id(org_id)
-        .context("city", Document::from("Boston"))
-        .r#override("currency", Document::from("Dollar"))
-        .description("Bostonian")
-        .change_reason("testing")
+        .request(
+            ContextPut::builder()
+                .context("city", Document::from("Boston"))
+                .r#override("currency", Document::from("Dollar"))
+                .description("Bostonian")
+                .change_reason("testing")
+                .build()
+                .expect("Failed to create ContextPut"),
+        )
         .send()
         .await
         .expect("Failed to create Boston override");
@@ -234,10 +239,15 @@ async fn create_overrides(client: &Client, org_id: &str, workspace_id: &str) {
         .create_context()
         .workspace_id(workspace_id)
         .org_id(org_id)
-        .context("city", Document::from("Berlin"))
-        .r#override("currency", Document::from("Euro"))
-        .description("Berlin")
-        .change_reason("testing")
+        .request(
+            ContextPut::builder()
+                .context("city", Document::from("Berlin"))
+                .r#override("currency", Document::from("Euro"))
+                .description("Berlin")
+                .change_reason("testing")
+                .build()
+                .expect("Failed to create ContextPut"),
+        )
         .send()
         .await
         .expect("Failed to create Berlin override");
@@ -248,10 +258,15 @@ async fn create_overrides(client: &Client, org_id: &str, workspace_id: &str) {
         .create_context()
         .workspace_id(workspace_id)
         .org_id(org_id)
-        .context("customers", Document::from("platinum"))
-        .r#override("price", Document::from(5000))
-        .description("platinum customer")
-        .change_reason("testing")
+        .request(
+            ContextPut::builder()
+                .context("customers", Document::from("platinum"))
+                .r#override("price", Document::from(5000))
+                .description("platinum customer")
+                .change_reason("testing")
+                .build()
+                .expect("Failed to create ContextPut"),
+        )
         .send()
         .await
         .expect("Failed to create platinum override");
@@ -262,10 +277,15 @@ async fn create_overrides(client: &Client, org_id: &str, workspace_id: &str) {
         .create_context()
         .workspace_id(workspace_id)
         .org_id(org_id)
-        .context("customers", Document::from("gold"))
-        .r#override("price", Document::from(8000))
-        .description("gold customers")
-        .change_reason("testing")
+        .request(
+            ContextPut::builder()
+                .context("customers", Document::from("gold"))
+                .r#override("price", Document::from(8000))
+                .description("gold customers")
+                .change_reason("testing")
+                .build()
+                .expect("Failed to create ContextPut"),
+        )
         .send()
         .await
         .expect("Failed to create gold override");
@@ -276,11 +296,16 @@ async fn create_overrides(client: &Client, org_id: &str, workspace_id: &str) {
         .create_context()
         .workspace_id(workspace_id)
         .org_id(org_id)
-        .context("name", Document::from("karbik"))
-        .context("customers", Document::from("otherwise"))
-        .r#override("price", Document::from(1))
-        .description("edge case customer karbik")
-        .change_reason("testing")
+        .request(
+            ContextPut::builder()
+                .context("name", Document::from("karbik"))
+                .context("customers", Document::from("otherwise"))
+                .r#override("price", Document::from(1))
+                .description("edge case customer karbik")
+                .change_reason("testing")
+                .build()
+                .expect("Failed to create ContextPut"),
+        )
         .send()
         .await
         .expect("Failed to create karbik override");
@@ -302,11 +327,7 @@ async fn create_experiments(client: &Client, org_id: &str, workspace_id: &str) {
             Variant::builder()
                 .id("control".to_string())
                 .variant_type(superposition_sdk::types::VariantType::Control)
-                .overrides(Document::Object(
-                    [("price".to_string(), Document::from(10000))]
-                        .into_iter()
-                        .collect(),
-                ))
+                .overrides("price", Document::from(10000))
                 .build()
                 .expect("Failed to build control variant"),
         )
@@ -314,11 +335,7 @@ async fn create_experiments(client: &Client, org_id: &str, workspace_id: &str) {
             Variant::builder()
                 .id("Experimental".to_string())
                 .variant_type(superposition_sdk::types::VariantType::Experimental)
-                .overrides(Document::Object(
-                    [("price".to_string(), Document::from(7000))]
-                        .into_iter()
-                        .collect(),
-                ))
+                .overrides("price", Document::from(7000))
                 .build()
                 .expect("Failed to build Experimental variant"),
         )

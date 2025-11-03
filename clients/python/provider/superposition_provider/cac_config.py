@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 from smithy_core.documents import Document
 from smithy_core.shapes import ShapeType
-from typing import Any
 
 class DecimalEncoder(json.JSONEncoder):
     """Custom JSON encoder that handles Decimal types"""
@@ -83,7 +82,7 @@ def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Option
     """Convert fallback config to the expected format."""
     if not fallback_config:
         return None
-    
+
     converted = {}
     if 'default_configs' in fallback_config:
         converted['default_configs'] = {
@@ -116,7 +115,7 @@ def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Option
             )
             for key, dimension in fallback_config['dimensions'].items()
         }
-    
+
     return converted
 
 class CacConfig:
@@ -126,7 +125,7 @@ class CacConfig:
         self.fallback_config = None
         if options.fallback_config:
             self.fallback_config = convert_fallback_config(options.fallback_config)
-        
+
         self.cached_config = None
         self.last_updated = None
         self.evaluation_cache: Dict[str, Dict[str, Any]] = {}
@@ -161,7 +160,7 @@ class CacConfig:
             self.cached_config = latest_config
             self.last_updated = datetime.utcnow()
             logger.info("Config fetched successfully.")
-        
+
         match self.options.refresh_strategy:
             case PollingStrategy(interval=interval, timeout=timeout):
                 logger.info(f"Using PollingStrategy: interval={interval}, timeout={timeout}")
@@ -171,16 +170,16 @@ class CacConfig:
             case OnDemandStrategy(ttl=ttl, use_stale_on_error=use_stale, timeout=timeout):
                 logger.info(f"Using OnDemandStrategy: ttl={ttl}, use_stale_on_error={use_stale}, timeout={timeout}")
 
-        
+
 
     @staticmethod
     async def _get_config(superposition_options: SuperpositionOptions) -> Optional[Dict[str, Any]]:
         """
         Fetch configuration from Superposition service using the generated Python SDK.
-        
+
         Args:
             superposition_options: Options containing endpoint, token, org_id, workspace_id
-            
+
         Returns:
             Dict containing the configuration data
         """
@@ -189,10 +188,10 @@ class CacConfig:
             sdk_config = Config(
                 endpoint_uri=superposition_options.endpoint
             )
-            
+
             # Create Superposition client
             client = Superposition(config=sdk_config)
-            
+
             # Prepare input for get_config API call
             get_config_input = GetConfigInput(
                 workspace_id=superposition_options.workspace_id,
@@ -201,13 +200,13 @@ class CacConfig:
                 prefix=None,   # No prefix filtering for now
                 version=None   # Get latest version
             )
-            
+
             # Call the get_config API
             response = await client.get_config(get_config_input)
-            
+
             # Convert the response to a dictionary format
             config_data = {}
-            
+
             # Add default configs
             if response.default_configs:
                 default_configs: dict[str, str] = {}
@@ -248,14 +247,14 @@ class CacConfig:
                     )
                     dimensions[key] = dimension
                 config_data['dimensions'] = dimensions
-    
+
             return config_data
-            
+
         except Exception as e:
             # Log the error and return empty config as fallback
             logger.error(f"Error fetching config from Superposition: {e}")
             return None
-    
+
     async def on_demand_config(self, ttl, use_stale) -> dict:
         """Get config on-demand based on TTL or fall back to stale if needed."""
         now = datetime.utcnow()
@@ -276,7 +275,7 @@ class CacConfig:
                     logger.info("Config fetched successfully.")
                     self.cached_config = latest_config
                     self.last_updated = datetime.utcnow()
-                
+
             except Exception as e:
                 logger.warning(f"On-demand fetch failed: {e}")
                 if not use_stale or self.cached_config is None:
@@ -313,14 +312,14 @@ class CacConfig:
                     await self._polling_task
                 except asyncio.CancelledError:
                     logger.debug("Polling task cancelled successfully")
-            
+
             # Clear caches
             self._clear_eval_cache()
             self.cached_config = None
             self.last_updated = None
-            
+
             logger.info("ConfigurationClient closed successfully")
-            
+
         except Exception as e:
             logger.error(f"Error during ConfigurationClient cleanup: {e}")
             raise

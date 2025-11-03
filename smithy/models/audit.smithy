@@ -16,18 +16,26 @@ structure AuditLogFull {
     // REVIEW Technically this should have been properties of the resource
     // but since we're not using these directly in an input or output, smithy
     // will complain about them and fail the build.
+    @required
+    id: String
+
+    @required
     table_name: String
 
+    @required
     user_name: String
 
+    @required
     timestamp: DateTime
 
-    action: String
+    @required
+    action: AuditAction
 
     original_data: Document
 
     new_data: Document
 
+    @required
     query: String
 }
 
@@ -77,6 +85,7 @@ operation ListAuditLogs {
     }
 
     output := with [PaginatedResponse] {
+        @required
         data: AuditLogList
     }
 }

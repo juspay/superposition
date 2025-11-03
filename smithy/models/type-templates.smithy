@@ -114,7 +114,9 @@ operation CreateTypeTemplates {
 @tags(["Type Templates"])
 operation GetTypeTemplatesList {
     input := with [PaginationParams, WorkspaceMixin] {}
+
     output := with [PaginatedResponse] {
+        @required
         data: TypeTemplatesList
     }
 }

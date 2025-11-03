@@ -25,13 +25,14 @@ import {
     type AddMembersToGroupCommandInput,
     type RemoveMembersFromGroupCommandInput,
     type CreateExperimentCommandInput,
-    type DimensionExt,
-    type DefaultConfigFull,
+    type DimensionResponse,
+    type DefaultConfigResponse,
     WorkspaceStatus,
     UpdateWorkspaceCommand,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, beforeAll, afterAll, test, expect } from "bun:test";
+import { type DocumentType } from "@smithy/types";
 import { nanoid } from "nanoid";
 
 // Helper function to create unique names/IDs
@@ -99,7 +100,7 @@ describe("Experiment Groups API Integration Tests", () => {
     ];
 
     // Contexts using the ensured dimensions
-    const groupContext = ENV.jsonlogic_enabled
+    const groupContext: Record<string, DocumentType> = ENV.jsonlogic_enabled
         ? {
               and: [
                   { "==": [{ var: "os" }, "ios"] },
@@ -110,8 +111,8 @@ describe("Experiment Groups API Integration Tests", () => {
               os: "ios",
               clientId: "clientForExpGroup",
           };
-    const expValid1Context = { ...groupContext }; // Exact match
-    const expValid2Context = ENV.jsonlogic_enabled
+    const expValid1Context: Record<string, DocumentType> = { ...groupContext }; // Exact match
+    const expValid2Context: Record<string, DocumentType> = ENV.jsonlogic_enabled
         ? {
               and: [
                   ...(groupContext.and as any[]),
@@ -119,15 +120,21 @@ describe("Experiment Groups API Integration Tests", () => {
               ],
           }
         : { ...groupContext, app_version: "2.0.0" }; // Superset
-    const expInvalidContextConflict = ENV.jsonlogic_enabled
-        ? {
-              and: [
-                  { "==": [{ var: "device_specific_id" }, "devSpecificXYZ"] },
-              ],
-          }
-        : {
-              device_specific_id: "devSpecificXYZ",
-          };
+    const expInvalidContextConflict: Record<string, DocumentType> =
+        ENV.jsonlogic_enabled
+            ? {
+                  and: [
+                      {
+                          "==": [
+                              { var: "device_specific_id" },
+                              "devSpecificXYZ",
+                          ],
+                      },
+                  ],
+              }
+            : {
+                  device_specific_id: "devSpecificXYZ",
+              };
 
     // Variants using the ensured default configs (matching CreateExperimentCommandInput['variants'] structure)
     const defaultVariantInputsForGroupExperiments: CreateExperimentCommandInput["variants"] =
@@ -154,7 +161,7 @@ describe("Experiment Groups API Integration Tests", () => {
         name: string,
         schema: any,
         description: string,
-        existingDimensions: DimensionExt[]
+        existingDimensions: DimensionResponse[]
     ): Promise<void> {
         const existing = existingDimensions.find((d) => d.dimension === name);
         if (!existing) {
@@ -186,7 +193,7 @@ describe("Experiment Groups API Integration Tests", () => {
             existingDimensions.push({
                 dimension: name,
                 position,
-            } as DimensionExt);
+            } as DimensionResponse);
         } else {
             console.log(`Dimension ${name} already exists.`);
         }
@@ -197,7 +204,7 @@ describe("Experiment Groups API Integration Tests", () => {
         value: any,
         schema: any,
         description: string,
-        existingConfigs: DefaultConfigFull[]
+        existingConfigs: DefaultConfigResponse[]
     ): Promise<void> {
         const existing = existingConfigs.find((c) => c.key === key);
         if (!existing) {
@@ -257,7 +264,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 count: 200,
             })
         );
-        const existingDimensions = listDimResponse.data || [];
+        const existingDimensions = listDimResponse.data ?? [];
 
         await removeMandatoryDimension(superpositionClient); // Ensure no mandatory dimensions before setup
 
@@ -277,7 +284,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 count: 200,
             })
         );
-        const existingConfigs = listConfigResponse.data || [];
+        const existingConfigs = listConfigResponse.data ?? [];
 
         for (const cfg of defaultConfigsToEnsure) {
             await ensureDefaultConfigExists(
@@ -327,7 +334,7 @@ describe("Experiment Groups API Integration Tests", () => {
         console.log(`Created expValid2Id: ${expValid2Id}`);
 
         const expInvalidProgName = uniqueName("exp-invalid-prog");
-        const context = ENV.jsonlogic_enabled
+        const context: Record<string, DocumentType> = ENV.jsonlogic_enabled
             ? { and: [{ "==": [{ var: "os" }, "android"] }] } // Use an ensured dimension
             : { os: "android" };
         const createExp3Input: CreateExperimentCommandInput = {
@@ -629,7 +636,7 @@ describe("Experiment Groups API Integration Tests", () => {
             );
             expect(response.traffic_percentage).toBe(75);
             expect(response.member_experiment_ids).toEqual(
-                currentGroup.member_experiment_ids || []
+                currentGroup.member_experiment_ids ?? []
             );
             expect(response.group_type).toBe(GroupType.USER_CREATED);
         });

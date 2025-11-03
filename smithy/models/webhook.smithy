@@ -147,23 +147,18 @@ operation UpdateWebhook with [GetOperation] {
         @required
         $name
 
-        @required
         description: String
 
-        @required
         enabled: Boolean
 
-        @required
         url: String
 
-        @required
         method: HttpMethod
 
         version: Version
 
         custom_headers: Object
 
-        @required
         events: Events
 
         @required
@@ -179,7 +174,9 @@ operation UpdateWebhook with [GetOperation] {
 @tags(["Webhooks"])
 operation ListWebhook {
     input := with [PaginationParams, WorkspaceMixin] {}
+
     output := with [PaginatedResponse] {
+        @required
         data: WebhookList
     }
 }
@@ -214,7 +211,7 @@ operation GetWebhookByEvent with [GetOperation] {
 
 @documentation("Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint.")
 @idempotent
-@http(method: "DELETE", uri: "/webhook/{name}", code: 201)
+@http(method: "DELETE", uri: "/webhook/{name}", code: 204)
 @tags(["Webhooks"])
 operation DeleteWebhook with [GetOperation] {
     input := for Webhook with [WorkspaceMixin] {
