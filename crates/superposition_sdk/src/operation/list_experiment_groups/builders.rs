@@ -236,18 +236,23 @@ impl ListExperimentGroupsFluentBuilder {
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
                     self.inner.get_sort_by()
                 }
+    /// 
+    /// Appends an item to `group_type`.
+    /// 
+    /// To override the contents of this collection use [`set_group_type`](Self::set_group_type).
+    /// 
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
-                    self.inner = self.inner.group_type(input);
-                    self
-                }
+                        self.inner = self.inner.group_type(input);
+                        self
+                    }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn set_group_type(mut self, input: ::std::option::Option<crate::types::GroupType>) -> Self {
+    pub fn set_group_type(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>) -> Self {
                     self.inner = self.inner.set_group_type(input);
                     self
                 }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn get_group_type(&self) -> &::std::option::Option<crate::types::GroupType> {
+    pub fn get_group_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::GroupType>> {
                     self.inner.get_group_type()
                 }
 }

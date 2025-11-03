@@ -66,8 +66,12 @@ structure AutocompleteFunctionRequest {
 }
 
 enum FunctionTypes {
-    Validation = "VALIDATION"
-    Autocomplete = "AUTOCOMPLETE"
+    VALIDATION
+    AUTOCOMPLETE
+}
+
+list FunctionTypesList {
+    member: FunctionTypes
 }
 
 enum Stage {
@@ -188,7 +192,11 @@ operation GetFunction with [GetOperation] {
 @http(method: "GET", uri: "/function")
 @tags(["Functions"])
 operation ListFunction {
-    input := with [PaginationParams, WorkspaceMixin] {}
+    input := with [PaginationParams, WorkspaceMixin] {
+        @httpQuery("function_type")
+        function_type: FunctionTypesList
+    }
+
     output := with [PaginatedResponse] {
         data: FunctionListResponse
     }

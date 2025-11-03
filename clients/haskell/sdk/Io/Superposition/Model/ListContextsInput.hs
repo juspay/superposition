@@ -50,11 +50,11 @@ data ListContextsInput = ListContextsInput {
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
-    prefix :: Data.Maybe.Maybe Data.Text.Text,
+    prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ContextFilterSortOn.ContextFilterSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    created_by :: Data.Maybe.Maybe Data.Text.Text,
-    last_modified_by :: Data.Maybe.Maybe Data.Text.Text,
+    created_by :: Data.Maybe.Maybe ([] Data.Text.Text),
+    last_modified_by :: Data.Maybe.Maybe ([] Data.Text.Text),
     plaintext :: Data.Maybe.Maybe Data.Text.Text,
     dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
@@ -106,11 +106,11 @@ data ListContextsInputBuilderState = ListContextsInputBuilderState {
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    prefixBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ContextFilterSortOn.ContextFilterSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
-    created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    created_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    last_modified_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     plaintextBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
@@ -155,7 +155,7 @@ setOrgId :: Data.Text.Text -> ListContextsInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
-setPrefix :: Data.Maybe.Maybe Data.Text.Text -> ListContextsInputBuilder ()
+setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListContextsInputBuilder ()
 setPrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
 
@@ -167,11 +167,11 @@ setSortBy :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy -> ListContex
 setSortBy value =
    Control.Monad.State.Strict.modify (\s -> (s { sort_byBuilderState = value }))
 
-setCreatedBy :: Data.Maybe.Maybe Data.Text.Text -> ListContextsInputBuilder ()
+setCreatedBy :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListContextsInputBuilder ()
 setCreatedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = value }))
 
-setLastModifiedBy :: Data.Maybe.Maybe Data.Text.Text -> ListContextsInputBuilder ()
+setLastModifiedBy :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListContextsInputBuilder ()
 setLastModifiedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = value }))
 

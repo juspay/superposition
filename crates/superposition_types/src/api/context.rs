@@ -38,14 +38,15 @@ impl Default for SortOn {
 
 #[derive(Deserialize, PartialEq, Default, Clone, IsEmpty, QueryParam)]
 pub struct ContextListFilters {
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub created_by: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub last_modified_by: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty)]
     pub plaintext: Option<String>,
     pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }

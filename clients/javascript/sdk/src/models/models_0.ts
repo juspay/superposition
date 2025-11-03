@@ -159,15 +159,29 @@ export interface ApplicableVariantsOutput {
  * @public
  * @enum
  */
+export const AuditAction = {
+  DELETE: "DELETE",
+  INSERT: "INSERT",
+  UPDATE: "UPDATE",
+} as const
+/**
+ * @public
+ */
+export type AuditAction = typeof AuditAction[keyof typeof AuditAction]
+
+/**
+ * @public
+ * @enum
+ */
 export const SortBy = {
   /**
    * Ascending order (A-Z, oldest first)
    */
-  Asc: "asc",
+  ASC: "asc",
   /**
    * Descending order (Z-A, newest first)
    */
-  Desc: "desc",
+  DESC: "desc",
 } as const
 /**
  * @public
@@ -200,18 +214,8 @@ export interface ListAuditLogsInput {
 
   from_date?: Date | undefined;
   to_date?: Date | undefined;
-  /**
-   * Comma serparated list of tables.
-   * @public
-   */
-  tables?: string | undefined;
-
-  /**
-   * Comma serparated list of actions.
-   * @public
-   */
-  action?: string | undefined;
-
+  tables?: (string)[] | undefined;
+  action?: (AuditAction)[] | undefined;
   username?: string | undefined;
   /**
    * Sort order enumeration for list operations.
@@ -655,7 +659,7 @@ export interface ExperimentResponse {
 export interface GetConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
-  prefix?: string | undefined;
+  prefix?: (string)[] | undefined;
   version?: string | undefined;
   /**
    * Map representing the context.
@@ -821,7 +825,7 @@ export type MergeStrategy = typeof MergeStrategy[keyof typeof MergeStrategy]
 export interface GetResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
-  prefix?: string | undefined;
+  prefix?: (string)[] | undefined;
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
@@ -963,11 +967,11 @@ export const DimensionMatchStrategy = {
   /**
    * Match the overrides which have the exact context
    */
-  Exact: "exact",
+  EXACT: "exact",
   /**
    * Match the overrides which have the given context as subset
    */
-  Subset: "subset",
+  SUBSET: "subset",
 } as const
 /**
  * @public
@@ -979,9 +983,9 @@ export type DimensionMatchStrategy = typeof DimensionMatchStrategy[keyof typeof 
  * @enum
  */
 export const ContextFilterSortOn = {
-  CreatedAt: "created_at",
-  LastModifiedAt: "last_modified_at",
-  Weight: "weight",
+  CREATED_AT: "created_at",
+  LAST_MODIFIED_AT: "last_modified_at",
+  WEIGHT: "weight",
 } as const
 /**
  * @public
@@ -1012,7 +1016,7 @@ export interface ListContextsInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
-  prefix?: string | undefined;
+  prefix?: (string)[] | undefined;
   sort_on?: ContextFilterSortOn | undefined;
   /**
    * Sort order enumeration for list operations.
@@ -1020,8 +1024,8 @@ export interface ListContextsInput {
    */
   sort_by?: SortBy | undefined;
 
-  created_by?: string | undefined;
-  last_modified_by?: string | undefined;
+  created_by?: (string)[] | undefined;
+  last_modified_by?: (string)[] | undefined;
   plaintext?: string | undefined;
   /**
    * Strategy to follow while filter items based on the context
@@ -1272,8 +1276,8 @@ export interface CreateExperimentGroupRequest {
  * @enum
  */
 export const FunctionTypes = {
-  Autocomplete: "AUTOCOMPLETE",
-  Validation: "VALIDATION",
+  AUTOCOMPLETE: "AUTOCOMPLETE",
+  VALIDATION: "VALIDATION",
 } as const
 /**
  * @public
@@ -1331,9 +1335,9 @@ export interface CreateOrganisationRequest {
  * @enum
  */
 export const OrgStatus = {
-  Active: "Active",
-  Inactive: "Inactive",
-  PendingKyb: "PendingKyb",
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
+  PENDING_KYB: "PendingKyb",
 } as const
 /**
  * @public
@@ -1730,15 +1734,15 @@ export const ExperimentGroupSortOn = {
   /**
    * Sort by creation timestamp.
    */
-  CreatedAt: "created_at",
+  CREATED_AT: "created_at",
   /**
    * Sort by last modification timestamp.
    */
-  LastModifiedAt: "last_modified_at",
+  LAST_MODIFIED_AT: "last_modified_at",
   /**
    * Sort by name.
    */
-  Name: "name",
+  NAME: "name",
 } as const
 /**
  * @public
@@ -1803,7 +1807,7 @@ export interface ListExperimentGroupsInput {
    * Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
    * @public
    */
-  group_type?: GroupType | undefined;
+  group_type?: (GroupType)[] | undefined;
 }
 
 /**
@@ -1860,8 +1864,8 @@ export interface GetExperimentInput {
  * @enum
  */
 export const ExperimentSortOn = {
-  CreatedAt: "created_at",
-  LastModifiedAt: "last_modified_at",
+  CREATED_AT: "created_at",
+  LAST_MODIFIED_AT: "last_modified_at",
 } as const
 /**
  * @public
@@ -1892,13 +1896,13 @@ export interface ListExperimentInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
-  status?: ExperimentStatusType | undefined;
+  status?: (ExperimentStatusType)[] | undefined;
   from_date?: Date | undefined;
   to_date?: Date | undefined;
   experiment_name?: string | undefined;
-  experiment_ids?: string | undefined;
-  experiment_group_ids?: string | undefined;
-  created_by?: string | undefined;
+  experiment_ids?: (string)[] | undefined;
+  experiment_group_ids?: (string)[] | undefined;
+  created_by?: (string)[] | undefined;
   sort_on?: ExperimentSortOn | undefined;
   /**
    * Sort order enumeration for list operations.
@@ -2009,6 +2013,7 @@ export interface ListFunctionInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  function_type?: (FunctionTypes)[] | undefined;
 }
 
 /**

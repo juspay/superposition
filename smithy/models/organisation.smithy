@@ -26,9 +26,9 @@ resource Organisation {
 }
 
 enum OrgStatus {
-    Active = "Active"
-    Inactive = "Inactive"
-    PendingKyb = "PendingKyb"
+    ACTIVE = "Active"
+    INACTIVE = "Inactive"
+    PENDING_KYB = "PendingKyb"
 }
 
 @mixin

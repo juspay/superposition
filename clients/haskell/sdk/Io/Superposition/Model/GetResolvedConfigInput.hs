@@ -37,7 +37,7 @@ import qualified Network.HTTP.Types.Method
 data GetResolvedConfigInput = GetResolvedConfigInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
-    prefix :: Data.Maybe.Maybe Data.Text.Text,
+    prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     version :: Data.Maybe.Maybe Data.Text.Text,
     show_reasoning :: Data.Maybe.Maybe Bool,
     merge_strategy :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
@@ -81,7 +81,7 @@ instance Data.Aeson.FromJSON GetResolvedConfigInput where
 data GetResolvedConfigInputBuilderState = GetResolvedConfigInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    prefixBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     show_reasoningBuilderState :: Data.Maybe.Maybe Bool,
     merge_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
@@ -113,7 +113,7 @@ setOrgId :: Data.Text.Text -> GetResolvedConfigInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
-setPrefix :: Data.Maybe.Maybe Data.Text.Text -> GetResolvedConfigInputBuilder ()
+setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> GetResolvedConfigInputBuilder ()
 setPrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
 

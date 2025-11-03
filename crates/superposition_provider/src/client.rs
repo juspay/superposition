@@ -477,6 +477,7 @@ impl ExperimentationConfig {
             .workspace_id(&options.workspace_id)
             .org_id(&options.org_id)
             .all(true)
+            .status(ExperimentStatusType::Created)
             .status(ExperimentStatusType::Inprogress)
             .send()
             .await

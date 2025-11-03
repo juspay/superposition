@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -34,6 +36,8 @@ public final class ListFunctionInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("function_type", SharedSchemas.FUNCTION_TYPES_LIST,
+                new HttpQueryTrait("function_type"))
         .build();
 
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
@@ -41,12 +45,14 @@ public final class ListFunctionInput implements SerializableStruct {
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_FUNCTION_TYPE = $SCHEMA.member("function_type");
 
     private final transient Integer count;
     private final transient Integer page;
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient List<FunctionTypes> functionType;
 
     private ListFunctionInput(Builder builder) {
         this.count = builder.count;
@@ -54,6 +60,7 @@ public final class ListFunctionInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.functionType = builder.functionType == null ? null : Collections.unmodifiableList(builder.functionType);
     }
 
     /**
@@ -85,6 +92,17 @@ public final class ListFunctionInput implements SerializableStruct {
         return orgId;
     }
 
+    public List<FunctionTypes> functionType() {
+        if (functionType == null) {
+            return Collections.emptyList();
+        }
+        return functionType;
+    }
+
+    public boolean hasFunctionType() {
+        return functionType != null;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -103,12 +121,13 @@ public final class ListFunctionInput implements SerializableStruct {
                && Objects.equals(this.page, that.page)
                && Objects.equals(this.all, that.all)
                && Objects.equals(this.workspaceId, that.workspaceId)
-               && Objects.equals(this.orgId, that.orgId);
+               && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.functionType, that.functionType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId);
+        return Objects.hash(count, page, all, workspaceId, orgId, functionType);
     }
 
     @Override
@@ -129,6 +148,9 @@ public final class ListFunctionInput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (functionType != null) {
+            serializer.writeList($SCHEMA_FUNCTION_TYPE, functionType, functionType.size(), SharedSerde.FunctionTypesListSerializer.INSTANCE);
+        }
     }
 
     @Override
@@ -140,6 +162,7 @@ public final class ListFunctionInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, functionType);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -158,6 +181,7 @@ public final class ListFunctionInput implements SerializableStruct {
         builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.functionType(this.functionType);
         return builder;
     }
 
@@ -178,6 +202,7 @@ public final class ListFunctionInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
+        private List<FunctionTypes> functionType;
 
         private Builder() {}
 
@@ -236,6 +261,14 @@ public final class ListFunctionInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder functionType(List<FunctionTypes> functionType) {
+            this.functionType = functionType;
+            return this;
+        }
+
         @Override
         public ListFunctionInput build() {
             tracker.validate();
@@ -251,6 +284,7 @@ public final class ListFunctionInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 5 -> functionType((List<FunctionTypes>) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -292,6 +326,7 @@ public final class ListFunctionInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
+                    case 5 -> builder.functionType(SharedSerde.deserializeFunctionTypesList(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

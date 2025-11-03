@@ -101,7 +101,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             var listExpInput = ListExperimentInput.builder()
                 .orgId(options.orgId)
                 .workspaceId(options.workspaceId)
-                .status(ExperimentStatusType.INPROGRESS)
+                .status(List.of(ExperimentStatusType.CREATED, ExperimentStatusType.INPROGRESS))
                 .build();
             this.expRefresh = Optional.of(
                 RefreshJob.create(

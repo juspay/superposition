@@ -166,18 +166,23 @@ impl ListExperimentFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
+    /// 
+    /// Appends an item to `status`.
+    /// 
+    /// To override the contents of this collection use [`set_status`](Self::set_status).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn status(mut self, input: crate::types::ExperimentStatusType) -> Self {
-                    self.inner = self.inner.status(input);
-                    self
-                }
+                        self.inner = self.inner.status(input);
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_status(mut self, input: ::std::option::Option<crate::types::ExperimentStatusType>) -> Self {
+    pub fn set_status(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>>) -> Self {
                     self.inner = self.inner.set_status(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_status(&self) -> &::std::option::Option<crate::types::ExperimentStatusType> {
+    pub fn get_status(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>> {
                     self.inner.get_status()
                 }
     #[allow(missing_docs)] // documentation missing in model
@@ -222,46 +227,61 @@ impl ListExperimentFluentBuilder {
     pub fn get_experiment_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_experiment_name()
                 }
+    /// 
+    /// Appends an item to `experiment_ids`.
+    /// 
+    /// To override the contents of this collection use [`set_experiment_ids`](Self::set_experiment_ids).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn experiment_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.experiment_ids(input.into());
-                    self
-                }
+                        self.inner = self.inner.experiment_ids(input.into());
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_ids(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_experiment_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_experiment_ids(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_ids(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_experiment_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_experiment_ids()
                 }
+    /// 
+    /// Appends an item to `experiment_group_ids`.
+    /// 
+    /// To override the contents of this collection use [`set_experiment_group_ids`](Self::set_experiment_group_ids).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn experiment_group_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.experiment_group_ids(input.into());
-                    self
-                }
+                        self.inner = self.inner.experiment_group_ids(input.into());
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_group_ids(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_experiment_group_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_experiment_group_ids(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_group_ids(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_experiment_group_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_experiment_group_ids()
                 }
+    /// 
+    /// Appends an item to `created_by`.
+    /// 
+    /// To override the contents of this collection use [`set_created_by`](Self::set_created_by).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.created_by(input.into());
-                    self
-                }
+                        self.inner = self.inner.created_by(input.into());
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_created_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_created_by(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_created_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_created_by()
                 }
     #[allow(missing_docs)] // documentation missing in model

@@ -501,7 +501,7 @@ describe("Dimension API", () => {
             description: "Validation function for dimension test",
             change_reason: "Creating test validation function",
             runtime_version: "1",
-            function_type: FunctionTypes.Validation,
+            function_type: FunctionTypes.VALIDATION,
         });
 
         try {
@@ -569,7 +569,7 @@ describe("Dimension API", () => {
             description: "autocomplete function for dimension test",
             change_reason: "Creating test autocomplete function",
             runtime_version: "1",
-            function_type: FunctionTypes.Autocomplete,
+            function_type: FunctionTypes.AUTOCOMPLETE,
         });
 
         try {

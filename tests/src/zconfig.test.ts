@@ -13,7 +13,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            prefix: "test-prefix",
+            prefix: ["test-prefix"],
             // version: 1,
             context: {},
         };
@@ -48,7 +48,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
         const input_1 = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            prefix: "test-prefix",
+            prefix: ["test-prefix"],
             // version: 1,
             context: {},
         };
