@@ -192,18 +192,19 @@ impl Default for ExperimentSortOn {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, PartialEq, IsEmpty, QueryParam)]
+#[derive(Deserialize, Clone, PartialEq, IsEmpty, QueryParam)]
 pub struct ExperimentListFilters {
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub status: Option<CommaSeparatedQParams<ExperimentStatusType>>,
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,
+    #[query_param(skip_if_empty)]
     pub experiment_name: Option<String>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub experiment_ids: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub experiment_group_ids: Option<CommaSeparatedStringQParams>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub created_by: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,

@@ -55,6 +55,8 @@ pub use crate::types::_function_response::FunctionResponse;
 
 pub use crate::types::_audit_log_full::AuditLogFull;
 
+pub use crate::types::_audit_action::AuditAction;
+
 pub use crate::types::_list_versions_member::ListVersionsMember;
 
 pub use crate::types::_merge_strategy::MergeStrategy;
@@ -92,6 +94,8 @@ pub use crate::types::_context_filter_sort_on::ContextFilterSortOn;
 pub use crate::types::_dimension_ext::DimensionExt;
 
 pub use crate::types::_default_config_full::DefaultConfigFull;
+
+mod _audit_action;
 
 mod _audit_log_full;
 

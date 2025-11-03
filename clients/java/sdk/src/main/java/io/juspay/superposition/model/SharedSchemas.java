@@ -34,6 +34,10 @@ final class SharedSchemas {
         .putMember("member", Variant.$SCHEMA)
         .build();
 
+    static final Schema AUDIT_ACTION_LIST = Schema.listBuilder(ShapeId.from("io.superposition#AuditActionList"))
+        .putMember("member", AuditAction.$SCHEMA)
+        .build();
+
     static final Schema AUDIT_LOG_LIST = Schema.listBuilder(ShapeId.from("io.superposition#AuditLogList"))
         .putMember("member", AuditLogFull.$SCHEMA)
         .build();
@@ -119,6 +123,10 @@ final class SharedSchemas {
         .putMember("member", DimensionExt.$SCHEMA)
         .build();
 
+    static final Schema GROUP_TYPE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#GroupTypeList"))
+        .putMember("member", GroupType.$SCHEMA)
+        .build();
+
     static final Schema EXPERIMENT_GROUP_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentGroupList"))
         .putMember("member", ExperimentGroupResponse.$SCHEMA)
         .build();
@@ -127,8 +135,16 @@ final class SharedSchemas {
         .putMember("member", ExperimentResponse.$SCHEMA)
         .build();
 
+    static final Schema EXPERIMENT_STATUS_TYPE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentStatusTypeList"))
+        .putMember("member", ExperimentStatusType.$SCHEMA)
+        .build();
+
     static final Schema LIST_VARIANT_UPDATE_REQUEST = Schema.listBuilder(ShapeId.from("io.superposition#ListVariantUpdateRequest"))
         .putMember("member", VariantUpdateRequest.$SCHEMA)
+        .build();
+
+    static final Schema FUNCTION_TYPES_LIST = Schema.listBuilder(ShapeId.from("io.superposition#FunctionTypesList"))
+        .putMember("member", FunctionTypes.$SCHEMA)
         .build();
 
     static final Schema FUNCTION_LIST_RESPONSE = Schema.listBuilder(ShapeId.from("io.superposition#FunctionListResponse"))

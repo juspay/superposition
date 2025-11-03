@@ -1,14 +1,10 @@
-use actix_web::{
-    get,
-    web::{Json, Query},
-    Scope,
-};
+use actix_web::{get, web::Json, Scope};
 use chrono::{Duration, Utc};
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_types::{
     api::audit_log::AuditQueryFilters,
-    custom_query::PaginationParams,
+    custom_query::{self as superposition_query, PaginationParams},
     database::{models::cac::EventLog, schema::event_log::dsl as event_log},
     result as superposition, PaginatedResponse, SortBy,
 };
@@ -19,12 +15,11 @@ pub fn endpoints() -> Scope {
 
 #[get("")]
 async fn get_audit_logs(
-    filters: Query<AuditQueryFilters>,
-    pagination_params: Query<PaginationParams>,
+    filters: superposition_query::Query<AuditQueryFilters>,
+    pagination_params: superposition_query::Query<PaginationParams>,
     db_conn: DbConnection,
     schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
-    let filters = filters.into_inner();
     let now = Utc::now();
     let from_date = filters.from_date.unwrap_or(now - Duration::days(7));
     let to_date = filters.to_date.unwrap_or(now);
@@ -53,7 +48,6 @@ async fn get_audit_logs(
         )
     };
 
-    let pagination_params = pagination_params.into_inner();
     let sort_by = filters.sort_by.clone().unwrap_or(SortBy::Desc);
     let base_query = query_builder(&filters);
     let count_query = query_builder(&filters);

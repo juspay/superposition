@@ -12,6 +12,7 @@ use superposition_types::{
 #[derive(PartialEq, Clone, IsEmpty, QueryParam)]
 pub(super) struct PageParams {
     pub(super) grouped: bool,
+    #[query_param(skip_if_empty)]
     pub(super) prefix: Option<String>,
 }
 

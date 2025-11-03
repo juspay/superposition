@@ -4,7 +4,7 @@ use derive_more::{Deref, DerefMut};
 use regex::Regex;
 use serde::{
     de::{self, DeserializeOwned},
-    Deserialize, Deserializer, Serialize,
+    Deserialize, Deserializer,
 };
 use serde_json::{Map, Value};
 #[cfg(feature = "experimentation")]
@@ -30,10 +30,17 @@ pub trait CustomQuery: Sized {
     }
 
     fn extract_query(query_string: &str) -> Result<Self, String> {
-        let query_map =
-            serde_urlencoded::from_str::<HashMap<String, String>>(query_string).map_err(
+        let query_list =
+            serde_urlencoded::from_str::<Vec<(String, String)>>(query_string).map_err(
                 |e| format!("Failed to parse query string: {query_string}. Error: {e}"),
             )?;
+        let mut query_map = HashMap::new();
+        for (key, value) in query_list {
+            let new_val = query_map
+                .get(&key)
+                .map_or_else(|| value.clone(), |v| format!("{v},{value}"));
+            query_map.insert(key, new_val);
+        }
         let filtered_query = Self::filter_and_transform_query(query_map);
         let inner =
             serde_urlencoded::from_str::<Self::Inner>(&filtered_query).map_err(|e| {
@@ -125,7 +132,7 @@ where
 }
 
 /// Provides struct to extract those query params from the request which are `not wrapped` in contrusts like `platform[param_name]`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deref, DerefMut)]
 pub struct Query<T: DeserializeOwned>(pub T);
 
 impl<T> CustomQuery for Query<T>
@@ -323,15 +330,6 @@ impl<'de, T: Display + FromStr> Deserialize<'de> for CommaSeparatedQParams<T> {
                 serde::de::Error::custom(String::from("Error in converting type"))
             })?;
         Ok(Self(items))
-    }
-}
-
-impl<T: Display + FromStr> Serialize for CommaSeparatedQParams<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
     }
 }
 

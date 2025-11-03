@@ -4,6 +4,7 @@ module Io.Superposition.Model.ListFunctionInput (
     setAll',
     setWorkspaceId,
     setOrgId,
+    setFunctionType,
     build,
     ListFunctionInputBuilder,
     ListFunctionInput,
@@ -11,7 +12,8 @@ module Io.Superposition.Model.ListFunctionInput (
     page,
     all',
     workspace_id,
-    org_id
+    org_id,
+    function_type
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -24,6 +26,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.FunctionTypes
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
 
@@ -32,7 +35,8 @@ data ListFunctionInput = ListFunctionInput {
     page :: Data.Maybe.Maybe Data.Int.Int32,
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
-    org_id :: Data.Text.Text
+    org_id :: Data.Text.Text,
+    function_type :: Data.Maybe.Maybe ([] Io.Superposition.Model.FunctionTypes.FunctionTypes)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -45,7 +49,8 @@ instance Data.Aeson.ToJSON ListFunctionInput where
         "page" Data.Aeson..= page a,
         "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
-        "org_id" Data.Aeson..= org_id a
+        "org_id" Data.Aeson..= org_id a,
+        "function_type" Data.Aeson..= function_type a
         ]
     
 
@@ -58,6 +63,7 @@ instance Data.Aeson.FromJSON ListFunctionInput where
         Control.Applicative.<*> (v Data.Aeson..: "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..: "function_type")
     
 
 
@@ -67,7 +73,8 @@ data ListFunctionInputBuilderState = ListFunctionInputBuilderState {
     pageBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    function_typeBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.FunctionTypes.FunctionTypes)
 } deriving (
   GHC.Generics.Generic
   )
@@ -78,7 +85,8 @@ defaultBuilderState = ListFunctionInputBuilderState {
     pageBuilderState = Data.Maybe.Nothing,
     all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
-    org_idBuilderState = Data.Maybe.Nothing
+    org_idBuilderState = Data.Maybe.Nothing,
+    function_typeBuilderState = Data.Maybe.Nothing
 }
 
 type ListFunctionInputBuilder = Control.Monad.State.Strict.State ListFunctionInputBuilderState
@@ -103,6 +111,10 @@ setOrgId :: Data.Text.Text -> ListFunctionInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setFunctionType :: Data.Maybe.Maybe ([] Io.Superposition.Model.FunctionTypes.FunctionTypes) -> ListFunctionInputBuilder ()
+setFunctionType value =
+   Control.Monad.State.Strict.modify (\s -> (s { function_typeBuilderState = value }))
+
 build :: ListFunctionInputBuilder () -> Data.Either.Either Data.Text.Text ListFunctionInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -111,12 +123,14 @@ build builder = do
     all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListFunctionInput.ListFunctionInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListFunctionInput.ListFunctionInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    function_type' <- Data.Either.Right (function_typeBuilderState st)
     Data.Either.Right (ListFunctionInput { 
         count = count',
         page = page',
         all' = all'',
         workspace_id = workspace_id',
-        org_id = org_id'
+        org_id = org_id',
+        function_type = function_type'
     })
 
 
@@ -128,6 +142,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListFunctionInput where
             ]
         Io.Superposition.Utility.serQuery "all" (all' self)
         Io.Superposition.Utility.serQuery "count" (count self)
+        Io.Superposition.Utility.serQuery "function_type" (function_type self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)

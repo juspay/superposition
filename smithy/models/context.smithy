@@ -191,9 +191,9 @@ operation GetContextFromCondition with [GetOperation] {
 }
 
 enum ContextFilterSortOn {
-    LastModifiedAt = "last_modified_at"
-    CreatedAt = "created_at"
-    Weight = "weight"
+    LAST_MODIFIED_AT = "last_modified_at"
+    CREATED_AT = "created_at"
+    WEIGHT = "weight"
 }
 
 list ListContextOut {
@@ -208,7 +208,7 @@ operation ListContexts {
     input := with [PaginationParams, WorkspaceMixin] {
         @httpQuery("prefix")
         @notProperty
-        prefix: String
+        prefix: StringList
 
         @httpQuery("sort_on")
         @notProperty
@@ -220,11 +220,11 @@ operation ListContexts {
 
         @httpQuery("created_by")
         @notProperty
-        created_by: String
+        created_by: StringList
 
         @httpQuery("last_modified_by")
         @notProperty
-        last_modified_by: String
+        last_modified_by: StringList
 
         @httpQuery("plaintext")
         @notProperty

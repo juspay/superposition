@@ -2,6 +2,7 @@
 package io.juspay.superposition.model;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
@@ -31,7 +32,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
-        .putMember("prefix", PreludeSchemas.STRING,
+        .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
         .putMember("version", PreludeSchemas.STRING,
                 new HttpQueryTrait("version"))
@@ -55,7 +56,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
-    private final transient String prefix;
+    private final transient List<String> prefix;
     private final transient String version;
     private final transient Boolean showReasoning;
     private final transient MergeStrategy mergeStrategy;
@@ -65,7 +66,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
     private GetResolvedConfigInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
-        this.prefix = builder.prefix;
+        this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.version = builder.version;
         this.showReasoning = builder.showReasoning;
         this.mergeStrategy = builder.mergeStrategy;
@@ -81,8 +82,15 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         return orgId;
     }
 
-    public String prefix() {
+    public List<String> prefix() {
+        if (prefix == null) {
+            return Collections.emptyList();
+        }
         return prefix;
+    }
+
+    public boolean hasPrefix() {
+        return prefix != null;
     }
 
     public String version() {
@@ -151,7 +159,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (prefix != null) {
-            serializer.writeString($SCHEMA_PREFIX, prefix);
+            serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version);
@@ -220,7 +228,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
-        private String prefix;
+        private List<String> prefix;
         private String version;
         private Boolean showReasoning;
         private MergeStrategy mergeStrategy;
@@ -257,7 +265,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder prefix(String prefix) {
+        public Builder prefix(List<String> prefix) {
             this.prefix = prefix;
             return this;
         }
@@ -314,7 +322,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 2 -> prefix((String) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 2 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
                 case 3 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
                 case 4 -> showReasoning((boolean) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, value));
                 case 5 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
@@ -358,7 +366,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
-                    case 2 -> builder.prefix(de.readString(member));
+                    case 2 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
                     case 3 -> builder.version(de.readString(member));
                     case 4 -> builder.showReasoning(de.readBoolean(member));
                     case 5 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());

@@ -63,14 +63,17 @@ pub enum SortOn {
     LastModifiedAt,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, IsEmpty, QueryParam)]
+#[derive(Debug, Clone, Deserialize, PartialEq, IsEmpty, QueryParam)]
 pub struct ExpGroupFilters {
+    #[query_param(skip_if_empty)]
     pub name: Option<String>,
+    #[query_param(skip_if_empty)]
     pub created_by: Option<String>,
+    #[query_param(skip_if_empty)]
     pub last_modified_by: Option<String>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
-    #[query_param(skip_if_empty)]
+    #[query_param(skip_if_empty, iterable)]
     pub group_type: Option<CommaSeparatedQParams<GroupType>>,
 }
 

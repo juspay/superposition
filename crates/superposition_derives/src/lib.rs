@@ -199,6 +199,11 @@ pub fn derive_is_empty(input: TokenStream) -> TokenStream {
 
 /// Implements `QueryParam` trait for the struct, allowing it to be used as a query string
 ///
+/// Supports the following attributes on fields:
+/// - `#[query_param(skip_if_empty)]`: Skip the field if it's empty (requires `IsEmpty` trait)
+/// - `#[query_param(iterable)]`: Iterate over the field and create multiple query parameters with the same key
+/// - `#[query_param(skip_if_empty, iterable)]`: Combine both behaviors
+///
 #[proc_macro_derive(QueryParam, attributes(query_param))]
 pub fn derive_query_param(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -231,16 +236,26 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
         let field_name = field.ident.unwrap();
         let field_str = field_name.to_string();
 
-        // detect if field has #[query_param(skip_if_empty)]
+        // detect if field has #[query_param(skip_if_empty, iterable)]
         let mut skip_if_empty = false;
+        let mut iter = false;
         for attr in &field.attrs {
             if attr.path().is_ident("query_param") {
-                let ident: syn::Ident = match attr.parse_args() {
-                    Ok(v) => v,
-                    Err(_) => continue,
-                };
-                if ident == "skip_if_empty" {
-                    skip_if_empty = true;
+                // Parse comma-separated arguments
+                let args: syn::punctuated::Punctuated<syn::Ident, syn::Token![,]> =
+                    match attr
+                        .parse_args_with(syn::punctuated::Punctuated::parse_terminated)
+                    {
+                        Ok(v) => v,
+                        Err(_) => continue,
+                    };
+
+                for arg in args {
+                    match arg.to_string().as_str() {
+                        "skip_if_empty" => skip_if_empty = true,
+                        "iterable" => iter = true,
+                        _ => {}
+                    }
                 }
             }
         }
@@ -248,31 +263,64 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
         // check if the type is Option<_>
         let is_option = matches!(&field.ty, Type::Path(type_path) if type_path.path.segments.first().is_some_and(|seg| seg.ident == "Option"));
 
-        if is_option && skip_if_empty {
-            query_parts.push(quote! {
-                if let Some(value) = &self.#field_name {
-                    if !value.is_empty() {
+        // Build the query generation logic dynamically
+        let query_generation = match (is_option, skip_if_empty, iter) {
+            // For Option types
+            (true, skip_empty, use_iter) => {
+                let inner_logic = if use_iter {
+                    quote! {
+                        for item in value.iter() {
+                            query_params.push(format!("{}={}", #field_str, item));
+                        }
+                    }
+                } else {
+                    quote! {
                         query_params.push(format!("{}={}", #field_str, value));
                     }
+                };
+
+                if skip_empty {
+                    quote! {
+                        if let Some(value) = &self.#field_name {
+                            if !value.is_empty() {
+                                #inner_logic
+                            }
+                        }
+                    }
+                } else {
+                    quote! {
+                        if let Some(value) = &self.#field_name {
+                            #inner_logic
+                        }
+                    }
                 }
-            });
-        } else if is_option && !skip_if_empty {
-            query_parts.push(quote! {
-                if let Some(value) = &self.#field_name {
-                    query_params.push(format!("{}={}", #field_str, value));
+            }
+            // For non-Option types
+            (false, skip_empty, use_iter) => {
+                let inner_logic = if use_iter {
+                    quote! {
+                        for item in self.#field_name.iter() {
+                            query_params.push(format!("{}={}", #field_str, item));
+                        }
+                    }
+                } else {
+                    quote! {
+                        query_params.push(format!("{}={}", #field_str, self.#field_name));
+                    }
+                };
+                if skip_empty {
+                    quote! {
+                        if !self.#field_name.is_empty() {
+                            #inner_logic
+                        }
+                    }
+                } else {
+                    inner_logic
                 }
-            });
-        } else if skip_if_empty {
-            query_parts.push(quote! {
-                if !self.#field_name.is_empty() {
-                    query_params.push(format!("{}={}", #field_str, self.#field_name));
-                }
-            });
-        } else {
-            query_parts.push(quote! {
-                query_params.push(format!("{}={}", #field_str, self.#field_name));
-            });
-        }
+            }
+        };
+
+        query_parts.push(query_generation);
     }
 
     let expanded = quote! {

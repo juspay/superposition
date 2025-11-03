@@ -53,7 +53,9 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  *   last_modified_by: "STRING_VALUE",
  *   sort_on: "name" || "created_at" || "last_modified_at",
  *   sort_by: "desc" || "asc",
- *   group_type: "USER_CREATED" || "SYSTEM_GENERATED",
+ *   group_type: [ // GroupTypeList
+ *     "USER_CREATED" || "SYSTEM_GENERATED",
+ *   ],
  * };
  * const command = new ListExperimentGroupsCommand(input);
  * const response = await client.send(command);

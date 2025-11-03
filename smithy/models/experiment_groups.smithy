@@ -4,18 +4,22 @@ namespace io.superposition
 
 enum ExperimentGroupSortOn {
     @documentation("Sort by name.")
-    Name = "name"
+    NAME = "name"
 
     @documentation("Sort by creation timestamp.")
-    CreatedAt = "created_at"
+    CREATED_AT = "created_at"
 
     @documentation("Sort by last modification timestamp.")
-    LastModifiedAt = "last_modified_at"
+    LAST_MODIFIED_AT = "last_modified_at"
 }
 
 enum GroupType {
     USER_CREATED
     SYSTEM_GENERATED
+}
+
+list GroupTypeList {
+    member: GroupType
 }
 
 structure Bucket {
@@ -262,7 +266,7 @@ operation ListExperimentGroups {
 
         @httpQuery("group_type")
         @documentation("Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).")
-        group_type: GroupType
+        group_type: GroupTypeList
     }
 
     output := with [PaginatedResponse] {
