@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_derives-v0.8.0 - 2025-11-04
+#### Features
+- Support multi value query params as repeated keys (#737) - (f267ff5) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.89.0 [skip ci] - (d68f44e) - Superposition Bot
+
+- - -
+
 ## superposition_derives-v0.7.0 - 2025-09-09
 #### Features
 - Add QueryString proc_macro_derive (#656) - (30b4584) - Ayush Jain

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.45.0 - 2025-11-04
+#### Features
+- Support multi value query params as repeated keys (#737) - (f267ff5) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.92.0 [skip ci] - (30c3eea) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.44.0 - 2025-10-23
 #### Features
 - **(audit-log)** add UI for Audit Log API (#594) - (1288eac) - Natarajan Kannan
