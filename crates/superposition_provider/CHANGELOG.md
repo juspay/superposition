@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.6.0 - 2025-11-04
+#### Bug Fixes
+- experiment groups provider changes (#726) - (c7c4388) - Ankit Kumar Mahato
+- update rust provider to match standard s11n provider interface (#731) - (5531554) - Datron
+#### Features
+- **(frontend)** better UI for cohort schema (#724) - (fbc7bc0) - Ayush Jain
+- add provider tests (#738) - (b23e665) - Datron
+- Support multi value query params as repeated keys (#737) - (f267ff5) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.91.2 [skip ci] - (083e1df) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.5.2 - 2025-10-07
 #### Bug Fixes
 - cohort resolution in get applicable variants (#719) - (abe4bd4) - Ayush Jain

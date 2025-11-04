@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.93.0 - 2025-11-04
+### Package updates
+- superposition_sdk bumped to superposition_sdk-v0.10.0
+- superposition_core bumped to superposition_core-v0.7.3
+- experimentation_client bumped to experimentation_client-v0.20.2
+- haskell_client bumped to haskell_client-v0.8.0
+- superposition_derives bumped to superposition_derives-v0.8.0
+- frontend bumped to frontend-v0.46.0
+- context_aware_config bumped to context_aware_config-v0.64.0
+- superposition_provider bumped to superposition_provider-v0.6.0
+- experimentation_platform bumped to experimentation_platform-v0.45.0
+- superposition_types bumped to superposition_types-v0.36.0
+### Global changes
+#### Bug Fixes
+- experiment groups provider changes (#726) - (c7c4388) - Ankit Kumar Mahato
+#### Features
+- add provider checks (#723) - (43f239d) - Datron
+- Support multi value query params as repeated keys (#737) - (f267ff5) - Ayush Jain
+- add provider tests (#738) - (b23e665) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.92.0 [skip ci] - (30c3eea) - Superposition Bot
+
+- - -
+
 ## v0.92.0 - 2025-10-23
 ### Package updates
 - frontend bumped to frontend-v0.45.0

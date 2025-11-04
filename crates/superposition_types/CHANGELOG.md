@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.36.0 - 2025-11-04
+#### Bug Fixes
+- experiment groups provider changes (#726) - (c7c4388) - Ankit Kumar Mahato
+#### Features
+- **(frontend)** better UI for cohort schema (#724) - (fbc7bc0) - Ayush Jain
+- Support multi value query params as repeated keys (#737) - (f267ff5) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.92.0 [skip ci] - (30c3eea) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.35.0 - 2025-10-23
 #### Features
 - **(audit-log)** add UI for Audit Log API (#594) - (1288eac) - Natarajan Kannan
