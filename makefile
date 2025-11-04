@@ -24,6 +24,7 @@ WORKSPACE_MEMBERS := $(shell $(get_workspace_members))
 
 # Create the package flags for cargo fmt
 FMT_PACKAGE_FLAGS := $(addprefix -p ,$(WORKSPACE_MEMBERS))
+LEPTOS_PACKAGES := $(addprefix crates/,$(WORKSPACE_MEMBERS))
 WASM_PACK_MODE ?= --dev
 HAS_DOCKER := $(shell command -v docker > /dev/null; echo $$?)
 HAS_PODMAN := $(shell command -v podman > /dev/null; echo $$?)
@@ -313,7 +314,7 @@ smithy-api-docs: smithy-build
 smithy-updates: smithy-clients smithy-api-docs
 
 leptosfmt:
-	leptosfmt $(LEPTOS_FMT_FLAGS) crates/frontend
+	leptosfmt $(LEPTOS_FMT_FLAGS) $(LEPTOS_PACKAGES)
 
 # Note: Run make from the repository root for correct path exclusions!
 
@@ -324,7 +325,7 @@ lint-fix: lint
 check: FMT_FLAGS += --check
 check: LEPTOS_FMT_FLAGS += --check
 check: LINT_FLAGS += -- -Dwarnings
-check: fmt lint
+check: fmt leptosfmt lint
 
 
 # Target to run cargo fmt on filtered packages

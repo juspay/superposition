@@ -63,7 +63,6 @@ services:
   #       - TENANT_MIDDLEWARE_EXCLUSION_LIST=/health,/assets/favicon.ico,/pkg/frontend.js,/pkg,/pkg/frontend_bg.wasm,/pkg/tailwind.css,/pkg/style.css,/assets,/admin,/oidc/login,/admin/organisations,/organisations,/organisations/switch/{organisation_id},/
   #       - SERVICE_NAME=CAC
   #       - AUTH_PROVIDER=DISABLED
-  #       - LOCAL_ORGS=localorg
   #       - WORKER_ID=5
   #   depends_on:
   #     - postgres
