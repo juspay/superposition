@@ -63,7 +63,6 @@ class ConfigurationClient:
             self.exp_config.start_polling_update()
 
     def eval(self, query_data: dict, targeting_key: Optional[str]) -> dict[str, Any]:
-        
         experimentdata = None
         if self.exp_config:
             experimentdata = ExperimentationArgs(
@@ -74,11 +73,9 @@ class ConfigurationClient:
         try:
             cache_key = self.cac_config._generate_cache_key(query_data)
             cached = self.cac_config._get_from_eval_cache(cache_key)
-
             if cached:
                 logger.debug("Using cached evaluation result")
                 return cached
-
             print(f"Evaluating configuration with query data: {query_data}")
             result = ffi_eval_config(
                 self.cac_config.cached_config.get('default_configs', {}),

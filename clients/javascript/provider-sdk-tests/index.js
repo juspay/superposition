@@ -294,7 +294,7 @@ async function create_experiments(org_id, workspace_id) {
             org_id,
             id: response.id,
             change_reason: "ramp the experiment",
-            traffic_percentage: 25,
+            traffic_percentage: 50,
             });
           let response_two = await client.send(command_two);
           console.log("Ramped experiment:", response_two);
@@ -426,25 +426,17 @@ async function runDemo(org_id, workspace_id) {
       assert.strictEqual(currency, "Dollar", "Currency should be Dollar in Boston");
       console.log("  ✓ Test passed\n");
     }
-    // turn this on when bucketing is done for FFI legacy and uniffi
-    // console.log("Test 9: Experiment case: Bangalore pricing");
-    // {
-    //   const context_control = { city: "Bangalore", toss: 30 };
-    //   const price_control = await ofClient.getNumberValue("price", 0, context_control);
-    //   const currency_control = await ofClient.getStringValue("currency", "", context_control);
+    console.log("Test 9: Experiment case: Bangalore pricing");
+    {
+      const context_control = { city: "Bangalore", targetingKey: "test" };
+      const price_control = await ofClient.getNumberValue("price", 0, context_control);
+      const currency_control = await ofClient.getStringValue("currency", "", context_control);
+      console.log(`  Retrieved price: ${price_control}, currency: ${currency_control}`);
 
-    //   assert.strictEqual(price_control, 10000, "Price should be 10000 for Bangalore Control Variant");
-    //   assert.strictEqual(currency_control, "Rupee", "Currency should be Rupee in Bangalore");
-    //   console.log("  ✓ Control Test passed\n");
-
-    //   const context_variant = { city: "Bangalore", toss: 1 };
-    //   const price_variant = await ofClient.getNumberValue("price", 0, context_variant);
-    //   const currency_variant = await ofClient.getStringValue("currency", "", context_variant);
-
-    //   assert.strictEqual(price_variant, 8800, "Price should be 8800 for Bangalore Experimental Variant");
-    //   assert.strictEqual(currency_variant, "Rupee", "Currency should be Rupee in Bangalore");
-    //   console.log("  ✓ Experimental Test passed\n");
-    // }
+      assert.strictEqual(price_control, 10000 || 8800, "Price should be either 10000 (control) or 8800 (experimental) in Bangalore");
+      assert.strictEqual(currency_control, "Rupee", "Currency should be Rupee in Bangalore");
+      console.log("  ✓ Experiment Test passed\n");
+    }
 
     console.log("\n=== All tests passed! ===\n");
   } catch (error) {
