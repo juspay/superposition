@@ -34,6 +34,7 @@ from .superposition_types import Condition
 from .superposition_types import Context
 from .superposition_types import DimensionInfo
 from .superposition_types import GroupType
+from .superposition_types import MergeStrategy
 from .superposition_types import Overrides
 from .superposition_types import Variant
 from .superposition_types import Variants
@@ -43,6 +44,7 @@ from .superposition_types import _UniffiConverterTypeCondition
 from .superposition_types import _UniffiConverterTypeContext
 from .superposition_types import _UniffiConverterTypeDimensionInfo
 from .superposition_types import _UniffiConverterTypeGroupType
+from .superposition_types import _UniffiConverterTypeMergeStrategy
 from .superposition_types import _UniffiConverterTypeOverrides
 from .superposition_types import _UniffiConverterTypeVariant
 from .superposition_types import _UniffiConverterTypeVariants
@@ -52,6 +54,7 @@ from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferCondition
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferContext
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferDimensionInfo
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferGroupType
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferMergeStrategy
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferOverrides
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferVariant
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferVariants
@@ -486,9 +489,9 @@ def _uniffi_check_contract_api_version(lib):
         raise InternalError("UniFFI contract version mismatch: try cleaning and rebuilding your project")
 
 def _uniffi_check_api_checksums(lib):
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 19563:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 61169:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 2552:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 47981:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -604,7 +607,7 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.argtypes = (
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
-    _UniffiRustBuffer,
+    _UniffiRustBufferMergeStrategy,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -616,7 +619,7 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning.argt
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
-    _UniffiRustBuffer,
+    _UniffiRustBufferMergeStrategy,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -1120,44 +1123,6 @@ class _UniffiConverterTypeFfiExperimentGroup(_UniffiConverterRustBuffer):
         _UniffiConverterTypeBuckets.write(value.buckets, buf)
 
 
-
-
-
-class MergeStrategy(enum.Enum):
-    MERGE = 0
-    
-    REPLACE = 1
-    
-
-
-class _UniffiConverterTypeMergeStrategy(_UniffiConverterRustBuffer):
-    @staticmethod
-    def read(buf):
-        variant = buf.read_i32()
-        if variant == 1:
-            return MergeStrategy.MERGE
-        if variant == 2:
-            return MergeStrategy.REPLACE
-        raise InternalError("Raw enum value doesn't match any cases")
-
-    @staticmethod
-    def check_lower(value):
-        if value == MergeStrategy.MERGE:
-            return
-        if value == MergeStrategy.REPLACE:
-            return
-        raise ValueError(value)
-
-    @staticmethod
-    def write(value, buf):
-        if value == MergeStrategy.MERGE:
-            buf.write_i32(1)
-        if value == MergeStrategy.REPLACE:
-            buf.write_i32(2)
-
-
-
-
 # OperationError
 # We want to define each variant as a nested class that's also a subclass,
 # which is tricky in Python.  To accomplish this we're going to create each
@@ -1554,6 +1519,8 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # External type GroupType: `from .superposition_types import GroupType`
 
+# External type MergeStrategy: `from .superposition_types import MergeStrategy`
+
 # External type Buckets: `from .superposition_types import Buckets`
 
 # External type Condition: `from .superposition_types import Condition`
@@ -1638,7 +1605,6 @@ def ffi_get_applicable_variants(eargs: "ExperimentationArgs",dimensions_info: "d
 
 __all__ = [
     "InternalError",
-    "MergeStrategy",
     "OperationError",
     "ExperimentationArgs",
     "FfiExperiment",

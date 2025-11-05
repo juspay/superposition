@@ -11,6 +11,8 @@ pub struct DimensionInfo  {
     pub dimension_type: crate::types::DimensionType,
     #[allow(missing_docs)] // documentation missing in model
     pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl  DimensionInfo  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
@@ -29,6 +31,10 @@ impl  DimensionInfo  {
     pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>> {
         &self.dependency_graph
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
+        self.autocomplete_function_name.as_deref()
+    }
 }
 impl DimensionInfo {
     /// Creates a new builder-style object to manufacture [`DimensionInfo`](crate::types::DimensionInfo).
@@ -45,6 +51,7 @@ pub struct DimensionInfoBuilder {
     pub(crate) position: ::std::option::Option<i32>,
     pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
     pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>,
+    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl DimensionInfoBuilder {
     /// Adds a key-value pair to `schema`.
@@ -112,6 +119,19 @@ impl DimensionInfoBuilder {
     pub fn get_dependency_graph(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>> {
         &self.dependency_graph
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.autocomplete_function_name = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.autocomplete_function_name
+    }
     /// Consumes the builder and constructs a [`DimensionInfo`](crate::types::DimensionInfo).
     /// This method will fail if any of the following fields are not set:
     /// - [`schema`](crate::types::builders::DimensionInfoBuilder::schema)
@@ -140,6 +160,8 @@ impl DimensionInfoBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("dependency_graph", "dependency_graph was not specified but it is required when building DimensionInfo")
                     )?
+                ,
+                autocomplete_function_name: self.autocomplete_function_name
                 ,
             }
         )

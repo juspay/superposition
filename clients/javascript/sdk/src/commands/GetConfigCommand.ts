@@ -93,6 +93,7 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * //           "STRING_VALUE",
  * //         ],
  * //       },
+ * //       autocomplete_function_name: "STRING_VALUE",
  * //     },
  * //   },
  * //   version: "STRING_VALUE", // required
