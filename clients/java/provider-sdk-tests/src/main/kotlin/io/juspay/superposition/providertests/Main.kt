@@ -319,7 +319,7 @@ class Main {
                     client.createExperiment(experiment)
                 }
                 future.thenAccept { response ->
-                    println("Created experiment: $response")
+                    println("Created experiment: ${response.id()}")
                     val rampInput = RampExperimentInput.builder()
                         .workspaceId(workspaceId)
                         .orgId(orgId)
@@ -331,7 +331,7 @@ class Main {
                     val rampFuture = CompletableFuture.supplyAsync {
                         client.rampExperiment(rampInput)
                     }.thenAccept { rampResponse ->
-                        println("Experiment ramped: $rampResponse")
+                        println("Experiment ramped to: ${rampResponse.trafficPercentage()}%")
                     }
                     rampFuture.join()
                 }
@@ -360,6 +360,11 @@ class Main {
             .endpoint("http://localhost:8080")
             .token("12345678")
             .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
+            .experimentationOptions(
+                SuperpositionProviderOptions.ExperimentationOptions.builder()
+                        .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
+                        .build()
+            )
             .build()
 
         try {
