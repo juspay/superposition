@@ -16,9 +16,9 @@ impl super::Client {
     ///   - [`plaintext(impl Into<String>)`](crate::operation::list_contexts::builders::ListContextsFluentBuilder::plaintext) / [`set_plaintext(Option<String>)`](crate::operation::list_contexts::builders::ListContextsFluentBuilder::set_plaintext):<br>required: **false**<br>(undocumented)<br>
     ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::list_contexts::builders::ListContextsFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::list_contexts::builders::ListContextsFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
                             /// - On success, responds with [`ListContextsOutput`](crate::operation::list_contexts::ListContextsOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_contexts::ListContextsOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_contexts::ListContextsOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<ContextResponse>>)`](crate::operation::list_contexts::ListContextsOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_contexts::ListContextsOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_contexts::ListContextsOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<ContextResponse>)`](crate::operation::list_contexts::ListContextsOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListContextsError>`](crate::operation::list_contexts::ListContextsError)
     pub fn list_contexts(&self) -> crate::operation::list_contexts::builders::ListContextsFluentBuilder {
                                 crate::operation::list_contexts::builders::ListContextsFluentBuilder::new(self.handle.clone())

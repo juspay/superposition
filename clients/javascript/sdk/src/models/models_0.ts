@@ -84,7 +84,7 @@ export interface ModifyMembersToGroupRequest {
   change_reason: string | undefined;
 
   /**
-   * List of experiment IDs to add to this group.
+   * List of experiment IDs to add/remove to this group.
    * @public
    */
   member_experiment_ids: (string)[] | undefined;
@@ -145,7 +145,11 @@ export interface Variant {
   variant_type: VariantType | undefined;
   context_id?: string | undefined;
   override_id?: string | undefined;
-  overrides: __DocumentType | undefined;
+  /**
+   * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+   * @public
+   */
+  overrides: Record<string, __DocumentType> | undefined;
 }
 
 /**
@@ -228,38 +232,38 @@ export interface ListAuditLogsInput {
  * @public
  */
 export interface AuditLogFull {
-  table_name?: string | undefined;
-  user_name?: string | undefined;
-  timestamp?: Date | undefined;
-  action?: string | undefined;
+  id: string | undefined;
+  table_name: string | undefined;
+  user_name: string | undefined;
+  timestamp: Date | undefined;
+  action: AuditAction | undefined;
   original_data?: __DocumentType | undefined;
   new_data?: __DocumentType | undefined;
-  query?: string | undefined;
+  query: string | undefined;
 }
 
 /**
  * @public
  */
 export interface ListAuditLogsOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (AuditLogFull)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (AuditLogFull)[] | undefined;
 }
 
 /**
  * @public
  */
 export interface AutocompleteFunctionRequest {
-  name?: string | undefined;
-  prefix?: string | undefined;
-  environment?: __DocumentType | undefined;
+  name: string | undefined;
+  prefix: string | undefined;
+  environment: __DocumentType | undefined;
 }
 
 /**
  * @public
  */
 export interface ContextMove {
-  id?: string | undefined;
   /**
    * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
    * @public
@@ -268,6 +272,14 @@ export interface ContextMove {
 
   description?: string | undefined;
   change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ContextMoveBulkRequest {
+  id: string | undefined;
+  request: ContextMove | undefined;
 }
 
 /**
@@ -403,7 +415,7 @@ export namespace ContextAction {
     PUT?: never;
     REPLACE?: never;
     DELETE?: never;
-    MOVE: ContextMove;
+    MOVE: ContextMoveBulkRequest;
     $unknown?: never;
   }
 
@@ -422,7 +434,7 @@ export namespace ContextAction {
     PUT: (value: ContextPut) => T;
     REPLACE: (value: UpdateContextOverrideRequest) => T;
     DELETE: (value: string) => T;
-    MOVE: (value: ContextMove) => T;
+    MOVE: (value: ContextMoveBulkRequest) => T;
     _: (name: string, value: any) => T;
   }
 
@@ -442,18 +454,11 @@ export namespace ContextAction {
 /**
  * @public
  */
-export interface BulkOperationReq {
-  operations?: (ContextAction)[] | undefined;
-}
-
-/**
- * @public
- */
 export interface BulkOperationInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   config_tags?: string | undefined;
-  bulk_operation: BulkOperationReq | undefined;
+  operations: (ContextAction)[] | undefined;
 }
 
 /**
@@ -465,27 +470,27 @@ export interface ContextResponse {
    * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
    * @public
    */
-  value?: Record<string, __DocumentType> | undefined;
+  value: Record<string, __DocumentType> | undefined;
 
   /**
    * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
    * @public
    */
-  override?: Record<string, __DocumentType> | undefined;
+  override: Record<string, __DocumentType> | undefined;
 
-  override_id?: string | undefined;
+  override_id: string | undefined;
   /**
    * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
    * @public
    */
-  weight?: string | undefined;
+  weight: string | undefined;
 
-  description?: string | undefined;
-  change_reason?: string | undefined;
-  created_at?: Date | undefined;
-  created_by?: string | undefined;
-  last_modified_at?: Date | undefined;
-  last_modified_by?: string | undefined;
+  description: string | undefined;
+  change_reason: string | undefined;
+  created_at: Date | undefined;
+  created_by: string | undefined;
+  last_modified_at: Date | undefined;
+  last_modified_by: string | undefined;
 }
 
 /**
@@ -570,15 +575,8 @@ export namespace ContextActionOut {
 /**
  * @public
  */
-export interface BulkOperationOut {
-  output?: (ContextActionOut)[] | undefined;
-}
-
-/**
- * @public
- */
 export interface BulkOperationOutput {
-  bulk_operation_output?: BulkOperationOut | undefined;
+  output: (ContextActionOut)[] | undefined;
 }
 
 /**
@@ -673,16 +671,16 @@ export interface GetConfigInput {
  * @public
  */
 export interface ContextPartial {
-  id?: string | undefined;
+  id: string | undefined;
   /**
    * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
    * @public
    */
-  condition?: Record<string, __DocumentType> | undefined;
+  condition: Record<string, __DocumentType> | undefined;
 
-  priority?: number | undefined;
-  weight?: number | undefined;
-  override_with_keys?: (string)[] | undefined;
+  priority: number | undefined;
+  weight: number | undefined;
+  override_with_keys: (string)[] | undefined;
 }
 
 /**
@@ -763,28 +761,28 @@ export interface DimensionInfo {
    * Generic key-value object structure used for flexible data representation throughout the API.
    * @public
    */
-  schema?: Record<string, __DocumentType> | undefined;
+  schema: Record<string, __DocumentType> | undefined;
 
-  position?: number | undefined;
-  dimension_type?: DimensionType | undefined;
-  dependency_graph?: Record<string, (string)[]> | undefined;
+  position: number | undefined;
+  dimension_type: DimensionType | undefined;
+  dependency_graph: Record<string, (string)[]> | undefined;
 }
 
 /**
  * @public
  */
 export interface GetConfigOutput {
-  contexts?: (ContextPartial)[] | undefined;
-  overrides?: Record<string, Record<string, __DocumentType>> | undefined;
+  contexts: (ContextPartial)[] | undefined;
+  overrides: Record<string, Record<string, __DocumentType>> | undefined;
   /**
    * Generic key-value object structure used for flexible data representation throughout the API.
    * @public
    */
-  default_configs?: Record<string, __DocumentType> | undefined;
+  default_configs: Record<string, __DocumentType> | undefined;
 
-  dimensions?: Record<string, DimensionInfo> | undefined;
-  version?: string | undefined;
-  last_modified?: Date | undefined;
+  dimensions: Record<string, DimensionInfo> | undefined;
+  version: string | undefined;
+  last_modified: Date | undefined;
   audit_id?: string | undefined;
 }
 
@@ -842,9 +840,9 @@ export interface GetResolvedConfigInput {
  * @public
  */
 export interface GetResolvedConfigOutput {
-  config?: __DocumentType | undefined;
-  version?: string | undefined;
-  last_modified?: Date | undefined;
+  config: __DocumentType | undefined;
+  version: string | undefined;
+  last_modified: Date | undefined;
   audit_id?: string | undefined;
 }
 
@@ -903,9 +901,9 @@ export interface ListVersionsMember {
  * @public
  */
 export interface ListVersionsOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (ListVersionsMember)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (ListVersionsMember)[] | undefined;
 }
 
 /**
@@ -914,21 +912,8 @@ export interface ListVersionsOutput {
 export interface CreateContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
-  /**
-   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-   * @public
-   */
-  context: Record<string, __DocumentType> | undefined;
-
   config_tags?: string | undefined;
-  /**
-   * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-   * @public
-   */
-  override: Record<string, __DocumentType> | undefined;
-
-  description?: string | undefined;
-  change_reason: string | undefined;
+  request: ContextPut | undefined;
 }
 
 /**
@@ -1038,9 +1023,9 @@ export interface ListContextsInput {
  * @public
  */
 export interface ListContextsOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (ContextResponse)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (ContextResponse)[] | undefined;
 }
 
 /**
@@ -1050,14 +1035,7 @@ export interface MoveContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   id: string | undefined;
-  /**
-   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-   * @public
-   */
-  context: Record<string, __DocumentType> | undefined;
-
-  description?: string | undefined;
-  change_reason: string | undefined;
+  request: ContextMove | undefined;
 }
 
 /**
@@ -1096,24 +1074,24 @@ export interface WeightRecomputeInput {
  * @public
  */
 export interface WeightRecomputeResponse {
-  id?: string | undefined;
+  id: string | undefined;
   /**
    * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
    * @public
    */
-  condition?: Record<string, __DocumentType> | undefined;
+  condition: Record<string, __DocumentType> | undefined;
 
   /**
    * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
    * @public
    */
-  old_weight?: string | undefined;
+  old_weight: string | undefined;
 
   /**
    * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
    * @public
    */
-  new_weight?: string | undefined;
+  new_weight: string | undefined;
 }
 
 /**
@@ -1137,12 +1115,7 @@ export interface CreateDefaultConfigInput {
 
   description: string | undefined;
   change_reason: string | undefined;
-  /**
-   * Optional
-   * @public
-   */
   function_name?: string | undefined;
-
   autocomplete_function_name?: string | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1151,7 +1124,7 @@ export interface CreateDefaultConfigInput {
 /**
  * @public
  */
-export interface DefaultConfigFull {
+export interface DefaultConfigResponse {
   key: string | undefined;
   value: __DocumentType | undefined;
   /**
@@ -1162,12 +1135,7 @@ export interface DefaultConfigFull {
 
   description: string | undefined;
   change_reason: string | undefined;
-  /**
-   * Optional
-   * @public
-   */
   function_name?: string | undefined;
-
   autocomplete_function_name?: string | undefined;
   created_at: Date | undefined;
   created_by: string | undefined;
@@ -1199,7 +1167,7 @@ export interface CreateDimensionInput {
 /**
  * @public
  */
-export interface DimensionExt {
+export interface DimensionResponse {
   dimension: string | undefined;
   position: number | undefined;
   /**
@@ -1218,7 +1186,7 @@ export interface DimensionExt {
   dependency_graph: Record<string, (string)[]> | undefined;
   dimension_type: DimensionType | undefined;
   autocomplete_function_name?: string | undefined;
-  mandatory?: boolean | undefined;
+  mandatory: boolean | undefined;
 }
 
 /**
@@ -1519,7 +1487,7 @@ export interface WorkspaceResponse {
   created_at: Date | undefined;
   mandatory_dimensions?: (string)[] | undefined;
   strict_mode: boolean | undefined;
-  metrics?: __DocumentType | undefined;
+  metrics: __DocumentType | undefined;
   allow_experiment_self_approval: boolean | undefined;
   auto_populate_control: boolean | undefined;
 }
@@ -1573,9 +1541,9 @@ export interface ListDefaultConfigsInput {
  * @public
  */
 export interface ListDefaultConfigsOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (DefaultConfigFull)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (DefaultConfigResponse)[] | undefined;
 }
 
 /**
@@ -1593,8 +1561,17 @@ export interface UpdateDefaultConfigInput {
    */
   schema?: Record<string, __DocumentType> | undefined;
 
+  /**
+   * To unset the function name, pass "null" string.
+   * @public
+   */
   function_name?: string | undefined;
+
   description?: string | undefined;
+  /**
+   * To unset the function name, pass "null" string.
+   * @public
+   */
   autocomplete_function_name?: string | undefined;
 }
 
@@ -1682,9 +1659,9 @@ export interface ListDimensionsInput {
  * @public
  */
 export interface ListDimensionsOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (DimensionExt)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (DimensionResponse)[] | undefined;
 }
 
 /**
@@ -1701,9 +1678,18 @@ export interface UpdateDimensionInput {
   schema?: Record<string, __DocumentType> | undefined;
 
   position?: number | undefined;
+  /**
+   * To unset the function name, pass "null" string.
+   * @public
+   */
   function_name?: string | undefined;
+
   description?: string | undefined;
   change_reason: string | undefined;
+  /**
+   * To unset the function name, pass "null" string.
+   * @public
+   */
   autocomplete_function_name?: string | undefined;
 }
 
@@ -1814,13 +1800,13 @@ export interface ListExperimentGroupsInput {
  * @public
  */
 export interface ListExperimentGroupsOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
   /**
    * A list of experiment group responses.
    * @public
    */
-  data?: (ExperimentGroupResponse)[] | undefined;
+  data: (ExperimentGroupResponse)[] | undefined;
 }
 
 /**
@@ -1922,9 +1908,9 @@ export interface ListExperimentInput {
  * @public
  */
 export interface ListExperimentOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (ExperimentResponse)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (ExperimentResponse)[] | undefined;
 }
 
 /**
@@ -1963,7 +1949,11 @@ export interface ResumeExperimentInput {
  */
 export interface VariantUpdateRequest {
   id: string | undefined;
-  overrides: __DocumentType | undefined;
+  /**
+   * Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+   * @public
+   */
+  overrides: Record<string, __DocumentType> | undefined;
 }
 
 /**
@@ -1977,6 +1967,10 @@ export interface UpdateOverrideRequest {
   description?: string | undefined;
   change_reason: string | undefined;
   metrics?: __DocumentType | undefined;
+  /**
+   * To unset experiment group, pass "null" string.
+   * @public
+   */
   experiment_group_id?: string | undefined;
 }
 
@@ -2020,9 +2014,9 @@ export interface ListFunctionInput {
  * @public
  */
 export interface ListFunctionOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (FunctionResponse)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (FunctionResponse)[] | undefined;
 }
 
 /**
@@ -2048,8 +2042,8 @@ export interface FunctionExecutionResponse {
  * @public
  */
 export interface ValidateFunctionRequest {
-  key?: string | undefined;
-  value?: __DocumentType | undefined;
+  key: string | undefined;
+  value: __DocumentType | undefined;
 }
 
 /**
@@ -2136,8 +2130,8 @@ export interface UpdateFunctionRequest {
   function_name: string | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
-  function: string | undefined;
-  runtime_version: string | undefined;
+  function?: string | undefined;
+  runtime_version?: string | undefined;
 }
 
 /**
@@ -2186,9 +2180,9 @@ export interface GetTypeTemplatesListInput {
  * @public
  */
 export interface GetTypeTemplatesListOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (TypeTemplatesResponse)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (TypeTemplatesResponse)[] | undefined;
 }
 
 /**
@@ -2244,9 +2238,9 @@ export interface ListOrganisationInput {
  * @public
  */
 export interface ListOrganisationOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (OrganisationResponse)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (OrganisationResponse)[] | undefined;
 }
 
 /**
@@ -2279,9 +2273,9 @@ export interface ListWebhookInput {
  * @public
  */
 export interface ListWebhookOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (WebhookResponse)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (WebhookResponse)[] | undefined;
 }
 
 /**
@@ -2313,9 +2307,9 @@ export interface ListWorkspaceInput {
  * @public
  */
 export interface ListWorkspaceOutput {
-  total_pages?: number | undefined;
-  total_items?: number | undefined;
-  data?: (WorkspaceResponse)[] | undefined;
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (WorkspaceResponse)[] | undefined;
 }
 
 /**
@@ -2363,10 +2357,10 @@ export interface UpdateWebhookInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   name: string | undefined;
-  description: string | undefined;
-  enabled: boolean | undefined;
-  url: string | undefined;
-  method: HttpMethod | undefined;
+  description?: string | undefined;
+  enabled?: boolean | undefined;
+  url?: string | undefined;
+  method?: HttpMethod | undefined;
   version?: Version | undefined;
   /**
    * Generic key-value object structure used for flexible data representation throughout the API.
@@ -2374,7 +2368,7 @@ export interface UpdateWebhookInput {
    */
   custom_headers?: Record<string, __DocumentType> | undefined;
 
-  events: (string)[] | undefined;
+  events?: (string)[] | undefined;
   change_reason: string | undefined;
 }
 
@@ -2385,7 +2379,12 @@ export interface UpdateWorkspaceRequest {
   org_id: string | undefined;
   workspace_name: string | undefined;
   workspace_admin_email: string | undefined;
+  /**
+   * To unset config version, pass "null" string.
+   * @public
+   */
   config_version?: string | undefined;
+
   mandatory_dimensions?: (string)[] | undefined;
   workspace_status?: WorkspaceStatus | undefined;
   metrics?: __DocumentType | undefined;

@@ -4,6 +4,7 @@ package io.juspay.superposition.model;
 import java.time.Instant;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -15,6 +16,7 @@ import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpPayloadTrait;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -23,11 +25,14 @@ public final class GetResolvedConfigOutput implements SerializableStruct {
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("config", PreludeSchemas.DOCUMENT,
-                new HttpPayloadTrait())
+                new HttpPayloadTrait(),
+                new RequiredTrait())
         .putMember("version", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-config-version"))
+                new HttpHeaderTrait("x-config-version"),
+                new RequiredTrait())
         .putMember("last_modified", SharedSchemas.DATE_TIME,
-                new HttpHeaderTrait("last-modified"))
+                new HttpHeaderTrait("last-modified"),
+                new RequiredTrait())
         .putMember("audit_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-audit-id"))
         .build();
@@ -97,15 +102,9 @@ public final class GetResolvedConfigOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (config != null) {
-            serializer.writeDocument($SCHEMA_CONFIG, config);
-        }
-        if (version != null) {
-            serializer.writeString($SCHEMA_VERSION, version);
-        }
-        if (lastModified != null) {
-            serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
-        }
+        serializer.writeDocument($SCHEMA_CONFIG, config);
+        serializer.writeString($SCHEMA_VERSION, version);
+        serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
         if (auditId != null) {
             serializer.writeString($SCHEMA_AUDIT_ID, auditId);
         }
@@ -150,6 +149,7 @@ public final class GetResolvedConfigOutput implements SerializableStruct {
      * Builder for {@link GetResolvedConfigOutput}.
      */
     public static final class Builder implements ShapeBuilder<GetResolvedConfigOutput> {
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private Document config;
         private String version;
         private Instant lastModified;
@@ -163,26 +163,32 @@ public final class GetResolvedConfigOutput implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder config(Document config) {
-            this.config = config;
+            this.config = Objects.requireNonNull(config, "config cannot be null");
+            tracker.setMember($SCHEMA_CONFIG);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder version(String version) {
-            this.version = version;
+            this.version = Objects.requireNonNull(version, "version cannot be null");
+            tracker.setMember($SCHEMA_VERSION);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder lastModified(Instant lastModified) {
-            this.lastModified = lastModified;
+            this.lastModified = Objects.requireNonNull(lastModified, "lastModified cannot be null");
+            tracker.setMember($SCHEMA_LAST_MODIFIED);
             return this;
         }
 
@@ -196,6 +202,7 @@ public final class GetResolvedConfigOutput implements SerializableStruct {
 
         @Override
         public GetResolvedConfigOutput build() {
+            tracker.validate();
             return new GetResolvedConfigOutput(this);
         }
 
@@ -209,6 +216,23 @@ public final class GetResolvedConfigOutput implements SerializableStruct {
                 case 3 -> auditId((String) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<GetResolvedConfigOutput> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_CONFIG)) {
+                tracker.setMember($SCHEMA_CONFIG);
+            }
+            if (!tracker.checkMember($SCHEMA_VERSION)) {
+                version("");
+            }
+            if (!tracker.checkMember($SCHEMA_LAST_MODIFIED)) {
+                lastModified(Instant.EPOCH);
+            }
+            return this;
         }
 
         @Override

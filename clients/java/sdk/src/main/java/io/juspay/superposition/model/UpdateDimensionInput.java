@@ -102,6 +102,9 @@ public final class UpdateDimensionInput implements SerializableStruct {
         return position;
     }
 
+    /**
+     * To unset the function name, pass "null" string.
+     */
     public String functionName() {
         return functionName;
     }
@@ -114,6 +117,9 @@ public final class UpdateDimensionInput implements SerializableStruct {
         return changeReason;
     }
 
+    /**
+     * To unset the function name, pass "null" string.
+     */
     public String autocompleteFunctionName() {
         return autocompleteFunctionName;
     }
@@ -290,6 +296,8 @@ public final class UpdateDimensionInput implements SerializableStruct {
         }
 
         /**
+         * To unset the function name, pass "null" string.
+         *
          * @return this builder.
          */
         public Builder functionName(String functionName) {
@@ -316,6 +324,8 @@ public final class UpdateDimensionInput implements SerializableStruct {
         }
 
         /**
+         * To unset the function name, pass "null" string.
+         *
          * @return this builder.
          */
         public Builder autocompleteFunctionName(String autocompleteFunctionName) {

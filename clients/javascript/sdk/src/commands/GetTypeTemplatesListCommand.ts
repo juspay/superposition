@@ -52,9 +52,9 @@ export interface GetTypeTemplatesListCommandOutput extends GetTypeTemplatesListO
  * const command = new GetTypeTemplatesListCommand(input);
  * const response = await client.send(command);
  * // { // GetTypeTemplatesListOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // TypeTemplatesList
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // TypeTemplatesList // required
  * //     { // TypeTemplatesResponse
  * //       type_name: "STRING_VALUE", // required
  * //       type_schema: { // Object // required

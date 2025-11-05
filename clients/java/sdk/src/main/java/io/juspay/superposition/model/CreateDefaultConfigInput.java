@@ -100,9 +100,6 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         return changeReason;
     }
 
-    /**
-     * Optional
-     */
     public String functionName() {
         return functionName;
     }
@@ -289,8 +286,6 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         }
 
         /**
-         * Optional
-         *
          * @return this builder.
          */
         public Builder functionName(String functionName) {

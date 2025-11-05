@@ -37,7 +37,7 @@ pub fn de_list_experiment_groups_http_response(_response_status: u16, _response_
         #[allow(unused_mut)]
         let mut output = crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_experiment_groups::de_list_experiment_groups(_response_body, output).map_err(crate::operation::list_experiment_groups::ListExperimentGroupsError::unhandled)?;
-        output.build()
+        crate::serde_util::list_experiment_groups_output_output_correct_errors(output).build().map_err(crate::operation::list_experiment_groups::ListExperimentGroupsError::unhandled)?
     })
 }
 

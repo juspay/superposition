@@ -4,39 +4,36 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ContextPartial  {
     #[allow(missing_docs)] // documentation missing in model
-    pub id: ::std::option::Option<::std::string::String>,
+    pub id: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub condition: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub condition: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
-    pub priority: ::std::option::Option<i32>,
+    pub priority: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub weight: ::std::option::Option<i32>,
+    pub weight: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub override_with_keys: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub override_with_keys: ::std::vec::Vec::<::std::string::String>,
 }
 impl  ContextPartial  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn id(&self) -> ::std::option::Option<&str> {
-        self.id.as_deref()
+    pub fn id(&self) -> &str {
+        use std::ops::Deref; self.id.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.condition.as_ref()
+    pub fn condition(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+        &self.condition
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn priority(&self) -> ::std::option::Option<i32> {
+    pub fn priority(&self) -> i32 {
         self.priority
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn weight(&self) -> ::std::option::Option<i32> {
+    pub fn weight(&self) -> i32 {
         self.weight
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
-    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.override_with_keys.is_none()`.
     pub fn override_with_keys(&self) -> &[::std::string::String] {
-        self.override_with_keys.as_deref()
-        .unwrap_or_default()
+        use std::ops::Deref; self.override_with_keys.deref()
     }
 }
 impl ContextPartial {
@@ -58,6 +55,7 @@ pub struct ContextPartialBuilder {
 }
 impl ContextPartialBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.id = ::std::option::Option::Some(input.into());
         self
@@ -90,6 +88,7 @@ impl ContextPartialBuilder {
         &self.condition
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn priority(mut self, input: i32) -> Self {
         self.priority = ::std::option::Option::Some(input);
         self
@@ -103,6 +102,7 @@ impl ContextPartialBuilder {
         &self.priority
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn weight(mut self, input: i32) -> Self {
         self.weight = ::std::option::Option::Some(input);
         self
@@ -134,19 +134,42 @@ impl ContextPartialBuilder {
         &self.override_with_keys
     }
     /// Consumes the builder and constructs a [`ContextPartial`](crate::types::ContextPartial).
-    pub fn build(self) -> crate::types::ContextPartial {
-        crate::types::ContextPartial {
-            id: self.id
-            ,
-            condition: self.condition
-            ,
-            priority: self.priority
-            ,
-            weight: self.weight
-            ,
-            override_with_keys: self.override_with_keys
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`id`](crate::types::builders::ContextPartialBuilder::id)
+    /// - [`condition`](crate::types::builders::ContextPartialBuilder::condition)
+    /// - [`priority`](crate::types::builders::ContextPartialBuilder::priority)
+    /// - [`weight`](crate::types::builders::ContextPartialBuilder::weight)
+    /// - [`override_with_keys`](crate::types::builders::ContextPartialBuilder::override_with_keys)
+    pub fn build(self) -> ::std::result::Result<crate::types::ContextPartial, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::types::ContextPartial {
+                id: self.id
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("id", "id was not specified but it is required when building ContextPartial")
+                    )?
+                ,
+                condition: self.condition
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("condition", "condition was not specified but it is required when building ContextPartial")
+                    )?
+                ,
+                priority: self.priority
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("priority", "priority was not specified but it is required when building ContextPartial")
+                    )?
+                ,
+                weight: self.weight
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("weight", "weight was not specified but it is required when building ContextPartial")
+                    )?
+                ,
+                override_with_keys: self.override_with_keys
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("override_with_keys", "override_with_keys was not specified but it is required when building ContextPartial")
+                    )?
+                ,
+            }
+        )
     }
 }
 

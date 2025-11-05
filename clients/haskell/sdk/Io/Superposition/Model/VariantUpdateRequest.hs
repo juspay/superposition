@@ -13,6 +13,7 @@ import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
@@ -21,7 +22,7 @@ import qualified Io.Superposition.Utility
 
 data VariantUpdateRequest = VariantUpdateRequest {
     id' :: Data.Text.Text,
-    overrides :: Data.Aeson.Value
+    overrides :: Data.Map.Map Data.Text.Text Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -47,7 +48,7 @@ instance Data.Aeson.FromJSON VariantUpdateRequest where
 
 data VariantUpdateRequestBuilderState = VariantUpdateRequestBuilderState {
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    overridesBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
+    overridesBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
   )
@@ -64,7 +65,7 @@ setId' :: Data.Text.Text -> VariantUpdateRequestBuilder ()
 setId' value =
    Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = Data.Maybe.Just value }))
 
-setOverrides :: Data.Aeson.Value -> VariantUpdateRequestBuilder ()
+setOverrides :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> VariantUpdateRequestBuilder ()
 setOverrides value =
    Control.Monad.State.Strict.modify (\s -> (s { overridesBuilderState = Data.Maybe.Just value }))
 

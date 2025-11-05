@@ -4,47 +4,44 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct GetConfigOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub contexts: ::std::option::Option<::std::vec::Vec::<crate::types::ContextPartial>>,
+    pub contexts: ::std::vec::Vec::<crate::types::ContextPartial>,
     #[allow(missing_docs)] // documentation missing in model
-    pub overrides: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>>,
+    pub overrides: ::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub default_configs: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub default_configs: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
-    pub dimensions: ::std::option::Option<::std::collections::HashMap::<::std::string::String, crate::types::DimensionInfo>>,
+    pub dimensions: ::std::collections::HashMap::<::std::string::String, crate::types::DimensionInfo>,
     #[allow(missing_docs)] // documentation missing in model
-    pub version: ::std::option::Option<::std::string::String>,
+    pub version: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub last_modified: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub audit_id: ::std::option::Option<::std::string::String>,
 }
 impl  GetConfigOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    /// 
-    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.contexts.is_none()`.
     pub fn contexts(&self) -> &[crate::types::ContextPartial] {
-        self.contexts.as_deref()
-        .unwrap_or_default()
+        use std::ops::Deref; self.contexts.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn overrides(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>> {
-        self.overrides.as_ref()
+    pub fn overrides(&self) -> &::std::collections::HashMap::<::std::string::String, ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        &self.overrides
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn default_configs(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.default_configs.as_ref()
+    pub fn default_configs(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+        &self.default_configs
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn dimensions(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, crate::types::DimensionInfo>> {
-        self.dimensions.as_ref()
+    pub fn dimensions(&self) -> &::std::collections::HashMap::<::std::string::String, crate::types::DimensionInfo> {
+        &self.dimensions
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn version(&self) -> ::std::option::Option<&str> {
-        self.version.as_deref()
+    pub fn version(&self) -> &str {
+        use std::ops::Deref; self.version.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn last_modified(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
-        self.last_modified.as_ref()
+    pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
+        &self.last_modified
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn audit_id(&self) -> ::std::option::Option<&str> {
@@ -145,6 +142,7 @@ impl GetConfigOutputBuilder {
         &self.dimensions
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.version = ::std::option::Option::Some(input.into());
         self
@@ -158,6 +156,7 @@ impl GetConfigOutputBuilder {
         &self.version
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn last_modified(mut self, input: ::aws_smithy_types::DateTime) -> Self {
         self.last_modified = ::std::option::Option::Some(input);
         self
@@ -184,23 +183,50 @@ impl GetConfigOutputBuilder {
         &self.audit_id
     }
     /// Consumes the builder and constructs a [`GetConfigOutput`](crate::operation::get_config::GetConfigOutput).
-    pub fn build(self) -> crate::operation::get_config::GetConfigOutput {
-        crate::operation::get_config::GetConfigOutput {
-            contexts: self.contexts
-            ,
-            overrides: self.overrides
-            ,
-            default_configs: self.default_configs
-            ,
-            dimensions: self.dimensions
-            ,
-            version: self.version
-            ,
-            last_modified: self.last_modified
-            ,
-            audit_id: self.audit_id
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`contexts`](crate::operation::get_config::builders::GetConfigOutputBuilder::contexts)
+    /// - [`overrides`](crate::operation::get_config::builders::GetConfigOutputBuilder::overrides)
+    /// - [`default_configs`](crate::operation::get_config::builders::GetConfigOutputBuilder::default_configs)
+    /// - [`dimensions`](crate::operation::get_config::builders::GetConfigOutputBuilder::dimensions)
+    /// - [`version`](crate::operation::get_config::builders::GetConfigOutputBuilder::version)
+    /// - [`last_modified`](crate::operation::get_config::builders::GetConfigOutputBuilder::last_modified)
+    pub fn build(self) -> ::std::result::Result<crate::operation::get_config::GetConfigOutput, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::operation::get_config::GetConfigOutput {
+                contexts: self.contexts
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("contexts", "contexts was not specified but it is required when building GetConfigOutput")
+                    )?
+                ,
+                overrides: self.overrides
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("overrides", "overrides was not specified but it is required when building GetConfigOutput")
+                    )?
+                ,
+                default_configs: self.default_configs
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("default_configs", "default_configs was not specified but it is required when building GetConfigOutput")
+                    )?
+                ,
+                dimensions: self.dimensions
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimensions", "dimensions was not specified but it is required when building GetConfigOutput")
+                    )?
+                ,
+                version: self.version
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("version", "version was not specified but it is required when building GetConfigOutput")
+                    )?
+                ,
+                last_modified: self.last_modified
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified", "last_modified was not specified but it is required when building GetConfigOutput")
+                    )?
+                ,
+                audit_id: self.audit_id
+                ,
+            }
+        )
     }
 }
 

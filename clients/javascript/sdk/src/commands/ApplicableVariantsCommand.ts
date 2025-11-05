@@ -59,7 +59,9 @@ export interface ApplicableVariantsCommandOutput extends ApplicableVariantsOutpu
  * //       variant_type: "CONTROL" || "EXPERIMENTAL", // required
  * //       context_id: "STRING_VALUE",
  * //       override_id: "STRING_VALUE",
- * //       overrides: "DOCUMENT_VALUE", // required
+ * //       overrides: { // Overrides // required
+ * //         "<keys>": "DOCUMENT_VALUE",
+ * //       },
  * //     },
  * //   ],
  * // };

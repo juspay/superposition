@@ -50,9 +50,9 @@ export interface ListOrganisationCommandOutput extends ListOrganisationOutput, _
  * const command = new ListOrganisationCommand(input);
  * const response = await client.send(command);
  * // { // ListOrganisationOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // OrganisationList
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // OrganisationList // required
  * //     { // OrganisationResponse
  * //       id: "STRING_VALUE", // required
  * //       name: "STRING_VALUE", // required

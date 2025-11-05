@@ -3,21 +3,18 @@ pub fn ser_context_move(
                          object: &mut ::aws_smithy_json::serialize::JsonObjectWriter,
                          input: &crate::types::ContextMove,
                     ) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
-    if let Some(var_1) = &input.id {
-        object.key("id").string(var_1.as_str());
-    }
      {
         #[allow(unused_mut)]
-        let mut object_2 = object.key("context").start_object();
-        for (key_3, value_4) in &input.context {
+        let mut object_1 = object.key("context").start_object();
+        for (key_2, value_3) in &input.context {
              {
-                object_2.key(key_3.as_str()).document(value_4);
+                object_1.key(key_2.as_str()).document(value_3);
             }
         }
-        object_2.finish();
+        object_1.finish();
     }
-    if let Some(var_5) = &input.description {
-        object.key("description").string(var_5.as_str());
+    if let Some(var_4) = &input.description {
+        object.key("description").string(var_4.as_str());
     }
      {
         object.key("change_reason").string(input.change_reason.as_str());

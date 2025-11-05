@@ -48,8 +48,8 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  *   function_name: "STRING_VALUE", // required
  *   description: "STRING_VALUE",
  *   change_reason: "STRING_VALUE", // required
- *   function: "STRING_VALUE", // required
- *   runtime_version: "STRING_VALUE", // required
+ *   function: "STRING_VALUE",
+ *   runtime_version: "STRING_VALUE",
  * };
  * const command = new UpdateFunctionCommand(input);
  * const response = await client.send(command);

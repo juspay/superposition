@@ -20,9 +20,9 @@ impl super::Client {
     ///   - [`global_experiments_only(bool)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::global_experiments_only) / [`set_global_experiments_only(Option<bool>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_global_experiments_only):<br>required: **false**<br>(undocumented)<br>
     ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
                             /// - On success, responds with [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_experiment::ListExperimentOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_experiment::ListExperimentOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<ExperimentResponse>>)`](crate::operation::list_experiment::ListExperimentOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_experiment::ListExperimentOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_experiment::ListExperimentOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<ExperimentResponse>)`](crate::operation::list_experiment::ListExperimentOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListExperimentError>`](crate::operation::list_experiment::ListExperimentError)
     pub fn list_experiment(&self) -> crate::operation::list_experiment::builders::ListExperimentFluentBuilder {
                                 crate::operation::list_experiment::builders::ListExperimentFluentBuilder::new(self.handle.clone())

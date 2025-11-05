@@ -52,10 +52,10 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * const command = new ListDimensionsCommand(input);
  * const response = await client.send(command);
  * // { // ListDimensionsOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // DimensionExtList
- * //     { // DimensionExt
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // DimensionList // required
+ * //     { // DimensionResponse
  * //       dimension: "STRING_VALUE", // required
  * //       position: Number("int"), // required
  * //       schema: { // Object // required
@@ -68,7 +68,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //       last_modified_by: "STRING_VALUE", // required
  * //       created_at: new Date("TIMESTAMP"), // required
  * //       created_by: "STRING_VALUE", // required
- * //       dependency_graph: { // DepedendencyGraph // required
+ * //       dependency_graph: { // DependencyGraph // required
  * //         "<keys>": [ // StringList
  * //           "STRING_VALUE",
  * //         ],
@@ -79,7 +79,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //         REMOTE_COHORT: "STRING_VALUE",
  * //       },
  * //       autocomplete_function_name: "STRING_VALUE",
- * //       mandatory: true || false,
+ * //       mandatory: true || false, // required
  * //     },
  * //   ],
  * // };

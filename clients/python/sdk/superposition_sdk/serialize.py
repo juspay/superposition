@@ -171,16 +171,12 @@ async def _serialize_bulk_operation(input: BulkOperationInput, config: Config) -
     query: str = f''
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    content_length: int = 0
-    if input.bulk_operation is not None:
-        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
-        content = codec.serialize(input.bulk_operation)
-
-        content_length = len(content)
-        body = SeekableAsyncBytesReader(content)
-    else:
-        content_length = 2
-        body = SeekableAsyncBytesReader(b"{}")
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
 
     headers = Fields(
         [
@@ -254,12 +250,16 @@ async def _serialize_create_context(input: CreateContextInput, config: Config) -
     query: str = f''
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
-    content = codec.serialize(input)
-    if not content:
-        content = b"{}"
-    content_length = len(content)
-    body = SeekableAsyncBytesReader(content)
+    content_length: int = 0
+    if input.request is not None:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        content = codec.serialize(input.request)
+
+        content_length = len(content)
+        body = SeekableAsyncBytesReader(content)
+    else:
+        content_length = 2
+        body = SeekableAsyncBytesReader(b"{}")
 
     headers = Fields(
         [
@@ -1947,12 +1947,16 @@ async def _serialize_move_context(input: MoveContextInput, config: Config) -> HT
     query: str = f''
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
-    content = codec.serialize(input)
-    if not content:
-        content = b"{}"
-    content_length = len(content)
-    body = SeekableAsyncBytesReader(content)
+    content_length: int = 0
+    if input.request is not None:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        content = codec.serialize(input.request)
+
+        content_length = len(content)
+        body = SeekableAsyncBytesReader(content)
+    else:
+        content_length = 2
+        body = SeekableAsyncBytesReader(b"{}")
 
     headers = Fields(
         [
@@ -2466,7 +2470,7 @@ async def _serialize_update_override(input: UpdateOverrideInput, config: Config)
             scheme="https",
             query=query,
         ),
-        method="PUT",
+        method="PATCH",
         fields=headers,
         body=body,
     )

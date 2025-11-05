@@ -4,30 +4,30 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct DimensionInfo  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub schema: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
-    pub position: ::std::option::Option<i32>,
+    pub position: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub dimension_type: ::std::option::Option<crate::types::DimensionType>,
+    pub dimension_type: crate::types::DimensionType,
     #[allow(missing_docs)] // documentation missing in model
-    pub dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>,
+    pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>,
 }
 impl  DimensionInfo  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.schema.as_ref()
+    pub fn schema(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+        &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn position(&self) -> ::std::option::Option<i32> {
+    pub fn position(&self) -> i32 {
         self.position
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn dimension_type(&self) -> ::std::option::Option<&crate::types::DimensionType> {
-        self.dimension_type.as_ref()
+    pub fn dimension_type(&self) -> &crate::types::DimensionType {
+        &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn dependency_graph(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>> {
-        self.dependency_graph.as_ref()
+    pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>> {
+        &self.dependency_graph
     }
 }
 impl DimensionInfo {
@@ -67,6 +67,7 @@ impl DimensionInfoBuilder {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn position(mut self, input: i32) -> Self {
         self.position = ::std::option::Option::Some(input);
         self
@@ -80,6 +81,7 @@ impl DimensionInfoBuilder {
         &self.position
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn dimension_type(mut self, input: crate::types::DimensionType) -> Self {
         self.dimension_type = ::std::option::Option::Some(input);
         self
@@ -111,17 +113,36 @@ impl DimensionInfoBuilder {
         &self.dependency_graph
     }
     /// Consumes the builder and constructs a [`DimensionInfo`](crate::types::DimensionInfo).
-    pub fn build(self) -> crate::types::DimensionInfo {
-        crate::types::DimensionInfo {
-            schema: self.schema
-            ,
-            position: self.position
-            ,
-            dimension_type: self.dimension_type
-            ,
-            dependency_graph: self.dependency_graph
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`schema`](crate::types::builders::DimensionInfoBuilder::schema)
+    /// - [`position`](crate::types::builders::DimensionInfoBuilder::position)
+    /// - [`dimension_type`](crate::types::builders::DimensionInfoBuilder::dimension_type)
+    /// - [`dependency_graph`](crate::types::builders::DimensionInfoBuilder::dependency_graph)
+    pub fn build(self) -> ::std::result::Result<crate::types::DimensionInfo, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::types::DimensionInfo {
+                schema: self.schema
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("schema", "schema was not specified but it is required when building DimensionInfo")
+                    )?
+                ,
+                position: self.position
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("position", "position was not specified but it is required when building DimensionInfo")
+                    )?
+                ,
+                dimension_type: self.dimension_type
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimension_type", "dimension_type was not specified but it is required when building DimensionInfo")
+                    )?
+                ,
+                dependency_graph: self.dependency_graph
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dependency_graph", "dependency_graph was not specified but it is required when building DimensionInfo")
+                    )?
+                ,
+            }
+        )
     }
 }
 

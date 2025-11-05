@@ -5,7 +5,7 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  DefaultConfigFull,
+  DefaultConfigResponse,
   GetDefaultConfigInput,
 } from "../models/models_0";
 import {
@@ -32,7 +32,7 @@ export interface GetDefaultConfigCommandInput extends GetDefaultConfigInput {}
  *
  * The output of {@link GetDefaultConfigCommand}.
  */
-export interface GetDefaultConfigCommandOutput extends DefaultConfigFull, __MetadataBearer {}
+export interface GetDefaultConfigCommandOutput extends DefaultConfigResponse, __MetadataBearer {}
 
 /**
  * Retrieves a specific default config entry by its key, including its value, schema, function mappings, and metadata.
@@ -49,7 +49,7 @@ export interface GetDefaultConfigCommandOutput extends DefaultConfigFull, __Meta
  * };
  * const command = new GetDefaultConfigCommand(input);
  * const response = await client.send(command);
- * // { // DefaultConfigFull
+ * // { // DefaultConfigResponse
  * //   key: "STRING_VALUE", // required
  * //   value: "DOCUMENT_VALUE", // required
  * //   schema: { // Object // required
@@ -101,7 +101,7 @@ export class GetDefaultConfigCommand extends $Command.classBuilder<GetDefaultCon
 declare protected static __types: {
   api: {
       input: GetDefaultConfigInput;
-      output: DefaultConfigFull;
+      output: DefaultConfigResponse;
   };
   sdk: {
       input: GetDefaultConfigCommandInput;

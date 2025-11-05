@@ -12,9 +12,9 @@ impl super::Client {
     ///   - [`context_id(impl Into<String>)`](crate::operation::get_resolved_config::builders::GetResolvedConfigFluentBuilder::context_id) / [`set_context_id(Option<String>)`](crate::operation::get_resolved_config::builders::GetResolvedConfigFluentBuilder::set_context_id):<br>required: **false**<br>(undocumented)<br>
     ///   - [`context(impl Into<String>, Document)`](crate::operation::get_resolved_config::builders::GetResolvedConfigFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::get_resolved_config::builders::GetResolvedConfigFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
                             /// - On success, responds with [`GetResolvedConfigOutput`](crate::operation::get_resolved_config::GetResolvedConfigOutput) with field(s):
-    ///   - [`config(Option<Document>)`](crate::operation::get_resolved_config::GetResolvedConfigOutput::config): (undocumented)
-    ///   - [`version(Option<String>)`](crate::operation::get_resolved_config::GetResolvedConfigOutput::version): (undocumented)
-    ///   - [`last_modified(Option<DateTime>)`](crate::operation::get_resolved_config::GetResolvedConfigOutput::last_modified): (undocumented)
+    ///   - [`config(Document)`](crate::operation::get_resolved_config::GetResolvedConfigOutput::config): (undocumented)
+    ///   - [`version(String)`](crate::operation::get_resolved_config::GetResolvedConfigOutput::version): (undocumented)
+    ///   - [`last_modified(DateTime)`](crate::operation::get_resolved_config::GetResolvedConfigOutput::last_modified): (undocumented)
     ///   - [`audit_id(Option<String>)`](crate::operation::get_resolved_config::GetResolvedConfigOutput::audit_id): (undocumented)
                             /// - On failure, responds with [`SdkError<GetResolvedConfigError>`](crate::operation::get_resolved_config::GetResolvedConfigError)
     pub fn get_resolved_config(&self) -> crate::operation::get_resolved_config::builders::GetResolvedConfigFluentBuilder {

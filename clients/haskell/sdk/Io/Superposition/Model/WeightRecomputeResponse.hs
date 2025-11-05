@@ -25,10 +25,10 @@ import qualified GHC.Show
 import qualified Io.Superposition.Utility
 
 data WeightRecomputeResponse = WeightRecomputeResponse {
-    id' :: Data.Maybe.Maybe Data.Text.Text,
-    condition :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    old_weight :: Data.Maybe.Maybe Data.Text.Text,
-    new_weight :: Data.Maybe.Maybe Data.Text.Text
+    id' :: Data.Text.Text,
+    condition :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    old_weight :: Data.Text.Text,
+    new_weight :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -75,29 +75,29 @@ defaultBuilderState = WeightRecomputeResponseBuilderState {
 
 type WeightRecomputeResponseBuilder = Control.Monad.State.Strict.State WeightRecomputeResponseBuilderState
 
-setId' :: Data.Maybe.Maybe Data.Text.Text -> WeightRecomputeResponseBuilder ()
+setId' :: Data.Text.Text -> WeightRecomputeResponseBuilder ()
 setId' value =
-   Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = Data.Maybe.Just value }))
 
-setCondition :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> WeightRecomputeResponseBuilder ()
+setCondition :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> WeightRecomputeResponseBuilder ()
 setCondition value =
-   Control.Monad.State.Strict.modify (\s -> (s { conditionBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { conditionBuilderState = Data.Maybe.Just value }))
 
-setOldWeight :: Data.Maybe.Maybe Data.Text.Text -> WeightRecomputeResponseBuilder ()
+setOldWeight :: Data.Text.Text -> WeightRecomputeResponseBuilder ()
 setOldWeight value =
-   Control.Monad.State.Strict.modify (\s -> (s { old_weightBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { old_weightBuilderState = Data.Maybe.Just value }))
 
-setNewWeight :: Data.Maybe.Maybe Data.Text.Text -> WeightRecomputeResponseBuilder ()
+setNewWeight :: Data.Text.Text -> WeightRecomputeResponseBuilder ()
 setNewWeight value =
-   Control.Monad.State.Strict.modify (\s -> (s { new_weightBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { new_weightBuilderState = Data.Maybe.Just value }))
 
 build :: WeightRecomputeResponseBuilder () -> Data.Either.Either Data.Text.Text WeightRecomputeResponse
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    id'' <- Data.Either.Right (id'BuilderState st)
-    condition' <- Data.Either.Right (conditionBuilderState st)
-    old_weight' <- Data.Either.Right (old_weightBuilderState st)
-    new_weight' <- Data.Either.Right (new_weightBuilderState st)
+    id'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WeightRecomputeResponse.WeightRecomputeResponse.id' is a required property.") Data.Either.Right (id'BuilderState st)
+    condition' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WeightRecomputeResponse.WeightRecomputeResponse.condition is a required property.") Data.Either.Right (conditionBuilderState st)
+    old_weight' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WeightRecomputeResponse.WeightRecomputeResponse.old_weight is a required property.") Data.Either.Right (old_weightBuilderState st)
+    new_weight' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WeightRecomputeResponse.WeightRecomputeResponse.new_weight is a required property.") Data.Either.Right (new_weightBuilderState st)
     Data.Either.Right (WeightRecomputeResponse { 
         id' = id'',
         condition = condition',

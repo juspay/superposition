@@ -1,4 +1,4 @@
-module Io.Superposition.Model.DimensionExt (
+module Io.Superposition.Model.DimensionResponse (
     setDimension,
     setPosition,
     setSchema,
@@ -14,8 +14,8 @@ module Io.Superposition.Model.DimensionExt (
     setAutocompleteFunctionName,
     setMandatory,
     build,
-    DimensionExtBuilder,
-    DimensionExt,
+    DimensionResponseBuilder,
+    DimensionResponse,
     dimension,
     position,
     schema,
@@ -47,7 +47,7 @@ import qualified GHC.Show
 import qualified Io.Superposition.Model.DimensionType
 import qualified Io.Superposition.Utility
 
-data DimensionExt = DimensionExt {
+data DimensionResponse = DimensionResponse {
     dimension :: Data.Text.Text,
     position :: Data.Int.Int32,
     schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
@@ -61,14 +61,14 @@ data DimensionExt = DimensionExt {
     dependency_graph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text),
     dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
-    mandatory :: Data.Maybe.Maybe Bool
+    mandatory :: Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
   GHC.Generics.Generic
   )
 
-instance Data.Aeson.ToJSON DimensionExt where
+instance Data.Aeson.ToJSON DimensionResponse where
     toJSON a = Data.Aeson.object [
         "dimension" Data.Aeson..= dimension a,
         "position" Data.Aeson..= position a,
@@ -87,10 +87,10 @@ instance Data.Aeson.ToJSON DimensionExt where
         ]
     
 
-instance Io.Superposition.Utility.SerializeBody DimensionExt
+instance Io.Superposition.Utility.SerializeBody DimensionResponse
 
-instance Data.Aeson.FromJSON DimensionExt where
-    parseJSON = Data.Aeson.withObject "DimensionExt" $ \v -> DimensionExt
+instance Data.Aeson.FromJSON DimensionResponse where
+    parseJSON = Data.Aeson.withObject "DimensionResponse" $ \v -> DimensionResponse
         Data.Functor.<$> (v Data.Aeson..: "dimension")
         Control.Applicative.<*> (v Data.Aeson..: "position")
         Control.Applicative.<*> (v Data.Aeson..: "schema")
@@ -109,7 +109,7 @@ instance Data.Aeson.FromJSON DimensionExt where
 
 
 
-data DimensionExtBuilderState = DimensionExtBuilderState {
+data DimensionResponseBuilderState = DimensionResponseBuilderState {
     dimensionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     positionBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
@@ -128,8 +128,8 @@ data DimensionExtBuilderState = DimensionExtBuilderState {
   GHC.Generics.Generic
   )
 
-defaultBuilderState :: DimensionExtBuilderState
-defaultBuilderState = DimensionExtBuilderState {
+defaultBuilderState :: DimensionResponseBuilderState
+defaultBuilderState = DimensionResponseBuilderState {
     dimensionBuilderState = Data.Maybe.Nothing,
     positionBuilderState = Data.Maybe.Nothing,
     schemaBuilderState = Data.Maybe.Nothing,
@@ -146,82 +146,82 @@ defaultBuilderState = DimensionExtBuilderState {
     mandatoryBuilderState = Data.Maybe.Nothing
 }
 
-type DimensionExtBuilder = Control.Monad.State.Strict.State DimensionExtBuilderState
+type DimensionResponseBuilder = Control.Monad.State.Strict.State DimensionResponseBuilderState
 
-setDimension :: Data.Text.Text -> DimensionExtBuilder ()
+setDimension :: Data.Text.Text -> DimensionResponseBuilder ()
 setDimension value =
    Control.Monad.State.Strict.modify (\s -> (s { dimensionBuilderState = Data.Maybe.Just value }))
 
-setPosition :: Data.Int.Int32 -> DimensionExtBuilder ()
+setPosition :: Data.Int.Int32 -> DimensionResponseBuilder ()
 setPosition value =
    Control.Monad.State.Strict.modify (\s -> (s { positionBuilderState = Data.Maybe.Just value }))
 
-setSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> DimensionExtBuilder ()
+setSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> DimensionResponseBuilder ()
 setSchema value =
    Control.Monad.State.Strict.modify (\s -> (s { schemaBuilderState = Data.Maybe.Just value }))
 
-setFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionExtBuilder ()
+setFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionResponseBuilder ()
 setFunctionName value =
    Control.Monad.State.Strict.modify (\s -> (s { function_nameBuilderState = value }))
 
-setDescription :: Data.Text.Text -> DimensionExtBuilder ()
+setDescription :: Data.Text.Text -> DimensionResponseBuilder ()
 setDescription value =
    Control.Monad.State.Strict.modify (\s -> (s { descriptionBuilderState = Data.Maybe.Just value }))
 
-setChangeReason :: Data.Text.Text -> DimensionExtBuilder ()
+setChangeReason :: Data.Text.Text -> DimensionResponseBuilder ()
 setChangeReason value =
    Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
 
-setLastModifiedAt :: Data.Time.UTCTime -> DimensionExtBuilder ()
+setLastModifiedAt :: Data.Time.UTCTime -> DimensionResponseBuilder ()
 setLastModifiedAt value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modified_atBuilderState = Data.Maybe.Just value }))
 
-setLastModifiedBy :: Data.Text.Text -> DimensionExtBuilder ()
+setLastModifiedBy :: Data.Text.Text -> DimensionResponseBuilder ()
 setLastModifiedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = Data.Maybe.Just value }))
 
-setCreatedAt :: Data.Time.UTCTime -> DimensionExtBuilder ()
+setCreatedAt :: Data.Time.UTCTime -> DimensionResponseBuilder ()
 setCreatedAt value =
    Control.Monad.State.Strict.modify (\s -> (s { created_atBuilderState = Data.Maybe.Just value }))
 
-setCreatedBy :: Data.Text.Text -> DimensionExtBuilder ()
+setCreatedBy :: Data.Text.Text -> DimensionResponseBuilder ()
 setCreatedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = Data.Maybe.Just value }))
 
-setDependencyGraph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text) -> DimensionExtBuilder ()
+setDependencyGraph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text) -> DimensionResponseBuilder ()
 setDependencyGraph value =
    Control.Monad.State.Strict.modify (\s -> (s { dependency_graphBuilderState = Data.Maybe.Just value }))
 
-setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> DimensionExtBuilder ()
+setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> DimensionResponseBuilder ()
 setDimensionType value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_typeBuilderState = Data.Maybe.Just value }))
 
-setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionExtBuilder ()
+setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionResponseBuilder ()
 setAutocompleteFunctionName value =
    Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
 
-setMandatory :: Data.Maybe.Maybe Bool -> DimensionExtBuilder ()
+setMandatory :: Bool -> DimensionResponseBuilder ()
 setMandatory value =
-   Control.Monad.State.Strict.modify (\s -> (s { mandatoryBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { mandatoryBuilderState = Data.Maybe.Just value }))
 
-build :: DimensionExtBuilder () -> Data.Either.Either Data.Text.Text DimensionExt
+build :: DimensionResponseBuilder () -> Data.Either.Either Data.Text.Text DimensionResponse
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    dimension' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dimension is a required property.") Data.Either.Right (dimensionBuilderState st)
-    position' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.position is a required property.") Data.Either.Right (positionBuilderState st)
-    schema' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.schema is a required property.") Data.Either.Right (schemaBuilderState st)
+    dimension' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.dimension is a required property.") Data.Either.Right (dimensionBuilderState st)
+    position' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.position is a required property.") Data.Either.Right (positionBuilderState st)
+    schema' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.schema is a required property.") Data.Either.Right (schemaBuilderState st)
     function_name' <- Data.Either.Right (function_nameBuilderState st)
-    description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.description is a required property.") Data.Either.Right (descriptionBuilderState st)
-    change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
-    last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
-    last_modified_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.last_modified_by is a required property.") Data.Either.Right (last_modified_byBuilderState st)
-    created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
-    created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
-    dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
-    dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionExt.DimensionExt.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
+    description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.description is a required property.") Data.Either.Right (descriptionBuilderState st)
+    change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
+    last_modified_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.last_modified_by is a required property.") Data.Either.Right (last_modified_byBuilderState st)
+    created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
+    created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
+    dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
+    dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
     autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
-    mandatory' <- Data.Either.Right (mandatoryBuilderState st)
-    Data.Either.Right (DimensionExt { 
+    mandatory' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.mandatory is a required property.") Data.Either.Right (mandatoryBuilderState st)
+    Data.Either.Right (DimensionResponse { 
         dimension = dimension',
         position = position',
         schema = schema',

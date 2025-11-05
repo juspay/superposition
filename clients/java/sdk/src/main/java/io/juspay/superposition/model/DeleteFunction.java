@@ -23,7 +23,7 @@ public final class DeleteFunction implements ApiOperation<DeleteFunctionInput, D
     private static final DeleteFunction $INSTANCE = new DeleteFunction();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("DELETE").code(200).uri(UriPattern.parse("/function/{function_name}")).build());
+            HttpTrait.builder().method("DELETE").code(204).uri(UriPattern.parse("/function/{function_name}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

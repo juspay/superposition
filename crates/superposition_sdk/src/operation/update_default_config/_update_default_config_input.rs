@@ -15,11 +15,11 @@ pub struct UpdateDefaultConfigInput  {
     pub value: ::std::option::Option<::aws_smithy_types::Document>,
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateDefaultConfigInput  {
@@ -47,7 +47,7 @@ impl  UpdateDefaultConfigInput  {
     pub fn schema(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.schema.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn function_name(&self) -> ::std::option::Option<&str> {
         self.function_name.as_deref()
     }
@@ -55,7 +55,7 @@ impl  UpdateDefaultConfigInput  {
     pub fn description(&self) -> ::std::option::Option<&str> {
         self.description.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
         self.autocomplete_function_name.as_deref()
     }
@@ -170,16 +170,16 @@ impl UpdateDefaultConfigInputBuilder {
     pub fn get_schema(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.schema
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.function_name = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }
@@ -196,16 +196,16 @@ impl UpdateDefaultConfigInputBuilder {
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
         &self.description
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.autocomplete_function_name = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.autocomplete_function_name = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.autocomplete_function_name
     }

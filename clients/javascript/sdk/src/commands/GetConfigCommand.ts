@@ -56,47 +56,47 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * const command = new GetConfigCommand(input);
  * const response = await client.send(command);
  * // { // GetConfigOutput
- * //   contexts: [ // ContextList
+ * //   contexts: [ // ContextList // required
  * //     { // ContextPartial
- * //       id: "STRING_VALUE",
- * //       condition: { // Condition
+ * //       id: "STRING_VALUE", // required
+ * //       condition: { // Condition // required
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
- * //       priority: Number("int"),
- * //       weight: Number("int"),
- * //       override_with_keys: [ // OverrideWithKeys
+ * //       priority: Number("int"), // required
+ * //       weight: Number("int"), // required
+ * //       override_with_keys: [ // OverrideWithKeys // required
  * //         "STRING_VALUE",
  * //       ],
  * //     },
  * //   ],
- * //   overrides: { // OverridesMap
+ * //   overrides: { // OverridesMap // required
  * //     "<keys>": { // Overrides
  * //       "<keys>": "DOCUMENT_VALUE",
  * //     },
  * //   },
- * //   default_configs: { // Object
+ * //   default_configs: { // Object // required
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
- * //   dimensions: { // DimensionData
+ * //   dimensions: { // DimensionData // required
  * //     "<keys>": { // DimensionInfo
- * //       schema: {
+ * //       schema: { // required
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
- * //       position: Number("int"),
+ * //       position: Number("int"), // required
  * //       dimension_type: { // DimensionType Union: only one key present
  * //         REGULAR: {},
  * //         LOCAL_COHORT: "STRING_VALUE",
  * //         REMOTE_COHORT: "STRING_VALUE",
  * //       },
- * //       dependency_graph: { // DepedendencyGraph
+ * //       dependency_graph: { // DependencyGraph // required
  * //         "<keys>": [ // StringList
  * //           "STRING_VALUE",
  * //         ],
  * //       },
  * //     },
  * //   },
- * //   version: "STRING_VALUE",
- * //   last_modified: new Date("TIMESTAMP"),
+ * //   version: "STRING_VALUE", // required
+ * //   last_modified: new Date("TIMESTAMP"), // required
  * //   audit_id: "STRING_VALUE",
  * // };
  *

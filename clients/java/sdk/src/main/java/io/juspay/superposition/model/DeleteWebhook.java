@@ -23,7 +23,7 @@ public final class DeleteWebhook implements ApiOperation<DeleteWebhookInput, Del
     private static final DeleteWebhook $INSTANCE = new DeleteWebhook();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("DELETE").code(201).uri(UriPattern.parse("/webhook/{name}")).build());
+            HttpTrait.builder().method("DELETE").code(204).uri(UriPattern.parse("/webhook/{name}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

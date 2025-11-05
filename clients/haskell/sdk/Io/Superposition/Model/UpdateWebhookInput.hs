@@ -45,13 +45,13 @@ data UpdateWebhookInput = UpdateWebhookInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
     name :: Data.Text.Text,
-    description :: Data.Text.Text,
-    enabled :: Bool,
-    url :: Data.Text.Text,
-    method :: Io.Superposition.Model.HttpMethod.HttpMethod,
+    description :: Data.Maybe.Maybe Data.Text.Text,
+    enabled :: Data.Maybe.Maybe Bool,
+    url :: Data.Maybe.Maybe Data.Text.Text,
+    method :: Data.Maybe.Maybe Io.Superposition.Model.HttpMethod.HttpMethod,
     version :: Data.Maybe.Maybe Io.Superposition.Model.Version.Version,
     custom_headers :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    events :: [] Data.Text.Text,
+    events :: Data.Maybe.Maybe ([] Data.Text.Text),
     change_reason :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -139,21 +139,21 @@ setName :: Data.Text.Text -> UpdateWebhookInputBuilder ()
 setName value =
    Control.Monad.State.Strict.modify (\s -> (s { nameBuilderState = Data.Maybe.Just value }))
 
-setDescription :: Data.Text.Text -> UpdateWebhookInputBuilder ()
+setDescription :: Data.Maybe.Maybe Data.Text.Text -> UpdateWebhookInputBuilder ()
 setDescription value =
-   Control.Monad.State.Strict.modify (\s -> (s { descriptionBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { descriptionBuilderState = value }))
 
-setEnabled :: Bool -> UpdateWebhookInputBuilder ()
+setEnabled :: Data.Maybe.Maybe Bool -> UpdateWebhookInputBuilder ()
 setEnabled value =
-   Control.Monad.State.Strict.modify (\s -> (s { enabledBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { enabledBuilderState = value }))
 
-setUrl :: Data.Text.Text -> UpdateWebhookInputBuilder ()
+setUrl :: Data.Maybe.Maybe Data.Text.Text -> UpdateWebhookInputBuilder ()
 setUrl value =
-   Control.Monad.State.Strict.modify (\s -> (s { urlBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { urlBuilderState = value }))
 
-setMethod :: Io.Superposition.Model.HttpMethod.HttpMethod -> UpdateWebhookInputBuilder ()
+setMethod :: Data.Maybe.Maybe Io.Superposition.Model.HttpMethod.HttpMethod -> UpdateWebhookInputBuilder ()
 setMethod value =
-   Control.Monad.State.Strict.modify (\s -> (s { methodBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { methodBuilderState = value }))
 
 setVersion :: Data.Maybe.Maybe Io.Superposition.Model.Version.Version -> UpdateWebhookInputBuilder ()
 setVersion value =
@@ -163,9 +163,9 @@ setCustomHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Val
 setCustomHeaders value =
    Control.Monad.State.Strict.modify (\s -> (s { custom_headersBuilderState = value }))
 
-setEvents :: [] Data.Text.Text -> UpdateWebhookInputBuilder ()
+setEvents :: Data.Maybe.Maybe ([] Data.Text.Text) -> UpdateWebhookInputBuilder ()
 setEvents value =
-   Control.Monad.State.Strict.modify (\s -> (s { eventsBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { eventsBuilderState = value }))
 
 setChangeReason :: Data.Text.Text -> UpdateWebhookInputBuilder ()
 setChangeReason value =
@@ -177,13 +177,13 @@ build builder = do
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.name is a required property.") Data.Either.Right (nameBuilderState st)
-    description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
-    enabled' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.enabled is a required property.") Data.Either.Right (enabledBuilderState st)
-    url' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.url is a required property.") Data.Either.Right (urlBuilderState st)
-    method' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.method is a required property.") Data.Either.Right (methodBuilderState st)
+    description' <- Data.Either.Right (descriptionBuilderState st)
+    enabled' <- Data.Either.Right (enabledBuilderState st)
+    url' <- Data.Either.Right (urlBuilderState st)
+    method' <- Data.Either.Right (methodBuilderState st)
     version' <- Data.Either.Right (versionBuilderState st)
     custom_headers' <- Data.Either.Right (custom_headersBuilderState st)
-    events' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.events is a required property.") Data.Either.Right (eventsBuilderState st)
+    events' <- Data.Either.Right (eventsBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWebhookInput.UpdateWebhookInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     Data.Either.Right (UpdateWebhookInput { 
         workspace_id = workspace_id',

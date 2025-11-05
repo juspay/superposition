@@ -30,7 +30,7 @@ pub struct MigrateWorkspaceSchemaOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub strict_mode: bool,
     #[allow(missing_docs)] // documentation missing in model
-    pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
+    pub metrics: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
     pub allow_experiment_self_approval: bool,
     #[allow(missing_docs)] // documentation missing in model
@@ -93,8 +93,8 @@ impl  MigrateWorkspaceSchemaOutput  {
         self.strict_mode
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
-        self.metrics.as_ref()
+    pub fn metrics(&self) -> &::aws_smithy_types::Document {
+        &self.metrics
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn allow_experiment_self_approval(&self) -> bool {
@@ -320,6 +320,7 @@ impl MigrateWorkspaceSchemaOutputBuilder {
         &self.strict_mode
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.metrics = ::std::option::Option::Some(input);
         self
@@ -373,6 +374,7 @@ impl MigrateWorkspaceSchemaOutputBuilder {
     /// - [`last_modified_at`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaOutputBuilder::last_modified_at)
     /// - [`created_at`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaOutputBuilder::created_at)
     /// - [`strict_mode`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaOutputBuilder::strict_mode)
+    /// - [`metrics`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaOutputBuilder::metrics)
     /// - [`allow_experiment_self_approval`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaOutputBuilder::allow_experiment_self_approval)
     /// - [`auto_populate_control`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaOutputBuilder::auto_populate_control)
     pub fn build(self) -> ::std::result::Result<crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput, ::aws_smithy_types::error::operation::BuildError> {
@@ -438,6 +440,9 @@ impl MigrateWorkspaceSchemaOutputBuilder {
                     )?
                 ,
                 metrics: self.metrics
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("metrics", "metrics was not specified but it is required when building MigrateWorkspaceSchemaOutput")
+                    )?
                 ,
                 allow_experiment_self_approval: self.allow_experiment_self_approval
                     .ok_or_else(||

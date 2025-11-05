@@ -21,7 +21,7 @@ import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
 public final class UpdateDefaultConfigOutput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#DefaultConfigFull");
+    public static final ShapeId $ID = ShapeId.from("io.superposition#DefaultConfigResponse");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("key", PreludeSchemas.STRING,
@@ -108,9 +108,6 @@ public final class UpdateDefaultConfigOutput implements SerializableStruct {
         return changeReason;
     }
 
-    /**
-     * Optional
-     */
     public String functionName() {
         return functionName;
     }
@@ -315,8 +312,6 @@ public final class UpdateDefaultConfigOutput implements SerializableStruct {
         }
 
         /**
-         * Optional
-         *
          * @return this builder.
          */
         public Builder functionName(String functionName) {

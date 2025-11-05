@@ -13,7 +13,7 @@ pub struct CreateDefaultConfigInput  {
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
@@ -43,7 +43,7 @@ impl  CreateDefaultConfigInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn function_name(&self) -> ::std::option::Option<&str> {
         self.function_name.as_deref()
     }
@@ -157,16 +157,16 @@ impl CreateDefaultConfigInputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.function_name = input; self
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }

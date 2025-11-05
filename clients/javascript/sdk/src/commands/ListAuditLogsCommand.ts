@@ -62,17 +62,18 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  * const command = new ListAuditLogsCommand(input);
  * const response = await client.send(command);
  * // { // ListAuditLogsOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // AuditLogList
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // AuditLogList // required
  * //     { // AuditLogFull
- * //       table_name: "STRING_VALUE",
- * //       user_name: "STRING_VALUE",
- * //       timestamp: new Date("TIMESTAMP"),
- * //       action: "STRING_VALUE",
+ * //       id: "STRING_VALUE", // required
+ * //       table_name: "STRING_VALUE", // required
+ * //       user_name: "STRING_VALUE", // required
+ * //       timestamp: new Date("TIMESTAMP"), // required
+ * //       action: "INSERT" || "UPDATE" || "DELETE", // required
  * //       original_data: "DOCUMENT_VALUE",
  * //       new_data: "DOCUMENT_VALUE",
- * //       query: "STRING_VALUE",
+ * //       query: "STRING_VALUE", // required
  * //     },
  * //   ],
  * // };

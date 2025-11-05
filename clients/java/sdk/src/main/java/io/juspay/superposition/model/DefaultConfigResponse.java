@@ -20,8 +20,8 @@ import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
-public final class DefaultConfigFull implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#DefaultConfigFull");
+public final class DefaultConfigResponse implements SerializableStruct {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#DefaultConfigResponse");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("key", PreludeSchemas.STRING,
@@ -70,7 +70,7 @@ public final class DefaultConfigFull implements SerializableStruct {
     private final transient Instant lastModifiedAt;
     private final transient String lastModifiedBy;
 
-    private DefaultConfigFull(Builder builder) {
+    private DefaultConfigResponse(Builder builder) {
         this.key = builder.key;
         this.value = builder.value;
         this.schemaMember = Collections.unmodifiableMap(builder.schemaMember);
@@ -108,9 +108,6 @@ public final class DefaultConfigFull implements SerializableStruct {
         return changeReason;
     }
 
-    /**
-     * Optional
-     */
     public String functionName() {
         return functionName;
     }
@@ -148,7 +145,7 @@ public final class DefaultConfigFull implements SerializableStruct {
         if (other == null || getClass() != other.getClass()) {
             return false;
         }
-        DefaultConfigFull that = (DefaultConfigFull) other;
+        DefaultConfigResponse that = (DefaultConfigResponse) other;
         return Objects.equals(this.key, that.key)
                && Objects.equals(this.value, that.value)
                && Objects.equals(this.schemaMember, that.schemaMember)
@@ -215,7 +212,7 @@ public final class DefaultConfigFull implements SerializableStruct {
      *
      * <p><strong>Note:</strong> This method performs only a shallow copy of the original properties.
      *
-     * @return a builder for {@link DefaultConfigFull}.
+     * @return a builder for {@link DefaultConfigResponse}.
      */
     public Builder toBuilder() {
         var builder = new Builder();
@@ -241,9 +238,9 @@ public final class DefaultConfigFull implements SerializableStruct {
     }
 
     /**
-     * Builder for {@link DefaultConfigFull}.
+     * Builder for {@link DefaultConfigResponse}.
      */
-    public static final class Builder implements ShapeBuilder<DefaultConfigFull> {
+    public static final class Builder implements ShapeBuilder<DefaultConfigResponse> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String key;
         private Document value;
@@ -315,8 +312,6 @@ public final class DefaultConfigFull implements SerializableStruct {
         }
 
         /**
-         * Optional
-         *
          * @return this builder.
          */
         public Builder functionName(String functionName) {
@@ -373,9 +368,9 @@ public final class DefaultConfigFull implements SerializableStruct {
         }
 
         @Override
-        public DefaultConfigFull build() {
+        public DefaultConfigResponse build() {
             tracker.validate();
-            return new DefaultConfigFull(this);
+            return new DefaultConfigResponse(this);
         }
 
         @Override
@@ -398,7 +393,7 @@ public final class DefaultConfigFull implements SerializableStruct {
         }
 
         @Override
-        public ShapeBuilder<DefaultConfigFull> errorCorrection() {
+        public ShapeBuilder<DefaultConfigResponse> errorCorrection() {
             if (tracker.allSet()) {
                 return this;
             }

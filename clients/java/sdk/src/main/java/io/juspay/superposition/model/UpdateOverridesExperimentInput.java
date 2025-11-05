@@ -104,6 +104,9 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         return metrics;
     }
 
+    /**
+     * To unset experiment group, pass "null" string.
+     */
     public String experimentGroupId() {
         return experimentGroupId;
     }
@@ -291,6 +294,8 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         }
 
         /**
+         * To unset experiment group, pass "null" string.
+         *
          * @return this builder.
          */
         public Builder experimentGroupId(String experimentGroupId) {

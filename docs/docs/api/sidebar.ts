@@ -107,7 +107,7 @@ const sidebar: SidebarsConfig = {
           id: "api/update-override",
           label: "UpdateOverride",
           customProps: {},
-          className: "api-method put",
+          className: "api-method patch",
         },
         {
           type: "doc",

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -13,6 +14,7 @@ import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -20,42 +22,42 @@ public final class ListDefaultConfigsOutput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ListDefaultConfigsOutput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("total_pages", PreludeSchemas.INTEGER)
-        .putMember("total_items", PreludeSchemas.INTEGER)
-        .putMember("data", SharedSchemas.LIST_DEFAULT_CONFIG_OUT)
+        .putMember("total_pages", PreludeSchemas.INTEGER,
+                new RequiredTrait())
+        .putMember("total_items", PreludeSchemas.INTEGER,
+                new RequiredTrait())
+        .putMember("data", SharedSchemas.LIST_DEFAULT_CONFIG_OUT,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_TOTAL_PAGES = $SCHEMA.member("total_pages");
     private static final Schema $SCHEMA_TOTAL_ITEMS = $SCHEMA.member("total_items");
     private static final Schema $SCHEMA_DATA = $SCHEMA.member("data");
 
-    private final transient Integer totalPages;
-    private final transient Integer totalItems;
-    private final transient List<DefaultConfigFull> data;
+    private final transient int totalPages;
+    private final transient int totalItems;
+    private final transient List<DefaultConfigResponse> data;
 
     private ListDefaultConfigsOutput(Builder builder) {
         this.totalPages = builder.totalPages;
         this.totalItems = builder.totalItems;
-        this.data = builder.data == null ? null : Collections.unmodifiableList(builder.data);
+        this.data = Collections.unmodifiableList(builder.data);
     }
 
-    public Integer totalPages() {
+    public int totalPages() {
         return totalPages;
     }
 
-    public Integer totalItems() {
+    public int totalItems() {
         return totalItems;
     }
 
-    public List<DefaultConfigFull> data() {
-        if (data == null) {
-            return Collections.emptyList();
-        }
+    public List<DefaultConfigResponse> data() {
         return data;
     }
 
     public boolean hasData() {
-        return data != null;
+        return true;
     }
 
     @Override
@@ -72,8 +74,8 @@ public final class ListDefaultConfigsOutput implements SerializableStruct {
             return false;
         }
         ListDefaultConfigsOutput that = (ListDefaultConfigsOutput) other;
-        return Objects.equals(this.totalPages, that.totalPages)
-               && Objects.equals(this.totalItems, that.totalItems)
+        return this.totalPages == that.totalPages
+               && this.totalItems == that.totalItems
                && Objects.equals(this.data, that.data);
     }
 
@@ -89,15 +91,9 @@ public final class ListDefaultConfigsOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (totalPages != null) {
-            serializer.writeInteger($SCHEMA_TOTAL_PAGES, totalPages);
-        }
-        if (totalItems != null) {
-            serializer.writeInteger($SCHEMA_TOTAL_ITEMS, totalItems);
-        }
-        if (data != null) {
-            serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.ListDefaultConfigOutSerializer.INSTANCE);
-        }
+        serializer.writeInteger($SCHEMA_TOTAL_PAGES, totalPages);
+        serializer.writeInteger($SCHEMA_TOTAL_ITEMS, totalItems);
+        serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.ListDefaultConfigOutSerializer.INSTANCE);
     }
 
     @Override
@@ -137,9 +133,10 @@ public final class ListDefaultConfigsOutput implements SerializableStruct {
      * Builder for {@link ListDefaultConfigsOutput}.
      */
     public static final class Builder implements ShapeBuilder<ListDefaultConfigsOutput> {
-        private Integer totalPages;
-        private Integer totalItems;
-        private List<DefaultConfigFull> data;
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
+        private int totalPages;
+        private int totalItems;
+        private List<DefaultConfigResponse> data;
 
         private Builder() {}
 
@@ -149,31 +146,38 @@ public final class ListDefaultConfigsOutput implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder totalPages(int totalPages) {
             this.totalPages = totalPages;
+            tracker.setMember($SCHEMA_TOTAL_PAGES);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder totalItems(int totalItems) {
             this.totalItems = totalItems;
+            tracker.setMember($SCHEMA_TOTAL_ITEMS);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder data(List<DefaultConfigFull> data) {
-            this.data = data;
+        public Builder data(List<DefaultConfigResponse> data) {
+            this.data = Objects.requireNonNull(data, "data cannot be null");
+            tracker.setMember($SCHEMA_DATA);
             return this;
         }
 
         @Override
         public ListDefaultConfigsOutput build() {
+            tracker.validate();
             return new ListDefaultConfigsOutput(this);
         }
 
@@ -183,9 +187,26 @@ public final class ListDefaultConfigsOutput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> totalPages((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_PAGES, member, value));
                 case 1 -> totalItems((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_ITEMS, member, value));
-                case 2 -> data((List<DefaultConfigFull>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
+                case 2 -> data((List<DefaultConfigResponse>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<ListDefaultConfigsOutput> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_TOTAL_PAGES)) {
+                tracker.setMember($SCHEMA_TOTAL_PAGES);
+            }
+            if (!tracker.checkMember($SCHEMA_TOTAL_ITEMS)) {
+                tracker.setMember($SCHEMA_TOTAL_ITEMS);
+            }
+            if (!tracker.checkMember($SCHEMA_DATA)) {
+                data(Collections.emptyList());
+            }
+            return this;
         }
 
         @Override

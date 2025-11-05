@@ -36,8 +36,8 @@ data UpdateFunctionInput = UpdateFunctionInput {
     function_name :: Data.Text.Text,
     description :: Data.Maybe.Maybe Data.Text.Text,
     change_reason :: Data.Text.Text,
-    function :: Data.Text.Text,
-    runtime_version :: Data.Text.Text
+    function :: Data.Maybe.Maybe Data.Text.Text,
+    runtime_version :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -116,13 +116,13 @@ setChangeReason :: Data.Text.Text -> UpdateFunctionInputBuilder ()
 setChangeReason value =
    Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
 
-setFunction :: Data.Text.Text -> UpdateFunctionInputBuilder ()
+setFunction :: Data.Maybe.Maybe Data.Text.Text -> UpdateFunctionInputBuilder ()
 setFunction value =
-   Control.Monad.State.Strict.modify (\s -> (s { functionBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { functionBuilderState = value }))
 
-setRuntimeVersion :: Data.Text.Text -> UpdateFunctionInputBuilder ()
+setRuntimeVersion :: Data.Maybe.Maybe Data.Text.Text -> UpdateFunctionInputBuilder ()
 setRuntimeVersion value =
-   Control.Monad.State.Strict.modify (\s -> (s { runtime_versionBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { runtime_versionBuilderState = value }))
 
 build :: UpdateFunctionInputBuilder () -> Data.Either.Either Data.Text.Text UpdateFunctionInput
 build builder = do
@@ -132,8 +132,8 @@ build builder = do
     function_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateFunctionInput.UpdateFunctionInput.function_name is a required property.") Data.Either.Right (function_nameBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateFunctionInput.UpdateFunctionInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
-    function' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateFunctionInput.UpdateFunctionInput.function is a required property.") Data.Either.Right (functionBuilderState st)
-    runtime_version' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateFunctionInput.UpdateFunctionInput.runtime_version is a required property.") Data.Either.Right (runtime_versionBuilderState st)
+    function' <- Data.Either.Right (functionBuilderState st)
+    runtime_version' <- Data.Either.Right (runtime_versionBuilderState st)
     Data.Either.Right (UpdateFunctionInput { 
         workspace_id = workspace_id',
         org_id = org_id',

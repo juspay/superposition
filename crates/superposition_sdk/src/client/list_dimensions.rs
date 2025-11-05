@@ -9,9 +9,9 @@ impl super::Client {
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::list_dimensions::builders::ListDimensionsFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::list_dimensions::builders::ListDimensionsFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::list_dimensions::builders::ListDimensionsFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::list_dimensions::builders::ListDimensionsFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`ListDimensionsOutput`](crate::operation::list_dimensions::ListDimensionsOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_dimensions::ListDimensionsOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_dimensions::ListDimensionsOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<DimensionExt>>)`](crate::operation::list_dimensions::ListDimensionsOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_dimensions::ListDimensionsOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_dimensions::ListDimensionsOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<DimensionResponse>)`](crate::operation::list_dimensions::ListDimensionsOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListDimensionsError>`](crate::operation::list_dimensions::ListDimensionsError)
     pub fn list_dimensions(&self) -> crate::operation::list_dimensions::builders::ListDimensionsFluentBuilder {
                                 crate::operation::list_dimensions::builders::ListDimensionsFluentBuilder::new(self.handle.clone())

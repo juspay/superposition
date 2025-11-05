@@ -1,9 +1,9 @@
 
 package io.juspay.superposition.model;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -12,33 +12,37 @@ import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
-public final class BulkOperationReq implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#BulkOperationReq");
+public final class ContextMoveBulkRequest implements SerializableStruct {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#ContextMoveBulkRequest");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("operations", SharedSchemas.BULK_OPERATION_LIST)
+        .putMember("id", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("request", ContextMove.$SCHEMA,
+                new RequiredTrait())
         .build();
 
-    private static final Schema $SCHEMA_OPERATIONS = $SCHEMA.member("operations");
+    private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
+    private static final Schema $SCHEMA_REQUEST = $SCHEMA.member("request");
 
-    private final transient List<ContextAction> operations;
+    private final transient String id;
+    private final transient ContextMove request;
 
-    private BulkOperationReq(Builder builder) {
-        this.operations = builder.operations == null ? null : Collections.unmodifiableList(builder.operations);
+    private ContextMoveBulkRequest(Builder builder) {
+        this.id = builder.id;
+        this.request = builder.request;
     }
 
-    public List<ContextAction> operations() {
-        if (operations == null) {
-            return Collections.emptyList();
-        }
-        return operations;
+    public String id() {
+        return id;
     }
 
-    public boolean hasOperations() {
-        return operations != null;
+    public ContextMove request() {
+        return request;
     }
 
     @Override
@@ -54,13 +58,14 @@ public final class BulkOperationReq implements SerializableStruct {
         if (other == null || getClass() != other.getClass()) {
             return false;
         }
-        BulkOperationReq that = (BulkOperationReq) other;
-        return Objects.equals(this.operations, that.operations);
+        ContextMoveBulkRequest that = (ContextMoveBulkRequest) other;
+        return Objects.equals(this.id, that.id)
+               && Objects.equals(this.request, that.request);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(operations);
+        return Objects.hash(id, request);
     }
 
     @Override
@@ -70,8 +75,9 @@ public final class BulkOperationReq implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (operations != null) {
-            serializer.writeList($SCHEMA_OPERATIONS, operations, operations.size(), SharedSerde.BulkOperationListSerializer.INSTANCE);
+        serializer.writeString($SCHEMA_ID, id);
+        if (request != null) {
+            serializer.writeStruct($SCHEMA_REQUEST, request);
         }
     }
 
@@ -79,7 +85,8 @@ public final class BulkOperationReq implements SerializableStruct {
     @SuppressWarnings("unchecked")
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
-            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_OPERATIONS, member, operations);
+            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
+            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_REQUEST, member, request);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -89,11 +96,12 @@ public final class BulkOperationReq implements SerializableStruct {
      *
      * <p><strong>Note:</strong> This method performs only a shallow copy of the original properties.
      *
-     * @return a builder for {@link BulkOperationReq}.
+     * @return a builder for {@link ContextMoveBulkRequest}.
      */
     public Builder toBuilder() {
         var builder = new Builder();
-        builder.operations(this.operations);
+        builder.id(this.id);
+        builder.request(this.request);
         return builder;
     }
 
@@ -105,10 +113,12 @@ public final class BulkOperationReq implements SerializableStruct {
     }
 
     /**
-     * Builder for {@link BulkOperationReq}.
+     * Builder for {@link ContextMoveBulkRequest}.
      */
-    public static final class Builder implements ShapeBuilder<BulkOperationReq> {
-        private List<ContextAction> operations;
+    public static final class Builder implements ShapeBuilder<ContextMoveBulkRequest> {
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
+        private String id;
+        private ContextMove request;
 
         private Builder() {}
 
@@ -118,25 +128,53 @@ public final class BulkOperationReq implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder operations(List<ContextAction> operations) {
-            this.operations = operations;
+        public Builder id(String id) {
+            this.id = Objects.requireNonNull(id, "id cannot be null");
+            tracker.setMember($SCHEMA_ID);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder request(ContextMove request) {
+            this.request = Objects.requireNonNull(request, "request cannot be null");
+            tracker.setMember($SCHEMA_REQUEST);
             return this;
         }
 
         @Override
-        public BulkOperationReq build() {
-            return new BulkOperationReq(this);
+        public ContextMoveBulkRequest build() {
+            tracker.validate();
+            return new ContextMoveBulkRequest(this);
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
-                case 0 -> operations((List<ContextAction>) SchemaUtils.validateSameMember($SCHEMA_OPERATIONS, member, value));
+                case 0 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
+                case 1 -> request((ContextMove) SchemaUtils.validateSameMember($SCHEMA_REQUEST, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<ContextMoveBulkRequest> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_ID)) {
+                id("");
+            }
+            if (!tracker.checkMember($SCHEMA_REQUEST)) {
+                tracker.setMember($SCHEMA_REQUEST);
+            }
+            return this;
         }
 
         @Override
@@ -157,7 +195,8 @@ public final class BulkOperationReq implements SerializableStruct {
             @Override
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
-                    case 0 -> builder.operations(SharedSerde.deserializeBulkOperationList(member, de));
+                    case 0 -> builder.id(de.readString(member));
+                    case 1 -> builder.request(ContextMove.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -37,7 +37,7 @@ pub fn de_list_workspace_http_response(_response_status: u16, _response_headers:
         #[allow(unused_mut)]
         let mut output = crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder::default();
         output = crate::protocol_serde::shape_list_workspace::de_list_workspace(_response_body, output).map_err(crate::operation::list_workspace::ListWorkspaceError::unhandled)?;
-        output.build()
+        crate::serde_util::list_workspace_output_output_correct_errors(output).build().map_err(crate::operation::list_workspace::ListWorkspaceError::unhandled)?
     })
 }
 

@@ -9,12 +9,8 @@ pub struct MoveContextInput  {
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::option::Option<::std::string::String>,
-    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub description: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub change_reason: ::std::option::Option<::std::string::String>,
+    pub request: ::std::option::Option<crate::types::ContextMove>,
 }
 impl  MoveContextInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -29,17 +25,9 @@ impl  MoveContextInput  {
     pub fn id(&self) -> ::std::option::Option<&str> {
         self.id.as_deref()
     }
-    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.context.as_ref()
-    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn description(&self) -> ::std::option::Option<&str> {
-        self.description.as_deref()
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn change_reason(&self) -> ::std::option::Option<&str> {
-        self.change_reason.as_deref()
+    pub fn request(&self) -> ::std::option::Option<&crate::types::ContextMove> {
+        self.request.as_ref()
     }
 }
 impl MoveContextInput {
@@ -56,9 +44,7 @@ pub struct MoveContextInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) description: ::std::option::Option<::std::string::String>,
-    pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) request: ::std::option::Option<crate::types::ContextMove>,
 }
 impl MoveContextInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -103,51 +89,19 @@ impl MoveContextInputBuilder {
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.id
     }
-    /// Adds a key-value pair to `context`.
-    ///
-    /// To override the contents of this collection use [`set_context`](Self::set_context).
-    ///
-    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-        let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
-    }
-    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
-    }
-    /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        &self.context
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.description = ::std::option::Option::Some(input.into());
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
-        &self.description
-    }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.change_reason = ::std::option::Option::Some(input.into());
+    pub fn request(mut self, input: crate::types::ContextMove) -> Self {
+        self.request = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_request(mut self, input: ::std::option::Option<crate::types::ContextMove>) -> Self {
+        self.request = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
-        &self.change_reason
+    pub fn get_request(&self) -> &::std::option::Option<crate::types::ContextMove> {
+        &self.request
     }
     /// Consumes the builder and constructs a [`MoveContextInput`](crate::operation::move_context::MoveContextInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::move_context::MoveContextInput, ::aws_smithy_types::error::operation::BuildError> {
@@ -159,11 +113,7 @@ impl MoveContextInputBuilder {
                 ,
                 id: self.id
                 ,
-                context: self.context
-                ,
-                description: self.description
-                ,
-                change_reason: self.change_reason
+                request: self.request
                 ,
             }
         )

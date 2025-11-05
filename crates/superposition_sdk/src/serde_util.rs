@@ -22,6 +22,11 @@ pub(crate) fn applicable_variants_output_output_correct_errors(mut builder: crat
                 builder
             }
 
+pub(crate) fn bulk_operation_output_output_correct_errors(mut builder: crate::operation::bulk_operation::builders::BulkOperationOutputBuilder) -> crate::operation::bulk_operation::builders::BulkOperationOutputBuilder {
+                if builder.output.is_none() { builder.output = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn conclude_experiment_output_output_correct_errors(mut builder: crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder) -> crate::operation::conclude_experiment::builders::ConcludeExperimentOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
@@ -42,6 +47,16 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
 
 pub(crate) fn create_context_output_output_correct_errors(mut builder: crate::operation::create_context::builders::CreateContextOutputBuilder) -> crate::operation::create_context::builders::CreateContextOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.value.is_none() { builder.value = Some(Default::default()) }
+if builder.r#override.is_none() { builder.r#override = Some(Default::default()) }
+if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
+if builder.weight.is_none() { builder.weight = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
                 builder
             }
 
@@ -70,6 +85,7 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
 if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
+if builder.mandatory.is_none() { builder.mandatory = Some(Default::default()) }
                 builder
             }
 
@@ -176,6 +192,7 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
                 builder
@@ -229,13 +246,43 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
                 builder
             }
 
+pub(crate) fn get_config_output_output_correct_errors(mut builder: crate::operation::get_config::builders::GetConfigOutputBuilder) -> crate::operation::get_config::builders::GetConfigOutputBuilder {
+                if builder.contexts.is_none() { builder.contexts = Some(Default::default()) }
+if builder.overrides.is_none() { builder.overrides = Some(Default::default()) }
+if builder.default_configs.is_none() { builder.default_configs = Some(Default::default()) }
+if builder.dimensions.is_none() { builder.dimensions = Some(Default::default()) }
+if builder.version.is_none() { builder.version = Some(Default::default()) }
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+                builder
+            }
+
 pub(crate) fn get_context_output_output_correct_errors(mut builder: crate::operation::get_context::builders::GetContextOutputBuilder) -> crate::operation::get_context::builders::GetContextOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.value.is_none() { builder.value = Some(Default::default()) }
+if builder.r#override.is_none() { builder.r#override = Some(Default::default()) }
+if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
+if builder.weight.is_none() { builder.weight = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
                 builder
             }
 
 pub(crate) fn get_context_from_condition_output_output_correct_errors(mut builder: crate::operation::get_context_from_condition::builders::GetContextFromConditionOutputBuilder) -> crate::operation::get_context_from_condition::builders::GetContextFromConditionOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.value.is_none() { builder.value = Some(Default::default()) }
+if builder.r#override.is_none() { builder.r#override = Some(Default::default()) }
+if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
+if builder.weight.is_none() { builder.weight = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
                 builder
             }
 
@@ -264,6 +311,7 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
 if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
+if builder.mandatory.is_none() { builder.mandatory = Some(Default::default()) }
                 builder
             }
 
@@ -329,6 +377,13 @@ if builder.updated_by.is_none() { builder.updated_by = Some(Default::default()) 
                 builder
             }
 
+pub(crate) fn get_resolved_config_output_output_correct_errors(mut builder: crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder) -> crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder {
+                if builder.config.is_none() { builder.config = Some(Default::default()) }
+if builder.version.is_none() { builder.version = Some(Default::default()) }
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+                builder
+            }
+
 pub(crate) fn get_type_template_output_output_correct_errors(mut builder: crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder) -> crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder {
                 if builder.type_name.is_none() { builder.type_name = Some(Default::default()) }
 if builder.type_schema.is_none() { builder.type_schema = Some(Default::default()) }
@@ -338,6 +393,13 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn get_type_templates_list_output_output_correct_errors(mut builder: crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder) -> crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
                 builder
             }
 
@@ -396,8 +458,86 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_audit_logs_output_output_correct_errors(mut builder: crate::operation::list_audit_logs::builders::ListAuditLogsOutputBuilder) -> crate::operation::list_audit_logs::builders::ListAuditLogsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_contexts_output_output_correct_errors(mut builder: crate::operation::list_contexts::builders::ListContextsOutputBuilder) -> crate::operation::list_contexts::builders::ListContextsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_default_configs_output_output_correct_errors(mut builder: crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder) -> crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_dimensions_output_output_correct_errors(mut builder: crate::operation::list_dimensions::builders::ListDimensionsOutputBuilder) -> crate::operation::list_dimensions::builders::ListDimensionsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_experiment_output_output_correct_errors(mut builder: crate::operation::list_experiment::builders::ListExperimentOutputBuilder) -> crate::operation::list_experiment::builders::ListExperimentOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_experiment_groups_output_output_correct_errors(mut builder: crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder) -> crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_function_output_output_correct_errors(mut builder: crate::operation::list_function::builders::ListFunctionOutputBuilder) -> crate::operation::list_function::builders::ListFunctionOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_organisation_output_output_correct_errors(mut builder: crate::operation::list_organisation::builders::ListOrganisationOutputBuilder) -> crate::operation::list_organisation::builders::ListOrganisationOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_versions_output_output_correct_errors(mut builder: crate::operation::list_versions::builders::ListVersionsOutputBuilder) -> crate::operation::list_versions::builders::ListVersionsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_webhook_output_output_correct_errors(mut builder: crate::operation::list_webhook::builders::ListWebhookOutputBuilder) -> crate::operation::list_webhook::builders::ListWebhookOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_workspace_output_output_correct_errors(mut builder: crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder) -> crate::operation::list_workspace::builders::ListWorkspaceOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
                 builder
             }
 
@@ -413,6 +553,7 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
                 builder
@@ -420,6 +561,16 @@ if builder.auto_populate_control.is_none() { builder.auto_populate_control = Som
 
 pub(crate) fn move_context_output_output_correct_errors(mut builder: crate::operation::move_context::builders::MoveContextOutputBuilder) -> crate::operation::move_context::builders::MoveContextOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.value.is_none() { builder.value = Some(Default::default()) }
+if builder.r#override.is_none() { builder.r#override = Some(Default::default()) }
+if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
+if builder.weight.is_none() { builder.weight = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
                 builder
             }
 
@@ -541,6 +692,7 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
 if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
+if builder.mandatory.is_none() { builder.mandatory = Some(Default::default()) }
                 builder
             }
 
@@ -590,6 +742,16 @@ if builder.updated_by.is_none() { builder.updated_by = Some(Default::default()) 
 
 pub(crate) fn update_override_output_output_correct_errors(mut builder: crate::operation::update_override::builders::UpdateOverrideOutputBuilder) -> crate::operation::update_override::builders::UpdateOverrideOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.value.is_none() { builder.value = Some(Default::default()) }
+if builder.r#override.is_none() { builder.r#override = Some(Default::default()) }
+if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
+if builder.weight.is_none() { builder.weight = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
                 builder
             }
 
@@ -652,8 +814,19 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn audit_log_full_correct_errors(mut builder: crate::types::builders::AuditLogFullBuilder) -> crate::types::builders::AuditLogFullBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.table_name.is_none() { builder.table_name = Some(Default::default()) }
+if builder.user_name.is_none() { builder.user_name = Some(Default::default()) }
+if builder.timestamp.is_none() { builder.timestamp = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.action.is_none() { builder.action = "no value was set".parse::<crate::types::AuditAction>().ok() }
+if builder.query.is_none() { builder.query = Some(Default::default()) }
                 builder
             }
 
@@ -663,12 +836,31 @@ if builder.variant_id.is_none() { builder.variant_id = Some(Default::default()) 
                 builder
             }
 
-pub(crate) fn context_response_correct_errors(mut builder: crate::types::builders::ContextResponseBuilder) -> crate::types::builders::ContextResponseBuilder {
+pub(crate) fn context_partial_correct_errors(mut builder: crate::types::builders::ContextPartialBuilder) -> crate::types::builders::ContextPartialBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.condition.is_none() { builder.condition = Some(Default::default()) }
+if builder.priority.is_none() { builder.priority = Some(Default::default()) }
+if builder.weight.is_none() { builder.weight = Some(Default::default()) }
+if builder.override_with_keys.is_none() { builder.override_with_keys = Some(Default::default()) }
                 builder
             }
 
-pub(crate) fn default_config_full_correct_errors(mut builder: crate::types::builders::DefaultConfigFullBuilder) -> crate::types::builders::DefaultConfigFullBuilder {
+pub(crate) fn context_response_correct_errors(mut builder: crate::types::builders::ContextResponseBuilder) -> crate::types::builders::ContextResponseBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.value.is_none() { builder.value = Some(Default::default()) }
+if builder.r#override.is_none() { builder.r#override = Some(Default::default()) }
+if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
+if builder.weight.is_none() { builder.weight = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn default_config_response_correct_errors(mut builder: crate::types::builders::DefaultConfigResponseBuilder) -> crate::types::builders::DefaultConfigResponseBuilder {
                 if builder.key.is_none() { builder.key = Some(Default::default()) }
 if builder.value.is_none() { builder.value = Some(Default::default()) }
 if builder.schema.is_none() { builder.schema = Some(Default::default()) }
@@ -681,7 +873,15 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
                 builder
             }
 
-pub(crate) fn dimension_ext_correct_errors(mut builder: crate::types::builders::DimensionExtBuilder) -> crate::types::builders::DimensionExtBuilder {
+pub(crate) fn dimension_info_correct_errors(mut builder: crate::types::builders::DimensionInfoBuilder) -> crate::types::builders::DimensionInfoBuilder {
+                if builder.schema.is_none() { builder.schema = Some(Default::default()) }
+if builder.position.is_none() { builder.position = Some(Default::default()) }
+if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
+if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn dimension_response_correct_errors(mut builder: crate::types::builders::DimensionResponseBuilder) -> crate::types::builders::DimensionResponseBuilder {
                 if builder.dimension.is_none() { builder.dimension = Some(Default::default()) }
 if builder.position.is_none() { builder.position = Some(Default::default()) }
 if builder.schema.is_none() { builder.schema = Some(Default::default()) }
@@ -693,6 +893,7 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.dependency_graph.is_none() { builder.dependency_graph = Some(Default::default()) }
 if builder.dimension_type.is_none() { builder.dimension_type = Some(crate::types::DimensionType::Unknown) }
+if builder.mandatory.is_none() { builder.mandatory = Some(Default::default()) }
                 builder
             }
 
@@ -802,6 +1003,14 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
                 builder
             }
 
+pub(crate) fn weight_recompute_response_correct_errors(mut builder: crate::types::builders::WeightRecomputeResponseBuilder) -> crate::types::builders::WeightRecomputeResponseBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.condition.is_none() { builder.condition = Some(Default::default()) }
+if builder.old_weight.is_none() { builder.old_weight = Some(Default::default()) }
+if builder.new_weight.is_none() { builder.new_weight = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn workspace_response_correct_errors(mut builder: crate::types::builders::WorkspaceResponseBuilder) -> crate::types::builders::WorkspaceResponseBuilder {
                 if builder.workspace_name.is_none() { builder.workspace_name = Some(Default::default()) }
 if builder.organisation_id.is_none() { builder.organisation_id = Some(Default::default()) }
@@ -814,6 +1023,7 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()) }
+if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
                 builder

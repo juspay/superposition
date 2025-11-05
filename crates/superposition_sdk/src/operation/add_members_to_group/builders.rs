@@ -157,17 +157,17 @@ impl AddMembersToGroupFluentBuilder {
     /// 
     /// To override the contents of this collection use [`set_member_experiment_ids`](Self::set_member_experiment_ids).
     /// 
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     pub fn member_experiment_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                         self.inner = self.inner.member_experiment_ids(input.into());
                         self
                     }
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     pub fn set_member_experiment_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_member_experiment_ids(input);
                     self
                 }
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     pub fn get_member_experiment_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_member_experiment_ids()
                 }

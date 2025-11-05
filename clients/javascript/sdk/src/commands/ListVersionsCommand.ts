@@ -51,9 +51,9 @@ export interface ListVersionsCommandOutput extends ListVersionsOutput, __Metadat
  * const command = new ListVersionsCommand(input);
  * const response = await client.send(command);
  * // { // ListVersionsOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // ListVersionsOut
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // ListVersionsOut // required
  * //     { // ListVersionsMember
  * //       id: "STRING_VALUE", // required
  * //       config: "DOCUMENT_VALUE", // required

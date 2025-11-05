@@ -3,6 +3,7 @@ package io.juspay.superposition.model;
 
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -12,6 +13,7 @@ import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -19,9 +21,12 @@ public final class AutocompleteFunctionRequest implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#AutocompleteFunctionRequest");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("name", PreludeSchemas.STRING)
-        .putMember("prefix", PreludeSchemas.STRING)
-        .putMember("environment", PreludeSchemas.DOCUMENT)
+        .putMember("name", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("prefix", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("environment", PreludeSchemas.DOCUMENT,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
@@ -81,15 +86,9 @@ public final class AutocompleteFunctionRequest implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (name != null) {
-            serializer.writeString($SCHEMA_NAME, name);
-        }
-        if (prefix != null) {
-            serializer.writeString($SCHEMA_PREFIX, prefix);
-        }
-        if (environment != null) {
-            serializer.writeDocument($SCHEMA_ENVIRONMENT, environment);
-        }
+        serializer.writeString($SCHEMA_NAME, name);
+        serializer.writeString($SCHEMA_PREFIX, prefix);
+        serializer.writeDocument($SCHEMA_ENVIRONMENT, environment);
     }
 
     @Override
@@ -129,6 +128,7 @@ public final class AutocompleteFunctionRequest implements SerializableStruct {
      * Builder for {@link AutocompleteFunctionRequest}.
      */
     public static final class Builder implements ShapeBuilder<AutocompleteFunctionRequest> {
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String name;
         private String prefix;
         private Document environment;
@@ -141,31 +141,38 @@ public final class AutocompleteFunctionRequest implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder name(String name) {
-            this.name = name;
+            this.name = Objects.requireNonNull(name, "name cannot be null");
+            tracker.setMember($SCHEMA_NAME);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder prefix(String prefix) {
-            this.prefix = prefix;
+            this.prefix = Objects.requireNonNull(prefix, "prefix cannot be null");
+            tracker.setMember($SCHEMA_PREFIX);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder environment(Document environment) {
-            this.environment = environment;
+            this.environment = Objects.requireNonNull(environment, "environment cannot be null");
+            tracker.setMember($SCHEMA_ENVIRONMENT);
             return this;
         }
 
         @Override
         public AutocompleteFunctionRequest build() {
+            tracker.validate();
             return new AutocompleteFunctionRequest(this);
         }
 
@@ -178,6 +185,23 @@ public final class AutocompleteFunctionRequest implements SerializableStruct {
                 case 2 -> environment((Document) SchemaUtils.validateSameMember($SCHEMA_ENVIRONMENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<AutocompleteFunctionRequest> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_NAME)) {
+                name("");
+            }
+            if (!tracker.checkMember($SCHEMA_PREFIX)) {
+                prefix("");
+            }
+            if (!tracker.checkMember($SCHEMA_ENVIRONMENT)) {
+                tracker.setMember($SCHEMA_ENVIRONMENT);
+            }
+            return this;
         }
 
         @Override

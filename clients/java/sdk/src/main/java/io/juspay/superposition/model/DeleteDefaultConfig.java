@@ -23,7 +23,7 @@ public final class DeleteDefaultConfig implements ApiOperation<DeleteDefaultConf
     private static final DeleteDefaultConfig $INSTANCE = new DeleteDefaultConfig();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("DELETE").code(201).uri(UriPattern.parse("/default-config/{key}")).build());
+            HttpTrait.builder().method("DELETE").code(204).uri(UriPattern.parse("/default-config/{key}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

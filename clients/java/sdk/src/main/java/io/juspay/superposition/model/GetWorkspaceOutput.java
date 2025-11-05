@@ -48,7 +48,8 @@ public final class GetWorkspaceOutput implements SerializableStruct {
         .putMember("mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS)
         .putMember("strict_mode", PreludeSchemas.BOOLEAN,
                 new RequiredTrait())
-        .putMember("metrics", PreludeSchemas.DOCUMENT)
+        .putMember("metrics", PreludeSchemas.DOCUMENT,
+                new RequiredTrait())
         .putMember("allow_experiment_self_approval", PreludeSchemas.BOOLEAN,
                 new RequiredTrait())
         .putMember("auto_populate_control", PreludeSchemas.BOOLEAN,
@@ -240,9 +241,7 @@ public final class GetWorkspaceOutput implements SerializableStruct {
             serializer.writeList($SCHEMA_MANDATORY_DIMENSIONS, mandatoryDimensions, mandatoryDimensions.size(), SharedSerde.ListMandatoryDimensionsSerializer.INSTANCE);
         }
         serializer.writeBoolean($SCHEMA_STRICT_MODE, strictMode);
-        if (metrics != null) {
-            serializer.writeDocument($SCHEMA_METRICS, metrics);
-        }
+        serializer.writeDocument($SCHEMA_METRICS, metrics);
         serializer.writeBoolean($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, allowExperimentSelfApproval);
         serializer.writeBoolean($SCHEMA_AUTO_POPULATE_CONTROL, autoPopulateControl);
     }
@@ -262,11 +261,11 @@ public final class GetWorkspaceOutput implements SerializableStruct {
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, lastModifiedAt);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_AT, member, createdAt);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_STRICT_MODE, member, strictMode);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, allowExperimentSelfApproval);
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, autoPopulateControl);
-            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
-            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
-            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, allowExperimentSelfApproval);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, autoPopulateControl);
+            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
+            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -462,10 +461,12 @@ public final class GetWorkspaceOutput implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder metrics(Document metrics) {
-            this.metrics = metrics;
+            this.metrics = Objects.requireNonNull(metrics, "metrics cannot be null");
+            tracker.setMember($SCHEMA_METRICS);
             return this;
         }
 
@@ -510,11 +511,11 @@ public final class GetWorkspaceOutput implements SerializableStruct {
                 case 8 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
                 case 9 -> createdAt((Instant) SchemaUtils.validateSameMember($SCHEMA_CREATED_AT, member, value));
                 case 10 -> strictMode((boolean) SchemaUtils.validateSameMember($SCHEMA_STRICT_MODE, member, value));
-                case 11 -> allowExperimentSelfApproval((boolean) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, value));
-                case 12 -> autoPopulateControl((boolean) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, value));
-                case 13 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
-                case 14 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
-                case 15 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
+                case 11 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
+                case 12 -> allowExperimentSelfApproval((boolean) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, value));
+                case 13 -> autoPopulateControl((boolean) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, value));
+                case 14 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
+                case 15 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -557,6 +558,9 @@ public final class GetWorkspaceOutput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_STRICT_MODE)) {
                 tracker.setMember($SCHEMA_STRICT_MODE);
             }
+            if (!tracker.checkMember($SCHEMA_METRICS)) {
+                tracker.setMember($SCHEMA_METRICS);
+            }
             if (!tracker.checkMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL)) {
                 tracker.setMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL);
             }
@@ -595,11 +599,11 @@ public final class GetWorkspaceOutput implements SerializableStruct {
                     case 8 -> builder.lastModifiedAt(de.readTimestamp(member));
                     case 9 -> builder.createdAt(de.readTimestamp(member));
                     case 10 -> builder.strictMode(de.readBoolean(member));
-                    case 11 -> builder.allowExperimentSelfApproval(de.readBoolean(member));
-                    case 12 -> builder.autoPopulateControl(de.readBoolean(member));
-                    case 13 -> builder.configVersion(de.readString(member));
-                    case 14 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
-                    case 15 -> builder.metrics(de.readDocument());
+                    case 11 -> builder.metrics(de.readDocument());
+                    case 12 -> builder.allowExperimentSelfApproval(de.readBoolean(member));
+                    case 13 -> builder.autoPopulateControl(de.readBoolean(member));
+                    case 14 -> builder.configVersion(de.readString(member));
+                    case 15 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

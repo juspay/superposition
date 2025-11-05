@@ -22,9 +22,9 @@ import qualified GHC.Show
 import qualified Io.Superposition.Utility
 
 data AutocompleteFunctionRequest = AutocompleteFunctionRequest {
-    name :: Data.Maybe.Maybe Data.Text.Text,
-    prefix :: Data.Maybe.Maybe Data.Text.Text,
-    environment :: Data.Maybe.Maybe Data.Aeson.Value
+    name :: Data.Text.Text,
+    prefix :: Data.Text.Text,
+    environment :: Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -67,24 +67,24 @@ defaultBuilderState = AutocompleteFunctionRequestBuilderState {
 
 type AutocompleteFunctionRequestBuilder = Control.Monad.State.Strict.State AutocompleteFunctionRequestBuilderState
 
-setName :: Data.Maybe.Maybe Data.Text.Text -> AutocompleteFunctionRequestBuilder ()
+setName :: Data.Text.Text -> AutocompleteFunctionRequestBuilder ()
 setName value =
-   Control.Monad.State.Strict.modify (\s -> (s { nameBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { nameBuilderState = Data.Maybe.Just value }))
 
-setPrefix :: Data.Maybe.Maybe Data.Text.Text -> AutocompleteFunctionRequestBuilder ()
+setPrefix :: Data.Text.Text -> AutocompleteFunctionRequestBuilder ()
 setPrefix value =
-   Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = Data.Maybe.Just value }))
 
-setEnvironment :: Data.Maybe.Maybe Data.Aeson.Value -> AutocompleteFunctionRequestBuilder ()
+setEnvironment :: Data.Aeson.Value -> AutocompleteFunctionRequestBuilder ()
 setEnvironment value =
-   Control.Monad.State.Strict.modify (\s -> (s { environmentBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { environmentBuilderState = Data.Maybe.Just value }))
 
 build :: AutocompleteFunctionRequestBuilder () -> Data.Either.Either Data.Text.Text AutocompleteFunctionRequest
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    name' <- Data.Either.Right (nameBuilderState st)
-    prefix' <- Data.Either.Right (prefixBuilderState st)
-    environment' <- Data.Either.Right (environmentBuilderState st)
+    name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AutocompleteFunctionRequest.AutocompleteFunctionRequest.name is a required property.") Data.Either.Right (nameBuilderState st)
+    prefix' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AutocompleteFunctionRequest.AutocompleteFunctionRequest.prefix is a required property.") Data.Either.Right (prefixBuilderState st)
+    environment' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AutocompleteFunctionRequest.AutocompleteFunctionRequest.environment is a required property.") Data.Either.Right (environmentBuilderState st)
     Data.Either.Right (AutocompleteFunctionRequest { 
         name = name',
         prefix = prefix',

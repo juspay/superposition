@@ -73,7 +73,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //     "STRING_VALUE",
  * //   ],
  * //   strict_mode: true || false, // required
- * //   metrics: "DOCUMENT_VALUE",
+ * //   metrics: "DOCUMENT_VALUE", // required
  * //   allow_experiment_self_approval: true || false, // required
  * //   auto_populate_control: true || false, // required
  * // };

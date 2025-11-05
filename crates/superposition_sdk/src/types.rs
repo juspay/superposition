@@ -69,15 +69,13 @@ pub use crate::types::_unit::Unit;
 
 pub use crate::types::_context_partial::ContextPartial;
 
-pub use crate::types::_bulk_operation_out::BulkOperationOut;
-
 pub use crate::types::_context_action_out::ContextActionOut;
 
 pub use crate::types::_context_response::ContextResponse;
 
-pub use crate::types::_bulk_operation_req::BulkOperationReq;
-
 pub use crate::types::_context_action::ContextAction;
+
+pub use crate::types::_context_move_bulk_request::ContextMoveBulkRequest;
 
 pub use crate::types::_context_move::ContextMove;
 
@@ -91,9 +89,9 @@ pub use crate::types::_weight_recompute_response::WeightRecomputeResponse;
 
 pub use crate::types::_context_filter_sort_on::ContextFilterSortOn;
 
-pub use crate::types::_dimension_ext::DimensionExt;
+pub use crate::types::_dimension_response::DimensionResponse;
 
-pub use crate::types::_default_config_full::DefaultConfigFull;
+pub use crate::types::_default_config_response::DefaultConfigResponse;
 
 mod _audit_action;
 
@@ -102,10 +100,6 @@ mod _audit_log_full;
 mod _autocomplete_function_request;
 
 mod _bucket;
-
-mod _bulk_operation_out;
-
-mod _bulk_operation_req;
 
 mod _context_action;
 
@@ -117,19 +111,21 @@ mod _context_identifier;
 
 mod _context_move;
 
+mod _context_move_bulk_request;
+
 mod _context_partial;
 
 mod _context_put;
 
 mod _context_response;
 
-mod _default_config_full;
-
-mod _dimension_ext;
+mod _default_config_response;
 
 mod _dimension_info;
 
 mod _dimension_match_strategy;
+
+mod _dimension_response;
 
 mod _dimension_type;
 

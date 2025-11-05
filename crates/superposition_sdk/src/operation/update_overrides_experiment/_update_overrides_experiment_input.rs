@@ -17,7 +17,7 @@ pub struct UpdateOverridesExperimentInput  {
     pub change_reason: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset experiment group, pass "null" string.
     pub experiment_group_id: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateOverridesExperimentInput  {
@@ -52,7 +52,7 @@ impl  UpdateOverridesExperimentInput  {
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset experiment group, pass "null" string.
     pub fn experiment_group_id(&self) -> ::std::option::Option<&str> {
         self.experiment_group_id.as_deref()
     }
@@ -178,16 +178,16 @@ impl UpdateOverridesExperimentInputBuilder {
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset experiment group, pass "null" string.
     pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.experiment_group_id = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset experiment group, pass "null" string.
     pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.experiment_group_id = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset experiment group, pass "null" string.
     pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.experiment_group_id
     }

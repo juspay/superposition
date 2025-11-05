@@ -37,7 +37,7 @@ pub fn de_list_default_configs_http_response(_response_status: u16, _response_he
         #[allow(unused_mut)]
         let mut output = crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_default_configs::de_list_default_configs(_response_body, output).map_err(crate::operation::list_default_configs::ListDefaultConfigsError::unhandled)?;
-        output.build()
+        crate::serde_util::list_default_configs_output_output_correct_errors(output).build().map_err(crate::operation::list_default_configs::ListDefaultConfigsError::unhandled)?
     })
 }
 

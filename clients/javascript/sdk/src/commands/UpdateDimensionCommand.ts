@@ -5,7 +5,7 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  DimensionExt,
+  DimensionResponse,
   UpdateDimensionInput,
 } from "../models/models_0";
 import {
@@ -32,7 +32,7 @@ export interface UpdateDimensionCommandInput extends UpdateDimensionInput {}
  *
  * The output of {@link UpdateDimensionCommand}.
  */
-export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBearer {}
+export interface UpdateDimensionCommandOutput extends DimensionResponse, __MetadataBearer {}
 
 /**
  * Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.
@@ -57,7 +57,7 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * };
  * const command = new UpdateDimensionCommand(input);
  * const response = await client.send(command);
- * // { // DimensionExt
+ * // { // DimensionResponse
  * //   dimension: "STRING_VALUE", // required
  * //   position: Number("int"), // required
  * //   schema: { // Object // required
@@ -70,7 +70,7 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //   last_modified_by: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
- * //   dependency_graph: { // DepedendencyGraph // required
+ * //   dependency_graph: { // DependencyGraph // required
  * //     "<keys>": [ // StringList
  * //       "STRING_VALUE",
  * //     ],
@@ -81,7 +81,7 @@ export interface UpdateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //     REMOTE_COHORT: "STRING_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
- * //   mandatory: true || false,
+ * //   mandatory: true || false, // required
  * // };
  *
  * ```
@@ -120,7 +120,7 @@ export class UpdateDimensionCommand extends $Command.classBuilder<UpdateDimensio
 declare protected static __types: {
   api: {
       input: UpdateDimensionInput;
-      output: DimensionExt;
+      output: DimensionResponse;
   };
   sdk: {
       input: UpdateDimensionCommandInput;

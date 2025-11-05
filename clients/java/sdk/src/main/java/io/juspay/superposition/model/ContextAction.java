@@ -21,7 +21,7 @@ public abstract class ContextAction implements SerializableStruct {
         .putMember("PUT", ContextPut.$SCHEMA)
         .putMember("REPLACE", UpdateContextOverrideRequest.$SCHEMA)
         .putMember("DELETE", PreludeSchemas.STRING)
-        .putMember("MOVE", ContextMove.$SCHEMA)
+        .putMember("MOVE", ContextMoveBulkRequest.$SCHEMA)
         .build();
 
     private static final Schema $SCHEMA_PU_T = $SCHEMA.member("PUT");
@@ -144,9 +144,9 @@ public abstract class ContextAction implements SerializableStruct {
 
     @SmithyGenerated
     public static final class MovEMember extends ContextAction {
-        private final transient ContextMove value;
+        private final transient ContextMoveBulkRequest value;
 
-        public MovEMember(ContextMove value) {
+        public MovEMember(ContextMoveBulkRequest value) {
             super(Type.movE);
             this.value = Objects.requireNonNull(value, "Union value cannot be null");
         }
@@ -156,7 +156,7 @@ public abstract class ContextAction implements SerializableStruct {
             serializer.writeStruct($SCHEMA_MOV_E, value);
         }
 
-        public ContextMove movE() {
+        public ContextMoveBulkRequest movE() {
             return value;
         }
 
@@ -246,7 +246,7 @@ public abstract class ContextAction implements SerializableStruct {
             return setValue(new DeletEMember(value));
         }
 
-        public BuildStage movE(ContextMove value) {
+        public BuildStage movE(ContextMoveBulkRequest value) {
             return setValue(new MovEMember(value));
         }
 
@@ -277,7 +277,7 @@ public abstract class ContextAction implements SerializableStruct {
                 case 0 -> puT((ContextPut) SchemaUtils.validateSameMember($SCHEMA_PU_T, member, value));
                 case 1 -> replacE((UpdateContextOverrideRequest) SchemaUtils.validateSameMember($SCHEMA_REPLAC_E, member, value));
                 case 2 -> deletE((String) SchemaUtils.validateSameMember($SCHEMA_DELET_E, member, value));
-                case 3 -> movE((ContextMove) SchemaUtils.validateSameMember($SCHEMA_MOV_E, member, value));
+                case 3 -> movE((ContextMoveBulkRequest) SchemaUtils.validateSameMember($SCHEMA_MOV_E, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -303,7 +303,7 @@ public abstract class ContextAction implements SerializableStruct {
                     case 0 -> builder.puT(ContextPut.builder().deserializeMember(de, member).build());
                     case 1 -> builder.replacE(UpdateContextOverrideRequest.builder().deserializeMember(de, member).build());
                     case 2 -> builder.deletE(de.readString(member));
-                    case 3 -> builder.movE(ContextMove.builder().deserializeMember(de, member).build());
+                    case 3 -> builder.movE(ContextMoveBulkRequest.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -12,7 +12,7 @@ pub struct RemoveMembersFromGroupInput  {
     pub id: ::std::option::Option<::std::string::String>,
     /// Reason for adding these members.
     pub change_reason: ::std::option::Option<::std::string::String>,
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     pub member_experiment_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
 }
 impl  RemoveMembersFromGroupInput  {
@@ -32,7 +32,7 @@ impl  RemoveMembersFromGroupInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     /// 
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.member_experiment_ids.is_none()`.
     pub fn member_experiment_ids(&self) -> &[::std::string::String] {
@@ -118,18 +118,18 @@ impl RemoveMembersFromGroupInputBuilder {
     ///
     /// To override the contents of this collection use [`set_member_experiment_ids`](Self::set_member_experiment_ids).
     ///
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     pub fn member_experiment_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         let mut v = self.member_experiment_ids.unwrap_or_default();
                         v.push(input.into());
                         self.member_experiment_ids = ::std::option::Option::Some(v);
                         self
     }
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     pub fn set_member_experiment_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.member_experiment_ids = input; self
     }
-    /// List of experiment IDs to add to this group.
+    /// List of experiment IDs to add/remove to this group.
     pub fn get_member_experiment_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.member_experiment_ids
     }

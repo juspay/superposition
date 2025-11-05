@@ -30,6 +30,11 @@ final class SharedSchemas {
     static final Schema DATE_TIME = Schema.createTimestamp(ShapeId.from("io.superposition#DateTime"),
             new TimestampFormatTrait("date-time"));
 
+    static final Schema OVERRIDES = Schema.mapBuilder(ShapeId.from("io.superposition#Overrides"))
+        .putMember("key", PreludeSchemas.STRING)
+        .putMember("value", PreludeSchemas.DOCUMENT)
+        .build();
+
     static final Schema LIST_VARIANT = Schema.listBuilder(ShapeId.from("io.superposition#ListVariant"))
         .putMember("member", Variant.$SCHEMA)
         .build();
@@ -40,11 +45,6 @@ final class SharedSchemas {
 
     static final Schema AUDIT_LOG_LIST = Schema.listBuilder(ShapeId.from("io.superposition#AuditLogList"))
         .putMember("member", AuditLogFull.$SCHEMA)
-        .build();
-
-    static final Schema OVERRIDES = Schema.mapBuilder(ShapeId.from("io.superposition#Overrides"))
-        .putMember("key", PreludeSchemas.STRING)
-        .putMember("value", PreludeSchemas.DOCUMENT)
         .build();
 
     static final Schema BULK_OPERATION_LIST = Schema.listBuilder(ShapeId.from("io.superposition#BulkOperationList"))
@@ -80,7 +80,7 @@ final class SharedSchemas {
         .putMember("value", PreludeSchemas.DOCUMENT)
         .build();
 
-    static final Schema DEPEDENDENCY_GRAPH = Schema.mapBuilder(ShapeId.from("io.superposition#DepedendencyGraph"))
+    static final Schema DEPENDENCY_GRAPH = Schema.mapBuilder(ShapeId.from("io.superposition#DependencyGraph"))
         .putMember("key", PreludeSchemas.STRING)
         .putMember("value", SharedSchemas.STRING_LIST)
         .build();
@@ -116,11 +116,11 @@ final class SharedSchemas {
         .build();
 
     static final Schema LIST_DEFAULT_CONFIG_OUT = Schema.listBuilder(ShapeId.from("io.superposition#ListDefaultConfigOut"))
-        .putMember("member", DefaultConfigFull.$SCHEMA)
+        .putMember("member", DefaultConfigResponse.$SCHEMA)
         .build();
 
-    static final Schema DIMENSION_EXT_LIST = Schema.listBuilder(ShapeId.from("io.superposition#DimensionExtList"))
-        .putMember("member", DimensionExt.$SCHEMA)
+    static final Schema DIMENSION_LIST = Schema.listBuilder(ShapeId.from("io.superposition#DimensionList"))
+        .putMember("member", DimensionResponse.$SCHEMA)
         .build();
 
     static final Schema GROUP_TYPE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#GroupTypeList"))

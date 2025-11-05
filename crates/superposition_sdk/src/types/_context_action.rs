@@ -6,7 +6,7 @@ pub enum ContextAction {
     #[allow(missing_docs)] // documentation missing in model
     Delete(::std::string::String),
     #[allow(missing_docs)] // documentation missing in model
-    Move(crate::types::ContextMove),
+    Move(crate::types::ContextMoveBulkRequest),
     #[allow(missing_docs)] // documentation missing in model
     Put(crate::types::ContextPut),
     #[allow(missing_docs)] // documentation missing in model
@@ -31,9 +31,9 @@ impl ContextAction {
     pub fn is_delete(&self) -> bool {
         self.as_delete().is_ok()
     }
-    /// Tries to convert the enum instance into [`Move`](crate::types::ContextAction::Move), extracting the inner [`ContextMove`](crate::types::ContextMove).
+    /// Tries to convert the enum instance into [`Move`](crate::types::ContextAction::Move), extracting the inner [`ContextMoveBulkRequest`](crate::types::ContextMoveBulkRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_move(&self) -> ::std::result::Result<&crate::types::ContextMove, &Self> {
+    pub fn as_move(&self) -> ::std::result::Result<&crate::types::ContextMoveBulkRequest, &Self> {
         if let ContextAction::Move(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
     /// Returns true if this is a [`Move`](crate::types::ContextAction::Move).

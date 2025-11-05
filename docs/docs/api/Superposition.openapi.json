@@ -193,7 +193,8 @@
                             "last-modified": {
                                 "schema": {
                                     "type": "string"
-                                }
+                                },
+                                "required": true
                             },
                             "x-audit-id": {
                                 "schema": {
@@ -203,7 +204,8 @@
                             "x-config-version": {
                                 "schema": {
                                     "type": "string"
-                                }
+                                },
+                                "required": true
                             }
                         },
                         "content": {
@@ -374,7 +376,8 @@
                             "last-modified": {
                                 "schema": {
                                     "type": "string"
-                                }
+                                },
+                                "required": true
                             },
                             "x-audit-id": {
                                 "schema": {
@@ -384,7 +387,8 @@
                             "x-config-version": {
                                 "schema": {
                                     "type": "string"
-                                }
+                                },
+                                "required": true
                             }
                         },
                         "content": {
@@ -626,7 +630,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/CreateContextRequestContent"
+                                "$ref": "#/components/schemas/ContextPut"
                             }
                         }
                     },
@@ -695,7 +699,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/BulkOperationReq"
+                                "$ref": "#/components/schemas/BulkOperationRequestContent"
                             }
                         }
                     },
@@ -732,7 +736,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/BulkOperationOut"
+                                    "$ref": "#/components/schemas/BulkOperationResponseContent"
                                 }
                             }
                         }
@@ -825,7 +829,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/MoveContextRequestContent"
+                                "$ref": "#/components/schemas/ContextMove"
                             }
                         }
                     },
@@ -888,7 +892,7 @@
             }
         },
         "/context/overrides": {
-            "put": {
+            "patch": {
                 "description": "Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.",
                 "operationId": "UpdateOverride",
                 "requestBody": {
@@ -1102,8 +1106,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "DeleteContext 201 response"
+                    "204": {
+                        "description": "DeleteContext 204 response"
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
@@ -1353,8 +1357,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "DeleteDefaultConfig 201 response"
+                    "204": {
+                        "description": "DeleteDefaultConfig 204 response"
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
@@ -1665,8 +1669,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "DeleteDimension 201 response"
+                    "204": {
+                        "description": "DeleteDimension 204 response"
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
@@ -3278,8 +3282,8 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "DeleteFunction 200 response"
+                    "204": {
+                        "description": "DeleteFunction 204 response"
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
@@ -4371,8 +4375,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "DeleteWebhook 201 response"
+                    "204": {
+                        "description": "DeleteWebhook 204 response"
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
@@ -4816,7 +4820,7 @@
                         "items": {
                             "type": "string"
                         },
-                        "description": "List of experiment IDs to add to this group."
+                        "description": "List of experiment IDs to add/remove to this group."
                     }
                 },
                 "required": [
@@ -4938,6 +4942,9 @@
             "AuditLogFull": {
                 "type": "object",
                 "properties": {
+                    "id": {
+                        "type": "string"
+                    },
                     "table_name": {
                         "type": "string"
                     },
@@ -4949,14 +4956,22 @@
                         "format": "date-time"
                     },
                     "action": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/AuditAction"
                     },
                     "original_data": {},
                     "new_data": {},
                     "query": {
                         "type": "string"
                     }
-                }
+                },
+                "required": [
+                    "action",
+                    "id",
+                    "query",
+                    "table_name",
+                    "timestamp",
+                    "user_name"
+                ]
             },
             "AutocompleteFunctionRequest": {
                 "type": "object",
@@ -4968,7 +4983,12 @@
                         "type": "string"
                     },
                     "environment": {}
-                }
+                },
+                "required": [
+                    "environment",
+                    "name",
+                    "prefix"
+                ]
             },
             "Bucket": {
                 "type": "object",
@@ -4985,18 +5005,7 @@
                     "variant_id"
                 ]
             },
-            "BulkOperationOut": {
-                "type": "object",
-                "properties": {
-                    "output": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ContextActionOut"
-                        }
-                    }
-                }
-            },
-            "BulkOperationReq": {
+            "BulkOperationRequestContent": {
                 "type": "object",
                 "properties": {
                     "operations": {
@@ -5005,7 +5014,24 @@
                             "$ref": "#/components/schemas/ContextAction"
                         }
                     }
-                }
+                },
+                "required": [
+                    "operations"
+                ]
+            },
+            "BulkOperationResponseContent": {
+                "type": "object",
+                "properties": {
+                    "output": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ContextActionOut"
+                        }
+                    }
+                },
+                "required": [
+                    "output"
+                ]
             },
             "ConcludeExperimentRequestContent": {
                 "type": "object",
@@ -5161,7 +5187,7 @@
                         "title": "MOVE",
                         "properties": {
                             "MOVE": {
-                                "$ref": "#/components/schemas/ContextMove"
+                                "$ref": "#/components/schemas/ContextMoveBulkRequest"
                             }
                         },
                         "required": [
@@ -5266,9 +5292,6 @@
             "ContextMove": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "string"
-                    },
                     "context": {
                         "$ref": "#/components/schemas/Condition"
                     },
@@ -5282,6 +5305,21 @@
                 "required": [
                     "change_reason",
                     "context"
+                ]
+            },
+            "ContextMoveBulkRequest": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "request": {
+                        "$ref": "#/components/schemas/ContextMove"
+                    }
+                },
+                "required": [
+                    "id",
+                    "request"
                 ]
             },
             "ContextPartial": {
@@ -5307,7 +5345,14 @@
                         "maxItems": 1,
                         "minItems": 1
                     }
-                }
+                },
+                "required": [
+                    "condition",
+                    "id",
+                    "override_with_keys",
+                    "priority",
+                    "weight"
+                ]
             },
             "ContextPut": {
                 "type": "object",
@@ -5372,29 +5417,17 @@
                     }
                 },
                 "required": [
-                    "id"
-                ]
-            },
-            "CreateContextRequestContent": {
-                "type": "object",
-                "properties": {
-                    "context": {
-                        "$ref": "#/components/schemas/Condition"
-                    },
-                    "override": {
-                        "$ref": "#/components/schemas/Overrides"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "change_reason": {
-                        "type": "string"
-                    }
-                },
-                "required": [
                     "change_reason",
-                    "context",
-                    "override"
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "id",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "override",
+                    "override_id",
+                    "value",
+                    "weight"
                 ]
             },
             "CreateContextResponseContent": {
@@ -5438,7 +5471,17 @@
                     }
                 },
                 "required": [
-                    "id"
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "id",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "override",
+                    "override_id",
+                    "value",
+                    "weight"
                 ]
             },
             "CreateDefaultConfigRequestContent": {
@@ -5458,8 +5501,7 @@
                         "type": "string"
                     },
                     "function_name": {
-                        "type": "string",
-                        "description": "Optional"
+                        "type": "string"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -5490,8 +5532,7 @@
                         "type": "string"
                     },
                     "function_name": {
-                        "type": "string",
-                        "description": "Optional"
+                        "type": "string"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -5595,7 +5636,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -5617,6 +5658,7 @@
                     "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
+                    "mandatory",
                     "position",
                     "schema"
                 ]
@@ -6303,6 +6345,7 @@
                     "created_by",
                     "last_modified_at",
                     "last_modified_by",
+                    "metrics",
                     "organisation_id",
                     "organisation_name",
                     "strict_mode",
@@ -6312,7 +6355,7 @@
                     "workspace_status"
                 ]
             },
-            "DefaultConfigFull": {
+            "DefaultConfigResponse": {
                 "type": "object",
                 "properties": {
                     "key": {
@@ -6329,8 +6372,7 @@
                         "type": "string"
                     },
                     "function_name": {
-                        "type": "string",
-                        "description": "Optional"
+                        "type": "string"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -6477,7 +6519,7 @@
                     "type_schema"
                 ]
             },
-            "DepedendencyGraph": {
+            "DependencyGraph": {
                 "type": "object",
                 "additionalProperties": {
                     "type": "array",
@@ -6492,7 +6534,38 @@
                     "$ref": "#/components/schemas/DimensionInfo"
                 }
             },
-            "DimensionExt": {
+            "DimensionInfo": {
+                "type": "object",
+                "properties": {
+                    "schema": {
+                        "$ref": "#/components/schemas/Object"
+                    },
+                    "position": {
+                        "type": "number"
+                    },
+                    "dimension_type": {
+                        "$ref": "#/components/schemas/DimensionType"
+                    },
+                    "dependency_graph": {
+                        "$ref": "#/components/schemas/DependencyGraph"
+                    }
+                },
+                "required": [
+                    "dependency_graph",
+                    "dimension_type",
+                    "position",
+                    "schema"
+                ]
+            },
+            "DimensionMatchStrategy": {
+                "type": "string",
+                "description": "Strategy to follow while filter items based on the context",
+                "enum": [
+                    "exact",
+                    "subset"
+                ]
+            },
+            "DimensionResponse": {
                 "type": "object",
                 "properties": {
                     "dimension": {
@@ -6528,7 +6601,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -6550,33 +6623,9 @@
                     "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
+                    "mandatory",
                     "position",
                     "schema"
-                ]
-            },
-            "DimensionInfo": {
-                "type": "object",
-                "properties": {
-                    "schema": {
-                        "$ref": "#/components/schemas/Object"
-                    },
-                    "position": {
-                        "type": "number"
-                    },
-                    "dimension_type": {
-                        "$ref": "#/components/schemas/DimensionType"
-                    },
-                    "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
-                    }
-                }
-            },
-            "DimensionMatchStrategy": {
-                "type": "string",
-                "description": "Strategy to follow while filter items based on the context",
-                "enum": [
-                    "exact",
-                    "subset"
                 ]
             },
             "DimensionType": {
@@ -7036,7 +7085,13 @@
                     "dimensions": {
                         "$ref": "#/components/schemas/DimensionData"
                     }
-                }
+                },
+                "required": [
+                    "contexts",
+                    "default_configs",
+                    "dimensions",
+                    "overrides"
+                ]
             },
             "GetContextFromConditionInputPayload": {},
             "GetContextFromConditionResponseContent": {
@@ -7080,7 +7135,17 @@
                     }
                 },
                 "required": [
-                    "id"
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "id",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "override",
+                    "override_id",
+                    "value",
+                    "weight"
                 ]
             },
             "GetContextResponseContent": {
@@ -7124,7 +7189,17 @@
                     }
                 },
                 "required": [
-                    "id"
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "id",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "override",
+                    "override_id",
+                    "value",
+                    "weight"
                 ]
             },
             "GetDefaultConfigResponseContent": {
@@ -7144,8 +7219,7 @@
                         "type": "string"
                     },
                     "function_name": {
-                        "type": "string",
-                        "description": "Optional"
+                        "type": "string"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -7213,7 +7287,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -7235,6 +7309,7 @@
                     "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
+                    "mandatory",
                     "position",
                     "schema"
                 ]
@@ -7581,7 +7656,12 @@
                             "$ref": "#/components/schemas/TypeTemplatesResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "GetVersionResponseContent": {
                 "type": "object",
@@ -7819,6 +7899,7 @@
                     "created_by",
                     "last_modified_at",
                     "last_modified_by",
+                    "metrics",
                     "organisation_id",
                     "organisation_name",
                     "strict_mode",
@@ -7869,7 +7950,12 @@
                             "$ref": "#/components/schemas/AuditLogFull"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListContextsResponseContent": {
                 "type": "object",
@@ -7886,7 +7972,12 @@
                             "$ref": "#/components/schemas/ContextResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListDefaultConfigsResponseContent": {
                 "type": "object",
@@ -7900,10 +7991,15 @@
                     "data": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/DefaultConfigFull"
+                            "$ref": "#/components/schemas/DefaultConfigResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListDimensionsResponseContent": {
                 "type": "object",
@@ -7917,10 +8013,15 @@
                     "data": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/DimensionExt"
+                            "$ref": "#/components/schemas/DimensionResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListExperimentGroupsResponseContent": {
                 "type": "object",
@@ -7938,7 +8039,12 @@
                         },
                         "description": "A list of experiment group responses."
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListExperimentResponseContent": {
                 "type": "object",
@@ -7955,7 +8061,12 @@
                             "$ref": "#/components/schemas/ExperimentResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListFunctionResponseContent": {
                 "type": "object",
@@ -7972,7 +8083,12 @@
                             "$ref": "#/components/schemas/FunctionResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListOrganisationResponseContent": {
                 "type": "object",
@@ -7989,7 +8105,12 @@
                             "$ref": "#/components/schemas/OrganisationResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListVersionsMember": {
                 "type": "object",
@@ -8034,7 +8155,12 @@
                             "$ref": "#/components/schemas/ListVersionsMember"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListWebhookResponseContent": {
                 "type": "object",
@@ -8051,7 +8177,12 @@
                             "$ref": "#/components/schemas/WebhookResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "ListWorkspaceResponseContent": {
                 "type": "object",
@@ -8068,7 +8199,12 @@
                             "$ref": "#/components/schemas/WorkspaceResponse"
                         }
                     }
-                }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
             },
             "MergeStrategy": {
                 "type": "string",
@@ -8139,6 +8275,7 @@
                     "created_by",
                     "last_modified_at",
                     "last_modified_by",
+                    "metrics",
                     "organisation_id",
                     "organisation_name",
                     "strict_mode",
@@ -8146,24 +8283,6 @@
                     "workspace_name",
                     "workspace_schema_name",
                     "workspace_status"
-                ]
-            },
-            "MoveContextRequestContent": {
-                "type": "object",
-                "properties": {
-                    "context": {
-                        "$ref": "#/components/schemas/Condition"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "change_reason": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "change_reason",
-                    "context"
                 ]
             },
             "MoveContextResponseContent": {
@@ -8207,7 +8326,17 @@
                     }
                 },
                 "required": [
-                    "id"
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "id",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "override",
+                    "override_id",
+                    "value",
+                    "weight"
                 ]
             },
             "Object": {
@@ -8575,7 +8704,7 @@
                         "items": {
                             "type": "string"
                         },
-                        "description": "List of experiment IDs to add to this group."
+                        "description": "List of experiment IDs to add/remove to this group."
                     }
                 },
                 "required": [
@@ -8865,13 +8994,15 @@
                         "$ref": "#/components/schemas/Object"
                     },
                     "function_name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "To unset the function name, pass \"null\" string."
                     },
                     "description": {
                         "type": "string"
                     },
                     "autocomplete_function_name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "To unset the function name, pass \"null\" string."
                     }
                 },
                 "required": [
@@ -8895,8 +9026,7 @@
                         "type": "string"
                     },
                     "function_name": {
-                        "type": "string",
-                        "description": "Optional"
+                        "type": "string"
                     },
                     "autocomplete_function_name": {
                         "type": "string"
@@ -8938,7 +9068,8 @@
                         "type": "number"
                     },
                     "function_name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "To unset the function name, pass \"null\" string."
                     },
                     "description": {
                         "type": "string"
@@ -8947,7 +9078,8 @@
                         "type": "string"
                     },
                     "autocomplete_function_name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "To unset the function name, pass \"null\" string."
                     }
                 },
                 "required": [
@@ -8990,7 +9122,7 @@
                         "type": "string"
                     },
                     "dependency_graph": {
-                        "$ref": "#/components/schemas/DepedendencyGraph"
+                        "$ref": "#/components/schemas/DependencyGraph"
                     },
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
@@ -9012,6 +9144,7 @@
                     "dimension_type",
                     "last_modified_at",
                     "last_modified_by",
+                    "mandatory",
                     "position",
                     "schema"
                 ]
@@ -9130,9 +9263,7 @@
                     }
                 },
                 "required": [
-                    "change_reason",
-                    "function",
-                    "runtime_version"
+                    "change_reason"
                 ]
             },
             "UpdateFunctionResponseContent": {
@@ -9314,7 +9445,17 @@
                     }
                 },
                 "required": [
-                    "id"
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "id",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "override",
+                    "override_id",
+                    "value",
+                    "weight"
                 ]
             },
             "UpdateOverridesExperimentRequestContent": {
@@ -9334,7 +9475,8 @@
                     },
                     "metrics": {},
                     "experiment_group_id": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "To unset experiment group, pass \"null\" string."
                     }
                 },
                 "required": [
@@ -9521,12 +9663,7 @@
                     }
                 },
                 "required": [
-                    "change_reason",
-                    "description",
-                    "enabled",
-                    "events",
-                    "method",
-                    "url"
+                    "change_reason"
                 ]
             },
             "UpdateWebhookResponseContent": {
@@ -9607,7 +9744,8 @@
                         "type": "string"
                     },
                     "config_version": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "To unset config version, pass \"null\" string."
                     },
                     "mandatory_dimensions": {
                         "type": "array",
@@ -9692,6 +9830,7 @@
                     "created_by",
                     "last_modified_at",
                     "last_modified_by",
+                    "metrics",
                     "organisation_id",
                     "organisation_name",
                     "strict_mode",
@@ -9719,7 +9858,11 @@
                         "type": "string"
                     },
                     "value": {}
-                }
+                },
+                "required": [
+                    "key",
+                    "value"
+                ]
             },
             "Variant": {
                 "type": "object",
@@ -9736,7 +9879,9 @@
                     "override_id": {
                         "type": "string"
                     },
-                    "overrides": {}
+                    "overrides": {
+                        "$ref": "#/components/schemas/Overrides"
+                    }
                 },
                 "required": [
                     "id",
@@ -9757,7 +9902,9 @@
                     "id": {
                         "type": "string"
                     },
-                    "overrides": {}
+                    "overrides": {
+                        "$ref": "#/components/schemas/Overrides"
+                    }
                 },
                 "required": [
                     "id",
@@ -9858,7 +10005,13 @@
                         "type": "string",
                         "description": "Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution."
                     }
-                }
+                },
+                "required": [
+                    "condition",
+                    "id",
+                    "new_weight",
+                    "old_weight"
+                ]
             },
             "WeightRecomputeResponseContent": {
                 "type": "object",
@@ -9933,6 +10086,7 @@
                     "created_by",
                     "last_modified_at",
                     "last_modified_by",
+                    "metrics",
                     "organisation_id",
                     "organisation_name",
                     "strict_mode",

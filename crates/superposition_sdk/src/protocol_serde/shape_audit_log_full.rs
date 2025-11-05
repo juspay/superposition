@@ -11,6 +11,15 @@ pub(crate) fn de_audit_log_full<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
                     Some(::aws_smithy_json::deserialize::Token::EndObject { .. }) => break,
                                             Some(::aws_smithy_json::deserialize::Token::ObjectKey { key, .. }) => {
                         match key.to_unescaped()?.as_ref() {
+                            "id" => {
+                                builder = builder.set_id(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
+                                );
+                            }
                             "table_name" => {
                                 builder = builder.set_table_name(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -38,7 +47,7 @@ pub(crate) fn de_audit_log_full<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
                                 builder = builder.set_action(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
-                                            u.into_owned()
+                                            crate::types::AuditAction::from(u.as_ref())
                                         )
                                     ).transpose()?
                                 );
@@ -68,7 +77,7 @@ pub(crate) fn de_audit_log_full<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
                     other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
                 }
             }
-            Ok(Some(builder.build()))
+            Ok(Some(crate::serde_util::audit_log_full_correct_errors(builder).build().map_err(|err|::aws_smithy_json::deserialize::error::DeserializeError::custom_source("Response was invalid", err))?))
         }
         _ => {
             Err(::aws_smithy_json::deserialize::error::DeserializeError::custom("expected start object or null"))

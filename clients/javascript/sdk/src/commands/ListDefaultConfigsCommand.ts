@@ -53,10 +53,10 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  * const command = new ListDefaultConfigsCommand(input);
  * const response = await client.send(command);
  * // { // ListDefaultConfigsOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // ListDefaultConfigOut
- * //     { // DefaultConfigFull
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // ListDefaultConfigOut // required
+ * //     { // DefaultConfigResponse
  * //       key: "STRING_VALUE", // required
  * //       value: "DOCUMENT_VALUE", // required
  * //       schema: { // Object // required

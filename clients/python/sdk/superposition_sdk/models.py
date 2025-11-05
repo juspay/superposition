@@ -26,9 +26,7 @@ from ._private.schemas import (
     BUCKET as _SCHEMA_BUCKET,
     BULK_OPERATION as _SCHEMA_BULK_OPERATION,
     BULK_OPERATION_INPUT as _SCHEMA_BULK_OPERATION_INPUT,
-    BULK_OPERATION_OUT as _SCHEMA_BULK_OPERATION_OUT,
     BULK_OPERATION_OUTPUT as _SCHEMA_BULK_OPERATION_OUTPUT,
-    BULK_OPERATION_REQ as _SCHEMA_BULK_OPERATION_REQ,
     CONCLUDE_EXPERIMENT as _SCHEMA_CONCLUDE_EXPERIMENT,
     CONCLUDE_EXPERIMENT_INPUT as _SCHEMA_CONCLUDE_EXPERIMENT_INPUT,
     CONCLUDE_EXPERIMENT_OUTPUT as _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT,
@@ -36,6 +34,7 @@ from ._private.schemas import (
     CONTEXT_ACTION_OUT as _SCHEMA_CONTEXT_ACTION_OUT,
     CONTEXT_IDENTIFIER as _SCHEMA_CONTEXT_IDENTIFIER,
     CONTEXT_MOVE as _SCHEMA_CONTEXT_MOVE,
+    CONTEXT_MOVE_BULK_REQUEST as _SCHEMA_CONTEXT_MOVE_BULK_REQUEST,
     CONTEXT_PARTIAL as _SCHEMA_CONTEXT_PARTIAL,
     CONTEXT_PUT as _SCHEMA_CONTEXT_PUT,
     CONTEXT_RESPONSE as _SCHEMA_CONTEXT_RESPONSE,
@@ -69,7 +68,7 @@ from ._private.schemas import (
     CREATE_WORKSPACE as _SCHEMA_CREATE_WORKSPACE,
     CREATE_WORKSPACE_INPUT as _SCHEMA_CREATE_WORKSPACE_INPUT,
     CREATE_WORKSPACE_OUTPUT as _SCHEMA_CREATE_WORKSPACE_OUTPUT,
-    DEFAULT_CONFIG_FULL as _SCHEMA_DEFAULT_CONFIG_FULL,
+    DEFAULT_CONFIG_RESPONSE as _SCHEMA_DEFAULT_CONFIG_RESPONSE,
     DELETE_CONTEXT as _SCHEMA_DELETE_CONTEXT,
     DELETE_CONTEXT_INPUT as _SCHEMA_DELETE_CONTEXT_INPUT,
     DELETE_CONTEXT_OUTPUT as _SCHEMA_DELETE_CONTEXT_OUTPUT,
@@ -91,8 +90,8 @@ from ._private.schemas import (
     DELETE_WEBHOOK as _SCHEMA_DELETE_WEBHOOK,
     DELETE_WEBHOOK_INPUT as _SCHEMA_DELETE_WEBHOOK_INPUT,
     DELETE_WEBHOOK_OUTPUT as _SCHEMA_DELETE_WEBHOOK_OUTPUT,
-    DIMENSION_EXT as _SCHEMA_DIMENSION_EXT,
     DIMENSION_INFO as _SCHEMA_DIMENSION_INFO,
+    DIMENSION_RESPONSE as _SCHEMA_DIMENSION_RESPONSE,
     DIMENSION_TYPE as _SCHEMA_DIMENSION_TYPE,
     DISCARD_EXPERIMENT as _SCHEMA_DISCARD_EXPERIMENT,
     DISCARD_EXPERIMENT_INPUT as _SCHEMA_DISCARD_EXPERIMENT_INPUT,
@@ -311,7 +310,7 @@ class AddMembersToGroupInput:
         **[Required]** - Reason for adding these members.
 
     :param member_experiment_ids:
-        **[Required]** - List of experiment IDs to add to this group.
+        **[Required]** - List of experiment IDs to add/remove to this group.
 
     """
 
@@ -690,18 +689,44 @@ class ApplicableVariantsInput:
         deserializer.read_struct(_SCHEMA_APPLICABLE_VARIANTS_INPUT, consumer=_consumer)
         return kwargs
 
+def _serialize_overrides(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_document(value_schema, v))
+
+def _deserialize_overrides(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
+    result: dict[str, Document] = {}
+    value_schema = schema.members["value"]
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_document(value_schema)
+    deserializer.read_map(schema, _read_value)
+    return result
+
 class VariantType(StrEnum):
     CONTROL = "CONTROL"
     EXPERIMENTAL = "EXPERIMENTAL"
 
 @dataclass(kw_only=True)
 class Variant:
+    """
+
+    :param overrides:
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
+
+    """
 
     id: str
 
     variant_type: str
 
-    overrides: Document
+    overrides: dict[str, Document]
 
     context_id: str | None = None
     override_id: str | None = None
@@ -718,7 +743,7 @@ class Variant:
         if self.override_id is not None:
             serializer.write_string(_SCHEMA_VARIANT.members["override_id"], self.override_id)
 
-        serializer.write_document(_SCHEMA_VARIANT.members["overrides"], self.overrides)
+        _serialize_overrides(serializer, _SCHEMA_VARIANT.members["overrides"], self.overrides)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -743,7 +768,7 @@ class Variant:
                     kwargs["override_id"] = de.read_string(_SCHEMA_VARIANT.members["override_id"])
 
                 case 4:
-                    kwargs["overrides"] = de.read_document(_SCHEMA_VARIANT.members["overrides"])
+                    kwargs["overrides"] = _deserialize_overrides(de, _SCHEMA_VARIANT.members["overrides"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -940,38 +965,37 @@ class ListAuditLogsInput:
 @dataclass(kw_only=True)
 class AuditLogFull:
 
-    table_name: str | None = None
-    user_name: str | None = None
-    timestamp: datetime | None = None
-    action: str | None = None
+    id: str
+
+    table_name: str
+
+    user_name: str
+
+    timestamp: datetime
+
+    action: str
+
+    query: str
+
     original_data: Document | None = None
     new_data: Document | None = None
-    query: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_AUDIT_LOG_FULL, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.table_name is not None:
-            serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["table_name"], self.table_name)
-
-        if self.user_name is not None:
-            serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["user_name"], self.user_name)
-
-        if self.timestamp is not None:
-            serializer.write_timestamp(_SCHEMA_AUDIT_LOG_FULL.members["timestamp"], self.timestamp)
-
-        if self.action is not None:
-            serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["action"], self.action)
-
+        serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["id"], self.id)
+        serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["table_name"], self.table_name)
+        serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["user_name"], self.user_name)
+        serializer.write_timestamp(_SCHEMA_AUDIT_LOG_FULL.members["timestamp"], self.timestamp)
+        serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["action"], self.action)
         if self.original_data is not None:
             serializer.write_document(_SCHEMA_AUDIT_LOG_FULL.members["original_data"], self.original_data)
 
         if self.new_data is not None:
             serializer.write_document(_SCHEMA_AUDIT_LOG_FULL.members["new_data"], self.new_data)
 
-        if self.query is not None:
-            serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["query"], self.query)
+        serializer.write_string(_SCHEMA_AUDIT_LOG_FULL.members["query"], self.query)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -984,24 +1008,27 @@ class AuditLogFull:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["table_name"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["table_name"])
+                    kwargs["id"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["id"])
 
                 case 1:
-                    kwargs["user_name"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["user_name"])
+                    kwargs["table_name"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["table_name"])
 
                 case 2:
-                    kwargs["timestamp"] = de.read_timestamp(_SCHEMA_AUDIT_LOG_FULL.members["timestamp"])
+                    kwargs["user_name"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["user_name"])
 
                 case 3:
-                    kwargs["action"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["action"])
+                    kwargs["timestamp"] = de.read_timestamp(_SCHEMA_AUDIT_LOG_FULL.members["timestamp"])
 
                 case 4:
-                    kwargs["original_data"] = de.read_document(_SCHEMA_AUDIT_LOG_FULL.members["original_data"])
+                    kwargs["action"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["action"])
 
                 case 5:
-                    kwargs["new_data"] = de.read_document(_SCHEMA_AUDIT_LOG_FULL.members["new_data"])
+                    kwargs["original_data"] = de.read_document(_SCHEMA_AUDIT_LOG_FULL.members["original_data"])
 
                 case 6:
+                    kwargs["new_data"] = de.read_document(_SCHEMA_AUDIT_LOG_FULL.members["new_data"])
+
+                case 7:
                     kwargs["query"] = de.read_string(_SCHEMA_AUDIT_LOG_FULL.members["query"])
 
                 case _:
@@ -1030,22 +1057,19 @@ def _deserialize_audit_log_list(deserializer: ShapeDeserializer, schema: Schema)
 @dataclass(kw_only=True)
 class ListAuditLogsOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[AuditLogFull] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[AuditLogFull]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_AUDIT_LOGS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_AUDIT_LOGS_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_AUDIT_LOGS_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_audit_log_list(serializer, _SCHEMA_LIST_AUDIT_LOGS_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_AUDIT_LOGS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_AUDIT_LOGS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_audit_log_list(serializer, _SCHEMA_LIST_AUDIT_LOGS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1089,22 +1113,19 @@ LIST_AUDIT_LOGS = APIOperation(
 @dataclass(kw_only=True)
 class AutocompleteFunctionRequest:
 
-    name: str | None = None
-    prefix: str | None = None
-    environment: Document | None = None
+    name: str
+
+    prefix: str
+
+    environment: Document
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.name is not None:
-            serializer.write_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["name"], self.name)
-
-        if self.prefix is not None:
-            serializer.write_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["prefix"], self.prefix)
-
-        if self.environment is not None:
-            serializer.write_document(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["environment"], self.environment)
+        serializer.write_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["name"], self.name)
+        serializer.write_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["prefix"], self.prefix)
+        serializer.write_document(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["environment"], self.environment)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1145,16 +1166,12 @@ class ContextMove:
 
     change_reason: str
 
-    id: str | None = None
     description: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_MOVE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_MOVE.members["id"], self.id)
-
         _serialize_condition(serializer, _SCHEMA_CONTEXT_MOVE.members["context"], self.context)
         if self.description is not None:
             serializer.write_string(_SCHEMA_CONTEXT_MOVE.members["description"], self.description)
@@ -1172,15 +1189,12 @@ class ContextMove:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["id"] = de.read_string(_SCHEMA_CONTEXT_MOVE.members["id"])
-
-                case 1:
                     kwargs["context"] = _deserialize_condition(de, _SCHEMA_CONTEXT_MOVE.members["context"])
 
-                case 2:
+                case 1:
                     kwargs["description"] = de.read_string(_SCHEMA_CONTEXT_MOVE.members["description"])
 
-                case 3:
+                case 2:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CONTEXT_MOVE.members["change_reason"])
 
                 case _:
@@ -1189,23 +1203,41 @@ class ContextMove:
         deserializer.read_struct(_SCHEMA_CONTEXT_MOVE, consumer=_consumer)
         return kwargs
 
-def _serialize_overrides(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
-    with serializer.begin_map(schema, len(value)) as m:
-        value_schema = schema.members["value"]
-        for k, v in value.items():
-            m.entry(k, lambda vs: vs.write_document(value_schema, v))
+@dataclass(kw_only=True)
+class ContextMoveBulkRequest:
 
-def _deserialize_overrides(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
-    result: dict[str, Document] = {}
-    value_schema = schema.members["value"]
-    def _read_value(k: str, d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
+    id: str
 
-        else:
-            result[k] = d.read_document(value_schema)
-    deserializer.read_map(schema, _read_value)
-    return result
+    request: ContextMove
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTEXT_MOVE_BULK_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_CONTEXT_MOVE_BULK_REQUEST.members["id"], self.id)
+        serializer.write_struct(_SCHEMA_CONTEXT_MOVE_BULK_REQUEST.members["request"], self.request)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_CONTEXT_MOVE_BULK_REQUEST.members["id"])
+
+                case 1:
+                    kwargs["request"] = ContextMove.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CONTEXT_MOVE_BULK_REQUEST, consumer=_consumer)
+        return kwargs
 
 @dataclass(kw_only=True)
 class ContextPut:
@@ -1462,7 +1494,7 @@ class ContextActionDELETE:
 @dataclass
 class ContextActionMOVE:
 
-    value: ContextMove
+    value: ContextMoveBulkRequest
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_ACTION, self)
@@ -1472,7 +1504,7 @@ class ContextActionMOVE:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=ContextMove.deserialize(deserializer))
+        return cls(value=ContextMoveBulkRequest.deserialize(deserializer))
 
 @dataclass
 class ContextActionUnknown:
@@ -1550,49 +1582,19 @@ def _deserialize_bulk_operation_list(deserializer: ShapeDeserializer, schema: Sc
     return result
 
 @dataclass(kw_only=True)
-class BulkOperationReq:
-
-    operations: list[ContextAction] | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_BULK_OPERATION_REQ, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        if self.operations is not None:
-            _serialize_bulk_operation_list(serializer, _SCHEMA_BULK_OPERATION_REQ.members["operations"], self.operations)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["operations"] = _deserialize_bulk_operation_list(de, _SCHEMA_BULK_OPERATION_REQ.members["operations"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_BULK_OPERATION_REQ, consumer=_consumer)
-        return kwargs
-
-@dataclass(kw_only=True)
 class BulkOperationInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
     config_tags: str | None = None
-    bulk_operation: BulkOperationReq | None = None
+    operations: list[ContextAction] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_BULK_OPERATION_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.operations is not None:
+            _serialize_bulk_operation_list(serializer, _SCHEMA_BULK_OPERATION_INPUT.members["operations"], self.operations)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1614,7 +1616,7 @@ class BulkOperationInput:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_BULK_OPERATION_INPUT.members["config_tags"])
 
                 case 3:
-                    kwargs["bulk_operation"] = BulkOperationReq.deserialize(de)
+                    kwargs["operations"] = _deserialize_bulk_operation_list(de, _SCHEMA_BULK_OPERATION_INPUT.members["operations"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -1627,66 +1629,57 @@ class ContextResponse:
     """
 
     :param value:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     :param override:
-         Configuration overrides that replace default values when context conditions are
-         met. Keys represent configuration keys and values are the override data.
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
 
     :param weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     """
 
     id: str
 
-    value: dict[str, Document] | None = None
-    override: dict[str, Document] | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-    created_at: datetime | None = None
-    created_by: str | None = None
-    last_modified_at: datetime | None = None
-    last_modified_by: str | None = None
+    value: dict[str, Document]
+
+    override: dict[str, Document]
+
+    override_id: str
+
+    weight: str
+
+    description: str
+
+    change_reason: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_RESPONSE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["id"], self.id)
-        if self.value is not None:
-            _serialize_condition(serializer, _SCHEMA_CONTEXT_RESPONSE.members["value"], self.value)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_CONTEXT_RESPONSE.members["override"], self.override)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["change_reason"], self.change_reason)
-
-        if self.created_at is not None:
-            serializer.write_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["created_at"], self.created_at)
-
-        if self.created_by is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["created_by"], self.created_by)
-
-        if self.last_modified_at is not None:
-            serializer.write_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_at"], self.last_modified_at)
-
-        if self.last_modified_by is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        _serialize_condition(serializer, _SCHEMA_CONTEXT_RESPONSE.members["value"], self.value)
+        _serialize_overrides(serializer, _SCHEMA_CONTEXT_RESPONSE.members["override"], self.override)
+        serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["override_id"], self.override_id)
+        serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["weight"], self.weight)
+        serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_CONTEXT_RESPONSE.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1873,46 +1866,15 @@ def _deserialize_bulk_operation_out_list(deserializer: ShapeDeserializer, schema
     return result
 
 @dataclass(kw_only=True)
-class BulkOperationOut:
-
-    output: list[ContextActionOut] | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_BULK_OPERATION_OUT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        if self.output is not None:
-            _serialize_bulk_operation_out_list(serializer, _SCHEMA_BULK_OPERATION_OUT.members["output"], self.output)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["output"] = _deserialize_bulk_operation_out_list(de, _SCHEMA_BULK_OPERATION_OUT.members["output"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_BULK_OPERATION_OUT, consumer=_consumer)
-        return kwargs
-
-@dataclass(kw_only=True)
 class BulkOperationOutput:
 
-    bulk_operation_output: BulkOperationOut | None = None
+    output: list[ContextActionOut]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_BULK_OPERATION_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        _serialize_bulk_operation_out_list(serializer, _SCHEMA_BULK_OPERATION_OUTPUT.members["output"], self.output)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1925,7 +1887,7 @@ class BulkOperationOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["bulk_operation_output"] = BulkOperationOut.deserialize(de)
+                    kwargs["output"] = _deserialize_bulk_operation_out_list(de, _SCHEMA_BULK_OPERATION_OUTPUT.members["output"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2300,35 +2262,30 @@ class ContextPartial:
     """
 
     :param condition:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     """
 
-    id: str | None = None
-    condition: dict[str, Document] | None = None
-    priority: int | None = None
-    weight: int | None = None
-    override_with_keys: list[str] | None = None
+    id: str
+
+    condition: dict[str, Document]
+
+    priority: int
+
+    weight: int
+
+    override_with_keys: list[str]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTEXT_PARTIAL, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.id is not None:
-            serializer.write_string(_SCHEMA_CONTEXT_PARTIAL.members["id"], self.id)
-
-        if self.condition is not None:
-            _serialize_condition(serializer, _SCHEMA_CONTEXT_PARTIAL.members["condition"], self.condition)
-
-        if self.priority is not None:
-            serializer.write_integer(_SCHEMA_CONTEXT_PARTIAL.members["priority"], self.priority)
-
-        if self.weight is not None:
-            serializer.write_integer(_SCHEMA_CONTEXT_PARTIAL.members["weight"], self.weight)
-
-        if self.override_with_keys is not None:
-            _serialize_override_with_keys(serializer, _SCHEMA_CONTEXT_PARTIAL.members["override_with_keys"], self.override_with_keys)
+        serializer.write_string(_SCHEMA_CONTEXT_PARTIAL.members["id"], self.id)
+        _serialize_condition(serializer, _SCHEMA_CONTEXT_PARTIAL.members["condition"], self.condition)
+        serializer.write_integer(_SCHEMA_CONTEXT_PARTIAL.members["priority"], self.priority)
+        serializer.write_integer(_SCHEMA_CONTEXT_PARTIAL.members["weight"], self.weight)
+        _serialize_override_with_keys(serializer, _SCHEMA_CONTEXT_PARTIAL.members["override_with_keys"], self.override_with_keys)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2396,13 +2353,13 @@ def _deserialize_object(deserializer: ShapeDeserializer, schema: Schema) -> dict
     deserializer.read_map(schema, _read_value)
     return result
 
-def _serialize_depedendency_graph(serializer: ShapeSerializer, schema: Schema, value: dict[str, list[str]]) -> None:
+def _serialize_dependency_graph(serializer: ShapeSerializer, schema: Schema, value: dict[str, list[str]]) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
         for k, v in value.items():
             m.entry(k, lambda vs: _serialize_string_list(vs, value_schema, v))
 
-def _deserialize_depedendency_graph(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, list[str]]:
+def _deserialize_dependency_graph(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, list[str]]:
     result: dict[str, list[str]] = {}
     value_schema = schema.members["value"]
     def _read_value(k: str, d: ShapeDeserializer):
@@ -2545,31 +2502,27 @@ class DimensionInfo:
     """
 
     :param schema:
-         Generic key-value object structure used for flexible data representation
-         throughout the API.
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
 
     """
 
-    schema: dict[str, Document] | None = None
-    position: int | None = None
-    dimension_type: DimensionType | None = None
-    dependency_graph: dict[str, list[str]] | None = None
+    schema: dict[str, Document]
+
+    position: int
+
+    dimension_type: DimensionType
+
+    dependency_graph: dict[str, list[str]]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DIMENSION_INFO, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.schema is not None:
-            _serialize_object(serializer, _SCHEMA_DIMENSION_INFO.members["schema"], self.schema)
-
-        if self.position is not None:
-            serializer.write_integer(_SCHEMA_DIMENSION_INFO.members["position"], self.position)
-
-        if self.dimension_type is not None:
-            serializer.write_struct(_SCHEMA_DIMENSION_INFO.members["dimension_type"], self.dimension_type)
-
-        if self.dependency_graph is not None:
-            _serialize_depedendency_graph(serializer, _SCHEMA_DIMENSION_INFO.members["dependency_graph"], self.dependency_graph)
+        _serialize_object(serializer, _SCHEMA_DIMENSION_INFO.members["schema"], self.schema)
+        serializer.write_integer(_SCHEMA_DIMENSION_INFO.members["position"], self.position)
+        serializer.write_struct(_SCHEMA_DIMENSION_INFO.members["dimension_type"], self.dimension_type)
+        _serialize_dependency_graph(serializer, _SCHEMA_DIMENSION_INFO.members["dependency_graph"], self.dependency_graph)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2591,7 +2544,7 @@ class DimensionInfo:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 3:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_DIMENSION_INFO.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_DIMENSION_INFO.members["dependency_graph"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2640,34 +2593,33 @@ class GetConfigOutput:
     """
 
     :param default_configs:
-         Generic key-value object structure used for flexible data representation
-         throughout the API.
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
 
     """
 
-    contexts: list[ContextPartial] | None = None
-    overrides: dict[str, dict[str, Document]] | None = None
-    default_configs: dict[str, Document] | None = None
-    dimensions: dict[str, DimensionInfo] | None = None
-    version: str | None = None
-    last_modified: datetime | None = None
+    contexts: list[ContextPartial]
+
+    overrides: dict[str, dict[str, Document]]
+
+    default_configs: dict[str, Document]
+
+    dimensions: dict[str, DimensionInfo]
+
+    version: str
+
+    last_modified: datetime
+
     audit_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONFIG_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.contexts is not None:
-            _serialize_context_list(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["contexts"], self.contexts)
-
-        if self.overrides is not None:
-            _serialize_overrides_map(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["overrides"], self.overrides)
-
-        if self.default_configs is not None:
-            _serialize_object(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["default_configs"], self.default_configs)
-
-        if self.dimensions is not None:
-            _serialize_dimension_data(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["dimensions"], self.dimensions)
+        _serialize_context_list(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["contexts"], self.contexts)
+        _serialize_overrides_map(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["overrides"], self.overrides)
+        _serialize_object(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["default_configs"], self.default_configs)
+        _serialize_dimension_data(serializer, _SCHEMA_GET_CONFIG_OUTPUT.members["dimensions"], self.dimensions)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2882,9 +2834,12 @@ class GetResolvedConfigInput:
 @dataclass(kw_only=True)
 class GetResolvedConfigOutput:
 
-    config: Document | None = None
-    version: str | None = None
-    last_modified: datetime | None = None
+    config: Document
+
+    version: str
+
+    last_modified: datetime
+
     audit_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3175,22 +3130,19 @@ def _deserialize_list_versions_out(deserializer: ShapeDeserializer, schema: Sche
 @dataclass(kw_only=True)
 class ListVersionsOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[ListVersionsMember] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[ListVersionsMember]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_VERSIONS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_list_versions_out(serializer, _SCHEMA_LIST_VERSIONS_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_VERSIONS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_list_versions_out(serializer, _SCHEMA_LIST_VERSIONS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3233,42 +3185,17 @@ LIST_VERSIONS = APIOperation(
 
 @dataclass(kw_only=True)
 class CreateContextInput:
-    """
-
-    :param context:
-        **[Required]** - Represents conditional criteria used for context matching. Keys
-        define dimension names and values specify the criteria that must be met.
-
-    :param override:
-        **[Required]** - Configuration overrides that replace default values when
-        context conditions are met. Keys represent configuration keys and values are the
-        override data.
-
-    """
 
     workspace_id: str | None = None
     org_id: str | None = None
-    context: dict[str, Document] | None = None
     config_tags: str | None = None
-    override: dict[str, Document] | None = None
-    description: str | None = None
-    change_reason: str | None = None
+    request: ContextPut | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_CONTEXT_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.context is not None:
-            _serialize_condition(serializer, _SCHEMA_CREATE_CONTEXT_INPUT.members["context"], self.context)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_CREATE_CONTEXT_INPUT.members["override"], self.override)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["change_reason"], self.change_reason)
+        pass
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3287,19 +3214,10 @@ class CreateContextInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_CONTEXT_INPUT.members["context"])
-
-                case 3:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["config_tags"])
 
-                case 4:
-                    kwargs["override"] = _deserialize_overrides(de, _SCHEMA_CREATE_CONTEXT_INPUT.members["override"])
-
-                case 5:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["description"])
-
-                case 6:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["change_reason"])
+                case 3:
+                    kwargs["request"] = ContextPut.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -3312,66 +3230,57 @@ class CreateContextOutput:
     """
 
     :param value:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     :param override:
-         Configuration overrides that replace default values when context conditions are
-         met. Keys represent configuration keys and values are the override data.
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
 
     :param weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     """
 
     id: str
 
-    value: dict[str, Document] | None = None
-    override: dict[str, Document] | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-    created_at: datetime | None = None
-    created_by: str | None = None
-    last_modified_at: datetime | None = None
-    last_modified_by: str | None = None
+    value: dict[str, Document]
+
+    override: dict[str, Document]
+
+    override_id: str
+
+    weight: str
+
+    description: str
+
+    change_reason: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_CONTEXT_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["id"], self.id)
-        if self.value is not None:
-            _serialize_condition(serializer, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["value"], self.value)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["override"], self.override)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
-
-        if self.created_at is not None:
-            serializer.write_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_at"], self.created_at)
-
-        if self.created_by is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_by"], self.created_by)
-
-        if self.last_modified_at is not None:
-            serializer.write_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
-
-        if self.last_modified_by is not None:
-            serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_condition(serializer, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["value"], self.value)
+        _serialize_overrides(serializer, _SCHEMA_CREATE_CONTEXT_OUTPUT.members["override"], self.override)
+        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
+        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["weight"], self.weight)
+        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_CREATE_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3563,66 +3472,57 @@ class GetContextOutput:
     """
 
     :param value:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     :param override:
-         Configuration overrides that replace default values when context conditions are
-         met. Keys represent configuration keys and values are the override data.
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
 
     :param weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     """
 
     id: str
 
-    value: dict[str, Document] | None = None
-    override: dict[str, Document] | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-    created_at: datetime | None = None
-    created_by: str | None = None
-    last_modified_at: datetime | None = None
-    last_modified_by: str | None = None
+    value: dict[str, Document]
+
+    override: dict[str, Document]
+
+    override_id: str
+
+    weight: str
+
+    description: str
+
+    change_reason: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONTEXT_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["id"], self.id)
-        if self.value is not None:
-            _serialize_condition(serializer, _SCHEMA_GET_CONTEXT_OUTPUT.members["value"], self.value)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_GET_CONTEXT_OUTPUT.members["override"], self.override)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
-
-        if self.created_at is not None:
-            serializer.write_timestamp(_SCHEMA_GET_CONTEXT_OUTPUT.members["created_at"], self.created_at)
-
-        if self.created_by is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["created_by"], self.created_by)
-
-        if self.last_modified_at is not None:
-            serializer.write_timestamp(_SCHEMA_GET_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
-
-        if self.last_modified_by is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_condition(serializer, _SCHEMA_GET_CONTEXT_OUTPUT.members["value"], self.value)
+        _serialize_overrides(serializer, _SCHEMA_GET_CONTEXT_OUTPUT.members["override"], self.override)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["override_id"], self.override_id)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["weight"], self.weight)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_GET_CONTEXT_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_GET_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3731,66 +3631,57 @@ class GetContextFromConditionOutput:
     """
 
     :param value:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     :param override:
-         Configuration overrides that replace default values when context conditions are
-         met. Keys represent configuration keys and values are the override data.
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
 
     :param weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     """
 
     id: str
 
-    value: dict[str, Document] | None = None
-    override: dict[str, Document] | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-    created_at: datetime | None = None
-    created_by: str | None = None
-    last_modified_at: datetime | None = None
-    last_modified_by: str | None = None
+    value: dict[str, Document]
+
+    override: dict[str, Document]
+
+    override_id: str
+
+    weight: str
+
+    description: str
+
+    change_reason: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["id"], self.id)
-        if self.value is not None:
-            _serialize_condition(serializer, _SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["value"], self.value)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["override"], self.override)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["change_reason"], self.change_reason)
-
-        if self.created_at is not None:
-            serializer.write_timestamp(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["created_at"], self.created_at)
-
-        if self.created_by is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["created_by"], self.created_by)
-
-        if self.last_modified_at is not None:
-            serializer.write_timestamp(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["last_modified_at"], self.last_modified_at)
-
-        if self.last_modified_by is not None:
-            serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_condition(serializer, _SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["value"], self.value)
+        _serialize_overrides(serializer, _SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["override"], self.override)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["override_id"], self.override_id)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["weight"], self.weight)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3990,22 +3881,19 @@ def _deserialize_list_context_out(deserializer: ShapeDeserializer, schema: Schem
 @dataclass(kw_only=True)
 class ListContextsOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[ContextResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[ContextResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_CONTEXTS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_CONTEXTS_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_CONTEXTS_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_list_context_out(serializer, _SCHEMA_LIST_CONTEXTS_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_CONTEXTS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_CONTEXTS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_list_context_out(serializer, _SCHEMA_LIST_CONTEXTS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4048,33 +3936,17 @@ LIST_CONTEXTS = APIOperation(
 
 @dataclass(kw_only=True)
 class MoveContextInput:
-    """
-
-    :param context:
-        **[Required]** - Represents conditional criteria used for context matching. Keys
-        define dimension names and values specify the criteria that must be met.
-
-    """
 
     workspace_id: str | None = None
     org_id: str | None = None
     id: str | None = None
-    context: dict[str, Document] | None = None
-    description: str | None = None
-    change_reason: str | None = None
+    request: ContextMove | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MOVE_CONTEXT_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.context is not None:
-            _serialize_condition(serializer, _SCHEMA_MOVE_CONTEXT_INPUT.members["context"], self.context)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["change_reason"], self.change_reason)
+        pass
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4096,13 +3968,7 @@ class MoveContextInput:
                     kwargs["id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["id"])
 
                 case 3:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_MOVE_CONTEXT_INPUT.members["context"])
-
-                case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["description"])
-
-                case 5:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["change_reason"])
+                    kwargs["request"] = ContextMove.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4115,66 +3981,57 @@ class MoveContextOutput:
     """
 
     :param value:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     :param override:
-         Configuration overrides that replace default values when context conditions are
-         met. Keys represent configuration keys and values are the override data.
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
 
     :param weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     """
 
     id: str
 
-    value: dict[str, Document] | None = None
-    override: dict[str, Document] | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-    created_at: datetime | None = None
-    created_by: str | None = None
-    last_modified_at: datetime | None = None
-    last_modified_by: str | None = None
+    value: dict[str, Document]
+
+    override: dict[str, Document]
+
+    override_id: str
+
+    weight: str
+
+    description: str
+
+    change_reason: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MOVE_CONTEXT_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["id"], self.id)
-        if self.value is not None:
-            _serialize_condition(serializer, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["value"], self.value)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["override"], self.override)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
-
-        if self.created_at is not None:
-            serializer.write_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_at"], self.created_at)
-
-        if self.created_by is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_by"], self.created_by)
-
-        if self.last_modified_at is not None:
-            serializer.write_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
-
-        if self.last_modified_by is not None:
-            serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_condition(serializer, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["value"], self.value)
+        _serialize_overrides(serializer, _SCHEMA_MOVE_CONTEXT_OUTPUT.members["override"], self.override)
+        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["override_id"], self.override_id)
+        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["weight"], self.weight)
+        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_MOVE_CONTEXT_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4287,66 +4144,57 @@ class UpdateOverrideOutput:
     """
 
     :param value:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     :param override:
-         Configuration overrides that replace default values when context conditions are
-         met. Keys represent configuration keys and values are the override data.
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
 
     :param weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     """
 
     id: str
 
-    value: dict[str, Document] | None = None
-    override: dict[str, Document] | None = None
-    override_id: str | None = None
-    weight: str | None = None
-    description: str | None = None
-    change_reason: str | None = None
-    created_at: datetime | None = None
-    created_by: str | None = None
-    last_modified_at: datetime | None = None
-    last_modified_by: str | None = None
+    value: dict[str, Document]
+
+    override: dict[str, Document]
+
+    override_id: str
+
+    weight: str
+
+    description: str
+
+    change_reason: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDE_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["id"], self.id)
-        if self.value is not None:
-            _serialize_condition(serializer, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["value"], self.value)
-
-        if self.override is not None:
-            _serialize_overrides(serializer, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override"], self.override)
-
-        if self.override_id is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override_id"], self.override_id)
-
-        if self.weight is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["weight"], self.weight)
-
-        if self.description is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["description"], self.description)
-
-        if self.change_reason is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["change_reason"], self.change_reason)
-
-        if self.created_at is not None:
-            serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_at"], self.created_at)
-
-        if self.created_by is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_by"], self.created_by)
-
-        if self.last_modified_at is not None:
-            serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_at"], self.last_modified_at)
-
-        if self.last_modified_by is not None:
-            serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        _serialize_condition(serializer, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["value"], self.value)
+        _serialize_overrides(serializer, _SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override"], self.override)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["override_id"], self.override_id)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["weight"], self.weight)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_UPDATE_OVERRIDE_OUTPUT.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4541,39 +4389,35 @@ class WeightRecomputeResponse:
     """
 
     :param condition:
-         Represents conditional criteria used for context matching. Keys define dimension
-         names and values specify the criteria that must be met.
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
 
     :param old_weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     :param new_weight:
-         Priority weight used to determine the order of context evaluation. Higher
-         weights take precedence during configuration resolution.
+        **[Required]** - Priority weight used to determine the order of context
+        evaluation. Higher weights take precedence during configuration resolution.
 
     """
 
-    id: str | None = None
-    condition: dict[str, Document] | None = None
-    old_weight: str | None = None
-    new_weight: str | None = None
+    id: str
+
+    condition: dict[str, Document]
+
+    old_weight: str
+
+    new_weight: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.id is not None:
-            serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["id"], self.id)
-
-        if self.condition is not None:
-            _serialize_condition(serializer, _SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["condition"], self.condition)
-
-        if self.old_weight is not None:
-            serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["old_weight"], self.old_weight)
-
-        if self.new_weight is not None:
-            serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["new_weight"], self.new_weight)
+        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["id"], self.id)
+        _serialize_condition(serializer, _SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["condition"], self.condition)
+        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["old_weight"], self.old_weight)
+        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["new_weight"], self.new_weight)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4673,9 +4517,6 @@ class CreateDefaultConfigInput:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
-    :param function_name:
-         Optional
-
     """
 
     key: str | None = None
@@ -4763,9 +4604,6 @@ class CreateDefaultConfigOutput:
     :param schema:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
-
-    :param function_name:
-         Optional
 
     """
 
@@ -5000,9 +4838,10 @@ class CreateDimensionOutput:
 
     dimension_type: DimensionType
 
+    mandatory: bool
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
-    mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_OUTPUT, self)
@@ -5020,13 +4859,12 @@ class CreateDimensionOutput:
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_dependency_graph(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
-        if self.mandatory is not None:
-            serializer.write_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
+        serializer.write_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5069,7 +4907,7 @@ class CreateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -6528,13 +6366,14 @@ class CreateWorkspaceOutput:
 
     strict_mode: bool
 
+    metrics: Document
+
     allow_experiment_self_approval: bool
 
     auto_populate_control: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
-    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_OUTPUT, self)
@@ -6557,9 +6396,7 @@ class CreateWorkspaceOutput:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
-        if self.metrics is not None:
-            serializer.write_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
-
+        serializer.write_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
 
@@ -6766,9 +6603,6 @@ class GetDefaultConfigOutput:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
-    :param function_name:
-         Optional
-
     """
 
     key: str
@@ -6940,15 +6774,12 @@ class ListDefaultConfigsInput:
         return kwargs
 
 @dataclass(kw_only=True)
-class DefaultConfigFull:
+class DefaultConfigResponse:
     """
 
     :param schema:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
-
-    :param function_name:
-         Optional
 
     """
 
@@ -6974,24 +6805,24 @@ class DefaultConfigFull:
     autocomplete_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_DEFAULT_CONFIG_FULL, self)
+        serializer.write_struct(_SCHEMA_DEFAULT_CONFIG_RESPONSE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["key"], self.key)
-        serializer.write_document(_SCHEMA_DEFAULT_CONFIG_FULL.members["value"], self.value)
-        _serialize_object(serializer, _SCHEMA_DEFAULT_CONFIG_FULL.members["schema"], self.schema)
-        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["description"], self.description)
-        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["key"], self.key)
+        serializer.write_document(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["value"], self.value)
+        _serialize_object(serializer, _SCHEMA_DEFAULT_CONFIG_RESPONSE.members["schema"], self.schema)
+        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["change_reason"], self.change_reason)
         if self.function_name is not None:
-            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["function_name"], self.function_name)
+            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["function_name"], self.function_name)
 
         if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["autocomplete_function_name"], self.autocomplete_function_name)
+            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["autocomplete_function_name"], self.autocomplete_function_name)
 
-        serializer.write_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_at"], self.created_at)
-        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_by"], self.created_by)
-        serializer.write_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["last_modified_at"], self.last_modified_at)
-        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["last_modified_by"], self.last_modified_by)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7004,80 +6835,77 @@ class DefaultConfigFull:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["key"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["key"])
+                    kwargs["key"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["key"])
 
                 case 1:
-                    kwargs["value"] = de.read_document(_SCHEMA_DEFAULT_CONFIG_FULL.members["value"])
+                    kwargs["value"] = de.read_document(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["value"])
 
                 case 2:
-                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_DEFAULT_CONFIG_FULL.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_DEFAULT_CONFIG_RESPONSE.members["schema"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["description"])
+                    kwargs["description"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["description"])
 
                 case 4:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["change_reason"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["change_reason"])
 
                 case 5:
-                    kwargs["function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["function_name"])
+                    kwargs["function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["function_name"])
 
                 case 6:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["autocomplete_function_name"])
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["autocomplete_function_name"])
 
                 case 7:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_at"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_at"])
 
                 case 8:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["created_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_by"])
 
                 case 9:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_FULL.members["last_modified_at"])
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["last_modified_at"])
 
                 case 10:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_FULL.members["last_modified_by"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["last_modified_by"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_DEFAULT_CONFIG_FULL, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_DEFAULT_CONFIG_RESPONSE, consumer=_consumer)
         return kwargs
 
-def _serialize_list_default_config_out(serializer: ShapeSerializer, schema: Schema, value: list[DefaultConfigFull]) -> None:
+def _serialize_list_default_config_out(serializer: ShapeSerializer, schema: Schema, value: list[DefaultConfigResponse]) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_list_default_config_out(deserializer: ShapeDeserializer, schema: Schema) -> list[DefaultConfigFull]:
-    result: list[DefaultConfigFull] = []
+def _deserialize_list_default_config_out(deserializer: ShapeDeserializer, schema: Schema) -> list[DefaultConfigResponse]:
+    result: list[DefaultConfigResponse] = []
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
-            result.append(DefaultConfigFull.deserialize(d))
+            result.append(DefaultConfigResponse.deserialize(d))
     deserializer.read_list(schema, _read_value)
     return result
 
 @dataclass(kw_only=True)
 class ListDefaultConfigsOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[DefaultConfigFull] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[DefaultConfigResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_list_default_config_out(serializer, _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_list_default_config_out(serializer, _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7125,6 +6953,12 @@ class UpdateDefaultConfigInput:
     :param schema:
          Generic key-value object structure used for flexible data representation
          throughout the API.
+
+    :param function_name:
+         To unset the function name, pass "null" string.
+
+    :param autocomplete_function_name:
+         To unset the function name, pass "null" string.
 
     """
 
@@ -7210,9 +7044,6 @@ class UpdateDefaultConfigOutput:
     :param schema:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
-
-    :param function_name:
-         Optional
 
     """
 
@@ -7929,9 +7760,10 @@ class GetDimensionOutput:
 
     dimension_type: DimensionType
 
+    mandatory: bool
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
-    mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT, self)
@@ -7949,13 +7781,12 @@ class GetDimensionOutput:
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_dependency_graph(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
-        if self.mandatory is not None:
-            serializer.write_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
+        serializer.write_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7998,7 +7829,7 @@ class GetDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -8090,7 +7921,7 @@ class ListDimensionsInput:
         return kwargs
 
 @dataclass(kw_only=True)
-class DimensionExt:
+class DimensionResponse:
     """
 
     :param schema:
@@ -8121,33 +7952,33 @@ class DimensionExt:
 
     dimension_type: DimensionType
 
+    mandatory: bool
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
-    mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_DIMENSION_EXT, self)
+        serializer.write_struct(_SCHEMA_DIMENSION_RESPONSE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_DIMENSION_EXT.members["dimension"], self.dimension)
-        serializer.write_integer(_SCHEMA_DIMENSION_EXT.members["position"], self.position)
-        _serialize_object(serializer, _SCHEMA_DIMENSION_EXT.members["schema"], self.schema)
+        serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["dimension"], self.dimension)
+        serializer.write_integer(_SCHEMA_DIMENSION_RESPONSE.members["position"], self.position)
+        _serialize_object(serializer, _SCHEMA_DIMENSION_RESPONSE.members["schema"], self.schema)
         if self.function_name is not None:
-            serializer.write_string(_SCHEMA_DIMENSION_EXT.members["function_name"], self.function_name)
+            serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["function_name"], self.function_name)
 
-        serializer.write_string(_SCHEMA_DIMENSION_EXT.members["description"], self.description)
-        serializer.write_string(_SCHEMA_DIMENSION_EXT.members["change_reason"], self.change_reason)
-        serializer.write_timestamp(_SCHEMA_DIMENSION_EXT.members["last_modified_at"], self.last_modified_at)
-        serializer.write_string(_SCHEMA_DIMENSION_EXT.members["last_modified_by"], self.last_modified_by)
-        serializer.write_timestamp(_SCHEMA_DIMENSION_EXT.members["created_at"], self.created_at)
-        serializer.write_string(_SCHEMA_DIMENSION_EXT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_DIMENSION_EXT.members["dependency_graph"], self.dependency_graph)
-        serializer.write_struct(_SCHEMA_DIMENSION_EXT.members["dimension_type"], self.dimension_type)
+        serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["change_reason"], self.change_reason)
+        serializer.write_timestamp(_SCHEMA_DIMENSION_RESPONSE.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_DIMENSION_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["created_by"], self.created_by)
+        _serialize_dependency_graph(serializer, _SCHEMA_DIMENSION_RESPONSE.members["dependency_graph"], self.dependency_graph)
+        serializer.write_struct(_SCHEMA_DIMENSION_RESPONSE.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"], self.autocomplete_function_name)
+            serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["autocomplete_function_name"], self.autocomplete_function_name)
 
-        if self.mandatory is not None:
-            serializer.write_boolean(_SCHEMA_DIMENSION_EXT.members["mandatory"], self.mandatory)
+        serializer.write_boolean(_SCHEMA_DIMENSION_RESPONSE.members["mandatory"], self.mandatory)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8160,89 +7991,86 @@ class DimensionExt:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["dimension"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["dimension"])
+                    kwargs["dimension"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["dimension"])
 
                 case 1:
-                    kwargs["position"] = de.read_integer(_SCHEMA_DIMENSION_EXT.members["position"])
+                    kwargs["position"] = de.read_integer(_SCHEMA_DIMENSION_RESPONSE.members["position"])
 
                 case 2:
-                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_DIMENSION_EXT.members["schema"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_DIMENSION_RESPONSE.members["schema"])
 
                 case 3:
-                    kwargs["function_name"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["function_name"])
+                    kwargs["function_name"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["function_name"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["description"])
+                    kwargs["description"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["description"])
 
                 case 5:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["change_reason"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["change_reason"])
 
                 case 6:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DIMENSION_EXT.members["last_modified_at"])
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DIMENSION_RESPONSE.members["last_modified_at"])
 
                 case 7:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["last_modified_by"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["last_modified_by"])
 
                 case 8:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DIMENSION_EXT.members["created_at"])
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DIMENSION_RESPONSE.members["created_at"])
 
                 case 9:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["created_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_DIMENSION_EXT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_DIMENSION_RESPONSE.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 12:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_EXT.members["autocomplete_function_name"])
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["autocomplete_function_name"])
 
                 case 13:
-                    kwargs["mandatory"] = de.read_boolean(_SCHEMA_DIMENSION_EXT.members["mandatory"])
+                    kwargs["mandatory"] = de.read_boolean(_SCHEMA_DIMENSION_RESPONSE.members["mandatory"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_DIMENSION_EXT, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_DIMENSION_RESPONSE, consumer=_consumer)
         return kwargs
 
-def _serialize_dimension_ext_list(serializer: ShapeSerializer, schema: Schema, value: list[DimensionExt]) -> None:
+def _serialize_dimension_list(serializer: ShapeSerializer, schema: Schema, value: list[DimensionResponse]) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_dimension_ext_list(deserializer: ShapeDeserializer, schema: Schema) -> list[DimensionExt]:
-    result: list[DimensionExt] = []
+def _deserialize_dimension_list(deserializer: ShapeDeserializer, schema: Schema) -> list[DimensionResponse]:
+    result: list[DimensionResponse] = []
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
-            result.append(DimensionExt.deserialize(d))
+            result.append(DimensionResponse.deserialize(d))
     deserializer.read_list(schema, _read_value)
     return result
 
 @dataclass(kw_only=True)
 class ListDimensionsOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[DimensionExt] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[DimensionResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_DIMENSIONS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_DIMENSIONS_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_DIMENSIONS_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_dimension_ext_list(serializer, _SCHEMA_LIST_DIMENSIONS_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_DIMENSIONS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_DIMENSIONS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_dimension_list(serializer, _SCHEMA_LIST_DIMENSIONS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8261,7 +8089,7 @@ class ListDimensionsOutput:
                     kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_DIMENSIONS_OUTPUT.members["total_items"])
 
                 case 2:
-                    kwargs["data"] = _deserialize_dimension_ext_list(de, _SCHEMA_LIST_DIMENSIONS_OUTPUT.members["data"])
+                    kwargs["data"] = _deserialize_dimension_list(de, _SCHEMA_LIST_DIMENSIONS_OUTPUT.members["data"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8290,6 +8118,12 @@ class UpdateDimensionInput:
     :param schema:
          Generic key-value object structure used for flexible data representation
          throughout the API.
+
+    :param function_name:
+         To unset the function name, pass "null" string.
+
+    :param autocomplete_function_name:
+         To unset the function name, pass "null" string.
 
     """
 
@@ -8400,9 +8234,10 @@ class UpdateDimensionOutput:
 
     dimension_type: DimensionType
 
+    mandatory: bool
+
     function_name: str | None = None
     autocomplete_function_name: str | None = None
-    mandatory: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_OUTPUT, self)
@@ -8420,13 +8255,12 @@ class UpdateDimensionOutput:
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["last_modified_by"], self.last_modified_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
-        _serialize_depedendency_graph(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
+        _serialize_dependency_graph(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
         if self.autocomplete_function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
 
-        if self.mandatory is not None:
-            serializer.write_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
+        serializer.write_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8469,7 +8303,7 @@ class UpdateDimensionOutput:
                     kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"])
 
                 case 10:
-                    kwargs["dependency_graph"] = _deserialize_depedendency_graph(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
+                    kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"])
 
                 case 11:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
@@ -9160,26 +8994,23 @@ class ListExperimentGroupsOutput:
     """
 
     :param data:
-         A list of experiment group responses.
+        **[Required]** - A list of experiment group responses.
 
     """
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[ExperimentGroupResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[ExperimentGroupResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_experiment_group_list(serializer, _SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_experiment_group_list(serializer, _SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9229,7 +9060,7 @@ class RemoveMembersFromGroupInput:
         **[Required]** - Reason for adding these members.
 
     :param member_experiment_ids:
-        **[Required]** - List of experiment IDs to add to this group.
+        **[Required]** - List of experiment IDs to add/remove to this group.
 
     """
 
@@ -10130,22 +9961,19 @@ class ListExperimentInput:
 @dataclass(kw_only=True)
 class ListExperimentOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[ExperimentResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[ExperimentResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_experiment_list(serializer, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["total_items"], self.total_items)
+        _serialize_experiment_list(serializer, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10840,17 +10668,25 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class VariantUpdateRequest:
+    """
+
+    :param overrides:
+        **[Required]** - Configuration overrides that replace default values when
+        context conditions are met. Keys represent configuration keys and values are the
+        override data.
+
+    """
 
     id: str
 
-    overrides: Document
+    overrides: dict[str, Document]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_VARIANT_UPDATE_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_VARIANT_UPDATE_REQUEST.members["id"], self.id)
-        serializer.write_document(_SCHEMA_VARIANT_UPDATE_REQUEST.members["overrides"], self.overrides)
+        _serialize_overrides(serializer, _SCHEMA_VARIANT_UPDATE_REQUEST.members["overrides"], self.overrides)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10866,7 +10702,7 @@ class VariantUpdateRequest:
                     kwargs["id"] = de.read_string(_SCHEMA_VARIANT_UPDATE_REQUEST.members["id"])
 
                 case 1:
-                    kwargs["overrides"] = de.read_document(_SCHEMA_VARIANT_UPDATE_REQUEST.members["overrides"])
+                    kwargs["overrides"] = _deserialize_overrides(de, _SCHEMA_VARIANT_UPDATE_REQUEST.members["overrides"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -10893,6 +10729,12 @@ def _deserialize_list_variant_update_request(deserializer: ShapeDeserializer, sc
 
 @dataclass(kw_only=True)
 class UpdateOverridesExperimentInput:
+    """
+
+    :param experiment_group_id:
+         To unset experiment group, pass "null" string.
+
+    """
 
     workspace_id: str | None = None
     org_id: str | None = None
@@ -11514,22 +11356,19 @@ def _deserialize_function_list_response(deserializer: ShapeDeserializer, schema:
 @dataclass(kw_only=True)
 class ListFunctionOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[FunctionResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[FunctionResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_FUNCTION_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_FUNCTION_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_FUNCTION_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_function_list_response(serializer, _SCHEMA_LIST_FUNCTION_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_FUNCTION_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_FUNCTION_OUTPUT.members["total_items"], self.total_items)
+        _serialize_function_list_response(serializer, _SCHEMA_LIST_FUNCTION_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -11744,18 +11583,16 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 @dataclass(kw_only=True)
 class ValidateFunctionRequest:
 
-    key: str | None = None
-    value: Document | None = None
+    key: str
+
+    value: Document
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_VALIDATE_FUNCTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.key is not None:
-            serializer.write_string(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["key"], self.key)
-
-        if self.value is not None:
-            serializer.write_document(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["value"], self.value)
+        serializer.write_string(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["key"], self.key)
+        serializer.write_document(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["value"], self.value)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -12596,22 +12433,19 @@ def _deserialize_type_templates_list(deserializer: ShapeDeserializer, schema: Sc
 @dataclass(kw_only=True)
 class GetTypeTemplatesListOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[TypeTemplatesResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[TypeTemplatesResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_type_templates_list(serializer, _SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT.members["total_items"], self.total_items)
+        _serialize_type_templates_list(serializer, _SCHEMA_GET_TYPE_TEMPLATES_LIST_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -13065,13 +12899,14 @@ class GetWorkspaceOutput:
 
     strict_mode: bool
 
+    metrics: Document
+
     allow_experiment_self_approval: bool
 
     auto_populate_control: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
-    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_WORKSPACE_OUTPUT, self)
@@ -13094,9 +12929,7 @@ class GetWorkspaceOutput:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_GET_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
-        if self.metrics is not None:
-            serializer.write_document(_SCHEMA_GET_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
-
+        serializer.write_document(_SCHEMA_GET_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
 
@@ -13351,22 +13184,19 @@ def _deserialize_organisation_list(deserializer: ShapeDeserializer, schema: Sche
 @dataclass(kw_only=True)
 class ListOrganisationOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[OrganisationResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[OrganisationResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_ORGANISATION_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_ORGANISATION_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_ORGANISATION_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_organisation_list(serializer, _SCHEMA_LIST_ORGANISATION_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_ORGANISATION_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_ORGANISATION_OUTPUT.members["total_items"], self.total_items)
+        _serialize_organisation_list(serializer, _SCHEMA_LIST_ORGANISATION_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -13610,22 +13440,19 @@ def _deserialize_webhook_list(deserializer: ShapeDeserializer, schema: Schema) -
 @dataclass(kw_only=True)
 class ListWebhookOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[WebhookResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[WebhookResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WEBHOOK_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_webhook_list(serializer, _SCHEMA_LIST_WEBHOOK_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_WEBHOOK_OUTPUT.members["total_items"], self.total_items)
+        _serialize_webhook_list(serializer, _SCHEMA_LIST_WEBHOOK_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -13746,13 +13573,14 @@ class WorkspaceResponse:
 
     strict_mode: bool
 
+    metrics: Document
+
     allow_experiment_self_approval: bool
 
     auto_populate_control: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
-    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_WORKSPACE_RESPONSE, self)
@@ -13775,9 +13603,7 @@ class WorkspaceResponse:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["strict_mode"], self.strict_mode)
-        if self.metrics is not None:
-            serializer.write_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"], self.metrics)
-
+        serializer.write_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"], self.auto_populate_control)
 
@@ -13865,22 +13691,19 @@ def _deserialize_workspace_list(deserializer: ShapeDeserializer, schema: Schema)
 @dataclass(kw_only=True)
 class ListWorkspaceOutput:
 
-    total_pages: int | None = None
-    total_items: int | None = None
-    data: list[WorkspaceResponse] | None = None
+    total_pages: int
+
+    total_items: int
+
+    data: list[WorkspaceResponse]
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WORKSPACE_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.total_pages is not None:
-            serializer.write_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_pages"], self.total_pages)
-
-        if self.total_items is not None:
-            serializer.write_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_items"], self.total_items)
-
-        if self.data is not None:
-            _serialize_workspace_list(serializer, _SCHEMA_LIST_WORKSPACE_OUTPUT.members["data"], self.data)
+        serializer.write_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_WORKSPACE_OUTPUT.members["total_items"], self.total_items)
+        _serialize_workspace_list(serializer, _SCHEMA_LIST_WORKSPACE_OUTPUT.members["data"], self.data)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -13980,13 +13803,14 @@ class MigrateWorkspaceSchemaOutput:
 
     strict_mode: bool
 
+    metrics: Document
+
     allow_experiment_self_approval: bool
 
     auto_populate_control: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
-    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT, self)
@@ -14009,9 +13833,7 @@ class MigrateWorkspaceSchemaOutput:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["strict_mode"], self.strict_mode)
-        if self.metrics is not None:
-            serializer.write_document(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["metrics"], self.metrics)
-
+        serializer.write_document(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
 
@@ -14678,6 +14500,12 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 
 @dataclass(kw_only=True)
 class UpdateWorkspaceInput:
+    """
+
+    :param config_version:
+         To unset config version, pass "null" string.
+
+    """
 
     org_id: str | None = None
     workspace_name: str | None = None
@@ -14782,13 +14610,14 @@ class UpdateWorkspaceOutput:
 
     strict_mode: bool
 
+    metrics: Document
+
     allow_experiment_self_approval: bool
 
     auto_populate_control: bool
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
-    metrics: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_OUTPUT, self)
@@ -14811,9 +14640,7 @@ class UpdateWorkspaceOutput:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
-        if self.metrics is not None:
-            serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
-
+        serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
 

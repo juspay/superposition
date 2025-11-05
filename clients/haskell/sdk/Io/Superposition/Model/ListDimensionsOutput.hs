@@ -20,14 +20,14 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.DimensionExt
+import qualified Io.Superposition.Model.DimensionResponse
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data ListDimensionsOutput = ListDimensionsOutput {
-    total_pages :: Data.Maybe.Maybe Data.Int.Int32,
-    total_items :: Data.Maybe.Maybe Data.Int.Int32,
-    data' :: Data.Maybe.Maybe ([] Io.Superposition.Model.DimensionExt.DimensionExt)
+    total_pages :: Data.Int.Int32,
+    total_items :: Data.Int.Int32,
+    data' :: [] Io.Superposition.Model.DimensionResponse.DimensionResponse
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -56,7 +56,7 @@ instance Data.Aeson.FromJSON ListDimensionsOutput where
 data ListDimensionsOutputBuilderState = ListDimensionsOutputBuilderState {
     total_pagesBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     total_itemsBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
-    data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.DimensionExt.DimensionExt)
+    data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.DimensionResponse.DimensionResponse)
 } deriving (
   GHC.Generics.Generic
   )
@@ -70,24 +70,24 @@ defaultBuilderState = ListDimensionsOutputBuilderState {
 
 type ListDimensionsOutputBuilder = Control.Monad.State.Strict.State ListDimensionsOutputBuilderState
 
-setTotalPages :: Data.Maybe.Maybe Data.Int.Int32 -> ListDimensionsOutputBuilder ()
+setTotalPages :: Data.Int.Int32 -> ListDimensionsOutputBuilder ()
 setTotalPages value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = Data.Maybe.Just value }))
 
-setTotalItems :: Data.Maybe.Maybe Data.Int.Int32 -> ListDimensionsOutputBuilder ()
+setTotalItems :: Data.Int.Int32 -> ListDimensionsOutputBuilder ()
 setTotalItems value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = Data.Maybe.Just value }))
 
-setData' :: Data.Maybe.Maybe ([] Io.Superposition.Model.DimensionExt.DimensionExt) -> ListDimensionsOutputBuilder ()
+setData' :: [] Io.Superposition.Model.DimensionResponse.DimensionResponse -> ListDimensionsOutputBuilder ()
 setData' value =
-   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = Data.Maybe.Just value }))
 
 build :: ListDimensionsOutputBuilder () -> Data.Either.Either Data.Text.Text ListDimensionsOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    total_pages' <- Data.Either.Right (total_pagesBuilderState st)
-    total_items' <- Data.Either.Right (total_itemsBuilderState st)
-    data'' <- Data.Either.Right (data'BuilderState st)
+    total_pages' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListDimensionsOutput.ListDimensionsOutput.total_pages is a required property.") Data.Either.Right (total_pagesBuilderState st)
+    total_items' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListDimensionsOutput.ListDimensionsOutput.total_items is a required property.") Data.Either.Right (total_itemsBuilderState st)
+    data'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListDimensionsOutput.ListDimensionsOutput.data' is a required property.") Data.Either.Right (data'BuilderState st)
     Data.Either.Right (ListDimensionsOutput { 
         total_pages = total_pages',
         total_items = total_items',

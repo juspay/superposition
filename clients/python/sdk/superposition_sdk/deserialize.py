@@ -17,7 +17,6 @@ from .models import (
     AddMembersToGroupOutput,
     ApiError,
     ApplicableVariantsOutput,
-    BulkOperationOut,
     BulkOperationOutput,
     ConcludeExperimentOutput,
     CreateContextOutput,
@@ -154,7 +153,9 @@ async def _deserialize_bulk_operation(http_response: HTTPResponse, config: Confi
     body = await http_response.consume_body_async()
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
-        kwargs["bulk_operation_output"] = codec.deserialize(body, BulkOperationOut)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = BulkOperationOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
 
     return BulkOperationOutput(**kwargs)
 
@@ -453,7 +454,7 @@ async def _deserialize_error_create_workspace(http_response: HTTPResponse, confi
             return UnknownApiError(f"{code}: {message}")
 
 async def _deserialize_delete_context(http_response: HTTPResponse, config: Config) -> DeleteContextOutput:
-    if http_response.status != 201 and http_response.status >= 300:
+    if http_response.status != 204 and http_response.status >= 300:
         raise await _deserialize_error_delete_context(http_response, config)
 
     kwargs: dict[str, Any] = {}
@@ -474,7 +475,7 @@ async def _deserialize_error_delete_context(http_response: HTTPResponse, config:
             return UnknownApiError(f"{code}: {message}")
 
 async def _deserialize_delete_default_config(http_response: HTTPResponse, config: Config) -> DeleteDefaultConfigOutput:
-    if http_response.status != 201 and http_response.status >= 300:
+    if http_response.status != 204 and http_response.status >= 300:
         raise await _deserialize_error_delete_default_config(http_response, config)
 
     kwargs: dict[str, Any] = {}
@@ -495,7 +496,7 @@ async def _deserialize_error_delete_default_config(http_response: HTTPResponse, 
             return UnknownApiError(f"{code}: {message}")
 
 async def _deserialize_delete_dimension(http_response: HTTPResponse, config: Config) -> DeleteDimensionOutput:
-    if http_response.status != 201 and http_response.status >= 300:
+    if http_response.status != 204 and http_response.status >= 300:
         raise await _deserialize_error_delete_dimension(http_response, config)
 
     kwargs: dict[str, Any] = {}
@@ -544,7 +545,7 @@ async def _deserialize_error_delete_experiment_group(http_response: HTTPResponse
             return UnknownApiError(f"{code}: {message}")
 
 async def _deserialize_delete_function(http_response: HTTPResponse, config: Config) -> DeleteFunctionOutput:
-    if http_response.status != 200 and http_response.status >= 300:
+    if http_response.status != 204 and http_response.status >= 300:
         raise await _deserialize_error_delete_function(http_response, config)
 
     kwargs: dict[str, Any] = {}
@@ -593,7 +594,7 @@ async def _deserialize_error_delete_type_templates(http_response: HTTPResponse, 
             return UnknownApiError(f"{code}: {message}")
 
 async def _deserialize_delete_webhook(http_response: HTTPResponse, config: Config) -> DeleteWebhookOutput:
-    if http_response.status != 201 and http_response.status >= 300:
+    if http_response.status != 204 and http_response.status >= 300:
         raise await _deserialize_error_delete_webhook(http_response, config)
 
     kwargs: dict[str, Any] = {}

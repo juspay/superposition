@@ -62,7 +62,7 @@ data CreateDimensionOutput = CreateDimensionOutput {
     dependency_graph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text),
     dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
     autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
-    mandatory :: Data.Maybe.Maybe Bool
+    mandatory :: Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -201,9 +201,9 @@ setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDimensio
 setAutocompleteFunctionName value =
    Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
 
-setMandatory :: Data.Maybe.Maybe Bool -> CreateDimensionOutputBuilder ()
+setMandatory :: Bool -> CreateDimensionOutputBuilder ()
 setMandatory value =
-   Control.Monad.State.Strict.modify (\s -> (s { mandatoryBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { mandatoryBuilderState = Data.Maybe.Just value }))
 
 build :: CreateDimensionOutputBuilder () -> Data.Either.Either Data.Text.Text CreateDimensionOutput
 build builder = do
@@ -221,7 +221,7 @@ build builder = do
     dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionOutput.CreateDimensionOutput.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
     dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionOutput.CreateDimensionOutput.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
     autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
-    mandatory' <- Data.Either.Right (mandatoryBuilderState st)
+    mandatory' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionOutput.CreateDimensionOutput.mandatory is a required property.") Data.Either.Right (mandatoryBuilderState st)
     Data.Either.Right (CreateDimensionOutput { 
         dimension = dimension',
         position = position',

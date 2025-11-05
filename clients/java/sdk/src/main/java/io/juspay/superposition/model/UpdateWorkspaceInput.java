@@ -85,6 +85,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         return workspaceAdminEmail;
     }
 
+    /**
+     * To unset config version, pass "null" string.
+     */
     public String configVersion() {
         return configVersion;
     }
@@ -274,6 +277,8 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         }
 
         /**
+         * To unset config version, pass "null" string.
+         *
          * @return this builder.
          */
         public Builder configVersion(String configVersion) {

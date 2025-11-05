@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -23,7 +25,7 @@ public final class VariantUpdateRequest implements SerializableStruct {
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("id", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("overrides", PreludeSchemas.DOCUMENT,
+        .putMember("overrides", SharedSchemas.OVERRIDES,
                 new RequiredTrait())
         .build();
 
@@ -31,19 +33,23 @@ public final class VariantUpdateRequest implements SerializableStruct {
     private static final Schema $SCHEMA_OVERRIDES = $SCHEMA.member("overrides");
 
     private final transient String id;
-    private final transient Document overrides;
+    private final transient Map<String, Document> overrides;
 
     private VariantUpdateRequest(Builder builder) {
         this.id = builder.id;
-        this.overrides = builder.overrides;
+        this.overrides = Collections.unmodifiableMap(builder.overrides);
     }
 
     public String id() {
         return id;
     }
 
-    public Document overrides() {
+    public Map<String, Document> overrides() {
         return overrides;
+    }
+
+    public boolean hasOverrides() {
+        return true;
     }
 
     @Override
@@ -77,7 +83,7 @@ public final class VariantUpdateRequest implements SerializableStruct {
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_ID, id);
-        serializer.writeDocument($SCHEMA_OVERRIDES, overrides);
+        serializer.writeMap($SCHEMA_OVERRIDES, overrides, overrides.size(), SharedSerde.OverridesSerializer.INSTANCE);
     }
 
     @Override
@@ -117,7 +123,7 @@ public final class VariantUpdateRequest implements SerializableStruct {
     public static final class Builder implements ShapeBuilder<VariantUpdateRequest> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String id;
-        private Document overrides;
+        private Map<String, Document> overrides;
 
         private Builder() {}
 
@@ -140,7 +146,7 @@ public final class VariantUpdateRequest implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder overrides(Document overrides) {
+        public Builder overrides(Map<String, Document> overrides) {
             this.overrides = Objects.requireNonNull(overrides, "overrides cannot be null");
             tracker.setMember($SCHEMA_OVERRIDES);
             return this;
@@ -157,7 +163,7 @@ public final class VariantUpdateRequest implements SerializableStruct {
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
                 case 0 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
-                case 1 -> overrides((Document) SchemaUtils.validateSameMember($SCHEMA_OVERRIDES, member, value));
+                case 1 -> overrides((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_OVERRIDES, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -171,7 +177,7 @@ public final class VariantUpdateRequest implements SerializableStruct {
                 id("");
             }
             if (!tracker.checkMember($SCHEMA_OVERRIDES)) {
-                tracker.setMember($SCHEMA_OVERRIDES);
+                overrides(Collections.emptyMap());
             }
             return this;
         }
@@ -195,7 +201,7 @@ public final class VariantUpdateRequest implements SerializableStruct {
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
                     case 0 -> builder.id(de.readString(member));
-                    case 1 -> builder.overrides(de.readDocument());
+                    case 1 -> builder.overrides(SharedSerde.deserializeOverrides(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

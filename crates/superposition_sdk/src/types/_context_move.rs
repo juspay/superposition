@@ -3,8 +3,6 @@
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ContextMove  {
-    #[allow(missing_docs)] // documentation missing in model
-    pub id: ::std::option::Option<::std::string::String>,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub context: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
@@ -13,10 +11,6 @@ pub struct ContextMove  {
     pub change_reason: ::std::string::String,
 }
 impl  ContextMove  {
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn id(&self) -> ::std::option::Option<&str> {
-        self.id.as_deref()
-    }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
     pub fn context(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
         &self.context
@@ -41,25 +35,11 @@ impl ContextMove {
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
 pub struct ContextMoveBuilder {
-    pub(crate) id: ::std::option::Option<::std::string::String>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
 }
 impl ContextMoveBuilder {
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.id = ::std::option::Option::Some(input.into());
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
-        &self.id
-    }
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -113,8 +93,6 @@ impl ContextMoveBuilder {
     pub fn build(self) -> ::std::result::Result<crate::types::ContextMove, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::types::ContextMove {
-                id: self.id
-                ,
                 context: self.context
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("context", "context was not specified but it is required when building ContextMove")

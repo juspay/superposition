@@ -26,16 +26,26 @@ public final class UpdateOverrideOutput implements SerializableStruct {
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("id", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("value", SharedSchemas.CONDITION)
-        .putMember("override", SharedSchemas.OVERRIDES)
-        .putMember("override_id", PreludeSchemas.STRING)
-        .putMember("weight", SharedSchemas.WEIGHT)
-        .putMember("description", PreludeSchemas.STRING)
-        .putMember("change_reason", PreludeSchemas.STRING)
-        .putMember("created_at", SharedSchemas.DATE_TIME)
-        .putMember("created_by", PreludeSchemas.STRING)
-        .putMember("last_modified_at", SharedSchemas.DATE_TIME)
-        .putMember("last_modified_by", PreludeSchemas.STRING)
+        .putMember("value", SharedSchemas.CONDITION,
+                new RequiredTrait())
+        .putMember("override", SharedSchemas.OVERRIDES,
+                new RequiredTrait())
+        .putMember("override_id", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("weight", SharedSchemas.WEIGHT,
+                new RequiredTrait())
+        .putMember("description", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("change_reason", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("created_at", SharedSchemas.DATE_TIME,
+                new RequiredTrait())
+        .putMember("created_by", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("last_modified_at", SharedSchemas.DATE_TIME,
+                new RequiredTrait())
+        .putMember("last_modified_by", PreludeSchemas.STRING,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
@@ -64,8 +74,8 @@ public final class UpdateOverrideOutput implements SerializableStruct {
 
     private UpdateOverrideOutput(Builder builder) {
         this.id = builder.id;
-        this.value = builder.value == null ? null : Collections.unmodifiableMap(builder.value);
-        this.override = builder.override == null ? null : Collections.unmodifiableMap(builder.override);
+        this.value = Collections.unmodifiableMap(builder.value);
+        this.override = Collections.unmodifiableMap(builder.override);
         this.overrideId = builder.overrideId;
         this.weight = builder.weight;
         this.description = builder.description;
@@ -81,25 +91,19 @@ public final class UpdateOverrideOutput implements SerializableStruct {
     }
 
     public Map<String, Document> value() {
-        if (value == null) {
-            return Collections.emptyMap();
-        }
         return value;
     }
 
     public boolean hasValue() {
-        return value != null;
+        return true;
     }
 
     public Map<String, Document> override() {
-        if (override == null) {
-            return Collections.emptyMap();
-        }
         return override;
     }
 
     public boolean hasOverride() {
-        return override != null;
+        return true;
     }
 
     public String overrideId() {
@@ -174,36 +178,16 @@ public final class UpdateOverrideOutput implements SerializableStruct {
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_ID, id);
-        if (value != null) {
-            serializer.writeMap($SCHEMA_VALUE, value, value.size(), SharedSerde.ConditionSerializer.INSTANCE);
-        }
-        if (override != null) {
-            serializer.writeMap($SCHEMA_OVERRIDE, override, override.size(), SharedSerde.OverridesSerializer.INSTANCE);
-        }
-        if (overrideId != null) {
-            serializer.writeString($SCHEMA_OVERRIDE_ID, overrideId);
-        }
-        if (weight != null) {
-            serializer.writeString($SCHEMA_WEIGHT, weight);
-        }
-        if (description != null) {
-            serializer.writeString($SCHEMA_DESCRIPTION, description);
-        }
-        if (changeReason != null) {
-            serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
-        }
-        if (createdAt != null) {
-            serializer.writeTimestamp($SCHEMA_CREATED_AT, createdAt);
-        }
-        if (createdBy != null) {
-            serializer.writeString($SCHEMA_CREATED_BY, createdBy);
-        }
-        if (lastModifiedAt != null) {
-            serializer.writeTimestamp($SCHEMA_LAST_MODIFIED_AT, lastModifiedAt);
-        }
-        if (lastModifiedBy != null) {
-            serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
-        }
+        serializer.writeMap($SCHEMA_VALUE, value, value.size(), SharedSerde.ConditionSerializer.INSTANCE);
+        serializer.writeMap($SCHEMA_OVERRIDE, override, override.size(), SharedSerde.OverridesSerializer.INSTANCE);
+        serializer.writeString($SCHEMA_OVERRIDE_ID, overrideId);
+        serializer.writeString($SCHEMA_WEIGHT, weight);
+        serializer.writeString($SCHEMA_DESCRIPTION, description);
+        serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        serializer.writeTimestamp($SCHEMA_CREATED_AT, createdAt);
+        serializer.writeString($SCHEMA_CREATED_BY, createdBy);
+        serializer.writeTimestamp($SCHEMA_LAST_MODIFIED_AT, lastModifiedAt);
+        serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
     }
 
     @Override
@@ -290,82 +274,102 @@ public final class UpdateOverrideOutput implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder value(Map<String, Document> value) {
-            this.value = value;
+            this.value = Objects.requireNonNull(value, "value cannot be null");
+            tracker.setMember($SCHEMA_VALUE);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder override(Map<String, Document> override) {
-            this.override = override;
+            this.override = Objects.requireNonNull(override, "override cannot be null");
+            tracker.setMember($SCHEMA_OVERRIDE);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder overrideId(String overrideId) {
-            this.overrideId = overrideId;
+            this.overrideId = Objects.requireNonNull(overrideId, "overrideId cannot be null");
+            tracker.setMember($SCHEMA_OVERRIDE_ID);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder weight(String weight) {
-            this.weight = weight;
+            this.weight = Objects.requireNonNull(weight, "weight cannot be null");
+            tracker.setMember($SCHEMA_WEIGHT);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder description(String description) {
-            this.description = description;
+            this.description = Objects.requireNonNull(description, "description cannot be null");
+            tracker.setMember($SCHEMA_DESCRIPTION);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder changeReason(String changeReason) {
-            this.changeReason = changeReason;
+            this.changeReason = Objects.requireNonNull(changeReason, "changeReason cannot be null");
+            tracker.setMember($SCHEMA_CHANGE_REASON);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder createdAt(Instant createdAt) {
-            this.createdAt = createdAt;
+            this.createdAt = Objects.requireNonNull(createdAt, "createdAt cannot be null");
+            tracker.setMember($SCHEMA_CREATED_AT);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder createdBy(String createdBy) {
-            this.createdBy = createdBy;
+            this.createdBy = Objects.requireNonNull(createdBy, "createdBy cannot be null");
+            tracker.setMember($SCHEMA_CREATED_BY);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder lastModifiedAt(Instant lastModifiedAt) {
-            this.lastModifiedAt = lastModifiedAt;
+            this.lastModifiedAt = Objects.requireNonNull(lastModifiedAt, "lastModifiedAt cannot be null");
+            tracker.setMember($SCHEMA_LAST_MODIFIED_AT);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder lastModifiedBy(String lastModifiedBy) {
-            this.lastModifiedBy = lastModifiedBy;
+            this.lastModifiedBy = Objects.requireNonNull(lastModifiedBy, "lastModifiedBy cannot be null");
+            tracker.setMember($SCHEMA_LAST_MODIFIED_BY);
             return this;
         }
 
@@ -401,6 +405,36 @@ public final class UpdateOverrideOutput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_ID)) {
                 id("");
+            }
+            if (!tracker.checkMember($SCHEMA_VALUE)) {
+                value(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_OVERRIDE)) {
+                override(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_OVERRIDE_ID)) {
+                overrideId("");
+            }
+            if (!tracker.checkMember($SCHEMA_WEIGHT)) {
+                weight("");
+            }
+            if (!tracker.checkMember($SCHEMA_DESCRIPTION)) {
+                description("");
+            }
+            if (!tracker.checkMember($SCHEMA_CHANGE_REASON)) {
+                changeReason("");
+            }
+            if (!tracker.checkMember($SCHEMA_CREATED_AT)) {
+                createdAt(Instant.EPOCH);
+            }
+            if (!tracker.checkMember($SCHEMA_CREATED_BY)) {
+                createdBy("");
+            }
+            if (!tracker.checkMember($SCHEMA_LAST_MODIFIED_AT)) {
+                lastModifiedAt(Instant.EPOCH);
+            }
+            if (!tracker.checkMember($SCHEMA_LAST_MODIFIED_BY)) {
+                lastModifiedBy("");
             }
             return this;
         }

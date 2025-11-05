@@ -49,7 +49,7 @@ pub fn de_get_config_http_response(_response_status: u16, _response_headers: &::
             crate::protocol_serde::shape_get_config_output::de_version_header(_response_headers)
                                         .map_err(|_|crate::operation::get_config::GetConfigError::unhandled("Failed to parse version from header `x-config-version"))?
         );
-        output.build()
+        crate::serde_util::get_config_output_output_correct_errors(output).build().map_err(crate::operation::get_config::GetConfigError::unhandled)?
     })
 }
 

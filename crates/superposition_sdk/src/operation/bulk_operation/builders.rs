@@ -138,19 +138,24 @@ impl BulkOperationFluentBuilder {
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_config_tags()
                 }
+    /// 
+    /// Appends an item to `operations`.
+    /// 
+    /// To override the contents of this collection use [`set_operations`](Self::set_operations).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
-    pub fn bulk_operation(mut self, input: crate::types::BulkOperationReq) -> Self {
-                    self.inner = self.inner.bulk_operation(input);
+    pub fn operations(mut self, input: crate::types::ContextAction) -> Self {
+                        self.inner = self.inner.operations(input);
+                        self
+                    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_operations(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>>) -> Self {
+                    self.inner = self.inner.set_operations(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_bulk_operation(mut self, input: ::std::option::Option<crate::types::BulkOperationReq>) -> Self {
-                    self.inner = self.inner.set_bulk_operation(input);
-                    self
-                }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_bulk_operation(&self) -> &::std::option::Option<crate::types::BulkOperationReq> {
-                    self.inner.get_bulk_operation()
+    pub fn get_operations(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>> {
+                    self.inner.get_operations()
                 }
 }
 

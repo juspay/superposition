@@ -19,7 +19,7 @@ impl super::Client {
     ///   - [`created_at(DateTime)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::created_at): (undocumented)
     ///   - [`mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::mandatory_dimensions): (undocumented)
     ///   - [`strict_mode(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::strict_mode): (undocumented)
-    ///   - [`metrics(Option<Document>)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::metrics): (undocumented)
+    ///   - [`metrics(Document)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::auto_populate_control): (undocumented)
                             /// - On failure, responds with [`SdkError<MigrateWorkspaceSchemaError>`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError)

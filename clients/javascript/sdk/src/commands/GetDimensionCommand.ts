@@ -5,7 +5,7 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  DimensionExt,
+  DimensionResponse,
   GetDimensionInput,
 } from "../models/models_0";
 import {
@@ -32,7 +32,7 @@ export interface GetDimensionCommandInput extends GetDimensionInput {}
  *
  * The output of {@link GetDimensionCommand}.
  */
-export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBearer {}
+export interface GetDimensionCommandOutput extends DimensionResponse, __MetadataBearer {}
 
 /**
  * Retrieves detailed information about a specific dimension, including its schema, cohort dependency graph, and configuration metadata.
@@ -49,7 +49,7 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * };
  * const command = new GetDimensionCommand(input);
  * const response = await client.send(command);
- * // { // DimensionExt
+ * // { // DimensionResponse
  * //   dimension: "STRING_VALUE", // required
  * //   position: Number("int"), // required
  * //   schema: { // Object // required
@@ -62,7 +62,7 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * //   last_modified_by: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
- * //   dependency_graph: { // DepedendencyGraph // required
+ * //   dependency_graph: { // DependencyGraph // required
  * //     "<keys>": [ // StringList
  * //       "STRING_VALUE",
  * //     ],
@@ -73,7 +73,7 @@ export interface GetDimensionCommandOutput extends DimensionExt, __MetadataBeare
  * //     REMOTE_COHORT: "STRING_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
- * //   mandatory: true || false,
+ * //   mandatory: true || false, // required
  * // };
  *
  * ```
@@ -112,7 +112,7 @@ export class GetDimensionCommand extends $Command.classBuilder<GetDimensionComma
 declare protected static __types: {
   api: {
       input: GetDimensionInput;
-      output: DimensionExt;
+      output: DimensionResponse;
   };
   sdk: {
       input: GetDimensionCommandInput;

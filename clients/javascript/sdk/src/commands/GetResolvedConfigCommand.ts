@@ -59,9 +59,9 @@ export interface GetResolvedConfigCommandOutput extends GetResolvedConfigOutput,
  * const command = new GetResolvedConfigCommand(input);
  * const response = await client.send(command);
  * // { // GetResolvedConfigOutput
- * //   config: "DOCUMENT_VALUE",
- * //   version: "STRING_VALUE",
- * //   last_modified: new Date("TIMESTAMP"),
+ * //   config: "DOCUMENT_VALUE", // required
+ * //   version: "STRING_VALUE", // required
+ * //   last_modified: new Date("TIMESTAMP"), // required
  * //   audit_id: "STRING_VALUE",
  * // };
  *

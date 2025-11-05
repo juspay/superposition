@@ -112,7 +112,7 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for DeleteD
             #[allow(unused_mut)]
             let mut force_error = false;
             
-            let parse_result = if !success && status != 201 || force_error {
+            let parse_result = if !success && status != 204 || force_error {
                 crate::protocol_serde::shape_delete_default_config::de_delete_default_config_http_error(status, headers, body)
             } else {
                 crate::protocol_serde::shape_delete_default_config::de_delete_default_config_http_response(status, headers, body)

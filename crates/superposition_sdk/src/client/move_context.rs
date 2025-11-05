@@ -6,21 +6,19 @@ impl super::Client {
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`id(impl Into<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::id) / [`set_id(Option<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::set_id):<br>required: **true**<br>(undocumented)<br>
-    ///   - [`context(impl Into<String>, Document)`](crate::operation::move_context::builders::MoveContextFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::set_context):<br>required: **true**<br>Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.<br>
-    ///   - [`description(impl Into<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::set_description):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`change_reason(impl Into<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`request(ContextMove)`](crate::operation::move_context::builders::MoveContextFluentBuilder::request) / [`set_request(Option<ContextMove>)`](crate::operation::move_context::builders::MoveContextFluentBuilder::set_request):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`MoveContextOutput`](crate::operation::move_context::MoveContextOutput) with field(s):
     ///   - [`id(String)`](crate::operation::move_context::MoveContextOutput::id): (undocumented)
-    ///   - [`value(Option<HashMap::<String, Document>>)`](crate::operation::move_context::MoveContextOutput::value): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    ///   - [`r#override(Option<HashMap::<String, Document>>)`](crate::operation::move_context::MoveContextOutput::override): Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    ///   - [`override_id(Option<String>)`](crate::operation::move_context::MoveContextOutput::override_id): (undocumented)
-    ///   - [`weight(Option<String>)`](crate::operation::move_context::MoveContextOutput::weight): Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    ///   - [`description(Option<String>)`](crate::operation::move_context::MoveContextOutput::description): (undocumented)
-    ///   - [`change_reason(Option<String>)`](crate::operation::move_context::MoveContextOutput::change_reason): (undocumented)
-    ///   - [`created_at(Option<DateTime>)`](crate::operation::move_context::MoveContextOutput::created_at): (undocumented)
-    ///   - [`created_by(Option<String>)`](crate::operation::move_context::MoveContextOutput::created_by): (undocumented)
-    ///   - [`last_modified_at(Option<DateTime>)`](crate::operation::move_context::MoveContextOutput::last_modified_at): (undocumented)
-    ///   - [`last_modified_by(Option<String>)`](crate::operation::move_context::MoveContextOutput::last_modified_by): (undocumented)
+    ///   - [`value(HashMap::<String, Document>)`](crate::operation::move_context::MoveContextOutput::value): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+    ///   - [`r#override(HashMap::<String, Document>)`](crate::operation::move_context::MoveContextOutput::override): Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+    ///   - [`override_id(String)`](crate::operation::move_context::MoveContextOutput::override_id): (undocumented)
+    ///   - [`weight(String)`](crate::operation::move_context::MoveContextOutput::weight): Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+    ///   - [`description(String)`](crate::operation::move_context::MoveContextOutput::description): (undocumented)
+    ///   - [`change_reason(String)`](crate::operation::move_context::MoveContextOutput::change_reason): (undocumented)
+    ///   - [`created_at(DateTime)`](crate::operation::move_context::MoveContextOutput::created_at): (undocumented)
+    ///   - [`created_by(String)`](crate::operation::move_context::MoveContextOutput::created_by): (undocumented)
+    ///   - [`last_modified_at(DateTime)`](crate::operation::move_context::MoveContextOutput::last_modified_at): (undocumented)
+    ///   - [`last_modified_by(String)`](crate::operation::move_context::MoveContextOutput::last_modified_by): (undocumented)
                             /// - On failure, responds with [`SdkError<MoveContextError>`](crate::operation::move_context::MoveContextError)
     pub fn move_context(&self) -> crate::operation::move_context::builders::MoveContextFluentBuilder {
                                 crate::operation::move_context::builders::MoveContextFluentBuilder::new(self.handle.clone())

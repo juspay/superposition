@@ -6,7 +6,7 @@ import {
 } from "../SuperpositionClient";
 import {
   CreateDimensionInput,
-  DimensionExt,
+  DimensionResponse,
 } from "../models/models_0";
 import {
   de_CreateDimensionCommand,
@@ -32,7 +32,7 @@ export interface CreateDimensionCommandInput extends CreateDimensionInput {}
  *
  * The output of {@link CreateDimensionCommand}.
  */
-export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBearer {}
+export interface CreateDimensionCommandOutput extends DimensionResponse, __MetadataBearer {}
 
 /**
  * Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.
@@ -62,7 +62,7 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * };
  * const command = new CreateDimensionCommand(input);
  * const response = await client.send(command);
- * // { // DimensionExt
+ * // { // DimensionResponse
  * //   dimension: "STRING_VALUE", // required
  * //   position: Number("int"), // required
  * //   schema: { // Object // required
@@ -75,7 +75,7 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //   last_modified_by: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
- * //   dependency_graph: { // DepedendencyGraph // required
+ * //   dependency_graph: { // DependencyGraph // required
  * //     "<keys>": [ // StringList
  * //       "STRING_VALUE",
  * //     ],
@@ -86,7 +86,7 @@ export interface CreateDimensionCommandOutput extends DimensionExt, __MetadataBe
  * //     REMOTE_COHORT: "STRING_VALUE",
  * //   },
  * //   autocomplete_function_name: "STRING_VALUE",
- * //   mandatory: true || false,
+ * //   mandatory: true || false, // required
  * // };
  *
  * ```
@@ -123,7 +123,7 @@ export class CreateDimensionCommand extends $Command.classBuilder<CreateDimensio
 declare protected static __types: {
   api: {
       input: CreateDimensionInput;
-      output: DimensionExt;
+      output: DimensionResponse;
   };
   sdk: {
       input: CreateDimensionCommandInput;

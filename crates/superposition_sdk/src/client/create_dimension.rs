@@ -27,7 +27,7 @@ impl super::Client {
     ///   - [`dependency_graph(HashMap::<String, Vec::<String>>)`](crate::operation::create_dimension::CreateDimensionOutput::dependency_graph): (undocumented)
     ///   - [`dimension_type(DimensionType)`](crate::operation::create_dimension::CreateDimensionOutput::dimension_type): (undocumented)
     ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::create_dimension::CreateDimensionOutput::autocomplete_function_name): (undocumented)
-    ///   - [`mandatory(Option<bool>)`](crate::operation::create_dimension::CreateDimensionOutput::mandatory): (undocumented)
+    ///   - [`mandatory(bool)`](crate::operation::create_dimension::CreateDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<CreateDimensionError>`](crate::operation::create_dimension::CreateDimensionError)
     pub fn create_dimension(&self) -> crate::operation::create_dimension::builders::CreateDimensionFluentBuilder {
                                 crate::operation::create_dimension::builders::CreateDimensionFluentBuilder::new(self.handle.clone())

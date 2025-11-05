@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -14,6 +15,7 @@ import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -21,10 +23,14 @@ public final class WeightRecomputeResponse implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#WeightRecomputeResponse");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("id", PreludeSchemas.STRING)
-        .putMember("condition", SharedSchemas.CONDITION)
-        .putMember("old_weight", SharedSchemas.WEIGHT)
-        .putMember("new_weight", SharedSchemas.WEIGHT)
+        .putMember("id", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("condition", SharedSchemas.CONDITION,
+                new RequiredTrait())
+        .putMember("old_weight", SharedSchemas.WEIGHT,
+                new RequiredTrait())
+        .putMember("new_weight", SharedSchemas.WEIGHT,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
@@ -39,7 +45,7 @@ public final class WeightRecomputeResponse implements SerializableStruct {
 
     private WeightRecomputeResponse(Builder builder) {
         this.id = builder.id;
-        this.condition = builder.condition == null ? null : Collections.unmodifiableMap(builder.condition);
+        this.condition = Collections.unmodifiableMap(builder.condition);
         this.oldWeight = builder.oldWeight;
         this.newWeight = builder.newWeight;
     }
@@ -49,14 +55,11 @@ public final class WeightRecomputeResponse implements SerializableStruct {
     }
 
     public Map<String, Document> condition() {
-        if (condition == null) {
-            return Collections.emptyMap();
-        }
         return condition;
     }
 
     public boolean hasCondition() {
-        return condition != null;
+        return true;
     }
 
     public String oldWeight() {
@@ -99,18 +102,10 @@ public final class WeightRecomputeResponse implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (id != null) {
-            serializer.writeString($SCHEMA_ID, id);
-        }
-        if (condition != null) {
-            serializer.writeMap($SCHEMA_CONDITION, condition, condition.size(), SharedSerde.ConditionSerializer.INSTANCE);
-        }
-        if (oldWeight != null) {
-            serializer.writeString($SCHEMA_OLD_WEIGHT, oldWeight);
-        }
-        if (newWeight != null) {
-            serializer.writeString($SCHEMA_NEW_WEIGHT, newWeight);
-        }
+        serializer.writeString($SCHEMA_ID, id);
+        serializer.writeMap($SCHEMA_CONDITION, condition, condition.size(), SharedSerde.ConditionSerializer.INSTANCE);
+        serializer.writeString($SCHEMA_OLD_WEIGHT, oldWeight);
+        serializer.writeString($SCHEMA_NEW_WEIGHT, newWeight);
     }
 
     @Override
@@ -152,6 +147,7 @@ public final class WeightRecomputeResponse implements SerializableStruct {
      * Builder for {@link WeightRecomputeResponse}.
      */
     public static final class Builder implements ShapeBuilder<WeightRecomputeResponse> {
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String id;
         private Map<String, Document> condition;
         private String oldWeight;
@@ -165,39 +161,48 @@ public final class WeightRecomputeResponse implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder id(String id) {
-            this.id = id;
+            this.id = Objects.requireNonNull(id, "id cannot be null");
+            tracker.setMember($SCHEMA_ID);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder condition(Map<String, Document> condition) {
-            this.condition = condition;
+            this.condition = Objects.requireNonNull(condition, "condition cannot be null");
+            tracker.setMember($SCHEMA_CONDITION);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder oldWeight(String oldWeight) {
-            this.oldWeight = oldWeight;
+            this.oldWeight = Objects.requireNonNull(oldWeight, "oldWeight cannot be null");
+            tracker.setMember($SCHEMA_OLD_WEIGHT);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder newWeight(String newWeight) {
-            this.newWeight = newWeight;
+            this.newWeight = Objects.requireNonNull(newWeight, "newWeight cannot be null");
+            tracker.setMember($SCHEMA_NEW_WEIGHT);
             return this;
         }
 
         @Override
         public WeightRecomputeResponse build() {
+            tracker.validate();
             return new WeightRecomputeResponse(this);
         }
 
@@ -211,6 +216,26 @@ public final class WeightRecomputeResponse implements SerializableStruct {
                 case 3 -> newWeight((String) SchemaUtils.validateSameMember($SCHEMA_NEW_WEIGHT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<WeightRecomputeResponse> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_ID)) {
+                id("");
+            }
+            if (!tracker.checkMember($SCHEMA_CONDITION)) {
+                condition(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_OLD_WEIGHT)) {
+                oldWeight("");
+            }
+            if (!tracker.checkMember($SCHEMA_NEW_WEIGHT)) {
+                newWeight("");
+            }
+            return this;
         }
 
         @Override

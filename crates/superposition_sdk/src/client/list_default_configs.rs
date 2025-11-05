@@ -10,9 +10,9 @@ impl super::Client {
     ///   - [`all(bool)`](crate::operation::list_default_configs::builders::ListDefaultConfigsFluentBuilder::all) / [`set_all(Option<bool>)`](crate::operation::list_default_configs::builders::ListDefaultConfigsFluentBuilder::set_all):<br>required: **false**<br>If true, returns all requested items, ignoring pagination parameters page and count.<br>
     ///   - [`name(impl Into<String>)`](crate::operation::list_default_configs::builders::ListDefaultConfigsFluentBuilder::name) / [`set_name(Option<String>)`](crate::operation::list_default_configs::builders::ListDefaultConfigsFluentBuilder::set_name):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`ListDefaultConfigsOutput`](crate::operation::list_default_configs::ListDefaultConfigsOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_default_configs::ListDefaultConfigsOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_default_configs::ListDefaultConfigsOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<DefaultConfigFull>>)`](crate::operation::list_default_configs::ListDefaultConfigsOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_default_configs::ListDefaultConfigsOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_default_configs::ListDefaultConfigsOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<DefaultConfigResponse>)`](crate::operation::list_default_configs::ListDefaultConfigsOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListDefaultConfigsError>`](crate::operation::list_default_configs::ListDefaultConfigsError)
     pub fn list_default_configs(&self) -> crate::operation::list_default_configs::builders::ListDefaultConfigsFluentBuilder {
                                 crate::operation::list_default_configs::builders::ListDefaultConfigsFluentBuilder::new(self.handle.clone())

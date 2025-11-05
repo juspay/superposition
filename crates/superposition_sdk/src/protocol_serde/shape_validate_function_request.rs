@@ -3,11 +3,11 @@ pub fn ser_validate_function_request(
                          object: &mut ::aws_smithy_json::serialize::JsonObjectWriter,
                          input: &crate::types::ValidateFunctionRequest,
                     ) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
-    if let Some(var_1) = &input.key {
-        object.key("key").string(var_1.as_str());
+     {
+        object.key("key").string(input.key.as_str());
     }
-    if let Some(var_2) = &input.value {
-        object.key("value").document(var_2);
+     {
+        object.key("value").document(&input.value);
     }
     Ok(())
 }

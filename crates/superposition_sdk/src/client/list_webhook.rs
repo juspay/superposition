@@ -9,9 +9,9 @@ impl super::Client {
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::list_webhook::builders::ListWebhookFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`ListWebhookOutput`](crate::operation::list_webhook::ListWebhookOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_webhook::ListWebhookOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_webhook::ListWebhookOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<WebhookResponse>>)`](crate::operation::list_webhook::ListWebhookOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_webhook::ListWebhookOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_webhook::ListWebhookOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<WebhookResponse>)`](crate::operation::list_webhook::ListWebhookOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListWebhookError>`](crate::operation::list_webhook::ListWebhookError)
     pub fn list_webhook(&self) -> crate::operation::list_webhook::builders::ListWebhookFluentBuilder {
                                 crate::operation::list_webhook::builders::ListWebhookFluentBuilder::new(self.handle.clone())
