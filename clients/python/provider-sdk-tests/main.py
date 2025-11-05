@@ -61,7 +61,7 @@ async def create_workspace(client, org_id: str, workspace_name: str):
         workspace_status="ENABLED",
         strict_mode=True,
         allow_experiment_self_approval=True,
-        auto_populate_control=True,
+        auto_populate_control=False, # disable auto populate control for testing experiment
     )
     try:
         response = await client.create_workspace(input_data)
@@ -266,7 +266,7 @@ async def create_experiments(client, org_id: str, workspace_id: str):
                     id="test-control",
                     variant_type="CONTROL",
                     overrides={
-                        "price": Document(10000)
+                        "price": Document(8000) # Note: Using a different price to distinguish from default
                     }
                 ),
                 Variant(
@@ -434,14 +434,14 @@ async def run_demo(org_id: str, workspace_id: str):
 
         print("Test 9: Experiment case: Kolkata pricing")
         evaluation_context = EvaluationContext(
-            targeting_key= "",
+            targeting_key= "test",
             attributes={"city": "Kolkata"}
         )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
         print(f"  - Retrieved price: {price}, currency: {currency}")
 
-        assert price in [10000, 7000], "Price should be either 10000 (control) or 7000 (experimental) in Kolkata"
+        assert price in [8000, 7000], "Price should be either 8000 (control) or 7000 (experimental) in Kolkata"
         assert currency == "Rupee", "Currency should be Rupee in Kolkata"
         print("  ✓ Experiment Test passed\n")
 

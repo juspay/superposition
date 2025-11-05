@@ -52,7 +52,7 @@ async function createWorkspace(org_id, workspace_name) {
     workspace_status: "ENABLED",
     strict_mode: true,
     allow_experiment_self_approval: true,
-    auto_populate_control: true,
+    auto_populate_control: false, // disable auto populate control for testing experiment
   });
   try {
     const response = await client.send(command);
@@ -286,14 +286,14 @@ async function create_experiments(org_id, workspace_id) {
           id: "testexperiment-control",
           variant_type: "CONTROL",
           overrides: {
-            price: 10000,
+            price: 8000, // Note: Using a different price to distinguish from default
           },
         },
         {
           id: "testexperiment-experimental",
           variant_type: "EXPERIMENTAL",
           overrides: {
-            price: 8800,
+            price: 7000,
           },
         },
       ],
@@ -513,13 +513,13 @@ async function runDemo(org_id, workspace_id) {
     }
     console.log("Test 9: Experiment case: Bangalore pricing");
     {
-      const context_control = { city: "Bangalore", targetingKey: "test" };
-      const price_control = await ofClient.getNumberValue("price", 0, context_control);
-      const currency_control = await ofClient.getStringValue("currency", "", context_control);
-      console.log(`  Retrieved price: ${price_control}, currency: ${currency_control}`);
+      const context = { city: "Bangalore", targetingKey: "test" };
+      const price = await ofClient.getNumberValue("price", 0, context);
+      const currency = await ofClient.getStringValue("currency", "", context);
+      console.log(`  Retrieved price: ${price}, currency: ${currency}`);
 
-      assert.strictEqual(price_control, 10000 || 8800, "Price should be either 10000 (control) or 8800 (experimental) in Bangalore");
-      assert.strictEqual(currency_control, "Rupee", "Currency should be Rupee in Bangalore");
+      assert.strictEqual(price, 8000 || 7000, "Price should be either 8000 (control) or 7000 (experimental) in Bangalore");
+      assert.strictEqual(currency, "Rupee", "Currency should be Rupee in Bangalore");
       console.log("  ✓ Experiment Test passed\n");
     }
 
