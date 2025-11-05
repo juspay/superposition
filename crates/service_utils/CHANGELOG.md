@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.33.2 - 2025-11-05
+#### Bug Fixes
+- Read orgs from db in no_auth (#739) - (f3318d3) - Ayush Jain
+#### Miscellaneous Chores
+- **(smithy)** Add improvements (#717) - (15c3556) - Ayush Jain
+- **(version)** v0.89.0 [skip ci] - (d68f44e) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.33.1 - 2025-09-09
 #### Bug Fixes
 - use log_level to decide req/resp logging - (24e2545) - Natarajan Kannan

@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.6.1 - 2025-11-05
+#### Bug Fixes
+- Smithy fixes (#742) - (c942cb6) - Ayush Jain
+- experiment provider tests (#736) - (c124e37) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.93.0 [skip ci] - (e13da8c) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.6.0 - 2025-11-04
 #### Bug Fixes
 - experiment groups provider changes (#726) - (c7c4388) - Ankit Kumar Mahato

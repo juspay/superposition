@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.45.1 - 2025-11-05
+#### Bug Fixes
+- Smithy fixes (#742) - (c942cb6) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.93.0 [skip ci] - (e13da8c) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.45.0 - 2025-11-04
 #### Features
 - Support multi value query params as repeated keys (#737) - (f267ff5) - Ayush Jain
