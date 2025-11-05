@@ -1,4 +1,6 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+#[cfg(not(feature = "jsonlogic"))]
+use std::collections::HashSet;
 
 use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
@@ -8,35 +10,37 @@ use bigdecimal::{BigDecimal, Num};
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
-use diesel::{
-    ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
-};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
-use jsonschema::{Draft, JSONSchema, ValidationError};
+use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
 use service_utils::{
-    helpers::{generate_snowflake_id, validation_err_to_str},
+    helpers::generate_snowflake_id,
     service::types::{AppState, SchemaName},
 };
-use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
+use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
+    api::functions::{
+        FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
+    },
     database::{
         models::{
-            cac::{ConfigVersion, Dimension, DimensionType},
+            cac::{ConfigVersion, DependencyGraph, DimensionType, FunctionCode},
             Description, Workspace,
         },
         schema::{
             config_versions,
             contexts::dsl::{self as ctxt},
             default_configs::dsl as def_conf,
-            dimensions::{self},
+            functions::dsl as functions,
         },
         superposition_schema::superposition::workspaces,
     },
+    logic::dimensions_to_start_from,
     result as superposition, Cac, Condition, Config, Context, DBConnection,
     DimensionInfo, OverrideWithKeys, Overrides,
 };
@@ -44,7 +48,9 @@ use superposition_types::{
 #[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
 
-use crate::api::dimension::fetch_dimensions_info_map;
+use crate::{
+    api::dimension::fetch_dimensions_info_map, validation_functions::execute_fn,
+};
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();
@@ -80,346 +86,6 @@ pub fn get_meta_schema() -> JSONSchema {
         .with_draft(Draft::Draft7)
         .compile(&my_schema)
         .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
-}
-
-pub fn get_cohort_meta_schema() -> JSONSchema {
-    let my_schema = json!({
-        "type": "object",
-        "properties": {
-            "type": { "type": "string" },
-            "enum": {
-                "type": "array",
-                "items": { "type": "string" },
-                "contains": { "const": "otherwise" },
-                "minContains": 1,
-                "uniqueItems": true
-            },
-            "definitions": {
-                "type": "object",
-                "not": {
-                    "required": ["otherwise"]
-                }
-            }
-        },
-        "required": ["type", "enum", "definitions"]
-    });
-
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&my_schema)
-        .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
-}
-
-pub fn validate_context_jsonschema(
-    #[cfg(feature = "jsonlogic")] object_key: &str,
-    dimension_value: &Value,
-    dimension_schema: &Value,
-) -> superposition::Result<()> {
-    let dimension_schema = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(dimension_schema)
-        .map_err(|e| {
-            log::error!(
-                "Failed to compile as a Draft-7 JSON schema: {}",
-                e.to_string()
-            );
-            bad_argument!("Error encountered: invalid jsonschema for dimension.")
-        })?;
-    match dimension_value {
-        #[cfg(feature = "jsonlogic")]
-        Value::Array(val_arr) if object_key == "in" => {
-            let mut verrors = Vec::new();
-            val_arr.iter().for_each(|x| {
-                dimension_schema
-                    .validate(x)
-                    .map_err(|e| {
-                        verrors.append(&mut e.collect::<Vec<ValidationError>>());
-                    })
-                    .ok();
-            });
-            if verrors.is_empty() {
-                Ok(())
-            } else {
-                // Check if the array as a whole validates, even with individual errors
-                match dimension_schema.validate(dimension_value) {
-                    Ok(()) => {
-                        log::error!(
-                            "Validation errors for individual dimensions, but array as a whole validates: {:?}",
-                            verrors
-                        );
-                        Ok(())
-                    }
-                    Err(e) => {
-                        verrors.append(&mut e.collect::<Vec<ValidationError>>());
-                        log::error!(
-                            "Validation errors for dimensions in array: {:?}",
-                            verrors
-                        );
-                        Err(validation_error!(
-                            "failed to validate dimension value {}: {}",
-                            dimension_value.to_string(),
-                            validation_err_to_str(verrors)
-                                .first()
-                                .unwrap_or(&String::new())
-                        ))
-                    }
-                }
-            }
-        }
-        _ => dimension_schema.validate(dimension_value).map_err(|e| {
-            let verrors = e.collect::<Vec<ValidationError>>();
-            log::error!(
-                "failed to validate dimension value {}: {:?}",
-                dimension_value.to_string(),
-                verrors
-            );
-            validation_error!(
-                "failed to validate dimension value {}: {}",
-                dimension_value.to_string(),
-                validation_err_to_str(verrors)
-                    .first()
-                    .unwrap_or(&String::new())
-            )
-        }),
-    }
-}
-
-/*
-  This step is required because an empty object
-  is also a valid JSON schema. So added required
-  validations for the input.
-*/
-// TODO: Recursive validation.
-
-pub fn validate_jsonschema(
-    validation_schema: &JSONSchema,
-    schema: &Value,
-) -> superposition::Result<()> {
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(schema)
-        .map_err(|e| bad_argument!("Invalid JSON schema (failed to compile): {:?}", e))?;
-    validation_schema.validate(schema).map_err(|e| {
-        let verrors = e.collect::<Vec<ValidationError>>();
-        validation_error!(
-            "schema validation failed: {}",
-            validation_err_to_str(verrors)
-                .first()
-                .unwrap_or(&String::new())
-        )
-    })
-}
-
-fn validate_cohort_jsonschema(schema: &Value) -> superposition::Result<Vec<String>> {
-    let meta_schema = get_cohort_meta_schema();
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(schema)
-        .map_err(|e| bad_argument!("Invalid JSON schema (failed to compile): {:?}", e))?;
-    meta_schema.validate(schema).map_err(|e| {
-        let verrors = e.collect::<Vec<ValidationError>>();
-        validation_error!(
-            "schema validation failed: {}",
-            validation_err_to_str(verrors)
-                .first()
-                .unwrap_or(&String::new())
-        )
-    })?;
-    let enum_options = schema
-        .get("enum")
-        .and_then(|v| v.as_array())
-        .ok_or_else(|| {
-            validation_error!("Cohort schema must have an 'enum' field of type array")
-        })?
-        .iter()
-        .filter_map(|v| v.as_str().map(str::to_string))
-        .collect::<Vec<String>>();
-    Ok(enum_options)
-}
-
-pub fn does_dimension_exist_for_cohorting(
-    dim: &str,
-    schema_name: &SchemaName,
-    conn: &mut DBConnection,
-) -> superposition::Result<()> {
-    if let Some(dim) = dimensions::dsl::dimensions
-        .filter(dimensions::dsl::dimension.eq(dim))
-        .schema_name(schema_name)
-        .get_result::<Dimension>(conn)
-        .optional()?
-    {
-        match dim.dimension_type {
-            DimensionType::LocalCohort(_) => {
-                log::error!(
-                    "Dimension {} is a local cohort and cannot be used in cohorting",
-                    &dim.dimension
-                );
-                Err(validation_error!(
-                    "Dimension {} is a local cohort and cannot be used in cohorting",
-                    &dim.dimension
-                ))
-            }
-            _ => Ok(()),
-        }
-    } else {
-        log::error!(
-            "Dimension {dim} used in cohort schema does not exist in dimensions table"
-        );
-        Err(validation_error!(
-                 "Dimension {} used in cohort schema has not been created or does not exist. Please create the dimension first before using it in cohort schema.",
-                 dim
-             ))
-    }
-}
-
-pub fn validate_cohort_schema(
-    cohort_schema: &Value,
-    cohort_based_on: &String,
-    schema_name: &SchemaName,
-    conn: &mut DBConnection,
-) -> superposition::Result<()> {
-    if cohort_based_on.is_empty() {
-        return Err(validation_error!(
-            "Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples",
-        ));
-    }
-
-    let enum_options = validate_cohort_jsonschema(cohort_schema)?;
-
-    let cohort_schema = cohort_schema.get("definitions").ok_or(validation_error!(
-        "Local cohorts require the jsonlogic rules to be written in the `definitions` field. Refer our API docs for examples",
-    ))?;
-
-    let logic = match cohort_schema {
-        Value::Object(logic) if logic.is_empty() => {
-            log::error!("Empty JSON Logic object is not allowed");
-            return Err(validation_error!(
-                "Empty object is not allowed as a schema, mention at least one cohort"
-            ));
-        }
-        Value::Object(logic) => {
-            let cohort_options = logic.keys();
-            if cohort_options.len() != enum_options.len() - 1 {
-                log::error!(
-                    "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found {} cohorts and {} enum options (not including otherwise)",
-                    cohort_options.len(),
-                    enum_options.len() - 1
-                );
-                return Err(validation_error!(
-                    "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found {} cohorts and {} enum options (not including otherwise)",
-                    cohort_options.len(),
-                    enum_options.len() - 1
-                ));
-            }
-            for cohort in cohort_options {
-                if !enum_options.contains(cohort) {
-                    log::error!(
-                        "Cohort {} does not have a corresponding enum option",
-                        cohort
-                    );
-                    return Err(validation_error!(
-                        "Cohort {} does not have a corresponding enum option",
-                        cohort
-                    ));
-                }
-            }
-            logic
-        }
-        _ => {
-            log::error!(
-                "Invalid JSON Logic schema: expected an object, found: {}",
-                cohort_schema
-            );
-            return Err(validation_error!(
-                "Invalid JSON Logic schema: expected an object, found: {}",
-                cohort_schema
-            ));
-        }
-    };
-
-    // check if only one dimension is used across all cohort enums
-    let mut dimensions_used = HashSet::new();
-
-    for (cohort_option, expression) in logic.iter() {
-        let ast =
-            jsonlogic::expression::Expression::from_json(expression).map_err(|e| {
-                validation_error!(
-                    "Invalid JSON Logic schema for cohort {}, found: {}",
-                    cohort_option,
-                    e
-                )
-            })?;
-
-        let dims = ast.get_variable_names().map_err(|e| {
-            log::error!(
-                "Error while parsing variable names for cohort {cohort_option}: {e}"
-            );
-            validation_error!(
-                "Invalid JSON Logic in cohort {}, error while parsing variable names: {}",
-                cohort_option,
-                e
-            )
-        })?;
-        dimensions_used.extend(dims);
-    }
-
-    let dimensions_used = dimensions_used.into_iter().collect::<Vec<_>>();
-
-    match dimensions_used[..] {
-        [] => {
-            // no dimensions? not allowed
-            log::error!("No dimensions used in cohort schema");
-            Err(validation_error!(
-                "No dimensions used in cohort schema, one dimension is required"
-            ))
-        }
-        [ref dim] => {
-            // check if the single dimension used exists in the dimensions table
-            does_dimension_exist_for_cohorting(dim, schema_name, conn)?;
-            if dim != cohort_based_on {
-                log::error!(
-                    "Dimension used in cohort schema ({}) does not match the dimension specified in cohort_based_on ({})",
-                    dim,
-                    cohort_based_on
-                );
-                return Err(validation_error!(
-                    "Dimension used in cohort schema ({}) does not match the dimension specified in cohort_based_on ({})",
-                    dim,
-                    cohort_based_on
-                ));
-            }
-            Ok(())
-        }
-        _ => {
-            // more than one dimension? not allowed
-            log::error!(
-                "Multiple dimensions used in cohort schema: {:?}",
-                dimensions_used
-            );
-            Err(validation_error!(
-                "Multiple dimensions used in cohort schema and that is not allowed: {:?}",
-                dimensions_used
-            ))
-        }
-    }
-}
-
-#[cfg(not(feature = "jsonlogic"))]
-pub fn allow_primitive_types(schema: &Map<String, Value>) -> superposition::Result<()> {
-    match schema.get("type").cloned().unwrap_or_default() {
-        Value::String(type_val) if type_val != "array" && type_val != "object" => {
-            Ok(())
-        }
-        Value::Array(arr) if arr.iter().all(|v| v.as_str().is_some_and(|s| s != "array" && s != "object")) => {
-            Ok(())
-        }
-        _ => {
-            Err(validation_error!(
-                "Invalid schema: expected a primitive type or an array of primitive types, found: {:?}",
-                schema
-            ))
-        }
-    }
 }
 
 fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
@@ -633,6 +299,169 @@ pub async fn put_config_in_redis(
     Ok(())
 }
 
+fn compute_value_with_function(
+    fun_name: &str,
+    function: &FunctionCode,
+    key: &str,
+    context: Map<String, Value>,
+    overrides: Map<String, Value>,
+) -> superposition::Result<Value> {
+    match execute_fn(
+        function,
+        &FunctionExecutionRequest::AutocompleteFunctionRequest {
+            name: key.to_string(),
+            prefix: String::new(),
+            environment: FunctionEnvironment { context, overrides },
+        },
+    ) {
+        Err((err, stdout)) => {
+            let stdout = stdout.unwrap_or_default();
+            log::error!(
+                "function {fun_name} computation failed for {key} with error: {err}"
+            );
+            Err(validation_error!(
+                "Function {fun_name} computation failed for {} with error {}. {}",
+                key,
+                err,
+                stdout
+            ))
+        }
+        Ok(FunctionExecutionResponse {
+            fn_output, stdout, ..
+        }) => {
+            log::debug!("Function execution returned: {:?}", fn_output);
+            match fn_output {
+                Value::Array(arr) if arr.len() == 1 => Ok(arr[0].clone()),
+                _ => {
+                    log::error!(
+                        "Computation function {fun_name} returned invalid output, logs are {stdout}"
+                    );
+                    Err(validation_error!(
+                        "Computation function {fun_name} returned invalid output, please check your inputs",
+                    ))
+                }
+            }
+        }
+    }
+}
+
+/// Evaluates dependencies of local cohort dimensions recursively using depth-first traversal
+fn evaluate_remote_cohorts_dependency(
+    dimension: &str,
+    dependency_graph: &DependencyGraph,
+    dimensions: &HashMap<String, DimensionInfo>,
+    modified_context: &mut Map<String, Value>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let mut stack = dependency_graph
+        .get(dimension)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|d| (d, dimension.to_string()))
+        .collect::<Vec<_>>();
+
+    // Depth-first traversal of dependencies
+    while let Some((ref cohort_dimension, ref based_on)) = stack.pop() {
+        if let Some(data) = dimensions.get(cohort_dimension) {
+            if matches!(data.dimension_type, DimensionType::LocalCohort(_)) {
+                continue;
+            }
+
+            let Some(ref autocomplete_fn) = data.autocomplete_function_name else {
+                return Err(validation_error!(
+                    "Value compute function not found for {cohort_dimension}",
+                ));
+            };
+
+            let fn_code = functions::functions
+                .filter(functions::function_name.eq(autocomplete_fn))
+                .select(functions::published_code)
+                .schema_name(schema_name)
+                .first::<Option<FunctionCode>>(conn)?
+                .ok_or_else(|| {
+                    validation_error!(
+                        "Published code not found for function {}",
+                        autocomplete_fn
+                    )
+                })?;
+
+            let value = compute_value_with_function(
+                autocomplete_fn,
+                &fn_code,
+                based_on,
+                modified_context.clone(),
+                Map::new(),
+            )?;
+
+            modified_context.insert(cohort_dimension.clone(), value);
+
+            stack.extend(
+                dependency_graph
+                    .get(cohort_dimension)
+                    .cloned()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|d| (d, cohort_dimension.clone()))
+                    .collect::<Vec<_>>(),
+            );
+        }
+    }
+    Ok(())
+}
+
+/// Evaluates all remote cohort dimensions based on the provided query data and dimension definitions
+/// First, all remote cohort dependents of regular and remote dimensions are evaluated, starting from
+/// the dimensions present in query_data such that for each tree in the dependency graph,
+/// the node closest to root from query_data is picked for each branch of the tree.
+/// Next, local cohort dimensions from query_data are inserted into the modified context.
+///
+/// Values of regular and local cohort dimensions in query_data are not modified.
+/// Returned value, might have a different value for remote cohort dimensions based on its based on dimensions,
+/// if the value provided for the remote cohort was incorrect in the query data.
+pub fn evaluate_remote_cohorts(
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Map<String, Value>> {
+    let mut modified_context = Map::new();
+
+    // First, evaluate all remote cohort dimensions and their dependencies
+    for dimension_key in dimensions_to_start_from(dimensions, query_data) {
+        if let Some(value) = query_data.get(&dimension_key) {
+            if let Some(data) = dimensions.get(&dimension_key) {
+                match data.dimension_type {
+                    DimensionType::LocalCohort(_) => continue,
+                    DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
+                        modified_context.insert(dimension_key.to_string(), value.clone());
+                        evaluate_remote_cohorts_dependency(
+                            &dimension_key,
+                            &data.dependency_graph,
+                            dimensions,
+                            &mut modified_context,
+                            conn,
+                            schema_name,
+                        )?;
+                    }
+                }
+            }
+        }
+    }
+
+    // Next, insert local cohort dimensions from query_data into modified_context
+    for (dimension_key, value) in query_data {
+        if let Some(data) = dimensions.get(dimension_key) {
+            if matches!(data.dimension_type, DimensionType::LocalCohort(_)) {
+                modified_context.insert(dimension_key.to_string(), value.clone());
+            }
+        }
+    }
+
+    Ok(modified_context)
+}
+
 // ************ Tests *************
 
 #[cfg(test)]
@@ -640,64 +469,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
-    #[test]
-    fn test_get_meta_schema() {
-        let x = get_meta_schema();
 
-        let ok_string_schema = json!({"type": "string", "pattern": ".*"});
-        let ok_string_validation = x.validate(&ok_string_schema);
-        assert!(ok_string_validation.is_ok());
-
-        let error_object_schema = json!({"type": "object"});
-        let error_object_validation = x.validate(&error_object_schema).map_err(|e| {
-            let verrors = e.collect::<Vec<ValidationError>>();
-            format!(
-                "Error While validating object dataType, Bad schema: {:?}",
-                verrors.as_slice()
-            )
-        });
-        assert!(error_object_validation.is_err_and(|error| error.contains("Bad schema")));
-
-        let ok_enum_schema = json!({"type": "string", "enum": ["ENUMVAL"]});
-        let ok_enum_validation = x.validate(&ok_enum_schema);
-        assert!(ok_enum_validation.is_ok());
-    }
-
-    #[test]
-    fn test_validate_context_jsonschema() {
-        let test_schema = json!({
-            "type": "string",
-            "pattern": ".*"
-        });
-
-        let str_dimension_val = json!("string1".to_owned());
-        #[cfg(feature = "jsonlogic")]
-        let arr_dimension_val = json!(["string1".to_owned(), "string2".to_owned()]);
-        let ok_str_context = validate_context_jsonschema(
-            #[cfg(feature = "jsonlogic")]
-            "in",
-            &str_dimension_val,
-            &test_schema,
-        );
-        #[cfg(feature = "jsonlogic")]
-        let ok_arr_context =
-            validate_context_jsonschema("in", &arr_dimension_val, &test_schema);
-        #[cfg(feature = "jsonlogic")]
-        let err_arr_context =
-            match validate_context_jsonschema("==", &arr_dimension_val, &test_schema) {
-                Err(superposition::AppError::ValidationError(err)) => {
-                    log::info!("{:?}", err);
-                    true
-                }
-                _ => false,
-            };
-
-        assert!(ok_str_context.is_ok());
-        #[cfg(feature = "jsonlogic")]
-        assert!(err_arr_context);
-        #[cfg(feature = "jsonlogic")]
-        assert!(ok_arr_context.is_ok());
-    }
     #[test]
     fn test_calculate_weight_from_index() {
         let number_2_100_str = "1267650600228229401496703205376";

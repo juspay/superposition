@@ -4,13 +4,14 @@ use leptos::*;
 use serde_json::{from_str, Value};
 use strum::IntoEnumIterator;
 use superposition_types::api::functions::{
-    FunctionExecutionRequest, FunctionExecutionResponse, Stage,
+    FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse, Stage,
 };
 use superposition_types::database::models::cac::FunctionType;
 use utils::{create_function, test_function, update_function};
 use wasm_bindgen::prelude::*;
 use web_sys::MouseEvent;
 
+use crate::components::input::{Input, InputType};
 use crate::components::{
     alert::AlertType,
     button::{Button, ButtonAnchor},
@@ -20,9 +21,11 @@ use crate::components::{
     monaco_editor::MonacoEditor,
     skeleton::{Skeleton, SkeletonVariant},
 };
+use crate::providers::editor_provider::EditorProvider;
 use crate::providers::{
     alert_provider::enqueue_alert, csr_provider::use_client_side_ready,
 };
+use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
 use crate::utils::use_url_base;
 
@@ -513,37 +516,36 @@ pub fn test_form(
 
                             <div class="form-control w-full max-w-md">
                                 <Label title="Environment" />
-                                <textarea
-                                    type="text"
-                                    class="input input-bordered"
-                                    name="value"
-                                    id="value"
-                                    placeholder="value"
-                                    on:change=move |ev| {
-                                        let value = event_target_value(&ev);
-                                        match from_str::<Value>(&value) {
-                                            Ok(test_val) => {
-                                                function_args_ws
-                                                    .update(|args| {
-                                                        if let FunctionExecutionRequest::AutocompleteFunctionRequest {
-                                                            environment,
-                                                            ..
-                                                        } = args {
-                                                            *environment = test_val;
-                                                        }
-                                                    });
-                                                set_error_message.set("".to_string());
-                                                out_message_ws.set(None);
+                                <EditorProvider>
+                                    <Input
+                                        id="function-environment-input"
+                                        class="rounded-md resize-y w-full max-w-md"
+                                        schema_type=SchemaType::Single(JsonSchemaType::Object)
+                                        value=serde_json::to_value(environment).unwrap_or_default()
+                                        on_change=move |value| {
+                                            match serde_json::from_value::<FunctionEnvironment>(value) {
+                                                Ok(test_val) => {
+                                                    function_args_ws
+                                                        .update(|args| {
+                                                            if let FunctionExecutionRequest::AutocompleteFunctionRequest {
+                                                                environment,
+                                                                ..
+                                                            } = args {
+                                                                *environment = test_val;
+                                                            }
+                                                        });
+                                                    set_error_message.set("".to_string());
+                                                    out_message_ws.set(None);
+                                                }
+                                                Err(_) => {
+                                                    set_error_message.set("".to_string());
+                                                    out_message_ws.set(None);
+                                                }
                                             }
-                                            Err(_) => {
-                                                set_error_message.set("".to_string());
-                                                out_message_ws.set(None);
-                                            }
-                                        };
-                                    }
-                                >
-                                    {environment.to_string()}
-                                </textarea>
+                                        }
+                                        r#type=InputType::Monaco(vec![])
+                                    />
+                                </EditorProvider>
                             </div>
                         }
                     }

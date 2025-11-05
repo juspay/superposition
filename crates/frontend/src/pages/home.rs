@@ -1,11 +1,12 @@
 use std::time::Duration;
 
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use strum_macros::Display;
 use superposition_types::{
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
+        functions::FunctionEnvironment,
         workspace::WorkspaceResponse,
     },
     custom_query::{DimensionQuery, PaginationParams},
@@ -178,12 +179,9 @@ pub fn home() -> impl IntoView {
     let (selected_tab_rs, selected_tab_ws) = create_signal(ResolveTab::AllConfig);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
-        json!({
-            "context": context,
-            "overrides": [],
-        })
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rs.get().as_context_json(),
+        overrides: Map::new(),
     });
 
     let unstrike = |search_field_prefix: &String, config: &Map<String, Value>| {

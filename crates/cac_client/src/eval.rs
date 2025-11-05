@@ -1,11 +1,9 @@
-//NOTE this code is copied over from sdk-config-server with small changes for compatiblity
-//TODO refactor, make eval MJOS agnostic
-
 use std::collections::HashMap;
 
-use crate::{utils::core::MapError, Context, MergeStrategy};
 use serde_json::{json, Map, Value};
-use superposition_types::{logic::evaluate_cohort, Config, Overrides};
+use superposition_types::{logic::evaluate_local_cohorts, Config, Overrides};
+
+use crate::{utils::core::MapError, Context, MergeStrategy};
 
 pub fn merge(doc: &mut Value, patch: &Value) {
     if !patch.is_object() {
@@ -121,7 +119,7 @@ pub fn eval_cac(
 ) -> Result<Map<String, Value>, String> {
     let mut default_config = config.default_configs.clone();
     let on_override_select: Option<&mut dyn FnMut(Context)> = None;
-    let modified_query_data = evaluate_cohort(&config.dimensions, query_data);
+    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
     let overrides: Map<String, Value> = get_overrides(
         &modified_query_data,
         &config.contexts,
@@ -144,7 +142,7 @@ pub fn eval_cac_with_reasoning(
     let mut default_config = config.default_configs.clone();
     let mut reasoning: Vec<Value> = vec![];
 
-    let modified_query_data = evaluate_cohort(&config.dimensions, query_data);
+    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
 
     let applied_overrides: Map<String, Value> = get_overrides(
         &modified_query_data,

@@ -99,7 +99,7 @@ async def create_dimensions(client, org_id: str, workspace_id: str):
             workspace_id=workspace_id,
             org_id=org_id,
             dimension="customers",
-            position=3,
+            position=1,
             schema={
                 "type": Document("string"),
                 "enum": Document(["platinum", "gold", "otherwise"]),
@@ -231,7 +231,6 @@ async def create_overrides(client, org_id: str, workspace_id: str):
             "request": ContextPut(
                 context={
                     "name": Document("karbik"),
-                    "customers": Document("otherwise"),
                 },
                 override={
                     "price": Document(1),

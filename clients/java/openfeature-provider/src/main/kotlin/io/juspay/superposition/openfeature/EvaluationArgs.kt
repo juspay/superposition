@@ -17,6 +17,7 @@ import uniffi.superposition_types.DimensionType
 import uniffi.superposition_types.GroupType
 import uniffi.superposition_types.Variant
 import uniffi.superposition_types.VariantType
+import uniffi.superposition_types.MergeStrategy
 
 internal class EvaluationArgs {
     // Values are serialized json values.
@@ -155,7 +156,8 @@ internal class EvaluationArgs {
                 serializeDocumentValues( dim.schemaMember() ),
                 dim.position(),
                 toFfiDimensionType (dim.dimensionType() ),
-                dim.dependencyGraph()
+                dim.dependencyGraph(),
+                dim.autocompleteFunctionName()
             )
         }
 
