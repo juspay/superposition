@@ -11,7 +11,11 @@ import {
     GetConfigCommand,
     GetConfigCommandInput,
 } from "superposition-sdk";
-import { ExperimentationClient, Experiment, ExperimentGroup } from "./experimentation-client";
+import {
+    ExperimentationClient,
+    Experiment,
+    ExperimentGroup,
+} from "./experimentation-client";
 import { ExperimentationOptions } from "./types";
 
 export class ConfigurationClient {
@@ -53,14 +57,14 @@ export class ConfigurationClient {
                     );
                 }
             }, strategy.interval);
+        }
 
-            if (experimentationOptions) {
-                this.experimentationOptions = experimentationOptions;
-                this.experimentationClient = new ExperimentationClient(
-                    config,
-                    experimentationOptions
-                );
-            }
+        if (experimentationOptions) {
+            this.experimentationOptions = experimentationOptions;
+            this.experimentationClient = new ExperimentationClient(
+                config,
+                experimentationOptions
+            );
         }
 
         this.smithyClient = new SuperpositionClient({
@@ -99,8 +103,11 @@ export class ConfigurationClient {
             if (this.experimentationClient && targetingKey) {
                 const experiments =
                     await this.experimentationClient.getExperiments();
+                const experiment_groups =
+                    await this.experimentationClient.getExperimentGroups();
                 experimentationArgs = {
                     experiments,
+                    experiment_groups,
                     targeting_key: targetingKey,
                 };
             }
@@ -166,6 +173,7 @@ export class ConfigurationClient {
         }
     }
     // TODO: defaultValue is taken but not used. Should it be used as a fallback?
+    // TODO: Remove this function all together and use eval for getAllConfigValue as well
     async getAllConfigValue(
         defaultValue: Record<string, any>,
         context: Record<string, any>,
@@ -180,7 +188,8 @@ export class ConfigurationClient {
             if (this.experimentationClient && targetingKey) {
                 const experiments =
                     await this.experimentationClient.getExperiments();
-                const experiment_groups = await this.experimentationClient.getExperimentGroups();
+                const experiment_groups =
+                    await this.experimentationClient.getExperimentGroups();
                 const identifier =
                     this.experimentationOptions?.defaultIdentifier ||
                     (targetingKey ? targetingKey : "default");

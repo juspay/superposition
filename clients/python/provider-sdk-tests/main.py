@@ -247,7 +247,7 @@ async def create_overrides(client, org_id: str, workspace_id: str):
         input_data = CreateContextInput(**override)
         try:
             response = await client.create_context(input_data)
-            print(f"Created override: {response}")
+            print(f"Created override: {response.value}")
         except Exception as e:
             print(f"Error occurred while creating override: {override}", e)
             raise e
@@ -287,7 +287,7 @@ async def create_experiments(client, org_id: str, workspace_id: str):
         input_data = CreateExperimentInput(**experiment)
         try:
             response = await client.create_experiment(input_data)
-            print(f"  - Created experiment: {response}")
+            print(f"  - Created experiment: {response.id}")
             ramp_input = {
                 "workspace_id": workspace_id,
                 "org_id": org_id,

@@ -64,7 +64,22 @@ export interface Variant {
     overrides: Record<string, string>;
 }
 
+export interface FfiExperimentGroup {
+    id: string;
+    context: Record<string, string>;
+    traffic_percentage: number;
+    member_experiment_ids: string[];
+    group_type: "SYSTEM_GENERATED" | "USER_CREATED";
+    buckets: Bucket[];
+}
+
+export interface Bucket {
+    variant_id: string;
+    experiment_id: string;
+}
+
 export interface ExperimentationArgs {
     experiments: FfiExperiment[];
+    experiment_groups: FfiExperimentGroup[];
     targeting_key: string;
 }

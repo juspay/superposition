@@ -11,18 +11,24 @@ import {
     OpenFeature,
     Hook,
     Logger,
-} from '@openfeature/server-sdk';
+} from "@openfeature/server-sdk";
 
-import { ConfigurationClient } from './configuration-client';
-import { convertToBoolean, convertToString, convertToNumber, convertToObject, getNestedValue } from './utils';
+import { ConfigurationClient } from "./configuration-client";
+import {
+    convertToBoolean,
+    convertToString,
+    convertToNumber,
+    convertToObject,
+    getNestedValue,
+} from "./utils";
 import {
     SuperpositionOptions,
     EvaluationCacheOptions,
     RefreshStrategy,
     ConfigData,
     ExperimentationOptions,
-} from './types';
-import { NativeResolver } from 'superposition-bindings';
+} from "./types";
+import { NativeResolver } from "superposition-bindings";
 
 export interface SuperpositionProviderOptions {
     endpoint: string;
@@ -49,8 +55,8 @@ type ValueType = keyof typeof TYPE_CONVERTERS;
 
 export class SuperpositionProvider implements Provider {
     readonly metadata: ProviderMetadata = {
-        name: 'SuperpositionProvider',
-        slug: 'superposition-provider'
+        name: "SuperpositionProvider",
+        slug: "superposition-provider",
     };
 
     events = new OpenFeatureEventEmitter();
@@ -60,7 +66,11 @@ export class SuperpositionProvider implements Provider {
     status: ProviderStatus = ProviderStatus.NOT_READY;
 
     // Cache for processed contexts
-    private processedContextCache = new WeakMap<EvaluationContext, Record<string, any>>();
+    // TODO: verify if this is at all needed
+    private processedContextCache = new WeakMap<
+        EvaluationContext,
+        Record<string, any>
+    >();
 
     constructor(private config: SuperpositionProviderOptions) {
         this.client = new ConfigurationClient(
@@ -84,13 +94,22 @@ export class SuperpositionProvider implements Provider {
         this.status = ProviderStatus.NOT_READY;
         try {
             await this.client.initialize();
+            // TODO: find why is this needed?
             await this.client.eval(context || {});
             this.status = ProviderStatus.READY;
-            this.events.emit(ProviderEvents.Ready, { message: 'Provider ready' });
+            this.events.emit(ProviderEvents.Ready, {
+                message: "Provider ready",
+            });
         } catch (error) {
             this.status = ProviderStatus.ERROR;
-            const message = error instanceof Error ? error.message : 'Initialization failed';
-            this.events.emit(ProviderEvents.Error, { message, errorCode: ErrorCode.PROVIDER_NOT_READY });
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Initialization failed";
+            this.events.emit(ProviderEvents.Error, {
+                message,
+                errorCode: ErrorCode.PROVIDER_NOT_READY,
+            });
             throw error;
         }
     }
@@ -114,7 +133,11 @@ export class SuperpositionProvider implements Provider {
             this.processedContextCache.set(context, processedContext);
         }
 
-        const config = await this.client.eval(processedContext);
+        const config = await this.client.eval(
+            processedContext,
+            undefined,
+            context.targetingKey
+        );
         const value = getNestedValue(config, flagKey);
         const converter = TYPE_CONVERTERS[type] as ConverterFunction<T>;
 
@@ -125,17 +148,32 @@ export class SuperpositionProvider implements Provider {
         const filtered: Record<string, any> = {};
 
         for (const [key, value] of Object.entries(context)) {
-            if (key.startsWith('__') || key === 'targetingKey' || key === 'timestamp') {
+            if (
+                key.startsWith("__") ||
+                key === "targetingKey" ||
+                key === "timestamp"
+            ) {
                 continue;
             }
 
             // Only include simple, serializable types
-            if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            if (
+                typeof value === "string" ||
+                typeof value === "number" ||
+                typeof value === "boolean"
+            ) {
                 filtered[key] = value;
-            } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            } else if (
+                typeof value === "object" &&
+                value !== null &&
+                !Array.isArray(value)
+            ) {
                 try {
                     const serialized = JSON.stringify(value);
-                    if (serialized.length < 1000 && Object.keys(value).length < 10) {
+                    if (
+                        serialized.length < 1000 &&
+                        Object.keys(value).length < 10
+                    ) {
                         filtered[key] = value;
                     }
                 } catch {
@@ -148,28 +186,49 @@ export class SuperpositionProvider implements Provider {
     }
 
     private createResolver<T>(type: ValueType) {
-        return async (flagKey: string, defaultValue: T, context: EvaluationContext): Promise<ResolutionDetails<T>> => {
-            if (this.status !== ProviderStatus.READY && this.status !== ProviderStatus.STALE) {
+        return async (
+            flagKey: string,
+            defaultValue: T,
+            context: EvaluationContext
+        ): Promise<ResolutionDetails<T>> => {
+            if (
+                this.status !== ProviderStatus.READY &&
+                this.status !== ProviderStatus.STALE
+            ) {
                 return {
                     value: defaultValue,
-                    reason: 'ERROR',
-                    errorCode: this.status === ProviderStatus.FATAL ? ErrorCode.PROVIDER_FATAL : ErrorCode.PROVIDER_NOT_READY,
-                    errorMessage: `Provider status: ${this.status}`
+                    reason: "ERROR",
+                    errorCode:
+                        this.status === ProviderStatus.FATAL
+                            ? ErrorCode.PROVIDER_FATAL
+                            : ErrorCode.PROVIDER_NOT_READY,
+                    errorMessage: `Provider status: ${this.status}`,
                 };
             }
 
             try {
-                const value = await this.evaluateFlag(flagKey, defaultValue, context, type);
+                const value = await this.evaluateFlag(
+                    flagKey,
+                    defaultValue,
+                    context,
+                    type
+                );
                 return {
                     value,
-                    reason: this.status === ProviderStatus.STALE ? 'STALE' : 'TARGETING_MATCH',
+                    reason:
+                        this.status === ProviderStatus.STALE
+                            ? "STALE"
+                            : "TARGETING_MATCH",
                 };
             } catch (error) {
                 return {
                     value: defaultValue,
-                    reason: 'ERROR',
+                    reason: "ERROR",
                     errorCode: ErrorCode.GENERAL,
-                    errorMessage: error instanceof Error ? error.message : 'Evaluation failed'
+                    errorMessage:
+                        error instanceof Error
+                            ? error.message
+                            : "Evaluation failed",
                 };
             }
         };
@@ -178,25 +237,37 @@ export class SuperpositionProvider implements Provider {
     async resolveBooleanEvaluation(
         flagKey: string,
         defaultValue: boolean,
-        context: EvaluationContext,
+        context: EvaluationContext
     ): Promise<ResolutionDetails<boolean>> {
-        return this.createResolver<boolean>('boolean')(flagKey, defaultValue, context);
+        return this.createResolver<boolean>("boolean")(
+            flagKey,
+            defaultValue,
+            context
+        );
     }
 
     async resolveStringEvaluation(
         flagKey: string,
         defaultValue: string,
-        context: EvaluationContext,
+        context: EvaluationContext
     ): Promise<ResolutionDetails<string>> {
-        return this.createResolver<string>('string')(flagKey, defaultValue, context);
+        return this.createResolver<string>("string")(
+            flagKey,
+            defaultValue,
+            context
+        );
     }
 
     async resolveNumberEvaluation(
         flagKey: string,
         defaultValue: number,
-        context: EvaluationContext,
+        context: EvaluationContext
     ): Promise<ResolutionDetails<number>> {
-        return this.createResolver<number>('number')(flagKey, defaultValue, context);
+        return this.createResolver<number>("number")(
+            flagKey,
+            defaultValue,
+            context
+        );
     }
 
     async resolveObjectEvaluation<T extends JsonValue>(
@@ -205,32 +276,45 @@ export class SuperpositionProvider implements Provider {
         context: EvaluationContext,
         logger?: Logger
     ): Promise<ResolutionDetails<T>> {
-        return this.createResolver<T>('object')(flagKey, defaultValue, context);
+        return this.createResolver<T>("object")(flagKey, defaultValue, context);
     }
 
     async resolveAllConfigDetails(
         defaultValue: Record<string, any>,
         context: EvaluationContext
     ): Promise<Record<string, any>> {
-        if (this.status !== ProviderStatus.READY && this.status !== ProviderStatus.STALE) {
+        if (
+            this.status !== ProviderStatus.READY &&
+            this.status !== ProviderStatus.STALE
+        ) {
             return defaultValue;
         }
 
         try {
-            const processedContext = this.processedContextCache.get(context) || this.filterContext(context);
+            const processedContext =
+                this.processedContextCache.get(context) ||
+                this.filterContext(context);
             if (!this.processedContextCache.has(context)) {
                 this.processedContextCache.set(context, processedContext);
             }
 
             const targetingKey = context.targetingKey;
-            return await this.client.getAllConfigValue(defaultValue, processedContext, targetingKey);
-        }
-        catch (error) {
-            console.error('Error resolving all config details:', error);
+            // TODO: remove this function and use eval for getAllConfigValue as well
+            return await this.client.getAllConfigValue(
+                defaultValue,
+                processedContext,
+                targetingKey
+            );
+        } catch (error) {
+            console.error("Error resolving all config details:", error);
             return defaultValue;
         }
     }
 
-    getStatus(): ProviderStatus { return this.status; }
-    getConfigurationClient(): ConfigurationClient { return this.client; }
+    getStatus(): ProviderStatus {
+        return this.status;
+    }
+    getConfigurationClient(): ConfigurationClient {
+        return this.client;
+    }
 }

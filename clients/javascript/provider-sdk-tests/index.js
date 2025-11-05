@@ -260,7 +260,7 @@ async function create_overrides(org_id, workspace_id) {
     let command = new CreateContextCommand(override);
     try {
       let response = await client.send(command);
-      console.log("Created override:", JSON.stringify(response.context));
+      console.log("Created override:", JSON.stringify(response.value));
     } catch (e) {
       console.error(
         "Error occurred while creating override:",
@@ -305,7 +305,7 @@ async function create_experiments(org_id, workspace_id) {
     const command = new CreateExperimentCommand(experiment);
     try {
       let response = await client.send(command);
-      console.log("Created experiment:", response);
+      console.log("Created experiment:", response.id);
       const command_two = new RampExperimentCommand({
         workspace_id,
         org_id,
@@ -314,7 +314,7 @@ async function create_experiments(org_id, workspace_id) {
         traffic_percentage: 50,
       });
       let response_two = await client.send(command_two);
-      console.log("Ramped experiment:", response_two);
+      console.log("Ramped experiment to", response_two.traffic_percentage, "%");
     } catch (e) {
       console.error(
         "Error occurred while creating experiment:",
@@ -342,6 +342,9 @@ async function runDemo(org_id, workspace_id) {
     token: "12345678",
     org_id,
     workspace_id,
+    experimentationOptions: {
+      refreshStrategy: { interval: 10000 }
+    }
   };
 
   try {
@@ -518,7 +521,7 @@ async function runDemo(org_id, workspace_id) {
       const currency = await ofClient.getStringValue("currency", "", context);
       console.log(`  Retrieved price: ${price}, currency: ${currency}`);
 
-      assert.strictEqual(price, 8000 || 7000, "Price should be either 8000 (control) or 7000 (experimental) in Bangalore");
+      assert.strictEqual(true, price === 8000 || price === 7000, "Price should be either 8000 (control) or 7000 (experimental) in Bangalore");
       assert.strictEqual(currency, "Rupee", "Currency should be Rupee in Bangalore");
       console.log("  ✓ Experiment Test passed\n");
     }

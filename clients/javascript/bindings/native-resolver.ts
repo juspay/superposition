@@ -103,7 +103,12 @@ export class NativeResolver {
         console.log("  queryData :", queryDataJson);
         console.log("  mergeStrategy:", mergeStrategy);
         console.log("  filterPrefixes:", filterPrefixes);
-        console.log("  experimentation:", experimentationJson);
+        console.log("  experiment:", experimentation?.experiments?.length);
+        console.log(
+            "  experiment groups:",
+            experimentation?.experiment_groups?.length
+        );
+        console.log("  targetingKey:", experimentation?.targetingKey);
 
         if (
             !defaultConfigsJson ||
