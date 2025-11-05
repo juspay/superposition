@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.93.1 - 2025-11-05
+### Package updates
+- frontend bumped to frontend-v0.46.1
+- superposition_provider bumped to superposition_provider-v0.6.1
+- haskell_client bumped to haskell_client-v0.8.1
+- service_utils bumped to service_utils-v0.33.2
+- superposition_sdk bumped to superposition_sdk-v0.10.1
+- experimentation_platform bumped to experimentation_platform-v0.45.1
+- superposition_types bumped to superposition_types-v0.36.1
+- context_aware_config bumped to context_aware_config-v0.64.1
+### Global changes
+#### Bug Fixes
+- experiment provider tests (#736) - (c124e37) - Ankit Kumar Mahato
+- Read orgs from db in no_auth (#739) - (f3318d3) - Ayush Jain
+- Smithy fixes (#742) - (c942cb6) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.93.0 [skip ci] - (e13da8c) - Superposition Bot
+
+- - -
+
 ## v0.93.0 - 2025-11-04
 ### Package updates
 - superposition_sdk bumped to superposition_sdk-v0.10.0
