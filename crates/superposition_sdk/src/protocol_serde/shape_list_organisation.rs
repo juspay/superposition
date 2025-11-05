@@ -37,7 +37,7 @@ pub fn de_list_organisation_http_response(_response_status: u16, _response_heade
         #[allow(unused_mut)]
         let mut output = crate::operation::list_organisation::builders::ListOrganisationOutputBuilder::default();
         output = crate::protocol_serde::shape_list_organisation::de_list_organisation(_response_body, output).map_err(crate::operation::list_organisation::ListOrganisationError::unhandled)?;
-        output.build()
+        crate::serde_util::list_organisation_output_output_correct_errors(output).build().map_err(crate::operation::list_organisation::ListOrganisationError::unhandled)?
     })
 }
 

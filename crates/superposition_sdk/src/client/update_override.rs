@@ -9,16 +9,16 @@ impl super::Client {
     ///   - [`request(UpdateContextOverrideRequest)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::request) / [`set_request(Option<UpdateContextOverrideRequest>)`](crate::operation::update_override::builders::UpdateOverrideFluentBuilder::set_request):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateOverrideOutput`](crate::operation::update_override::UpdateOverrideOutput) with field(s):
     ///   - [`id(String)`](crate::operation::update_override::UpdateOverrideOutput::id): (undocumented)
-    ///   - [`value(Option<HashMap::<String, Document>>)`](crate::operation::update_override::UpdateOverrideOutput::value): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    ///   - [`r#override(Option<HashMap::<String, Document>>)`](crate::operation::update_override::UpdateOverrideOutput::override): Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    ///   - [`override_id(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::override_id): (undocumented)
-    ///   - [`weight(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::weight): Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    ///   - [`description(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::description): (undocumented)
-    ///   - [`change_reason(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::change_reason): (undocumented)
-    ///   - [`created_at(Option<DateTime>)`](crate::operation::update_override::UpdateOverrideOutput::created_at): (undocumented)
-    ///   - [`created_by(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::created_by): (undocumented)
-    ///   - [`last_modified_at(Option<DateTime>)`](crate::operation::update_override::UpdateOverrideOutput::last_modified_at): (undocumented)
-    ///   - [`last_modified_by(Option<String>)`](crate::operation::update_override::UpdateOverrideOutput::last_modified_by): (undocumented)
+    ///   - [`value(HashMap::<String, Document>)`](crate::operation::update_override::UpdateOverrideOutput::value): Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+    ///   - [`r#override(HashMap::<String, Document>)`](crate::operation::update_override::UpdateOverrideOutput::override): Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+    ///   - [`override_id(String)`](crate::operation::update_override::UpdateOverrideOutput::override_id): (undocumented)
+    ///   - [`weight(String)`](crate::operation::update_override::UpdateOverrideOutput::weight): Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+    ///   - [`description(String)`](crate::operation::update_override::UpdateOverrideOutput::description): (undocumented)
+    ///   - [`change_reason(String)`](crate::operation::update_override::UpdateOverrideOutput::change_reason): (undocumented)
+    ///   - [`created_at(DateTime)`](crate::operation::update_override::UpdateOverrideOutput::created_at): (undocumented)
+    ///   - [`created_by(String)`](crate::operation::update_override::UpdateOverrideOutput::created_by): (undocumented)
+    ///   - [`last_modified_at(DateTime)`](crate::operation::update_override::UpdateOverrideOutput::last_modified_at): (undocumented)
+    ///   - [`last_modified_by(String)`](crate::operation::update_override::UpdateOverrideOutput::last_modified_by): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateOverrideError>`](crate::operation::update_override::UpdateOverrideError)
     pub fn update_override(&self) -> crate::operation::update_override::builders::UpdateOverrideFluentBuilder {
                                 crate::operation::update_override::builders::UpdateOverrideFluentBuilder::new(self.handle.clone())

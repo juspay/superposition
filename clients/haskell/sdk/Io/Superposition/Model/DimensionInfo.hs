@@ -27,10 +27,10 @@ import qualified Io.Superposition.Model.DimensionType
 import qualified Io.Superposition.Utility
 
 data DimensionInfo = DimensionInfo {
-    schema :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    position :: Data.Maybe.Maybe Data.Int.Int32,
-    dimension_type :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
-    dependency_graph :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text ([] Data.Text.Text))
+    schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    position :: Data.Int.Int32,
+    dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
+    dependency_graph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -77,29 +77,29 @@ defaultBuilderState = DimensionInfoBuilderState {
 
 type DimensionInfoBuilder = Control.Monad.State.Strict.State DimensionInfoBuilderState
 
-setSchema :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> DimensionInfoBuilder ()
+setSchema :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> DimensionInfoBuilder ()
 setSchema value =
-   Control.Monad.State.Strict.modify (\s -> (s { schemaBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { schemaBuilderState = Data.Maybe.Just value }))
 
-setPosition :: Data.Maybe.Maybe Data.Int.Int32 -> DimensionInfoBuilder ()
+setPosition :: Data.Int.Int32 -> DimensionInfoBuilder ()
 setPosition value =
-   Control.Monad.State.Strict.modify (\s -> (s { positionBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { positionBuilderState = Data.Maybe.Just value }))
 
-setDimensionType :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType -> DimensionInfoBuilder ()
+setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> DimensionInfoBuilder ()
 setDimensionType value =
-   Control.Monad.State.Strict.modify (\s -> (s { dimension_typeBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_typeBuilderState = Data.Maybe.Just value }))
 
-setDependencyGraph :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text ([] Data.Text.Text)) -> DimensionInfoBuilder ()
+setDependencyGraph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text) -> DimensionInfoBuilder ()
 setDependencyGraph value =
-   Control.Monad.State.Strict.modify (\s -> (s { dependency_graphBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { dependency_graphBuilderState = Data.Maybe.Just value }))
 
 build :: DimensionInfoBuilder () -> Data.Either.Either Data.Text.Text DimensionInfo
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    schema' <- Data.Either.Right (schemaBuilderState st)
-    position' <- Data.Either.Right (positionBuilderState st)
-    dimension_type' <- Data.Either.Right (dimension_typeBuilderState st)
-    dependency_graph' <- Data.Either.Right (dependency_graphBuilderState st)
+    schema' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionInfo.DimensionInfo.schema is a required property.") Data.Either.Right (schemaBuilderState st)
+    position' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionInfo.DimensionInfo.position is a required property.") Data.Either.Right (positionBuilderState st)
+    dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionInfo.DimensionInfo.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
+    dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionInfo.DimensionInfo.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
     Data.Either.Right (DimensionInfo { 
         schema = schema',
         position = position',

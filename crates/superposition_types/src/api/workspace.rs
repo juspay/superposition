@@ -1,4 +1,4 @@
-use crate::database::models::{Metrics, Workspace, WorkspaceStatus};
+use crate::database::models::{Metrics, NonEmptyString, Workspace, WorkspaceStatus};
 #[cfg(feature = "diesel_derives")]
 use crate::database::superposition_schema::superposition::workspaces;
 use chrono::{DateTime, Utc};
@@ -11,7 +11,7 @@ use super::{default_true, deserialize_option_i64, I64Update};
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WorkspaceResponse {
     pub organisation_id: String,
-    pub organisation_name: String,
+    pub organisation_name: NonEmptyString,
     pub workspace_name: String,
     pub workspace_schema_name: String,
     pub workspace_status: WorkspaceStatus,

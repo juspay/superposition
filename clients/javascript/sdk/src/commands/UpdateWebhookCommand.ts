@@ -46,15 +46,15 @@ export interface UpdateWebhookCommandOutput extends WebhookResponse, __MetadataB
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
  *   name: "STRING_VALUE", // required
- *   description: "STRING_VALUE", // required
- *   enabled: true || false, // required
- *   url: "STRING_VALUE", // required
- *   method: "GET" || "POST" || "PUT" || "PATCH" || "DELETE" || "HEAD", // required
+ *   description: "STRING_VALUE",
+ *   enabled: true || false,
+ *   url: "STRING_VALUE",
+ *   method: "GET" || "POST" || "PUT" || "PATCH" || "DELETE" || "HEAD",
  *   version: "V1",
  *   custom_headers: { // Object
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
- *   events: [ // Events // required
+ *   events: [ // Events
  *     "STRING_VALUE",
  *   ],
  *   change_reason: "STRING_VALUE", // required

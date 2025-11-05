@@ -6,34 +6,31 @@ import {
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect } from "bun:test";
 
-let configVersionId: string | null = null;
+let configVersionId: string | undefined = undefined;
 
 describe("Config API - GetConfig and GetConfigFast", () => {
     test("GetConfig: should fetch configuration with context and version", async () => {
-        const input = {
+        const cmd = new GetConfigCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             prefix: ["test-prefix"],
             // version: 1,
-            context: {},
-        };
-        const cmd = new GetConfigCommand(input);
+        });
         try {
             const out = await superpositionClient.send(cmd);
-            configVersionId = out.version ?? null;
+            configVersionId = out.version ?? undefined;
             console.log(out);
         } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
 
-        const input_c = {
+        const cmd_c = new UpdateWorkspaceCommand({
             org_id: ENV.org_id,
             workspace_name: ENV.workspace_id,
             workspace_admin_email: "admin@example.com",
             config_version: configVersionId,
-        };
-        const cmd_c = new UpdateWorkspaceCommand(input_c);
+        });
         const resp_c = await superpositionClient.send(cmd_c);
 
         expect(resp_c).toBeDefined();
@@ -41,7 +38,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
         expect(resp_c.workspace_admin_email).toBe("admin@example.com");
         expect(resp_c.config_version).toBeDefined();
         expect(resp_c.config_version?.toString()).toBe(
-            configVersionId?.toString()
+            configVersionId?.toString() ?? ""
         );
 
         //getConfigandCheck
@@ -57,7 +54,9 @@ describe("Config API - GetConfig and GetConfigFast", () => {
             const out = await superpositionClient.send(new_cmd);
             expect(out).toBeDefined();
             expect(out.version).toBeDefined();
-            expect(out.version?.toString()).toBe(configVersionId?.toString());
+            expect(out.version?.toString()).toBe(
+                configVersionId?.toString() ?? ""
+            );
             console.log(out);
         } catch (e: any) {
             console.error(e["$response"]);

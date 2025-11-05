@@ -49,7 +49,7 @@ pub(crate) fn de_weight_recompute_response<'a, I>(tokens: &mut ::std::iter::Peek
                     other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
                 }
             }
-            Ok(Some(builder.build()))
+            Ok(Some(crate::serde_util::weight_recompute_response_correct_errors(builder).build().map_err(|err|::aws_smithy_json::deserialize::error::DeserializeError::custom_source("Response was invalid", err))?))
         }
         _ => {
             Err(::aws_smithy_json::deserialize::error::DeserializeError::custom("expected start object or null"))

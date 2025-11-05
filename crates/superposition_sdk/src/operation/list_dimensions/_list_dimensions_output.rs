@@ -4,27 +4,24 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ListDimensionsOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub total_pages: ::std::option::Option<i32>,
+    pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub total_items: ::std::option::Option<i32>,
+    pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::option::Option<::std::vec::Vec::<crate::types::DimensionExt>>,
+    pub data: ::std::vec::Vec::<crate::types::DimensionResponse>,
 }
 impl  ListDimensionsOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_pages(&self) -> ::std::option::Option<i32> {
+    pub fn total_pages(&self) -> i32 {
         self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_items(&self) -> ::std::option::Option<i32> {
+    pub fn total_items(&self) -> i32 {
         self.total_items
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
-    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.data.is_none()`.
-    pub fn data(&self) -> &[crate::types::DimensionExt] {
-        self.data.as_deref()
-        .unwrap_or_default()
+    pub fn data(&self) -> &[crate::types::DimensionResponse] {
+        use std::ops::Deref; self.data.deref()
     }
 }
 impl ListDimensionsOutput {
@@ -40,10 +37,11 @@ impl ListDimensionsOutput {
 pub struct ListDimensionsOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::DimensionExt>>,
+    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::DimensionResponse>>,
 }
 impl ListDimensionsOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn total_pages(mut self, input: i32) -> Self {
         self.total_pages = ::std::option::Option::Some(input);
         self
@@ -57,6 +55,7 @@ impl ListDimensionsOutputBuilder {
         &self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn total_items(mut self, input: i32) -> Self {
         self.total_items = ::std::option::Option::Some(input);
         self
@@ -73,30 +72,45 @@ impl ListDimensionsOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_data`](Self::set_data).
     ///
-    pub fn data(mut self, input: crate::types::DimensionExt) -> Self {
+    pub fn data(mut self, input: crate::types::DimensionResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
                         v.push(input);
                         self.data = ::std::option::Option::Some(v);
                         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::DimensionExt>>) -> Self {
+    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::DimensionResponse>>) -> Self {
         self.data = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::DimensionExt>> {
+    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::DimensionResponse>> {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListDimensionsOutput`](crate::operation::list_dimensions::ListDimensionsOutput).
-    pub fn build(self) -> crate::operation::list_dimensions::ListDimensionsOutput {
-        crate::operation::list_dimensions::ListDimensionsOutput {
-            total_pages: self.total_pages
-            ,
-            total_items: self.total_items
-            ,
-            data: self.data
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`total_pages`](crate::operation::list_dimensions::builders::ListDimensionsOutputBuilder::total_pages)
+    /// - [`total_items`](crate::operation::list_dimensions::builders::ListDimensionsOutputBuilder::total_items)
+    /// - [`data`](crate::operation::list_dimensions::builders::ListDimensionsOutputBuilder::data)
+    pub fn build(self) -> ::std::result::Result<crate::operation::list_dimensions::ListDimensionsOutput, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::operation::list_dimensions::ListDimensionsOutput {
+                total_pages: self.total_pages
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_pages", "total_pages was not specified but it is required when building ListDimensionsOutput")
+                    )?
+                ,
+                total_items: self.total_items
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_items", "total_items was not specified but it is required when building ListDimensionsOutput")
+                    )?
+                ,
+                data: self.data
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building ListDimensionsOutput")
+                    )?
+                ,
+            }
+        )
     }
 }
 

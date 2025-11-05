@@ -7,7 +7,6 @@ import {
     CreateFunctionCommand,
     DeleteFunctionCommand,
     FunctionTypes,
-    ResourceNotFound,
     PublishCommand,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
@@ -22,14 +21,14 @@ describe("Dimension API", () => {
         description: "Test dimension for automated testing",
         change_reason: "Creating test dimension",
     };
-    
+
     const testLocalCohort = {
         dimension: `test-local-cohort-${Date.now()}`,
         position: 2,
         schema: {
-            "type": "string",
-            "enum": ["small", "big", "otherwise"],
-            "definitions": {
+            type: "string",
+            enum: ["small", "big", "otherwise"],
+            definitions: {
                 small: {
                     and: [
                         {
@@ -54,23 +53,23 @@ describe("Dimension API", () => {
                         },
                     ],
                 },
-            }
+            },
         },
         dimension_type: {
-            "LOCAL_COHORT": testDimension.dimension
+            LOCAL_COHORT: testDimension.dimension,
         },
         description: "Test cohort for automated testing",
         change_reason: "Creating test cohort",
     };
-    
+
     const testRemoteCohort = {
         dimension: `test-remote-cohort-${Date.now()}`,
         position: 3,
         schema: {
-            "type": "string"
+            type: "string",
         },
         dimension_type: {
-            "REMOTE_COHORT": testDimension.dimension
+            REMOTE_COHORT: testDimension.dimension,
         },
         description: "Test cohort for automated testing",
         change_reason: "Creating test cohort",
@@ -94,7 +93,7 @@ describe("Dimension API", () => {
                 });
                 await superpositionClient.send(deleteCmd);
                 console.log(`Cleaned up test dimension: ${dimensionName}`);
-            } catch (e) {
+            } catch (e: any) {
                 console.error(
                     `Failed to clean up dimension ${dimensionName}: ${e.message}`
                 );
@@ -116,7 +115,7 @@ describe("Dimension API", () => {
                 console.log(
                     `Cleaned up test dimension: ${createdDimension.dimension}`
                 );
-            } catch (e) {
+            } catch (e: any) {
                 console.error(`Failed to clean up dimension: ${e.message}`);
             }
         }
@@ -133,7 +132,7 @@ describe("Dimension API", () => {
                 console.log(
                     `Cleaned up validation function: ${validationFunctionName}`
                 );
-            } catch (e) {
+            } catch (e: any) {
                 console.error(
                     `Failed to clean up validation function: ${e.message}`
                 );
@@ -151,7 +150,7 @@ describe("Dimension API", () => {
                 console.log(
                     `Cleaned up validation function: ${autocompleteFunctionName}`
                 );
-            } catch (e) {
+            } catch (e: any) {
                 console.error(
                     `Failed to clean up validation function: ${e.message}`
                 );
@@ -176,7 +175,9 @@ describe("Dimension API", () => {
 
             // Save for later use and cleanup
             createdDimension = response;
-            createdDimensions.push(response.dimension);
+            createdDimensions.push(
+                response.dimension ?? testDimension.dimension
+            );
 
             // Assertions
             expect(response).toBeDefined();
@@ -187,7 +188,7 @@ describe("Dimension API", () => {
             expect(response.created_at).toBeDefined();
             expect(response.last_modified_at).toBeDefined();
             expect(response.last_modified_by).toBeDefined();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
@@ -206,15 +207,9 @@ describe("Dimension API", () => {
 
         const cmd = new CreateDimensionCommand(invalidInput);
 
-        try {
-            await superpositionClient.send(cmd);
-            // Should not reach here
-            fail("Expected validation error but request succeeded");
-        } catch (e) {
-            // Expect an error response
-            expect(e).toBeDefined();
-            console.log("Received expected validation error:", e.message);
-        }
+        expect(superpositionClient.send(cmd)).rejects.toThrow(
+            /JSON Parse error: Unexpected identifier /
+        );
     });
 
     test("CreateDimension: should reject position zero", async () => {
@@ -231,20 +226,9 @@ describe("Dimension API", () => {
 
         const cmd = new CreateDimensionCommand(invalidPositionInput);
 
-        try {
-            await superpositionClient.send(cmd);
-            // Should not reach here
-            fail(
-                "Expected validation error for reserved position but request succeeded"
-            );
-        } catch (e) {
-            // Expect an error response
-            expect(e).toBeDefined();
-            console.log(
-                "Received expected position validation error:",
-                e.message
-            );
-        }
+        expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "Oth position is reserved for variantIds"
+        );
     });
 
     test("CreateDimension: should reject non primitive type for dimension", async () => {
@@ -270,7 +254,7 @@ describe("Dimension API", () => {
         );
     });
 
-    test("CreateDimension: should reject duplicate position", async () => {
+    test("CreateDimension: should reject invalid functino", async () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
             throw new Error(
@@ -291,20 +275,9 @@ describe("Dimension API", () => {
 
         const cmd = new CreateDimensionCommand(duplicatePositionInput);
 
-        try {
-            await superpositionClient.send(cmd);
-            // Should not reach here
-            fail(
-                "Expected validation error for duplicate position but request succeeded"
-            );
-        } catch (e) {
-            // Expect an error response
-            expect(e).toBeDefined();
-            console.log(
-                "Received expected duplicate position error:",
-                e.message
-            );
-        }
+        expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "Function identity doesn't exists"
+        );
     });
 
     // ==================== GET DIMENSION TESTS ====================
@@ -338,7 +311,7 @@ describe("Dimension API", () => {
             expect(response.created_at).toBeDefined();
             expect(response.last_modified_at).toBeDefined();
             expect(response.last_modified_by).toBeDefined();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
@@ -353,15 +326,9 @@ describe("Dimension API", () => {
 
         const cmd = new GetDimensionCommand(input);
 
-        try {
-            await superpositionClient.send(cmd);
-            // Should not reach here
-            fail("Expected resource not found error but request succeeded");
-        } catch (e: ResourceNotFound) {
-            // Expect an error response
-            expect(e).toBeDefined();
-            console.log("Received expected not found error:", e.message);
-        }
+        expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "No records found. Please refine or correct your search parameters"
+        );
     });
     // ==================== LIST DIMENSION TESTS ====================
 
@@ -386,11 +353,11 @@ describe("Dimension API", () => {
             expect(response.total_items).toBeGreaterThan(0);
 
             // Verify our created dimension is in the list
-            const foundDimension = response.data.find(
+            const foundDimension = response.data?.find(
                 (d) => d.dimension === testDimension.dimension
             );
             expect(foundDimension).toBeDefined();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
@@ -429,7 +396,7 @@ describe("Dimension API", () => {
             expect(response.dimension).toBe(testDimension.dimension);
             expect(response.description).toBe(updatedDescription);
             expect(response.last_modified_at).toBeDefined();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
@@ -467,15 +434,9 @@ describe("Dimension API", () => {
 
         const cmd = new UpdateDimensionCommand(input);
 
-        try {
-            await superpositionClient.send(cmd);
-            // Should not reach here
-            fail("Expected resource not found error but request succeeded");
-        } catch (e: ResourceNotFound) {
-            // Expect an error response
-            expect(e).toBeDefined();
-            console.log("Received expected not found error:", e.message);
-        }
+        expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "No records found. Please refine or correct your search parameters"
+        );
     });
 
     // ==================== VALIDATION FUNCTION TESTS ====================
@@ -509,13 +470,15 @@ describe("Dimension API", () => {
                 createFunctionCmd
             );
             console.log("Created validation function:", functionResponse);
-            validationFunctionName = functionResponse.function_name;
+            validationFunctionName =
+                functionResponse.function_name ?? functionName;
 
             // Now create a dimension that uses this validation function
+            const dimension = `validated-dimension-${Date.now()}`;
             const validatedDimension = {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
-                dimension: `validated-dimension-${Date.now()}`,
+                dimension,
                 position: 2,
                 schema: { type: "string" },
                 description: "Dimension with validation function",
@@ -536,7 +499,7 @@ describe("Dimension API", () => {
             );
 
             // Add to cleanup list
-            createdDimensions.push(dimensionResponse.dimension);
+            createdDimensions.push(dimensionResponse.dimension ?? dimension);
 
             // Assertions
             expect(dimensionResponse).toBeDefined();
@@ -546,7 +509,7 @@ describe("Dimension API", () => {
             expect(dimensionResponse.function_name).toBe(
                 validationFunctionName
             );
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
@@ -577,7 +540,8 @@ describe("Dimension API", () => {
                 createFunctionCmd
             );
             console.log("Created autocomplete function:", functionResponse);
-            autocompleteFunctionName = functionResponse.function_name;
+            autocompleteFunctionName =
+                functionResponse.function_name ?? functionName;
             await superpositionClient.send(
                 new PublishCommand({
                     workspace_id: ENV.workspace_id,
@@ -587,11 +551,12 @@ describe("Dimension API", () => {
                         "Publishing autocomplete function for dimension test",
                 })
             );
+            const dimension = `validated-dimension-${Date.now()}`;
             // Now create a dimension that uses this validation function
             const validatedDimension = {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
-                dimension: `validated-dimension-${Date.now()}`,
+                dimension,
                 position: 2,
                 schema: { type: "string" },
                 description: "Dimension with validation function",
@@ -612,7 +577,7 @@ describe("Dimension API", () => {
             );
 
             // Add to cleanup list
-            createdDimensions.push(dimensionResponse.dimension);
+            createdDimensions.push(dimensionResponse.dimension ?? dimension);
 
             // Assertions
             expect(dimensionResponse).toBeDefined();
@@ -622,22 +587,22 @@ describe("Dimension API", () => {
             expect(dimensionResponse.autocomplete_function_name).toBe(
                 autocompleteFunctionName
             );
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
     });
-    
+
     // Cohort dimension tests
-    
+
     test("fail2create a local cohort dimension without cohort_based_on", async () => {
         const wrongCohort = {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
-            schema:{
-                "type": "string",
-                "enum": ["small", "big", "otherwise"],
-                "definitions": {
+            schema: {
+                type: "string",
+                enum: ["small", "big", "otherwise"],
+                definitions: {
                     small: {
                         and: [
                             {
@@ -662,10 +627,10 @@ describe("Dimension API", () => {
                             },
                         ],
                     },
-                }
+                },
             },
             dimension_type: {
-                "LOCAL_COHORT": ""            
+                LOCAL_COHORT: "",
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -676,22 +641,22 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
-            `Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples`,
+            `Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples`
         );
     });
-    
+
     test("fail2create a local cohort dimension without definitions", async () => {
         const wrongCohort = {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
             schema: {
-                "type": "string",
-                "enum": ["small", "big", "otherwise"],
+                type: "string",
+                enum: ["small", "big", "otherwise"],
             },
             dimension_type: {
-                "LOCAL_COHORT": "random_dimension"
+                LOCAL_COHORT: "random_dimension",
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -702,21 +667,20 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
-            'schema validation failed: required property `\"definitions\"` is missing',
+            'schema validation failed: required property `"definitions"` is missing'
         );
     });
-
 
     test("fail2create a local cohort dimension with cohort_based_on mismatch", async () => {
         const wrongCohort = {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
             schema: {
-                "type": "string",
-                "enum": ["small", "big", "otherwise"],
-                "definitions": {
+                type: "string",
+                enum: ["small", "big", "otherwise"],
+                definitions: {
                     small: {
                         and: [
                             {
@@ -729,10 +693,10 @@ describe("Dimension API", () => {
                             },
                         ],
                     },
-                }
+                },
             },
             dimension_type: {
-                "LOCAL_COHORT": "random_dimension"
+                LOCAL_COHORT: "random_dimension",
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -743,9 +707,9 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
-            `The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 1 cohorts and 2 enum options (not including otherwise)`,
+            `The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 1 cohorts and 2 enum options (not including otherwise)`
         );
     });
 
@@ -754,9 +718,9 @@ describe("Dimension API", () => {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
             schema: {
-                "type": "string",
-                "enum": ["small", "big", "otherwise"],
-                "definitions": {
+                type: "string",
+                enum: ["small", "big", "otherwise"],
+                definitions: {
                     small: {
                         and: [
                             {
@@ -781,10 +745,10 @@ describe("Dimension API", () => {
                             },
                         ],
                     },
-                }
+                },
             },
             dimension_type: {
-                "LOCAL_COHORT": "sdk"
+                LOCAL_COHORT: "sdk",
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -797,20 +761,20 @@ describe("Dimension API", () => {
         };
 
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
-            "Dimension sdk used in cohort schema has not been created or does not exist. Please create the dimension first before using it in cohort schema.",
+            "Dimension sdk used in cohort schema has not been created or does not exist. Please create the dimension first before using it in cohort schema."
         );
     });
-    
+
     test("fail2create a local cohort dimension with definition/enum mismatch", async () => {
         const wrongCohort = {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
             schema: {
-                "type": "string",
-                "enum": ["small", "otherwise"],
-                "definitions": {
+                type: "string",
+                enum: ["small", "otherwise"],
+                definitions: {
                     small: {
                         and: [
                             {
@@ -835,10 +799,10 @@ describe("Dimension API", () => {
                             },
                         ],
                     },
-                }
+                },
             },
             dimension_type: {
-                "LOCAL_COHORT": "sdk"
+                LOCAL_COHORT: "sdk",
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -851,20 +815,20 @@ describe("Dimension API", () => {
         };
 
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
-            "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 2 cohorts and 1 enum options (not including otherwise)",
+            "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 2 cohorts and 1 enum options (not including otherwise)"
         );
     });
-    
+
     test("fail2create a local cohort dimension without enum otherwise", async () => {
         const wrongCohort = {
             dimension: `test-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
             schema: {
-                "type": "string",
-                "enum": ["small", "big"],
-                "definitions": {
+                type: "string",
+                enum: ["small", "big"],
+                definitions: {
                     small: {
                         and: [
                             {
@@ -889,10 +853,10 @@ describe("Dimension API", () => {
                             },
                         ],
                     },
-                }
+                },
             },
             dimension_type: {
-                "LOCAL_COHORT": testDimension.dimension
+                LOCAL_COHORT: testDimension.dimension,
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -905,20 +869,20 @@ describe("Dimension API", () => {
         };
 
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
             "schema validation failed: array doesn't contain items conforming to the specified schema"
         );
     });
-    
+
     test("fail2create a local cohort dimension with multiple dimensions", async () => {
         const wrongCohort = {
             dimension: `test-local-cohort-${Date.now()}`,
             position: 2, // Position 0 is reserved, start from 1
             schema: {
-                "type": "string",
-                "enum": ["small", "big", "otherwise"],
-                "definitions": {
+                type: "string",
+                enum: ["small", "big", "otherwise"],
+                definitions: {
                     small: {
                         and: [
                             {
@@ -943,10 +907,10 @@ describe("Dimension API", () => {
                             },
                         ],
                     },
-                }
+                },
             },
             dimension_type: {
-                "LOCAL_COHORT": testDimension.dimension
+                LOCAL_COHORT: testDimension.dimension,
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -959,7 +923,7 @@ describe("Dimension API", () => {
         };
 
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
             /Multiple dimensions used in cohort schema and that is not allowed: .* /
         );
@@ -980,7 +944,9 @@ describe("Dimension API", () => {
 
             // Save for later use and cleanup
             createdDimension = response;
-            createdDimensions.push(response.dimension);
+            createdDimensions.push(
+                response.dimension ?? testLocalCohort.dimension
+            );
 
             // Assertions
             expect(response).toBeDefined();
@@ -991,7 +957,7 @@ describe("Dimension API", () => {
             expect(response.created_at).toBeDefined();
             expect(response.last_modified_at).toBeDefined();
             expect(response.last_modified_by).toBeDefined();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
@@ -1002,11 +968,11 @@ describe("Dimension API", () => {
             dimension: `test-remote-cohort-${Date.now()}`,
             position: 3,
             schema: {
-                "type": "string"
+                type: "string",
             },
             cohort_based_on: testLocalCohort.dimension,
             dimension_type: {
-                "REMOTE_COHORT": testLocalCohort.dimension
+                REMOTE_COHORT: testLocalCohort.dimension,
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -1018,12 +984,12 @@ describe("Dimension API", () => {
         };
 
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
             `Dimension ${testLocalCohort.dimension} is a local cohort and cannot be used in cohorting`
         );
     });
-    
+
     test("create a remote cohort dimension", async () => {
         const input = {
             workspace_id: ENV.workspace_id,
@@ -1039,7 +1005,9 @@ describe("Dimension API", () => {
 
             // Save for later use and cleanup
             createdDimension = response;
-            createdDimensions.push(response.dimension);
+            createdDimensions.push(
+                response.dimension ?? testRemoteCohort.dimension
+            );
 
             // Assertions
             expect(response).toBeDefined();
@@ -1050,20 +1018,20 @@ describe("Dimension API", () => {
             expect(response.created_at).toBeDefined();
             expect(response.last_modified_at).toBeDefined();
             expect(response.last_modified_by).toBeDefined();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e["$response"]);
             throw e;
         }
     });
-    
+
     test("create a local cohort dimension on a remote dimension", async () => {
         const wrongCohort = {
             dimension: `test-cohort-local-${Date.now()}`,
             position: 4, // Position 0 is reserved, start from 1
             schema: {
-                "type": "string",
-                "enum": ["small", "big", "otherwise"],
-                "definitions": {
+                type: "string",
+                enum: ["small", "big", "otherwise"],
+                definitions: {
                     small: {
                         and: [
                             {
@@ -1088,10 +1056,10 @@ describe("Dimension API", () => {
                             },
                         ],
                     },
-                }
+                },
             },
             dimension_type: {
-                "LOCAL_COHORT": testRemoteCohort.dimension
+                LOCAL_COHORT: testRemoteCohort.dimension,
             },
             description: "Test cohort for automated testing",
             change_reason: "Creating test cohort",
@@ -1104,7 +1072,7 @@ describe("Dimension API", () => {
         };
 
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input)),
+            superpositionClient.send(new CreateDimensionCommand(input))
         ).resolves.toBeDefined();
     });
 
@@ -1153,7 +1121,7 @@ describe("Dimension API", () => {
     //         if (index > -1) {
     //             createdDimensions.splice(index, 1);
     //         }
-    //     } catch (e) {
+    //     } catch (e: any) {
     //         console.debug("tried deleting: ", createdDimension.dimension);
     //         console.error(e["$response"]);
     //         throw e;

@@ -48,18 +48,34 @@ list OverrideWithKeys {
 }
 
 structure ContextPartial {
+    @required
     id: String
+
+    @required
     condition: Condition
+
+    @required
     priority: Integer
+
+    @required
     weight: Integer
+
+    @required
     override_with_keys: OverrideWithKeys
 }
 
 structure DimensionInfo {
+    @required
     schema: Object
+
+    @required
     position: Integer
+
+    @required
     dimension_type: DimensionType
-    dependency_graph: DepedendencyGraph
+
+    @required
+    dependency_graph: DependencyGraph
 }
 
 map DimensionData {
@@ -95,21 +111,27 @@ operation GetConfig {
 
     output := for Config {
         @notProperty
+        @required
         contexts: ContextList
 
         @notProperty
+        @required
         overrides: OverridesMap
 
         @notProperty
+        @required
         default_configs: Object
 
         @notProperty
+        @required
         dimensions: DimensionData
 
         @httpHeader("x-config-version")
+        @required
         $version
 
         @httpHeader("last-modified")
+        @required
         $last_modified
 
         @httpHeader("x-audit-id")
@@ -154,12 +176,15 @@ operation GetResolvedConfig {
 
     output := for Config {
         @httpPayload
+        @required
         $config
 
         @httpHeader("x-config-version")
+        @required
         $version
 
         @httpHeader("last-modified")
+        @required
         $last_modified
 
         @httpHeader("x-audit-id")
@@ -257,6 +282,7 @@ operation ListVersions {
     }
 
     output := with [PaginatedResponse] {
+        @required
         data: ListVersionsOut
     }
 }

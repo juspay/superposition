@@ -205,50 +205,70 @@ class Main {
             CreateContextInput.builder()
                 .workspaceId(workspaceId)
                 .orgId(orgId)
-                .context(mapOf("city" to Document.of("Boston")))
-                .override(mapOf("currency" to Document.of("Dollar")))
-                .description("Bostonian")
-                .changeReason("testing")
+                .request(
+                    ContextPut.builder()
+                        .context(mapOf("city" to Document.of("Boston")))
+                        .override(mapOf("currency" to Document.of("Dollar")))
+                        .description("Bostonian")
+                        .changeReason("testing")
+                        .build()
+                )
                 .build(),
 
             CreateContextInput.builder()
                 .workspaceId(workspaceId)
                 .orgId(orgId)
-                .context(mapOf("city" to Document.of("Berlin")))
-                .override(mapOf("currency" to Document.of("Euro")))
-                .description("Berlin")
-                .changeReason("testing")
+                .request(
+                    ContextPut.builder()
+                        .context(mapOf("city" to Document.of("Berlin")))
+                        .override(mapOf("currency" to Document.of("Euro")))
+                        .description("Berlin")
+                        .changeReason("testing")
+                        .build()
+                )
                 .build(),
 
             CreateContextInput.builder()
                 .workspaceId(workspaceId)
                 .orgId(orgId)
-                .context(mapOf("customers" to Document.of("platinum")))
-                .override(mapOf("price" to Document.of(5000)))
-                .description("platinum customer")
-                .changeReason("testing")
+                .request(
+                    ContextPut.builder()
+                        .context(mapOf("customers" to Document.of("platinum")))
+                        .override(mapOf("price" to Document.of(5000)))
+                        .description("platinum customer")
+                        .changeReason("testing")
+                        .build()
+                )
                 .build(),
 
             CreateContextInput.builder()
                 .workspaceId(workspaceId)
                 .orgId(orgId)
-                .context(mapOf("customers" to Document.of("gold")))
-                .override(mapOf("price" to Document.of(8000)))
-                .description("gold customers")
-                .changeReason("testing")
+                .request(
+                    ContextPut.builder()
+                        .context(mapOf("customers" to Document.of("gold")))
+                        .override(mapOf("price" to Document.of(8000)))
+                        .description("gold customers")
+                        .changeReason("testing")
+                        .build()
+                )
                 .build(),
 
             CreateContextInput.builder()
                 .workspaceId(workspaceId)
                 .orgId(orgId)
-                .context(mapOf(
-                    "name" to Document.of("karbik"),
-                    "customers" to Document.of("otherwise")
-                ))
-                .override(mapOf("price" to Document.of(1)))
-                .description("edge case customer karbik")
-                .changeReason("testing")
-                .build()
+                .request(
+                    ContextPut.builder()
+                        .context(mapOf(
+                            "name" to Document.of("karbik"),
+                            "customers" to Document.of("otherwise")
+                        ))
+                        .override(mapOf("price" to Document.of(1)))
+                        .description("edge case customer karbik")
+                        .changeReason("testing")
+                        .build()
+                )
+                .build(),
         )
 
         println("Creating overrides:")
@@ -279,12 +299,12 @@ class Main {
                     Variant.builder()
                         .id("testexperiment-control")
                         .variantType(VariantType.CONTROL)
-                        .overrides(Document.of(mapOf("price" to Document.of(10000))))
+                        .overrides(mapOf("price" to Document.of(10000)))
                         .build(),
                     Variant.builder()
                         .id("testexperiment-experimental")
                         .variantType(VariantType.EXPERIMENTAL)
-                        .overrides(Document.of(mapOf("price" to Document.of(8800))))
+                        .overrides(mapOf("price" to Document.of(8800)))
                         .build()
                 ))
                 .description("test experimentation")
@@ -307,7 +327,7 @@ class Main {
                         .changeReason("ramp the experiment")
                         .trafficPercentage(50)
                         .build()
-    
+
                     val rampFuture = CompletableFuture.supplyAsync {
                         client.rampExperiment(rampInput)
                     }.thenAccept { rampResponse ->

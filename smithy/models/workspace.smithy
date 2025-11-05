@@ -42,7 +42,7 @@ list ListMandatoryDimensions {
     member: String
 }
 
-structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
+structure CreateWorkspaceRequest for Workspace with [OrganisationMixin] {
     @required
     $workspace_admin_email
 
@@ -63,7 +63,7 @@ structure CreateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $auto_populate_control
 }
 
-structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
+structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
     @httpLabel
     @required
     $workspace_name
@@ -71,6 +71,7 @@ structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     @required
     $workspace_admin_email
 
+    @documentation("To unset config version, pass \"null\" string.")
     $config_version
 
     $mandatory_dimensions
@@ -84,7 +85,7 @@ structure UpdateWorkspaceRequest for Workspace with [CreateWorkspaceMixin] {
     $auto_populate_control
 }
 
-structure MigrateWorkspaceSchemaRequest for Workspace with [CreateWorkspaceMixin] {
+structure MigrateWorkspaceSchemaRequest for Workspace with [OrganisationMixin] {
     @httpLabel
     @required
     $workspace_name
@@ -128,6 +129,7 @@ structure WorkspaceResponse for Workspace {
     @required
     $strict_mode
 
+    @required
     $metrics
 
     @required
@@ -146,7 +148,7 @@ list WorkspaceList {
 @http(method: "GET", uri: "/workspaces/{workspace_name}")
 @tags(["Workspace Management"])
 operation GetWorkspace with [GetOperation] {
-    input := for Workspace with [CreateWorkspaceMixin] {
+    input := for Workspace with [OrganisationMixin] {
         @httpLabel
         @required
         $workspace_name
@@ -178,8 +180,10 @@ operation UpdateWorkspace with [GetOperation] {
 @http(method: "GET", uri: "/workspaces")
 @tags(["Workspace Management"])
 operation ListWorkspace {
-    input := with [PaginationParams, CreateWorkspaceMixin] {}
+    input := with [PaginationParams, OrganisationMixin] {}
+
     output := with [PaginatedResponse] {
+        @required
         data: WorkspaceList
     }
 }

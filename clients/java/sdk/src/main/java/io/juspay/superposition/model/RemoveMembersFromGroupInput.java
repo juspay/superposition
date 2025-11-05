@@ -82,7 +82,7 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
     }
 
     /**
-     * List of experiment IDs to add to this group.
+     * List of experiment IDs to add/remove to this group.
      */
     public List<String> memberExperimentIds() {
         return memberExperimentIds;
@@ -230,7 +230,7 @@ public final class RemoveMembersFromGroupInput implements SerializableStruct {
         }
 
         /**
-         * List of experiment IDs to add to this group.
+         * List of experiment IDs to add/remove to this group.
          *
          * <p><strong>Required</strong>
          * @return this builder.

@@ -52,12 +52,12 @@ export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __M
  * // { // WeightRecomputeOutput
  * //   data: [ // WeightRecomputeResponses
  * //     { // WeightRecomputeResponse
- * //       id: "STRING_VALUE",
- * //       condition: { // Condition
+ * //       id: "STRING_VALUE", // required
+ * //       condition: { // Condition // required
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
- * //       old_weight: "STRING_VALUE",
- * //       new_weight: "STRING_VALUE",
+ * //       old_weight: "STRING_VALUE", // required
+ * //       new_weight: "STRING_VALUE", // required
  * //     },
  * //   ],
  * // };

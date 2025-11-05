@@ -56,7 +56,9 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  *       variant_type: "CONTROL" || "EXPERIMENTAL", // required
  *       context_id: "STRING_VALUE",
  *       override_id: "STRING_VALUE",
- *       overrides: "DOCUMENT_VALUE", // required
+ *       overrides: { // Overrides // required
+ *         "<keys>": "DOCUMENT_VALUE",
+ *       },
  *     },
  *   ],
  *   description: "STRING_VALUE", // required
@@ -87,7 +89,9 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  * //       variant_type: "CONTROL" || "EXPERIMENTAL", // required
  * //       context_id: "STRING_VALUE",
  * //       override_id: "STRING_VALUE",
- * //       overrides: "DOCUMENT_VALUE", // required
+ * //       overrides: { // Overrides // required
+ * //         "<keys>": "DOCUMENT_VALUE",
+ * //       },
  * //     },
  * //   ],
  * //   last_modified_by: "STRING_VALUE", // required

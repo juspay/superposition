@@ -15,9 +15,9 @@ impl super::Client {
     ///   - [`username(impl Into<String>)`](crate::operation::list_audit_logs::builders::ListAuditLogsFluentBuilder::username) / [`set_username(Option<String>)`](crate::operation::list_audit_logs::builders::ListAuditLogsFluentBuilder::set_username):<br>required: **false**<br>(undocumented)<br>
     ///   - [`sort_by(SortBy)`](crate::operation::list_audit_logs::builders::ListAuditLogsFluentBuilder::sort_by) / [`set_sort_by(Option<SortBy>)`](crate::operation::list_audit_logs::builders::ListAuditLogsFluentBuilder::set_sort_by):<br>required: **false**<br>Sort order enumeration for list operations.<br>
                             /// - On success, responds with [`ListAuditLogsOutput`](crate::operation::list_audit_logs::ListAuditLogsOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_audit_logs::ListAuditLogsOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_audit_logs::ListAuditLogsOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<AuditLogFull>>)`](crate::operation::list_audit_logs::ListAuditLogsOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_audit_logs::ListAuditLogsOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_audit_logs::ListAuditLogsOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<AuditLogFull>)`](crate::operation::list_audit_logs::ListAuditLogsOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListAuditLogsError>`](crate::operation::list_audit_logs::ListAuditLogsError)
     pub fn list_audit_logs(&self) -> crate::operation::list_audit_logs::builders::ListAuditLogsFluentBuilder {
                                 crate::operation::list_audit_logs::builders::ListAuditLogsFluentBuilder::new(self.handle.clone())

@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DefaultConfigFull  {
+pub struct DefaultConfigResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub key: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -13,7 +13,7 @@ pub struct DefaultConfigFull  {
     pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::string::String,
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
@@ -26,7 +26,7 @@ pub struct DefaultConfigFull  {
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
 }
-impl  DefaultConfigFull  {
+impl  DefaultConfigResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn key(&self) -> &str {
         use std::ops::Deref; self.key.deref()
@@ -47,7 +47,7 @@ impl  DefaultConfigFull  {
     pub fn change_reason(&self) -> &str {
         use std::ops::Deref; self.change_reason.deref()
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn function_name(&self) -> ::std::option::Option<&str> {
         self.function_name.as_deref()
     }
@@ -72,17 +72,17 @@ impl  DefaultConfigFull  {
         use std::ops::Deref; self.last_modified_by.deref()
     }
 }
-impl DefaultConfigFull {
-    /// Creates a new builder-style object to manufacture [`DefaultConfigFull`](crate::types::DefaultConfigFull).
-    pub fn builder() -> crate::types::builders::DefaultConfigFullBuilder {
-        crate::types::builders::DefaultConfigFullBuilder::default()
+impl DefaultConfigResponse {
+    /// Creates a new builder-style object to manufacture [`DefaultConfigResponse`](crate::types::DefaultConfigResponse).
+    pub fn builder() -> crate::types::builders::DefaultConfigResponseBuilder {
+        crate::types::builders::DefaultConfigResponseBuilder::default()
     }
 }
 
-/// A builder for [`DefaultConfigFull`](crate::types::DefaultConfigFull).
+/// A builder for [`DefaultConfigResponse`](crate::types::DefaultConfigResponse).
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
-pub struct DefaultConfigFullBuilder {
+pub struct DefaultConfigResponseBuilder {
     pub(crate) key: ::std::option::Option<::std::string::String>,
     pub(crate) value: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
@@ -95,7 +95,7 @@ pub struct DefaultConfigFullBuilder {
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
 }
-impl DefaultConfigFullBuilder {
+impl DefaultConfigResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -171,16 +171,16 @@ impl DefaultConfigFullBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.function_name = input; self
     }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }
@@ -253,43 +253,43 @@ impl DefaultConfigFullBuilder {
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.last_modified_by
     }
-    /// Consumes the builder and constructs a [`DefaultConfigFull`](crate::types::DefaultConfigFull).
+    /// Consumes the builder and constructs a [`DefaultConfigResponse`](crate::types::DefaultConfigResponse).
     /// This method will fail if any of the following fields are not set:
-    /// - [`key`](crate::types::builders::DefaultConfigFullBuilder::key)
-    /// - [`value`](crate::types::builders::DefaultConfigFullBuilder::value)
-    /// - [`schema`](crate::types::builders::DefaultConfigFullBuilder::schema)
-    /// - [`description`](crate::types::builders::DefaultConfigFullBuilder::description)
-    /// - [`change_reason`](crate::types::builders::DefaultConfigFullBuilder::change_reason)
-    /// - [`created_at`](crate::types::builders::DefaultConfigFullBuilder::created_at)
-    /// - [`created_by`](crate::types::builders::DefaultConfigFullBuilder::created_by)
-    /// - [`last_modified_at`](crate::types::builders::DefaultConfigFullBuilder::last_modified_at)
-    /// - [`last_modified_by`](crate::types::builders::DefaultConfigFullBuilder::last_modified_by)
-    pub fn build(self) -> ::std::result::Result<crate::types::DefaultConfigFull, ::aws_smithy_types::error::operation::BuildError> {
+    /// - [`key`](crate::types::builders::DefaultConfigResponseBuilder::key)
+    /// - [`value`](crate::types::builders::DefaultConfigResponseBuilder::value)
+    /// - [`schema`](crate::types::builders::DefaultConfigResponseBuilder::schema)
+    /// - [`description`](crate::types::builders::DefaultConfigResponseBuilder::description)
+    /// - [`change_reason`](crate::types::builders::DefaultConfigResponseBuilder::change_reason)
+    /// - [`created_at`](crate::types::builders::DefaultConfigResponseBuilder::created_at)
+    /// - [`created_by`](crate::types::builders::DefaultConfigResponseBuilder::created_by)
+    /// - [`last_modified_at`](crate::types::builders::DefaultConfigResponseBuilder::last_modified_at)
+    /// - [`last_modified_by`](crate::types::builders::DefaultConfigResponseBuilder::last_modified_by)
+    pub fn build(self) -> ::std::result::Result<crate::types::DefaultConfigResponse, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
-            crate::types::DefaultConfigFull {
+            crate::types::DefaultConfigResponse {
                 key: self.key
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("key", "key was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("key", "key was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 value: self.value
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("value", "value was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("value", "value was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 schema: self.schema
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("schema", "schema was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("schema", "schema was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 description: self.description
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("description", "description was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("description", "description was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 change_reason: self.change_reason
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 function_name: self.function_name
@@ -298,22 +298,22 @@ impl DefaultConfigFullBuilder {
                 ,
                 created_at: self.created_at
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_at", "created_at was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_at", "created_at was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 created_by: self.created_by
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_by", "created_by was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_by", "created_by was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 last_modified_at: self.last_modified_at
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_at", "last_modified_at was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_at", "last_modified_at was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
                 last_modified_by: self.last_modified_by
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_by", "last_modified_by was not specified but it is required when building DefaultConfigFull")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_by", "last_modified_by was not specified but it is required when building DefaultConfigResponse")
                     )?
                 ,
             }

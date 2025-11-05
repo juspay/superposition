@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -15,6 +16,7 @@ import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -22,11 +24,16 @@ public final class ContextPartial implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ContextPartial");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("id", PreludeSchemas.STRING)
-        .putMember("condition", SharedSchemas.CONDITION)
-        .putMember("priority", PreludeSchemas.INTEGER)
-        .putMember("weight", PreludeSchemas.INTEGER)
-        .putMember("override_with_keys", SharedSchemas.OVERRIDE_WITH_KEYS)
+        .putMember("id", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("condition", SharedSchemas.CONDITION,
+                new RequiredTrait())
+        .putMember("priority", PreludeSchemas.INTEGER,
+                new RequiredTrait())
+        .putMember("weight", PreludeSchemas.INTEGER,
+                new RequiredTrait())
+        .putMember("override_with_keys", SharedSchemas.OVERRIDE_WITH_KEYS,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
@@ -37,16 +44,16 @@ public final class ContextPartial implements SerializableStruct {
 
     private final transient String id;
     private final transient Map<String, Document> condition;
-    private final transient Integer priority;
-    private final transient Integer weight;
+    private final transient int priority;
+    private final transient int weight;
     private final transient List<String> overrideWithKeys;
 
     private ContextPartial(Builder builder) {
         this.id = builder.id;
-        this.condition = builder.condition == null ? null : Collections.unmodifiableMap(builder.condition);
+        this.condition = Collections.unmodifiableMap(builder.condition);
         this.priority = builder.priority;
         this.weight = builder.weight;
-        this.overrideWithKeys = builder.overrideWithKeys == null ? null : Collections.unmodifiableList(builder.overrideWithKeys);
+        this.overrideWithKeys = Collections.unmodifiableList(builder.overrideWithKeys);
     }
 
     public String id() {
@@ -54,33 +61,27 @@ public final class ContextPartial implements SerializableStruct {
     }
 
     public Map<String, Document> condition() {
-        if (condition == null) {
-            return Collections.emptyMap();
-        }
         return condition;
     }
 
     public boolean hasCondition() {
-        return condition != null;
+        return true;
     }
 
-    public Integer priority() {
+    public int priority() {
         return priority;
     }
 
-    public Integer weight() {
+    public int weight() {
         return weight;
     }
 
     public List<String> overrideWithKeys() {
-        if (overrideWithKeys == null) {
-            return Collections.emptyList();
-        }
         return overrideWithKeys;
     }
 
     public boolean hasOverrideWithKeys() {
-        return overrideWithKeys != null;
+        return true;
     }
 
     @Override
@@ -99,8 +100,8 @@ public final class ContextPartial implements SerializableStruct {
         ContextPartial that = (ContextPartial) other;
         return Objects.equals(this.id, that.id)
                && Objects.equals(this.condition, that.condition)
-               && Objects.equals(this.priority, that.priority)
-               && Objects.equals(this.weight, that.weight)
+               && this.priority == that.priority
+               && this.weight == that.weight
                && Objects.equals(this.overrideWithKeys, that.overrideWithKeys);
     }
 
@@ -116,21 +117,11 @@ public final class ContextPartial implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (id != null) {
-            serializer.writeString($SCHEMA_ID, id);
-        }
-        if (condition != null) {
-            serializer.writeMap($SCHEMA_CONDITION, condition, condition.size(), SharedSerde.ConditionSerializer.INSTANCE);
-        }
-        if (priority != null) {
-            serializer.writeInteger($SCHEMA_PRIORITY, priority);
-        }
-        if (weight != null) {
-            serializer.writeInteger($SCHEMA_WEIGHT, weight);
-        }
-        if (overrideWithKeys != null) {
-            serializer.writeList($SCHEMA_OVERRIDE_WITH_KEYS, overrideWithKeys, overrideWithKeys.size(), SharedSerde.OverrideWithKeysSerializer.INSTANCE);
-        }
+        serializer.writeString($SCHEMA_ID, id);
+        serializer.writeMap($SCHEMA_CONDITION, condition, condition.size(), SharedSerde.ConditionSerializer.INSTANCE);
+        serializer.writeInteger($SCHEMA_PRIORITY, priority);
+        serializer.writeInteger($SCHEMA_WEIGHT, weight);
+        serializer.writeList($SCHEMA_OVERRIDE_WITH_KEYS, overrideWithKeys, overrideWithKeys.size(), SharedSerde.OverrideWithKeysSerializer.INSTANCE);
     }
 
     @Override
@@ -174,10 +165,11 @@ public final class ContextPartial implements SerializableStruct {
      * Builder for {@link ContextPartial}.
      */
     public static final class Builder implements ShapeBuilder<ContextPartial> {
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String id;
         private Map<String, Document> condition;
-        private Integer priority;
-        private Integer weight;
+        private int priority;
+        private int weight;
         private List<String> overrideWithKeys;
 
         private Builder() {}
@@ -188,47 +180,58 @@ public final class ContextPartial implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder id(String id) {
-            this.id = id;
+            this.id = Objects.requireNonNull(id, "id cannot be null");
+            tracker.setMember($SCHEMA_ID);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder condition(Map<String, Document> condition) {
-            this.condition = condition;
+            this.condition = Objects.requireNonNull(condition, "condition cannot be null");
+            tracker.setMember($SCHEMA_CONDITION);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder priority(int priority) {
             this.priority = priority;
+            tracker.setMember($SCHEMA_PRIORITY);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder weight(int weight) {
             this.weight = weight;
+            tracker.setMember($SCHEMA_WEIGHT);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder overrideWithKeys(List<String> overrideWithKeys) {
-            this.overrideWithKeys = overrideWithKeys;
+            this.overrideWithKeys = Objects.requireNonNull(overrideWithKeys, "overrideWithKeys cannot be null");
+            tracker.setMember($SCHEMA_OVERRIDE_WITH_KEYS);
             return this;
         }
 
         @Override
         public ContextPartial build() {
+            tracker.validate();
             return new ContextPartial(this);
         }
 
@@ -243,6 +246,29 @@ public final class ContextPartial implements SerializableStruct {
                 case 4 -> overrideWithKeys((List<String>) SchemaUtils.validateSameMember($SCHEMA_OVERRIDE_WITH_KEYS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<ContextPartial> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_ID)) {
+                id("");
+            }
+            if (!tracker.checkMember($SCHEMA_CONDITION)) {
+                condition(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_PRIORITY)) {
+                tracker.setMember($SCHEMA_PRIORITY);
+            }
+            if (!tracker.checkMember($SCHEMA_WEIGHT)) {
+                tracker.setMember($SCHEMA_WEIGHT);
+            }
+            if (!tracker.checkMember($SCHEMA_OVERRIDE_WITH_KEYS)) {
+                overrideWithKeys(Collections.emptyList());
+            }
+            return this;
         }
 
         @Override

@@ -23,7 +23,7 @@ public final class DeleteDimension implements ApiOperation<DeleteDimensionInput,
     private static final DeleteDimension $INSTANCE = new DeleteDimension();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("DELETE").code(201).uri(UriPattern.parse("/dimension/{dimension}")).build());
+            HttpTrait.builder().method("DELETE").code(204).uri(UriPattern.parse("/dimension/{dimension}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

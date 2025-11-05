@@ -16,7 +16,14 @@ pub fn ser_variant(
         object.key("override_id").string(var_2.as_str());
     }
      {
-        object.key("overrides").document(&input.overrides);
+        #[allow(unused_mut)]
+        let mut object_3 = object.key("overrides").start_object();
+        for (key_4, value_5) in &input.overrides {
+             {
+                object_3.key(key_4.as_str()).document(value_5);
+            }
+        }
+        object_3.finish();
     }
     Ok(())
 }
@@ -71,7 +78,7 @@ pub(crate) fn de_variant<'a, I>(tokens: &mut ::std::iter::Peekable<I>) -> ::std:
                             }
                             "overrides" => {
                                 builder = builder.set_overrides(
-                                    Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                                    crate::protocol_serde::shape_overrides::de_overrides(tokens)?
                                 );
                             }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

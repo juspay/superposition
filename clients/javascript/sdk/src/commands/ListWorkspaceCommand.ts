@@ -51,9 +51,9 @@ export interface ListWorkspaceCommandOutput extends ListWorkspaceOutput, __Metad
  * const command = new ListWorkspaceCommand(input);
  * const response = await client.send(command);
  * // { // ListWorkspaceOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // WorkspaceList
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // WorkspaceList // required
  * //     { // WorkspaceResponse
  * //       workspace_name: "STRING_VALUE", // required
  * //       organisation_id: "STRING_VALUE", // required
@@ -70,7 +70,7 @@ export interface ListWorkspaceCommandOutput extends ListWorkspaceOutput, __Metad
  * //         "STRING_VALUE",
  * //       ],
  * //       strict_mode: true || false, // required
- * //       metrics: "DOCUMENT_VALUE",
+ * //       metrics: "DOCUMENT_VALUE", // required
  * //       allow_experiment_self_approval: true || false, // required
  * //       auto_populate_control: true || false, // required
  * //     },

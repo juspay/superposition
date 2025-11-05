@@ -5,16 +5,16 @@
 pub struct VariantUpdateRequest  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
-    #[allow(missing_docs)] // documentation missing in model
-    pub overrides: ::aws_smithy_types::Document,
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+    pub overrides: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
 }
 impl  VariantUpdateRequest  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
         use std::ops::Deref; self.id.deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn overrides(&self) -> &::aws_smithy_types::Document {
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+    pub fn overrides(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
         &self.overrides
     }
 }
@@ -30,7 +30,7 @@ impl VariantUpdateRequest {
 #[non_exhaustive]
 pub struct VariantUpdateRequestBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) overrides: ::std::option::Option<::aws_smithy_types::Document>,
+    pub(crate) overrides: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl VariantUpdateRequestBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -47,18 +47,23 @@ impl VariantUpdateRequestBuilder {
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.id
     }
-    #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
-    pub fn overrides(mut self, input: ::aws_smithy_types::Document) -> Self {
-        self.overrides = ::std::option::Option::Some(input);
-        self
+    /// Adds a key-value pair to `overrides`.
+    ///
+    /// To override the contents of this collection use [`set_overrides`](Self::set_overrides).
+    ///
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+    pub fn overrides(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+        let mut hash_map = self.overrides.unwrap_or_default();
+                        hash_map.insert(k.into(), v);
+                        self.overrides = ::std::option::Option::Some(hash_map);
+                        self
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_overrides(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+    pub fn set_overrides(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
         self.overrides = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_overrides(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
+    pub fn get_overrides(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.overrides
     }
     /// Consumes the builder and constructs a [`VariantUpdateRequest`](crate::types::VariantUpdateRequest).

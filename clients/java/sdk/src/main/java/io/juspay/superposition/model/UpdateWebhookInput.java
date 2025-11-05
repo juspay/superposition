@@ -35,18 +35,13 @@ public final class UpdateWebhookInput implements SerializableStruct {
         .putMember("name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
-        .putMember("description", PreludeSchemas.STRING,
-                new RequiredTrait())
-        .putMember("enabled", PreludeSchemas.BOOLEAN,
-                new RequiredTrait())
-        .putMember("url", PreludeSchemas.STRING,
-                new RequiredTrait())
-        .putMember("method", HttpMethod.$SCHEMA,
-                new RequiredTrait())
+        .putMember("description", PreludeSchemas.STRING)
+        .putMember("enabled", PreludeSchemas.BOOLEAN)
+        .putMember("url", PreludeSchemas.STRING)
+        .putMember("method", HttpMethod.$SCHEMA)
         .putMember("version", Version.$SCHEMA)
         .putMember("custom_headers", SharedSchemas.OBJECT)
-        .putMember("events", SharedSchemas.EVENTS,
-                new RequiredTrait())
+        .putMember("events", SharedSchemas.EVENTS)
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .build();
@@ -67,7 +62,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
     private final transient String orgId;
     private final transient String name;
     private final transient String description;
-    private final transient boolean enabled;
+    private final transient Boolean enabled;
     private final transient String url;
     private final transient HttpMethod method;
     private final transient Version version;
@@ -85,7 +80,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
         this.method = builder.method;
         this.version = builder.version;
         this.customHeaders = builder.customHeaders == null ? null : Collections.unmodifiableMap(builder.customHeaders);
-        this.events = Collections.unmodifiableList(builder.events);
+        this.events = builder.events == null ? null : Collections.unmodifiableList(builder.events);
         this.changeReason = builder.changeReason;
     }
 
@@ -105,7 +100,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
         return description;
     }
 
-    public boolean enabled() {
+    public Boolean enabled() {
         return enabled;
     }
 
@@ -133,11 +128,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
     }
 
     public List<String> events() {
+        if (events == null) {
+            return Collections.emptyList();
+        }
         return events;
     }
 
     public boolean hasEvents() {
-        return true;
+        return events != null;
     }
 
     public String changeReason() {
@@ -162,7 +160,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.name, that.name)
                && Objects.equals(this.description, that.description)
-               && this.enabled == that.enabled
+               && Objects.equals(this.enabled, that.enabled)
                && Objects.equals(this.url, that.url)
                && Objects.equals(this.method, that.method)
                && Objects.equals(this.version, that.version)
@@ -186,17 +184,27 @@ public final class UpdateWebhookInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_NAME, name);
-        serializer.writeString($SCHEMA_DESCRIPTION, description);
-        serializer.writeBoolean($SCHEMA_ENABLED, enabled);
-        serializer.writeString($SCHEMA_URL, url);
-        serializer.writeString($SCHEMA_METHOD, method.value());
+        if (description != null) {
+            serializer.writeString($SCHEMA_DESCRIPTION, description);
+        }
+        if (enabled != null) {
+            serializer.writeBoolean($SCHEMA_ENABLED, enabled);
+        }
+        if (url != null) {
+            serializer.writeString($SCHEMA_URL, url);
+        }
+        if (method != null) {
+            serializer.writeString($SCHEMA_METHOD, method.value());
+        }
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version.value());
         }
         if (customHeaders != null) {
             serializer.writeMap($SCHEMA_CUSTOM_HEADERS, customHeaders, customHeaders.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         }
-        serializer.writeList($SCHEMA_EVENTS, events, events.size(), SharedSerde.EventsSerializer.INSTANCE);
+        if (events != null) {
+            serializer.writeList($SCHEMA_EVENTS, events, events.size(), SharedSerde.EventsSerializer.INSTANCE);
+        }
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
     }
 
@@ -207,14 +215,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, enabled);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_URL, member, url);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, method);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, events);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, customHeaders);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, enabled);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_URL, member, url);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, method);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, customHeaders);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, events);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -258,7 +266,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
         private String orgId;
         private String name;
         private String description;
-        private boolean enabled;
+        private Boolean enabled;
         private String url;
         private HttpMethod method;
         private Version version;
@@ -304,42 +312,34 @@ public final class UpdateWebhookInput implements SerializableStruct {
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder description(String description) {
-            this.description = Objects.requireNonNull(description, "description cannot be null");
-            tracker.setMember($SCHEMA_DESCRIPTION);
+            this.description = description;
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
-            tracker.setMember($SCHEMA_ENABLED);
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder url(String url) {
-            this.url = Objects.requireNonNull(url, "url cannot be null");
-            tracker.setMember($SCHEMA_URL);
+            this.url = url;
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder method(HttpMethod method) {
-            this.method = Objects.requireNonNull(method, "method cannot be null");
-            tracker.setMember($SCHEMA_METHOD);
+            this.method = method;
             return this;
         }
 
@@ -360,12 +360,10 @@ public final class UpdateWebhookInput implements SerializableStruct {
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder events(List<String> events) {
-            this.events = Objects.requireNonNull(events, "events cannot be null");
-            tracker.setMember($SCHEMA_EVENTS);
+            this.events = events;
             return this;
         }
 
@@ -392,14 +390,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 3 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 4 -> enabled((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, value));
-                case 5 -> url((String) SchemaUtils.validateSameMember($SCHEMA_URL, member, value));
-                case 6 -> method((HttpMethod) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, value));
-                case 7 -> events((List<String>) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, value));
-                case 8 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 9 -> version((Version) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 10 -> customHeaders((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, value));
+                case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 5 -> enabled((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, value));
+                case 6 -> url((String) SchemaUtils.validateSameMember($SCHEMA_URL, member, value));
+                case 7 -> method((HttpMethod) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, value));
+                case 8 -> version((Version) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 9 -> customHeaders((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, value));
+                case 10 -> events((List<String>) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -417,21 +415,6 @@ public final class UpdateWebhookInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_NAME)) {
                 name("");
-            }
-            if (!tracker.checkMember($SCHEMA_DESCRIPTION)) {
-                description("");
-            }
-            if (!tracker.checkMember($SCHEMA_ENABLED)) {
-                tracker.setMember($SCHEMA_ENABLED);
-            }
-            if (!tracker.checkMember($SCHEMA_URL)) {
-                url("");
-            }
-            if (!tracker.checkMember($SCHEMA_METHOD)) {
-                method(HttpMethod.unknown(""));
-            }
-            if (!tracker.checkMember($SCHEMA_EVENTS)) {
-                events(Collections.emptyList());
             }
             if (!tracker.checkMember($SCHEMA_CHANGE_REASON)) {
                 changeReason("");
@@ -460,14 +443,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.name(de.readString(member));
-                    case 3 -> builder.description(de.readString(member));
-                    case 4 -> builder.enabled(de.readBoolean(member));
-                    case 5 -> builder.url(de.readString(member));
-                    case 6 -> builder.method(HttpMethod.builder().deserializeMember(de, member).build());
-                    case 7 -> builder.events(SharedSerde.deserializeEvents(member, de));
-                    case 8 -> builder.changeReason(de.readString(member));
-                    case 9 -> builder.version(Version.builder().deserializeMember(de, member).build());
-                    case 10 -> builder.customHeaders(SharedSerde.deserializeObjectShape(member, de));
+                    case 3 -> builder.changeReason(de.readString(member));
+                    case 4 -> builder.description(de.readString(member));
+                    case 5 -> builder.enabled(de.readBoolean(member));
+                    case 6 -> builder.url(de.readString(member));
+                    case 7 -> builder.method(HttpMethod.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.version(Version.builder().deserializeMember(de, member).build());
+                    case 9 -> builder.customHeaders(SharedSerde.deserializeObjectShape(member, de));
+                    case 10 -> builder.events(SharedSerde.deserializeEvents(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

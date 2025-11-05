@@ -10,9 +10,9 @@ impl super::Client {
     ///   - [`org_id(impl Into<String>)`](crate::operation::list_function::builders::ListFunctionFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::list_function::builders::ListFunctionFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`function_type(FunctionTypes)`](crate::operation::list_function::builders::ListFunctionFluentBuilder::function_type) / [`set_function_type(Option<Vec::<FunctionTypes>>)`](crate::operation::list_function::builders::ListFunctionFluentBuilder::set_function_type):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`ListFunctionOutput`](crate::operation::list_function::ListFunctionOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_function::ListFunctionOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_function::ListFunctionOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<FunctionResponse>>)`](crate::operation::list_function::ListFunctionOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_function::ListFunctionOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_function::ListFunctionOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<FunctionResponse>)`](crate::operation::list_function::ListFunctionOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListFunctionError>`](crate::operation::list_function::ListFunctionError)
     pub fn list_function(&self) -> crate::operation::list_function::builders::ListFunctionFluentBuilder {
                                 crate::operation::list_function::builders::ListFunctionFluentBuilder::new(self.handle.clone())

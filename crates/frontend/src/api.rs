@@ -18,6 +18,7 @@ use superposition_types::{
         },
         functions::{
             FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
+            Stage,
         },
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
         workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
@@ -843,7 +844,7 @@ pub async fn execute_autocomplete_function(
     org_id: &str,
 ) -> Result<Vec<String>, String> {
     let host = use_host_server();
-    let url = format!("{}/function/{}/PUBLISHED/test", host, fn_name);
+    let url = format!("{}/function/{}/{}/test", host, fn_name, Stage::Published);
     let payload = FunctionExecutionRequest::AutocompleteFunctionRequest {
         name: name.to_owned(),
         prefix: value.to_owned(),
@@ -851,7 +852,7 @@ pub async fn execute_autocomplete_function(
     };
     let resp = request(
         url.clone(),
-        reqwest::Method::PUT,
+        reqwest::Method::POST,
         Some(payload.clone()),
         construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
     )

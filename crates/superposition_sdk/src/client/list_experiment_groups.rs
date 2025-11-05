@@ -15,9 +15,9 @@ impl super::Client {
     ///   - [`sort_by(SortBy)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::sort_by) / [`set_sort_by(Option<SortBy>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_sort_by):<br>required: **false**<br>Sort order (ascending or descending).<br>
     ///   - [`group_type(GroupType)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::group_type) / [`set_group_type(Option<Vec::<GroupType>>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_group_type):<br>required: **false**<br>Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).<br>
                             /// - On success, responds with [`ListExperimentGroupsOutput`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<ExperimentGroupResponse>>)`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput::data): A list of experiment group responses.
+    ///   - [`total_pages(i32)`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<ExperimentGroupResponse>)`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput::data): A list of experiment group responses.
                             /// - On failure, responds with [`SdkError<ListExperimentGroupsError>`](crate::operation::list_experiment_groups::ListExperimentGroupsError)
     pub fn list_experiment_groups(&self) -> crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder {
                                 crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::new(self.handle.clone())

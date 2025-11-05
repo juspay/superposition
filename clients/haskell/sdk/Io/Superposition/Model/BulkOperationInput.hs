@@ -2,14 +2,14 @@ module Io.Superposition.Model.BulkOperationInput (
     setWorkspaceId,
     setOrgId,
     setConfigTags,
-    setBulkOperation,
+    setOperations,
     build,
     BulkOperationInputBuilder,
     BulkOperationInput,
     workspace_id,
     org_id,
     config_tags,
-    bulk_operation
+    operations
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -21,7 +21,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.BulkOperationReq
+import qualified Io.Superposition.Model.ContextAction
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
 
@@ -29,7 +29,7 @@ data BulkOperationInput = BulkOperationInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
     config_tags :: Data.Maybe.Maybe Data.Text.Text,
-    bulk_operation :: Io.Superposition.Model.BulkOperationReq.BulkOperationReq
+    operations :: [] Io.Superposition.Model.ContextAction.ContextAction
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -41,7 +41,7 @@ instance Data.Aeson.ToJSON BulkOperationInput where
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
         "config_tags" Data.Aeson..= config_tags a,
-        "bulk_operation" Data.Aeson..= bulk_operation a
+        "operations" Data.Aeson..= operations a
         ]
     
 
@@ -52,7 +52,7 @@ instance Data.Aeson.FromJSON BulkOperationInput where
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "config_tags")
-        Control.Applicative.<*> (v Data.Aeson..: "bulk_operation")
+        Control.Applicative.<*> (v Data.Aeson..: "operations")
     
 
 
@@ -61,7 +61,7 @@ data BulkOperationInputBuilderState = BulkOperationInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     config_tagsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    bulk_operationBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.BulkOperationReq.BulkOperationReq
+    operationsBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextAction.ContextAction)
 } deriving (
   GHC.Generics.Generic
   )
@@ -71,7 +71,7 @@ defaultBuilderState = BulkOperationInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
     config_tagsBuilderState = Data.Maybe.Nothing,
-    bulk_operationBuilderState = Data.Maybe.Nothing
+    operationsBuilderState = Data.Maybe.Nothing
 }
 
 type BulkOperationInputBuilder = Control.Monad.State.Strict.State BulkOperationInputBuilderState
@@ -88,9 +88,9 @@ setConfigTags :: Data.Maybe.Maybe Data.Text.Text -> BulkOperationInputBuilder ()
 setConfigTags value =
    Control.Monad.State.Strict.modify (\s -> (s { config_tagsBuilderState = value }))
 
-setBulkOperation :: Io.Superposition.Model.BulkOperationReq.BulkOperationReq -> BulkOperationInputBuilder ()
-setBulkOperation value =
-   Control.Monad.State.Strict.modify (\s -> (s { bulk_operationBuilderState = Data.Maybe.Just value }))
+setOperations :: [] Io.Superposition.Model.ContextAction.ContextAction -> BulkOperationInputBuilder ()
+setOperations value =
+   Control.Monad.State.Strict.modify (\s -> (s { operationsBuilderState = Data.Maybe.Just value }))
 
 build :: BulkOperationInputBuilder () -> Data.Either.Either Data.Text.Text BulkOperationInput
 build builder = do
@@ -98,12 +98,12 @@ build builder = do
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.BulkOperationInput.BulkOperationInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.BulkOperationInput.BulkOperationInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     config_tags' <- Data.Either.Right (config_tagsBuilderState st)
-    bulk_operation' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.BulkOperationInput.BulkOperationInput.bulk_operation is a required property.") Data.Either.Right (bulk_operationBuilderState st)
+    operations' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.BulkOperationInput.BulkOperationInput.operations is a required property.") Data.Either.Right (operationsBuilderState st)
     Data.Either.Right (BulkOperationInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         config_tags = config_tags',
-        bulk_operation = bulk_operation'
+        operations = operations'
     })
 
 
@@ -118,5 +118,5 @@ instance Io.Superposition.Utility.IntoRequestBuilder BulkOperationInput where
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serHeader "x-config-tags" (config_tags self)
-        Io.Superposition.Utility.serBody "application/json" (bulk_operation self)
+        Io.Superposition.Utility.serField "operations" (operations self)
 

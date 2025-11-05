@@ -4,27 +4,24 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct GetTypeTemplatesListOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub total_pages: ::std::option::Option<i32>,
+    pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub total_items: ::std::option::Option<i32>,
+    pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::option::Option<::std::vec::Vec::<crate::types::TypeTemplatesResponse>>,
+    pub data: ::std::vec::Vec::<crate::types::TypeTemplatesResponse>,
 }
 impl  GetTypeTemplatesListOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_pages(&self) -> ::std::option::Option<i32> {
+    pub fn total_pages(&self) -> i32 {
         self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn total_items(&self) -> ::std::option::Option<i32> {
+    pub fn total_items(&self) -> i32 {
         self.total_items
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
-    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.data.is_none()`.
     pub fn data(&self) -> &[crate::types::TypeTemplatesResponse] {
-        self.data.as_deref()
-        .unwrap_or_default()
+        use std::ops::Deref; self.data.deref()
     }
 }
 impl GetTypeTemplatesListOutput {
@@ -44,6 +41,7 @@ pub struct GetTypeTemplatesListOutputBuilder {
 }
 impl GetTypeTemplatesListOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn total_pages(mut self, input: i32) -> Self {
         self.total_pages = ::std::option::Option::Some(input);
         self
@@ -57,6 +55,7 @@ impl GetTypeTemplatesListOutputBuilder {
         &self.total_pages
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn total_items(mut self, input: i32) -> Self {
         self.total_items = ::std::option::Option::Some(input);
         self
@@ -88,15 +87,30 @@ impl GetTypeTemplatesListOutputBuilder {
         &self.data
     }
     /// Consumes the builder and constructs a [`GetTypeTemplatesListOutput`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput).
-    pub fn build(self) -> crate::operation::get_type_templates_list::GetTypeTemplatesListOutput {
-        crate::operation::get_type_templates_list::GetTypeTemplatesListOutput {
-            total_pages: self.total_pages
-            ,
-            total_items: self.total_items
-            ,
-            data: self.data
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`total_pages`](crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder::total_pages)
+    /// - [`total_items`](crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder::total_items)
+    /// - [`data`](crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder::data)
+    pub fn build(self) -> ::std::result::Result<crate::operation::get_type_templates_list::GetTypeTemplatesListOutput, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::operation::get_type_templates_list::GetTypeTemplatesListOutput {
+                total_pages: self.total_pages
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_pages", "total_pages was not specified but it is required when building GetTypeTemplatesListOutput")
+                    )?
+                ,
+                total_items: self.total_items
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("total_items", "total_items was not specified but it is required when building GetTypeTemplatesListOutput")
+                    )?
+                ,
+                data: self.data
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building GetTypeTemplatesListOutput")
+                    )?
+                ,
+            }
+        )
     }
 }
 

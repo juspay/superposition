@@ -132,7 +132,9 @@ async fn put_handler(
     Ok(http_resp.json(put_response))
 }
 
+#[routes]
 #[put("/overrides")]
+#[patch("/overrides")]
 async fn update_override_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
@@ -581,7 +583,10 @@ async fn bulk_operations(
                             }
                         };
                     }
-                    ContextAction::Move((old_ctx_id, move_req)) => {
+                    ContextAction::Move {
+                        id: old_ctx_id,
+                        request: move_req,
+                    } => {
                         let description = match move_req.description.clone() {
                             Some(val) => val,
                             None => query_description(

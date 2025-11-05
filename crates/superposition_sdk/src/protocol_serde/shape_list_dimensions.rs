@@ -37,7 +37,7 @@ pub fn de_list_dimensions_http_response(_response_status: u16, _response_headers
         #[allow(unused_mut)]
         let mut output = crate::operation::list_dimensions::builders::ListDimensionsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_dimensions::de_list_dimensions(_response_body, output).map_err(crate::operation::list_dimensions::ListDimensionsError::unhandled)?;
-        output.build()
+        crate::serde_util::list_dimensions_output_output_correct_errors(output).build().map_err(crate::operation::list_dimensions::ListDimensionsError::unhandled)?
     })
 }
 
@@ -83,7 +83,7 @@ pub(crate) fn de_list_dimensions(value: &[u8], mut builder: crate::operation::li
                 match key.to_unescaped()?.as_ref() {
                     "data" => {
                         builder = builder.set_data(
-                            crate::protocol_serde::shape_dimension_ext_list::de_dimension_ext_list(tokens)?
+                            crate::protocol_serde::shape_dimension_list::de_dimension_list(tokens)?
                         );
                     }
                     "total_items" => {

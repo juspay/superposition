@@ -37,7 +37,7 @@ pub fn de_list_audit_logs_http_response(_response_status: u16, _response_headers
         #[allow(unused_mut)]
         let mut output = crate::operation::list_audit_logs::builders::ListAuditLogsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_audit_logs::de_list_audit_logs(_response_body, output).map_err(crate::operation::list_audit_logs::ListAuditLogsError::unhandled)?;
-        output.build()
+        crate::serde_util::list_audit_logs_output_output_correct_errors(output).build().map_err(crate::operation::list_audit_logs::ListAuditLogsError::unhandled)?
     })
 }
 

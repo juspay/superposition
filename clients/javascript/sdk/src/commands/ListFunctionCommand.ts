@@ -55,9 +55,9 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  * const command = new ListFunctionCommand(input);
  * const response = await client.send(command);
  * // { // ListFunctionOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // FunctionListResponse
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // FunctionListResponse // required
  * //     { // FunctionResponse
  * //       function_name: "STRING_VALUE", // required
  * //       published_code: "STRING_VALUE",

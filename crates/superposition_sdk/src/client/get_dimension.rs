@@ -20,7 +20,7 @@ impl super::Client {
     ///   - [`dependency_graph(HashMap::<String, Vec::<String>>)`](crate::operation::get_dimension::GetDimensionOutput::dependency_graph): (undocumented)
     ///   - [`dimension_type(DimensionType)`](crate::operation::get_dimension::GetDimensionOutput::dimension_type): (undocumented)
     ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::get_dimension::GetDimensionOutput::autocomplete_function_name): (undocumented)
-    ///   - [`mandatory(Option<bool>)`](crate::operation::get_dimension::GetDimensionOutput::mandatory): (undocumented)
+    ///   - [`mandatory(bool)`](crate::operation::get_dimension::GetDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<GetDimensionError>`](crate::operation::get_dimension::GetDimensionError)
     pub fn get_dimension(&self) -> crate::operation::get_dimension::builders::GetDimensionFluentBuilder {
                                 crate::operation::get_dimension::builders::GetDimensionFluentBuilder::new(self.handle.clone())

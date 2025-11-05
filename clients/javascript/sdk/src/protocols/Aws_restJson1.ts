@@ -284,18 +284,17 @@ import {
   AuditLogFull,
   AutocompleteFunctionRequest,
   Bucket,
-  BulkOperationOut,
-  BulkOperationReq,
   ContextAction,
   ContextActionOut,
   ContextIdentifier,
   ContextMove,
+  ContextMoveBulkRequest,
   ContextPartial,
   ContextPut,
   ContextResponse,
-  DefaultConfigFull,
-  DimensionExt,
+  DefaultConfigResponse,
   DimensionInfo,
+  DimensionResponse,
   DimensionType,
   ExperimentGroupResponse,
   ExperimentResponse,
@@ -418,13 +417,9 @@ export const se_BulkOperationCommand = async(
   });
   b.bp("/context/bulk-operations");
   let body: any;
-  if (input.bulk_operation !== undefined) {
-    body = se_BulkOperationReq(input.bulk_operation, context);
-  }
-  if (body === undefined) {
-    body = {};
-  }
-  body = JSON.stringify(body);
+  body = JSON.stringify(take(input, {
+    'operations': _ => se_BulkOperationList(_, context),
+  }));
   b.m("PUT")
   .h(headers)
   .b(body);
@@ -474,12 +469,13 @@ export const se_CreateContextCommand = async(
   });
   b.bp("/context");
   let body: any;
-  body = JSON.stringify(take(input, {
-    'change_reason': [],
-    'context': _ => se_Condition(_, context),
-    'description': [],
-    'override': _ => se_Overrides(_, context),
-  }));
+  if (input.request !== undefined) {
+    body = se_ContextPut(input.request, context);
+  }
+  if (body === undefined) {
+    body = {};
+  }
+  body = JSON.stringify(body);
   b.m("PUT")
   .h(headers)
   .b(body);
@@ -1659,11 +1655,13 @@ export const se_MoveContextCommand = async(
   b.bp("/context/move/{id}");
   b.p('id', () => input.id!, '{id}', false)
   let body: any;
-  body = JSON.stringify(take(input, {
-    'change_reason': [],
-    'context': _ => se_Condition(_, context),
-    'description': [],
-  }));
+  if (input.request !== undefined) {
+    body = se_ContextMove(input.request, context);
+  }
+  if (body === undefined) {
+    body = {};
+  }
+  body = JSON.stringify(body);
   b.m("PUT")
   .h(headers)
   .b(body);
@@ -1993,7 +1991,7 @@ export const se_UpdateOverrideCommand = async(
     body = {};
   }
   body = JSON.stringify(body);
-  b.m("PUT")
+  b.m("PATCH")
   .h(headers)
   .b(body);
   return b.build();
@@ -2230,8 +2228,11 @@ export const de_BulkOperationCommand = async(
   const contents: any = map({
     $metadata: deserializeMetadata(output),
   });
-  const data: Record<string, any> | undefined = __expectObject(await parseBody(output.body, context));
-  contents.bulk_operation_output = de_BulkOperationOut(data, context);
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'output': _ => de_BulkOperationOutList(_, context),
+  });
+  Object.assign(contents, doc);
   return contents;
 }
 
@@ -2617,7 +2618,7 @@ export const de_DeleteContextCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<DeleteContextCommandOutput> => {
-  if (output.statusCode !== 201 && output.statusCode >= 300) {
+  if (output.statusCode !== 204 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
   const contents: any = map({
@@ -2634,7 +2635,7 @@ export const de_DeleteDefaultConfigCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<DeleteDefaultConfigCommandOutput> => {
-  if (output.statusCode !== 201 && output.statusCode >= 300) {
+  if (output.statusCode !== 204 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
   const contents: any = map({
@@ -2651,7 +2652,7 @@ export const de_DeleteDimensionCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<DeleteDimensionCommandOutput> => {
-  if (output.statusCode !== 201 && output.statusCode >= 300) {
+  if (output.statusCode !== 204 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
   const contents: any = map({
@@ -2702,7 +2703,7 @@ export const de_DeleteFunctionCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<DeleteFunctionCommandOutput> => {
-  if (output.statusCode !== 200 && output.statusCode >= 300) {
+  if (output.statusCode !== 204 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
   const contents: any = map({
@@ -2747,7 +2748,7 @@ export const de_DeleteWebhookCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<DeleteWebhookCommandOutput> => {
-  if (output.statusCode !== 201 && output.statusCode >= 300) {
+  if (output.statusCode !== 204 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
   const contents: any = map({
@@ -3402,7 +3403,7 @@ export const de_ListDimensionsCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'data': _ => de_DimensionExtList(_, context),
+    'data': _ => de_DimensionList(_, context),
     'total_items': __expectInt32,
     'total_pages': __expectInt32,
   });
@@ -4320,18 +4321,6 @@ const de_CommandError = async(
   }
 
   /**
-   * serializeAws_restJson1BulkOperationReq
-   */
-  const se_BulkOperationReq = (
-    input: BulkOperationReq,
-    context: __SerdeContext
-  ): any => {
-    return take(input, {
-      'operations': _ => se_BulkOperationList(_, context),
-    });
-  }
-
-  /**
    * serializeAws_restJson1Condition
    */
   const se_Condition = (
@@ -4356,7 +4345,7 @@ const de_CommandError = async(
   ): any => {
     return ContextAction.visit(input, {
       DELETE: value => ({ "DELETE": value }),
-      MOVE: value => ({ "MOVE": se_ContextMove(value, context) }),
+      MOVE: value => ({ "MOVE": se_ContextMoveBulkRequest(value, context) }),
       PUT: value => ({ "PUT": se_ContextPut(value, context) }),
       REPLACE: value => ({ "REPLACE": se_UpdateContextOverrideRequest(value, context) }),
       _: (name, value) => ({ name: value } as any)
@@ -4404,7 +4393,19 @@ const de_CommandError = async(
       'change_reason': [],
       'context': _ => se_Condition(_, context),
       'description': [],
+    });
+  }
+
+  /**
+   * serializeAws_restJson1ContextMoveBulkRequest
+   */
+  const se_ContextMoveBulkRequest = (
+    input: ContextMoveBulkRequest,
+    context: __SerdeContext
+  ): any => {
+    return take(input, {
       'id': [],
+      'request': _ => se_ContextMove(_, context),
     });
   }
 
@@ -4540,7 +4541,7 @@ const de_CommandError = async(
       'context_id': [],
       'id': [],
       'override_id': [],
-      'overrides': _ => se_Document(_, context),
+      'overrides': _ => se_Overrides(_, context),
       'variant_type': [],
     });
   }
@@ -4554,7 +4555,7 @@ const de_CommandError = async(
   ): any => {
     return take(input, {
       'id': [],
-      'overrides': _ => se_Document(_, context),
+      'overrides': _ => se_Overrides(_, context),
     });
   }
 
@@ -4579,6 +4580,7 @@ const de_CommandError = async(
   ): AuditLogFull => {
     return take(output, {
       'action': __expectString,
+      'id': __expectString,
       'new_data': (_: any) => de_Document(_, context),
       'original_data': (_: any) => de_Document(_, context),
       'query': __expectString,
@@ -4617,18 +4619,6 @@ const de_CommandError = async(
       return _json(entry);
     });
     return retVal;
-  }
-
-  /**
-   * deserializeAws_restJson1BulkOperationOut
-   */
-  const de_BulkOperationOut = (
-    output: any,
-    context: __SerdeContext
-  ): BulkOperationOut => {
-    return take(output, {
-      'output': (_: any) => de_BulkOperationOutList(_, context),
-    }) as any;
   }
 
   /**
@@ -4740,12 +4730,12 @@ const de_CommandError = async(
   }
 
   /**
-   * deserializeAws_restJson1DefaultConfigFull
+   * deserializeAws_restJson1DefaultConfigResponse
    */
-  const de_DefaultConfigFull = (
+  const de_DefaultConfigResponse = (
     output: any,
     context: __SerdeContext
-  ): DefaultConfigFull => {
+  ): DefaultConfigResponse => {
     return take(output, {
       'autocomplete_function_name': __expectString,
       'change_reason': __expectString,
@@ -4761,7 +4751,7 @@ const de_CommandError = async(
     }) as any;
   }
 
-  // de_DepedendencyGraph omitted.
+  // de_DependencyGraph omitted.
 
   /**
    * deserializeAws_restJson1DimensionData
@@ -4780,12 +4770,40 @@ const de_CommandError = async(
     }, {} as Record<string, DimensionInfo>);}
 
   /**
-   * deserializeAws_restJson1DimensionExt
+   * deserializeAws_restJson1DimensionInfo
    */
-  const de_DimensionExt = (
+  const de_DimensionInfo = (
     output: any,
     context: __SerdeContext
-  ): DimensionExt => {
+  ): DimensionInfo => {
+    return take(output, {
+      'dependency_graph': _json,
+      'dimension_type': (_: any) => _json(__expectUnion(_)),
+      'position': __expectInt32,
+      'schema': (_: any) => de_Object(_, context),
+    }) as any;
+  }
+
+  /**
+   * deserializeAws_restJson1DimensionList
+   */
+  const de_DimensionList = (
+    output: any,
+    context: __SerdeContext
+  ): (DimensionResponse)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_DimensionResponse(entry, context);
+    });
+    return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1DimensionResponse
+   */
+  const de_DimensionResponse = (
+    output: any,
+    context: __SerdeContext
+  ): DimensionResponse => {
     return take(output, {
       'autocomplete_function_name': __expectString,
       'change_reason': __expectString,
@@ -4799,34 +4817,6 @@ const de_CommandError = async(
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
       'mandatory': __expectBoolean,
-      'position': __expectInt32,
-      'schema': (_: any) => de_Object(_, context),
-    }) as any;
-  }
-
-  /**
-   * deserializeAws_restJson1DimensionExtList
-   */
-  const de_DimensionExtList = (
-    output: any,
-    context: __SerdeContext
-  ): (DimensionExt)[] => {
-    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
-      return de_DimensionExt(entry, context);
-    });
-    return retVal;
-  }
-
-  /**
-   * deserializeAws_restJson1DimensionInfo
-   */
-  const de_DimensionInfo = (
-    output: any,
-    context: __SerdeContext
-  ): DimensionInfo => {
-    return take(output, {
-      'dependency_graph': _json,
-      'dimension_type': (_: any) => _json(__expectUnion(_)),
       'position': __expectInt32,
       'schema': (_: any) => de_Object(_, context),
     }) as any;
@@ -4975,9 +4965,9 @@ const de_CommandError = async(
   const de_ListDefaultConfigOut = (
     output: any,
     context: __SerdeContext
-  ): (DefaultConfigFull)[] => {
+  ): (DefaultConfigResponse)[] => {
     const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
-      return de_DefaultConfigFull(entry, context);
+      return de_DefaultConfigResponse(entry, context);
     });
     return retVal;
   }
@@ -5159,7 +5149,7 @@ const de_CommandError = async(
       'context_id': __expectString,
       'id': __expectString,
       'override_id': __expectString,
-      'overrides': (_: any) => de_Document(_, context),
+      'overrides': (_: any) => de_Overrides(_, context),
       'variant_type': __expectString,
     }) as any;
   }

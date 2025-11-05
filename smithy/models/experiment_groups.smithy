@@ -148,7 +148,7 @@ structure ModifyMembersToGroupRequest for ExperimentGroup with [WorkspaceMixin] 
     $change_reason
 
     @required
-    @documentation("List of experiment IDs to add to this group.")
+    @documentation("List of experiment IDs to add/remove to this group.")
     $member_experiment_ids
 }
 
@@ -270,6 +270,7 @@ operation ListExperimentGroups {
     }
 
     output := with [PaginatedResponse] {
+        @required
         data: ExperimentGroupList
     }
 }

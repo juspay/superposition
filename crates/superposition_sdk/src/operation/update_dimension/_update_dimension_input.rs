@@ -13,13 +13,13 @@ pub struct UpdateDimensionInput  {
     pub schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
     pub position: ::std::option::Option<i32>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateDimensionInput  {
@@ -43,7 +43,7 @@ impl  UpdateDimensionInput  {
     pub fn position(&self) -> ::std::option::Option<i32> {
         self.position
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn function_name(&self) -> ::std::option::Option<&str> {
         self.function_name.as_deref()
     }
@@ -55,7 +55,7 @@ impl  UpdateDimensionInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
         self.autocomplete_function_name.as_deref()
     }
@@ -156,16 +156,16 @@ impl UpdateDimensionInputBuilder {
     pub fn get_position(&self) -> &::std::option::Option<i32> {
         &self.position
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.function_name = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }
@@ -196,16 +196,16 @@ impl UpdateDimensionInputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.autocomplete_function_name = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.autocomplete_function_name = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.autocomplete_function_name
     }

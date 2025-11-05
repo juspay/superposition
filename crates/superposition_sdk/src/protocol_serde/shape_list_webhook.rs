@@ -37,7 +37,7 @@ pub fn de_list_webhook_http_response(_response_status: u16, _response_headers: &
         #[allow(unused_mut)]
         let mut output = crate::operation::list_webhook::builders::ListWebhookOutputBuilder::default();
         output = crate::protocol_serde::shape_list_webhook::de_list_webhook(_response_body, output).map_err(crate::operation::list_webhook::ListWebhookError::unhandled)?;
-        output.build()
+        crate::serde_util::list_webhook_output_output_correct_errors(output).build().map_err(crate::operation::list_webhook::ListWebhookError::unhandled)?
     })
 }
 

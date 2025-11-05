@@ -34,10 +34,8 @@ public final class UpdateFunctionInput implements SerializableStruct {
         .putMember("description", PreludeSchemas.STRING)
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("function", PreludeSchemas.STRING,
-                new RequiredTrait())
-        .putMember("runtime_version", PreludeSchemas.STRING,
-                new RequiredTrait())
+        .putMember("function", PreludeSchemas.STRING)
+        .putMember("runtime_version", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -136,8 +134,12 @@ public final class UpdateFunctionInput implements SerializableStruct {
             serializer.writeString($SCHEMA_DESCRIPTION, description);
         }
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
-        serializer.writeString($SCHEMA_FUNCTION, function);
-        serializer.writeString($SCHEMA_RUNTIME_VERSION, runtimeVersion);
+        if (function != null) {
+            serializer.writeString($SCHEMA_FUNCTION, function);
+        }
+        if (runtimeVersion != null) {
+            serializer.writeString($SCHEMA_RUNTIME_VERSION, runtimeVersion);
+        }
     }
 
     @Override
@@ -148,9 +150,9 @@ public final class UpdateFunctionInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, function);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, runtimeVersion);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, function);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, runtimeVersion);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -250,22 +252,18 @@ public final class UpdateFunctionInput implements SerializableStruct {
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder function(String function) {
-            this.function = Objects.requireNonNull(function, "function cannot be null");
-            tracker.setMember($SCHEMA_FUNCTION);
+            this.function = function;
             return this;
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder runtimeVersion(String runtimeVersion) {
-            this.runtimeVersion = Objects.requireNonNull(runtimeVersion, "runtimeVersion cannot be null");
-            tracker.setMember($SCHEMA_RUNTIME_VERSION);
+            this.runtimeVersion = runtimeVersion;
             return this;
         }
 
@@ -283,9 +281,9 @@ public final class UpdateFunctionInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 4 -> function((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, value));
-                case 5 -> runtimeVersion((String) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
-                case 6 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 5 -> function((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, value));
+                case 6 -> runtimeVersion((String) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -306,12 +304,6 @@ public final class UpdateFunctionInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_CHANGE_REASON)) {
                 changeReason("");
-            }
-            if (!tracker.checkMember($SCHEMA_FUNCTION)) {
-                function("");
-            }
-            if (!tracker.checkMember($SCHEMA_RUNTIME_VERSION)) {
-                runtimeVersion("");
             }
             return this;
         }
@@ -338,9 +330,9 @@ public final class UpdateFunctionInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.functionName(de.readString(member));
                     case 3 -> builder.changeReason(de.readString(member));
-                    case 4 -> builder.function(de.readString(member));
-                    case 5 -> builder.runtimeVersion(de.readString(member));
-                    case 6 -> builder.description(de.readString(member));
+                    case 4 -> builder.description(de.readString(member));
+                    case 5 -> builder.function(de.readString(member));
+                    case 6 -> builder.runtimeVersion(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

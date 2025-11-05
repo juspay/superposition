@@ -6,25 +6,25 @@ pub struct GetContextOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub value: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub value: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub r#override: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
-    pub override_id: ::std::option::Option<::std::string::String>,
+    pub override_id: ::std::string::String,
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub weight: ::std::option::Option<::std::string::String>,
+    pub weight: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub description: ::std::option::Option<::std::string::String>,
+    pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub change_reason: ::std::option::Option<::std::string::String>,
+    pub change_reason: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
-    pub created_by: ::std::option::Option<::std::string::String>,
+    pub created_by: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub last_modified_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
-    pub last_modified_by: ::std::option::Option<::std::string::String>,
+    pub last_modified_by: ::std::string::String,
 }
 impl  GetContextOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -32,44 +32,44 @@ impl  GetContextOutput  {
         use std::ops::Deref; self.id.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn value(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.value.as_ref()
+    pub fn value(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+        &self.value
     }
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn r#override(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.r#override.as_ref()
+    pub fn r#override(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+        &self.r#override
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn override_id(&self) -> ::std::option::Option<&str> {
-        self.override_id.as_deref()
+    pub fn override_id(&self) -> &str {
+        use std::ops::Deref; self.override_id.deref()
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub fn weight(&self) -> ::std::option::Option<&str> {
-        self.weight.as_deref()
+    pub fn weight(&self) -> &str {
+        use std::ops::Deref; self.weight.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn description(&self) -> ::std::option::Option<&str> {
-        self.description.as_deref()
+    pub fn description(&self) -> &str {
+        use std::ops::Deref; self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn change_reason(&self) -> ::std::option::Option<&str> {
-        self.change_reason.as_deref()
+    pub fn change_reason(&self) -> &str {
+        use std::ops::Deref; self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn created_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
-        self.created_at.as_ref()
+    pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
+        &self.created_at
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn created_by(&self) -> ::std::option::Option<&str> {
-        self.created_by.as_deref()
+    pub fn created_by(&self) -> &str {
+        use std::ops::Deref; self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn last_modified_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
-        self.last_modified_at.as_ref()
+    pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
+        &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn last_modified_by(&self) -> ::std::option::Option<&str> {
-        self.last_modified_by.as_deref()
+    pub fn last_modified_by(&self) -> &str {
+        use std::ops::Deref; self.last_modified_by.deref()
     }
 }
 impl GetContextOutput {
@@ -149,6 +149,7 @@ impl GetContextOutputBuilder {
         &self.r#override
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn override_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.override_id = ::std::option::Option::Some(input.into());
         self
@@ -162,6 +163,7 @@ impl GetContextOutputBuilder {
         &self.override_id
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+    /// This field is required.
     pub fn weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.weight = ::std::option::Option::Some(input.into());
         self
@@ -175,6 +177,7 @@ impl GetContextOutputBuilder {
         &self.weight
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
@@ -188,6 +191,7 @@ impl GetContextOutputBuilder {
         &self.description
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
@@ -201,6 +205,7 @@ impl GetContextOutputBuilder {
         &self.change_reason
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn created_at(mut self, input: ::aws_smithy_types::DateTime) -> Self {
         self.created_at = ::std::option::Option::Some(input);
         self
@@ -214,6 +219,7 @@ impl GetContextOutputBuilder {
         &self.created_at
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
@@ -227,6 +233,7 @@ impl GetContextOutputBuilder {
         &self.created_by
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn last_modified_at(mut self, input: ::aws_smithy_types::DateTime) -> Self {
         self.last_modified_at = ::std::option::Option::Some(input);
         self
@@ -240,6 +247,7 @@ impl GetContextOutputBuilder {
         &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
@@ -255,6 +263,16 @@ impl GetContextOutputBuilder {
     /// Consumes the builder and constructs a [`GetContextOutput`](crate::operation::get_context::GetContextOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::operation::get_context::builders::GetContextOutputBuilder::id)
+    /// - [`value`](crate::operation::get_context::builders::GetContextOutputBuilder::value)
+    /// - [`r#override`](crate::operation::get_context::builders::GetContextOutputBuilder::override)
+    /// - [`override_id`](crate::operation::get_context::builders::GetContextOutputBuilder::override_id)
+    /// - [`weight`](crate::operation::get_context::builders::GetContextOutputBuilder::weight)
+    /// - [`description`](crate::operation::get_context::builders::GetContextOutputBuilder::description)
+    /// - [`change_reason`](crate::operation::get_context::builders::GetContextOutputBuilder::change_reason)
+    /// - [`created_at`](crate::operation::get_context::builders::GetContextOutputBuilder::created_at)
+    /// - [`created_by`](crate::operation::get_context::builders::GetContextOutputBuilder::created_by)
+    /// - [`last_modified_at`](crate::operation::get_context::builders::GetContextOutputBuilder::last_modified_at)
+    /// - [`last_modified_by`](crate::operation::get_context::builders::GetContextOutputBuilder::last_modified_by)
     pub fn build(self) -> ::std::result::Result<crate::operation::get_context::GetContextOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::get_context::GetContextOutput {
@@ -264,24 +282,54 @@ impl GetContextOutputBuilder {
                     )?
                 ,
                 value: self.value
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("value", "value was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 r#override: self.r#override
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("r#override", "r#override was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 override_id: self.override_id
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("override_id", "override_id was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 weight: self.weight
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("weight", "weight was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 description: self.description
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("description", "description was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 change_reason: self.change_reason
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 created_at: self.created_at
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_at", "created_at was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 created_by: self.created_by
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_by", "created_by was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 last_modified_at: self.last_modified_at
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_at", "last_modified_at was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
                 last_modified_by: self.last_modified_by
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_by", "last_modified_by was not specified but it is required when building GetContextOutput")
+                    )?
                 ,
             }
         )

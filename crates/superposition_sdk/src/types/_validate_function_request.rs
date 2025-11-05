@@ -4,18 +4,18 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ValidateFunctionRequest  {
     #[allow(missing_docs)] // documentation missing in model
-    pub key: ::std::option::Option<::std::string::String>,
+    pub key: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub value: ::std::option::Option<::aws_smithy_types::Document>,
+    pub value: ::aws_smithy_types::Document,
 }
 impl  ValidateFunctionRequest  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn key(&self) -> ::std::option::Option<&str> {
-        self.key.as_deref()
+    pub fn key(&self) -> &str {
+        use std::ops::Deref; self.key.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn value(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
-        self.value.as_ref()
+    pub fn value(&self) -> &::aws_smithy_types::Document {
+        &self.value
     }
 }
 impl ValidateFunctionRequest {
@@ -34,6 +34,7 @@ pub struct ValidateFunctionRequestBuilder {
 }
 impl ValidateFunctionRequestBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.key = ::std::option::Option::Some(input.into());
         self
@@ -47,6 +48,7 @@ impl ValidateFunctionRequestBuilder {
         &self.key
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn value(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.value = ::std::option::Option::Some(input);
         self
@@ -60,13 +62,24 @@ impl ValidateFunctionRequestBuilder {
         &self.value
     }
     /// Consumes the builder and constructs a [`ValidateFunctionRequest`](crate::types::ValidateFunctionRequest).
-    pub fn build(self) -> crate::types::ValidateFunctionRequest {
-        crate::types::ValidateFunctionRequest {
-            key: self.key
-            ,
-            value: self.value
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`key`](crate::types::builders::ValidateFunctionRequestBuilder::key)
+    /// - [`value`](crate::types::builders::ValidateFunctionRequestBuilder::value)
+    pub fn build(self) -> ::std::result::Result<crate::types::ValidateFunctionRequest, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::types::ValidateFunctionRequest {
+                key: self.key
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("key", "key was not specified but it is required when building ValidateFunctionRequest")
+                    )?
+                ,
+                value: self.value
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("value", "value was not specified but it is required when building ValidateFunctionRequest")
+                    )?
+                ,
+            }
+        )
     }
 }
 

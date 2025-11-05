@@ -142,7 +142,6 @@ impl UpdateWebhookInputBuilder {
         &self.name
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
@@ -156,7 +155,6 @@ impl UpdateWebhookInputBuilder {
         &self.description
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn enabled(mut self, input: bool) -> Self {
         self.enabled = ::std::option::Option::Some(input);
         self
@@ -170,7 +168,6 @@ impl UpdateWebhookInputBuilder {
         &self.enabled
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn url(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.url = ::std::option::Option::Some(input.into());
         self
@@ -184,7 +181,6 @@ impl UpdateWebhookInputBuilder {
         &self.url
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn method(mut self, input: crate::types::HttpMethod) -> Self {
         self.method = ::std::option::Option::Some(input);
         self

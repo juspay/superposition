@@ -37,7 +37,7 @@ pub fn de_get_type_templates_list_http_response(_response_status: u16, _response
         #[allow(unused_mut)]
         let mut output = crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder::default();
         output = crate::protocol_serde::shape_get_type_templates_list::de_get_type_templates_list(_response_body, output).map_err(crate::operation::get_type_templates_list::GetTypeTemplatesListError::unhandled)?;
-        output.build()
+        crate::serde_util::get_type_templates_list_output_output_correct_errors(output).build().map_err(crate::operation::get_type_templates_list::GetTypeTemplatesListError::unhandled)?
     })
 }
 

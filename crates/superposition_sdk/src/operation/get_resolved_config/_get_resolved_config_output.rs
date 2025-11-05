@@ -4,26 +4,26 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct GetResolvedConfigOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub config: ::std::option::Option<::aws_smithy_types::Document>,
+    pub config: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
-    pub version: ::std::option::Option<::std::string::String>,
+    pub version: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub last_modified: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub audit_id: ::std::option::Option<::std::string::String>,
 }
 impl  GetResolvedConfigOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
-        self.config.as_ref()
+    pub fn config(&self) -> &::aws_smithy_types::Document {
+        &self.config
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn version(&self) -> ::std::option::Option<&str> {
-        self.version.as_deref()
+    pub fn version(&self) -> &str {
+        use std::ops::Deref; self.version.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn last_modified(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
-        self.last_modified.as_ref()
+    pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
+        &self.last_modified
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn audit_id(&self) -> ::std::option::Option<&str> {
@@ -48,6 +48,7 @@ pub struct GetResolvedConfigOutputBuilder {
 }
 impl GetResolvedConfigOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn config(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.config = ::std::option::Option::Some(input);
         self
@@ -61,6 +62,7 @@ impl GetResolvedConfigOutputBuilder {
         &self.config
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.version = ::std::option::Option::Some(input.into());
         self
@@ -74,6 +76,7 @@ impl GetResolvedConfigOutputBuilder {
         &self.version
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn last_modified(mut self, input: ::aws_smithy_types::DateTime) -> Self {
         self.last_modified = ::std::option::Option::Some(input);
         self
@@ -100,17 +103,32 @@ impl GetResolvedConfigOutputBuilder {
         &self.audit_id
     }
     /// Consumes the builder and constructs a [`GetResolvedConfigOutput`](crate::operation::get_resolved_config::GetResolvedConfigOutput).
-    pub fn build(self) -> crate::operation::get_resolved_config::GetResolvedConfigOutput {
-        crate::operation::get_resolved_config::GetResolvedConfigOutput {
-            config: self.config
-            ,
-            version: self.version
-            ,
-            last_modified: self.last_modified
-            ,
-            audit_id: self.audit_id
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`config`](crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder::config)
+    /// - [`version`](crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder::version)
+    /// - [`last_modified`](crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder::last_modified)
+    pub fn build(self) -> ::std::result::Result<crate::operation::get_resolved_config::GetResolvedConfigOutput, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::operation::get_resolved_config::GetResolvedConfigOutput {
+                config: self.config
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("config", "config was not specified but it is required when building GetResolvedConfigOutput")
+                    )?
+                ,
+                version: self.version
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("version", "version was not specified but it is required when building GetResolvedConfigOutput")
+                    )?
+                ,
+                last_modified: self.last_modified
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified", "last_modified was not specified but it is required when building GetResolvedConfigOutput")
+                    )?
+                ,
+                audit_id: self.audit_id
+                ,
+            }
+        )
     }
 }
 

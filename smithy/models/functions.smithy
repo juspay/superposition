@@ -55,13 +55,21 @@ union FunctionExecutionRequest for Function {
 }
 
 structure ValidateFunctionRequest {
+    @required
     key: String
+
+    @required
     value: Document
 }
 
 structure AutocompleteFunctionRequest {
+    @required
     name: String
+
+    @required
     prefix: String
+
+    @required
     environment: Document
 }
 
@@ -111,11 +119,9 @@ structure UpdateFunctionRequest for Function with [WorkspaceMixin] {
     @required
     $change_reason
 
-    @required
     @notProperty
     function: String
 
-    @required
     @notProperty
     runtime_version: String
 }
@@ -198,6 +204,7 @@ operation ListFunction {
     }
 
     output := with [PaginatedResponse] {
+        @required
         data: FunctionListResponse
     }
 }
@@ -213,7 +220,7 @@ operation UpdateFunction with [GetOperation] {
 
 @documentation("Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use")
 @idempotent
-@http(method: "DELETE", uri: "/function/{function_name}")
+@http(method: "DELETE", uri: "/function/{function_name}", code: 204)
 @tags(["Functions"])
 operation DeleteFunction with [GetOperation] {
     input := for Function with [WorkspaceMixin] {

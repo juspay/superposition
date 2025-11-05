@@ -138,7 +138,6 @@ impl UpdateFunctionInputBuilder {
         &self.change_reason
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn function(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.function = ::std::option::Option::Some(input.into());
         self
@@ -152,7 +151,6 @@ impl UpdateFunctionInputBuilder {
         &self.function
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn runtime_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.runtime_version = ::std::option::Option::Some(input.into());
         self

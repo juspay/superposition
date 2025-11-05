@@ -49,13 +49,13 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  *   stage: "draft" || "published", // required
  *   request: { // FunctionExecutionRequest Union: only one key present
  *     ValidateFunctionRequest: { // ValidateFunctionRequest
- *       key: "STRING_VALUE",
- *       value: "DOCUMENT_VALUE",
+ *       key: "STRING_VALUE", // required
+ *       value: "DOCUMENT_VALUE", // required
  *     },
  *     AutocompleteFunctionRequest: { // AutocompleteFunctionRequest
- *       name: "STRING_VALUE",
- *       prefix: "STRING_VALUE",
- *       environment: "DOCUMENT_VALUE",
+ *       name: "STRING_VALUE", // required
+ *       prefix: "STRING_VALUE", // required
+ *       environment: "DOCUMENT_VALUE", // required
  *     },
  *   },
  * };

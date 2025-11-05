@@ -7,7 +7,14 @@ pub fn ser_variant_update_request(
         object.key("id").string(input.id.as_str());
     }
      {
-        object.key("overrides").document(&input.overrides);
+        #[allow(unused_mut)]
+        let mut object_1 = object.key("overrides").start_object();
+        for (key_2, value_3) in &input.overrides {
+             {
+                object_1.key(key_2.as_str()).document(value_3);
+            }
+        }
+        object_1.finish();
     }
     Ok(())
 }

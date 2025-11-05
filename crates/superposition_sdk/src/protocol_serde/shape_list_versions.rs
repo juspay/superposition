@@ -37,7 +37,7 @@ pub fn de_list_versions_http_response(_response_status: u16, _response_headers: 
         #[allow(unused_mut)]
         let mut output = crate::operation::list_versions::builders::ListVersionsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_versions::de_list_versions(_response_body, output).map_err(crate::operation::list_versions::ListVersionsError::unhandled)?;
-        output.build()
+        crate::serde_util::list_versions_output_output_correct_errors(output).build().map_err(crate::operation::list_versions::ListVersionsError::unhandled)?
     })
 }
 

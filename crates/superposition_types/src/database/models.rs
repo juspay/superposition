@@ -207,7 +207,7 @@ pub enum OrgStatus {
 #[cfg_attr(feature = "diesel_derives", diesel(treat_none_as_null = true))]
 pub struct Organisation {
     pub id: String,
-    pub name: String,
+    pub name: NonEmptyString,
     pub country_code: Option<String>,
     pub contact_email: Option<String>,
     pub contact_phone: Option<String>,
@@ -263,7 +263,7 @@ impl FromStr for WorkspaceStatus {
 )]
 pub struct Workspace {
     pub organisation_id: String,
-    pub organisation_name: String,
+    pub organisation_name: NonEmptyString,
     pub workspace_name: String,
     pub workspace_schema_name: String,
     pub workspace_status: WorkspaceStatus,

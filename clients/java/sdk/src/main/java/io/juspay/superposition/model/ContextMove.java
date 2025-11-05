@@ -23,7 +23,6 @@ public final class ContextMove implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ContextMove");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("id", PreludeSchemas.STRING)
         .putMember("context", SharedSchemas.CONDITION,
                 new RequiredTrait())
         .putMember("description", PreludeSchemas.STRING)
@@ -31,25 +30,18 @@ public final class ContextMove implements SerializableStruct {
                 new RequiredTrait())
         .build();
 
-    private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
 
-    private final transient String id;
     private final transient Map<String, Document> context;
     private final transient String description;
     private final transient String changeReason;
 
     private ContextMove(Builder builder) {
-        this.id = builder.id;
         this.context = Collections.unmodifiableMap(builder.context);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
-    }
-
-    public String id() {
-        return id;
     }
 
     public Map<String, Document> context() {
@@ -82,15 +74,14 @@ public final class ContextMove implements SerializableStruct {
             return false;
         }
         ContextMove that = (ContextMove) other;
-        return Objects.equals(this.id, that.id)
-               && Objects.equals(this.context, that.context)
+        return Objects.equals(this.context, that.context)
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, context, description, changeReason);
+        return Objects.hash(context, description, changeReason);
     }
 
     @Override
@@ -100,9 +91,6 @@ public final class ContextMove implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (id != null) {
-            serializer.writeString($SCHEMA_ID, id);
-        }
         serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ConditionSerializer.INSTANCE);
         if (description != null) {
             serializer.writeString($SCHEMA_DESCRIPTION, description);
@@ -116,8 +104,7 @@ public final class ContextMove implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -131,7 +118,6 @@ public final class ContextMove implements SerializableStruct {
      */
     public Builder toBuilder() {
         var builder = new Builder();
-        builder.id(this.id);
         builder.context(this.context);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
@@ -150,7 +136,6 @@ public final class ContextMove implements SerializableStruct {
      */
     public static final class Builder implements ShapeBuilder<ContextMove> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
-        private String id;
         private Map<String, Document> context;
         private String description;
         private String changeReason;
@@ -160,14 +145,6 @@ public final class ContextMove implements SerializableStruct {
         @Override
         public Schema schema() {
             return $SCHEMA;
-        }
-
-        /**
-         * @return this builder.
-         */
-        public Builder id(String id) {
-            this.id = id;
-            return this;
         }
 
         /**
@@ -210,8 +187,7 @@ public final class ContextMove implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 case 1 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 2 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
-                case 3 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 2 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -250,8 +226,7 @@ public final class ContextMove implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.context(SharedSerde.deserializeCondition(member, de));
                     case 1 -> builder.changeReason(de.readString(member));
-                    case 2 -> builder.id(de.readString(member));
-                    case 3 -> builder.description(de.readString(member));
+                    case 2 -> builder.description(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

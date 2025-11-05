@@ -3,6 +3,7 @@ package io.juspay.superposition.model;
 
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -12,6 +13,7 @@ import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -19,8 +21,10 @@ public final class ValidateFunctionRequest implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ValidateFunctionRequest");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("key", PreludeSchemas.STRING)
-        .putMember("value", PreludeSchemas.DOCUMENT)
+        .putMember("key", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("value", PreludeSchemas.DOCUMENT,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_KEY = $SCHEMA.member("key");
@@ -72,12 +76,8 @@ public final class ValidateFunctionRequest implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (key != null) {
-            serializer.writeString($SCHEMA_KEY, key);
-        }
-        if (value != null) {
-            serializer.writeDocument($SCHEMA_VALUE, value);
-        }
+        serializer.writeString($SCHEMA_KEY, key);
+        serializer.writeDocument($SCHEMA_VALUE, value);
     }
 
     @Override
@@ -115,6 +115,7 @@ public final class ValidateFunctionRequest implements SerializableStruct {
      * Builder for {@link ValidateFunctionRequest}.
      */
     public static final class Builder implements ShapeBuilder<ValidateFunctionRequest> {
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String key;
         private Document value;
 
@@ -126,23 +127,28 @@ public final class ValidateFunctionRequest implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder key(String key) {
-            this.key = key;
+            this.key = Objects.requireNonNull(key, "key cannot be null");
+            tracker.setMember($SCHEMA_KEY);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder value(Document value) {
-            this.value = value;
+            this.value = Objects.requireNonNull(value, "value cannot be null");
+            tracker.setMember($SCHEMA_VALUE);
             return this;
         }
 
         @Override
         public ValidateFunctionRequest build() {
+            tracker.validate();
             return new ValidateFunctionRequest(this);
         }
 
@@ -154,6 +160,20 @@ public final class ValidateFunctionRequest implements SerializableStruct {
                 case 1 -> value((Document) SchemaUtils.validateSameMember($SCHEMA_VALUE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<ValidateFunctionRequest> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_KEY)) {
+                key("");
+            }
+            if (!tracker.checkMember($SCHEMA_VALUE)) {
+                tracker.setMember($SCHEMA_VALUE);
+            }
+            return this;
         }
 
         @Override

@@ -4,30 +4,30 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct WeightRecomputeResponse  {
     #[allow(missing_docs)] // documentation missing in model
-    pub id: ::std::option::Option<::std::string::String>,
+    pub id: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub condition: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub condition: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub old_weight: ::std::option::Option<::std::string::String>,
+    pub old_weight: ::std::string::String,
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub new_weight: ::std::option::Option<::std::string::String>,
+    pub new_weight: ::std::string::String,
 }
 impl  WeightRecomputeResponse  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn id(&self) -> ::std::option::Option<&str> {
-        self.id.as_deref()
+    pub fn id(&self) -> &str {
+        use std::ops::Deref; self.id.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-        self.condition.as_ref()
+    pub fn condition(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+        &self.condition
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub fn old_weight(&self) -> ::std::option::Option<&str> {
-        self.old_weight.as_deref()
+    pub fn old_weight(&self) -> &str {
+        use std::ops::Deref; self.old_weight.deref()
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub fn new_weight(&self) -> ::std::option::Option<&str> {
-        self.new_weight.as_deref()
+    pub fn new_weight(&self) -> &str {
+        use std::ops::Deref; self.new_weight.deref()
     }
 }
 impl WeightRecomputeResponse {
@@ -48,6 +48,7 @@ pub struct WeightRecomputeResponseBuilder {
 }
 impl WeightRecomputeResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.id = ::std::option::Option::Some(input.into());
         self
@@ -80,6 +81,7 @@ impl WeightRecomputeResponseBuilder {
         &self.condition
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+    /// This field is required.
     pub fn old_weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.old_weight = ::std::option::Option::Some(input.into());
         self
@@ -93,6 +95,7 @@ impl WeightRecomputeResponseBuilder {
         &self.old_weight
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
+    /// This field is required.
     pub fn new_weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.new_weight = ::std::option::Option::Some(input.into());
         self
@@ -106,17 +109,36 @@ impl WeightRecomputeResponseBuilder {
         &self.new_weight
     }
     /// Consumes the builder and constructs a [`WeightRecomputeResponse`](crate::types::WeightRecomputeResponse).
-    pub fn build(self) -> crate::types::WeightRecomputeResponse {
-        crate::types::WeightRecomputeResponse {
-            id: self.id
-            ,
-            condition: self.condition
-            ,
-            old_weight: self.old_weight
-            ,
-            new_weight: self.new_weight
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`id`](crate::types::builders::WeightRecomputeResponseBuilder::id)
+    /// - [`condition`](crate::types::builders::WeightRecomputeResponseBuilder::condition)
+    /// - [`old_weight`](crate::types::builders::WeightRecomputeResponseBuilder::old_weight)
+    /// - [`new_weight`](crate::types::builders::WeightRecomputeResponseBuilder::new_weight)
+    pub fn build(self) -> ::std::result::Result<crate::types::WeightRecomputeResponse, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::types::WeightRecomputeResponse {
+                id: self.id
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("id", "id was not specified but it is required when building WeightRecomputeResponse")
+                    )?
+                ,
+                condition: self.condition
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("condition", "condition was not specified but it is required when building WeightRecomputeResponse")
+                    )?
+                ,
+                old_weight: self.old_weight
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("old_weight", "old_weight was not specified but it is required when building WeightRecomputeResponse")
+                    )?
+                ,
+                new_weight: self.new_weight
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("new_weight", "new_weight was not specified but it is required when building WeightRecomputeResponse")
+                    )?
+                ,
+            }
+        )
     }
 }
 

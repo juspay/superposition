@@ -25,9 +25,9 @@ import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data ListOrganisationOutput = ListOrganisationOutput {
-    total_pages :: Data.Maybe.Maybe Data.Int.Int32,
-    total_items :: Data.Maybe.Maybe Data.Int.Int32,
-    data' :: Data.Maybe.Maybe ([] Io.Superposition.Model.OrganisationResponse.OrganisationResponse)
+    total_pages :: Data.Int.Int32,
+    total_items :: Data.Int.Int32,
+    data' :: [] Io.Superposition.Model.OrganisationResponse.OrganisationResponse
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -70,24 +70,24 @@ defaultBuilderState = ListOrganisationOutputBuilderState {
 
 type ListOrganisationOutputBuilder = Control.Monad.State.Strict.State ListOrganisationOutputBuilderState
 
-setTotalPages :: Data.Maybe.Maybe Data.Int.Int32 -> ListOrganisationOutputBuilder ()
+setTotalPages :: Data.Int.Int32 -> ListOrganisationOutputBuilder ()
 setTotalPages value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = Data.Maybe.Just value }))
 
-setTotalItems :: Data.Maybe.Maybe Data.Int.Int32 -> ListOrganisationOutputBuilder ()
+setTotalItems :: Data.Int.Int32 -> ListOrganisationOutputBuilder ()
 setTotalItems value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = Data.Maybe.Just value }))
 
-setData' :: Data.Maybe.Maybe ([] Io.Superposition.Model.OrganisationResponse.OrganisationResponse) -> ListOrganisationOutputBuilder ()
+setData' :: [] Io.Superposition.Model.OrganisationResponse.OrganisationResponse -> ListOrganisationOutputBuilder ()
 setData' value =
-   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = Data.Maybe.Just value }))
 
 build :: ListOrganisationOutputBuilder () -> Data.Either.Either Data.Text.Text ListOrganisationOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    total_pages' <- Data.Either.Right (total_pagesBuilderState st)
-    total_items' <- Data.Either.Right (total_itemsBuilderState st)
-    data'' <- Data.Either.Right (data'BuilderState st)
+    total_pages' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListOrganisationOutput.ListOrganisationOutput.total_pages is a required property.") Data.Either.Right (total_pagesBuilderState st)
+    total_items' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListOrganisationOutput.ListOrganisationOutput.total_items is a required property.") Data.Either.Right (total_itemsBuilderState st)
+    data'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListOrganisationOutput.ListOrganisationOutput.data' is a required property.") Data.Either.Right (data'BuilderState st)
     Data.Either.Right (ListOrganisationOutput { 
         total_pages = total_pages',
         total_items = total_items',

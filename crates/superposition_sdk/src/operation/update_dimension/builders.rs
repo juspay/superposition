@@ -171,17 +171,17 @@ impl UpdateDimensionFluentBuilder {
     pub fn get_position(&self) -> &::std::option::Option<i32> {
                     self.inner.get_position()
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.function_name(input.into());
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
                     self.inner = self.inner.set_function_name(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_function_name()
                 }
@@ -213,17 +213,17 @@ impl UpdateDimensionFluentBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_change_reason()
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.autocomplete_function_name(input.into());
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
                     self.inner = self.inner.set_autocomplete_function_name(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset the function name, pass "null" string.
     pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_autocomplete_function_name()
                 }

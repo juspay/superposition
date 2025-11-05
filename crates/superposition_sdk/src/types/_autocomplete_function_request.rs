@@ -4,24 +4,24 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct AutocompleteFunctionRequest  {
     #[allow(missing_docs)] // documentation missing in model
-    pub name: ::std::option::Option<::std::string::String>,
+    pub name: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub prefix: ::std::option::Option<::std::string::String>,
+    pub prefix: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub environment: ::std::option::Option<::aws_smithy_types::Document>,
+    pub environment: ::aws_smithy_types::Document,
 }
 impl  AutocompleteFunctionRequest  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn name(&self) -> ::std::option::Option<&str> {
-        self.name.as_deref()
+    pub fn name(&self) -> &str {
+        use std::ops::Deref; self.name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn prefix(&self) -> ::std::option::Option<&str> {
-        self.prefix.as_deref()
+    pub fn prefix(&self) -> &str {
+        use std::ops::Deref; self.prefix.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn environment(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
-        self.environment.as_ref()
+    pub fn environment(&self) -> &::aws_smithy_types::Document {
+        &self.environment
     }
 }
 impl AutocompleteFunctionRequest {
@@ -41,6 +41,7 @@ pub struct AutocompleteFunctionRequestBuilder {
 }
 impl AutocompleteFunctionRequestBuilder {
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
@@ -54,6 +55,7 @@ impl AutocompleteFunctionRequestBuilder {
         &self.name
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.prefix = ::std::option::Option::Some(input.into());
         self
@@ -67,6 +69,7 @@ impl AutocompleteFunctionRequestBuilder {
         &self.prefix
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn environment(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.environment = ::std::option::Option::Some(input);
         self
@@ -80,15 +83,30 @@ impl AutocompleteFunctionRequestBuilder {
         &self.environment
     }
     /// Consumes the builder and constructs a [`AutocompleteFunctionRequest`](crate::types::AutocompleteFunctionRequest).
-    pub fn build(self) -> crate::types::AutocompleteFunctionRequest {
-        crate::types::AutocompleteFunctionRequest {
-            name: self.name
-            ,
-            prefix: self.prefix
-            ,
-            environment: self.environment
-            ,
-        }
+    /// This method will fail if any of the following fields are not set:
+    /// - [`name`](crate::types::builders::AutocompleteFunctionRequestBuilder::name)
+    /// - [`prefix`](crate::types::builders::AutocompleteFunctionRequestBuilder::prefix)
+    /// - [`environment`](crate::types::builders::AutocompleteFunctionRequestBuilder::environment)
+    pub fn build(self) -> ::std::result::Result<crate::types::AutocompleteFunctionRequest, ::aws_smithy_types::error::operation::BuildError> {
+        ::std::result::Result::Ok(
+            crate::types::AutocompleteFunctionRequest {
+                name: self.name
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("name", "name was not specified but it is required when building AutocompleteFunctionRequest")
+                    )?
+                ,
+                prefix: self.prefix
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("prefix", "prefix was not specified but it is required when building AutocompleteFunctionRequest")
+                    )?
+                ,
+                environment: self.environment
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("environment", "environment was not specified but it is required when building AutocompleteFunctionRequest")
+                    )?
+                ,
+            }
+        )
     }
 }
 

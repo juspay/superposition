@@ -37,7 +37,7 @@ pub fn de_list_contexts_http_response(_response_status: u16, _response_headers: 
         #[allow(unused_mut)]
         let mut output = crate::operation::list_contexts::builders::ListContextsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_contexts::de_list_contexts(_response_body, output).map_err(crate::operation::list_contexts::ListContextsError::unhandled)?;
-        output.build()
+        crate::serde_util::list_contexts_output_output_correct_errors(output).build().map_err(crate::operation::list_contexts::ListContextsError::unhandled)?
     })
 }
 

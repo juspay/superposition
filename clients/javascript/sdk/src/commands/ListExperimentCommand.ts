@@ -71,9 +71,9 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * const command = new ListExperimentCommand(input);
  * const response = await client.send(command);
  * // { // ListExperimentOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // ExperimentList
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // ExperimentList // required
  * //     { // ExperimentResponse
  * //       id: "STRING_VALUE", // required
  * //       created_at: new Date("TIMESTAMP"), // required
@@ -95,7 +95,9 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //           variant_type: "CONTROL" || "EXPERIMENTAL", // required
  * //           context_id: "STRING_VALUE",
  * //           override_id: "STRING_VALUE",
- * //           overrides: "DOCUMENT_VALUE", // required
+ * //           overrides: { // Overrides // required
+ * //             "<keys>": "DOCUMENT_VALUE",
+ * //           },
  * //         },
  * //       ],
  * //       last_modified_by: "STRING_VALUE", // required

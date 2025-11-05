@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DimensionExt  {
+pub struct DimensionResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub dimension: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -30,9 +30,9 @@ pub struct DimensionExt  {
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub mandatory: ::std::option::Option<bool>,
+    pub mandatory: bool,
 }
-impl  DimensionExt  {
+impl  DimensionResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn dimension(&self) -> &str {
         use std::ops::Deref; self.dimension.deref()
@@ -86,21 +86,21 @@ impl  DimensionExt  {
         self.autocomplete_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn mandatory(&self) -> ::std::option::Option<bool> {
+    pub fn mandatory(&self) -> bool {
         self.mandatory
     }
 }
-impl DimensionExt {
-    /// Creates a new builder-style object to manufacture [`DimensionExt`](crate::types::DimensionExt).
-    pub fn builder() -> crate::types::builders::DimensionExtBuilder {
-        crate::types::builders::DimensionExtBuilder::default()
+impl DimensionResponse {
+    /// Creates a new builder-style object to manufacture [`DimensionResponse`](crate::types::DimensionResponse).
+    pub fn builder() -> crate::types::builders::DimensionResponseBuilder {
+        crate::types::builders::DimensionResponseBuilder::default()
     }
 }
 
-/// A builder for [`DimensionExt`](crate::types::DimensionExt).
+/// A builder for [`DimensionResponse`](crate::types::DimensionResponse).
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
-pub struct DimensionExtBuilder {
+pub struct DimensionResponseBuilder {
     pub(crate) dimension: ::std::option::Option<::std::string::String>,
     pub(crate) position: ::std::option::Option<i32>,
     pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
@@ -116,7 +116,7 @@ pub struct DimensionExtBuilder {
     pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory: ::std::option::Option<bool>,
 }
-impl DimensionExtBuilder {
+impl DimensionResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn dimension(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -307,6 +307,7 @@ impl DimensionExtBuilder {
         &self.autocomplete_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn mandatory(mut self, input: bool) -> Self {
         self.mandatory = ::std::option::Option::Some(input);
         self
@@ -319,82 +320,86 @@ impl DimensionExtBuilder {
     pub fn get_mandatory(&self) -> &::std::option::Option<bool> {
         &self.mandatory
     }
-    /// Consumes the builder and constructs a [`DimensionExt`](crate::types::DimensionExt).
+    /// Consumes the builder and constructs a [`DimensionResponse`](crate::types::DimensionResponse).
     /// This method will fail if any of the following fields are not set:
-    /// - [`dimension`](crate::types::builders::DimensionExtBuilder::dimension)
-    /// - [`position`](crate::types::builders::DimensionExtBuilder::position)
-    /// - [`schema`](crate::types::builders::DimensionExtBuilder::schema)
-    /// - [`description`](crate::types::builders::DimensionExtBuilder::description)
-    /// - [`change_reason`](crate::types::builders::DimensionExtBuilder::change_reason)
-    /// - [`last_modified_at`](crate::types::builders::DimensionExtBuilder::last_modified_at)
-    /// - [`last_modified_by`](crate::types::builders::DimensionExtBuilder::last_modified_by)
-    /// - [`created_at`](crate::types::builders::DimensionExtBuilder::created_at)
-    /// - [`created_by`](crate::types::builders::DimensionExtBuilder::created_by)
-    /// - [`dependency_graph`](crate::types::builders::DimensionExtBuilder::dependency_graph)
-    /// - [`dimension_type`](crate::types::builders::DimensionExtBuilder::dimension_type)
-    pub fn build(self) -> ::std::result::Result<crate::types::DimensionExt, ::aws_smithy_types::error::operation::BuildError> {
+    /// - [`dimension`](crate::types::builders::DimensionResponseBuilder::dimension)
+    /// - [`position`](crate::types::builders::DimensionResponseBuilder::position)
+    /// - [`schema`](crate::types::builders::DimensionResponseBuilder::schema)
+    /// - [`description`](crate::types::builders::DimensionResponseBuilder::description)
+    /// - [`change_reason`](crate::types::builders::DimensionResponseBuilder::change_reason)
+    /// - [`last_modified_at`](crate::types::builders::DimensionResponseBuilder::last_modified_at)
+    /// - [`last_modified_by`](crate::types::builders::DimensionResponseBuilder::last_modified_by)
+    /// - [`created_at`](crate::types::builders::DimensionResponseBuilder::created_at)
+    /// - [`created_by`](crate::types::builders::DimensionResponseBuilder::created_by)
+    /// - [`dependency_graph`](crate::types::builders::DimensionResponseBuilder::dependency_graph)
+    /// - [`dimension_type`](crate::types::builders::DimensionResponseBuilder::dimension_type)
+    /// - [`mandatory`](crate::types::builders::DimensionResponseBuilder::mandatory)
+    pub fn build(self) -> ::std::result::Result<crate::types::DimensionResponse, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
-            crate::types::DimensionExt {
+            crate::types::DimensionResponse {
                 dimension: self.dimension
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimension", "dimension was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimension", "dimension was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 position: self.position
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("position", "position was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("position", "position was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 schema: self.schema
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("schema", "schema was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("schema", "schema was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 function_name: self.function_name
                 ,
                 description: self.description
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("description", "description was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("description", "description was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 change_reason: self.change_reason
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 last_modified_at: self.last_modified_at
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_at", "last_modified_at was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_at", "last_modified_at was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 last_modified_by: self.last_modified_by
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_by", "last_modified_by was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_by", "last_modified_by was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 created_at: self.created_at
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_at", "created_at was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_at", "created_at was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 created_by: self.created_by
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_by", "created_by was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("created_by", "created_by was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 dependency_graph: self.dependency_graph
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("dependency_graph", "dependency_graph was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dependency_graph", "dependency_graph was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 dimension_type: self.dimension_type
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimension_type", "dimension_type was not specified but it is required when building DimensionExt")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("dimension_type", "dimension_type was not specified but it is required when building DimensionResponse")
                     )?
                 ,
                 autocomplete_function_name: self.autocomplete_function_name
                 ,
                 mandatory: self.mandatory
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("mandatory", "mandatory was not specified but it is required when building DimensionResponse")
+                    )?
                 ,
             }
         )

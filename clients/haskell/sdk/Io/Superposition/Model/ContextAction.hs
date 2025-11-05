@@ -8,7 +8,7 @@ import qualified Data.Functor
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.ContextMove
+import qualified Io.Superposition.Model.ContextMoveBulkRequest
 import qualified Io.Superposition.Model.ContextPut
 import qualified Io.Superposition.Model.UpdateContextOverrideRequest
 import qualified Io.Superposition.Utility
@@ -18,7 +18,7 @@ data ContextAction =
     Put (Io.Superposition.Model.ContextPut.ContextPut)
     | Replace (Io.Superposition.Model.UpdateContextOverrideRequest.UpdateContextOverrideRequest)
     | Delete (Data.Text.Text)
-    | Move (Io.Superposition.Model.ContextMove.ContextMove)
+    | Move (Io.Superposition.Model.ContextMoveBulkRequest.ContextMoveBulkRequest)
     deriving (
     GHC.Generics.Generic,
     GHC.Show.Show,

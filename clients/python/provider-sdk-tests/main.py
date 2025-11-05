@@ -16,6 +16,7 @@ from superposition_sdk.client import (
     Superposition,
 )
 from superposition_sdk.models import (
+    ContextPut,
     CreateContextInput,
     CreateDefaultConfigInput,
     CreateDimensionInput,
@@ -171,61 +172,73 @@ async def create_overrides(client, org_id: str, workspace_id: str):
         {
             "workspace_id": workspace_id,
             "org_id": org_id,
-            "context": {
-                "city": Document("Boston"),
-            },
-            "override": {
-                "currency": Document("Dollar"),
-            },
-            "description": "Bostonian",
-            "change_reason": "testing",
+            "request": ContextPut(
+                context={
+                    "city": Document("Boston"),
+                },
+                override={
+                    "currency": Document("Dollar"),
+                },
+                description="Bostonian",
+                change_reason="testing",
+            )
         },
         {
             "workspace_id": workspace_id,
             "org_id": org_id,
-            "context": {
-                "city": Document("Berlin"),
-            },
-            "override": {
-                "currency": Document("Euro"),
-            },
-            "description": "Berlin",
-            "change_reason": "testing",
+            "request": ContextPut(
+                context={
+                    "city": Document("Berlin"),
+                },
+                override={
+                    "currency": Document("Euro"),
+                },
+                description="Berlin",
+                change_reason="testing",
+            )
         },
         {
             "workspace_id": workspace_id,
             "org_id": org_id,
-            "context": {"customers": Document("platinum")},
-            "override": {
-                "price": Document(5000),
-            },
-            "description": "platinum customer",
-            "change_reason": "testing",
+            "request": ContextPut(
+                context={
+                    "customers": Document("platinum")
+                },
+                override={
+                    "price": Document(5000),
+                },
+                description="platinum customer",
+                change_reason="testing",
+            )
         },
         {
             "workspace_id": workspace_id,
             "org_id": org_id,
-            "context": {
-                "customers": Document("gold"),
-            },
-            "override": {
-                "price": Document(8000),
-            },
-            "description": "gold customers",
-            "change_reason": "testing",
+            "request": ContextPut(
+                context={
+                    "customers": Document("gold"),
+                },
+                override={
+                    "price": Document(8000),
+                },
+                description="gold customers",
+                change_reason="testing",
+            )
         },
         {
             "workspace_id": workspace_id,
             "org_id": org_id,
-            "context": {
-                "name": Document("karbik"),
-                "customers": Document("otherwise"),
-            },
-            "override": {
-                "price": Document(1),
-            },
-            "description": "edge case customer karbik",
-            "change_reason": "testing",
+            "request": ContextPut(
+                context={
+                    "name": Document("karbik"),
+                    "customers": Document("otherwise"),
+                },
+                override={
+                    "price": Document(1),
+                },
+                description="edge case customer karbik",
+                change_reason="testing",
+            )
         },
     ]
 
@@ -252,16 +265,16 @@ async def create_experiments(client, org_id: str, workspace_id: str):
                 Variant(
                     id="test-control",
                     variant_type="CONTROL",
-                    overrides=Document({
+                    overrides={
                         "price": Document(10000)
-                    })
+                    }
                 ),
                 Variant(
                     id="test-experimental",
                     variant_type="EXPERIMENTAL",
-                    overrides=Document({
+                    overrides={
                         "price": Document(7000)
-                    })
+                    }
                 )
             ],
             "description": "A test experiment for Kolkata customers",
@@ -290,7 +303,7 @@ async def create_experiments(client, org_id: str, workspace_id: str):
             print(f"Error occurred while creating experiment: {experiment}", e)
             raise e
 
-    
+
 
 async def setup_with_sdk(client, org_id: str, workspace_id: str):
     print("\n=== Setting up test environment ===\n")
@@ -427,7 +440,7 @@ async def run_demo(org_id: str, workspace_id: str):
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
         print(f"  - Retrieved price: {price}, currency: {currency}")
-        
+
         assert price in [10000, 7000], "Price should be either 10000 (control) or 7000 (experimental) in Kolkata"
         assert currency == "Rupee", "Currency should be Rupee in Kolkata"
         print("  ✓ Experiment Test passed\n")

@@ -52,9 +52,9 @@ export interface ListWebhookCommandOutput extends ListWebhookOutput, __MetadataB
  * const command = new ListWebhookCommand(input);
  * const response = await client.send(command);
  * // { // ListWebhookOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // WebhookList
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // WebhookList // required
  * //     { // WebhookResponse
  * //       name: "STRING_VALUE", // required
  * //       description: "STRING_VALUE", // required

@@ -27,30 +27,23 @@ impl ConversionUtils {
         debug!("Converting get_config response to superposition_types::Config");
 
         // Convert default configs - these are already Value types
-        let default_configs = response
-            .default_configs()
-            .map(Self::convert_condition_document)
-            .unwrap_or_else(|| Ok(Map::new()))?;
+        let default_configs =
+            Self::convert_condition_document(response.default_configs())?;
 
         // Convert overrides - HashMap<String, HashMap<String, Document>>
-        let overrides = response
-            .overrides()
-            .map(|override_map| {
-                let mut result_map = HashMap::new();
-                for (override_key, inner_map) in override_map {
-                    let override_values = Self::convert_condition_document(inner_map)?;
+        let overrides = {
+            let mut result_map = HashMap::new();
+            for (override_key, inner_map) in response.overrides() {
+                let override_values = Self::convert_condition_document(inner_map)?;
 
-                    // Create Overrides directly from Map<String, Value>
-                    let overrides_obj = Cac::<Overrides>::try_from(override_values)
-                        .map_err(|e| {
-                            SuperpositionError::SerializationError(e.to_string())
-                        })?;
+                // Create Overrides directly from Map<String, Value>
+                let overrides_obj = Cac::<Overrides>::try_from(override_values)
+                    .map_err(|e| SuperpositionError::SerializationError(e.to_string()))?;
 
-                    result_map.insert(override_key.clone(), overrides_obj.into_inner());
-                }
-                Ok(result_map)
-            })
-            .unwrap_or_else(|| Ok(HashMap::new()))?;
+                result_map.insert(override_key.clone(), overrides_obj.into_inner());
+            }
+            result_map
+        };
 
         // Convert contexts - Vec<ContextPartial>
         let contexts = response
@@ -58,10 +51,8 @@ impl ConversionUtils {
             .iter()
             .map(|context_partial| {
                 // Convert condition Document to Map<String, Value>
-                let mut condition_map = Map::new();
-                if let Some(condition) = context_partial.condition() {
-                    condition_map = Self::convert_condition_document(condition)?;
-                }
+                let condition_map =
+                    Self::convert_condition_document(context_partial.condition())?;
 
                 // Create Condition directly from Map<String, Value>
                 let condition =
@@ -82,10 +73,10 @@ impl ConversionUtils {
                 })?;
 
                 Ok(Context {
-                    id: context_partial.id().map(String::from).unwrap_or_default(),
+                    id: context_partial.id().to_string(),
                     condition: condition.into_inner(),
-                    priority: context_partial.priority().unwrap_or_default(),
-                    weight: context_partial.weight().unwrap_or_default(),
+                    priority: context_partial.priority(),
+                    weight: context_partial.weight(),
                     override_with_keys,
                 })
             })
@@ -93,48 +84,26 @@ impl ConversionUtils {
 
         let dimensions = response
             .dimensions()
-            .map(|dim| {
-                dim.iter()
-                    .map(|(key, dimension_info)| {
-                        let schema = dimension_info
-                            .schema()
-                            .and_then(|map| {
-                                map.iter()
-                                    .map(|(k, v)| {
-                                        Self::document_to_value(v)
-                                            .map(|val| (k.clone(), val))
-                                    })
-                                    .collect::<Result<Map<String, Value>>>()
-                                    .ok()
-                            })
-                            .ok_or_else(|| {
-                                SuperpositionError::ConfigError(format!(
-                                    "Missing or invalid schema for dimension '{key}'",
-                                ))
-                            })?;
-                        let dim_info = DimensionInfo {
-                            schema: ExtendedMap::from(schema),
-                            position: dimension_info.position().unwrap_or_default(),
-                            dimension_type: dimension_info
-                                .dimension_type()
-                                .map(Self::try_dimension_type)
-                                .ok_or_else(|| {
-                                    SuperpositionError::ConfigError(format!(
-                                        "Missing or invalid dimension_type for dimension '{key}'",
-                                    ))
-                                })??,
-                            dependency_graph: DependencyGraph(
-                                dimension_info
-                                    .dependency_graph()
-                                    .cloned()
-                                    .unwrap_or_default(),
-                            ),
-                        };
-                        Ok((key.clone(), dim_info))
-                    })
-                    .collect::<Result<HashMap<String, DimensionInfo>>>()
+            .iter()
+            .map(|(key, dimension_info)| {
+                let schema = dimension_info
+                    .schema()
+                    .iter()
+                    .map(|(k, v)| Self::document_to_value(v).map(|val| (k.clone(), val)))
+                    .collect::<Result<Map<String, Value>>>()?;
+                let dim_info = DimensionInfo {
+                    schema: ExtendedMap::from(schema),
+                    position: dimension_info.position(),
+                    dimension_type: Self::try_dimension_type(
+                        dimension_info.dimension_type(),
+                    )?,
+                    dependency_graph: DependencyGraph(
+                        dimension_info.dependency_graph().clone(),
+                    ),
+                };
+                Ok((key.clone(), dim_info))
             })
-            .unwrap_or_else(|| Ok(HashMap::new()))?;
+            .collect::<Result<HashMap<String, DimensionInfo>>>()?;
 
         let config = Config {
             contexts,
@@ -382,11 +351,7 @@ impl ConversionUtils {
                 };
 
                 // Convert variant overrides - check if overrides exist
-                let mut overrides_map = Map::new();
-                let overrides_value = Self::document_to_value(variant.overrides())?;
-                if let Some(obj) = overrides_value.as_object() {
-                    overrides_map = obj.clone();
-                }
+                let overrides_map = Self::hashmap_to_map(variant.overrides())?;
 
                 let override_ = Exp::<Overrides>::try_from(overrides_map)
                     .map_err(|e| SuperpositionError::SerializationError(e.to_string()))?;
@@ -481,6 +446,18 @@ impl ConversionUtils {
     /// Convert AWS Smithy Document to serde_json::Value
     pub fn document_to_value(doc: &aws_smithy_types::Document) -> Result<Value> {
         Self::document_to_value_recursive(doc)
+    }
+
+    pub fn hashmap_to_map(
+        hashmap: &HashMap<String, aws_smithy_types::Document>,
+    ) -> Result<Map<String, Value>> {
+        hashmap
+            .iter()
+            .map(|(k, v)| {
+                let value = Self::document_to_value(v)?;
+                Ok((k.clone(), value))
+            })
+            .collect()
     }
 
     /// Recursively convert AWS Smithy Document to serde_json::Value by properly matching variants

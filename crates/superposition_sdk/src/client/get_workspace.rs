@@ -19,7 +19,7 @@ impl super::Client {
     ///   - [`created_at(DateTime)`](crate::operation::get_workspace::GetWorkspaceOutput::created_at): (undocumented)
     ///   - [`mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::get_workspace::GetWorkspaceOutput::mandatory_dimensions): (undocumented)
     ///   - [`strict_mode(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::strict_mode): (undocumented)
-    ///   - [`metrics(Option<Document>)`](crate::operation::get_workspace::GetWorkspaceOutput::metrics): (undocumented)
+    ///   - [`metrics(Document)`](crate::operation::get_workspace::GetWorkspaceOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::auto_populate_control): (undocumented)
                             /// - On failure, responds with [`SdkError<GetWorkspaceError>`](crate::operation::get_workspace::GetWorkspaceError)

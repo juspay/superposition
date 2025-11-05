@@ -9,12 +9,12 @@ impl super::Client {
     ///   - [`version(impl Into<String>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::version) / [`set_version(Option<String>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::set_version):<br>required: **false**<br>(undocumented)<br>
     ///   - [`context(impl Into<String>, Document)`](crate::operation::get_config::builders::GetConfigFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
                             /// - On success, responds with [`GetConfigOutput`](crate::operation::get_config::GetConfigOutput) with field(s):
-    ///   - [`contexts(Option<Vec::<ContextPartial>>)`](crate::operation::get_config::GetConfigOutput::contexts): (undocumented)
-    ///   - [`overrides(Option<HashMap::<String, HashMap::<String, Document>>>)`](crate::operation::get_config::GetConfigOutput::overrides): (undocumented)
-    ///   - [`default_configs(Option<HashMap::<String, Document>>)`](crate::operation::get_config::GetConfigOutput::default_configs): Generic key-value object structure used for flexible data representation throughout the API.
-    ///   - [`dimensions(Option<HashMap::<String, DimensionInfo>>)`](crate::operation::get_config::GetConfigOutput::dimensions): (undocumented)
-    ///   - [`version(Option<String>)`](crate::operation::get_config::GetConfigOutput::version): (undocumented)
-    ///   - [`last_modified(Option<DateTime>)`](crate::operation::get_config::GetConfigOutput::last_modified): (undocumented)
+    ///   - [`contexts(Vec::<ContextPartial>)`](crate::operation::get_config::GetConfigOutput::contexts): (undocumented)
+    ///   - [`overrides(HashMap::<String, HashMap::<String, Document>>)`](crate::operation::get_config::GetConfigOutput::overrides): (undocumented)
+    ///   - [`default_configs(HashMap::<String, Document>)`](crate::operation::get_config::GetConfigOutput::default_configs): Generic key-value object structure used for flexible data representation throughout the API.
+    ///   - [`dimensions(HashMap::<String, DimensionInfo>)`](crate::operation::get_config::GetConfigOutput::dimensions): (undocumented)
+    ///   - [`version(String)`](crate::operation::get_config::GetConfigOutput::version): (undocumented)
+    ///   - [`last_modified(DateTime)`](crate::operation::get_config::GetConfigOutput::last_modified): (undocumented)
     ///   - [`audit_id(Option<String>)`](crate::operation::get_config::GetConfigOutput::audit_id): (undocumented)
                             /// - On failure, responds with [`SdkError<GetConfigError>`](crate::operation::get_config::GetConfigError)
     pub fn get_config(&self) -> crate::operation::get_config::builders::GetConfigFluentBuilder {

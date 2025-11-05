@@ -3,14 +3,14 @@ pub fn ser_autocomplete_function_request(
                          object: &mut ::aws_smithy_json::serialize::JsonObjectWriter,
                          input: &crate::types::AutocompleteFunctionRequest,
                     ) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
-    if let Some(var_1) = &input.name {
-        object.key("name").string(var_1.as_str());
+     {
+        object.key("name").string(input.name.as_str());
     }
-    if let Some(var_2) = &input.prefix {
-        object.key("prefix").string(var_2.as_str());
+     {
+        object.key("prefix").string(input.prefix.as_str());
     }
-    if let Some(var_3) = &input.environment {
-        object.key("environment").document(var_3);
+     {
+        object.key("environment").document(&input.environment);
     }
     Ok(())
 }

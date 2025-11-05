@@ -60,9 +60,9 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  * const command = new ListExperimentGroupsCommand(input);
  * const response = await client.send(command);
  * // { // ListExperimentGroupsOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // ExperimentGroupList
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // ExperimentGroupList // required
  * //     { // ExperimentGroupResponse
  * //       id: "STRING_VALUE", // required
  * //       context_hash: "STRING_VALUE", // required

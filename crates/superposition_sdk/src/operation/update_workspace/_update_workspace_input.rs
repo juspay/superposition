@@ -9,7 +9,7 @@ pub struct UpdateWorkspaceInput  {
     pub workspace_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_admin_email: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset config version, pass "null" string.
     pub config_version: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
@@ -35,7 +35,7 @@ impl  UpdateWorkspaceInput  {
     pub fn workspace_admin_email(&self) -> ::std::option::Option<&str> {
         self.workspace_admin_email.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset config version, pass "null" string.
     pub fn config_version(&self) -> ::std::option::Option<&str> {
         self.config_version.as_deref()
     }
@@ -127,16 +127,16 @@ impl UpdateWorkspaceInputBuilder {
     pub fn get_workspace_admin_email(&self) -> &::std::option::Option<::std::string::String> {
         &self.workspace_admin_email
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset config version, pass "null" string.
     pub fn config_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.config_version = ::std::option::Option::Some(input.into());
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset config version, pass "null" string.
     pub fn set_config_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
         self.config_version = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// To unset config version, pass "null" string.
     pub fn get_config_version(&self) -> &::std::option::Option<::std::string::String> {
         &self.config_version
     }

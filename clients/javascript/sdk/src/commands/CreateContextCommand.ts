@@ -45,34 +45,36 @@ export interface CreateContextCommandOutput extends ContextResponse, __MetadataB
  * const input = { // CreateContextInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   context: { // Condition // required
- *     "<keys>": "DOCUMENT_VALUE",
- *   },
  *   config_tags: "STRING_VALUE",
- *   override: { // Overrides // required
- *     "<keys>": "DOCUMENT_VALUE",
+ *   request: { // ContextPut
+ *     context: { // Condition // required
+ *       "<keys>": "DOCUMENT_VALUE",
+ *     },
+ *     override: { // Overrides // required
+ *       "<keys>": "DOCUMENT_VALUE",
+ *     },
+ *     description: "STRING_VALUE",
+ *     change_reason: "STRING_VALUE", // required
  *   },
- *   description: "STRING_VALUE",
- *   change_reason: "STRING_VALUE", // required
  * };
  * const command = new CreateContextCommand(input);
  * const response = await client.send(command);
  * // { // ContextResponse
  * //   id: "STRING_VALUE", // required
- * //   value: { // Condition
+ * //   value: { // Condition // required
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
- * //   override: { // Overrides
+ * //   override: { // Overrides // required
  * //     "<keys>": "DOCUMENT_VALUE",
  * //   },
- * //   override_id: "STRING_VALUE",
- * //   weight: "STRING_VALUE",
- * //   description: "STRING_VALUE",
- * //   change_reason: "STRING_VALUE",
- * //   created_at: new Date("TIMESTAMP"),
- * //   created_by: "STRING_VALUE",
- * //   last_modified_at: new Date("TIMESTAMP"),
- * //   last_modified_by: "STRING_VALUE",
+ * //   override_id: "STRING_VALUE", // required
+ * //   weight: "STRING_VALUE", // required
+ * //   description: "STRING_VALUE", // required
+ * //   change_reason: "STRING_VALUE", // required
+ * //   created_at: new Date("TIMESTAMP"), // required
+ * //   created_by: "STRING_VALUE", // required
+ * //   last_modified_at: new Date("TIMESTAMP"), // required
+ * //   last_modified_by: "STRING_VALUE", // required
  * // };
  *
  * ```

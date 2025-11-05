@@ -33,11 +33,9 @@ pub use crate::types::_unit::UnitBuilder;
 
 pub use crate::types::_context_partial::ContextPartialBuilder;
 
-pub use crate::types::_bulk_operation_out::BulkOperationOutBuilder;
-
 pub use crate::types::_context_response::ContextResponseBuilder;
 
-pub use crate::types::_bulk_operation_req::BulkOperationReqBuilder;
+pub use crate::types::_context_move_bulk_request::ContextMoveBulkRequestBuilder;
 
 pub use crate::types::_context_move::ContextMoveBuilder;
 
@@ -47,7 +45,7 @@ pub use crate::types::_context_put::ContextPutBuilder;
 
 pub use crate::types::_weight_recompute_response::WeightRecomputeResponseBuilder;
 
-pub use crate::types::_dimension_ext::DimensionExtBuilder;
+pub use crate::types::_dimension_response::DimensionResponseBuilder;
 
-pub use crate::types::_default_config_full::DefaultConfigFullBuilder;
+pub use crate::types::_default_config_response::DefaultConfigResponseBuilder;
 

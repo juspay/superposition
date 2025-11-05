@@ -73,7 +73,7 @@ internal class EvaluationArgs {
                 vtype,
                 v.contextId(),
                 v.overrideId(),
-                serializeDocumentValues(v.overrides().asStringMap())
+                serializeDocumentValues(v.overrides())
             )
         }
 

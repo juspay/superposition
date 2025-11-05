@@ -9,9 +9,9 @@ impl super::Client {
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::get_type_templates_list::builders::GetTypeTemplatesListFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::get_type_templates_list::builders::GetTypeTemplatesListFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_type_templates_list::builders::GetTypeTemplatesListFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_type_templates_list::builders::GetTypeTemplatesListFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetTypeTemplatesListOutput`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<TypeTemplatesResponse>>)`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<TypeTemplatesResponse>)`](crate::operation::get_type_templates_list::GetTypeTemplatesListOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<GetTypeTemplatesListError>`](crate::operation::get_type_templates_list::GetTypeTemplatesListError)
     pub fn get_type_templates_list(&self) -> crate::operation::get_type_templates_list::builders::GetTypeTemplatesListFluentBuilder {
                                 crate::operation::get_type_templates_list::builders::GetTypeTemplatesListFluentBuilder::new(self.handle.clone())

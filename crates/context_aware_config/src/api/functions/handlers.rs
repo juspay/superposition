@@ -9,8 +9,8 @@ use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     api::functions::{
-        CreateFunctionRequest, FunctionExecutionRequest, FunctionName,
-        FunctionStateChangeRequest, ListFunctionFilters, Stage, TestParam,
+        CreateFunctionRequest, FunctionExecutionRequest, FunctionExecutionResponse,
+        FunctionName, FunctionStateChangeRequest, ListFunctionFilters, Stage, TestParam,
         UpdateFunctionRequest,
     },
     custom_query::{self as superposition_query, PaginationParams},
@@ -225,7 +225,7 @@ async fn test(
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<FunctionExecutionResponse>> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
     let fun_name: &String = &path_params.function_name.into();
@@ -236,24 +236,21 @@ async fn test(
         Stage::Draft => execute_fn(&function.draft_code, &req),
         Stage::Published => match function.published_code {
             Some(code) => execute_fn(&code, &req),
-            None => {
-                log::error!("Function test failed: function not published yet");
-                Err((
-                    "Function test failed as function not published yet".to_owned(),
-                    None,
-                ))
-            }
+            None => Err((
+                "Function test failed as function not published yet".to_owned(),
+                None,
+            )),
         },
-    };
-
-    match result {
-        Ok(res) => Ok(HttpResponse::Ok().json(res)),
-        Err((e, stdout)) => Err(bad_argument!(
+    }
+    .map_err(|(e, stdout)| {
+        bad_argument!(
             "Function failed with error: {}, stdout: {:?}",
             e,
-            stdout.unwrap_or(String::new())
-        )),
-    }
+            stdout.unwrap_or_default()
+        )
+    })?;
+
+    Ok(Json(result))
 }
 
 #[patch("/{function_name}/publish")]

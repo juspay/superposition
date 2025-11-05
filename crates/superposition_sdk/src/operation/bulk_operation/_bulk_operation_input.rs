@@ -10,7 +10,7 @@ pub struct BulkOperationInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub bulk_operation: ::std::option::Option<crate::types::BulkOperationReq>,
+    pub operations: ::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>>,
 }
 impl  BulkOperationInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -26,8 +26,11 @@ impl  BulkOperationInput  {
         self.config_tags.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn bulk_operation(&self) -> ::std::option::Option<&crate::types::BulkOperationReq> {
-        self.bulk_operation.as_ref()
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.operations.is_none()`.
+    pub fn operations(&self) -> &[crate::types::ContextAction] {
+        self.operations.as_deref()
+        .unwrap_or_default()
     }
 }
 impl BulkOperationInput {
@@ -44,7 +47,7 @@ pub struct BulkOperationInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) config_tags: ::std::option::Option<::std::string::String>,
-    pub(crate) bulk_operation: ::std::option::Option<crate::types::BulkOperationReq>,
+    pub(crate) operations: ::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>>,
 }
 impl BulkOperationInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -88,19 +91,23 @@ impl BulkOperationInputBuilder {
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
         &self.config_tags
     }
-    #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
-    pub fn bulk_operation(mut self, input: crate::types::BulkOperationReq) -> Self {
-        self.bulk_operation = ::std::option::Option::Some(input);
-        self
+    /// Appends an item to `operations`.
+    ///
+    /// To override the contents of this collection use [`set_operations`](Self::set_operations).
+    ///
+    pub fn operations(mut self, input: crate::types::ContextAction) -> Self {
+        let mut v = self.operations.unwrap_or_default();
+                        v.push(input);
+                        self.operations = ::std::option::Option::Some(v);
+                        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_bulk_operation(mut self, input: ::std::option::Option<crate::types::BulkOperationReq>) -> Self {
-        self.bulk_operation = input; self
+    pub fn set_operations(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>>) -> Self {
+        self.operations = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_bulk_operation(&self) -> &::std::option::Option<crate::types::BulkOperationReq> {
-        &self.bulk_operation
+    pub fn get_operations(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>> {
+        &self.operations
     }
     /// Consumes the builder and constructs a [`BulkOperationInput`](crate::operation::bulk_operation::BulkOperationInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::bulk_operation::BulkOperationInput, ::aws_smithy_types::error::operation::BuildError> {
@@ -112,7 +119,7 @@ impl BulkOperationInputBuilder {
                 ,
                 config_tags: self.config_tags
                 ,
-                bulk_operation: self.bulk_operation
+                operations: self.operations
                 ,
             }
         )

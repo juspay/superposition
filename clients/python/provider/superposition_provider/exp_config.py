@@ -19,18 +19,21 @@ for name in logging.root.manager.loggerDict:
 
 from smithy_core.documents import Document
 from smithy_core.shapes import ShapeType
-from typing import Any
+
 
 class DecimalEncoder(json.JSONEncoder):
     """Custom JSON encoder that handles Decimal types"""
+
     def default(self, obj):
         if isinstance(obj, Decimal):
             return float(obj)  # Convert Decimal to float for JSON serialization
         return super().default(obj)
 
+
 def safe_json_dumps(obj: Any) -> str:
     """Safely serialize object to JSON, handling Decimal types"""
     return json.dumps(obj, cls=DecimalEncoder)
+
 
 def document_to_python_value(doc: Document) -> Any:
     """Recursively unwrap smithy_core.Document into plain Python values."""
@@ -69,10 +72,12 @@ def document_to_python_value(doc: Document) -> Any:
                 return float(val)
             return val
 
+
 def to_group_type(sdk_group_type: SDKGroupType) -> GroupType:
     if sdk_group_type == SDKGroupType.USER_CREATED:
         return GroupType.USER_CREATED
     return GroupType.SYSTEM_GENERATED
+
 
 class ExperimentationConfig():
     def __init__(self, superposition_options: SuperpositionOptions, experiment_options: ExperimentationOptions):
@@ -110,7 +115,7 @@ class ExperimentationConfig():
             self.cached_experiment_groups = latest_exp_grp_list
             self.last_updated = datetime.utcnow()
             logger.info("Experiment List and Experiment Group List fetched successfully.")
-        
+
         match self.options.refresh_strategy:
             case PollingStrategy(interval=interval, timeout=timeout):
                 logger.info(f"Using PollingStrategy: interval={interval}, timeout={timeout}")
@@ -120,16 +125,14 @@ class ExperimentationConfig():
             case OnDemandStrategy(ttl=ttl, use_stale_on_error=use_stale, timeout=timeout):
                 logger.info(f"Using OnDemandStrategy: ttl={ttl}, use_stale_on_error={use_stale}, timeout={timeout}")
 
-        
-
     @staticmethod
-    async def _get_experiments(superposition_options: SuperpositionOptions) -> Optional[Dict[str, Any]]:
+    async def _get_experiments(superposition_options: SuperpositionOptions) -> Optional[list[FfiExperiment]]:
         """
         Fetch configuration from Superposition service using the generated Python SDK.
-        
+
         Args:
             superposition_options: Options containing endpoint, token, org_id, workspace_id
-            
+
         Returns:
             Dict containing the configuration data
         """
@@ -138,11 +141,9 @@ class ExperimentationConfig():
             sdk_config = Config(
                 endpoint_uri=superposition_options.endpoint
             )
-            
+
             # Create Superposition client
             client = Superposition(config=sdk_config)
-            
-           
 
             list_exp_input = ListExperimentInput(
                 workspace_id=superposition_options.workspace_id,
@@ -150,10 +151,9 @@ class ExperimentationConfig():
                 all=True,
                 status=[ExperimentStatusType.CREATED, ExperimentStatusType.INPROGRESS]
             )
-            
 
             response = await client.list_experiment(list_exp_input)
-           
+
             exp_list = response.data
             logger.info(f"Fetched {len(exp_list)} experiments from Superposition")
             trimmed_exp_list = []
@@ -161,26 +161,25 @@ class ExperimentationConfig():
                 condition = {}
                 for key, value in exp.context.items():
                     condition[key] = json.dumps(document_to_python_value(value))
-                
+
                 variants = []
-                
+
                 for variant in exp.variants:
                     variant_type = VariantType.CONTROL if variant.variant_type == "CONTROL" else VariantType.EXPERIMENTAL
-                    override =  document_to_python_value(variant.overrides)
-                    overrides = {}
-                    if isinstance(override, dict):
-                        overrides = {k: json.dumps(v) for k, v in override.items()}
+                    overrides = {
+                        key: json.dumps(document_to_python_value(value))
+                        for key, value in variant.overrides.items()
+                    }
                     variants.append(
                         Variant(
                             id=variant.id,
                             variant_type=variant_type,
                             context_id=variant.context_id,
                             override_id=variant.override_id,
-                            overrides = overrides
+                            overrides=overrides
                         )
                     )
-                 
-                    
+
                 trimmed_exp = FfiExperiment(
                     id=exp.id,
                     context=condition,
@@ -188,25 +187,23 @@ class ExperimentationConfig():
                     traffic_percentage=exp.traffic_percentage,
                 )
 
-
                 trimmed_exp_list.append(trimmed_exp)
-                
-            
+
             return trimmed_exp_list
-            
+
         except Exception as e:
             # Log the error and return empty config as fallback
             logger.error(f"Error fetching config from Superposition: {e}")
             return None
 
     @staticmethod
-    async def _get_experiment_groups(superposition_options: SuperpositionOptions) -> Optional[Dict[str, Any]]:
+    async def _get_experiment_groups(superposition_options: SuperpositionOptions) -> Optional[list[FfiExperimentGroup]]:
         """
         Fetch configuration from Superposition service using the generated Python SDK.
-        
+
         Args:
             superposition_options: Options containing endpoint, token, org_id, workspace_id
-            
+
         Returns:
             Dict containing the configuration data
         """
@@ -215,21 +212,18 @@ class ExperimentationConfig():
             sdk_config = Config(
                 endpoint_uri=superposition_options.endpoint
             )
-            
+
             # Create Superposition client
             client = Superposition(config=sdk_config)
-            
-           
 
             list_exp_grp_input = ListExperimentGroupsInput(
                 workspace_id=superposition_options.workspace_id,
                 org_id=superposition_options.org_id,
                 all=True
             )
-            
 
             response = await client.list_experiment_groups(list_exp_grp_input)
-           
+
             exp_grp_list = response.data
             logger.info(f"Fetched {len(exp_grp_list)} experiment groups from Superposition")
             trimmed_exp_grp_list = []
@@ -237,8 +231,7 @@ class ExperimentationConfig():
                 condition = {}
                 for key, value in exp_gr.context.items():
                     condition[key] = json.dumps(document_to_python_value(value))
-                 
-                    
+
                 trimmed_exp_grp = FfiExperimentGroup(
                     id=exp_gr.id,
                     context=condition,
@@ -248,19 +241,16 @@ class ExperimentationConfig():
                     buckets=exp_gr.buckets
                 )
 
-
                 trimmed_exp_grp_list.append(trimmed_exp_grp)
-                
-            
+
             return trimmed_exp_grp_list
-            
+
         except Exception as e:
             # Log the error and return empty config as fallback
             logger.error(f"Error fetching config from Superposition: {e}")
             return None
-    
-    
-    async def on_demand_config(self, ttl, use_stale) -> dict:
+
+    async def on_demand_config(self, ttl, use_stale) -> list[FfiExperiment]:
         """Get config on-demand based on TTL or fall back to stale if needed."""
         now = datetime.utcnow()
         should_refresh = (
@@ -279,7 +269,7 @@ class ExperimentationConfig():
                     self.cached_experiments = latest_exp_list
                     self.cached_experiment_groups = latest_exp_grp_list
                     self.last_updated = datetime.utcnow()
-                
+
             except Exception as e:
                 logger.warning(f"On-demand fetch failed: {e}")
                 if not use_stale or self.cached_experiments is None:
@@ -288,8 +278,7 @@ class ExperimentationConfig():
                     logger.info("Using stale config due to error.")
 
         return self.cached_experiments
-    
-    
+
     def _generate_cache_key(self, query_data: dict) -> str:
         return json.dumps(query_data, sort_keys=True)
 
@@ -316,16 +305,14 @@ class ExperimentationConfig():
                     await self._polling_task
                 except asyncio.CancelledError:
                     logger.debug("Polling task cancelled successfully")
-            
+
             # Clear caches
             self._clear_eval_cache()
             self.cached_experiments = None
             self.last_updated = None
-            
+
             logger.info("ConfigurationClient closed successfully")
-            
+
         except Exception as e:
             logger.error(f"Error during ConfigurationClient cleanup: {e}")
             raise
-
-

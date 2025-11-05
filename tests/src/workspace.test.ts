@@ -93,7 +93,7 @@ describe("Workspace API", () => {
         }
 
         // Store the workspace ID for subsequent tests
-        createdWorkspaceId = response.workspace_name || testWorkspaceName;
+        createdWorkspaceId = response.workspace_name ?? testWorkspaceName;
     });
 
     test("GetWorkspace", async () => {

@@ -6,7 +6,7 @@ import {
 } from "../SuperpositionClient";
 import {
   CreateDefaultConfigInput,
-  DefaultConfigFull,
+  DefaultConfigResponse,
 } from "../models/models_0";
 import {
   de_CreateDefaultConfigCommand,
@@ -32,7 +32,7 @@ export interface CreateDefaultConfigCommandInput extends CreateDefaultConfigInpu
  *
  * The output of {@link CreateDefaultConfigCommand}.
  */
-export interface CreateDefaultConfigCommandOutput extends DefaultConfigFull, __MetadataBearer {}
+export interface CreateDefaultConfigCommandOutput extends DefaultConfigResponse, __MetadataBearer {}
 
 /**
  * Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.
@@ -57,7 +57,7 @@ export interface CreateDefaultConfigCommandOutput extends DefaultConfigFull, __M
  * };
  * const command = new CreateDefaultConfigCommand(input);
  * const response = await client.send(command);
- * // { // DefaultConfigFull
+ * // { // DefaultConfigResponse
  * //   key: "STRING_VALUE", // required
  * //   value: "DOCUMENT_VALUE", // required
  * //   schema: { // Object // required
@@ -107,7 +107,7 @@ export class CreateDefaultConfigCommand extends $Command.classBuilder<CreateDefa
 declare protected static __types: {
   api: {
       input: CreateDefaultConfigInput;
-      output: DefaultConfigFull;
+      output: DefaultConfigResponse;
   };
   sdk: {
       input: CreateDefaultConfigCommandInput;

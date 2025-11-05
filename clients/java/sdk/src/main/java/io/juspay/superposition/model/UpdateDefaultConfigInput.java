@@ -106,6 +106,9 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         return schemaMember != null;
     }
 
+    /**
+     * To unset the function name, pass "null" string.
+     */
     public String functionName() {
         return functionName;
     }
@@ -114,6 +117,9 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         return description;
     }
 
+    /**
+     * To unset the function name, pass "null" string.
+     */
     public String autocompleteFunctionName() {
         return autocompleteFunctionName;
     }
@@ -300,6 +306,8 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         }
 
         /**
+         * To unset the function name, pass "null" string.
+         *
          * @return this builder.
          */
         public Builder functionName(String functionName) {
@@ -316,6 +324,8 @@ public final class UpdateDefaultConfigInput implements SerializableStruct {
         }
 
         /**
+         * To unset the function name, pass "null" string.
+         *
          * @return this builder.
          */
         public Builder autocompleteFunctionName(String autocompleteFunctionName) {

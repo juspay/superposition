@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -13,7 +15,6 @@ import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
-import software.amazon.smithy.model.traits.HttpPayloadTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
@@ -30,26 +31,25 @@ public final class BulkOperationInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("config_tags", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-config-tags"))
-        .putMember("bulk_operation", BulkOperationReq.$SCHEMA,
-                new RequiredTrait(),
-                new HttpPayloadTrait())
+        .putMember("operations", SharedSchemas.BULK_OPERATION_LIST,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_CONFIG_TAGS = $SCHEMA.member("config_tags");
-    private static final Schema $SCHEMA_BULK_OPERATION = $SCHEMA.member("bulk_operation");
+    private static final Schema $SCHEMA_OPERATIONS = $SCHEMA.member("operations");
 
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient String configTags;
-    private final transient BulkOperationReq bulkOperation;
+    private final transient List<ContextAction> operations;
 
     private BulkOperationInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.configTags = builder.configTags;
-        this.bulkOperation = builder.bulkOperation;
+        this.operations = Collections.unmodifiableList(builder.operations);
     }
 
     public String workspaceId() {
@@ -64,8 +64,12 @@ public final class BulkOperationInput implements SerializableStruct {
         return configTags;
     }
 
-    public BulkOperationReq bulkOperation() {
-        return bulkOperation;
+    public List<ContextAction> operations() {
+        return operations;
+    }
+
+    public boolean hasOperations() {
+        return true;
     }
 
     @Override
@@ -85,12 +89,12 @@ public final class BulkOperationInput implements SerializableStruct {
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.configTags, that.configTags)
-               && Objects.equals(this.bulkOperation, that.bulkOperation);
+               && Objects.equals(this.operations, that.operations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, configTags, bulkOperation);
+        return Objects.hash(workspaceId, orgId, configTags, operations);
     }
 
     @Override
@@ -105,9 +109,7 @@ public final class BulkOperationInput implements SerializableStruct {
         if (configTags != null) {
             serializer.writeString($SCHEMA_CONFIG_TAGS, configTags);
         }
-        if (bulkOperation != null) {
-            serializer.writeStruct($SCHEMA_BULK_OPERATION, bulkOperation);
-        }
+        serializer.writeList($SCHEMA_OPERATIONS, operations, operations.size(), SharedSerde.BulkOperationListSerializer.INSTANCE);
     }
 
     @Override
@@ -116,7 +118,7 @@ public final class BulkOperationInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_BULK_OPERATION, member, bulkOperation);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_OPERATIONS, member, operations);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
@@ -134,7 +136,7 @@ public final class BulkOperationInput implements SerializableStruct {
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
         builder.configTags(this.configTags);
-        builder.bulkOperation(this.bulkOperation);
+        builder.operations(this.operations);
         return builder;
     }
 
@@ -153,7 +155,7 @@ public final class BulkOperationInput implements SerializableStruct {
         private String workspaceId;
         private String orgId;
         private String configTags;
-        private BulkOperationReq bulkOperation;
+        private List<ContextAction> operations;
 
         private Builder() {}
 
@@ -194,9 +196,9 @@ public final class BulkOperationInput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder bulkOperation(BulkOperationReq bulkOperation) {
-            this.bulkOperation = Objects.requireNonNull(bulkOperation, "bulkOperation cannot be null");
-            tracker.setMember($SCHEMA_BULK_OPERATION);
+        public Builder operations(List<ContextAction> operations) {
+            this.operations = Objects.requireNonNull(operations, "operations cannot be null");
+            tracker.setMember($SCHEMA_OPERATIONS);
             return this;
         }
 
@@ -212,7 +214,7 @@ public final class BulkOperationInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 2 -> bulkOperation((BulkOperationReq) SchemaUtils.validateSameMember($SCHEMA_BULK_OPERATION, member, value));
+                case 2 -> operations((List<ContextAction>) SchemaUtils.validateSameMember($SCHEMA_OPERATIONS, member, value));
                 case 3 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
@@ -229,8 +231,8 @@ public final class BulkOperationInput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_ORG_ID)) {
                 orgId("");
             }
-            if (!tracker.checkMember($SCHEMA_BULK_OPERATION)) {
-                tracker.setMember($SCHEMA_BULK_OPERATION);
+            if (!tracker.checkMember($SCHEMA_OPERATIONS)) {
+                operations(Collections.emptyList());
             }
             return this;
         }
@@ -255,7 +257,7 @@ public final class BulkOperationInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
-                    case 2 -> builder.bulkOperation(BulkOperationReq.builder().deserializeMember(de, member).build());
+                    case 2 -> builder.operations(SharedSerde.deserializeBulkOperationList(member, de));
                     case 3 -> builder.configTags(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }

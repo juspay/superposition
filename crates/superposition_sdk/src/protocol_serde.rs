@@ -19,15 +19,15 @@ pub(crate) mod shape_applicable_variants;
 
 pub(crate) mod shape_bulk_operation;
 
+pub(crate) mod shape_conclude_experiment;
+
+pub(crate) mod shape_create_context;
+
 pub fn rest_json_unset_struct_payload() -> ::std::vec::Vec<u8> {
                     b"{}"[..].into()
                 }
 
-pub(crate) mod shape_bulk_operation_input;
-
-pub(crate) mod shape_conclude_experiment;
-
-pub(crate) mod shape_create_context;
+pub(crate) mod shape_create_context_input;
 
 pub(crate) mod shape_create_default_config;
 
@@ -131,6 +131,8 @@ pub(crate) mod shape_migrate_workspace_schema;
 
 pub(crate) mod shape_move_context;
 
+pub(crate) mod shape_move_context_input;
+
 pub(crate) mod shape_pause_experiment;
 
 pub(crate) mod shape_publish;
@@ -185,11 +187,9 @@ pub(crate) mod shape_add_members_to_group_input;
 
 pub(crate) mod shape_applicable_variants_input;
 
-pub(crate) mod shape_bulk_operation_output;
+pub(crate) mod shape_bulk_operation_input;
 
 pub(crate) mod shape_conclude_experiment_input;
-
-pub(crate) mod shape_create_context_input;
 
 pub(crate) mod shape_create_default_config_input;
 
@@ -222,8 +222,6 @@ pub(crate) mod shape_get_resolved_config_input;
 pub(crate) mod shape_get_resolved_config_output;
 
 pub(crate) mod shape_internal_server_error;
-
-pub(crate) mod shape_move_context_input;
 
 pub(crate) mod shape_pause_experiment_input;
 
@@ -261,19 +259,23 @@ pub(crate) mod shape_audit_log_list;
 
 pub(crate) mod shape_buckets;
 
-pub(crate) mod shape_bulk_operation_out;
-
-pub(crate) mod shape_bulk_operation_req;
+pub(crate) mod shape_bulk_operation_out_list;
 
 pub(crate) mod shape_condition;
 
+pub(crate) mod shape_context_action;
+
 pub(crate) mod shape_context_list;
 
-pub(crate) mod shape_depedendency_graph;
+pub(crate) mod shape_context_move;
+
+pub(crate) mod shape_context_put;
+
+pub(crate) mod shape_dependency_graph;
 
 pub(crate) mod shape_dimension_data;
 
-pub(crate) mod shape_dimension_ext_list;
+pub(crate) mod shape_dimension_list;
 
 pub(crate) mod shape_dimension_type;
 
@@ -331,19 +333,21 @@ pub(crate) mod shape_autocomplete_function_request;
 
 pub(crate) mod shape_bucket;
 
-pub(crate) mod shape_context_action;
+pub(crate) mod shape_context_action_out;
 
 pub(crate) mod shape_context_identifier;
+
+pub(crate) mod shape_context_move_bulk_request;
 
 pub(crate) mod shape_context_partial;
 
 pub(crate) mod shape_context_response;
 
-pub(crate) mod shape_default_config_full;
-
-pub(crate) mod shape_dimension_ext;
+pub(crate) mod shape_default_config_response;
 
 pub(crate) mod shape_dimension_info;
+
+pub(crate) mod shape_dimension_response;
 
 pub(crate) mod shape_experiment_group_response;
 
@@ -365,13 +369,5 @@ pub(crate) mod shape_weight_recompute_response;
 
 pub(crate) mod shape_workspace_response;
 
-pub(crate) mod shape_bulk_operation_out_list;
-
-pub(crate) mod shape_context_move;
-
-pub(crate) mod shape_context_put;
-
 pub(crate) mod shape_override_with_keys;
-
-pub(crate) mod shape_context_action_out;
 

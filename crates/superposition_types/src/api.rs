@@ -69,22 +69,17 @@ where
 {
     let opt: Value = Deserialize::deserialize(deserializer)?;
     match opt {
-        Value::String(val) => {
-            if &val == "null" {
-                Ok(Some(I64Update::Remove))
-            } else {
-                match val.parse::<i64>() {
-                    Ok(config_version) => Ok(Some(I64Update::Add(config_version))),
-                    Err(_) => {
-                        log::error!("Expected a bigint string as the value.");
-                        Err(serde::de::Error::custom(
-                            "Expected a bigint string as the value.",
-                        ))
-                    }
-                }
-            }
-        }
         Value::Null => Ok(Some(I64Update::Remove)),
+        Value::String(val) if val == "null" => Ok(Some(I64Update::Remove)),
+        Value::String(val) => match val.parse::<i64>() {
+            Ok(config_version) => Ok(Some(I64Update::Add(config_version))),
+            Err(_) => {
+                log::error!("Expected a bigint string as the value.");
+                Err(serde::de::Error::custom(
+                    "Expected a bigint string as the value.",
+                ))
+            }
+        },
         _ => {
             log::error!("Expected a bigint string or null literal as the value.");
             Err(serde::de::Error::custom(

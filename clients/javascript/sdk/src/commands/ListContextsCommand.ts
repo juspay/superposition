@@ -65,25 +65,25 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  * const command = new ListContextsCommand(input);
  * const response = await client.send(command);
  * // { // ListContextsOutput
- * //   total_pages: Number("int"),
- * //   total_items: Number("int"),
- * //   data: [ // ListContextOut
+ * //   total_pages: Number("int"), // required
+ * //   total_items: Number("int"), // required
+ * //   data: [ // ListContextOut // required
  * //     { // ContextResponse
  * //       id: "STRING_VALUE", // required
- * //       value: { // Condition
+ * //       value: { // Condition // required
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
- * //       override: { // Overrides
+ * //       override: { // Overrides // required
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
- * //       override_id: "STRING_VALUE",
- * //       weight: "STRING_VALUE",
- * //       description: "STRING_VALUE",
- * //       change_reason: "STRING_VALUE",
- * //       created_at: new Date("TIMESTAMP"),
- * //       created_by: "STRING_VALUE",
- * //       last_modified_at: new Date("TIMESTAMP"),
- * //       last_modified_by: "STRING_VALUE",
+ * //       override_id: "STRING_VALUE", // required
+ * //       weight: "STRING_VALUE", // required
+ * //       description: "STRING_VALUE", // required
+ * //       change_reason: "STRING_VALUE", // required
+ * //       created_at: new Date("TIMESTAMP"), // required
+ * //       created_by: "STRING_VALUE", // required
+ * //       last_modified_at: new Date("TIMESTAMP"), // required
+ * //       last_modified_by: "STRING_VALUE", // required
  * //     },
  * //   ],
  * // };

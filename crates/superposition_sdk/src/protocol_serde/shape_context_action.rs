@@ -26,7 +26,7 @@ pub fn ser_context_action(object_4: &mut ::aws_smithy_json::serialize::JsonObjec
              {
                 #[allow(unused_mut)]
                 let mut object_3 = object_4.key("MOVE").start_object();
-                crate::protocol_serde::shape_context_move::ser_context_move(&mut object_3, inner)?;
+                crate::protocol_serde::shape_context_move_bulk_request::ser_context_move_bulk_request(&mut object_3, inner)?;
                 object_3.finish();
             }
         },

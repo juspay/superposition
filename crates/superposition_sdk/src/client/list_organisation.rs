@@ -7,9 +7,9 @@ impl super::Client {
     ///   - [`page(i32)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::page) / [`set_page(Option<i32>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_page):<br>required: **false**<br>Page number to retrieve, starting from 1.<br>
     ///   - [`all(bool)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::all) / [`set_all(Option<bool>)`](crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::set_all):<br>required: **false**<br>If true, returns all requested items, ignoring pagination parameters page and count.<br>
                             /// - On success, responds with [`ListOrganisationOutput`](crate::operation::list_organisation::ListOrganisationOutput) with field(s):
-    ///   - [`total_pages(Option<i32>)`](crate::operation::list_organisation::ListOrganisationOutput::total_pages): (undocumented)
-    ///   - [`total_items(Option<i32>)`](crate::operation::list_organisation::ListOrganisationOutput::total_items): (undocumented)
-    ///   - [`data(Option<Vec::<OrganisationResponse>>)`](crate::operation::list_organisation::ListOrganisationOutput::data): (undocumented)
+    ///   - [`total_pages(i32)`](crate::operation::list_organisation::ListOrganisationOutput::total_pages): (undocumented)
+    ///   - [`total_items(i32)`](crate::operation::list_organisation::ListOrganisationOutput::total_items): (undocumented)
+    ///   - [`data(Vec::<OrganisationResponse>)`](crate::operation::list_organisation::ListOrganisationOutput::data): (undocumented)
                             /// - On failure, responds with [`SdkError<ListOrganisationError>`](crate::operation::list_organisation::ListOrganisationError)
     pub fn list_organisation(&self) -> crate::operation::list_organisation::builders::ListOrganisationFluentBuilder {
                                 crate::operation::list_organisation::builders::ListOrganisationFluentBuilder::new(self.handle.clone())

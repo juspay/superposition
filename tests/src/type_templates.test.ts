@@ -83,7 +83,7 @@ describe("Type Templates API", () => {
         expect(Array.isArray(response.data)).toBe(true);
 
         // Use type assertion to avoid TypeScript error
-        const typeNames = (response.data || []).map((t: any) => t.type_name);
+        const typeNames = (response.data ?? []).map((t: any) => t.type_name);
 
         // Log available types for debugging
         console.log("Available type templates:", typeNames);
@@ -262,7 +262,7 @@ describe("Type Templates API", () => {
             const response = await superpositionClient.send(cmd);
 
             // Remove from tracking since we've deleted it
-            createdTypeTemplates.delete(toBeDeletedTypeName || "");
+            createdTypeTemplates.delete(toBeDeletedTypeName ?? "");
 
             expect(response).toBeDefined();
             // Don't expect specific success properties, just check the response exists
@@ -275,7 +275,7 @@ describe("Type Templates API", () => {
             const listResponse = await superpositionClient.send(listCmd);
 
             expect(listResponse.data).toBeDefined();
-            const deletedType = (listResponse.data || []).find(
+            const deletedType = (listResponse.data ?? []).find(
                 (t: any) => t.type_name === toBeDeletedTypeName
             );
             expect(deletedType).toBeUndefined();

@@ -25,9 +25,9 @@ import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data ListAuditLogsOutput = ListAuditLogsOutput {
-    total_pages :: Data.Maybe.Maybe Data.Int.Int32,
-    total_items :: Data.Maybe.Maybe Data.Int.Int32,
-    data' :: Data.Maybe.Maybe ([] Io.Superposition.Model.AuditLogFull.AuditLogFull)
+    total_pages :: Data.Int.Int32,
+    total_items :: Data.Int.Int32,
+    data' :: [] Io.Superposition.Model.AuditLogFull.AuditLogFull
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -70,24 +70,24 @@ defaultBuilderState = ListAuditLogsOutputBuilderState {
 
 type ListAuditLogsOutputBuilder = Control.Monad.State.Strict.State ListAuditLogsOutputBuilderState
 
-setTotalPages :: Data.Maybe.Maybe Data.Int.Int32 -> ListAuditLogsOutputBuilder ()
+setTotalPages :: Data.Int.Int32 -> ListAuditLogsOutputBuilder ()
 setTotalPages value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = Data.Maybe.Just value }))
 
-setTotalItems :: Data.Maybe.Maybe Data.Int.Int32 -> ListAuditLogsOutputBuilder ()
+setTotalItems :: Data.Int.Int32 -> ListAuditLogsOutputBuilder ()
 setTotalItems value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = Data.Maybe.Just value }))
 
-setData' :: Data.Maybe.Maybe ([] Io.Superposition.Model.AuditLogFull.AuditLogFull) -> ListAuditLogsOutputBuilder ()
+setData' :: [] Io.Superposition.Model.AuditLogFull.AuditLogFull -> ListAuditLogsOutputBuilder ()
 setData' value =
-   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = Data.Maybe.Just value }))
 
 build :: ListAuditLogsOutputBuilder () -> Data.Either.Either Data.Text.Text ListAuditLogsOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    total_pages' <- Data.Either.Right (total_pagesBuilderState st)
-    total_items' <- Data.Either.Right (total_itemsBuilderState st)
-    data'' <- Data.Either.Right (data'BuilderState st)
+    total_pages' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListAuditLogsOutput.ListAuditLogsOutput.total_pages is a required property.") Data.Either.Right (total_pagesBuilderState st)
+    total_items' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListAuditLogsOutput.ListAuditLogsOutput.total_items is a required property.") Data.Either.Right (total_itemsBuilderState st)
+    data'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListAuditLogsOutput.ListAuditLogsOutput.data' is a required property.") Data.Either.Right (data'BuilderState st)
     Data.Either.Right (ListAuditLogsOutput { 
         total_pages = total_pages',
         total_items = total_items',

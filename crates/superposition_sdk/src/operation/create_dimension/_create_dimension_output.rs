@@ -30,7 +30,7 @@ pub struct CreateDimensionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub mandatory: ::std::option::Option<bool>,
+    pub mandatory: bool,
 }
 impl  CreateDimensionOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -86,7 +86,7 @@ impl  CreateDimensionOutput  {
         self.autocomplete_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn mandatory(&self) -> ::std::option::Option<bool> {
+    pub fn mandatory(&self) -> bool {
         self.mandatory
     }
 }
@@ -307,6 +307,7 @@ impl CreateDimensionOutputBuilder {
         &self.autocomplete_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
     pub fn mandatory(mut self, input: bool) -> Self {
         self.mandatory = ::std::option::Option::Some(input);
         self
@@ -332,6 +333,7 @@ impl CreateDimensionOutputBuilder {
     /// - [`created_by`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::created_by)
     /// - [`dependency_graph`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::dependency_graph)
     /// - [`dimension_type`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::dimension_type)
+    /// - [`mandatory`](crate::operation::create_dimension::builders::CreateDimensionOutputBuilder::mandatory)
     pub fn build(self) -> ::std::result::Result<crate::operation::create_dimension::CreateDimensionOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::create_dimension::CreateDimensionOutput {
@@ -395,6 +397,9 @@ impl CreateDimensionOutputBuilder {
                 autocomplete_function_name: self.autocomplete_function_name
                 ,
                 mandatory: self.mandatory
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("mandatory", "mandatory was not specified but it is required when building CreateDimensionOutput")
+                    )?
                 ,
             }
         )

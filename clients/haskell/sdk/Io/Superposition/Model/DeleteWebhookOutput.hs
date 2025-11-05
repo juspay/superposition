@@ -52,7 +52,7 @@ build builder = do
 
 
 instance Io.Superposition.Utility.FromResponseParser DeleteWebhookOutput where
-    expectedStatus = Network.HTTP.Types.status201
+    expectedStatus = Network.HTTP.Types.status204
     responseParser = do
         
         

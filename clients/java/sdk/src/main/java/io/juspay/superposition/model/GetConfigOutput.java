@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -17,6 +18,7 @@ import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
@@ -24,14 +26,20 @@ public final class GetConfigOutput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#GetConfigOutput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("contexts", SharedSchemas.CONTEXT_LIST)
-        .putMember("overrides", SharedSchemas.OVERRIDES_MAP)
-        .putMember("default_configs", SharedSchemas.OBJECT)
-        .putMember("dimensions", SharedSchemas.DIMENSION_DATA)
+        .putMember("contexts", SharedSchemas.CONTEXT_LIST,
+                new RequiredTrait())
+        .putMember("overrides", SharedSchemas.OVERRIDES_MAP,
+                new RequiredTrait())
+        .putMember("default_configs", SharedSchemas.OBJECT,
+                new RequiredTrait())
+        .putMember("dimensions", SharedSchemas.DIMENSION_DATA,
+                new RequiredTrait())
         .putMember("version", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-config-version"))
+                new HttpHeaderTrait("x-config-version"),
+                new RequiredTrait())
         .putMember("last_modified", SharedSchemas.DATE_TIME,
-                new HttpHeaderTrait("last-modified"))
+                new HttpHeaderTrait("last-modified"),
+                new RequiredTrait())
         .putMember("audit_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-audit-id"))
         .build();
@@ -53,57 +61,45 @@ public final class GetConfigOutput implements SerializableStruct {
     private final transient String auditId;
 
     private GetConfigOutput(Builder builder) {
-        this.contexts = builder.contexts == null ? null : Collections.unmodifiableList(builder.contexts);
-        this.overrides = builder.overrides == null ? null : Collections.unmodifiableMap(builder.overrides);
-        this.defaultConfigs = builder.defaultConfigs == null ? null : Collections.unmodifiableMap(builder.defaultConfigs);
-        this.dimensions = builder.dimensions == null ? null : Collections.unmodifiableMap(builder.dimensions);
+        this.contexts = Collections.unmodifiableList(builder.contexts);
+        this.overrides = Collections.unmodifiableMap(builder.overrides);
+        this.defaultConfigs = Collections.unmodifiableMap(builder.defaultConfigs);
+        this.dimensions = Collections.unmodifiableMap(builder.dimensions);
         this.version = builder.version;
         this.lastModified = builder.lastModified;
         this.auditId = builder.auditId;
     }
 
     public List<ContextPartial> contexts() {
-        if (contexts == null) {
-            return Collections.emptyList();
-        }
         return contexts;
     }
 
     public boolean hasContexts() {
-        return contexts != null;
+        return true;
     }
 
     public Map<String, Map<String, Document>> overrides() {
-        if (overrides == null) {
-            return Collections.emptyMap();
-        }
         return overrides;
     }
 
     public boolean hasOverrides() {
-        return overrides != null;
+        return true;
     }
 
     public Map<String, Document> defaultConfigs() {
-        if (defaultConfigs == null) {
-            return Collections.emptyMap();
-        }
         return defaultConfigs;
     }
 
     public boolean hasDefaultConfigs() {
-        return defaultConfigs != null;
+        return true;
     }
 
     public Map<String, DimensionInfo> dimensions() {
-        if (dimensions == null) {
-            return Collections.emptyMap();
-        }
         return dimensions;
     }
 
     public boolean hasDimensions() {
-        return dimensions != null;
+        return true;
     }
 
     public String version() {
@@ -153,24 +149,12 @@ public final class GetConfigOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (contexts != null) {
-            serializer.writeList($SCHEMA_CONTEXTS, contexts, contexts.size(), SharedSerde.ContextListSerializer.INSTANCE);
-        }
-        if (overrides != null) {
-            serializer.writeMap($SCHEMA_OVERRIDES, overrides, overrides.size(), SharedSerde.OverridesMapSerializer.INSTANCE);
-        }
-        if (defaultConfigs != null) {
-            serializer.writeMap($SCHEMA_DEFAULT_CONFIGS, defaultConfigs, defaultConfigs.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
-        }
-        if (dimensions != null) {
-            serializer.writeMap($SCHEMA_DIMENSIONS, dimensions, dimensions.size(), SharedSerde.DimensionDataSerializer.INSTANCE);
-        }
-        if (version != null) {
-            serializer.writeString($SCHEMA_VERSION, version);
-        }
-        if (lastModified != null) {
-            serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
-        }
+        serializer.writeList($SCHEMA_CONTEXTS, contexts, contexts.size(), SharedSerde.ContextListSerializer.INSTANCE);
+        serializer.writeMap($SCHEMA_OVERRIDES, overrides, overrides.size(), SharedSerde.OverridesMapSerializer.INSTANCE);
+        serializer.writeMap($SCHEMA_DEFAULT_CONFIGS, defaultConfigs, defaultConfigs.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
+        serializer.writeMap($SCHEMA_DIMENSIONS, dimensions, dimensions.size(), SharedSerde.DimensionDataSerializer.INSTANCE);
+        serializer.writeString($SCHEMA_VERSION, version);
+        serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
         if (auditId != null) {
             serializer.writeString($SCHEMA_AUDIT_ID, auditId);
         }
@@ -221,6 +205,7 @@ public final class GetConfigOutput implements SerializableStruct {
      * Builder for {@link GetConfigOutput}.
      */
     public static final class Builder implements ShapeBuilder<GetConfigOutput> {
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private List<ContextPartial> contexts;
         private Map<String, Map<String, Document>> overrides;
         private Map<String, Document> defaultConfigs;
@@ -237,50 +222,62 @@ public final class GetConfigOutput implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder contexts(List<ContextPartial> contexts) {
-            this.contexts = contexts;
+            this.contexts = Objects.requireNonNull(contexts, "contexts cannot be null");
+            tracker.setMember($SCHEMA_CONTEXTS);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder overrides(Map<String, Map<String, Document>> overrides) {
-            this.overrides = overrides;
+            this.overrides = Objects.requireNonNull(overrides, "overrides cannot be null");
+            tracker.setMember($SCHEMA_OVERRIDES);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder defaultConfigs(Map<String, Document> defaultConfigs) {
-            this.defaultConfigs = defaultConfigs;
+            this.defaultConfigs = Objects.requireNonNull(defaultConfigs, "defaultConfigs cannot be null");
+            tracker.setMember($SCHEMA_DEFAULT_CONFIGS);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder dimensions(Map<String, DimensionInfo> dimensions) {
-            this.dimensions = dimensions;
+            this.dimensions = Objects.requireNonNull(dimensions, "dimensions cannot be null");
+            tracker.setMember($SCHEMA_DIMENSIONS);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder version(String version) {
-            this.version = version;
+            this.version = Objects.requireNonNull(version, "version cannot be null");
+            tracker.setMember($SCHEMA_VERSION);
             return this;
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder lastModified(Instant lastModified) {
-            this.lastModified = lastModified;
+            this.lastModified = Objects.requireNonNull(lastModified, "lastModified cannot be null");
+            tracker.setMember($SCHEMA_LAST_MODIFIED);
             return this;
         }
 
@@ -294,6 +291,7 @@ public final class GetConfigOutput implements SerializableStruct {
 
         @Override
         public GetConfigOutput build() {
+            tracker.validate();
             return new GetConfigOutput(this);
         }
 
@@ -310,6 +308,32 @@ public final class GetConfigOutput implements SerializableStruct {
                 case 6 -> auditId((String) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<GetConfigOutput> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_CONTEXTS)) {
+                contexts(Collections.emptyList());
+            }
+            if (!tracker.checkMember($SCHEMA_OVERRIDES)) {
+                overrides(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_DEFAULT_CONFIGS)) {
+                defaultConfigs(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_DIMENSIONS)) {
+                dimensions(Collections.emptyMap());
+            }
+            if (!tracker.checkMember($SCHEMA_VERSION)) {
+                version("");
+            }
+            if (!tracker.checkMember($SCHEMA_LAST_MODIFIED)) {
+                lastModified(Instant.EPOCH);
+            }
+            return this;
         }
 
         @Override

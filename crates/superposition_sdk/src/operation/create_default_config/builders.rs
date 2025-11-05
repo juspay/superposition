@@ -171,17 +171,17 @@ impl CreateDefaultConfigFluentBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_change_reason()
                 }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.function_name(input.into());
                     self
                 }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
                     self.inner = self.inner.set_function_name(input);
                     self
                 }
-    /// Optional
+    #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_function_name()
                 }

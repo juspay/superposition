@@ -52,7 +52,7 @@ build builder = do
 
 
 instance Io.Superposition.Utility.FromResponseParser DeleteFunctionOutput where
-    expectedStatus = Network.HTTP.Types.status200
+    expectedStatus = Network.HTTP.Types.status204
     responseParser = do
         
         

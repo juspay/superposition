@@ -64,7 +64,7 @@ data UpdateWorkspaceOutput = UpdateWorkspaceOutput {
     created_at :: Data.Time.UTCTime,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
     strict_mode :: Bool,
-    metrics :: Data.Maybe.Maybe Data.Aeson.Value,
+    metrics :: Data.Aeson.Value,
     allow_experiment_self_approval :: Bool,
     auto_populate_control :: Bool
 } deriving (
@@ -213,9 +213,9 @@ setStrictMode :: Bool -> UpdateWorkspaceOutputBuilder ()
 setStrictMode value =
    Control.Monad.State.Strict.modify (\s -> (s { strict_modeBuilderState = Data.Maybe.Just value }))
 
-setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> UpdateWorkspaceOutputBuilder ()
+setMetrics :: Data.Aeson.Value -> UpdateWorkspaceOutputBuilder ()
 setMetrics value =
-   Control.Monad.State.Strict.modify (\s -> (s { metricsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { metricsBuilderState = Data.Maybe.Just value }))
 
 setAllowExperimentSelfApproval :: Bool -> UpdateWorkspaceOutputBuilder ()
 setAllowExperimentSelfApproval value =
@@ -241,7 +241,7 @@ build builder = do
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
     strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.strict_mode is a required property.") Data.Either.Right (strict_modeBuilderState st)
-    metrics' <- Data.Either.Right (metricsBuilderState st)
+    metrics' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.metrics is a required property.") Data.Either.Right (metricsBuilderState st)
     allow_experiment_self_approval' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.allow_experiment_self_approval is a required property.") Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     auto_populate_control' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.auto_populate_control is a required property.") Data.Either.Right (auto_populate_controlBuilderState st)
     Data.Either.Right (UpdateWorkspaceOutput { 

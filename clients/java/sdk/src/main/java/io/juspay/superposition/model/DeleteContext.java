@@ -23,7 +23,7 @@ public final class DeleteContext implements ApiOperation<DeleteContextInput, Del
     private static final DeleteContext $INSTANCE = new DeleteContext();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("DELETE").code(201).uri(UriPattern.parse("/context/{id}")).build());
+            HttpTrait.builder().method("DELETE").code(204).uri(UriPattern.parse("/context/{id}")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
