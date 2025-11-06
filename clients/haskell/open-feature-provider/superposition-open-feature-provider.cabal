@@ -39,7 +39,8 @@ library
                         LambdaCase,
                         OverloadedStrings,
                         ExistentialQuantification,
-                        RankNTypes
+                        RankNTypes,
+                        ImportQualifiedPost
 
 test-suite superposition-open-feature-provider-test
     import:           warnings
