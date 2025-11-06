@@ -311,6 +311,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
                 log.error("Experimentation data is not available.");
             } else {
                 log.debug("Using experimentation output: {}", job.getOutput().get());
+                log.debug("Using experimentation group output: {}", jobGroups.getOutput().get());
                 return new ExperimentationArgs(job.getOutput().get(), jobGroups.getOutput().get(), tkey);
             }
         }

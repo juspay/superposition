@@ -9,6 +9,7 @@ import io.juspay.superposition.model.ExperimentGroupResponse
 import io.juspay.superposition.model.GetConfigOutput
 import software.amazon.smithy.java.core.serde.document.Document
 import uniffi.superposition_client.*
+import uniffi.superposition_types.Bucket
 import uniffi.superposition_types.Buckets
 import uniffi.superposition_types.Context
 import uniffi.superposition_types.DimensionInfo
@@ -88,6 +89,13 @@ internal class EvaluationArgs {
             )
         }
 
+        private fun toFfiBucket(bucket: io.juspay.superposition.model.Bucket): Bucket {
+            return Bucket(
+                bucket.variantId(),
+                bucket.experimentId()
+            )
+        }
+
         private fun toFfiGroupType(gt: io.juspay.superposition.model.GroupType): GroupType {
             return when (gt) {
                 io.juspay.superposition.model.GroupType.USER_CREATED -> GroupType.USER_CREATED
@@ -103,7 +111,7 @@ internal class EvaluationArgs {
                 er.trafficPercentage().toUByte(),
                 er.memberExperimentIds(),
                 toFfiGroupType(er.groupType()),
-                er.buckets() as Buckets
+                er.buckets().map { toFfiBucket(it) }
             )
         }
     }

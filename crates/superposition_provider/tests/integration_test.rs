@@ -51,7 +51,7 @@ async fn create_workspace(client: &Client, org_id: &str, workspace_name: &str) {
         .workspace_status(WorkspaceStatus::Enabled)
         .strict_mode(true)
         .allow_experiment_self_approval(true)
-        .auto_populate_control(true)
+        .auto_populate_control(false) // disable auto populate control for testing experiment
         .send()
         .await
         .expect("Failed to create workspace");
@@ -317,7 +317,7 @@ async fn create_experiments(client: &Client, org_id: &str, workspace_id: &str) {
 
     use aws_smithy_types::Document;
 
-    client
+    let response = client
         .create_experiment()
         .workspace_id(workspace_id)
         .org_id(org_id)
@@ -327,7 +327,7 @@ async fn create_experiments(client: &Client, org_id: &str, workspace_id: &str) {
             Variant::builder()
                 .id("control".to_string())
                 .variant_type(superposition_sdk::types::VariantType::Control)
-                .overrides("price", Document::from(10000))
+                .overrides("price", Document::from(8000)) // # Note: Using a different price to distinguish from default
                 .build()
                 .expect("Failed to build control variant"),
         )
@@ -344,6 +344,19 @@ async fn create_experiments(client: &Client, org_id: &str, workspace_id: &str) {
         .send()
         .await
         .expect("Failed to create experiment");
+
+    println!("  - Created experiment: Kolkata Pricing Experiment");
+
+    client
+        .ramp_experiment()
+        .workspace_id(workspace_id)
+        .org_id(org_id)
+        .id(response.id)
+        .traffic_percentage(50)
+        .change_reason("ramping up experiment")
+        .send()
+        .await
+        .expect("Failed to ramp experiment");
 }
 
 async fn setup_with_sdk(org_id: &str, workspace_id: &str) {
@@ -556,8 +569,8 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
         println!("  Retrieved price: {}, currency: {}", price, currency);
 
         assert!(
-            price == 10000.0 || price == 7000.0,
-            "Price should be either 10000 (control) or 7000 (experiment) "
+            price == 8000.0 || price == 7000.0,
+            "Price should be either 8000 (control) or 7000 (experiment) "
         );
         assert_eq!(currency, "Rupee", "Currency should be default Rupee");
         println!("  ✓ Experiment test passed ");

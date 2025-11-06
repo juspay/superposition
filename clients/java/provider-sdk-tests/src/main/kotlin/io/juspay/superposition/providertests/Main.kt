@@ -59,7 +59,7 @@ class Main {
             .workspaceStatus(WorkspaceStatus.ENABLED)
             .strictMode(true)
             .allowExperimentSelfApproval(true)
-            .autoPopulateControl(true)
+            .autoPopulateControl(false) // disable auto populate control for testing experiment
             .build()
 
         try {
@@ -299,12 +299,12 @@ class Main {
                     Variant.builder()
                         .id("testexperiment-control")
                         .variantType(VariantType.CONTROL)
-                        .overrides(mapOf("price" to Document.of(10000)))
+                        .overrides(mapOf("price" to Document.of(8000))) // # Note: Using a different price to distinguish from default
                         .build(),
                     Variant.builder()
                         .id("testexperiment-experimental")
                         .variantType(VariantType.EXPERIMENTAL)
-                        .overrides(mapOf("price" to Document.of(8800)))
+                        .overrides(mapOf("price" to Document.of(7000)))
                         .build()
                 ))
                 .description("test experimentation")
@@ -319,7 +319,7 @@ class Main {
                     client.createExperiment(experiment)
                 }
                 future.thenAccept { response ->
-                    println("Created experiment: $response")
+                    println("Created experiment: ${response.id()}")
                     val rampInput = RampExperimentInput.builder()
                         .workspaceId(workspaceId)
                         .orgId(orgId)
@@ -331,7 +331,7 @@ class Main {
                     val rampFuture = CompletableFuture.supplyAsync {
                         client.rampExperiment(rampInput)
                     }.thenAccept { rampResponse ->
-                        println("Experiment ramped: $rampResponse")
+                        println("Experiment ramped to: ${rampResponse.trafficPercentage()}%")
                     }
                     rampFuture.join()
                 }
@@ -360,6 +360,11 @@ class Main {
             .endpoint("http://localhost:8080")
             .token("12345678")
             .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
+            .experimentationOptions(
+                SuperpositionProviderOptions.ExperimentationOptions.builder()
+                        .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
+                        .build()
+            )
             .build()
 
         try {
@@ -495,7 +500,7 @@ class Main {
                 val currency = ofClient.getStringValue("currency", "", context)
                 println("  Retrieved price: $price and currency: $currency for Bangalore customer")
 
-                check(price == 8800.0 || price == 10000.0) { "Price should be either 8800 (experimental) or 10000 (control), got $price" }
+                check(price == 7000.0 || price == 8000.0) { "Price should be either 7000 (experimental) or 8000 (control), got $price" }
                 check(currency == "Rupee") { "Currency should be default Rupee, got $currency" }
                 println(" ✓ Experiment Test passed\n")
             }

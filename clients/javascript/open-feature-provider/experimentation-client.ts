@@ -5,7 +5,6 @@ import {
     ListExperimentGroupsCommandInput,
     ListExperimentGroupsCommand,
     GroupType,
-    Bucket,
     ExperimentStatusType,
     VariantType,
 } from "superposition-sdk";
@@ -31,6 +30,10 @@ export interface Experiment {
     traffic_percentage: number;
 }
 
+export interface Bucket {
+    variant_id: string;
+    experiment_id: string;
+}
 export interface ExperimentGroup {
     id: string;
     context: Record<string, string>;
@@ -218,7 +221,11 @@ export class ExperimentationClient {
                     group_type:
                         (exp_group.group_type as GroupType) ||
                         GroupType.USER_CREATED,
-                    buckets: exp_group.buckets || [],
+                    buckets:
+                        exp_group.buckets?.map((bucket) => ({
+                            variant_id: bucket.variant_id || "",
+                            experiment_id: bucket.experiment_id || "",
+                        })) || [],
                 });
             }
 
