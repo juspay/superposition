@@ -43,13 +43,15 @@ fn webhook_info(webhook: Webhook) -> impl IntoView {
                         </div>
                     </div>
                     <div class="flex flex-row gap-6 flex-wrap">
-                        <div class="h-fit w-[250px] flex gap-4">
+                        <div class="h-fit flex items-center gap-4">
                             <div class="stat-title">"URL"</div>
                             <div class="stat-value text-base">
                                 {webhook.url.deref().to_string()}
                             </div>
                         </div>
-                        <div class="h-fit w-[250px] flex gap-4">
+                    </div>
+                    <div class="flex flex-row gap-6 flex-wrap">
+                        <div class="h-fit flex items-center gap-4">
                             <div class="stat-title">"Method"</div>
                             <div class="stat-value text-base">{webhook.method.to_string()}</div>
                         </div>

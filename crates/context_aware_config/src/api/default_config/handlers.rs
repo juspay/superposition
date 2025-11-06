@@ -114,16 +114,19 @@ async fn create_default_config(
         ));
     }
 
-    if let Err(e) = validate_and_get_function_code(
+    validate_and_get_function_code(
         &mut conn,
-        default_config.function_name.as_ref(),
+        &default_config.function_name,
         &default_config.key,
         &default_config.value,
         &schema_name,
-    ) {
-        log::info!("Validation failed: {:?}", e);
-        return Err(e);
-    }
+    )?;
+
+    validate_fn_published(
+        &default_config.autocomplete_function_name,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -228,11 +231,15 @@ async fn update_default_config(
 
         validate_and_get_function_code(
             &mut conn,
-            validation_function_name.as_ref(),
+            validation_function_name,
             &key_str,
             &value,
             &schema_name,
         )?
+    }
+
+    if let Some(ref autocomplete_function_name) = req.autocomplete_function_name {
+        validate_fn_published(autocomplete_function_name, &mut conn, &schema_name)?;
     }
 
     let (db_row, version_id) =
@@ -269,16 +276,40 @@ async fn update_default_config(
     Ok(http_resp.json(db_row))
 }
 
+fn validate_fn_published(
+    function: &Option<String>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    if let Some(func_name) = function {
+        if get_published_function_code(conn, func_name, schema_name)?.is_some() {
+            Ok(())
+        } else {
+            Err(validation_error!(
+                "Function {} doesn't exist / function code not published yet.",
+                func_name
+            ))
+        }
+    } else {
+        Ok(())
+    }
+}
+
 fn validate_and_get_function_code(
     conn: &mut DBConnection,
-    function_name: Option<&String>,
+    function_name: &Option<String>,
     key: &str,
     value: &Value,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
         let function_code = get_published_function_code(conn, f_name, schema_name)
-            .map_err(|_| bad_argument!("Function {} doesn't exist.", f_name))?;
+            .map_err(|_| {
+                bad_argument!(
+                    "Function {} doesn't exist / function code not published yet.",
+                    f_name
+                )
+            })?;
         if let Some(f_code) = function_code {
             validate_value_with_function(
                 f_name.as_str(),

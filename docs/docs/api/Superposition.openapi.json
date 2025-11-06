@@ -346,6 +346,15 @@
                         }
                     },
                     {
+                        "name": "resolve_remote",
+                        "in": "query",
+                        "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution."
+                        }
+                    },
+                    {
                         "name": "x-merge-strategy",
                         "in": "header",
                         "schema": {
@@ -6548,6 +6557,9 @@
                     },
                     "dependency_graph": {
                         "$ref": "#/components/schemas/DependencyGraph"
+                    },
+                    "autocomplete_function_name": {
+                        "type": "string"
                     }
                 },
                 "required": [

@@ -156,7 +156,7 @@ pub async fn get_partial_resolve_config(
         user,
         state,
         &DimensionQuery::from(exp_context_dimension_value),
-        &ResolveConfigQuery {
+        ResolveConfigQuery {
             context_id: Some(context_id.to_string()),
             ..Default::default()
         },
@@ -169,10 +169,15 @@ pub async fn get_resolved_config(
     user: &User,
     state: &Data<AppState>,
     dimension_query: &DimensionQuery<QueryMap>,
-    resolve_params: &ResolveConfigQuery,
+    resolve_params: ResolveConfigQuery,
     workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
     let http_client = state.http_client.clone();
+    let resolve_params = ResolveConfigQuery {
+        resolve_remote: Some(true),
+        ..resolve_params
+    };
+
     let url = format!(
         "{}/config/resolve?{}&{}",
         state.cac_host,

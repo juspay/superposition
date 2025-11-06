@@ -32,23 +32,27 @@ public final class DimensionInfo implements SerializableStruct {
                 new RequiredTrait())
         .putMember("dependency_graph", SharedSchemas.DEPENDENCY_GRAPH,
                 new RequiredTrait())
+        .putMember("autocomplete_function_name", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_SCHEMA_MEMBER = $SCHEMA.member("schema");
     private static final Schema $SCHEMA_POSITION = $SCHEMA.member("position");
     private static final Schema $SCHEMA_DIMENSION_TYPE = $SCHEMA.member("dimension_type");
     private static final Schema $SCHEMA_DEPENDENCY_GRAPH = $SCHEMA.member("dependency_graph");
+    private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
 
     private final transient Map<String, Document> schemaMember;
     private final transient int position;
     private final transient DimensionType dimensionType;
     private final transient Map<String, List<String>> dependencyGraph;
+    private final transient String autocompleteFunctionName;
 
     private DimensionInfo(Builder builder) {
         this.schemaMember = Collections.unmodifiableMap(builder.schemaMember);
         this.position = builder.position;
         this.dimensionType = builder.dimensionType;
         this.dependencyGraph = Collections.unmodifiableMap(builder.dependencyGraph);
+        this.autocompleteFunctionName = builder.autocompleteFunctionName;
     }
 
     public Map<String, Document> schemaMember() {
@@ -75,6 +79,10 @@ public final class DimensionInfo implements SerializableStruct {
         return true;
     }
 
+    public String autocompleteFunctionName() {
+        return autocompleteFunctionName;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -92,12 +100,13 @@ public final class DimensionInfo implements SerializableStruct {
         return Objects.equals(this.schemaMember, that.schemaMember)
                && this.position == that.position
                && Objects.equals(this.dimensionType, that.dimensionType)
-               && Objects.equals(this.dependencyGraph, that.dependencyGraph);
+               && Objects.equals(this.dependencyGraph, that.dependencyGraph)
+               && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(schemaMember, position, dimensionType, dependencyGraph);
+        return Objects.hash(schemaMember, position, dimensionType, dependencyGraph, autocompleteFunctionName);
     }
 
     @Override
@@ -113,6 +122,9 @@ public final class DimensionInfo implements SerializableStruct {
             serializer.writeStruct($SCHEMA_DIMENSION_TYPE, dimensionType);
         }
         serializer.writeMap($SCHEMA_DEPENDENCY_GRAPH, dependencyGraph, dependencyGraph.size(), SharedSerde.DependencyGraphSerializer.INSTANCE);
+        if (autocompleteFunctionName != null) {
+            serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
+        }
     }
 
     @Override
@@ -123,6 +135,7 @@ public final class DimensionInfo implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_POSITION, member, position);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, dimensionType);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCY_GRAPH, member, dependencyGraph);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -140,6 +153,7 @@ public final class DimensionInfo implements SerializableStruct {
         builder.position(this.position);
         builder.dimensionType(this.dimensionType);
         builder.dependencyGraph(this.dependencyGraph);
+        builder.autocompleteFunctionName(this.autocompleteFunctionName);
         return builder;
     }
 
@@ -159,6 +173,7 @@ public final class DimensionInfo implements SerializableStruct {
         private int position;
         private DimensionType dimensionType;
         private Map<String, List<String>> dependencyGraph;
+        private String autocompleteFunctionName;
 
         private Builder() {}
 
@@ -207,6 +222,14 @@ public final class DimensionInfo implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder autocompleteFunctionName(String autocompleteFunctionName) {
+            this.autocompleteFunctionName = autocompleteFunctionName;
+            return this;
+        }
+
         @Override
         public DimensionInfo build() {
             tracker.validate();
@@ -221,6 +244,7 @@ public final class DimensionInfo implements SerializableStruct {
                 case 1 -> position((int) SchemaUtils.validateSameMember($SCHEMA_POSITION, member, value));
                 case 2 -> dimensionType((DimensionType) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, value));
                 case 3 -> dependencyGraph((Map<String, List<String>>) SchemaUtils.validateSameMember($SCHEMA_DEPENDENCY_GRAPH, member, value));
+                case 4 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -267,6 +291,7 @@ public final class DimensionInfo implements SerializableStruct {
                     case 1 -> builder.position(de.readInteger(member));
                     case 2 -> builder.dimensionType(DimensionType.builder().deserializeMember(de, member).build());
                     case 3 -> builder.dependencyGraph(SharedSerde.deserializeDependencyGraph(member, de));
+                    case 4 -> builder.autocompleteFunctionName(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

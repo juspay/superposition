@@ -2515,6 +2515,8 @@ class DimensionInfo:
 
     dependency_graph: dict[str, list[str]]
 
+    autocomplete_function_name: str | None = None
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DIMENSION_INFO, self)
 
@@ -2523,6 +2525,8 @@ class DimensionInfo:
         serializer.write_integer(_SCHEMA_DIMENSION_INFO.members["position"], self.position)
         serializer.write_struct(_SCHEMA_DIMENSION_INFO.members["dimension_type"], self.dimension_type)
         _serialize_dependency_graph(serializer, _SCHEMA_DIMENSION_INFO.members["dependency_graph"], self.dependency_graph)
+        if self.autocomplete_function_name is not None:
+            serializer.write_string(_SCHEMA_DIMENSION_INFO.members["autocomplete_function_name"], self.autocomplete_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2545,6 +2549,9 @@ class DimensionInfo:
 
                 case 3:
                     kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_DIMENSION_INFO.members["dependency_graph"])
+
+                case 4:
+                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_INFO.members["autocomplete_function_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2770,6 +2777,10 @@ class MergeStrategy(StrEnum):
 class GetResolvedConfigInput:
     """
 
+    :param resolve_remote:
+         Intended for control resolution. If true, evaluates and includes remote
+         cohort-based contexts during config resolution.
+
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
@@ -2782,6 +2793,7 @@ class GetResolvedConfigInput:
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
     context_id: str | None = None
+    resolve_remote: bool | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2823,6 +2835,9 @@ class GetResolvedConfigInput:
                     kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 7:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 8:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:

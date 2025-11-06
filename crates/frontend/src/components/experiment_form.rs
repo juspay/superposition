@@ -4,17 +4,18 @@ pub mod utils;
 use std::{collections::HashSet, ops::Deref};
 
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use superposition_types::{
     api::{
         dimension::DimensionResponse,
         experiment_groups::ExpGroupFilters,
         experiments::{ExperimentResponse, OverrideKeysUpdateRequest},
+        functions::FunctionEnvironment,
     },
     custom_query::PaginationParams,
     database::models::{
         cac::DefaultConfig,
-        experimentation::{ExperimentGroup, ExperimentType},
+        experimentation::{ExperimentGroup, ExperimentType, VariantType},
         Metrics,
     },
 };
@@ -130,17 +131,16 @@ pub fn experiment_form(
             variants_ws.set_untracked(updated_varaints);
         };
 
-    let fn_environment = create_memo(move |_| {
-        let context = context_rs.get();
+    let fn_environment = Memo::new(move |_| {
+        let context = context_rs.get().as_context_json();
         let overrides = variants_rs
             .get()
-            .into_iter()
-            .map(|(variant_id, o)| (variant_id, o.overrides.clone()))
-            .collect::<Vec<_>>();
-        json!({
-            "context": context,
-            "overrides": overrides,
-        })
+            .iter()
+            .find(|(_, v)| v.variant_type == VariantType::EXPERIMENTAL)
+            .map(|(_, variant)| variant.overrides.iter().cloned().collect::<Map<_, _>>())
+            .unwrap_or_default();
+
+        FunctionEnvironment { context, overrides }
     });
 
     let on_submit = move || {

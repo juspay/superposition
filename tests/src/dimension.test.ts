@@ -10,7 +10,7 @@ import {
     PublishCommand,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
-import { describe, afterAll, test, expect } from "bun:test";
+import { describe, afterAll, test, expect, beforeAll } from "bun:test";
 
 describe("Dimension API", () => {
     // Test variables
@@ -24,7 +24,7 @@ describe("Dimension API", () => {
 
     const testLocalCohort = {
         dimension: `test-local-cohort-${Date.now()}`,
-        position: 2,
+        position: testDimension.position,
         schema: {
             type: "string",
             enum: ["small", "big", "otherwise"],
@@ -64,7 +64,7 @@ describe("Dimension API", () => {
 
     const testRemoteCohort = {
         dimension: `test-remote-cohort-${Date.now()}`,
-        position: 3,
+        position: testDimension.position,
         schema: {
             type: "string",
         },
@@ -81,10 +81,75 @@ describe("Dimension API", () => {
     let validationFunctionName: string;
     let autocompleteFunctionName: string;
 
+    beforeAll(async () => {
+        const functionName = `dimension-validator-${Date.now()}`;
+        const validationCode = `
+            async function validate(key, value) {
+                // Simple validation: value must be a string with length between 3 and 20
+                if (typeof value !== 'string') {
+                    return false;
+                }
+                return value.length >= 3 && value.length <= 20;
+            }
+        `;
+
+        const createFunctionCmd = new CreateFunctionCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            function_name: functionName,
+            function: validationCode,
+            description: "Validation function for dimension test",
+            change_reason: "Creating test validation function",
+            runtime_version: "1",
+            function_type: FunctionTypes.VALIDATION,
+        });
+
+        try {
+            const functionResponse = await superpositionClient.send(
+                createFunctionCmd
+            );
+            console.log("Created validation function:", functionResponse);
+            validationFunctionName =
+                functionResponse.function_name ?? functionName;
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+
+        const functionNameAC = `dimension-completor-${Date.now()}`;
+        const autocompleteCode = `
+            async function autocomplete(name, prefix, environment) {
+                return ["hello", "world"];
+            }
+        `;
+
+        const createFunctionCmdAC = new CreateFunctionCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            function_name: functionNameAC,
+            function: autocompleteCode,
+            description: "autocomplete function for dimension test",
+            change_reason: "Creating test autocomplete function",
+            runtime_version: "1",
+            function_type: FunctionTypes.AUTOCOMPLETE,
+        });
+
+        try {
+            const functionResponse = await superpositionClient.send(
+                createFunctionCmdAC
+            );
+            console.log("Created autocomplete function:", functionResponse);
+            autocompleteFunctionName =
+                functionResponse.function_name ?? functionNameAC;
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
     // Clean up after tests
     afterAll(async () => {
         // Clean up all dimensions created during tests
-        for (const dimensionName of createdDimensions) {
+        for (const dimensionName of createdDimensions.reverse()) {
             try {
                 const deleteCmd = new DeleteDimensionCommand({
                     workspace_id: ENV.workspace_id,
@@ -254,7 +319,7 @@ describe("Dimension API", () => {
         );
     });
 
-    test("CreateDimension: should reject invalid functino", async () => {
+    test("CreateDimension: should reject invalid function", async () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
             throw new Error(
@@ -276,7 +341,7 @@ describe("Dimension API", () => {
         const cmd = new CreateDimensionCommand(duplicatePositionInput);
 
         expect(superpositionClient.send(cmd)).rejects.toThrow(
-            "Function identity doesn't exists"
+            "No records found. Please refine or correct your search parameters"
         );
     });
 
@@ -441,38 +506,33 @@ describe("Dimension API", () => {
 
     // ==================== VALIDATION FUNCTION TESTS ====================
 
-    test("CreateDimension: should create dimension with validation function", async () => {
-        // First create a validation function
-        const functionName = `dimension-validator-${Date.now()}`;
-        const validationCode = `
-            async function validate(key, value) {
-                // Simple validation: value must be a string with length between 3 and 20
-                if (typeof value !== 'string') {
-                    return false;
-                }
-                return value.length >= 3 && value.length <= 20;
-            }
-        `;
-
-        const createFunctionCmd = new CreateFunctionCommand({
-            workspace_id: ENV.workspace_id,
-            org_id: ENV.org_id,
-            function_name: functionName,
-            function: validationCode,
-            description: "Validation function for dimension test",
-            change_reason: "Creating test validation function",
-            runtime_version: "1",
-            function_type: FunctionTypes.VALIDATION,
-        });
-
+    test("CreateDimension: should fail to create dimension with validation function which is not published", async () => {
         try {
-            const functionResponse = await superpositionClient.send(
-                createFunctionCmd
-            );
-            console.log("Created validation function:", functionResponse);
-            validationFunctionName =
-                functionResponse.function_name ?? functionName;
+            const validatedDimension = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                dimension: `validated-dimension-${Date.now()}`,
+                position: 2,
+                schema: { type: "string" },
+                description: "Dimension with validation function",
+                change_reason: "Testing validation function",
+                function_name: validationFunctionName,
+            };
 
+            const dimensionCmd = new CreateDimensionCommand(validatedDimension);
+
+            // Assertions
+            expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
+                `Function ${validationFunctionName} doesn't exist / function code not published yet.`
+            );
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
+    test("CreateDimension: should create dimension with validation function", async () => {
+        try {
             // Now create a dimension that uses this validation function
             const dimension = `validated-dimension-${Date.now()}`;
             const validatedDimension = {
@@ -485,6 +545,15 @@ describe("Dimension API", () => {
                 change_reason: "Testing validation function",
                 function_name: validationFunctionName,
             };
+            await superpositionClient.send(
+                new PublishCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    function_name: validationFunctionName,
+                    change_reason:
+                        "Publishing validation function for dimension test",
+                })
+            );
 
             const createDimensionCmd = new CreateDimensionCommand(
                 validatedDimension
@@ -515,38 +584,38 @@ describe("Dimension API", () => {
         }
     });
 
-    test("CreateDimension: should create dimension with autocomplete function", async () => {
-        // First create a validation function
-        const functionName = `dimension-completor-${Date.now()}`;
-        const autocompleteCode = `
-            async function autocomplete(name, prefix, environment) {
-                return ["hello", "world"];
-            }
-        `;
-
-        const createFunctionCmd = new CreateFunctionCommand({
-            workspace_id: ENV.workspace_id,
-            org_id: ENV.org_id,
-            function_name: functionName,
-            function: autocompleteCode,
-            description: "autocomplete function for dimension test",
-            change_reason: "Creating test autocomplete function",
-            runtime_version: "1",
-            function_type: FunctionTypes.AUTOCOMPLETE,
-        });
-
+    test("CreateDimension: should fail to create dimension with autocomplete function which is not published", async () => {
         try {
-            const functionResponse = await superpositionClient.send(
-                createFunctionCmd
+            const validatedDimension = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                dimension: `validated-dimension-${Date.now()}`,
+                position: 2,
+                schema: { type: "string" },
+                description: "Dimension with autocomplete function",
+                change_reason: "Testing autocomplete function",
+                autocomplete_function_name: autocompleteFunctionName,
+            };
+
+            const dimensionCmd = new CreateDimensionCommand(validatedDimension);
+
+            // Assertions
+            expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
+                `Function ${autocompleteFunctionName} doesn't exist / function code not published yet.`
             );
-            console.log("Created autocomplete function:", functionResponse);
-            autocompleteFunctionName =
-                functionResponse.function_name ?? functionName;
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
+    test("CreateDimension: should create dimension with autocomplete function", async () => {
+        try {
             await superpositionClient.send(
                 new PublishCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    function_name: functionResponse.function_name,
+                    function_name: autocompleteFunctionName,
                     change_reason:
                         "Publishing autocomplete function for dimension test",
                 })
@@ -559,8 +628,8 @@ describe("Dimension API", () => {
                 dimension,
                 position: 2,
                 schema: { type: "string" },
-                description: "Dimension with validation function",
-                change_reason: "Testing validation function",
+                description: "Dimension with autocomplete function",
+                change_reason: "Testing autocomplete function",
                 autocomplete_function_name: autocompleteFunctionName,
             };
 
@@ -572,7 +641,7 @@ describe("Dimension API", () => {
             );
 
             console.log(
-                "Created dimension with validation:",
+                "Created dimension with autocomplete:",
                 dimensionResponse
             );
 
@@ -963,10 +1032,10 @@ describe("Dimension API", () => {
         }
     });
 
-    test("fail2create a remote cohort dimension on a local cohort", async () => {
+    test("fail to create a remote cohort dimension on a local cohort", async () => {
         const wrongCohort = {
             dimension: `test-remote-cohort-${Date.now()}`,
-            position: 3,
+            position: testLocalCohort.position,
             schema: {
                 type: "string",
             },
@@ -994,6 +1063,7 @@ describe("Dimension API", () => {
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
+            autocomplete_function_name: autocompleteFunctionName,
             ...testRemoteCohort,
         };
 
@@ -1018,6 +1088,39 @@ describe("Dimension API", () => {
             expect(response.created_at).toBeDefined();
             expect(response.last_modified_at).toBeDefined();
             expect(response.last_modified_by).toBeDefined();
+            expect(response.autocomplete_function_name).toBe(
+                autocompleteFunctionName
+            );
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
+    test("fail to update a remote cohort with position >= based on position", async () => {
+        const basedOnDimensionInput = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: testRemoteCohort.dimension_type.REMOTE_COHORT,
+        };
+
+        const basedOnDimension = await superpositionClient.send(
+            new GetDimensionCommand(basedOnDimensionInput)
+        );
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: testRemoteCohort.dimension,
+            position: (basedOnDimension.position ?? 0) + 1,
+            change_reason: "Updating position to invalid value",
+        };
+        try {
+            expect(
+                superpositionClient.send(new UpdateDimensionCommand(input))
+            ).rejects.toThrow(
+                `While updating dimension, Cohort dimension position ${input.position} must be less than the position ${basedOnDimension.position} of the dimension it is based on`
+            );
         } catch (e: any) {
             console.error(e["$response"]);
             throw e;
@@ -1025,9 +1128,9 @@ describe("Dimension API", () => {
     });
 
     test("create a local cohort dimension on a remote dimension", async () => {
-        const wrongCohort = {
+        const cohortData = {
             dimension: `test-cohort-local-${Date.now()}`,
-            position: 4, // Position 0 is reserved, start from 1
+            position: testRemoteCohort.position, // Position 0 is reserved, start from 1
             schema: {
                 type: "string",
                 enum: ["small", "big", "otherwise"],
@@ -1068,7 +1171,7 @@ describe("Dimension API", () => {
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            ...wrongCohort,
+            ...cohortData,
         };
 
         expect(

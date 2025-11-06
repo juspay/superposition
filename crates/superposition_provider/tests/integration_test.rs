@@ -153,7 +153,7 @@ async fn create_dimensions(client: &Client, org_id: &str, workspace_id: &str) {
         .workspace_id(workspace_id)
         .org_id(org_id)
         .dimension("customers")
-        .position(3)
+        .position(1)
         .schema("type", Document::from("string"))
         .schema("enum", enum_array)
         .schema("definitions", definitions)
@@ -299,7 +299,6 @@ async fn create_overrides(client: &Client, org_id: &str, workspace_id: &str) {
         .request(
             ContextPut::builder()
                 .context("name", Document::from("karbik"))
-                .context("customers", Document::from("otherwise"))
                 .r#override("price", Document::from(1))
                 .description("edge case customer karbik")
                 .change_reason("testing")

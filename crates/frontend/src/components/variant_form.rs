@@ -5,7 +5,10 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
-    api::{config::ResolveConfigQuery, workspace::WorkspaceResponse},
+    api::{
+        config::ResolveConfigQuery, functions::FunctionEnvironment,
+        workspace::WorkspaceResponse,
+    },
     custom_query::DimensionQuery,
     database::models::{cac::DefaultConfig, experimentation::VariantType},
 };
@@ -48,7 +51,7 @@ pub fn variant_form<HC>(
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
-    fn_environment: Memo<Value>,
+    fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -93,9 +96,17 @@ where
         |(context, tenant, org_id, auto_populate_control)| async move {
             if auto_populate_control {
                 let context = DimensionQuery::from(context.as_resolve_context());
-                resolve_config(&context, &ResolveConfigQuery::default(), &tenant, &org_id)
-                    .await
-                    .unwrap_or_default()
+                resolve_config(
+                    &context,
+                    &ResolveConfigQuery {
+                        resolve_remote: Some(true),
+                        ..Default::default()
+                    },
+                    &tenant,
+                    &org_id,
+                )
+                .await
+                .unwrap_or_default()
             } else {
                 Map::new()
             }
@@ -459,7 +470,7 @@ pub fn delete_variant(
     #[prop(into)] on_variant_change: Callback<VariantFormT, ()>,
     #[prop(into)] on_override_change: Callback<Vec<(String, Value)>, ()>,
     #[prop(into)] on_delete_variant: Callback<(), ()>,
-    fn_environment: Memo<Value>,
+    fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView {
     let variant_rws = RwSignal::new(variant);
     let override_keys = Signal::derive(move || {
@@ -607,7 +618,7 @@ pub fn delete_variant_form<HC>(
     variants: Vec<(String, VariantFormT)>,
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
-    fn_environment: Memo<Value>,
+    fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,

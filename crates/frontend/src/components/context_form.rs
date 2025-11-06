@@ -3,12 +3,13 @@ use std::collections::{HashMap, HashSet};
 use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::api::{
-    dimension::DimensionResponse, workspace::WorkspaceResponse,
+    dimension::DimensionResponse, functions::FunctionEnvironment,
+    workspace::WorkspaceResponse,
 };
-use superposition_types::database::models::cac::DimensionType;
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
+use crate::components::tooltip::{Tooltip, TooltipPosition};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
 use crate::types::{AutoCompleteCallbacks, OrganisationId, Tenant};
@@ -17,6 +18,12 @@ use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
 };
+
+pub enum TooltipType {
+    Info(String),
+    Error(View),
+    None,
+}
 
 #[component]
 pub fn condition_input(
@@ -30,11 +37,10 @@ pub fn condition_input(
     #[prop(into)] on_remove: Callback<String, ()>,
     #[prop(into)] on_value_change: Callback<Expression, ()>,
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
-    #[prop(default = String::new())] tooltip_text: String,
+    #[prop(default = TooltipType::None)] tooltip: TooltipType,
 ) -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (dimension, operator) = (condition.variable.clone(), Operator::from(&condition));
-    let tooltip_text = StoredValue::new(tooltip_text);
 
     let autocomplete_callback = autocomplete_callbacks.get(&dimension).cloned();
 
@@ -204,13 +210,31 @@ pub fn condition_input(
                             }
                         }
                     >
-                        <i class="ri-delete-bin-2-line text-2xl font-bold"></i>
+                        <i class="ri-delete-bin-2-line text-2xl font-bold" />
                     </button>
-                </Show> <Show when=move || !tooltip_text.get_value().is_empty()>
-                    <div class="tooltip" data-tip=tooltip_text.get_value()>
-                        <i class="ri-information-line text-2xl"></i>
-                    </div>
                 </Show>
+                {match tooltip {
+                    TooltipType::Info(msg) => {
+                        view! {
+                            <div class="tooltip tooltip-left" data-tip=msg>
+                                <i class="ri-information-line text-2xl" />
+                            </div>
+                        }
+                            .into_view()
+                    }
+                    TooltipType::Error(children) => {
+                        view! {
+                            <Tooltip
+                                position=TooltipPosition::Left
+                                icon_class="ri-error-warning-line text-2xl text-red-600"
+                            >
+                                {children}
+                            </Tooltip>
+                        }
+                            .into_view()
+                    }
+                    TooltipType::None => ().into_view(),
+                }}
             </div>
         </div>
     }
@@ -220,7 +244,7 @@ pub fn condition_input(
 pub fn context_form(
     context: Conditions,
     dimensions: Vec<DimensionResponse>,
-    fn_environment: Memo<Value>,
+    fn_environment: Memo<FunctionEnvironment>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
     #[prop(into, default = String::new())] heading_sub_text: String,
@@ -282,24 +306,6 @@ pub fn context_form(
                         .unwrap_or_default(),
                 ));
             }
-            dimension
-                .dependency_graph
-                .keys()
-                .filter(|key| **key != dimension.dimension)
-                .for_each(|dependency| {
-                    if let Some(r#type) =
-                        dimension_map.get_value().get(dependency).and_then(|d| {
-                            SchemaType::try_from(&d.schema as &Map<String, Value>).ok()
-                        })
-                    {
-                        if !context.includes(dependency) {
-                            context.push(Condition::new_with_default_expression(
-                                dependency.clone(),
-                                r#type.clone(),
-                            ));
-                        }
-                    }
-                });
         };
 
     let (context_rs, context_ws) = create_signal({
@@ -329,25 +335,32 @@ pub fn context_form(
             .collect::<HashSet<_>>()
     });
 
-    let context_dependencies = Signal::derive(move || {
-        used_dimensions
-            .get()
-            .iter()
-            .flat_map(|dimension| {
-                dimension_map
-                    .get_value()
-                    .get(dimension)
-                    .cloned()
-                    .map(|d| {
-                        d.dependency_graph
-                            .keys()
-                            .filter(|key| **key != d.dimension)
-                            .cloned()
-                            .collect::<HashSet<String>>()
-                    })
-                    .unwrap_or_default()
-            })
-            .collect::<HashSet<_>>()
+    // a dimension is invalid if, it is used and is present in the dependency graph of another used dimension
+    let invalid_dimensions = Signal::derive(move || {
+        let used_dimensions = used_dimensions.get();
+        let dimension_map = dimension_map.get_value();
+        let mut invalid_dims = HashMap::new();
+
+        for dim in used_dimensions.iter() {
+            if let Some(dimension_info) = dimension_map.get(dim) {
+                for (dep_dim, _) in dimension_info.dependency_graph.iter() {
+                    if dep_dim != dim && used_dimensions.contains(dep_dim) {
+                        match invalid_dims.get(dep_dim) {
+                            Some(existing) => {
+                                if dimension_info.dependency_graph.get(existing).is_some()
+                                {
+                                    invalid_dims.insert(dep_dim.clone(), dim.clone());
+                                }
+                            }
+                            None => {
+                                invalid_dims.insert(dep_dim.clone(), dim.clone());
+                            }
+                        };
+                    }
+                }
+            }
+        }
+        invalid_dims
     });
 
     let last_idx = create_memo(move |_| context_rs.get().len().max(1) - 1);
@@ -394,22 +407,21 @@ pub fn context_form(
         });
     });
 
-    let get_tool_tip_text = move |variable: String| -> String {
-        if mandatory_dimensions_set.with_value(|s| s.contains(&variable)) {
-            return "Mandatory Dimension".to_string();
+    let get_tool_tip_text = move |variable: &String| -> TooltipType {
+        if mandatory_dimensions_set.with_value(|s| s.contains(variable)) {
+            return TooltipType::Info("Mandatory Dimension".to_string());
         }
-        if context_dependencies.get().contains(&variable) {
-            if let Some(dim) = dimension_map.get_value().get(&variable) {
-                match dim.dimension_type {
-                    DimensionType::Regular {} => return String::new(),
-                    DimensionType::LocalCohort(ref cohort_based_on)
-                    | DimensionType::RemoteCohort(ref cohort_based_on) => {
-                        return format!("Required by: {cohort_based_on}",)
-                    }
-                }
-            }
+        if let Some(parent) = invalid_dimensions.with(|m| m.get(variable).cloned()) {
+            return TooltipType::Error(view! {
+                <div class="text-base w-[250px]">
+                    {"Dimension "} <span class="w-fit italic font-semibold">{variable}</span>
+                    {" is a cohort dimension which can be derived from "}
+                    <span class="w-fit italic font-semibold">{parent}</span>
+                    {" dimension using the cohort definitions. Hence, usage of this dimension is not allowed."}
+                </div>
+            }.into_view());
         }
-        String::new()
+        TooltipType::None
     };
 
     view! {
@@ -446,7 +458,10 @@ pub fn context_form(
                                 condition.variable,
                                 idx,
                                 condition.expression.to_operator(),
-                                context_dependencies.with(|v| v.contains(&condition.variable)),
+                                invalid_dimensions
+                                    .with(|m| {
+                                        m.get(&condition.variable).cloned().unwrap_or_default()
+                                    }),
                             )
                         }
 
@@ -474,12 +489,10 @@ pub fn context_form(
                             let operator = Operator::from(&condition);
                             let is_mandatory = mandatory_dimensions_set
                                 .with_value(|v| v.contains(&condition.variable));
-                            let has_context_dependency = context_dependencies
-                                .with(|v| v.contains(&condition.variable));
                             let allow_remove = if resolve_mode {
                                 !disabled
                             } else {
-                                !disabled && !is_mandatory && !has_context_dependency
+                                !disabled && !is_mandatory
                             };
                             let input_type = InputType::from((
                                 schema_type.clone(),
@@ -500,7 +513,7 @@ pub fn context_form(
                                         ))
                                 }
                             };
-                            let tooltip_text = get_tool_tip_text(condition.variable.clone());
+                            let tooltip = get_tool_tip_text(&condition.variable);
                             view! {
                                 <ConditionInput
                                     disabled
@@ -512,7 +525,7 @@ pub fn context_form(
                                     on_remove
                                     on_value_change
                                     on_operator_change
-                                    tooltip_text
+                                    tooltip
                                     autocomplete_callbacks=autocomplete_callbacks.get()
                                 />
                                 {move || {

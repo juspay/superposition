@@ -42,6 +42,8 @@ public final class GetResolvedConfigInput implements SerializableStruct {
                 new HttpHeaderTrait("x-merge-strategy"))
         .putMember("context_id", PreludeSchemas.STRING,
                 new HttpQueryTrait("context_id"))
+        .putMember("resolve_remote", PreludeSchemas.BOOLEAN,
+                new HttpQueryTrait("resolve_remote"))
         .putMember("context", SharedSchemas.CONTEXT_MAP)
         .build();
 
@@ -52,6 +54,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_SHOW_REASONING = $SCHEMA.member("show_reasoning");
     private static final Schema $SCHEMA_MERGE_STRATEGY = $SCHEMA.member("merge_strategy");
     private static final Schema $SCHEMA_CONTEXT_ID = $SCHEMA.member("context_id");
+    private static final Schema $SCHEMA_RESOLVE_REMOTE = $SCHEMA.member("resolve_remote");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
 
     private final transient String workspaceId;
@@ -61,6 +64,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
     private final transient Boolean showReasoning;
     private final transient MergeStrategy mergeStrategy;
     private final transient String contextId;
+    private final transient Boolean resolveRemote;
     private final transient Map<String, Document> context;
 
     private GetResolvedConfigInput(Builder builder) {
@@ -71,6 +75,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         this.showReasoning = builder.showReasoning;
         this.mergeStrategy = builder.mergeStrategy;
         this.contextId = builder.contextId;
+        this.resolveRemote = builder.resolveRemote;
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
     }
 
@@ -109,6 +114,14 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         return contextId;
     }
 
+    /**
+     * Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during
+     * config resolution.
+     */
+    public Boolean resolveRemote() {
+        return resolveRemote;
+    }
+
     public Map<String, Document> context() {
         if (context == null) {
             return Collections.emptyMap();
@@ -141,12 +154,13 @@ public final class GetResolvedConfigInput implements SerializableStruct {
                && Objects.equals(this.showReasoning, that.showReasoning)
                && Objects.equals(this.mergeStrategy, that.mergeStrategy)
                && Objects.equals(this.contextId, that.contextId)
+               && Objects.equals(this.resolveRemote, that.resolveRemote)
                && Objects.equals(this.context, that.context);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, prefix, version, showReasoning, mergeStrategy, contextId, context);
+        return Objects.hash(workspaceId, orgId, prefix, version, showReasoning, mergeStrategy, contextId, resolveRemote, context);
     }
 
     @Override
@@ -173,6 +187,9 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         if (contextId != null) {
             serializer.writeString($SCHEMA_CONTEXT_ID, contextId);
         }
+        if (resolveRemote != null) {
+            serializer.writeBoolean($SCHEMA_RESOLVE_REMOTE, resolveRemote);
+        }
         if (context != null) {
             serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
         }
@@ -189,7 +206,8 @@ public final class GetResolvedConfigInput implements SerializableStruct {
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, showReasoning);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, mergeStrategy);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, contextId);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, resolveRemote);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -210,6 +228,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         builder.showReasoning(this.showReasoning);
         builder.mergeStrategy(this.mergeStrategy);
         builder.contextId(this.contextId);
+        builder.resolveRemote(this.resolveRemote);
         builder.context(this.context);
         return builder;
     }
@@ -233,6 +252,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         private Boolean showReasoning;
         private MergeStrategy mergeStrategy;
         private String contextId;
+        private Boolean resolveRemote;
         private Map<String, Document> context;
 
         private Builder() {}
@@ -303,6 +323,17 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         }
 
         /**
+         * Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during
+         * config resolution.
+         *
+         * @return this builder.
+         */
+        public Builder resolveRemote(boolean resolveRemote) {
+            this.resolveRemote = resolveRemote;
+            return this;
+        }
+
+        /**
          * @return this builder.
          */
         public Builder context(Map<String, Document> context) {
@@ -327,7 +358,8 @@ public final class GetResolvedConfigInput implements SerializableStruct {
                 case 4 -> showReasoning((boolean) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, value));
                 case 5 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
                 case 6 -> contextId((String) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, value));
-                case 7 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 7 -> resolveRemote((boolean) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, value));
+                case 8 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -371,7 +403,8 @@ public final class GetResolvedConfigInput implements SerializableStruct {
                     case 4 -> builder.showReasoning(de.readBoolean(member));
                     case 5 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());
                     case 6 -> builder.contextId(de.readString(member));
-                    case 7 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 7 -> builder.resolveRemote(de.readBoolean(member));
+                    case 8 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -1926,6 +1926,11 @@ DIMENSION_INFO = Schema.collection(
             ],
         },
 
+        "autocomplete_function_name": {
+            "target": STRING,
+            "index": 4,
+        },
+
     }
 )
 
@@ -2259,9 +2264,19 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "resolve_remote": {
+            "target": BOOLEAN,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
+
+            ],
+        },
+
         "context": {
             "target": CONTEXT_MAP,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 

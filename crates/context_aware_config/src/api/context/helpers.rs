@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::str;
 
 use cac_client::utils::json_to_sorted_string;
@@ -18,21 +18,23 @@ use superposition_types::{
     },
     database::{
         models::{
-            cac::{Context, DependencyGraph, FunctionCode, FunctionType},
+            cac::{Context, FunctionCode},
             Description,
         },
         schema::{contexts, default_configs::dsl, dimensions},
     },
-    logic::evaluate_cohort,
+    logic::dimensions_to_start_from,
     result as superposition, Cac, Condition, DBConnection, DimensionInfo, Overrides,
     User,
 };
 
-use crate::api::dimension::fetch_dimensions_info_map;
-use crate::helpers::calculate_context_weight;
-use crate::validation_functions::execute_fn;
 use crate::{
-    api::functions::helpers::get_published_functions_by_names, helpers::get_workspace,
+    api::dimension::fetch_dimensions_info_map,
+    helpers::{calculate_context_weight, get_workspace},
+};
+use crate::{
+    api::functions::helpers::get_published_functions_by_names,
+    validation_functions::execute_fn,
 };
 
 use super::types::FunctionsInfo;
@@ -60,33 +62,44 @@ pub fn validate_condition_with_mandatory_dimensions(
     Ok(())
 }
 
-pub fn validate_condition_with_dependent_dimensions(
-    conn: &mut DBConnection,
+/// Given a set of dimensions and a context map, validate that dependent dimensions,
+///  of the given dimensions in context, are not present
+fn validate_condition_with_dependent_dimensions(
+    dimensions: &HashMap<String, DimensionInfo>,
     context_map: &Map<String, Value>,
-    schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    use dimensions::dsl;
-    let keys = context_map.keys();
-    let dependency_lists: Vec<DependencyGraph> = dsl::dimensions
-        .filter(dsl::dimension.eq_any(keys))
-        .select(dsl::dependency_graph)
-        .schema_name(schema_name)
-        .load::<DependencyGraph>(conn)?;
-    let dependency_list: HashSet<String> = dependency_lists
-        .iter()
-        .flat_map(|obj| obj.keys())
-        .cloned()
-        .collect();
+    let required_dimensions = dimensions_to_start_from(dimensions, context_map);
 
-    let all_dependencies_present = dependency_list
-        .iter()
-        .all(|dimension| context_map.contains_key(dimension));
-    if !all_dependencies_present {
+    let invalid_dimensions = context_map
+        .keys()
+        .filter(|dimension_key| !required_dimensions.contains(dimension_key))
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let mut error_messages = Vec::new();
+    for dim_key in required_dimensions {
+        if let Some(dependents) = dimensions
+            .get(&dim_key)
+            .map(|d| d.dependency_graph.keys().cloned().collect::<Vec<_>>())
+        {
+            for invalid_dimension in &invalid_dimensions {
+                if dependents.contains(invalid_dimension) {
+                    error_messages.push(format!(
+                        "{} can be derived from {} dimension",
+                        invalid_dimension, dim_key
+                    ));
+                }
+            }
+        }
+    }
+
+    if !error_messages.is_empty() {
         return Err(validation_error!(
-            "The context should contain all the dependent dimensions : {:?}.",
-            dependency_list,
+            "Cohort Dimension(s): [ {} ] using the cohort definitions. Hence, usage of this/these dimension(s) is not allowed.",
+            error_messages.join(", ")
         ));
     }
+
     Ok(())
 }
 
@@ -104,7 +117,7 @@ pub fn validate_condition_with_functions(
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()
-        .filter_map(|(key_, f_name)| f_name.map(|func| (key_, func)))
+        .filter_map(|(key, f_name)| f_name.map(|func| (key, func)))
         .collect();
 
     let dimension_functions_map =
@@ -236,7 +249,7 @@ fn get_functions_map(
 }
 
 pub fn validate_value_with_function(
-    _fun_name: &str,
+    fun_name: &str,
     function: &FunctionCode,
     key: &String,
     value: &Value,
@@ -249,33 +262,32 @@ pub fn validate_value_with_function(
         },
     ) {
         Err((err, stdout)) => {
-            let stdout = stdout.unwrap_or(String::new());
-            log::error!("function validation failed for {key} with error: {err}");
+            let stdout = stdout.unwrap_or_default();
+            log::error!(
+                "function {fun_name} validation failed for {key} with error: {err}"
+            );
             Err(validation_error!(
-                "Function validation failed for {} with error {}. {}",
+                "Function {fun_name} validation failed for {} with error {}. {}",
                 key,
                 err,
                 stdout
             ))
         }
         Ok(FunctionExecutionResponse {
-            fn_output,
-            stdout,
-            function_type,
-        }) => match function_type {
-            FunctionType::Validation => {
-                log::debug!("Function execution returned: {:?}", fn_output);
-                if fn_output.is_boolean() && fn_output == Value::Bool(true) {
-                    Ok(())
-                } else {
-                    log::error!("Validation function returned false, logs are {stdout}");
-                    Err(validation_error!(
-                            "The validation function returned false, please check your inputs",
-                        ))
-                }
+            fn_output, stdout, ..
+        }) => {
+            log::debug!("Function execution returned: {:?}", fn_output);
+            if fn_output.as_bool().unwrap_or_default() {
+                Ok(())
+            } else {
+                log::error!(
+                    "Validation function {fun_name} returned false, logs are {stdout}"
+                );
+                Err(validation_error!(
+                    "Validation function {fun_name} returned false, please check your inputs",
+                ))
             }
-            FunctionType::Autocomplete => Ok(()),
-        },
+        }
     }
 }
 
@@ -410,28 +422,6 @@ pub fn update_override_of_existing_ctx(
     db_update_override(conn, new_ctx, user, schema_name)
 }
 
-fn validate_cohort_dimension_values(
-    dimensions: &HashMap<String, DimensionInfo>,
-    context_map: &Map<String, Value>,
-) -> superposition::Result<()> {
-    let evaluated_context = evaluate_cohort(dimensions, context_map);
-
-    for (dimension_key, value) in context_map {
-        if let Some(evaluated_value) = evaluated_context.get(dimension_key) {
-            if evaluated_value != value {
-                return Err(validation_error!(
-                    "Context value mismatch for cohort dimension '{}': expected {}, found {}",
-                    dimension_key,
-                    evaluated_value,
-                    value
-                ));
-            }
-        }
-    }
-
-    Ok(())
-}
-
 pub fn validate_ctx(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
@@ -455,15 +445,15 @@ pub fn validate_ctx(
         context_map,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
-    validate_condition_with_dependent_dimensions(conn, context_map, schema_name)?;
+
     let dimension_info_map = fetch_dimensions_info_map(conn, schema_name)?;
+    validate_condition_with_dependent_dimensions(&dimension_info_map, context_map)?;
     validate_dimensions(
         #[cfg(feature = "jsonlogic")]
         "context",
         &condition_val,
         &dimension_info_map,
     )?;
-    validate_cohort_dimension_values(&dimension_info_map, context_map)?;
     validate_condition_with_functions(conn, context_map, schema_name)?;
     Ok(dimension_info_map)
 }

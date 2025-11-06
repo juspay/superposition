@@ -2,7 +2,7 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
 
 #[cfg(feature = "diesel_derives")]
@@ -97,8 +97,14 @@ pub enum FunctionExecutionRequest {
     AutocompleteFunctionRequest {
         name: String,
         prefix: String,
-        environment: Value,
+        environment: FunctionEnvironment,
     },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+pub struct FunctionEnvironment {
+    pub context: Map<String, Value>,
+    pub overrides: Map<String, Value>,
 }
 
 impl FunctionExecutionRequest {
@@ -112,10 +118,7 @@ impl FunctionExecutionRequest {
         Self::AutocompleteFunctionRequest {
             name: String::new(),
             prefix: String::new(),
-            environment: json!({
-                "context": [],
-                "overrides": {}
-            }),
+            environment: FunctionEnvironment::default(),
         }
     }
 }

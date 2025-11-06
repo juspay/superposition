@@ -2,11 +2,11 @@ use std::{fmt::Display, ops::Deref, str::FromStr};
 
 use chrono::{DateTime, Days, Duration, Utc};
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use superposition_types::{
     api::{
-        experiments::ExperimentListFilters, workspace::WorkspaceResponse,
-        DimensionMatchStrategy,
+        experiments::ExperimentListFilters, functions::FunctionEnvironment,
+        workspace::WorkspaceResponse, DimensionMatchStrategy,
     },
     custom_query::{
         CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
@@ -289,12 +289,9 @@ pub(super) fn experiment_table_filter_widget(
             .collect::<Conditions>(),
     );
 
-    let fn_environment = create_memo(move |_| {
-        let context = context_rws.get();
-        json!({
-            "context": context,
-            "overrides": [],
-        })
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rws.get().as_context_json(),
+        overrides: Map::new(),
     });
 
     view! {

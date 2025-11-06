@@ -17,8 +17,8 @@ use superposition_types::{
             ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
         },
         functions::{
-            FunctionExecutionRequest, FunctionExecutionResponse, ListFunctionFilters,
-            Stage,
+            FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
+            ListFunctionFilters, Stage,
         },
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
         workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
@@ -838,7 +838,7 @@ pub async fn get_context_from_condition(
 pub async fn execute_autocomplete_function(
     name: &str,
     value: &str,
-    environment: &Value,
+    environment: &FunctionEnvironment,
     fn_name: &str,
     tenant: &str,
     org_id: &str,

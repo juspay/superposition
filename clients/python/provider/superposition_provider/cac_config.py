@@ -112,6 +112,7 @@ def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Option
                 position=dimension['position'],
                 dimension_type=dimension['dimension_type'],
                 dependency_graph=dimension['dependency_graph'],
+                autocomplete_function_name=dimension.get('autocomplete_function_name'),
             )
             for key, dimension in fallback_config['dimensions'].items()
         }
@@ -244,6 +245,7 @@ class CacConfig:
                         position=dim_info.position,
                         dimension_type=to_dimension_type(dim_info.dimension_type),
                         dependency_graph=dim_info.dependency_graph,
+                        autocomplete_function_name=dim_info.autocomplete_function_name,
                     )
                     dimensions[key] = dimension
                 config_data['dimensions'] = dimensions

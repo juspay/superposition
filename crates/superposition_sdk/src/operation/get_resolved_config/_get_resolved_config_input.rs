@@ -17,6 +17,8 @@ pub struct GetResolvedConfigInput  {
     pub merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
     #[allow(missing_docs)] // documentation missing in model
     pub context_id: ::std::option::Option<::std::string::String>,
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub resolve_remote: ::std::option::Option<bool>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -52,6 +54,10 @@ impl  GetResolvedConfigInput  {
     pub fn context_id(&self) -> ::std::option::Option<&str> {
         self.context_id.as_deref()
     }
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub fn resolve_remote(&self) -> ::std::option::Option<bool> {
+        self.resolve_remote
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
@@ -75,6 +81,7 @@ pub struct GetResolvedConfigInputBuilder {
     pub(crate) show_reasoning: ::std::option::Option<bool>,
     pub(crate) merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
     pub(crate) context_id: ::std::option::Option<::std::string::String>,
+    pub(crate) resolve_remote: ::std::option::Option<bool>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl GetResolvedConfigInputBuilder {
@@ -176,6 +183,19 @@ impl GetResolvedConfigInputBuilder {
     pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.context_id
     }
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub fn resolve_remote(mut self, input: bool) -> Self {
+        self.resolve_remote = ::std::option::Option::Some(input);
+        self
+    }
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub fn set_resolve_remote(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.resolve_remote = input; self
+    }
+    /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+    pub fn get_resolve_remote(&self) -> &::std::option::Option<bool> {
+        &self.resolve_remote
+    }
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -212,6 +232,8 @@ impl GetResolvedConfigInputBuilder {
                 merge_strategy: self.merge_strategy
                 ,
                 context_id: self.context_id
+                ,
+                resolve_remote: self.resolve_remote
                 ,
                 context: self.context
                 ,

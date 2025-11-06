@@ -76,6 +76,8 @@ structure DimensionInfo {
 
     @required
     dependency_graph: DependencyGraph
+
+    autocomplete_function_name: String
 }
 
 map DimensionData {
@@ -169,6 +171,11 @@ operation GetResolvedConfig {
         @httpQuery("context_id")
         @notProperty
         context_id: String
+
+        @httpQuery("resolve_remote")
+        @notProperty
+        @documentation("Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.")
+        resolve_remote: Boolean
 
         @notProperty
         context: ContextMap

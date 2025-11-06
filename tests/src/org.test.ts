@@ -149,7 +149,7 @@ describe("Organisation Tests", () => {
             });
 
             expect(superpositionClient.send(listCommand)).rejects.toThrow(
-                /JSON Parse error: Unexpected identifier "Query"/
+                "Query deserialize error: Page should be greater than 0."
             );
         });
 
@@ -160,7 +160,7 @@ describe("Organisation Tests", () => {
             });
 
             expect(superpositionClient.send(listCommand)).rejects.toThrow(
-                /JSON Parse error: Unexpected identifier "Query"/
+                "Query deserialize error: Count should be greater than 0."
             );
         });
     });

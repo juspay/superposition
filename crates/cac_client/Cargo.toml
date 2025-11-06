@@ -18,9 +18,7 @@ mini-moka = { version = "0.10.3" }
 once_cell = { workspace = true }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
-strum = { workspace = true }
-strum_macros = { workspace = true }
-superposition_types = { workspace = true }
+superposition_types = { workspace = true, features = ["api"] }
 tokio = { version = "1.29.1", features = ["full"] }
 
 [features]

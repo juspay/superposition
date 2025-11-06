@@ -6,11 +6,12 @@ use serde_json::{json, Map, Value};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use superposition_types::api::dimension::DimensionResponse;
+use superposition_types::api::functions::FunctionEnvironment;
 use web_sys::MouseEvent;
 
 use crate::components::alert::AlertType;
 use crate::components::context_form::ConditionInput;
-use crate::logic::{jsonlogic, Condition, Operator};
+use crate::logic::{jsonlogic, Condition, Conditions, Operator};
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
@@ -534,13 +535,10 @@ fn cohort_form(
                                 operator,
                             ));
                             let fn_environment = Memo::new(move |_| {
-                                let condition = condition.get();
-                                json!(
-                                    {
-                                        "context": vec![condition],
-                                        "overrides": [],
-                                    }
-                                )
+                                FunctionEnvironment {
+                                    context: Conditions(vec![condition.get()]).as_context_json(),
+                                    overrides: Map::new(),
+                                }
                             });
                             let mut autocomplete_callbacks = HashMap::new();
                             autocomplete_fn_generator(
