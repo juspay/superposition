@@ -26,6 +26,8 @@ library
     default-language: Haskell2010
     default-extensions: CApiFFI
     extra-libraries: superposition_core
+    includes: superposition_core.h
+
 
 test-suite superposition-bindings-test
     import:           warnings
