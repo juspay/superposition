@@ -84,8 +84,10 @@ fn validate_condition_with_dependent_dimensions(
         {
             for invalid_dimension in &invalid_dimensions {
                 if dependents.contains(invalid_dimension) {
-                    error_messages
-                        .push(format!("{} depends on {}", invalid_dimension, dim_key));
+                    error_messages.push(format!(
+                        "{} can be derived from {} dimension",
+                        invalid_dimension, dim_key
+                    ));
                 }
             }
         }
@@ -93,7 +95,7 @@ fn validate_condition_with_dependent_dimensions(
 
     if !error_messages.is_empty() {
         return Err(validation_error!(
-            "Dependent dimensions are not required in context when parent dimension is provided: [{}].",
+            "Cohort Dimension(s): [ {} ] using the cohort definitions. Hence, usage of this/these dimension(s) is not allowed.",
             error_messages.join(", ")
         ));
     }

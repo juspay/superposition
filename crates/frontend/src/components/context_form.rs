@@ -9,6 +9,7 @@ use superposition_types::api::{
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType};
+use crate::components::tooltip::{Tooltip, TooltipPosition};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
 use crate::types::{AutoCompleteCallbacks, OrganisationId, Tenant};
@@ -20,7 +21,7 @@ use crate::{
 
 pub enum TooltipType {
     Info(String),
-    Error(String),
+    Error(View),
     None,
 }
 
@@ -221,11 +222,14 @@ pub fn condition_input(
                         }
                             .into_view()
                     }
-                    TooltipType::Error(msg) => {
+                    TooltipType::Error(children) => {
                         view! {
-                            <div class="tooltip tooltip-left" data-tip=msg>
-                                <i class="ri-error-warning-line text-2xl text-red-600" />
-                            </div>
+                            <Tooltip
+                                position=TooltipPosition::Left
+                                icon_class="ri-error-warning-line text-2xl text-red-600"
+                            >
+                                {children}
+                            </Tooltip>
                         }
                             .into_view()
                     }
@@ -341,11 +345,17 @@ pub fn context_form(
             if let Some(dimension_info) = dimension_map.get(dim) {
                 for (dep_dim, _) in dimension_info.dependency_graph.iter() {
                     if dep_dim != dim && used_dimensions.contains(dep_dim) {
-                        let data_to_insert = invalid_dims.get(dep_dim).map_or_else(
-                            || dim.clone(),
-                            |existing| format!("{}, {}", existing, dim),
-                        );
-                        invalid_dims.insert(dep_dim.clone(), data_to_insert);
+                        match invalid_dims.get(dep_dim) {
+                            Some(existing) => {
+                                if dimension_info.dependency_graph.get(existing).is_some()
+                                {
+                                    invalid_dims.insert(dep_dim.clone(), dim.clone());
+                                }
+                            }
+                            None => {
+                                invalid_dims.insert(dep_dim.clone(), dim.clone());
+                            }
+                        };
                     }
                 }
             }
@@ -401,11 +411,15 @@ pub fn context_form(
         if mandatory_dimensions_set.with_value(|s| s.contains(variable)) {
             return TooltipType::Info("Mandatory Dimension".to_string());
         }
-        if let Some(error_msg) = invalid_dimensions.with(|m| m.get(variable).cloned()) {
-            return TooltipType::Error(format!(
-                "Dependent dimensions cannot be provided in context when parent dimension is provided: [{}].",
-                error_msg
-            ));
+        if let Some(parent) = invalid_dimensions.with(|m| m.get(variable).cloned()) {
+            return TooltipType::Error(view! {
+                <div class="text-base w-[250px]">
+                    {"Dimension "} <span class="w-fit italic font-semibold">{variable}</span>
+                    {" is a cohort dimension which can be derived from "}
+                    <span class="w-fit italic font-semibold">{parent}</span>
+                    {" dimension using the cohort definitions. Hence, usage of this dimension is not allowed."}
+                </div>
+            }.into_view());
         }
         TooltipType::None
     };

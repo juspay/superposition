@@ -759,7 +759,7 @@ describe("Context API Integration Tests", () => {
             });
 
             await expect(client.send(cmd)).rejects.toThrow(
-                "Dependent dimensions are not required in context when parent dimension is provided: [local_cohort depends on regular]."
+                "Cohort Dimension(s): [ local_cohort can be derived from regular dimension ] using the cohort definitions. Hence, usage of this/these dimension(s) is not allowed."
             );
         });
     });

@@ -298,36 +298,6 @@ pub fn dimension_form(
                     <div class="flex flex-wrap gap-x-10 gap-y-5">
                         <div class="flex flex-col gap-5">
                             <div class="form-control">
-                                <Label title="Position" />
-                                <input
-                                    type="Number"
-                                    min=0
-                                    placeholder="Position"
-                                    class="input input-bordered w-full max-w-md"
-                                    value=position_rs.get()
-                                    on:keypress=move |ev| {
-                                        let char_code = ev.char_code();
-                                        if char_code != 0 && char_code != 8 && char_code != 13
-                                            && !(char_code >= 48 && char_code <= 57)
-                                        {
-                                            ev.prevent_default();
-                                        }
-                                    }
-                                    on:change=move |ev| {
-                                        logging::log!(
-                                            "{:?}", event_target_value(& ev).parse::< u32 > ()
-                                        );
-                                        match event_target_value(&ev).parse::<u32>() {
-                                            Ok(i_prio) => position_ws.set(i_prio),
-                                            Err(e) => {
-                                                position_ws.set(0);
-                                                logging::log!("{e}");
-                                            }
-                                        };
-                                    }
-                                />
-                            </div>
-                            <div class="form-control">
                                 <Label title="Dimension Type" />
                                 <Dropdown
                                     disabled=edit
@@ -356,6 +326,36 @@ pub fn dimension_form(
                                         }
                                         dimension_type_ws.set(selected_item);
                                     })
+                                />
+                            </div>
+                            <div class="form-control">
+                                <Label title="Position" />
+                                <input
+                                    type="Number"
+                                    min=0
+                                    placeholder="Position"
+                                    class="input input-bordered w-full max-w-md"
+                                    value=position_rs.get()
+                                    on:keypress=move |ev| {
+                                        let char_code = ev.char_code();
+                                        if char_code != 0 && char_code != 8 && char_code != 13
+                                            && !(char_code >= 48 && char_code <= 57)
+                                        {
+                                            ev.prevent_default();
+                                        }
+                                    }
+                                    on:change=move |ev| {
+                                        logging::log!(
+                                            "{:?}", event_target_value(& ev).parse::< u32 > ()
+                                        );
+                                        match event_target_value(&ev).parse::<u32>() {
+                                            Ok(i_prio) => position_ws.set(i_prio),
+                                            Err(e) => {
+                                                position_ws.set(0);
+                                                logging::log!("{e}");
+                                            }
+                                        };
+                                    }
                                 />
                             </div>
                         </div>
@@ -387,14 +387,14 @@ pub fn dimension_form(
                                                 let dimension_options = StoredValue::new(dimension_options);
                                                 let current_cohort = cohort_based_on_rs.get();
                                                 let dropdown_text = if current_cohort.is_empty() {
-                                                    "choose a cohort based on".into()
+                                                    "choose a dimension".into()
                                                 } else {
                                                     current_cohort
                                                 };
 
                                                 view! {
                                                     <div class="form-control">
-                                                        <Label title="Cohort Based on" />
+                                                        <Label title="Derived from" />
                                                         <Dropdown
                                                             disabled=edit
                                                             dropdown_text

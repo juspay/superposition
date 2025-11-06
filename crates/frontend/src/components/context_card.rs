@@ -11,6 +11,7 @@ use crate::{
         condition_pills::Condition as ConditionComponent,
         description::InfoDescription,
         table::{types::Column, Table},
+        tooltip::Tooltip,
     },
     logic::Conditions,
 };
@@ -140,8 +141,8 @@ pub fn context_card(
                         description=description.deref().to_string()
                         change_reason=change_reason.deref().to_string()
                     />
-                    <div class="group relative inline-block text-xs text-gray-700 cursor-pointer">
-                        <div class="z-[1000] hidden absolute top-full left-1/2 p-2.5 group-hover:flex flex-col gap-4 bg-white rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal translate-x-[20px] -translate-y-1/2">
+                    <Tooltip icon_class="ri-information-line ri-lg">
+                        <div class="flex flex-col gap-4">
                             <div class="flex flex-col gap-1">
                                 <div class="font-bold">"Created"</div>
                                 <div class="flex gap-1 items-center">
@@ -175,8 +176,7 @@ pub fn context_card(
                                 </div>
                             </div>
                         </div>
-                        <i class="ri-information-line ri-lg" />
-                    </div>
+                    </Tooltip>
                 </div>
                 <Show when=move || actions_supported>
                     <div class="h-fit flex gap-4 text-right">
