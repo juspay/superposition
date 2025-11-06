@@ -3,7 +3,7 @@ awscrt==0.20.3
 bcdoc==0.16.0
 blinker==1.8.2
 botocore==1.33.6
-Brotli==1.1.0
+Brotli==1.2.0
 certifi==2024.8.30
 cffi==1.16.0
 charset-normalizer==3.3.2
