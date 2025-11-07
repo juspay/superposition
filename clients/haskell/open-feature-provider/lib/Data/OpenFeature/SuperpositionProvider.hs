@@ -18,8 +18,8 @@ import Control.Monad (join)
 import Control.Monad.Logger (LoggingT, filterLogger, runStdoutLoggingT)
 import Control.Monad.Logger.Aeson qualified as Log
 import Control.Monad.Trans.Class (lift)
-import Data.Aeson (FromJSON, ToJSON (..), encode, object, withObject, (.:?))
-import Data.Aeson.Decoding (eitherDecode)
+import Data.Aeson (FromJSON, ToJSON (..), encode, object, withObject, (.:?), eitherDecode)
+-- import Data.Aeson.Decoding (eitherDecode)
 import Data.Aeson.Types (Object, parseEither)
 import Data.Functor
 import Data.Maybe (fromMaybe, isJust, isNothing)
