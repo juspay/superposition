@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.93.2 - 2025-11-07
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.64.2
+- haskell_client bumped to haskell_client-v0.8.2
+- superposition_provider bumped to superposition_provider-v0.6.2
+- experimentation_client bumped to experimentation_client-v0.20.3
+- frontend bumped to frontend-v0.46.2
+- superposition_core bumped to superposition_core-v0.7.4
+- superposition_sdk bumped to superposition_sdk-v0.10.2
+- cac_client bumped to cac_client-v0.22.1
+- superposition_types bumped to superposition_types-v0.36.2
+- experimentation_platform bumped to experimentation_platform-v0.45.2
+### Global changes
+#### Bug Fixes
+- **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain
+- provider test (#743) - (b8b4c8f) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(deps)** bump brotli from 1.1.0 to 1.2.0 in /locust (#744) - (6103c6a) - dependabot[bot]
+- **(deps-dev)** bump vite in /examples/dynamic-payment-fields (#730) - (35c88f2) - dependabot[bot]
+- **(version)** v0.93.1 [skip ci] - (c7b9df1) - Superposition Bot
+
+- - -
+
 ## v0.93.1 - 2025-11-05
 ### Package updates
 - frontend bumped to frontend-v0.46.1
