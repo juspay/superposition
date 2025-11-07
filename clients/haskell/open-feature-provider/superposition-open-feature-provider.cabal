@@ -40,7 +40,11 @@ library
                         OverloadedStrings,
                         ExistentialQuantification,
                         RankNTypes,
-                        ImportQualifiedPost
+                        ImportQualifiedPost,
+                        MultiParamTypeClasses,
+                        FlexibleInstances,
+                        TupleSections,
+                        TypeApplications
 
 test-suite superposition-open-feature-provider-test
     import:           warnings
