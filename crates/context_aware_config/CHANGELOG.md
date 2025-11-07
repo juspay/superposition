@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.64.2 - 2025-11-07
+#### Bug Fixes
+- **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.93.1 [skip ci] - (c7b9df1) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.64.1 - 2025-11-05
 #### Bug Fixes
 - Smithy fixes (#742) - (c942cb6) - Ayush Jain

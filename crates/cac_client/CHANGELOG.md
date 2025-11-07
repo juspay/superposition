@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.22.1 - 2025-11-07
+#### Bug Fixes
+- **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.91.0 [skip ci] - (87c956e) - Superposition Bot
+
+- - -
+
 ## cac_client-v0.22.0 - 2025-09-25
 #### Features
 - Cohort resolution (#712) - (21bbf39) - Ankit Kumar Mahato
