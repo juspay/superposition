@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Data.OpenFeature.Provider qualified as P
+import Data.OpenFeature.FeatureProvider qualified as P
 import Data.OpenFeature.SuperpositionProvider qualified as P
 import GHC.Base (assert)
 import GHC.Conc.IO (threadDelay)

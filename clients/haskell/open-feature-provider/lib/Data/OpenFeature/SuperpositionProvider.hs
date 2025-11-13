@@ -19,11 +19,12 @@ import Control.Monad.Logger (LoggingT, filterLogger, runStdoutLoggingT)
 import Control.Monad.Logger.Aeson qualified as Log
 import Control.Monad.Trans.Class (lift)
 import Data.Aeson (FromJSON, ToJSON (..), encode, object, withObject, (.:?), eitherDecode)
--- import Data.Aeson.Decoding (eitherDecode)
 import Data.Aeson.Types (Object, parseEither)
 import Data.Functor
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.OpenFeature.Provider
+import Data.OpenFeature.FeatureProvider
+import Data.OpenFeature.EvaluationDetails
+import Data.OpenFeature.EvaluationContext
 import Data.OpenFeature.SuperpositionProvider.OnDemandRefresh
 import Data.OpenFeature.SuperpositionProvider.PollingRefresh
 import Data.OpenFeature.SuperpositionProvider.RefreshTask (RefreshFn, RefreshTask (..))
@@ -38,7 +39,7 @@ import GHC.Conc (TVar, atomically, newTVarIO, readTVarIO)
 import GHC.Conc.Sync (writeTVar)
 import Io.Superposition.Command.GetConfig qualified as SDK
 import Io.Superposition.Command.ListExperiment qualified as Exp
-import Io.Superposition.Model.ExperimentStatusType (ExperimentStatusType (INPROGRESS))
+import Io.Superposition.Model.ExperimentStatusType (ExperimentStatusType (INPROGRESS, CREATED))
 import Io.Superposition.Model.GetConfigInput qualified as SDK
 import Io.Superposition.Model.GetConfigOutput qualified as SDK
 import Io.Superposition.Model.ListExperimentInput qualified as Exp
@@ -57,7 +58,7 @@ type Logger = forall a. LoggingT IO a -> IO a
 data SuperpositionProvider = SuperpositionProvider
   { configRefreshTask :: ConfigRefreshTask,
     expRefreshTask :: Maybe ExperimentsRefreshTask,
-    defaultContext :: TVar (Maybe EvaluationContext),
+    _initContext :: TVar (Maybe EvaluationContext),
     runLogger :: Logger,
     -- TODO
     fallbackConfig :: ()
@@ -74,7 +75,7 @@ mkResolveParams ec config experiments =
       FFI.context = intoParam $ SDK.contexts config,
       FFI.overrides = intoParam $ SDK.overrides config,
       FFI.dimensionInfo = intoParam $ SDK.dimensions config,
-      FFI.query = intoParam $ attributes ec,
+      FFI.query = intoParam $ customFields ec,
       FFI.experimentation = toStr <$> (mkExp <$> experiments <*> targetingKey ec)
     }
   where
@@ -95,7 +96,7 @@ getResolvedKey ::
   SuperpositionProvider ->
   Text ->
   EvaluationContext ->
-  IO (Either ProviderError a)
+  IO (Either EvaluationError a)
 getResolvedKey SuperpositionProvider {..} key ec = do
   config <- getTaskOutput configRefreshTask
   exs <- mapM getTaskOutput expRefreshTask
@@ -112,11 +113,11 @@ getResolvedKey SuperpositionProvider {..} key ec = do
           >>= parseEither parser . toJSON
   pure $ case (rcfg, result) of
     -- Have to match these first, otherwise might report an error in-correclty.
-    (Nothing, _) -> Left $ ProviderNotReady "No config available to resolve."
-    (Just (Left e), _) -> Left $ GeneralError ("ffi: " <> fromString e)
+    (Nothing, _) -> Left $ EvaluationError ProviderNotReady (Just "No config available to resolve.")
+    (Just (Left e), _) -> Left $ EvaluationError (General "FFI_ERROR") (Just $ "ffi: " <> fromString e)
     -- Technically a parse error....
-    (_, Left e) -> Left $ TypeMismatch $ fromString e
-    (_, Right Nothing) -> Left $ FlagNotFound ("Key not found: " <> key)
+    (_, Left e) -> Left $ EvaluationError ParseError (Just $ fromString e)
+    (_, Right Nothing) -> Left $ EvaluationError FlagNotFound (Just $ "Key not found: " <> key)
     (_, Right (Just v)) -> Right v
   where
     getTaskOutput (DynRefreshTask t) = getCurrent t
@@ -125,40 +126,40 @@ resolveValue ::
   (FromJSON a) =>
   SuperpositionProvider ->
   Text ->
-  a ->
   EvaluationContext ->
-  IO (ResolutionDetails a)
-resolveValue p@(SuperpositionProvider {..}) key def ec = do
-  defEc <- readTVarIO defaultContext
+  IO (EvaluationResult (ResolutionDetails a))
+resolveValue p@(SuperpositionProvider {..}) key ec = do
+  defEc <- readTVarIO _initContext
   let ec' = fromMaybe ec $ mergeEvaluationContext <$> defEc <*> Just ec
   result <- getResolvedKey p key ec'
   case result of
-    Right v -> pure $ defaultResolution v
+    Right v -> pure $ Right $ defaultResolution v
     Left e -> do
       let lctx = ["key" Log..= key, "error" Log..= e]
       runLogger $ Log.logError ("An error occured while resolving a key." Log.:# lctx)
-      pure $
-        (defaultResolution def)
-          { variant = "default",
-            errorCode = Just e
-          }
+      pure $ Left $ e
 
-instance Provider SuperpositionProvider where
-  -- TODO Shutdown
-  getMetadata = mempty
+instance FeatureProvider SuperpositionProvider where
+  getMetadata _ =  ProviderMetadata "SuperpositionProvider"
+  -- TODO
+
+  getStatus SuperpositionProvider{..} = do
+    dc <- readTVarIO _initContext
+    pure $ case dc of
+        Just _ -> Ready
+        _ -> NotReady
+
   initialize SuperpositionProvider {..} ec = do
-    init <- isJust <$> readTVarIO defaultContext
-    if not init
-      then initialize' >> pure (Right ())
-      else pure $ Left "Already initialized."
-    where
-      initialize' = runLogger $ do
+    init <- isJust <$> readTVarIO _initContext
+    when (not init) $ runLogger $ do
         Log.logInfo "Starting config refresh task."
         lift $ startTask configRefreshTask
         when (isJust expRefreshTask) $ Log.logInfo "Starting experiments refresh task."
         lift $ mapM_ startTask expRefreshTask
-        lift $ atomically $ writeTVar defaultContext (Just ec)
+        lift $ atomically $ writeTVar _initContext (Just ec)
+    where
       startTask (DynRefreshTask t) = startRefresh t
+
   resolveBooleanValue = resolveValue
   resolveStringValue = resolveValue
   resolveIntegerValue = resolveValue
@@ -207,7 +208,7 @@ refreshExperiments SuperpositionProviderOptions {..} logger client =
   let builder =
         Exp.setOrgId orgId
           >> Exp.setWorkspaceId workspaceId
-          >> Exp.setStatus (Just INPROGRESS)
+          >> Exp.setStatus (Just [INPROGRESS, CREATED])
       call = Exp.listExperiment client builder
       fnName = "ExperimentsRefresh"
    in mkRefreshFn logger fnName call

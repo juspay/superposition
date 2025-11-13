@@ -6,6 +6,7 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     haskell-flake.url = "github:srid/haskell-flake";
     rust-flake.url = "github:juspay/rust-flake";
+    open-feature-hs.url = "github:juspay/open-feature-haskell-sdk";
   };
 
   outputs =
@@ -37,7 +38,7 @@
           packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix { };
           devShells.default = pkgs.mkShell {
             inputsFrom = [
-              self'.devShells.haskell
+              # self'.devShells.haskell
               self'.devShells.rust
               config.pre-commit.devShell
             ];
@@ -68,6 +69,7 @@
               # go
             ];
           };
+
         };
     };
 }

@@ -1,3 +1,4 @@
+{inputs, ...}:
 {
   perSystem =
     {
@@ -9,6 +10,9 @@
     let hpkgs = pkgs.haskell.packages.ghc964;
     in {
       haskellProjects.default = {
+        imports = [
+          inputs.open-feature-hs.haskellFlakeProjectModules.output
+        ];
         basePackages = hpkgs;
         projectRoot = ./.;
         autoWire = [
