@@ -19,7 +19,7 @@ resource DefaultConfig {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
-        autocomplete_function_name: String
+        value_compute_function_name: String
     }
     update: UpdateDefaultConfig
     delete: DeleteDefaultConfig
@@ -50,7 +50,7 @@ structure DefaultConfigMixin for DefaultConfig {
 
     $function_name
 
-    $autocomplete_function_name
+    $value_compute_function_name
 }
 
 structure DefaultConfigResponse for DefaultConfig with [DefaultConfigMixin] {
@@ -134,7 +134,7 @@ operation UpdateDefaultConfig with [GetOperation] {
         $description
 
         @documentation("To unset the function name, pass \"null\" string.")
-        $autocomplete_function_name
+        $value_compute_function_name
     }
 
     output: DefaultConfigResponse

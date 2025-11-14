@@ -13,7 +13,7 @@ impl super::Client {
     ///   - [`description(String)`](crate::operation::get_default_config::GetDefaultConfigOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::get_default_config::GetDefaultConfigOutput::change_reason): (undocumented)
     ///   - [`function_name(Option<String>)`](crate::operation::get_default_config::GetDefaultConfigOutput::function_name): (undocumented)
-    ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::get_default_config::GetDefaultConfigOutput::autocomplete_function_name): (undocumented)
+    ///   - [`value_compute_function_name(Option<String>)`](crate::operation::get_default_config::GetDefaultConfigOutput::value_compute_function_name): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::get_default_config::GetDefaultConfigOutput::created_at): (undocumented)
     ///   - [`created_by(String)`](crate::operation::get_default_config::GetDefaultConfigOutput::created_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::get_default_config::GetDefaultConfigOutput::last_modified_at): (undocumented)

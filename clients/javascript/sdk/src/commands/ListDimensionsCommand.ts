@@ -78,7 +78,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //         LOCAL_COHORT: "STRING_VALUE",
  * //         REMOTE_COHORT: "STRING_VALUE",
  * //       },
- * //       autocomplete_function_name: "STRING_VALUE",
+ * //       value_compute_function_name: "STRING_VALUE",
  * //       mandatory: true || false, // required
  * //     },
  * //   ],

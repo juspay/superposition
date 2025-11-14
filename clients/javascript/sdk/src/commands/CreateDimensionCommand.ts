@@ -58,7 +58,7 @@ export interface CreateDimensionCommandOutput extends DimensionResponse, __Metad
  *     LOCAL_COHORT: "STRING_VALUE",
  *     REMOTE_COHORT: "STRING_VALUE",
  *   },
- *   autocomplete_function_name: "STRING_VALUE",
+ *   value_compute_function_name: "STRING_VALUE",
  * };
  * const command = new CreateDimensionCommand(input);
  * const response = await client.send(command);
@@ -85,7 +85,7 @@ export interface CreateDimensionCommandOutput extends DimensionResponse, __Metad
  * //     LOCAL_COHORT: "STRING_VALUE",
  * //     REMOTE_COHORT: "STRING_VALUE",
  * //   },
- * //   autocomplete_function_name: "STRING_VALUE",
+ * //   value_compute_function_name: "STRING_VALUE",
  * //   mandatory: true || false, // required
  * // };
  *

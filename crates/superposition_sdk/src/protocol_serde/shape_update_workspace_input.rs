@@ -12,23 +12,29 @@ pub fn ser_update_workspace_input_input(
     if let Some(var_3) = &input.config_version {
         object.key("config_version").string(var_3.as_str());
     }
-    if let Some(var_4) = &input.mandatory_dimensions {
-        let mut array_5 = object.key("mandatory_dimensions").start_array();
-        for item_6 in var_4 {
+    if let Some(var_4) = &input.enable_change_reason_validation {
+        object.key("enable_change_reason_validation").boolean(*var_4);
+    }
+    if let Some(var_5) = &input.enable_context_validation {
+        object.key("enable_context_validation").boolean(*var_5);
+    }
+    if let Some(var_6) = &input.mandatory_dimensions {
+        let mut array_7 = object.key("mandatory_dimensions").start_array();
+        for item_8 in var_6 {
              {
-                array_5.value().string(item_6.as_str());
+                array_7.value().string(item_8.as_str());
             }
         }
-        array_5.finish();
+        array_7.finish();
     }
-    if let Some(var_7) = &input.metrics {
-        object.key("metrics").document(var_7);
+    if let Some(var_9) = &input.metrics {
+        object.key("metrics").document(var_9);
     }
-    if let Some(var_8) = &input.workspace_admin_email {
-        object.key("workspace_admin_email").string(var_8.as_str());
+    if let Some(var_10) = &input.workspace_admin_email {
+        object.key("workspace_admin_email").string(var_10.as_str());
     }
-    if let Some(var_9) = &input.workspace_status {
-        object.key("workspace_status").string(var_9.as_str());
+    if let Some(var_11) = &input.workspace_status {
+        object.key("workspace_status").string(var_11.as_str());
     }
     Ok(())
 }

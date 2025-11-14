@@ -3,33 +3,33 @@ pub fn ser_create_default_config_input_input(
                          object: &mut ::aws_smithy_json::serialize::JsonObjectWriter,
                          input: &crate::operation::create_default_config::CreateDefaultConfigInput,
                     ) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
-    if let Some(var_1) = &input.autocomplete_function_name {
-        object.key("autocomplete_function_name").string(var_1.as_str());
+    if let Some(var_1) = &input.change_reason {
+        object.key("change_reason").string(var_1.as_str());
     }
-    if let Some(var_2) = &input.change_reason {
-        object.key("change_reason").string(var_2.as_str());
+    if let Some(var_2) = &input.description {
+        object.key("description").string(var_2.as_str());
     }
-    if let Some(var_3) = &input.description {
-        object.key("description").string(var_3.as_str());
+    if let Some(var_3) = &input.function_name {
+        object.key("function_name").string(var_3.as_str());
     }
-    if let Some(var_4) = &input.function_name {
-        object.key("function_name").string(var_4.as_str());
+    if let Some(var_4) = &input.key {
+        object.key("key").string(var_4.as_str());
     }
-    if let Some(var_5) = &input.key {
-        object.key("key").string(var_5.as_str());
-    }
-    if let Some(var_6) = &input.schema {
+    if let Some(var_5) = &input.schema {
         #[allow(unused_mut)]
-        let mut object_7 = object.key("schema").start_object();
-        for (key_8, value_9) in var_6 {
+        let mut object_6 = object.key("schema").start_object();
+        for (key_7, value_8) in var_5 {
              {
-                object_7.key(key_8.as_str()).document(value_9);
+                object_6.key(key_7.as_str()).document(value_8);
             }
         }
-        object_7.finish();
+        object_6.finish();
     }
-    if let Some(var_10) = &input.value {
-        object.key("value").document(var_10);
+    if let Some(var_9) = &input.value {
+        object.key("value").document(var_9);
+    }
+    if let Some(var_10) = &input.value_compute_function_name {
+        object.key("value_compute_function_name").string(var_10.as_str());
     }
     Ok(())
 }

@@ -42,7 +42,7 @@ public final class CreateDimensionInput implements SerializableStruct {
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("dimension_type", DimensionType.$SCHEMA)
-        .putMember("autocomplete_function_name", PreludeSchemas.STRING)
+        .putMember("value_compute_function_name", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -54,7 +54,7 @@ public final class CreateDimensionInput implements SerializableStruct {
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_DIMENSION_TYPE = $SCHEMA.member("dimension_type");
-    private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
+    private static final Schema $SCHEMA_VALUE_COMPUTE_FUNCTION_NAME = $SCHEMA.member("value_compute_function_name");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -65,7 +65,7 @@ public final class CreateDimensionInput implements SerializableStruct {
     private final transient String description;
     private final transient String changeReason;
     private final transient DimensionType dimensionType;
-    private final transient String autocompleteFunctionName;
+    private final transient String valueComputeFunctionName;
 
     private CreateDimensionInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -77,7 +77,7 @@ public final class CreateDimensionInput implements SerializableStruct {
         this.description = builder.description;
         this.changeReason = builder.changeReason;
         this.dimensionType = builder.dimensionType;
-        this.autocompleteFunctionName = builder.autocompleteFunctionName;
+        this.valueComputeFunctionName = builder.valueComputeFunctionName;
     }
 
     public String workspaceId() {
@@ -120,8 +120,8 @@ public final class CreateDimensionInput implements SerializableStruct {
         return dimensionType;
     }
 
-    public String autocompleteFunctionName() {
-        return autocompleteFunctionName;
+    public String valueComputeFunctionName() {
+        return valueComputeFunctionName;
     }
 
     @Override
@@ -147,12 +147,12 @@ public final class CreateDimensionInput implements SerializableStruct {
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
                && Objects.equals(this.dimensionType, that.dimensionType)
-               && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName);
+               && Objects.equals(this.valueComputeFunctionName, that.valueComputeFunctionName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, dimension, position, schemaMember, functionName, description, changeReason, dimensionType, autocompleteFunctionName);
+        return Objects.hash(workspaceId, orgId, dimension, position, schemaMember, functionName, description, changeReason, dimensionType, valueComputeFunctionName);
     }
 
     @Override
@@ -175,8 +175,8 @@ public final class CreateDimensionInput implements SerializableStruct {
         if (dimensionType != null) {
             serializer.writeStruct($SCHEMA_DIMENSION_TYPE, dimensionType);
         }
-        if (autocompleteFunctionName != null) {
-            serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
+        if (valueComputeFunctionName != null) {
+            serializer.writeString($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, valueComputeFunctionName);
         }
     }
 
@@ -193,7 +193,7 @@ public final class CreateDimensionInput implements SerializableStruct {
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, dimensionType);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, valueComputeFunctionName);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -216,7 +216,7 @@ public final class CreateDimensionInput implements SerializableStruct {
         builder.description(this.description);
         builder.changeReason(this.changeReason);
         builder.dimensionType(this.dimensionType);
-        builder.autocompleteFunctionName(this.autocompleteFunctionName);
+        builder.valueComputeFunctionName(this.valueComputeFunctionName);
         return builder;
     }
 
@@ -241,7 +241,7 @@ public final class CreateDimensionInput implements SerializableStruct {
         private String description;
         private String changeReason;
         private DimensionType dimensionType;
-        private String autocompleteFunctionName;
+        private String valueComputeFunctionName;
 
         private Builder() {}
 
@@ -339,8 +339,8 @@ public final class CreateDimensionInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder autocompleteFunctionName(String autocompleteFunctionName) {
-            this.autocompleteFunctionName = autocompleteFunctionName;
+        public Builder valueComputeFunctionName(String valueComputeFunctionName) {
+            this.valueComputeFunctionName = valueComputeFunctionName;
             return this;
         }
 
@@ -363,7 +363,7 @@ public final class CreateDimensionInput implements SerializableStruct {
                 case 6 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 7 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
                 case 8 -> dimensionType((DimensionType) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_TYPE, member, value));
-                case 9 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
+                case 9 -> valueComputeFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -424,7 +424,7 @@ public final class CreateDimensionInput implements SerializableStruct {
                     case 6 -> builder.changeReason(de.readString(member));
                     case 7 -> builder.functionName(de.readString(member));
                     case 8 -> builder.dimensionType(DimensionType.builder().deserializeMember(de, member).build());
-                    case 9 -> builder.autocompleteFunctionName(de.readString(member));
+                    case 9 -> builder.valueComputeFunctionName(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

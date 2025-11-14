@@ -83,6 +83,10 @@ impl Overrides {
         }
         Ok(Self(override_map))
     }
+
+    pub fn default(override_map: Map<String, Value>) -> Self {
+        Self(override_map)
+    }
 }
 
 impl IntoIterator for Overrides {
@@ -431,5 +435,5 @@ pub struct DimensionInfo {
     pub dimension_type: DimensionType,
     pub dependency_graph: DependencyGraph,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub autocomplete_function_name: Option<String>,
+    pub autocomplete_function_name: Option<String>, // Remove this: Change needed in smithy i guess so in next commit
 }

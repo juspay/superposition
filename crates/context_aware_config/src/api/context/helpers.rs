@@ -11,6 +11,8 @@ use service_utils::service::types::SchemaName;
 #[cfg(feature = "jsonlogic")]
 use superposition_macros::bad_argument;
 use superposition_macros::{unexpected_error, validation_error};
+use superposition_types::api::functions::{FunctionEnvironment, KeyType};
+use superposition_types::database::models::cac::FunctionType;
 use superposition_types::{
     api::{
         context::PutRequest,
@@ -28,6 +30,7 @@ use superposition_types::{
     User,
 };
 
+use crate::api::functions::helpers::get_validation_function;
 use crate::{
     api::dimension::fetch_dimensions_info_map,
     helpers::{calculate_context_weight, get_workspace},
@@ -106,6 +109,8 @@ fn validate_condition_with_dependent_dimensions(
 pub fn validate_condition_with_functions(
     conn: &mut DBConnection,
     context_map: &Map<String, Value>,
+    override_: &Map<String, Value>,
+    is_context_validation_enabled: bool,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
@@ -120,6 +125,27 @@ pub fn validate_condition_with_functions(
         .filter_map(|(key, f_name)| f_name.map(|func| (key, func)))
         .collect();
 
+    let context_validation_function =
+        get_validation_function(FunctionType::ContextValidation, conn, schema_name)?;
+
+    let environment = FunctionEnvironment {
+        context: context_map.clone(),
+        overrides: override_.clone(),
+    };
+
+    // workspace_setting check
+    if is_context_validation_enabled {
+        if let Some(function_code) = context_validation_function {
+            validate_value_with_function(
+                "context_validation_function",
+                &function_code,
+                &FunctionExecutionRequest::ContextValidationFunctionRequest {
+                    environment: environment.clone(),
+                },
+            )?;
+        }
+    }
+
     let dimension_functions_map =
         get_functions_map(conn, new_keys_function_array, schema_name)?;
     for (key, value) in context_map.iter() {
@@ -127,7 +153,16 @@ pub fn validate_condition_with_functions(
             if let (function_name, Some(function_code)) =
                 (functions_map.name.clone(), functions_map.code.clone())
             {
-                validate_value_with_function(&function_name, &function_code, key, value)?;
+                validate_value_with_function(
+                    &function_name,
+                    &function_code,
+                    &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                        key: key.clone(),
+                        value: value.to_owned(),
+                        r#type: KeyType::Dimension,
+                        environment: environment.clone(),
+                    },
+                )?;
             }
         }
     }
@@ -188,6 +223,7 @@ pub fn validate_condition_with_strict_mode(
 pub fn validate_override_with_functions(
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
+    context: &Map<String, Value>,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
@@ -208,7 +244,19 @@ pub fn validate_override_with_functions(
             if let (function_name, Some(function_code)) =
                 (functions_map.name.clone(), functions_map.code.clone())
             {
-                validate_value_with_function(&function_name, &function_code, key, value)?;
+                validate_value_with_function(
+                    &function_name,
+                    &function_code,
+                    &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                        key: key.clone(),
+                        value: value.to_owned(),
+                        r#type: KeyType::ConfigKey,
+                        environment: FunctionEnvironment {
+                            context: context.clone(),
+                            overrides: override_.clone(),
+                        },
+                    },
+                )?;
             }
         }
     }
@@ -251,21 +299,26 @@ fn get_functions_map(
 pub fn validate_value_with_function(
     fun_name: &str,
     function: &FunctionCode,
-    key: &String,
-    value: &Value,
+    args: &FunctionExecutionRequest,
 ) -> superposition::Result<()> {
-    match execute_fn(
-        function,
-        &FunctionExecutionRequest::ValidateFunctionRequest {
-            key: key.clone(),
-            value: value.to_owned(),
-        },
-    ) {
+    match execute_fn(function, args) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
-            log::error!(
-                "function {fun_name} validation failed for {key} with error: {err}"
-            );
+            let key = match args {
+                FunctionExecutionRequest::ValueValidationFunctionRequest {
+                    key, ..
+                } => key,
+                FunctionExecutionRequest::ValueComputeFunctionRequest {
+                    name, ..
+                } => name,
+                FunctionExecutionRequest::ContextValidationFunctionRequest { .. } => {
+                    "context_validation_function"
+                }
+                FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                    ..
+                } => "change_reason_validation_function",
+            };
+            log::error!("function validation failed for {key} with error: {err}");
             Err(validation_error!(
                 "Function {fun_name} validation failed for {} with error {}. {}",
                 key,
@@ -322,11 +375,17 @@ pub fn create_ctx_from_put_req(
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone())?;
+    let dimension_data_map =
+        validate_ctx(conn, schema_name, ctx_condition.clone(), r_override.clone())?;
     let change_reason = req.change_reason.clone();
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_override_with_functions(conn, &r_override, schema_name)?;
+    validate_override_with_functions(
+        conn,
+        &r_override,
+        &ctx_condition.clone(),
+        schema_name,
+    )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
@@ -426,6 +485,7 @@ pub fn validate_ctx(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
     condition: Condition,
+    override_: Overrides,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     let workspace_settings = get_workspace(schema_name, conn)?;
 
@@ -454,6 +514,12 @@ pub fn validate_ctx(
         &condition_val,
         &dimension_info_map,
     )?;
-    validate_condition_with_functions(conn, context_map, schema_name)?;
+    validate_condition_with_functions(
+        conn,
+        context_map,
+        &override_,
+        workspace_settings.enable_context_validation,
+        schema_name,
+    )?;
     Ok(dimension_info_map)
 }

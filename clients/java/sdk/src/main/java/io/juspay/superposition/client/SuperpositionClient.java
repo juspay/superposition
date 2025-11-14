@@ -326,8 +326,8 @@ public interface SuperpositionClient {
     CreateExperimentGroupOutput createExperimentGroup(CreateExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Creates a new custom function for validation or autocompletion with specified code, runtime version,
-     * and function type.
+     * Creates a new custom function for value_validation, value_compute or context_validation with
+     * specified code, runtime version, and function type.
      *
      * @throws InternalServerError
      */
@@ -336,8 +336,8 @@ public interface SuperpositionClient {
     }
 
     /**
-     * Creates a new custom function for validation or autocompletion with specified code, runtime version,
-     * and function type.
+     * Creates a new custom function for value_validation, value_compute or context_validation with
+     * specified code, runtime version, and function type.
      *
      * @throws InternalServerError
      */
@@ -1148,8 +1148,8 @@ public interface SuperpositionClient {
     PauseExperimentOutput pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Publishes the draft version of a function, making it the active version used for validation or
-     * autocompletion in the system.
+     * Publishes the draft version of a function, making it the active version used for value_validation,
+     * value_compute or context_validation in the system.
      *
      * @throws ResourceNotFound
      * @throws InternalServerError
@@ -1159,8 +1159,8 @@ public interface SuperpositionClient {
     }
 
     /**
-     * Publishes the draft version of a function, making it the active version used for validation or
-     * autocompletion in the system.
+     * Publishes the draft version of a function, making it the active version used for value_validation,
+     * value_compute or context_validation in the system.
      *
      * @throws ResourceNotFound
      * @throws InternalServerError

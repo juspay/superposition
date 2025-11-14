@@ -17,7 +17,7 @@ pub async fn create_default_config(
     value: Value,
     schema: Value,
     function_name: Option<String>,
-    autocomplete_function_name: Option<String>,
+    value_compute_function_name: Option<String>,
     description: String,
     change_reason: String,
 ) -> Result<serde_json::Value, String> {
@@ -28,7 +28,7 @@ pub async fn create_default_config(
         function_name,
         description: Description::try_from(description)?,
         change_reason: ChangeReason::try_from(change_reason)?,
-        autocomplete_function_name,
+        value_compute_function_name,
     };
     let host = get_host();
     let url = format!("{host}/default-config");
@@ -48,7 +48,7 @@ pub fn try_update_payload(
     value: Value,
     schema: Value,
     function_name: Option<String>,
-    autocomplete_function_name: Option<String>,
+    value_compute_function_name: Option<String>,
     description: String,
     change_reason: String,
 ) -> Result<DefaultConfigUpdateRequest, String> {
@@ -58,7 +58,7 @@ pub fn try_update_payload(
         function_name: Some(function_name),
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
-        autocomplete_function_name: Some(autocomplete_function_name),
+        value_compute_function_name: Some(value_compute_function_name),
     })
 }
 

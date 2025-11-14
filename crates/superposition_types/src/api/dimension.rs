@@ -31,7 +31,7 @@ pub struct DimensionResponse {
     pub dependency_graph: DependencyGraph,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub autocomplete_function_name: Option<String>,
+    pub value_compute_function_name: Option<String>,
     pub dimension_type: DimensionType,
 }
 
@@ -50,7 +50,7 @@ impl DimensionResponse {
             dependency_graph: value.dependency_graph,
             description: value.description,
             change_reason: value.change_reason,
-            autocomplete_function_name: value.autocomplete_function_name,
+            value_compute_function_name: value.value_compute_function_name,
             dimension_type: value.dimension_type,
         }
     }
@@ -61,10 +61,10 @@ pub struct CreateRequest {
     pub dimension: DimensionName,
     pub position: Position,
     pub schema: ExtendedMap,
-    pub function_name: Option<String>,
+    pub function_name: Option<String>, // TODO: Change this to validation_function_name
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub autocomplete_function_name: Option<String>,
+    pub value_compute_function_name: Option<String>,
     #[serde(default)]
     pub dimension_type: DimensionType,
 }
@@ -78,7 +78,7 @@ pub struct UpdateRequest {
     #[serde(default, deserialize_with = "deserialize_function_name")]
     pub function_name: Option<Option<String>>,
     #[serde(default, deserialize_with = "deserialize_function_name")]
-    pub autocomplete_function_name: Option<Option<String>>,
+    pub value_compute_function_name: Option<Option<String>>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }

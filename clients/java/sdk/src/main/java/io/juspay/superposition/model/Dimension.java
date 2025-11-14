@@ -18,8 +18,8 @@ public final class Dimension implements ApiResource {
         "dimension", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
         Map.entry("schema", SharedSchemas.OBJECT),
-        Map.entry("autocomplete_function_name", PreludeSchemas.STRING),
         Map.entry("change_reason", PreludeSchemas.STRING),
+        Map.entry("value_compute_function_name", PreludeSchemas.STRING),
         Map.entry("dimension_type", DimensionType.$SCHEMA),
         Map.entry("function_name", PreludeSchemas.STRING),
         Map.entry("description", PreludeSchemas.STRING),

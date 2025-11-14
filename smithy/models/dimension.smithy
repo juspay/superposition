@@ -31,7 +31,7 @@ resource Dimension {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
-        autocomplete_function_name: String
+        value_compute_function_name: String
         dimension_type: DimensionType
     }
     list: ListDimensions
@@ -79,7 +79,7 @@ structure DimensionResponse for Dimension {
     @required
     $dimension_type
 
-    $autocomplete_function_name
+    $value_compute_function_name
 
     @notProperty
     @required
@@ -114,7 +114,7 @@ operation CreateDimension {
 
         $dimension_type
 
-        $autocomplete_function_name
+        $value_compute_function_name
     }
 
     output: DimensionResponse
@@ -170,7 +170,7 @@ operation UpdateDimension with [GetOperation] {
         $change_reason
 
         @documentation("To unset the function name, pass \"null\" string.")
-        $autocomplete_function_name
+        $value_compute_function_name
     }
 
     output: DimensionResponse

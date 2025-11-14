@@ -22,7 +22,6 @@ from ._private.schemas import (
     APPLICABLE_VARIANTS_INPUT as _SCHEMA_APPLICABLE_VARIANTS_INPUT,
     APPLICABLE_VARIANTS_OUTPUT as _SCHEMA_APPLICABLE_VARIANTS_OUTPUT,
     AUDIT_LOG_FULL as _SCHEMA_AUDIT_LOG_FULL,
-    AUTOCOMPLETE_FUNCTION_REQUEST as _SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST,
     BUCKET as _SCHEMA_BUCKET,
     BULK_OPERATION as _SCHEMA_BULK_OPERATION,
     BULK_OPERATION_INPUT as _SCHEMA_BULK_OPERATION_INPUT,
@@ -38,6 +37,7 @@ from ._private.schemas import (
     CONTEXT_PARTIAL as _SCHEMA_CONTEXT_PARTIAL,
     CONTEXT_PUT as _SCHEMA_CONTEXT_PUT,
     CONTEXT_RESPONSE as _SCHEMA_CONTEXT_RESPONSE,
+    CONTEXT_VALIDATION_FUNCTION_REQUEST as _SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST,
     CREATE_CONTEXT as _SCHEMA_CREATE_CONTEXT,
     CREATE_CONTEXT_INPUT as _SCHEMA_CREATE_CONTEXT_INPUT,
     CREATE_CONTEXT_OUTPUT as _SCHEMA_CREATE_CONTEXT_OUTPUT,
@@ -247,7 +247,8 @@ from ._private.schemas import (
     VALIDATE_CONTEXT as _SCHEMA_VALIDATE_CONTEXT,
     VALIDATE_CONTEXT_INPUT as _SCHEMA_VALIDATE_CONTEXT_INPUT,
     VALIDATE_CONTEXT_OUTPUT as _SCHEMA_VALIDATE_CONTEXT_OUTPUT,
-    VALIDATE_FUNCTION_REQUEST as _SCHEMA_VALIDATE_FUNCTION_REQUEST,
+    VALUE_COMPUTE_FUNCTION_REQUEST as _SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST,
+    VALUE_VALIDATION_FUNCTION_REQUEST as _SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST,
     VARIANT as _SCHEMA_VARIANT,
     VARIANT_UPDATE_REQUEST as _SCHEMA_VARIANT_UPDATE_REQUEST,
     WEBHOOK_RESPONSE as _SCHEMA_WEBHOOK_RESPONSE,
@@ -1109,48 +1110,6 @@ LIST_AUDIT_LOGS = APIOperation(
             ShapeID("smithy.api#httpBearerAuth")
         ]
 )
-
-@dataclass(kw_only=True)
-class AutocompleteFunctionRequest:
-
-    name: str
-
-    prefix: str
-
-    environment: Document
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["name"], self.name)
-        serializer.write_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["prefix"], self.prefix)
-        serializer.write_document(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["environment"], self.environment)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["name"] = de.read_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["name"])
-
-                case 1:
-                    kwargs["prefix"] = de.read_string(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["prefix"])
-
-                case 2:
-                    kwargs["environment"] = de.read_document(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST.members["environment"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST, consumer=_consumer)
-        return kwargs
 
 @dataclass(kw_only=True)
 class ContextMove:
@@ -2515,7 +2474,7 @@ class DimensionInfo:
 
     dependency_graph: dict[str, list[str]]
 
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DIMENSION_INFO, self)
@@ -2525,8 +2484,8 @@ class DimensionInfo:
         serializer.write_integer(_SCHEMA_DIMENSION_INFO.members["position"], self.position)
         serializer.write_struct(_SCHEMA_DIMENSION_INFO.members["dimension_type"], self.dimension_type)
         _serialize_dependency_graph(serializer, _SCHEMA_DIMENSION_INFO.members["dependency_graph"], self.dependency_graph)
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_DIMENSION_INFO.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_DIMENSION_INFO.members["value_compute_function_name"], self.value_compute_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2551,7 +2510,7 @@ class DimensionInfo:
                     kwargs["dependency_graph"] = _deserialize_dependency_graph(de, _SCHEMA_DIMENSION_INFO.members["dependency_graph"])
 
                 case 4:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_INFO.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_DIMENSION_INFO.members["value_compute_function_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4525,6 +4484,36 @@ WEIGHT_RECOMPUTE = APIOperation(
 )
 
 @dataclass(kw_only=True)
+class ContextValidationFunctionRequest:
+
+    environment: Document
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_document(_SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST.members["environment"], self.environment)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["environment"] = de.read_document(_SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST.members["environment"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
 class CreateDefaultConfigInput:
     """
 
@@ -4540,7 +4529,7 @@ class CreateDefaultConfigInput:
     description: str | None = None
     change_reason: str | None = None
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
     workspace_id: str | None = None
     org_id: str | None = None
 
@@ -4566,8 +4555,8 @@ class CreateDefaultConfigInput:
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["function_name"], self.function_name)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4598,7 +4587,7 @@ class CreateDefaultConfigInput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["function_name"])
 
                 case 6:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["value_compute_function_name"])
 
                 case 7:
                     kwargs["workspace_id"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["workspace_id"])
@@ -4641,7 +4630,7 @@ class CreateDefaultConfigOutput:
     last_modified_by: str
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT, self)
@@ -4655,8 +4644,8 @@ class CreateDefaultConfigOutput:
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["function_name"], self.function_name)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
@@ -4692,7 +4681,7 @@ class CreateDefaultConfigOutput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["function_name"])
 
                 case 6:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["value_compute_function_name"])
 
                 case 7:
                     kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_at"])
@@ -4745,7 +4734,7 @@ class CreateDimensionInput:
     description: str | None = None
     change_reason: str | None = None
     dimension_type: DimensionType | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_INPUT, self)
@@ -4772,8 +4761,8 @@ class CreateDimensionInput:
         if self.dimension_type is not None:
             serializer.write_struct(_SCHEMA_CREATE_DIMENSION_INPUT.members["dimension_type"], self.dimension_type)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4813,7 +4802,7 @@ class CreateDimensionInput:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 9:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["value_compute_function_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4856,7 +4845,7 @@ class CreateDimensionOutput:
     mandatory: bool
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_OUTPUT, self)
@@ -4876,8 +4865,8 @@ class CreateDimensionOutput:
         serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
         _serialize_dependency_graph(serializer, _SCHEMA_CREATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -4928,7 +4917,7 @@ class CreateDimensionOutput:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 12:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["value_compute_function_name"])
 
                 case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_CREATE_DIMENSION_OUTPUT.members["mandatory"])
@@ -5438,8 +5427,10 @@ CREATE_EXPERIMENT_GROUP = APIOperation(
 )
 
 class FunctionTypes(StrEnum):
-    VALIDATION = "VALIDATION"
-    AUTOCOMPLETE = "AUTOCOMPLETE"
+    VALUE_VALIDATION = "VALUE_VALIDATION"
+    VALUE_COMPUTE = "VALUE_COMPUTE"
+    CONTEXT_VALIDATION = "CONTEXT_VALIDATION"
+    CHANGE_REASON_VALIDATION = "CHANGE_REASON_VALIDATION"
 
 @dataclass(kw_only=True)
 class CreateFunctionInput:
@@ -6272,6 +6263,8 @@ class CreateWorkspaceInput:
     metrics: Document | None = None
     allow_experiment_self_approval: bool | None = None
     auto_populate_control: bool | None = None
+    enable_context_validation: bool | None = None
+    enable_change_reason_validation: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_INPUT, self)
@@ -6297,6 +6290,12 @@ class CreateWorkspaceInput:
 
         if self.auto_populate_control is not None:
             serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["auto_populate_control"], self.auto_populate_control)
+
+        if self.enable_context_validation is not None:
+            serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_context_validation"], self.enable_context_validation)
+
+        if self.enable_change_reason_validation is not None:
+            serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6331,6 +6330,12 @@ class CreateWorkspaceInput:
 
                 case 7:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["auto_populate_control"])
+
+                case 8:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_context_validation"])
+
+                case 9:
+                    kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_change_reason_validation"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -6387,6 +6392,10 @@ class CreateWorkspaceOutput:
 
     auto_populate_control: bool
 
+    enable_context_validation: bool
+
+    enable_change_reason_validation: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -6414,6 +6423,8 @@ class CreateWorkspaceOutput:
         serializer.write_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
+        serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
+        serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6472,6 +6483,12 @@ class CreateWorkspaceOutput:
 
                 case 15:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"])
+
+                case 16:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_context_validation"])
+
+                case 17:
+                    kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -6639,7 +6656,7 @@ class GetDefaultConfigOutput:
     last_modified_by: str
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT, self)
@@ -6653,8 +6670,8 @@ class GetDefaultConfigOutput:
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["function_name"], self.function_name)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_timestamp(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
@@ -6690,7 +6707,7 @@ class GetDefaultConfigOutput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["function_name"])
 
                 case 6:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["value_compute_function_name"])
 
                 case 7:
                     kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_at"])
@@ -6817,7 +6834,7 @@ class DefaultConfigResponse:
     last_modified_by: str
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DEFAULT_CONFIG_RESPONSE, self)
@@ -6831,8 +6848,8 @@ class DefaultConfigResponse:
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["function_name"], self.function_name)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_timestamp(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_by"], self.created_by)
@@ -6868,7 +6885,7 @@ class DefaultConfigResponse:
                     kwargs["function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["function_name"])
 
                 case 6:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["value_compute_function_name"])
 
                 case 7:
                     kwargs["created_at"] = de.read_timestamp(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_at"])
@@ -6972,7 +6989,7 @@ class UpdateDefaultConfigInput:
     :param function_name:
          To unset the function name, pass "null" string.
 
-    :param autocomplete_function_name:
+    :param value_compute_function_name:
          To unset the function name, pass "null" string.
 
     """
@@ -6985,7 +7002,7 @@ class UpdateDefaultConfigInput:
     schema: dict[str, Document] | None = None
     function_name: str | None = None
     description: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT, self)
@@ -7006,8 +7023,8 @@ class UpdateDefaultConfigInput:
         if self.description is not None:
             serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["description"], self.description)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7044,7 +7061,7 @@ class UpdateDefaultConfigInput:
                     kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["description"])
 
                 case 8:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value_compute_function_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7081,7 +7098,7 @@ class UpdateDefaultConfigOutput:
     last_modified_by: str
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT, self)
@@ -7095,8 +7112,8 @@ class UpdateDefaultConfigOutput:
         if self.function_name is not None:
             serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["function_name"], self.function_name)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
@@ -7132,7 +7149,7 @@ class UpdateDefaultConfigOutput:
                     kwargs["function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["function_name"])
 
                 case 6:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["value_compute_function_name"])
 
                 case 7:
                     kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_at"])
@@ -7778,7 +7795,7 @@ class GetDimensionOutput:
     mandatory: bool
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT, self)
@@ -7798,8 +7815,8 @@ class GetDimensionOutput:
         serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["created_by"], self.created_by)
         _serialize_dependency_graph(serializer, _SCHEMA_GET_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_GET_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -7850,7 +7867,7 @@ class GetDimensionOutput:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 12:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_GET_DIMENSION_OUTPUT.members["value_compute_function_name"])
 
                 case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_GET_DIMENSION_OUTPUT.members["mandatory"])
@@ -7970,7 +7987,7 @@ class DimensionResponse:
     mandatory: bool
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DIMENSION_RESPONSE, self)
@@ -7990,8 +8007,8 @@ class DimensionResponse:
         serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["created_by"], self.created_by)
         _serialize_dependency_graph(serializer, _SCHEMA_DIMENSION_RESPONSE.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_DIMENSION_RESPONSE.members["dimension_type"], self.dimension_type)
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_DIMENSION_RESPONSE.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_boolean(_SCHEMA_DIMENSION_RESPONSE.members["mandatory"], self.mandatory)
 
@@ -8042,7 +8059,7 @@ class DimensionResponse:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 12:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_DIMENSION_RESPONSE.members["value_compute_function_name"])
 
                 case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_DIMENSION_RESPONSE.members["mandatory"])
@@ -8137,7 +8154,7 @@ class UpdateDimensionInput:
     :param function_name:
          To unset the function name, pass "null" string.
 
-    :param autocomplete_function_name:
+    :param value_compute_function_name:
          To unset the function name, pass "null" string.
 
     """
@@ -8150,7 +8167,7 @@ class UpdateDimensionInput:
     function_name: str | None = None
     description: str | None = None
     change_reason: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_INPUT, self)
@@ -8171,8 +8188,8 @@ class UpdateDimensionInput:
         if self.change_reason is not None:
             serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"], self.change_reason)
 
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8209,7 +8226,7 @@ class UpdateDimensionInput:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"])
 
                 case 8:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["value_compute_function_name"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8252,7 +8269,7 @@ class UpdateDimensionOutput:
     mandatory: bool
 
     function_name: str | None = None
-    autocomplete_function_name: str | None = None
+    value_compute_function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_OUTPUT, self)
@@ -8272,8 +8289,8 @@ class UpdateDimensionOutput:
         serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["created_by"], self.created_by)
         _serialize_dependency_graph(serializer, _SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dependency_graph"], self.dependency_graph)
         serializer.write_struct(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["dimension_type"], self.dimension_type)
-        if self.autocomplete_function_name is not None:
-            serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"], self.autocomplete_function_name)
+        if self.value_compute_function_name is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["value_compute_function_name"], self.value_compute_function_name)
 
         serializer.write_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"], self.mandatory)
 
@@ -8324,7 +8341,7 @@ class UpdateDimensionOutput:
                     kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
 
                 case 12:
-                    kwargs["autocomplete_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["autocomplete_function_name"])
+                    kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["value_compute_function_name"])
 
                 case 13:
                     kwargs["mandatory"] = de.read_boolean(_SCHEMA_UPDATE_DIMENSION_OUTPUT.members["mandatory"])
@@ -11596,18 +11613,24 @@ ShapeID("io.superposition#InternalServerError"): InternalServerError,
 )
 
 @dataclass(kw_only=True)
-class ValidateFunctionRequest:
+class ValueComputeFunctionRequest:
 
-    key: str
+    name: str
 
-    value: Document
+    prefix: str
+
+    type: str
+
+    environment: Document
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_VALIDATE_FUNCTION_REQUEST, self)
+        serializer.write_struct(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["key"], self.key)
-        serializer.write_document(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["value"], self.value)
+        serializer.write_string(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["name"], self.name)
+        serializer.write_string(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["prefix"], self.prefix)
+        serializer.write_string(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["type"], self.type)
+        serializer.write_document(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["environment"], self.environment)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -11620,46 +11643,115 @@ class ValidateFunctionRequest:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["key"] = de.read_string(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["key"])
+                    kwargs["name"] = de.read_string(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["name"])
 
                 case 1:
-                    kwargs["value"] = de.read_document(_SCHEMA_VALIDATE_FUNCTION_REQUEST.members["value"])
+                    kwargs["prefix"] = de.read_string(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["prefix"])
+
+                case 2:
+                    kwargs["type"] = de.read_string(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["type"])
+
+                case 3:
+                    kwargs["environment"] = de.read_document(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST.members["environment"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_VALIDATE_FUNCTION_REQUEST, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class ValueValidationFunctionRequest:
+
+    key: str
+
+    value: Document
+
+    type: str
+
+    environment: Document
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["key"], self.key)
+        serializer.write_document(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["value"], self.value)
+        serializer.write_string(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["type"], self.type)
+        serializer.write_document(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["environment"], self.environment)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["key"] = de.read_string(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["key"])
+
+                case 1:
+                    kwargs["value"] = de.read_document(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["value"])
+
+                case 2:
+                    kwargs["type"] = de.read_string(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["type"])
+
+                case 3:
+                    kwargs["environment"] = de.read_document(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST.members["environment"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST, consumer=_consumer)
         return kwargs
 
 @dataclass
-class FunctionExecutionRequestValidateFunctionRequest:
+class FunctionExecutionRequestValueValidationFunctionRequest:
 
-    value: ValidateFunctionRequest
+    value: ValueValidationFunctionRequest
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["ValidateFunctionRequest"], self.value)
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["ValueValidationFunctionRequest"], self.value)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=ValidateFunctionRequest.deserialize(deserializer))
+        return cls(value=ValueValidationFunctionRequest.deserialize(deserializer))
 
 @dataclass
-class FunctionExecutionRequestAutocompleteFunctionRequest:
+class FunctionExecutionRequestValueComputeFunctionRequest:
 
-    value: AutocompleteFunctionRequest
+    value: ValueComputeFunctionRequest
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["AutocompleteFunctionRequest"], self.value)
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["ValueComputeFunctionRequest"], self.value)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=AutocompleteFunctionRequest.deserialize(deserializer))
+        return cls(value=ValueComputeFunctionRequest.deserialize(deserializer))
+
+@dataclass
+class FunctionExecutionRequestContextValidationFunctionRequest:
+
+    value: ContextValidationFunctionRequest
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["ContextValidationFunctionRequest"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ContextValidationFunctionRequest.deserialize(deserializer))
 
 @dataclass
 class FunctionExecutionRequestUnknown:
@@ -11683,7 +11775,7 @@ class FunctionExecutionRequestUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-FunctionExecutionRequest = Union[FunctionExecutionRequestValidateFunctionRequest | FunctionExecutionRequestAutocompleteFunctionRequest | FunctionExecutionRequestUnknown]
+FunctionExecutionRequest = Union[FunctionExecutionRequestValueValidationFunctionRequest | FunctionExecutionRequestValueComputeFunctionRequest | FunctionExecutionRequestContextValidationFunctionRequest | FunctionExecutionRequestUnknown]
 
 class _FunctionExecutionRequestDeserializer:
     _result: FunctionExecutionRequest | None = None
@@ -11700,10 +11792,13 @@ class _FunctionExecutionRequestDeserializer:
     def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
         match schema.expect_member_index():
             case 0:
-                self._set_result(FunctionExecutionRequestValidateFunctionRequest.deserialize(de))
+                self._set_result(FunctionExecutionRequestValueValidationFunctionRequest.deserialize(de))
 
             case 1:
-                self._set_result(FunctionExecutionRequestAutocompleteFunctionRequest.deserialize(de))
+                self._set_result(FunctionExecutionRequestValueComputeFunctionRequest.deserialize(de))
+
+            case 2:
+                self._set_result(FunctionExecutionRequestContextValidationFunctionRequest.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
@@ -12920,6 +13015,10 @@ class GetWorkspaceOutput:
 
     auto_populate_control: bool
 
+    enable_context_validation: bool
+
+    enable_change_reason_validation: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -12947,6 +13046,8 @@ class GetWorkspaceOutput:
         serializer.write_document(_SCHEMA_GET_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
+        serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
+        serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -13005,6 +13106,12 @@ class GetWorkspaceOutput:
 
                 case 15:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"])
+
+                case 16:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_context_validation"])
+
+                case 17:
+                    kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -13594,6 +13701,10 @@ class WorkspaceResponse:
 
     auto_populate_control: bool
 
+    enable_context_validation: bool
+
+    enable_change_reason_validation: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -13621,6 +13732,8 @@ class WorkspaceResponse:
         serializer.write_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"], self.auto_populate_control)
+        serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_context_validation"], self.enable_context_validation)
+        serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_change_reason_validation"], self.enable_change_reason_validation)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -13679,6 +13792,12 @@ class WorkspaceResponse:
 
                 case 15:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"])
+
+                case 16:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_context_validation"])
+
+                case 17:
+                    kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_change_reason_validation"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -13824,6 +13943,10 @@ class MigrateWorkspaceSchemaOutput:
 
     auto_populate_control: bool
 
+    enable_context_validation: bool
+
+    enable_change_reason_validation: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -13851,6 +13974,8 @@ class MigrateWorkspaceSchemaOutput:
         serializer.write_document(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
+        serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
+        serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -13909,6 +14034,12 @@ class MigrateWorkspaceSchemaOutput:
 
                 case 15:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"])
+
+                case 16:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_context_validation"])
+
+                case 17:
+                    kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -14531,6 +14662,8 @@ class UpdateWorkspaceInput:
     metrics: Document | None = None
     allow_experiment_self_approval: bool | None = None
     auto_populate_control: bool | None = None
+    enable_context_validation: bool | None = None
+    enable_change_reason_validation: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_INPUT, self)
@@ -14556,6 +14689,12 @@ class UpdateWorkspaceInput:
 
         if self.auto_populate_control is not None:
             serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["auto_populate_control"], self.auto_populate_control)
+
+        if self.enable_context_validation is not None:
+            serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_context_validation"], self.enable_context_validation)
+
+        if self.enable_change_reason_validation is not None:
+            serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -14594,6 +14733,12 @@ class UpdateWorkspaceInput:
                 case 8:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["auto_populate_control"])
 
+                case 9:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_context_validation"])
+
+                case 10:
+                    kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_change_reason_validation"])
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -14631,6 +14776,10 @@ class UpdateWorkspaceOutput:
 
     auto_populate_control: bool
 
+    enable_context_validation: bool
+
+    enable_change_reason_validation: bool
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -14658,6 +14807,8 @@ class UpdateWorkspaceOutput:
         serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
+        serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
+        serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -14716,6 +14867,12 @@ class UpdateWorkspaceOutput:
 
                 case 15:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"])
+
+                case 16:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_context_validation"])
+
+                case 17:
+                    kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

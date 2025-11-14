@@ -11,7 +11,7 @@ module Io.Superposition.Model.DimensionResponse (
     setCreatedBy,
     setDependencyGraph,
     setDimensionType,
-    setAutocompleteFunctionName,
+    setValueComputeFunctionName,
     setMandatory,
     build,
     DimensionResponseBuilder,
@@ -28,7 +28,7 @@ module Io.Superposition.Model.DimensionResponse (
     created_by,
     dependency_graph,
     dimension_type,
-    autocomplete_function_name,
+    value_compute_function_name,
     mandatory
 ) where
 import qualified Control.Applicative
@@ -60,7 +60,7 @@ data DimensionResponse = DimensionResponse {
     created_by :: Data.Text.Text,
     dependency_graph :: Data.Map.Map Data.Text.Text ([] Data.Text.Text),
     dimension_type :: Io.Superposition.Model.DimensionType.DimensionType,
-    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
+    value_compute_function_name :: Data.Maybe.Maybe Data.Text.Text,
     mandatory :: Bool
 } deriving (
   GHC.Show.Show,
@@ -82,7 +82,7 @@ instance Data.Aeson.ToJSON DimensionResponse where
         "created_by" Data.Aeson..= created_by a,
         "dependency_graph" Data.Aeson..= dependency_graph a,
         "dimension_type" Data.Aeson..= dimension_type a,
-        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
+        "value_compute_function_name" Data.Aeson..= value_compute_function_name a,
         "mandatory" Data.Aeson..= mandatory a
         ]
     
@@ -103,7 +103,7 @@ instance Data.Aeson.FromJSON DimensionResponse where
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "dependency_graph")
         Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "value_compute_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory")
     
 
@@ -122,7 +122,7 @@ data DimensionResponseBuilderState = DimensionResponseBuilderState {
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dependency_graphBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text ([] Data.Text.Text)),
     dimension_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
-    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    value_compute_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     mandatoryBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
@@ -142,7 +142,7 @@ defaultBuilderState = DimensionResponseBuilderState {
     created_byBuilderState = Data.Maybe.Nothing,
     dependency_graphBuilderState = Data.Maybe.Nothing,
     dimension_typeBuilderState = Data.Maybe.Nothing,
-    autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
+    value_compute_function_nameBuilderState = Data.Maybe.Nothing,
     mandatoryBuilderState = Data.Maybe.Nothing
 }
 
@@ -196,9 +196,9 @@ setDimensionType :: Io.Superposition.Model.DimensionType.DimensionType -> Dimens
 setDimensionType value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_typeBuilderState = Data.Maybe.Just value }))
 
-setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionResponseBuilder ()
-setAutocompleteFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
+setValueComputeFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DimensionResponseBuilder ()
+setValueComputeFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_compute_function_nameBuilderState = value }))
 
 setMandatory :: Bool -> DimensionResponseBuilder ()
 setMandatory value =
@@ -219,7 +219,7 @@ build builder = do
     created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
     dependency_graph' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.dependency_graph is a required property.") Data.Either.Right (dependency_graphBuilderState st)
     dimension_type' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.dimension_type is a required property.") Data.Either.Right (dimension_typeBuilderState st)
-    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    value_compute_function_name' <- Data.Either.Right (value_compute_function_nameBuilderState st)
     mandatory' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DimensionResponse.DimensionResponse.mandatory is a required property.") Data.Either.Right (mandatoryBuilderState st)
     Data.Either.Right (DimensionResponse { 
         dimension = dimension',
@@ -234,7 +234,7 @@ build builder = do
         created_by = created_by',
         dependency_graph = dependency_graph',
         dimension_type = dimension_type',
-        autocomplete_function_name = autocomplete_function_name',
+        value_compute_function_name = value_compute_function_name',
         mandatory = mandatory'
     })
 
