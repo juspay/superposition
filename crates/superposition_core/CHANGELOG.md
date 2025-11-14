@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.8.0 - 2025-11-14
+#### Features
+- **(hs)** Open feature provider for Haskell. (#746) - (ca2d53b) - ShreyBana
+#### Miscellaneous Chores
+- **(version)** v0.93.2 [skip ci] - (49705df) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.7.4 - 2025-11-07
 #### Bug Fixes
 - **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain
