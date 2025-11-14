@@ -3,6 +3,7 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use strum_macros::Display;
 use superposition_derives::{IsEmpty, QueryParam};
 
 #[cfg(feature = "diesel_derives")]
@@ -88,16 +89,31 @@ pub struct TestParam {
     pub stage: Stage,
 }
 
+#[derive(Debug, Display, Clone, Serialize, Deserialize)]
+pub enum KeyType {
+    ConfigKey,
+    Dimension,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FunctionExecutionRequest {
-    ValidateFunctionRequest {
+    ValueValidationFunctionRequest {
         key: String,
         value: Value,
+        r#type: KeyType,
+        environment: FunctionEnvironment,
     },
-    AutocompleteFunctionRequest {
+    ValueComputeFunctionRequest {
         name: String,
         prefix: String,
+        r#type: KeyType,
         environment: FunctionEnvironment,
+    },
+    ContextValidationFunctionRequest {
+        environment: FunctionEnvironment,
+    },
+    ChangeReasonValidationFunctionRequest {
+        change_reason: ChangeReason,
     },
 }
 
@@ -108,17 +124,30 @@ pub struct FunctionEnvironment {
 }
 
 impl FunctionExecutionRequest {
-    pub fn validation_default() -> Self {
-        Self::ValidateFunctionRequest {
+    pub fn value_validation_default() -> Self {
+        Self::ValueValidationFunctionRequest {
             key: String::new(),
             value: Value::String(String::new()),
+            r#type: KeyType::ConfigKey,
+            environment: FunctionEnvironment::default(),
         }
     }
-    pub fn autocomplete_default() -> Self {
-        Self::AutocompleteFunctionRequest {
+    pub fn value_compute_default() -> Self {
+        Self::ValueComputeFunctionRequest {
             name: String::new(),
             prefix: String::new(),
+            r#type: KeyType::Dimension,
             environment: FunctionEnvironment::default(),
+        }
+    }
+    pub fn context_validation_default() -> Self {
+        Self::ContextValidationFunctionRequest {
+            environment: FunctionEnvironment::default(),
+        }
+    }
+    pub fn change_reason_validation_default() -> Self {
+        Self::ChangeReasonValidationFunctionRequest {
+            change_reason: ChangeReason::default(),
         }
     }
 }

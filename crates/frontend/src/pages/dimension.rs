@@ -110,7 +110,7 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                         </div>
                     </div>
                     {if dimension.function_name.is_some()
-                        || dimension.autocomplete_function_name.is_some()
+                        || dimension.value_compute_function_name.is_some()
                     {
                         view! {
                             <div class="flex flex-row gap-6 flex-wrap">
@@ -130,11 +130,11 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
                                         }
                                     })}
                                 {dimension
-                                    .autocomplete_function_name
+                                    .value_compute_function_name
                                     .map(|name| {
                                         view! {
                                             <div class="h-fit w-[250px] flex gap-4">
-                                                <div class="stat-title">"Autocomplete Function"</div>
+                                                <div class="stat-title">"Value Compute Function"</div>
                                                 <A
                                                     href=format!("../../function/{name}")
                                                     class="text-base text-blue-500 underline underline-offset-2"
@@ -416,7 +416,7 @@ pub fn edit_dimension() -> impl IntoView {
                         dimension_type=dimension.dimension_type.clone()
                         dimension_schema=Value::from(dimension.schema)
                         validation_function_name=dimension.function_name.clone()
-                        autocomplete_function_name=dimension.autocomplete_function_name.clone()
+                        value_compute_function_name=dimension.value_compute_function_name.clone()
                         description=dimension.description.deref().to_string()
                         redirect_url_cancel=format!("../../{}", dimension.dimension)
                     />

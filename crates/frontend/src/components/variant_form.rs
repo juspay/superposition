@@ -623,6 +623,7 @@ pub fn delete_variant_form<HC>(
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
+    let context = StoredValue::new(context);
     let variants_rws = RwSignal::new(variants);
     let workspace = use_context::<Signal<Tenant>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -630,7 +631,7 @@ where
     let combined_resource = create_blocking_resource(
         move || {
             (
-                context.clone(),
+                context,
                 context_data.clone(),
                 default_config.clone(),
                 workspace.get_untracked().0,
@@ -641,7 +642,7 @@ where
             let context_data = match context_data {
                 Some(data) => Ok(data),
                 None => get_context_from_condition(
-                    &context.as_context_json(),
+                    &context.get_value().as_context_json(),
                     &tenant,
                     &org_id,
                 )
@@ -650,7 +651,8 @@ where
             };
             match context_data {
                 Ok((context_id, overrides)) => {
-                    let context = DimensionQuery::from(context.as_resolve_context());
+                    let context =
+                        DimensionQuery::from(context.get_value().as_resolve_context());
                     let resolved_config = resolve_config(
                         &context,
                         &ResolveConfigQuery {

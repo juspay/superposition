@@ -45,7 +45,7 @@ use crate::{
             validate_validation_function,
         },
     },
-    helpers::{add_config_version, get_workspace},
+    helpers::{add_config_version, get_workspace, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {
@@ -70,6 +70,13 @@ async fn create(
     let create_req = req.into_inner();
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    validate_change_reason(&create_req.change_reason, &mut conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
 
     let num_rows = dimensions
         .count()
@@ -118,7 +125,7 @@ async fn create(
 
     validate_auto_complete_function(
         &create_req.dimension_type,
-        &create_req.autocomplete_function_name,
+        &create_req.value_compute_function_name,
         &mut conn,
         &schema_name,
     )?;
@@ -135,7 +142,7 @@ async fn create(
         description: create_req.description,
         change_reason: create_req.change_reason,
         dependency_graph: DependencyGraph::default(),
-        autocomplete_function_name: create_req.autocomplete_function_name,
+        value_compute_function_name: create_req.value_compute_function_name,
         dimension_type: create_req.dimension_type,
     };
 
@@ -261,6 +268,14 @@ async fn update(
     use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
+    let update_req = req.into_inner();
+
+    validate_change_reason(&update_req.change_reason, &mut conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
@@ -275,8 +290,6 @@ async fn update(
             log::error!("failed to fetch number of dimension with error: {}", err);
             db_error!(err)
         })?;
-
-    let update_req = req.into_inner();
 
     if let Some(ref new_schema) = update_req.schema {
         let schema_value = Value::from(new_schema);
@@ -316,10 +329,11 @@ async fn update(
         validate_validation_function(fn_name, &mut conn, &schema_name)?;
     }
 
-    if let Some(ref auto_complete_function_name) = update_req.autocomplete_function_name {
+    if let Some(ref value_compute_function_name_) = update_req.value_compute_function_name
+    {
         validate_auto_complete_function(
             &dimension_data.dimension_type,
-            auto_complete_function_name,
+            value_compute_function_name_,
             &mut conn,
             &schema_name,
         )?;

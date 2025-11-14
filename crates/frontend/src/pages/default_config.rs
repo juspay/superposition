@@ -68,7 +68,7 @@ fn config_info(default_config: DefaultConfig) -> impl IntoView {
                         </div>
                     </EditorProvider>
                     {if default_config.function_name.is_some()
-                        || default_config.autocomplete_function_name.is_some()
+                        || default_config.value_compute_function_name.is_some()
                     {
                         view! {
                             <div class="flex flex-row gap-6 flex-wrap">
@@ -88,11 +88,11 @@ fn config_info(default_config: DefaultConfig) -> impl IntoView {
                                         }
                                     })}
                                 {default_config
-                                    .autocomplete_function_name
+                                    .value_compute_function_name
                                     .map(|name| {
                                         view! {
                                             <div class="h-fit w-[250px]">
-                                                <div class="stat-title">"Autocomplete Function"</div>
+                                                <div class="stat-title">"Value Compute Function"</div>
                                                 <A
                                                     href=format!("../../function/{name}")
                                                     class="text-blue-500 underline underline-offset-2"
@@ -233,8 +233,8 @@ pub fn default_config() -> impl IntoView {
                                             .with_value(|s| s.description.deref().to_string())
                                         validation_function_name=default_config_st
                                             .with_value(|s| s.function_name.clone())
-                                        autocomplete_function_name=default_config_st
-                                            .with_value(|s| s.autocomplete_function_name.clone())
+                                        value_compute_function_name=default_config_st
+                                            .with_value(|s| s.value_compute_function_name.clone())
                                         handle_submit=move |_| {
                                             default_config_resource.refetch();
                                             action_rws.set(Action::None);

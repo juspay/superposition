@@ -52,6 +52,8 @@ async fn create_workspace(client: &Client, org_id: &str, workspace_name: &str) {
         .strict_mode(true)
         .allow_experiment_self_approval(true)
         .auto_populate_control(false) // disable auto populate control for testing experiment
+        .enable_context_validation(true)
+        .enable_change_reason_validation(true)
         .send()
         .await
         .expect("Failed to create workspace");

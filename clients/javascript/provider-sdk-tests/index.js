@@ -53,6 +53,8 @@ async function createWorkspace(org_id, workspace_name) {
     strict_mode: true,
     allow_experiment_self_approval: true,
     auto_populate_control: false, // disable auto populate control for testing experiment
+    enable_context_validation: true,
+    enable_change_reason_validation: true,
   });
   try {
     const response = await client.send(command);

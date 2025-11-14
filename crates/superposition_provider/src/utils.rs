@@ -101,7 +101,7 @@ impl ConversionUtils {
                         dimension_info.dependency_graph().clone(),
                     ),
                     autocomplete_function_name: dimension_info
-                        .autocomplete_function_name()
+                        .value_compute_function_name()
                         .map(String::from),
                 };
                 Ok((key.clone(), dim_info))

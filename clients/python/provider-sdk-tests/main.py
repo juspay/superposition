@@ -62,6 +62,8 @@ async def create_workspace(client, org_id: str, workspace_name: str):
         strict_mode=True,
         allow_experiment_self_approval=True,
         auto_populate_control=False, # disable auto populate control for testing experiment
+        enable_context_validation=True,
+        enable_change_reason_validation=True,
     )
     try:
         response = await client.create_workspace(input_data)

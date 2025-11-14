@@ -29,7 +29,7 @@ pub struct DefaultConfigCreateRequest {
     pub function_name: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub autocomplete_function_name: Option<String>,
+    pub value_compute_function_name: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into)]
@@ -61,7 +61,7 @@ pub struct DefaultConfigUpdateRequest {
     #[serde(default, deserialize_with = "deserialize_function_name")]
     pub function_name: Option<Option<String>>,
     #[serde(default, deserialize_with = "deserialize_function_name")]
-    pub autocomplete_function_name: Option<Option<String>>,
+    pub value_compute_function_name: Option<Option<String>>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }
