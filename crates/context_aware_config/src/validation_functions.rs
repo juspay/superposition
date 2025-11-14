@@ -124,27 +124,57 @@ fn generate_fn_code(
     function_args: &FunctionExecutionRequest,
 ) -> String {
     let (function_invocation, output_check) = match function_args {
-        FunctionExecutionRequest::ValidateFunctionRequest { key, value } => (
-            FunctionType::Validation
-                .get_fn_signature()
-                .replace("{key}", format!("\"{}\"", &key).as_str())
-                .replace("{value}", &value.to_string()),
-            "output!=true",
-        ),
-        FunctionExecutionRequest::AutocompleteFunctionRequest {
-            name,
-            prefix,
+        FunctionExecutionRequest::ValueValidationFunctionRequest {
+            key,
+            value,
+            r#type,
             environment,
         } => (
-            FunctionType::Autocomplete
+            FunctionType::ValueValidation
+                .get_fn_signature()
+                .replace("{key}", format!("\"{}\"", &key).as_str())
+                .replace("{value}", &value.to_string())
+                .replace("{type}", &format!("\"{}\"", &r#type.to_string()))
+                .replace(
+                    "{environment}",
+                    &serde_json::to_string(&environment).unwrap_or_default(),
+                ),
+            "output!=true",
+        ),
+        FunctionExecutionRequest::ValueComputeFunctionRequest {
+            name,
+            prefix,
+            r#type,
+            environment,
+        } => (
+            FunctionType::ValueCompute
                 .get_fn_signature()
                 .replace("{name}", format!("\"{}\"", &name).as_str())
                 .replace("{prefix}", format!("\"{}\"", &prefix).as_str())
+                .replace("{type}", &format!("\"{}\"", &r#type.to_string()))
                 .replace(
                     "{environment}",
                     &serde_json::to_string(&environment).unwrap_or_default(),
                 ),
             "!(Array.isArray(output))",
+        ),
+        FunctionExecutionRequest::ContextValidationFunctionRequest { environment } => (
+            FunctionType::ContextValidation.get_fn_signature().replace(
+                "{environment}",
+                &serde_json::to_string(&environment).unwrap_or_default(),
+            ),
+            "output!=true",
+        ),
+        FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+            change_reason,
+        } => (
+            FunctionType::ChangeReasonValidation
+                .get_fn_signature()
+                .replace(
+                    "{change_reason}",
+                    &serde_json::to_string(&change_reason).unwrap_or_default(),
+                ),
+            "output!=true",
         ),
     };
     FUNCTION_EXECUTION_SNIPPET
@@ -194,14 +224,7 @@ pub fn execute_fn(
                 );
                 Err((stderr, Some(stdout)))
             } else {
-                let function_type = match args {
-                    FunctionExecutionRequest::ValidateFunctionRequest { .. } => {
-                        FunctionType::Validation
-                    }
-                    FunctionExecutionRequest::AutocompleteFunctionRequest { .. } => {
-                        FunctionType::Autocomplete
-                    }
-                };
+                let function_type = FunctionType::from(args);
                 let stdout_vec = stdout.trim().split('|').collect::<Vec<_>>();
                 let fn_output = stdout_vec
                     .last()

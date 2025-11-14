@@ -11,13 +11,13 @@ import { expect, describe, it, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
 
 describe("Function Operations", () => {
-    let validateFunctionName: string;
-    let autocompleteFunctionName: string;
+    let valueValidationFunctionName: string;
+    let valueComputeFunctionName: string;
 
-    // Validate Function Tests
-    it("should create and test validate function", async () => {
-        const validateCode = `
-            async function validate(key, value) {
+    // Value Validation Function Tests
+    it("should create and test value_validation function", async () => {
+        const valueValidationCode = `
+            async function validate_value(key, value) {
                 if (key === "test-dimension" && value === "valid") {
                     return true;
                 }
@@ -28,40 +28,40 @@ describe("Function Operations", () => {
         const createCommand = new CreateFunctionCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            function_name: "test-validate",
-            function: validateCode,
-            description: "Test validate function",
+            function_name: "test-value-validation",
+            function: valueValidationCode,
+            description: "Test value_validation function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.VALIDATION,
+            function_type: FunctionTypes.VALUE_VALIDATION,
         });
 
         try {
             const createResponse = await superpositionClient.send(
                 createCommand
             );
-            validateFunctionName = createResponse.function_name ?? "";
+            valueValidationFunctionName = createResponse.function_name ?? "";
 
             const getCommand = new GetFunctionCommand({
                 org_id: ENV.org_id,
                 workspace_id: ENV.workspace_id,
-                function_name: validateFunctionName,
+                function_name: valueValidationFunctionName,
             });
 
             const getResponse = await superpositionClient.send(getCommand);
 
-            expect(getResponse.function_name).toBe(validateFunctionName);
-            expect(getResponse.function_type).toBe(FunctionTypes.VALIDATION);
+            expect(getResponse.function_name).toBe(valueValidationFunctionName);
+            expect(getResponse.function_type).toBe(FunctionTypes.VALUE_VALIDATION);
         } catch (error) {
             console.error(error);
             throw error;
         }
     });
 
-    // Autocomplete Function Tests
-    it("should create and test autocomplete function", async () => {
-        const autocompleteCode = `
-            async function autocomplete(name, prefix, environment) {
+    // Value Compute Function Tests
+    it("should create and test value_compute function", async () => {
+        const valueComputeCode = `
+            async function value_compute(name, prefix, environment) {
                 if (name === "test-dimension" && prefix === "t") {
                     return ["test1", "test2", "test3"];
                 }
@@ -72,30 +72,30 @@ describe("Function Operations", () => {
         const createCommand = new CreateFunctionCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            function_name: "test-autocomplete",
-            function: autocompleteCode,
-            description: "Test autocomplete function",
+            function_name: "test-value-compute",
+            function: valueComputeCode,
+            description: "Test value_compute function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.AUTOCOMPLETE,
+            function_type: FunctionTypes.VALUE_COMPUTE,
         });
 
         try {
             const createResponse = await superpositionClient.send(
                 createCommand
             );
-            autocompleteFunctionName = createResponse.function_name ?? "";
+            valueComputeFunctionName = createResponse.function_name ?? "";
 
             const getCommand = new GetFunctionCommand({
                 org_id: ENV.org_id,
                 workspace_id: ENV.workspace_id,
-                function_name: autocompleteFunctionName,
+                function_name: valueComputeFunctionName,
             });
 
             const getResponse = await superpositionClient.send(getCommand);
 
-            expect(getResponse.function_name).toBe(autocompleteFunctionName);
-            expect(getResponse.function_type).toBe(FunctionTypes.AUTOCOMPLETE);
+            expect(getResponse.function_name).toBe(valueComputeFunctionName);
+            expect(getResponse.function_type).toBe(FunctionTypes.VALUE_COMPUTE);
         } catch (error) {
             console.error(error);
             throw error;
@@ -120,9 +120,9 @@ describe("Function Operations", () => {
         }
     });
     // Update function tests
-    it("should update validate function", async () => {
-        const updatedValidateCode = `
-            async function validate(key, value) {
+    it("should update value_validation function", async () => {
+        const updatedValueValidationCode = `
+            async function validate_value(key, value) {
                 if (key === "test-dimension" && value === "updated-valid") {
                     return true;
                 }
@@ -133,9 +133,9 @@ describe("Function Operations", () => {
         const updateCommand = new UpdateFunctionCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            function_name: validateFunctionName,
-            function: updatedValidateCode,
-            description: "Updated validate function",
+            function_name: valueValidationFunctionName,
+            function: updatedValueValidationCode,
+            description: "Updated value_validation function",
             change_reason: "Test update",
             runtime_version: "1",
         });
@@ -144,9 +144,9 @@ describe("Function Operations", () => {
             const updateResponse = await superpositionClient.send(
                 updateCommand
             );
-            expect(updateResponse.function_name).toBe(validateFunctionName);
+            expect(updateResponse.function_name).toBe(valueValidationFunctionName);
             expect(updateResponse.description).toBe(
-                "Updated validate function"
+                "Updated value_validation function"
             );
         } catch (error) {
             console.error(error);
@@ -154,9 +154,9 @@ describe("Function Operations", () => {
         }
     });
 
-    it("should update autocomplete function", async () => {
-        const updatedAutocompleteCode = `
-            async function autocomplete(name, prefix, environment) {
+    it("should update value_compute function", async () => {
+        const updatedValueComputeCode = `
+            async function value_compute(name, prefix, environment) {
                 if (name === "test-dimension" && prefix === "updated") {
                     return ["updated1", "updated2", "updated3"];
                 }
@@ -167,9 +167,9 @@ describe("Function Operations", () => {
         const updateCommand = new UpdateFunctionCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            function_name: autocompleteFunctionName,
-            function: updatedAutocompleteCode,
-            description: "Updated autocomplete function",
+            function_name: valueComputeFunctionName,
+            function: updatedValueComputeCode,
+            description: "Updated value_compute function",
             change_reason: "Test update",
             runtime_version: "1",
         });
@@ -178,9 +178,9 @@ describe("Function Operations", () => {
             const updateResponse = await superpositionClient.send(
                 updateCommand
             );
-            expect(updateResponse.function_name).toBe(autocompleteFunctionName);
+            expect(updateResponse.function_name).toBe(valueComputeFunctionName);
             expect(updateResponse.description).toBe(
-                "Updated autocomplete function"
+                "Updated value_compute function"
             );
         } catch (error) {
             console.error(error);
@@ -189,14 +189,14 @@ describe("Function Operations", () => {
     });
 
     // Negative Tests
-    it("should fail to create validate function with invalid code", async () => {
+    it("should fail to create value_validation function with invalid code", async () => {
         const command = new CreateFunctionCommand({
-            function_name: "invalid-validate",
+            function_name: "invalid-value-validation",
             function: "invalid code",
-            description: "Test validate function",
+            description: "Test value_validation function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.VALIDATION,
+            function_type: FunctionTypes.VALUE_VALIDATION,
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
         });
@@ -209,20 +209,20 @@ describe("Function Operations", () => {
         }
     });
 
-    it("should fail to create autocomplete function with invalid return type", async () => {
+    it("should fail to create value_compute function with invalid return type", async () => {
         const invalidCode = `
-            async function autocomplete(name, prefix, environment) {
+            async function value_compute(name, prefix, environment) {
                 return "invalid return type";
             }
         `;
 
         const command = new CreateFunctionCommand({
-            function_name: "invalid-autocomplete",
+            function_name: "invalid-value_compute",
             function: invalidCode,
-            description: "Test validate function",
+            description: "Test value_validation function",
             change_reason: "Initial creation",
             runtime_version: "1",
-            function_type: FunctionTypes.AUTOCOMPLETE,
+            function_type: FunctionTypes.VALUE_COMPUTE,
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
         });
@@ -236,17 +236,17 @@ describe("Function Operations", () => {
     });
 
     // Publish function tests
-    it("should successfully publish validate function", async () => {
+    it("should successfully publish value_validation function", async () => {
         const publishCommand = new PublishCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            function_name: validateFunctionName,
+            function_name: valueValidationFunctionName,
             change_reason: "Publishing for testing",
         });
 
         try {
             const response = await superpositionClient.send(publishCommand);
-            expect(response.function_name).toBe(validateFunctionName);
+            expect(response.function_name).toBe(valueValidationFunctionName);
             expect(response.published_at).toBeDefined();
             expect(response.published_by).toBeDefined();
             expect(response.published_runtime_version).toBeDefined();
@@ -257,17 +257,17 @@ describe("Function Operations", () => {
         }
     });
 
-    it("should successfully publish autocomplete function", async () => {
+    it("should successfully publish value_compute function", async () => {
         const publishCommand = new PublishCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            function_name: autocompleteFunctionName,
+            function_name: valueComputeFunctionName,
             change_reason: "Publishing for testing",
         });
 
         try {
             const response = await superpositionClient.send(publishCommand);
-            expect(response.function_name).toBe(autocompleteFunctionName);
+            expect(response.function_name).toBe(valueComputeFunctionName);
             expect(response.published_at).toBeDefined();
             expect(response.published_by).toBeDefined();
             expect(response.published_runtime_version).toBeDefined();
@@ -293,9 +293,9 @@ describe("Function Operations", () => {
 
     // Cleanup
     afterAll(async () => {
-        if (validateFunctionName) {
+        if (valueValidationFunctionName) {
             const deleteCommand = new DeleteFunctionCommand({
-                function_name: validateFunctionName,
+                function_name: valueValidationFunctionName,
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
             });
@@ -306,9 +306,9 @@ describe("Function Operations", () => {
                 throw error;
             }
         }
-        if (autocompleteFunctionName) {
+        if (valueComputeFunctionName) {
             const deleteCommand = new DeleteFunctionCommand({
-                function_name: autocompleteFunctionName,
+                function_name: valueComputeFunctionName,
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
             });

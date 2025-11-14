@@ -78,14 +78,14 @@ describe("Dimension API", () => {
     // Track all created dimensions and functions for cleanup
     const createdDimensions: string[] = [];
     let createdDimension: any;
-    let validationFunctionName: string;
-    let autocompleteFunctionName: string;
+    let valueValidationFunctionName: string;
+    let valueComputeFunctionName: string;
 
     beforeAll(async () => {
         const functionName = `dimension-validator-${Date.now()}`;
-        const validationCode = `
-            async function validate(key, value) {
-                // Simple validation: value must be a string with length between 3 and 20
+        const valueValidationCode = `
+            async function validate_value(key, value) {
+                // Simple value_validation: value must be a string with length between 3 and 20
                 if (typeof value !== 'string') {
                     return false;
                 }
@@ -97,19 +97,19 @@ describe("Dimension API", () => {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             function_name: functionName,
-            function: validationCode,
-            description: "Validation function for dimension test",
-            change_reason: "Creating test validation function",
+            function: valueValidationCode,
+            description: "Value Validation function for dimension test",
+            change_reason: "Creating test value validation function",
             runtime_version: "1",
-            function_type: FunctionTypes.VALIDATION,
+            function_type: FunctionTypes.VALUE_VALIDATION,
         });
 
         try {
             const functionResponse = await superpositionClient.send(
                 createFunctionCmd
             );
-            console.log("Created validation function:", functionResponse);
-            validationFunctionName =
+            console.log("Created value validation function:", functionResponse);
+            valueValidationFunctionName =
                 functionResponse.function_name ?? functionName;
         } catch (e: any) {
             console.error(e["$response"]);
@@ -117,8 +117,8 @@ describe("Dimension API", () => {
         }
 
         const functionNameAC = `dimension-completor-${Date.now()}`;
-        const autocompleteCode = `
-            async function autocomplete(name, prefix, environment) {
+        const valueComputeCode = `
+            async function value_compute(name, prefix, environment) {
                 return ["hello", "world"];
             }
         `;
@@ -127,19 +127,19 @@ describe("Dimension API", () => {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
             function_name: functionNameAC,
-            function: autocompleteCode,
-            description: "autocomplete function for dimension test",
-            change_reason: "Creating test autocomplete function",
+            function: valueComputeCode,
+            description: "value compute function for dimension test",
+            change_reason: "Creating test value compute function",
             runtime_version: "1",
-            function_type: FunctionTypes.AUTOCOMPLETE,
+            function_type: FunctionTypes.VALUE_COMPUTE,
         });
 
         try {
             const functionResponse = await superpositionClient.send(
                 createFunctionCmdAC
             );
-            console.log("Created autocomplete function:", functionResponse);
-            autocompleteFunctionName =
+            console.log("Created value compute function:", functionResponse);
+            valueComputeFunctionName =
                 functionResponse.function_name ?? functionNameAC;
         } catch (e: any) {
             console.error(e["$response"]);
@@ -185,39 +185,39 @@ describe("Dimension API", () => {
             }
         }
 
-        // Clean up validation function if it exists
-        if (validationFunctionName) {
+        // Clean up value validation function if it exists
+        if (valueValidationFunctionName) {
             try {
                 const deleteCmd = new DeleteFunctionCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    function_name: validationFunctionName,
+                    function_name: valueValidationFunctionName,
                 });
                 await superpositionClient.send(deleteCmd);
                 console.log(
-                    `Cleaned up validation function: ${validationFunctionName}`
+                    `Cleaned up value validation function: ${valueValidationFunctionName}`
                 );
             } catch (e: any) {
                 console.error(
-                    `Failed to clean up validation function: ${e.message}`
+                    `Failed to clean up value validation function: ${e.message}`
                 );
             }
         }
 
-        if (autocompleteFunctionName) {
+        if (valueComputeFunctionName) {
             try {
                 const deleteCmd = new DeleteFunctionCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    function_name: autocompleteFunctionName,
+                    function_name: valueComputeFunctionName,
                 });
                 await superpositionClient.send(deleteCmd);
                 console.log(
-                    `Cleaned up validation function: ${autocompleteFunctionName}`
+                    `Cleaned up value validation function: ${valueComputeFunctionName}`
                 );
             } catch (e: any) {
                 console.error(
-                    `Failed to clean up validation function: ${e.message}`
+                    `Failed to clean up value validation function: ${e.message}`
                 );
             }
         }
@@ -286,7 +286,7 @@ describe("Dimension API", () => {
             schema: { type: "string" },
             description: "Test dimension with reserved position",
             change_reason: "Testing position validation",
-            function_name: "identity",
+            value_validation_function_name: "identity",
         };
 
         const cmd = new CreateDimensionCommand(invalidPositionInput);
@@ -335,7 +335,7 @@ describe("Dimension API", () => {
             schema: { type: "string" },
             description: "Test dimension with duplicate position",
             change_reason: "Testing position uniqueness",
-            function_name: "identity",
+            value_validation_function_name: "identity",
         };
 
         const cmd = new CreateDimensionCommand(duplicatePositionInput);
@@ -504,9 +504,9 @@ describe("Dimension API", () => {
         );
     });
 
-    // ==================== VALIDATION FUNCTION TESTS ====================
+    // ==================== VALUE VALIDATION FUNCTION TESTS ====================
 
-    test("CreateDimension: should fail to create dimension with validation function which is not published", async () => {
+    test("CreateDimension: should fail to create dimension with value validation function which is not published", async () => {
         try {
             const validatedDimension = {
                 workspace_id: ENV.workspace_id,
@@ -514,16 +514,16 @@ describe("Dimension API", () => {
                 dimension: `validated-dimension-${Date.now()}`,
                 position: 2,
                 schema: { type: "string" },
-                description: "Dimension with validation function",
-                change_reason: "Testing validation function",
-                function_name: validationFunctionName,
+                description: "Dimension with value validation function",
+                change_reason: "Testing value validation function",
+                value_validation_function_name: valueValidationFunctionName,
             };
 
             const dimensionCmd = new CreateDimensionCommand(validatedDimension);
 
             // Assertions
             expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
-                `Function ${validationFunctionName} doesn't exist / function code not published yet.`
+                `Function ${valueValidationFunctionName} doesn't exist / function code not published yet.`
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -531,9 +531,9 @@ describe("Dimension API", () => {
         }
     });
 
-    test("CreateDimension: should create dimension with validation function", async () => {
+    test("CreateDimension: should create dimension with value validation function", async () => {
         try {
-            // Now create a dimension that uses this validation function
+            // Now create a dimension that uses this value validation function
             const dimension = `validated-dimension-${Date.now()}`;
             const validatedDimension = {
                 workspace_id: ENV.workspace_id,
@@ -541,17 +541,17 @@ describe("Dimension API", () => {
                 dimension,
                 position: 2,
                 schema: { type: "string" },
-                description: "Dimension with validation function",
-                change_reason: "Testing validation function",
-                function_name: validationFunctionName,
+                description: "Dimension with value validation function",
+                change_reason: "Testing value validation function",
+                value_validation_function_name: valueValidationFunctionName,
             };
             await superpositionClient.send(
                 new PublishCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    function_name: validationFunctionName,
+                    function_name: valueValidationFunctionName,
                     change_reason:
-                        "Publishing validation function for dimension test",
+                        "Publishing value validation function for dimension test",
                 })
             );
 
@@ -563,7 +563,7 @@ describe("Dimension API", () => {
             );
 
             console.log(
-                "Created dimension with validation:",
+                "Created dimension with value validation:",
                 dimensionResponse
             );
 
@@ -575,8 +575,8 @@ describe("Dimension API", () => {
             expect(dimensionResponse.dimension).toBe(
                 validatedDimension.dimension
             );
-            expect(dimensionResponse.function_name).toBe(
-                validationFunctionName
+            expect(dimensionResponse.value_validation_function_name).toBe(
+                valueValidationFunctionName
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -584,7 +584,7 @@ describe("Dimension API", () => {
         }
     });
 
-    test("CreateDimension: should fail to create dimension with autocomplete function which is not published", async () => {
+    test("CreateDimension: should fail to create dimension with value compute function which is not published", async () => {
         try {
             const validatedDimension = {
                 workspace_id: ENV.workspace_id,
@@ -592,16 +592,16 @@ describe("Dimension API", () => {
                 dimension: `validated-dimension-${Date.now()}`,
                 position: 2,
                 schema: { type: "string" },
-                description: "Dimension with autocomplete function",
-                change_reason: "Testing autocomplete function",
-                autocomplete_function_name: autocompleteFunctionName,
+                description: "Dimension with value compute function",
+                change_reason: "Testing value compute function",
+                value_compute_function_name: valueComputeFunctionName,
             };
 
             const dimensionCmd = new CreateDimensionCommand(validatedDimension);
 
             // Assertions
             expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
-                `Function ${autocompleteFunctionName} doesn't exist / function code not published yet.`
+                `Function ${valueComputeFunctionName} doesn't exist / function code not published yet.`
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -609,28 +609,28 @@ describe("Dimension API", () => {
         }
     });
 
-    test("CreateDimension: should create dimension with autocomplete function", async () => {
+    test("CreateDimension: should create dimension with value compute function", async () => {
         try {
             await superpositionClient.send(
                 new PublishCommand({
                     workspace_id: ENV.workspace_id,
                     org_id: ENV.org_id,
-                    function_name: autocompleteFunctionName,
+                    function_name: valueComputeFunctionName,
                     change_reason:
-                        "Publishing autocomplete function for dimension test",
+                        "Publishing value compute function for dimension test",
                 })
             );
             const dimension = `validated-dimension-${Date.now()}`;
-            // Now create a dimension that uses this validation function
+            // Now create a dimension that uses this value validation function
             const validatedDimension = {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 dimension,
                 position: 2,
                 schema: { type: "string" },
-                description: "Dimension with autocomplete function",
-                change_reason: "Testing autocomplete function",
-                autocomplete_function_name: autocompleteFunctionName,
+                description: "Dimension with value compute function",
+                change_reason: "Testing value compute function",
+                value_compute_function_name: valueComputeFunctionName,
             };
 
             const createDimensionCmd = new CreateDimensionCommand(
@@ -641,7 +641,7 @@ describe("Dimension API", () => {
             );
 
             console.log(
-                "Created dimension with autocomplete:",
+                "Created dimension with value compute:",
                 dimensionResponse
             );
 
@@ -653,8 +653,8 @@ describe("Dimension API", () => {
             expect(dimensionResponse.dimension).toBe(
                 validatedDimension.dimension
             );
-            expect(dimensionResponse.autocomplete_function_name).toBe(
-                autocompleteFunctionName
+            expect(dimensionResponse.value_compute_function_name).toBe(
+                valueComputeFunctionName
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -1063,7 +1063,7 @@ describe("Dimension API", () => {
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            autocomplete_function_name: autocompleteFunctionName,
+            value_compute_function_name: valueComputeFunctionName,
             ...testRemoteCohort,
         };
 
@@ -1088,8 +1088,8 @@ describe("Dimension API", () => {
             expect(response.created_at).toBeDefined();
             expect(response.last_modified_at).toBeDefined();
             expect(response.last_modified_by).toBeDefined();
-            expect(response.autocomplete_function_name).toBe(
-                autocompleteFunctionName
+            expect(response.value_compute_function_name).toBe(
+                valueComputeFunctionName
             );
         } catch (e: any) {
             console.error(e["$response"]);

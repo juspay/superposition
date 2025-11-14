@@ -25,12 +25,14 @@ use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     api::functions::{
-        FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
+        FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse, KeyType,
     },
     database::{
         models::{
-            cac::{ConfigVersion, DependencyGraph, DimensionType, FunctionCode},
-            Description, Workspace,
+            cac::{
+                ConfigVersion, DependencyGraph, DimensionType, FunctionCode, FunctionType,
+            },
+            ChangeReason, Description, Workspace,
         },
         schema::{
             config_versions,
@@ -49,7 +51,12 @@ use superposition_types::{
 use uuid::Uuid;
 
 use crate::{
-    api::dimension::fetch_dimensions_info_map, validation_functions::execute_fn,
+    api::{
+        context::helpers::validate_value_with_function,
+        dimension::fetch_dimensions_info_map,
+        functions::helpers::get_first_function_by_type,
+    },
+    validation_functions::execute_fn,
 };
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
@@ -310,9 +317,10 @@ fn compute_value_with_function(
 ) -> superposition::Result<Value> {
     match execute_fn(
         function,
-        &FunctionExecutionRequest::AutocompleteFunctionRequest {
+        &FunctionExecutionRequest::ValueComputeFunctionRequest {
             name: key.to_string(),
             prefix: String::new(),
+            r#type: KeyType::Dimension,
             environment: FunctionEnvironment { context, overrides },
         },
         conn,
@@ -373,26 +381,27 @@ fn evaluate_remote_cohorts_dependency(
                 continue;
             }
 
-            let Some(ref autocomplete_fn) = data.autocomplete_function_name else {
+            let Some(ref value_compute_function_name_) = data.value_compute_function_name
+            else {
                 return Err(validation_error!(
                     "Value compute function not found for {cohort_dimension}",
                 ));
             };
 
             let fn_code = functions::functions
-                .filter(functions::function_name.eq(autocomplete_fn))
+                .filter(functions::function_name.eq(value_compute_function_name_))
                 .select(functions::published_code)
                 .schema_name(schema_name)
                 .first::<Option<FunctionCode>>(conn)?
                 .ok_or_else(|| {
                     validation_error!(
                         "Published code not found for function {}",
-                        autocomplete_fn
+                        value_compute_function_name_
                     )
                 })?;
 
             let value = compute_value_with_function(
-                autocomplete_fn,
+                value_compute_function_name_,
                 &fn_code,
                 based_on,
                 modified_context.clone(),
@@ -466,6 +475,30 @@ pub fn evaluate_remote_cohorts(
     }
 
     Ok(modified_context)
+}
+
+pub fn validate_change_reason(
+    change_reason: &ChangeReason,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let change_reason_validation_function = get_first_function_by_type(
+        FunctionType::ChangeReasonValidation,
+        conn,
+        schema_name,
+    )?;
+    if let Some(function_code) = change_reason_validation_function {
+        validate_value_with_function(
+            "change_reason_validation_function",
+            &function_code,
+            &FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                change_reason: change_reason.clone(),
+            },
+            conn,
+            schema_name,
+        )?;
+    }
+    Ok(())
 }
 
 // ************ Tests *************
