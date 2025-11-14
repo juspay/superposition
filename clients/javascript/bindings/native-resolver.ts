@@ -3,6 +3,7 @@ import os from "os";
 import fs from "fs";
 import koffi from "koffi";
 import { fileURLToPath } from "url";
+import { Buffer } from "buffer";
 
 export class NativeResolver {
     private lib: any;
@@ -14,19 +15,13 @@ export class NativeResolver {
 
             // Define the core resolution functions with CORRECT 8 parameters each
             this.lib.core_get_resolved_config = this.lib.func(
-                "char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)"
+                "char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)"
             );
             this.lib.core_get_resolved_config_with_reasoning = this.lib.func(
-                "char* core_get_resolved_config_with_reasoning(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)"
+                "char* core_get_resolved_config_with_reasoning(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)"
             );
             this.lib.core_free_string = this.lib.func(
                 "void core_free_string(char*)"
-            );
-            this.lib.core_last_error_message = this.lib.func(
-                "char* core_last_error_message()"
-            );
-            this.lib.core_last_error_length = this.lib.func(
-                "int core_last_error_length()"
             );
             this.lib.core_get_applicable_variants = this.lib.func(
                 "char* core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*)"
@@ -146,6 +141,7 @@ export class NativeResolver {
             throw new Error("queryData serialization failed");
         }
 
+        const ebuf = Buffer.alloc(256);
         const result = this.lib.core_get_resolved_config(
             defaultConfigsJson,
             contextsJson,
@@ -154,13 +150,15 @@ export class NativeResolver {
             queryDataJson,
             mergeStrategy,
             filterPrefixesJson,
-            experimentationJson
+            experimentationJson,
+            ebuf
         );
 
         console.log("🔧 FFI call completed, result:", result);
 
-        if (!result) {
-            this.throwLastError("Failed to resolve config");
+        const err = ebuf.toString('utf8').split('\0')[0];
+        if (err.length !== 0) {
+            this.throwFFIError(err);
         }
 
         const configStr =
@@ -207,6 +205,7 @@ export class NativeResolver {
             ? JSON.stringify(experimentation)
             : null;
 
+        const ebuf = Buffer.alloc(256);
         const result = this.lib.core_get_resolved_config_with_reasoning(
             JSON.stringify(defaultConfigs || {}),
             JSON.stringify(contexts),
@@ -215,11 +214,13 @@ export class NativeResolver {
             JSON.stringify(queryData),
             mergeStrategy,
             filterPrefixesJson,
-            experimentationJson
+            experimentationJson,
+            ebuf
         );
 
-        if (!result) {
-            this.throwLastError("Failed to resolve config with reasoning");
+        const err = ebuf.toString('utf8').split('\0')[0];
+        if (err.length !== 0) {
+            this.throwFFIError(err);
         }
 
         const configStr =
@@ -277,6 +278,7 @@ export class NativeResolver {
         console.log("  identifier:", identifier);
         console.log("  filterPrefixes:", filterPrefixes);
 
+        const ebuf = Buffer.alloc(256);
         const result = this.lib.core_get_applicable_variants(
             experimentsJson,
             experimentGroupsJson,
@@ -291,8 +293,9 @@ export class NativeResolver {
             result
         );
 
-        if (!result) {
-            this.throwLastError("Failed to get applicable variants");
+        const err = ebuf.toString('utf8').split('\0')[0];
+        if (err.length !== 0) {
+            this.throwFFIError(err);
         }
 
         const resultStr =
@@ -424,23 +427,7 @@ export class NativeResolver {
         }
     }
 
-    private throwLastError(prefix: string): never {
-        if (!this.isAvailable) {
-            throw new Error(`${prefix}: Native resolver not available`);
-        }
-
-        const errorLength = this.lib.core_last_error_length();
-        if (errorLength > 0) {
-            const errorPtr = this.lib.core_last_error_message();
-            const errorMsg =
-                typeof errorPtr === "string"
-                    ? errorPtr
-                    : this.lib.decode(errorPtr, "string");
-            if (typeof errorPtr !== "string") {
-                this.lib.core_free_string(errorPtr);
-            }
-            throw new Error(`${prefix}: ${errorMsg}`);
-        }
-        throw new Error(`${prefix}: Unknown error`);
+    private throwFFIError(err: String): never {
+        throw new Error("ffi: " + err)
     }
 }

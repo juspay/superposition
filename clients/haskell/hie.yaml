@@ -1,7 +1,31 @@
 cradle:
   cabal:
-    - path: "./sdk/./"
+    - path: "hs-cac-client/src"
+      component: "lib:hs-cac-client"
+
+    - path: "hs-cac-client/src/Main.hs"
+      component: "hs-cac-client:exe:hs-exe"
+
+    - path: "hs-exp-client/src"
+      component: "lib:hs-exp-client"
+
+    - path: "hs-exp-client/src/Main.hs"
+      component: "hs-exp-client:exe:hs-exp-client-exe"
+
+    - path: "open-feature/lib"
+      component: "lib:open-feature"
+
+    - path: "open-feature-provider/lib"
+      component: "lib:superposition-open-feature-provider"
+
+    - path: "open-feature-provider/test"
+      component: "superposition-open-feature-provider:test:superposition-open-feature-provider-test"
+
+    - path: "sdk/./"
       component: "lib:SuperpositionSDK"
 
-    - path: "./sdk-it/test"
-      component: "sdk-it:test:sdk-it-test"
+    - path: "superposition-bindings/lib"
+      component: "lib:superposition-bindings"
+
+    - path: "superposition-bindings/test"
+      component: "superposition-bindings:test:superposition-bindings-test"

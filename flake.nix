@@ -6,6 +6,7 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     haskell-flake.url = "github:srid/haskell-flake";
     rust-flake.url = "github:juspay/rust-flake";
+    open-feature-hs.url = "github:juspay/open-feature-haskell-sdk";
   };
 
   outputs =
@@ -42,39 +43,31 @@
               config.pre-commit.devShell
             ];
             # Add your devShell tools here
-            packages =
-              let
-                jdk = pkgs.jdk17;
-              in
-              with pkgs;
-              [
-                bun
-                self'.packages.smithy-cli
-                docker-compose
-                gnumake
-                # Why do we need this?
-                stdenv.cc
-                awscli2
-                jq
-                nodejs_24
-                nixpkgs-fmt
-                bacon
-                cargo-watch
-                diesel-cli
-                leptosfmt
-                wasm-pack
-                yq
-                (callPackage gradle-packages.gradle_8 {
-                    java = jdk;
-                })
-                jdk
-                uv
-                # go client
-                # go
-              ];
-            shellHook = ''
-              export JAVA_HOME=${pkgs.jdk17}
-            '';
+            packages = with pkgs; [
+              bun
+              self'.packages.smithy-cli
+              docker-compose
+              gnumake
+              # Why do we need this?
+              stdenv.cc
+              awscli2
+              jq
+              nodejs_24
+              nixpkgs-fmt
+              bacon
+              cargo-watch
+              diesel-cli
+              leptosfmt
+              wasm-pack
+              yq
+              (callPackage gradle-packages.gradle_8 {
+                java = pkgs.jdk17;
+              })
+              jdk17
+              uv
+              # go client
+              # go
+            ];
           };
 
         };

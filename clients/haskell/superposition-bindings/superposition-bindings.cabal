@@ -1,0 +1,42 @@
+cabal-version:      3.4
+name:               superposition-bindings
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Shrey Bana
+maintainer:         shreybana26@gmail.com
+-- copyright:
+category:           Development
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+library
+    import:           warnings
+    exposed-modules:  FFI.Superposition
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    base ^>=4.18.2.0
+    hs-source-dirs:   lib
+    default-language: GHC2021
+    default-extensions: CApiFFI
+    extra-libraries: superposition_core
+
+test-suite superposition-bindings-test
+    import:           warnings
+    default-language: GHC2021
+    -- other-modules:
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.2.0,
+        HUnit,
+        async,
+        superposition-bindings
