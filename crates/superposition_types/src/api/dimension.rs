@@ -24,14 +24,14 @@ pub struct DimensionResponse {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: ExtendedMap,
-    pub function_name: Option<String>,
+    pub value_validation_function_name: Option<String>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub mandatory: bool,
     pub dependency_graph: DependencyGraph,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub autocomplete_function_name: Option<String>,
+    pub value_compute_function_name: Option<String>,
     pub dimension_type: DimensionType,
 }
 
@@ -43,14 +43,14 @@ impl DimensionResponse {
             created_at: value.created_at,
             created_by: value.created_by,
             schema: value.schema,
-            function_name: value.function_name,
+            value_validation_function_name: value.value_validation_function_name,
             last_modified_at: value.last_modified_at,
             last_modified_by: value.last_modified_by,
             mandatory,
             dependency_graph: value.dependency_graph,
             description: value.description,
             change_reason: value.change_reason,
-            autocomplete_function_name: value.autocomplete_function_name,
+            value_compute_function_name: value.value_compute_function_name,
             dimension_type: value.dimension_type,
         }
     }
@@ -61,10 +61,12 @@ pub struct CreateRequest {
     pub dimension: DimensionName,
     pub position: Position,
     pub schema: ExtendedMap,
-    pub function_name: Option<String>,
+    #[serde(alias = "function_name")]
+    pub value_validation_function_name: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub autocomplete_function_name: Option<String>,
+    #[serde(alias = "autocomplete_function_name")]
+    pub value_compute_function_name: Option<String>,
     #[serde(default)]
     pub dimension_type: DimensionType,
 }
@@ -75,10 +77,18 @@ pub struct CreateRequest {
 pub struct UpdateRequest {
     pub position: Option<Position>,
     pub schema: Option<ExtendedMap>,
-    #[serde(default, deserialize_with = "deserialize_function_name")]
-    pub function_name: Option<Option<String>>,
-    #[serde(default, deserialize_with = "deserialize_function_name")]
-    pub autocomplete_function_name: Option<Option<String>>,
+    #[serde(
+        alias = "function_name",
+        default,
+        deserialize_with = "deserialize_function_name"
+    )]
+    pub value_validation_function_name: Option<Option<String>>,
+    #[serde(
+        alias = "autocomplete_function_name",
+        default,
+        deserialize_with = "deserialize_function_name"
+    )]
+    pub value_compute_function_name: Option<Option<String>>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }

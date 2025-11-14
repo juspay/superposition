@@ -2,7 +2,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::SchemaName;
 use superposition_types::{
     database::{
-        models::cac::{Function, FunctionCode},
+        models::cac::{Function, FunctionCode, FunctionType},
         schema::{self, functions::dsl::functions},
     },
     result as superposition, DBConnection,
@@ -46,5 +46,18 @@ pub fn get_published_functions_by_names(
         .schema_name(schema_name)
         .load(conn)?;
 
+    Ok(function)
+}
+
+pub fn get_validation_function(
+    function_type: FunctionType,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Option<FunctionCode>> {
+    let function: Option<FunctionCode> = functions
+        .filter(schema::functions::function_type.eq(function_type))
+        .select(schema::functions::published_code)
+        .schema_name(schema_name)
+        .first(conn)?;
     Ok(function)
 }

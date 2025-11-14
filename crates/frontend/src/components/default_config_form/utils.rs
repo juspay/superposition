@@ -16,8 +16,8 @@ pub async fn create_default_config(
     key: String,
     value: Value,
     schema: Value,
-    function_name: Option<String>,
-    autocomplete_function_name: Option<String>,
+    value_validation_function_name: Option<String>,
+    value_compute_function_name: Option<String>,
     description: String,
     change_reason: String,
 ) -> Result<serde_json::Value, String> {
@@ -25,10 +25,10 @@ pub async fn create_default_config(
         key: DefaultConfigKey::try_from(key)?,
         schema: ExtendedMap::try_from(schema)?,
         value,
-        function_name,
+        value_validation_function_name,
         description: Description::try_from(description)?,
         change_reason: ChangeReason::try_from(change_reason)?,
-        autocomplete_function_name,
+        value_compute_function_name,
     };
     let host = get_host();
     let url = format!("{host}/default-config");
@@ -47,18 +47,18 @@ pub async fn create_default_config(
 pub fn try_update_payload(
     value: Value,
     schema: Value,
-    function_name: Option<String>,
-    autocomplete_function_name: Option<String>,
+    value_validation_function_name: Option<String>,
+    value_compute_function_name: Option<String>,
     description: String,
     change_reason: String,
 ) -> Result<DefaultConfigUpdateRequest, String> {
     Ok(DefaultConfigUpdateRequest {
         schema: Some(ExtendedMap::try_from(schema)?),
         value: Some(value),
-        function_name: Some(function_name),
+        value_validation_function_name: Some(value_validation_function_name),
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
-        autocomplete_function_name: Some(autocomplete_function_name),
+        value_compute_function_name: Some(value_compute_function_name),
     })
 }
 

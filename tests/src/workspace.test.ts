@@ -52,6 +52,8 @@ describe("Workspace API", () => {
             strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: false,
+            enable_context_validation: true,
+            enable_change_reason_validation: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -71,6 +73,8 @@ describe("Workspace API", () => {
         expect(response.strict_mode).toBe(true);
         expect(response.allow_experiment_self_approval).toBe(true);
         expect(response.auto_populate_control).toBe(false);
+        expect(response.enable_context_validation).toBe(true);
+        expect(response.enable_change_reason_validation).toBe(true);
 
         // Fix mandatory_dimensions check - it might be a string or differently structured
         if (response.mandatory_dimensions) {
@@ -176,6 +180,8 @@ describe("Workspace API", () => {
             expect(response.strict_mode).toBe(true);
             expect(response.allow_experiment_self_approval).toBe(true);
             expect(response.auto_populate_control).toBe(false);
+            expect(response.enable_context_validation).toBe(true);
+            expect(response.enable_change_reason_validation).toBe(true);
 
             // Check mandatory_dimensions with flexible type handling
             if (response.mandatory_dimensions) {
@@ -293,6 +299,8 @@ describe("Workspace API", () => {
             strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: false,
+            enable_context_validation: true,
+            enable_change_reason_validation: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -317,6 +325,8 @@ describe("Workspace API", () => {
             strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: false,
+            enable_context_validation: true,
+            enable_change_reason_validation: true,
         };
 
         const cmd = new CreateWorkspaceCommand(input);

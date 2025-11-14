@@ -60,7 +60,7 @@ pub fn dimension_form(
     #[prop(default = String::new())] dimension_type_template: String,
     #[prop(default = Value::Null)] dimension_schema: Value,
     #[prop(default = None)] validation_function_name: Option<String>,
-    #[prop(default = None)] autocomplete_function_name: Option<String>,
+    #[prop(default = None)] value_compute_function_name: Option<String>,
     #[prop(default = String::new())] description: String,
     #[prop(default = DimensionType::Regular{})] dimension_type: DimensionType,
     #[prop(optional)] dimensions: Option<Vec<DimensionResponse>>,
@@ -78,8 +78,8 @@ pub fn dimension_form(
     let (dimension_schema_rs, dimension_schema_ws) = create_signal(dimension_schema);
     let (validation_fn_name_rs, validation_fn_name_ws) =
         create_signal(validation_function_name);
-    let (autocomplete_fn_name_rs, autocomplete_fn_name_ws) =
-        create_signal(autocomplete_function_name);
+    let (value_compute_function_name_rs, value_compute_function_name_ws) =
+        create_signal(value_compute_function_name);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (cohort_based_on_rs, cohort_based_on_ws) = create_signal(match dimension_type {
@@ -133,8 +133,8 @@ pub fn dimension_form(
         validation_fn_name_ws.update(|v| set_function(selected_function, v));
     };
 
-    let handle_autocomplete_fn_select = move |selected_function: FunctionsName| {
-        autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
+    let handle_value_compute_fn_select = move |selected_function: FunctionsName| {
+        value_compute_function_name_ws.update(|v| set_function(selected_function, v));
     };
 
     let (error_message, set_error_message) = create_signal("".to_string());
@@ -144,7 +144,7 @@ pub fn dimension_form(
         let function_position = position_rs.get_untracked();
         let dimension_name = dimension_name_rs.get_untracked();
         let validation_fn_name = validation_fn_name_rs.get_untracked();
-        let autocomplete_fn_name = autocomplete_fn_name_rs.get_untracked();
+        let value_compute_function_name = value_compute_function_name_rs.get_untracked();
         let dimension_schema = dimension_schema_rs.get_untracked();
         let cohort_based_on = cohort_based_on_rs.get_untracked();
         let dimension_type = dimension_type_rs
@@ -175,7 +175,7 @@ pub fn dimension_form(
                             function_position,
                             dimension_schema,
                             validation_fn_name,
-                            autocomplete_fn_name,
+                            value_compute_function_name,
                             description_rs.get_untracked(),
                             change_reason_rs.get_untracked(),
                         );
@@ -192,7 +192,7 @@ pub fn dimension_form(
                         function_position,
                         dimension_schema,
                         validation_fn_name,
-                        autocomplete_fn_name,
+                        value_compute_function_name,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
                         workspace.get_untracked().0,
@@ -530,17 +530,18 @@ pub fn dimension_form(
                             let mut validation_function_names: Vec<FunctionsName> = vec![
                                 "None".to_string(),
                             ];
-                            let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                            let mut value_compute_function_names: Vec<FunctionsName> = vec![
                                 "None".to_string(),
                             ];
                             functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
                             functions
                                 .iter()
                                 .for_each(|ele| {
-                                    if ele.function_type == FunctionType::Validation {
+                                    if ele.function_type == FunctionType::ValueValidation {
                                         validation_function_names.push(ele.function_name.clone());
                                     } else {
-                                        autocomplete_function_names.push(ele.function_name.clone());
+                                        value_compute_function_names
+                                            .push(ele.function_name.clone());
                                     }
                                 });
                             view! {
@@ -565,19 +566,19 @@ pub fn dimension_form(
 
                                     <div class="form-control">
                                         <Label
-                                            title="AutoComplete Function"
-                                            description="Function to add auto complete suggestion to your dimension"
+                                            title="Value Compute Function"
+                                            description="Function to add value compute suggestion to your dimension"
                                         />
                                         <Dropdown
                                             dropdown_width="w-100"
                                             dropdown_icon="".to_string()
-                                            dropdown_text=autocomplete_fn_name_rs
+                                            dropdown_text=value_compute_function_name_rs
                                                 .get()
                                                 .map_or("Add Function".to_string(), |v| v.to_string())
                                             dropdown_direction=DropdownDirection::Down
                                             dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options=autocomplete_function_names
-                                            on_select=handle_autocomplete_fn_select
+                                            dropdown_options=value_compute_function_names
+                                            on_select=handle_value_compute_fn_select
                                         />
                                     </div>
                                 </div>
@@ -677,13 +678,13 @@ pub fn change_log_summary(
                                     .unwrap_or_else(|| dim.description.clone());
                                 let position = update_request.position.unwrap_or(dim.position);
                                 let valdiate_fn = update_request
-                                    .function_name
+                                    .value_validation_function_name
                                     .clone()
-                                    .unwrap_or_else(|| dim.function_name.clone());
-                                let autocomplete_fn = update_request
-                                    .autocomplete_function_name
+                                    .unwrap_or_else(|| dim.value_validation_function_name.clone());
+                                let value_compute_fn = update_request
+                                    .value_compute_function_name
                                     .clone()
-                                    .unwrap_or_else(|| { dim.autocomplete_function_name.clone() });
+                                    .unwrap_or_else(|| { dim.value_compute_function_name.clone() });
                                 (
                                     Some(
                                         update_request.schema.unwrap_or_else(|| dim.schema.clone()),
@@ -703,9 +704,9 @@ pub fn change_log_summary(
                                                     "Validation Function".to_string(),
                                                     Value::String(f.clone()),
                                                 )),
-                                            autocomplete_fn
+                                            value_compute_fn
                                                 .map(|f| (
-                                                    "Autocomplete Function".to_string(),
+                                                    "Value Compute Function".to_string(),
                                                     Value::String(f.clone()),
                                                 )),
                                         ]
@@ -736,15 +737,15 @@ pub fn change_log_summary(
                                             Value::Number(Number::from(*dim.position)),
                                         )),
                                         dim
-                                            .function_name
+                                            .value_validation_function_name
                                             .map(|f| (
-                                                "Validation Function".to_string(),
+                                                "Value Validation Function".to_string(),
                                                 Value::String(f.clone()),
                                             )),
                                         dim
-                                            .autocomplete_function_name
+                                            .value_compute_function_name
                                             .map(|f| (
-                                                "Autocomplete Function".to_string(),
+                                                "Value Compute Function".to_string(),
                                                 Value::String(f.clone()),
                                             )),
                                     ]
