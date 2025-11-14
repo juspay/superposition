@@ -214,18 +214,18 @@ impl UpdateDefaultConfigFluentBuilder {
                     self.inner.get_description()
                 }
     /// To unset the function name, pass "null" string.
-    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.autocomplete_function_name(input.into());
+    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.value_compute_function_name(input.into());
                     self
                 }
     /// To unset the function name, pass "null" string.
-    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_autocomplete_function_name(input);
+    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_value_compute_function_name(input);
                     self
                 }
     /// To unset the function name, pass "null" string.
-    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_autocomplete_function_name()
+    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_value_compute_function_name()
                 }
 }
 

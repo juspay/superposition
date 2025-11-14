@@ -3,39 +3,39 @@ pub fn ser_create_dimension_input_input(
                          object: &mut ::aws_smithy_json::serialize::JsonObjectWriter,
                          input: &crate::operation::create_dimension::CreateDimensionInput,
                     ) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
-    if let Some(var_1) = &input.autocomplete_function_name {
-        object.key("autocomplete_function_name").string(var_1.as_str());
+    if let Some(var_1) = &input.change_reason {
+        object.key("change_reason").string(var_1.as_str());
     }
-    if let Some(var_2) = &input.change_reason {
-        object.key("change_reason").string(var_2.as_str());
+    if let Some(var_2) = &input.description {
+        object.key("description").string(var_2.as_str());
     }
-    if let Some(var_3) = &input.description {
-        object.key("description").string(var_3.as_str());
+    if let Some(var_3) = &input.dimension {
+        object.key("dimension").string(var_3.as_str());
     }
-    if let Some(var_4) = &input.dimension {
-        object.key("dimension").string(var_4.as_str());
-    }
-    if let Some(var_5) = &input.dimension_type {
+    if let Some(var_4) = &input.dimension_type {
         #[allow(unused_mut)]
-        let mut object_6 = object.key("dimension_type").start_object();
-        crate::protocol_serde::shape_dimension_type::ser_dimension_type(&mut object_6, var_5)?;
-        object_6.finish();
+        let mut object_5 = object.key("dimension_type").start_object();
+        crate::protocol_serde::shape_dimension_type::ser_dimension_type(&mut object_5, var_4)?;
+        object_5.finish();
     }
-    if let Some(var_7) = &input.function_name {
-        object.key("function_name").string(var_7.as_str());
+    if let Some(var_6) = &input.function_name {
+        object.key("function_name").string(var_6.as_str());
     }
-    if let Some(var_8) = &input.position {
-        object.key("position").number(#[allow(clippy::useless_conversion)]::aws_smithy_types::Number::NegInt((*var_8).into()));
+    if let Some(var_7) = &input.position {
+        object.key("position").number(#[allow(clippy::useless_conversion)]::aws_smithy_types::Number::NegInt((*var_7).into()));
     }
-    if let Some(var_9) = &input.schema {
+    if let Some(var_8) = &input.schema {
         #[allow(unused_mut)]
-        let mut object_10 = object.key("schema").start_object();
-        for (key_11, value_12) in var_9 {
+        let mut object_9 = object.key("schema").start_object();
+        for (key_10, value_11) in var_8 {
              {
-                object_10.key(key_11.as_str()).document(value_12);
+                object_9.key(key_10.as_str()).document(value_11);
             }
         }
-        object_10.finish();
+        object_9.finish();
+    }
+    if let Some(var_12) = &input.value_compute_function_name {
+        object.key("value_compute_function_name").string(var_12.as_str());
     }
     Ok(())
 }

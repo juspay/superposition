@@ -17,8 +17,8 @@ public final class DefaultConfig implements ApiResource {
         "org_id", PreludeSchemas.STRING,
         "key", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.of("schema", SharedSchemas.OBJECT,
-        "autocomplete_function_name", PreludeSchemas.STRING,
         "change_reason", PreludeSchemas.STRING,
+        "value_compute_function_name", PreludeSchemas.STRING,
         "function_name", PreludeSchemas.STRING,
         "description", PreludeSchemas.STRING,
         "created_at", SharedSchemas.DATE_TIME,

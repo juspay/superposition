@@ -53,7 +53,7 @@ export interface UpdateDimensionCommandOutput extends DimensionResponse, __Metad
  *   function_name: "STRING_VALUE",
  *   description: "STRING_VALUE",
  *   change_reason: "STRING_VALUE", // required
- *   autocomplete_function_name: "STRING_VALUE",
+ *   value_compute_function_name: "STRING_VALUE",
  * };
  * const command = new UpdateDimensionCommand(input);
  * const response = await client.send(command);
@@ -80,7 +80,7 @@ export interface UpdateDimensionCommandOutput extends DimensionResponse, __Metad
  * //     LOCAL_COHORT: "STRING_VALUE",
  * //     REMOTE_COHORT: "STRING_VALUE",
  * //   },
- * //   autocomplete_function_name: "STRING_VALUE",
+ * //   value_compute_function_name: "STRING_VALUE",
  * //   mandatory: true || false, // required
  * // };
  *

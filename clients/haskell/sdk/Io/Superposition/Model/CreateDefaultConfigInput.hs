@@ -5,7 +5,7 @@ module Io.Superposition.Model.CreateDefaultConfigInput (
     setDescription,
     setChangeReason,
     setFunctionName,
-    setAutocompleteFunctionName,
+    setValueComputeFunctionName,
     setWorkspaceId,
     setOrgId,
     build,
@@ -17,7 +17,7 @@ module Io.Superposition.Model.CreateDefaultConfigInput (
     description,
     change_reason,
     function_name,
-    autocomplete_function_name,
+    value_compute_function_name,
     workspace_id,
     org_id
 ) where
@@ -42,7 +42,7 @@ data CreateDefaultConfigInput = CreateDefaultConfigInput {
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     function_name :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
+    value_compute_function_name :: Data.Maybe.Maybe Data.Text.Text,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text
 } deriving (
@@ -59,7 +59,7 @@ instance Data.Aeson.ToJSON CreateDefaultConfigInput where
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
         "function_name" Data.Aeson..= function_name a,
-        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
+        "value_compute_function_name" Data.Aeson..= value_compute_function_name a,
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a
         ]
@@ -75,7 +75,7 @@ instance Data.Aeson.FromJSON CreateDefaultConfigInput where
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "value_compute_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
     
@@ -89,7 +89,7 @@ data CreateDefaultConfigInputBuilderState = CreateDefaultConfigInputBuilderState
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    value_compute_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
@@ -104,7 +104,7 @@ defaultBuilderState = CreateDefaultConfigInputBuilderState {
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
     function_nameBuilderState = Data.Maybe.Nothing,
-    autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
+    value_compute_function_nameBuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing
 }
@@ -135,9 +135,9 @@ setFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDefaultConfigInputBu
 setFunctionName value =
    Control.Monad.State.Strict.modify (\s -> (s { function_nameBuilderState = value }))
 
-setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDefaultConfigInputBuilder ()
-setAutocompleteFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
+setValueComputeFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDefaultConfigInputBuilder ()
+setValueComputeFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_compute_function_nameBuilderState = value }))
 
 setWorkspaceId :: Data.Text.Text -> CreateDefaultConfigInputBuilder ()
 setWorkspaceId value =
@@ -156,7 +156,7 @@ build builder = do
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDefaultConfigInput.CreateDefaultConfigInput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDefaultConfigInput.CreateDefaultConfigInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     function_name' <- Data.Either.Right (function_nameBuilderState st)
-    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    value_compute_function_name' <- Data.Either.Right (value_compute_function_nameBuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDefaultConfigInput.CreateDefaultConfigInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDefaultConfigInput.CreateDefaultConfigInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     Data.Either.Right (CreateDefaultConfigInput { 
@@ -166,7 +166,7 @@ build builder = do
         description = description',
         change_reason = change_reason',
         function_name = function_name',
-        autocomplete_function_name = autocomplete_function_name',
+        value_compute_function_name = value_compute_function_name',
         workspace_id = workspace_id',
         org_id = org_id'
     })
@@ -182,8 +182,8 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateDefaultConfigInput wh
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "schema" (schema self)
-        Io.Superposition.Utility.serField "autocomplete_function_name" (autocomplete_function_name self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
+        Io.Superposition.Utility.serField "value_compute_function_name" (value_compute_function_name self)
         Io.Superposition.Utility.serField "function_name" (function_name self)
         Io.Superposition.Utility.serField "description" (description self)
         Io.Superposition.Utility.serField "value" (value self)

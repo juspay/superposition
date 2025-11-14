@@ -7,7 +7,7 @@ module Io.Superposition.Model.UpdateDefaultConfigInput (
     setSchema,
     setFunctionName,
     setDescription,
-    setAutocompleteFunctionName,
+    setValueComputeFunctionName,
     build,
     UpdateDefaultConfigInputBuilder,
     UpdateDefaultConfigInput,
@@ -19,7 +19,7 @@ module Io.Superposition.Model.UpdateDefaultConfigInput (
     schema,
     function_name,
     description,
-    autocomplete_function_name
+    value_compute_function_name
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -44,7 +44,7 @@ data UpdateDefaultConfigInput = UpdateDefaultConfigInput {
     schema :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     function_name :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
+    value_compute_function_name :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -61,7 +61,7 @@ instance Data.Aeson.ToJSON UpdateDefaultConfigInput where
         "schema" Data.Aeson..= schema a,
         "function_name" Data.Aeson..= function_name a,
         "description" Data.Aeson..= description a,
-        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a
+        "value_compute_function_name" Data.Aeson..= value_compute_function_name a
         ]
     
 
@@ -77,7 +77,7 @@ instance Data.Aeson.FromJSON UpdateDefaultConfigInput where
         Control.Applicative.<*> (v Data.Aeson..: "schema")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
         Control.Applicative.<*> (v Data.Aeson..: "description")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "value_compute_function_name")
     
 
 
@@ -91,7 +91,7 @@ data UpdateDefaultConfigInputBuilderState = UpdateDefaultConfigInputBuilderState
     schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    value_compute_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -106,7 +106,7 @@ defaultBuilderState = UpdateDefaultConfigInputBuilderState {
     schemaBuilderState = Data.Maybe.Nothing,
     function_nameBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
-    autocomplete_function_nameBuilderState = Data.Maybe.Nothing
+    value_compute_function_nameBuilderState = Data.Maybe.Nothing
 }
 
 type UpdateDefaultConfigInputBuilder = Control.Monad.State.Strict.State UpdateDefaultConfigInputBuilderState
@@ -143,9 +143,9 @@ setDescription :: Data.Maybe.Maybe Data.Text.Text -> UpdateDefaultConfigInputBui
 setDescription value =
    Control.Monad.State.Strict.modify (\s -> (s { descriptionBuilderState = value }))
 
-setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDefaultConfigInputBuilder ()
-setAutocompleteFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
+setValueComputeFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDefaultConfigInputBuilder ()
+setValueComputeFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_compute_function_nameBuilderState = value }))
 
 build :: UpdateDefaultConfigInputBuilder () -> Data.Either.Either Data.Text.Text UpdateDefaultConfigInput
 build builder = do
@@ -158,7 +158,7 @@ build builder = do
     schema' <- Data.Either.Right (schemaBuilderState st)
     function_name' <- Data.Either.Right (function_nameBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
-    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    value_compute_function_name' <- Data.Either.Right (value_compute_function_nameBuilderState st)
     Data.Either.Right (UpdateDefaultConfigInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -168,7 +168,7 @@ build builder = do
         schema = schema',
         function_name = function_name',
         description = description',
-        autocomplete_function_name = autocomplete_function_name'
+        value_compute_function_name = value_compute_function_name'
     })
 
 
@@ -183,8 +183,8 @@ instance Io.Superposition.Utility.IntoRequestBuilder UpdateDefaultConfigInput wh
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "schema" (schema self)
-        Io.Superposition.Utility.serField "autocomplete_function_name" (autocomplete_function_name self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
+        Io.Superposition.Utility.serField "value_compute_function_name" (value_compute_function_name self)
         Io.Superposition.Utility.serField "function_name" (function_name self)
         Io.Superposition.Utility.serField "description" (description self)
         Io.Superposition.Utility.serField "value" (value self)

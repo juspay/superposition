@@ -11,7 +11,7 @@ impl super::Client {
     ///   - [`function_name(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::function_name) / [`set_function_name(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_function_name):<br>required: **false**<br>To unset the function name, pass "null" string.<br>
     ///   - [`description(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_description):<br>required: **false**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
-    ///   - [`autocomplete_function_name(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::autocomplete_function_name) / [`set_autocomplete_function_name(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_autocomplete_function_name):<br>required: **false**<br>To unset the function name, pass "null" string.<br>
+    ///   - [`value_compute_function_name(impl Into<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::value_compute_function_name) / [`set_value_compute_function_name(Option<String>)`](crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder::set_value_compute_function_name):<br>required: **false**<br>To unset the function name, pass "null" string.<br>
                             /// - On success, responds with [`UpdateDimensionOutput`](crate::operation::update_dimension::UpdateDimensionOutput) with field(s):
     ///   - [`dimension(String)`](crate::operation::update_dimension::UpdateDimensionOutput::dimension): (undocumented)
     ///   - [`position(i32)`](crate::operation::update_dimension::UpdateDimensionOutput::position): (undocumented)
@@ -25,7 +25,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::update_dimension::UpdateDimensionOutput::created_by): (undocumented)
     ///   - [`dependency_graph(HashMap::<String, Vec::<String>>)`](crate::operation::update_dimension::UpdateDimensionOutput::dependency_graph): (undocumented)
     ///   - [`dimension_type(DimensionType)`](crate::operation::update_dimension::UpdateDimensionOutput::dimension_type): (undocumented)
-    ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::update_dimension::UpdateDimensionOutput::autocomplete_function_name): (undocumented)
+    ///   - [`value_compute_function_name(Option<String>)`](crate::operation::update_dimension::UpdateDimensionOutput::value_compute_function_name): (undocumented)
     ///   - [`mandatory(bool)`](crate::operation::update_dimension::UpdateDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateDimensionError>`](crate::operation::update_dimension::UpdateDimensionError)
     pub fn update_dimension(&self) -> crate::operation::update_dimension::builders::UpdateDimensionFluentBuilder {

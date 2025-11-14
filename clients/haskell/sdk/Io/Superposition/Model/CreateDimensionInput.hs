@@ -8,7 +8,7 @@ module Io.Superposition.Model.CreateDimensionInput (
     setDescription,
     setChangeReason,
     setDimensionType,
-    setAutocompleteFunctionName,
+    setValueComputeFunctionName,
     build,
     CreateDimensionInputBuilder,
     CreateDimensionInput,
@@ -21,7 +21,7 @@ module Io.Superposition.Model.CreateDimensionInput (
     description,
     change_reason,
     dimension_type,
-    autocomplete_function_name
+    value_compute_function_name
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -49,7 +49,7 @@ data CreateDimensionInput = CreateDimensionInput {
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     dimension_type :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
-    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
+    value_compute_function_name :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -67,7 +67,7 @@ instance Data.Aeson.ToJSON CreateDimensionInput where
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
         "dimension_type" Data.Aeson..= dimension_type a,
-        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a
+        "value_compute_function_name" Data.Aeson..= value_compute_function_name a
         ]
     
 
@@ -84,7 +84,7 @@ instance Data.Aeson.FromJSON CreateDimensionInput where
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..: "value_compute_function_name")
     
 
 
@@ -99,7 +99,7 @@ data CreateDimensionInputBuilderState = CreateDimensionInputBuilderState {
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dimension_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.DimensionType,
-    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    value_compute_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -115,7 +115,7 @@ defaultBuilderState = CreateDimensionInputBuilderState {
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
     dimension_typeBuilderState = Data.Maybe.Nothing,
-    autocomplete_function_nameBuilderState = Data.Maybe.Nothing
+    value_compute_function_nameBuilderState = Data.Maybe.Nothing
 }
 
 type CreateDimensionInputBuilder = Control.Monad.State.Strict.State CreateDimensionInputBuilderState
@@ -156,9 +156,9 @@ setDimensionType :: Data.Maybe.Maybe Io.Superposition.Model.DimensionType.Dimens
 setDimensionType value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_typeBuilderState = value }))
 
-setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDimensionInputBuilder ()
-setAutocompleteFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
+setValueComputeFunctionName :: Data.Maybe.Maybe Data.Text.Text -> CreateDimensionInputBuilder ()
+setValueComputeFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_compute_function_nameBuilderState = value }))
 
 build :: CreateDimensionInputBuilder () -> Data.Either.Either Data.Text.Text CreateDimensionInput
 build builder = do
@@ -172,7 +172,7 @@ build builder = do
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     dimension_type' <- Data.Either.Right (dimension_typeBuilderState st)
-    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    value_compute_function_name' <- Data.Either.Right (value_compute_function_nameBuilderState st)
     Data.Either.Right (CreateDimensionInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -183,7 +183,7 @@ build builder = do
         description = description',
         change_reason = change_reason',
         dimension_type = dimension_type',
-        autocomplete_function_name = autocomplete_function_name'
+        value_compute_function_name = value_compute_function_name'
     })
 
 
@@ -197,9 +197,9 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateDimensionInput where
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "schema" (schema self)
-        Io.Superposition.Utility.serField "autocomplete_function_name" (autocomplete_function_name self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "dimension_type" (dimension_type self)
+        Io.Superposition.Utility.serField "value_compute_function_name" (value_compute_function_name self)
         Io.Superposition.Utility.serField "function_name" (function_name self)
         Io.Superposition.Utility.serField "description" (description self)
         Io.Superposition.Utility.serField "position" (position self)
