@@ -7025,7 +7025,7 @@
                     "dependency_graph": {
                         "$ref": "#/components/schemas/DependencyGraph"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     }
                 },

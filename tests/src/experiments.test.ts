@@ -239,6 +239,8 @@ describe("Experiments API", () => {
             strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: true,
+            enable_context_validation: true,
+            enable_change_reason_validation: true,
         });
         await superpositionClient.send(createWorkspaceCmd);
 

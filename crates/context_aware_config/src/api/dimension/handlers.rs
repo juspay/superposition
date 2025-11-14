@@ -39,13 +39,12 @@ use crate::{
             remove_connections_with_dependents,
         },
         validations::{
-            does_dimension_exist_for_cohorting, validate_auto_complete_function,
-            validate_cohort_position, validate_cohort_schema,
-            validate_dimension_position, validate_jsonschema,
-            validate_validation_function,
+            does_dimension_exist_for_cohorting, validate_cohort_position,
+            validate_cohort_schema, validate_dimension_position, validate_jsonschema,
+            validate_validation_function, validate_value_compute_function,
         },
     },
-    helpers::{add_config_version, get_workspace},
+    helpers::{add_config_version, get_workspace, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {
@@ -70,6 +69,13 @@ async fn create(
     let create_req = req.into_inner();
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    validate_change_reason(&create_req.change_reason, &mut conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
 
     let num_rows = dimensions
         .count()
@@ -114,11 +120,15 @@ async fn create(
         }
     }
 
-    validate_validation_function(&create_req.function_name, &mut conn, &schema_name)?;
+    validate_validation_function(
+        &create_req.value_validation_function_name,
+        &mut conn,
+        &schema_name,
+    )?;
 
-    validate_auto_complete_function(
+    validate_value_compute_function(
         &create_req.dimension_type,
-        &create_req.autocomplete_function_name,
+        &create_req.value_compute_function_name,
         &mut conn,
         &schema_name,
     )?;
@@ -129,13 +139,13 @@ async fn create(
         schema: create_req.schema,
         created_by: user.get_email(),
         created_at: Utc::now(),
-        function_name: create_req.function_name.clone(),
+        value_validation_function_name: create_req.value_validation_function_name.clone(),
         last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
         description: create_req.description,
         change_reason: create_req.change_reason,
         dependency_graph: DependencyGraph::default(),
-        autocomplete_function_name: create_req.autocomplete_function_name,
+        value_compute_function_name: create_req.value_compute_function_name,
         dimension_type: create_req.dimension_type,
     };
 
@@ -197,12 +207,14 @@ async fn create(
                     diesel::result::DatabaseErrorKind::ForeignKeyViolation,
                     e,
                 )) => {
-                    let fun_name = create_req.function_name.clone();
+                    let fun_name = create_req.value_validation_function_name.clone();
                     log::error!("{fun_name:?} function not found with error: {e:?}");
                     Err(bad_argument!(
                         "Function {} doesn't exists",
-                        Into::<Option<String>>::into(create_req.function_name.clone())
-                            .unwrap_or_default()
+                        Into::<Option<String>>::into(
+                            create_req.value_validation_function_name.clone()
+                        )
+                        .unwrap_or_default()
                     ))
                 }
                 Err(e) => {
@@ -261,6 +273,14 @@ async fn update(
     use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
+    let update_req = req.into_inner();
+
+    validate_change_reason(&update_req.change_reason, &mut conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
@@ -275,8 +295,6 @@ async fn update(
             log::error!("failed to fetch number of dimension with error: {}", err);
             db_error!(err)
         })?;
-
-    let update_req = req.into_inner();
 
     if let Some(ref new_schema) = update_req.schema {
         let schema_value = Value::from(new_schema);
@@ -312,14 +330,15 @@ async fn update(
         }
     }
 
-    if let Some(ref fn_name) = update_req.function_name {
+    if let Some(ref fn_name) = update_req.value_validation_function_name {
         validate_validation_function(fn_name, &mut conn, &schema_name)?;
     }
 
-    if let Some(ref auto_complete_function_name) = update_req.autocomplete_function_name {
-        validate_auto_complete_function(
+    if let Some(ref value_compute_function_name_) = update_req.value_compute_function_name
+    {
+        validate_value_compute_function(
             &dimension_data.dimension_type,
-            auto_complete_function_name,
+            value_compute_function_name_,
             &mut conn,
             &schema_name,
         )?;

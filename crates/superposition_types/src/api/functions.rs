@@ -3,6 +3,7 @@ use derive_more::{AsRef, Deref, DerefMut, Into};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use strum_macros::Display;
 use superposition_derives::{IsEmpty, QueryParam};
 
 #[cfg(feature = "diesel_derives")]
@@ -88,16 +89,31 @@ pub struct TestParam {
     pub stage: Stage,
 }
 
+#[derive(Debug, Display, Clone, Serialize, Deserialize)]
+pub enum KeyType {
+    ConfigKey,
+    Dimension,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FunctionExecutionRequest {
-    ValidateFunctionRequest {
+    ValueValidationFunctionRequest {
         key: String,
         value: Value,
+        r#type: KeyType,
+        environment: FunctionEnvironment,
     },
-    AutocompleteFunctionRequest {
+    ValueComputeFunctionRequest {
         name: String,
         prefix: String,
+        r#type: KeyType,
         environment: FunctionEnvironment,
+    },
+    ContextValidationFunctionRequest {
+        environment: FunctionEnvironment,
+    },
+    ChangeReasonValidationFunctionRequest {
+        change_reason: ChangeReason,
     },
 }
 
@@ -108,17 +124,84 @@ pub struct FunctionEnvironment {
 }
 
 impl FunctionExecutionRequest {
-    pub fn validation_default() -> Self {
-        Self::ValidateFunctionRequest {
+    pub fn value_validation_default() -> Self {
+        Self::ValueValidationFunctionRequest {
             key: String::new(),
             value: Value::String(String::new()),
+            r#type: KeyType::ConfigKey,
+            environment: FunctionEnvironment::default(),
         }
     }
-    pub fn autocomplete_default() -> Self {
-        Self::AutocompleteFunctionRequest {
+    pub fn value_compute_default() -> Self {
+        Self::ValueComputeFunctionRequest {
             name: String::new(),
             prefix: String::new(),
+            r#type: KeyType::Dimension,
             environment: FunctionEnvironment::default(),
+        }
+    }
+    pub fn context_validation_default() -> Self {
+        Self::ContextValidationFunctionRequest {
+            environment: FunctionEnvironment::default(),
+        }
+    }
+    pub fn change_reason_validation_default() -> Self {
+        Self::ChangeReasonValidationFunctionRequest {
+            change_reason: ChangeReason::default(),
+        }
+    }
+    pub fn function_identifier(&self) -> String {
+        match self {
+            FunctionExecutionRequest::ValueValidationFunctionRequest { key, .. } => {
+                String::from(key)
+            }
+            FunctionExecutionRequest::ValueComputeFunctionRequest { name, .. } => {
+                String::from(name)
+            }
+            FunctionExecutionRequest::ContextValidationFunctionRequest { .. } => {
+                String::from("context_validation_function")
+            }
+            FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                ..
+            } => String::from("change_reason_validation_function"),
+        }
+    }
+}
+
+impl From<&FunctionType> for FunctionExecutionRequest {
+    fn from(function_type: &FunctionType) -> Self {
+        match function_type {
+            FunctionType::ValueValidation => {
+                FunctionExecutionRequest::value_validation_default()
+            }
+            FunctionType::ValueCompute => {
+                FunctionExecutionRequest::value_compute_default()
+            }
+            FunctionType::ContextValidation => {
+                FunctionExecutionRequest::context_validation_default()
+            }
+            FunctionType::ChangeReasonValidation => {
+                FunctionExecutionRequest::change_reason_validation_default()
+            }
+        }
+    }
+}
+
+impl From<&FunctionExecutionRequest> for FunctionType {
+    fn from(value: &FunctionExecutionRequest) -> Self {
+        match value {
+            FunctionExecutionRequest::ValueValidationFunctionRequest { .. } => {
+                FunctionType::ValueValidation
+            }
+            FunctionExecutionRequest::ValueComputeFunctionRequest { .. } => {
+                FunctionType::ValueCompute
+            }
+            FunctionExecutionRequest::ContextValidationFunctionRequest { .. } => {
+                FunctionType::ContextValidation
+            }
+            FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                ..
+            } => FunctionType::ChangeReasonValidation,
         }
     }
 }

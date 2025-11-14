@@ -152,7 +152,7 @@ pub fn fetch_dimensions_info_map(
             position,
             dimension_type,
             dependency_graph,
-            autocomplete_function_name,
+            value_compute_function_name,
         ))
         .order_by(position.asc())
         .schema_name(schema_name)
@@ -166,7 +166,7 @@ pub fn fetch_dimensions_info_map(
         )>(conn)?
         .into_iter()
         .map(
-            |(key, schema_value, pos, dim_type, dep_graph, auto_complete_fn)| {
+            |(key, schema_value, pos, dim_type, dep_graph, value_compute_fn)| {
                 (
                     key,
                     DimensionInfo {
@@ -174,7 +174,7 @@ pub fn fetch_dimensions_info_map(
                         position: pos,
                         dimension_type: dim_type,
                         dependency_graph: dep_graph,
-                        autocomplete_function_name: auto_complete_fn,
+                        value_compute_function_name: value_compute_fn,
                     },
                 )
             },

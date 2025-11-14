@@ -140,14 +140,14 @@ pub struct Dimension {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: ExtendedMap,
-    pub function_name: Option<String>,
+    pub value_validation_function_name: Option<String>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub position: Position,
     pub description: Description,
     pub change_reason: ChangeReason,
     pub dependency_graph: DependencyGraph,
-    pub autocomplete_function_name: Option<String>,
+    pub value_compute_function_name: Option<String>,
     pub dimension_type: DimensionType,
 }
 
@@ -165,12 +165,12 @@ pub struct DefaultConfig {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub schema: ExtendedMap,
-    pub function_name: Option<String>,
+    pub value_validation_function_name: Option<String>,
     pub last_modified_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub autocomplete_function_name: Option<String>,
+    pub value_compute_function_name: Option<String>,
 }
 
 #[derive(
@@ -185,37 +185,49 @@ pub struct DefaultConfig {
     strum_macros::EnumIter,
     strum_macros::EnumString,
 )]
-#[serde(rename_all = "UPPERCASE")]
-#[strum(serialize_all = "UPPERCASE")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(diesel_derive_enum::DbEnum, QueryId)
 )]
-#[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(
     feature = "diesel_derives",
-    ExistingTypePath = "crate::database::schema::sql_types::FunctionTypes"
+    ExistingTypePath = "crate::database::schema::sql_types::FunctionTypesNew"
 )]
 pub enum FunctionType {
     #[default]
-    Validation,
-    Autocomplete,
+    ValueValidation,
+    ValueCompute,
+    ContextValidation,
+    ChangeReasonValidation,
 }
 
 impl FunctionType {
     pub fn get_fn_signature(&self) -> String {
         match self {
-            FunctionType::Validation => "validate({key}, {value})".to_string(),
-            FunctionType::Autocomplete => {
-                "autocomplete({name}, {prefix}, {environment})".to_string()
+            FunctionType::ValueValidation => {
+                "validate_value({key}, {value}, {type}, {environment})".to_string()
+            }
+            FunctionType::ValueCompute => {
+                "value_compute({name}, {prefix}, {type}, {environment})".to_string()
+            }
+            FunctionType::ContextValidation => {
+                "validate_context({environment})".to_string()
+            }
+            FunctionType::ChangeReasonValidation => {
+                "validate_change_reason({change_reason})".to_string()
             }
         }
     }
 
     pub fn get_js_fn_name(&self) -> String {
         match self {
-            FunctionType::Validation => "validate".to_string(),
-            FunctionType::Autocomplete => "autocomplete".to_string(),
+            FunctionType::ValueValidation => "validate_value".to_string(),
+            FunctionType::ValueCompute => "value_compute".to_string(),
+            FunctionType::ContextValidation => "validate_context".to_string(),
+            FunctionType::ChangeReasonValidation => "validate_change_reason".to_string(),
         }
     }
 }
