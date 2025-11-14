@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.94.0 - 2025-11-14
+### Package updates
+- haskell_client bumped to haskell_client-v0.9.0
+- superposition_core bumped to superposition_core-v0.8.0
+### Global changes
+#### Features
+- **(hs)** Open feature provider for Haskell. (#746) - (ca2d53b) - ShreyBana
+#### Miscellaneous Chores
+- **(version)** v0.93.2 [skip ci] - (49705df) - Superposition Bot
+
+- - -
+
 ## v0.93.2 - 2025-11-07
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.64.2
