@@ -20,6 +20,8 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
+use crate::helpers::validate_change_reason;
+
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get_type)
@@ -48,6 +50,12 @@ async fn create_type(
             err.to_string()
         )
     })?;
+    validate_change_reason(&request.change_reason, &mut conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
     let type_name: String = request.type_name.clone().into();
     let type_template = diesel::insert_into(type_templates::table)
         .values((
@@ -108,6 +116,12 @@ async fn update_type(
         )
     })?;
 
+    let change_reason = request.change_reason;
+    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
+        log::error!("change reason validation failed with error: {:?}", err);
+        err
+    })?;
+
     let description = request.description;
     let type_name: String = path.into_inner().into();
     let final_description = if let Some(description) = description {
@@ -132,7 +146,6 @@ async fn update_type(
             }
         }
     };
-    let change_reason = request.change_reason;
     let timestamp = Utc::now();
     let updated_type = diesel::update(type_templates::table)
         .filter(type_templates::type_name.eq(type_name))

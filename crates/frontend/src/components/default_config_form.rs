@@ -63,7 +63,7 @@ pub fn default_config_form(
     #[prop(default = Value::Null)] type_schema: Value,
     #[prop(default = Value::Null)] config_value: Value,
     #[prop(default = None)] validation_function_name: Option<String>,
-    #[prop(default = None)] autocomplete_function_name: Option<String>,
+    #[prop(default = None)] value_compute_function_name: Option<String>,
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
     #[prop(into)] handle_submit: Callback<()>,
@@ -81,8 +81,8 @@ pub fn default_config_form(
     let (config_value_rs, config_value_ws) = create_signal(config_value);
     let (validation_fn_name_rs, validation_fn_name_ws) =
         create_signal(validation_function_name);
-    let (autocomplete_fn_name_rs, autocomplete_fn_name_ws) =
-        create_signal(autocomplete_function_name);
+    let (value_compute_function_name_rs, value_compute_function_name_ws) =
+        create_signal(value_compute_function_name);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
@@ -125,9 +125,9 @@ pub fn default_config_form(
             validation_fn_name_ws.update(|v| set_function(selected_function, v));
         });
 
-    let handle_select_dropdown_option_autocomplete =
+    let handle_select_dropdown_option_value_compute =
         Callback::new(move |selected_function: FunctionsName| {
-            autocomplete_fn_name_ws.update(|v| set_function(selected_function, v));
+            value_compute_function_name_ws.update(|v| set_function(selected_function, v));
         });
 
     let on_submit = Callback::new(move |_| {
@@ -137,7 +137,7 @@ pub fn default_config_form(
         let f_value = config_value_rs.get_untracked();
 
         let fun_name = validation_fn_name_rs.get_untracked();
-        let autocomplete_fn = autocomplete_fn_name_rs.get_untracked();
+        let value_compute_fn = value_compute_function_name_rs.get_untracked();
 
         let description = description_rs.get_untracked();
         let change_reason = change_reason_rs.get_untracked();
@@ -159,7 +159,7 @@ pub fn default_config_form(
                         f_value,
                         f_schema,
                         fun_name,
-                        autocomplete_fn,
+                        value_compute_fn,
                         description,
                         change_reason,
                     );
@@ -178,7 +178,7 @@ pub fn default_config_form(
                     f_value,
                     f_schema,
                     fun_name,
-                    autocomplete_fn,
+                    value_compute_fn,
                     description,
                     change_reason,
                 )
@@ -442,17 +442,17 @@ pub fn default_config_form(
                         let mut validation_function_names: Vec<FunctionsName> = vec![
                             "None".to_string(),
                         ];
-                        let mut autocomplete_function_names: Vec<FunctionsName> = vec![
+                        let mut value_compute_function_names: Vec<FunctionsName> = vec![
                             "None".to_string(),
                         ];
                         functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
                         functions
                             .iter()
                             .for_each(|ele| {
-                                if ele.function_type == FunctionType::Validation {
+                                if ele.function_type == FunctionType::ValueValidation {
                                     validation_function_names.push(ele.function_name.clone());
                                 } else {
-                                    autocomplete_function_names.push(ele.function_name.clone());
+                                    value_compute_function_names.push(ele.function_name.clone());
                                 }
                             });
                         view! {
@@ -477,19 +477,19 @@ pub fn default_config_form(
 
                             <div class="form-control">
                                 <Label
-                                    title="AutoComplete Function"
-                                    description="Function to add auto complete suggestion to your key"
+                                    title="Value Compute Function"
+                                    description="Function to add value compute suggestion to your key"
                                 />
                                 <Dropdown
                                     dropdown_width="w-100"
                                     dropdown_icon="".to_string()
-                                    dropdown_text=autocomplete_fn_name_rs
+                                    dropdown_text=value_compute_function_name_rs
                                         .get()
                                         .map_or("Add Function".to_string(), |v| v.to_string())
                                     dropdown_direction=DropdownDirection::Down
                                     dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_options=autocomplete_function_names
-                                    on_select=handle_select_dropdown_option_autocomplete
+                                    dropdown_options=value_compute_function_names
+                                    on_select=handle_select_dropdown_option_value_compute
                                 />
                             </div>
                         }
@@ -604,14 +604,16 @@ pub fn change_log_summary(
                                     .deref()
                                     .to_string();
                                 let valdiate_fn = update_request
-                                    .function_name
-                                    .clone()
-                                    .unwrap_or_else(|| default.function_name.clone());
-                                let autocomplete_fn = update_request
-                                    .autocomplete_function_name
+                                    .value_validation_function_name
                                     .clone()
                                     .unwrap_or_else(|| {
-                                        default.autocomplete_function_name.clone()
+                                        default.value_validation_function_name.clone()
+                                    });
+                                let value_compute_fn = update_request
+                                    .value_compute_function_name
+                                    .clone()
+                                    .unwrap_or_else(|| {
+                                        default.value_compute_function_name.clone()
                                     });
                                 (
                                     Some(
@@ -632,12 +634,12 @@ pub fn change_log_summary(
                                             )),
                                             valdiate_fn
                                                 .map(|f| (
-                                                    "Validation Function".to_string(),
+                                                    "Value Validation Function".to_string(),
                                                     Value::String(f.clone()),
                                                 )),
-                                            autocomplete_fn
+                                            value_compute_fn
                                                 .map(|f| (
-                                                    "Autocomplete Function".to_string(),
+                                                    "Value Compute Function".to_string(),
                                                     Value::String(f.clone()),
                                                 )),
                                         ]
@@ -669,15 +671,15 @@ pub fn change_log_summary(
                                             Value::String(default.description.deref().to_string()),
                                         )),
                                         default
-                                            .function_name
+                                            .value_validation_function_name
                                             .map(|f| (
-                                                "Validation Function".to_string(),
+                                                "Value Validation Function".to_string(),
                                                 Value::String(f.clone()),
                                             )),
                                         default
-                                            .autocomplete_function_name
+                                            .value_compute_function_name
                                             .map(|f| (
-                                                "Autocomplete Function".to_string(),
+                                                "Value Compute Function".to_string(),
                                                 Value::String(f.clone()),
                                             )),
                                     ]

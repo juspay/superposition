@@ -23,6 +23,8 @@ resource Workspace {
         metrics: Document
         allow_experiment_self_approval: Boolean
         auto_populate_control: Boolean
+        enable_context_validation: Boolean
+        enable_change_reason_validation: Boolean
     }
     list: ListWorkspace
     update: UpdateWorkspace
@@ -56,11 +58,13 @@ structure CreateWorkspaceRequest for Workspace with [OrganisationMixin] {
 
     $metrics
 
-    @required
     $allow_experiment_self_approval
 
-    @required
     $auto_populate_control
+
+    $enable_context_validation
+
+    $enable_change_reason_validation
 }
 
 structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
@@ -83,6 +87,10 @@ structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
     $allow_experiment_self_approval
 
     $auto_populate_control
+
+    $enable_context_validation
+
+    $enable_change_reason_validation
 }
 
 structure MigrateWorkspaceSchemaRequest for Workspace with [OrganisationMixin] {
@@ -137,6 +145,12 @@ structure WorkspaceResponse for Workspace {
 
     @required
     $auto_populate_control
+
+    @required
+    $enable_context_validation
+
+    @required
+    $enable_change_reason_validation
 }
 
 list WorkspaceList {

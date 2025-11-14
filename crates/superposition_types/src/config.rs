@@ -52,7 +52,9 @@ macro_rules! impl_try_from_map {
     };
 }
 
-#[derive(Deserialize, Serialize, Clone, Deref, DerefMut, Debug, PartialEq, Into)]
+#[derive(
+    Deserialize, Serialize, Clone, Deref, DerefMut, Debug, PartialEq, Into, Default,
+)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
@@ -431,5 +433,5 @@ pub struct DimensionInfo {
     pub dimension_type: DimensionType,
     pub dependency_graph: DependencyGraph,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub autocomplete_function_name: Option<String>,
+    pub value_compute_function_name: Option<String>,
 }

@@ -62,6 +62,8 @@ async def create_workspace(client, org_id: str, workspace_name: str):
         strict_mode=True,
         allow_experiment_self_approval=True,
         auto_populate_control=False, # disable auto populate control for testing experiment
+        enable_context_validation=True,
+        enable_change_reason_validation=True,
     )
     try:
         response = await client.create_workspace(input_data)
@@ -353,7 +355,7 @@ async def run_demo(org_id: str, workspace_id: str):
         evaluation_context = EvaluationContext(attributes={})
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 10000, "Default price should be 10000"
         assert currency == "Rupee", "Default currency should be Rupee"
         print("  ✓ Test passed\n")
@@ -363,7 +365,7 @@ async def run_demo(org_id: str, workspace_id: str):
         evaluation_context = EvaluationContext(attributes={"name": "Agush"})
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 5000, "Price should be default 5000 (platinum customer)"
         assert currency == "Rupee", "Currency should be default Rupee"
         print("  ✓ Test passed\n")
@@ -375,7 +377,7 @@ async def run_demo(org_id: str, workspace_id: str):
         )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 5000, "Price should be 5000"
         assert currency == "Dollar", "Currency should be dollar"
         print("  ✓ Test passed\n")
@@ -384,7 +386,7 @@ async def run_demo(org_id: str, workspace_id: str):
         evaluation_context = EvaluationContext(attributes={"name": "John"})
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 10000, "Price should be default 10000"
         assert currency == "Rupee", "Currency should be default Rupee"
         print("  ✓ Test passed\n")
@@ -395,7 +397,7 @@ async def run_demo(org_id: str, workspace_id: str):
         )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 5000, "Price should be 5000"
         assert currency == "Euro", "Currency should be Euro in Berlin"
         print("  ✓ Test passed\n")
@@ -406,7 +408,7 @@ async def run_demo(org_id: str, workspace_id: str):
         )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 10000, "Price should be default 10000"
         assert currency == "Dollar", "Currency should be Dollar in Boston"
         print("  ✓ Test passed\n")
@@ -415,7 +417,7 @@ async def run_demo(org_id: str, workspace_id: str):
         evaluation_context = EvaluationContext(attributes={"name": "karbik"})
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 1, "Price should be 1 for karbik"
         assert currency == "Rupee", "Currency should be default Rupee"
         print("  ✓ Test passed\n")
@@ -426,7 +428,7 @@ async def run_demo(org_id: str, workspace_id: str):
         )
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
-
+        print(f"  - Retrieved price: {price}, currency: {currency}")
         assert price == 1, "Price should be 1 for karbik"
         assert currency == "Dollar", "Currency should be Dollar in Boston"
         print("  ✓ Test passed\n")
@@ -439,7 +441,6 @@ async def run_demo(org_id: str, workspace_id: str):
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
         print(f"  - Retrieved price: {price}, currency: {currency}")
-
         assert price in [8000, 7000], "Price should be either 8000 (control) or 7000 (experimental) in Kolkata"
         assert currency == "Rupee", "Currency should be Rupee in Kolkata"
         print("  ✓ Experiment Test passed\n")

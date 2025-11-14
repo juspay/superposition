@@ -117,8 +117,14 @@ async fn create_workspace(
         #[cfg(not(feature = "jsonlogic"))]
         strict_mode: true,
         metrics: request.metrics.unwrap_or_default(),
-        allow_experiment_self_approval: request.allow_experiment_self_approval,
-        auto_populate_control: request.auto_populate_control,
+        allow_experiment_self_approval: request
+            .allow_experiment_self_approval
+            .unwrap_or(true),
+        auto_populate_control: request.auto_populate_control.unwrap_or(true),
+        enable_context_validation: request.enable_context_validation.unwrap_or(false),
+        enable_change_reason_validation: request
+            .enable_change_reason_validation
+            .unwrap_or(false),
     };
 
     let created_workspace =

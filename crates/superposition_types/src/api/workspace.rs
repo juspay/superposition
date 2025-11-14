@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 
-use super::{default_true, deserialize_option_i64, I64Update};
+use super::{deserialize_option_i64, I64Update};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WorkspaceResponse {
@@ -26,6 +26,8 @@ pub struct WorkspaceResponse {
     pub metrics: Metrics,
     pub allow_experiment_self_approval: bool,
     pub auto_populate_control: bool,
+    pub enable_context_validation: bool,
+    pub enable_change_reason_validation: bool,
 }
 
 impl From<Workspace> for WorkspaceResponse {
@@ -50,6 +52,8 @@ impl From<Workspace> for WorkspaceResponse {
             metrics: workspace.metrics,
             allow_experiment_self_approval: workspace.allow_experiment_self_approval,
             auto_populate_control: workspace.auto_populate_control,
+            enable_context_validation: workspace.enable_context_validation,
+            enable_change_reason_validation: workspace.enable_change_reason_validation,
         }
     }
 }
@@ -63,9 +67,10 @@ pub struct CreateWorkspaceRequest {
     #[serde(alias = "workspace_strict_mode")]
     pub strict_mode: bool,
     pub metrics: Option<Metrics>,
-    pub allow_experiment_self_approval: bool,
-    #[serde(default = "default_true")]
-    pub auto_populate_control: bool,
+    pub allow_experiment_self_approval: Option<bool>,
+    pub auto_populate_control: Option<bool>,
+    pub enable_context_validation: Option<bool>,
+    pub enable_change_reason_validation: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -80,6 +85,8 @@ pub struct UpdateWorkspaceRequest {
     pub metrics: Option<Metrics>,
     pub allow_experiment_self_approval: Option<bool>,
     pub auto_populate_control: Option<bool>,
+    pub enable_context_validation: Option<bool>,
+    pub enable_change_reason_validation: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]

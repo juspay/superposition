@@ -5,7 +5,7 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
 };
-use serde_json::Value;
+use serde_json::{Map, Value};
 use service_utils::service::types::SchemaName;
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
@@ -14,7 +14,7 @@ use superposition_types::{
         models::{cac::Context, Description},
         schema::contexts::{self, dsl},
     },
-    result, DBConnection, User,
+    result, DBConnection, Overrides, User,
 };
 
 use crate::{
@@ -76,16 +76,25 @@ pub fn update(
     user: &User,
     schema_name: &SchemaName,
 ) -> result::Result<Context> {
-    let context_id = match req.context {
-        Identifier::Context(context) => hash(&Value::Object(context.into_inner().into())),
-        Identifier::Id(id) => id,
+    let (context_id, context) = match req.context {
+        Identifier::Context(context) => {
+            let ctx_value: Map<String, Value> = context.into_inner().into();
+            (hash(&Value::Object(ctx_value.clone())), ctx_value)
+        }
+        Identifier::Id(id) => {
+            let ctx_value: Context = dsl::contexts
+                .filter(dsl::id.eq(id.clone()))
+                .schema_name(schema_name)
+                .get_result::<Context>(conn)?;
+            (id.clone(), ctx_value.value.into())
+        }
     };
 
     let r_override = req.override_.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_override_with_functions(conn, &r_override, schema_name)?;
+    validate_override_with_functions(conn, &r_override, &context, schema_name)?;
 
     let update_request = UpdateContextOverridesChangeset {
         override_id: hash(&ctx_override),
@@ -122,7 +131,12 @@ pub fn r#move(
 
     let new_ctx_id = hash(&ctx_condition_value);
 
-    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone())?;
+    let dimension_data_map = validate_ctx(
+        conn,
+        schema_name,
+        ctx_condition.clone(),
+        Overrides::default(),
+    )?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 

@@ -212,7 +212,7 @@ fn check_fn_published(
     }
 }
 
-pub fn validate_auto_complete_function(
+pub fn validate_value_compute_function(
     dimension_type: &DimensionType,
     function: &Option<String>,
     conn: &mut DBConnection,
@@ -220,14 +220,14 @@ pub fn validate_auto_complete_function(
 ) -> superposition::Result<()> {
     match dimension_type {
         DimensionType::LocalCohort(_) if function.is_some() => Err(validation_error!(
-            "Auto-complete function should not be provided for local cohort dimensions"
+            "Value Compute function should not be provided for local cohort dimensions"
         )),
         DimensionType::RemoteCohort(_) => {
             if let Some(func_name) = function {
                 check_fn_published(func_name, conn, schema_name)
             } else {
                 Err(validation_error!(
-                    "Auto-complete function must be provided for remote cohort dimensions"
+                    "Value Compute function must be provided for remote cohort dimensions"
                 ))
             }
         }

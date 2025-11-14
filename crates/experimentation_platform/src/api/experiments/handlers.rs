@@ -77,7 +77,8 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_webhook_by_event, get_workspace, validate_control_overrides,
+            fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
+            get_workspace, validate_control_overrides,
             validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
@@ -137,6 +138,15 @@ async fn create(
     let change_reason = req.change_reason.clone();
 
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
@@ -412,6 +422,17 @@ async fn conclude_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
+
     let (response, config_version_id) = conclude(
         &state,
         path.into_inner(),
@@ -470,14 +491,7 @@ pub async fn conclude(
 ) -> superposition::Result<(Experiment, Option<String>)> {
     use superposition_types::database::schema::experiments::dsl;
 
-    let change_reason = ChangeReason::try_from(format!(
-        "Experiment concluded with variant id {:?}",
-        req.chosen_variant
-    ))
-    .map_err(|err| {
-        log::error!("Failed to convert change reason: {}", err);
-        unexpected_error!("Failed to convert change reason")
-    })?;
+    let change_reason = req.change_reason.clone();
 
     let winner_variant_id: String = req.chosen_variant.to_owned();
 
@@ -579,8 +593,8 @@ pub async fn conclude(
                     value: Some(val),
                     change_reason: change_reason.clone(),
                     schema: None,
-                    function_name: None,
-                    autocomplete_function_name: None,
+                    value_validation_function_name: None,
+                    value_compute_function_name: None,
                     description: None,
                 };
 
@@ -692,6 +706,17 @@ async fn discard_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
+
     let (response, config_version_id) = discard(
         &state,
         path.into_inner(),
@@ -1131,6 +1156,16 @@ async fn ramp(
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
     let change_reason = req.change_reason.clone();
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
 
     let experiment: Experiment = experiments::experiments
         .find(exp_id)
@@ -1319,6 +1354,16 @@ async fn update_overrides(
     let experiment_group_id = req.experiment_group_id.clone();
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
 
     let payload = req.into_inner();
     let variants = payload.variants;
@@ -1660,6 +1705,17 @@ async fn pause_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
+
     let response = pause(
         path.into_inner(),
         req.into_inner(),
@@ -1749,6 +1805,17 @@ async fn resume_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
+
     let response = resume(
         path.into_inner(),
         req.into_inner(),

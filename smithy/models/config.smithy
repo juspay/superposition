@@ -77,7 +77,7 @@ structure DimensionInfo {
     @required
     dependency_graph: DependencyGraph
 
-    autocomplete_function_name: String
+    value_compute_function_name: String
 }
 
 map DimensionData {

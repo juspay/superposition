@@ -14,4 +14,6 @@ pub struct RowData {
     pub metrics: Metrics,
     pub allow_experiment_self_approval: bool,
     pub auto_populate_control: bool,
+    pub enable_context_validation: bool,
+    pub enable_change_reason_validation: bool,
 }
