@@ -37,6 +37,7 @@ pub mod table;
 pub mod toast;
 pub mod tooltip;
 pub mod type_template_form;
+pub mod variable_form;
 pub mod variant_form;
 pub mod webhook_form;
 pub mod workspace_form;

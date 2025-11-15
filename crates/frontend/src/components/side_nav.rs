@@ -76,6 +76,12 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             icon: "ri-file-list-3-line".to_string(),
             label: "Audit Log".to_string(),
         },
+        AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/variables"),
+            path: format!("{base}/admin/{org}/{tenant}/variables"),
+            icon: "ri-braces-line".to_string(),
+            label: "Variables".to_string(),
+        },
     ]
 }
 
