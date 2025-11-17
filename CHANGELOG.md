@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.94.2 - 2025-11-17
+### Package updates
+- superposition_core bumped to superposition_core-v0.8.2
+### Global changes
+#### Bug Fixes
+- Moved header file generation outside of crate dir as it causes an error during publish. (#749) - (599d2a5) - ShreyBana
+#### Miscellaneous Chores
+- **(version)** v0.94.1 [skip ci] - (8a98434) - Superposition Bot
+
+- - -
+
 ## v0.94.1 - 2025-11-17
 ### Package updates
 - superposition_core bumped to superposition_core-v0.8.1
