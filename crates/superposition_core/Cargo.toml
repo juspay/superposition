@@ -50,3 +50,6 @@ name = "superposition_core"
 # This can be whatever name makes sense for your project, but the rest of this tutorial assumes uniffi-bindgen.
 name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
+
+[build-dependencies]
+cbindgen = "0.26.0"
