@@ -242,7 +242,7 @@
                 postInstall = ''
                   ${if isDarwin then "fixDarwinDylibNames" else ""}
                   mkdir -p $out/include
-                  cp crates/superposition_core/include/* $out/include/
+                  cp target/include/superposition_core.h $out/include/
                 '';
               };
             };
