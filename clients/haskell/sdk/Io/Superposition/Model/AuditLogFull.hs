@@ -1,4 +1,5 @@
 module Io.Superposition.Model.AuditLogFull (
+    setId',
     setTableName,
     setUserName,
     setTimestamp,
@@ -9,6 +10,7 @@ module Io.Superposition.Model.AuditLogFull (
     build,
     AuditLogFullBuilder,
     AuditLogFull,
+    id',
     table_name,
     user_name,
     timestamp,
@@ -28,16 +30,18 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.AuditAction
 import qualified Io.Superposition.Utility
 
 data AuditLogFull = AuditLogFull {
-    table_name :: Data.Maybe.Maybe Data.Text.Text,
-    user_name :: Data.Maybe.Maybe Data.Text.Text,
-    timestamp :: Data.Maybe.Maybe Data.Time.UTCTime,
-    action :: Data.Maybe.Maybe Data.Text.Text,
+    id' :: Data.Text.Text,
+    table_name :: Data.Text.Text,
+    user_name :: Data.Text.Text,
+    timestamp :: Data.Time.UTCTime,
+    action :: Io.Superposition.Model.AuditAction.AuditAction,
     original_data :: Data.Maybe.Maybe Data.Aeson.Value,
     new_data :: Data.Maybe.Maybe Data.Aeson.Value,
-    query :: Data.Maybe.Maybe Data.Text.Text
+    query :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -46,6 +50,7 @@ data AuditLogFull = AuditLogFull {
 
 instance Data.Aeson.ToJSON AuditLogFull where
     toJSON a = Data.Aeson.object [
+        "id" Data.Aeson..= id' a,
         "table_name" Data.Aeson..= table_name a,
         "user_name" Data.Aeson..= user_name a,
         "timestamp" Data.Aeson..= timestamp a,
@@ -60,7 +65,8 @@ instance Io.Superposition.Utility.SerializeBody AuditLogFull
 
 instance Data.Aeson.FromJSON AuditLogFull where
     parseJSON = Data.Aeson.withObject "AuditLogFull" $ \v -> AuditLogFull
-        Data.Functor.<$> (v Data.Aeson..: "table_name")
+        Data.Functor.<$> (v Data.Aeson..: "id")
+        Control.Applicative.<*> (v Data.Aeson..: "table_name")
         Control.Applicative.<*> (v Data.Aeson..: "user_name")
         Control.Applicative.<*> (v Data.Aeson..: "timestamp")
         Control.Applicative.<*> (v Data.Aeson..: "action")
@@ -72,10 +78,11 @@ instance Data.Aeson.FromJSON AuditLogFull where
 
 
 data AuditLogFullBuilderState = AuditLogFullBuilderState {
+    id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
     table_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     user_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     timestampBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
-    actionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    actionBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.AuditAction.AuditAction,
     original_dataBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     new_dataBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     queryBuilderState :: Data.Maybe.Maybe Data.Text.Text
@@ -85,6 +92,7 @@ data AuditLogFullBuilderState = AuditLogFullBuilderState {
 
 defaultBuilderState :: AuditLogFullBuilderState
 defaultBuilderState = AuditLogFullBuilderState {
+    id'BuilderState = Data.Maybe.Nothing,
     table_nameBuilderState = Data.Maybe.Nothing,
     user_nameBuilderState = Data.Maybe.Nothing,
     timestampBuilderState = Data.Maybe.Nothing,
@@ -96,21 +104,25 @@ defaultBuilderState = AuditLogFullBuilderState {
 
 type AuditLogFullBuilder = Control.Monad.State.Strict.State AuditLogFullBuilderState
 
-setTableName :: Data.Maybe.Maybe Data.Text.Text -> AuditLogFullBuilder ()
+setId' :: Data.Text.Text -> AuditLogFullBuilder ()
+setId' value =
+   Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = Data.Maybe.Just value }))
+
+setTableName :: Data.Text.Text -> AuditLogFullBuilder ()
 setTableName value =
-   Control.Monad.State.Strict.modify (\s -> (s { table_nameBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { table_nameBuilderState = Data.Maybe.Just value }))
 
-setUserName :: Data.Maybe.Maybe Data.Text.Text -> AuditLogFullBuilder ()
+setUserName :: Data.Text.Text -> AuditLogFullBuilder ()
 setUserName value =
-   Control.Monad.State.Strict.modify (\s -> (s { user_nameBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { user_nameBuilderState = Data.Maybe.Just value }))
 
-setTimestamp :: Data.Maybe.Maybe Data.Time.UTCTime -> AuditLogFullBuilder ()
+setTimestamp :: Data.Time.UTCTime -> AuditLogFullBuilder ()
 setTimestamp value =
-   Control.Monad.State.Strict.modify (\s -> (s { timestampBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { timestampBuilderState = Data.Maybe.Just value }))
 
-setAction :: Data.Maybe.Maybe Data.Text.Text -> AuditLogFullBuilder ()
+setAction :: Io.Superposition.Model.AuditAction.AuditAction -> AuditLogFullBuilder ()
 setAction value =
-   Control.Monad.State.Strict.modify (\s -> (s { actionBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { actionBuilderState = Data.Maybe.Just value }))
 
 setOriginalData :: Data.Maybe.Maybe Data.Aeson.Value -> AuditLogFullBuilder ()
 setOriginalData value =
@@ -120,21 +132,23 @@ setNewData :: Data.Maybe.Maybe Data.Aeson.Value -> AuditLogFullBuilder ()
 setNewData value =
    Control.Monad.State.Strict.modify (\s -> (s { new_dataBuilderState = value }))
 
-setQuery :: Data.Maybe.Maybe Data.Text.Text -> AuditLogFullBuilder ()
+setQuery :: Data.Text.Text -> AuditLogFullBuilder ()
 setQuery value =
-   Control.Monad.State.Strict.modify (\s -> (s { queryBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { queryBuilderState = Data.Maybe.Just value }))
 
 build :: AuditLogFullBuilder () -> Data.Either.Either Data.Text.Text AuditLogFull
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    table_name' <- Data.Either.Right (table_nameBuilderState st)
-    user_name' <- Data.Either.Right (user_nameBuilderState st)
-    timestamp' <- Data.Either.Right (timestampBuilderState st)
-    action' <- Data.Either.Right (actionBuilderState st)
+    id'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AuditLogFull.AuditLogFull.id' is a required property.") Data.Either.Right (id'BuilderState st)
+    table_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AuditLogFull.AuditLogFull.table_name is a required property.") Data.Either.Right (table_nameBuilderState st)
+    user_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AuditLogFull.AuditLogFull.user_name is a required property.") Data.Either.Right (user_nameBuilderState st)
+    timestamp' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AuditLogFull.AuditLogFull.timestamp is a required property.") Data.Either.Right (timestampBuilderState st)
+    action' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AuditLogFull.AuditLogFull.action is a required property.") Data.Either.Right (actionBuilderState st)
     original_data' <- Data.Either.Right (original_dataBuilderState st)
     new_data' <- Data.Either.Right (new_dataBuilderState st)
-    query' <- Data.Either.Right (queryBuilderState st)
+    query' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.AuditLogFull.AuditLogFull.query is a required property.") Data.Either.Right (queryBuilderState st)
     Data.Either.Right (AuditLogFull { 
+        id' = id'',
         table_name = table_name',
         user_name = user_name',
         timestamp = timestamp',

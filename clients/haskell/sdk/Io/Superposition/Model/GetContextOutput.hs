@@ -42,16 +42,16 @@ import qualified Network.HTTP.Types
 
 data GetContextOutput = GetContextOutput {
     id' :: Data.Text.Text,
-    value :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    override :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    override_id :: Data.Maybe.Maybe Data.Text.Text,
-    weight :: Data.Maybe.Maybe Data.Text.Text,
-    description :: Data.Maybe.Maybe Data.Text.Text,
-    change_reason :: Data.Maybe.Maybe Data.Text.Text,
-    created_at :: Data.Maybe.Maybe Data.Time.UTCTime,
-    created_by :: Data.Maybe.Maybe Data.Text.Text,
-    last_modified_at :: Data.Maybe.Maybe Data.Time.UTCTime,
-    last_modified_by :: Data.Maybe.Maybe Data.Text.Text
+    value :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    override :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    override_id :: Data.Text.Text,
+    weight :: Data.Text.Text,
+    description :: Data.Text.Text,
+    change_reason :: Data.Text.Text,
+    created_at :: Data.Time.UTCTime,
+    created_by :: Data.Text.Text,
+    last_modified_at :: Data.Time.UTCTime,
+    last_modified_by :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -130,60 +130,60 @@ setId' :: Data.Text.Text -> GetContextOutputBuilder ()
 setId' value =
    Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = Data.Maybe.Just value }))
 
-setValue :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> GetContextOutputBuilder ()
+setValue :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> GetContextOutputBuilder ()
 setValue value =
-   Control.Monad.State.Strict.modify (\s -> (s { valueBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { valueBuilderState = Data.Maybe.Just value }))
 
-setOverride :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> GetContextOutputBuilder ()
+setOverride :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> GetContextOutputBuilder ()
 setOverride value =
-   Control.Monad.State.Strict.modify (\s -> (s { overrideBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { overrideBuilderState = Data.Maybe.Just value }))
 
-setOverrideId :: Data.Maybe.Maybe Data.Text.Text -> GetContextOutputBuilder ()
+setOverrideId :: Data.Text.Text -> GetContextOutputBuilder ()
 setOverrideId value =
-   Control.Monad.State.Strict.modify (\s -> (s { override_idBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { override_idBuilderState = Data.Maybe.Just value }))
 
-setWeight :: Data.Maybe.Maybe Data.Text.Text -> GetContextOutputBuilder ()
+setWeight :: Data.Text.Text -> GetContextOutputBuilder ()
 setWeight value =
-   Control.Monad.State.Strict.modify (\s -> (s { weightBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { weightBuilderState = Data.Maybe.Just value }))
 
-setDescription :: Data.Maybe.Maybe Data.Text.Text -> GetContextOutputBuilder ()
+setDescription :: Data.Text.Text -> GetContextOutputBuilder ()
 setDescription value =
-   Control.Monad.State.Strict.modify (\s -> (s { descriptionBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { descriptionBuilderState = Data.Maybe.Just value }))
 
-setChangeReason :: Data.Maybe.Maybe Data.Text.Text -> GetContextOutputBuilder ()
+setChangeReason :: Data.Text.Text -> GetContextOutputBuilder ()
 setChangeReason value =
-   Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
 
-setCreatedAt :: Data.Maybe.Maybe Data.Time.UTCTime -> GetContextOutputBuilder ()
+setCreatedAt :: Data.Time.UTCTime -> GetContextOutputBuilder ()
 setCreatedAt value =
-   Control.Monad.State.Strict.modify (\s -> (s { created_atBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { created_atBuilderState = Data.Maybe.Just value }))
 
-setCreatedBy :: Data.Maybe.Maybe Data.Text.Text -> GetContextOutputBuilder ()
+setCreatedBy :: Data.Text.Text -> GetContextOutputBuilder ()
 setCreatedBy value =
-   Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = Data.Maybe.Just value }))
 
-setLastModifiedAt :: Data.Maybe.Maybe Data.Time.UTCTime -> GetContextOutputBuilder ()
+setLastModifiedAt :: Data.Time.UTCTime -> GetContextOutputBuilder ()
 setLastModifiedAt value =
-   Control.Monad.State.Strict.modify (\s -> (s { last_modified_atBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { last_modified_atBuilderState = Data.Maybe.Just value }))
 
-setLastModifiedBy :: Data.Maybe.Maybe Data.Text.Text -> GetContextOutputBuilder ()
+setLastModifiedBy :: Data.Text.Text -> GetContextOutputBuilder ()
 setLastModifiedBy value =
-   Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = Data.Maybe.Just value }))
 
 build :: GetContextOutputBuilder () -> Data.Either.Either Data.Text.Text GetContextOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     id'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.id' is a required property.") Data.Either.Right (id'BuilderState st)
-    value' <- Data.Either.Right (valueBuilderState st)
-    override' <- Data.Either.Right (overrideBuilderState st)
-    override_id' <- Data.Either.Right (override_idBuilderState st)
-    weight' <- Data.Either.Right (weightBuilderState st)
-    description' <- Data.Either.Right (descriptionBuilderState st)
-    change_reason' <- Data.Either.Right (change_reasonBuilderState st)
-    created_at' <- Data.Either.Right (created_atBuilderState st)
-    created_by' <- Data.Either.Right (created_byBuilderState st)
-    last_modified_at' <- Data.Either.Right (last_modified_atBuilderState st)
-    last_modified_by' <- Data.Either.Right (last_modified_byBuilderState st)
+    value' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.value is a required property.") Data.Either.Right (valueBuilderState st)
+    override' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.override is a required property.") Data.Either.Right (overrideBuilderState st)
+    override_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.override_id is a required property.") Data.Either.Right (override_idBuilderState st)
+    weight' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.weight is a required property.") Data.Either.Right (weightBuilderState st)
+    description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.description is a required property.") Data.Either.Right (descriptionBuilderState st)
+    change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
+    created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
+    last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
+    last_modified_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextOutput.GetContextOutput.last_modified_by is a required property.") Data.Either.Right (last_modified_byBuilderState st)
     Data.Either.Right (GetContextOutput { 
         id' = id'',
         value = value',

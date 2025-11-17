@@ -20,14 +20,14 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.DefaultConfigFull
+import qualified Io.Superposition.Model.DefaultConfigResponse
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data ListDefaultConfigsOutput = ListDefaultConfigsOutput {
-    total_pages :: Data.Maybe.Maybe Data.Int.Int32,
-    total_items :: Data.Maybe.Maybe Data.Int.Int32,
-    data' :: Data.Maybe.Maybe ([] Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull)
+    total_pages :: Data.Int.Int32,
+    total_items :: Data.Int.Int32,
+    data' :: [] Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -56,7 +56,7 @@ instance Data.Aeson.FromJSON ListDefaultConfigsOutput where
 data ListDefaultConfigsOutputBuilderState = ListDefaultConfigsOutputBuilderState {
     total_pagesBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     total_itemsBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
-    data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull)
+    data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse)
 } deriving (
   GHC.Generics.Generic
   )
@@ -70,24 +70,24 @@ defaultBuilderState = ListDefaultConfigsOutputBuilderState {
 
 type ListDefaultConfigsOutputBuilder = Control.Monad.State.Strict.State ListDefaultConfigsOutputBuilderState
 
-setTotalPages :: Data.Maybe.Maybe Data.Int.Int32 -> ListDefaultConfigsOutputBuilder ()
+setTotalPages :: Data.Int.Int32 -> ListDefaultConfigsOutputBuilder ()
 setTotalPages value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_pagesBuilderState = Data.Maybe.Just value }))
 
-setTotalItems :: Data.Maybe.Maybe Data.Int.Int32 -> ListDefaultConfigsOutputBuilder ()
+setTotalItems :: Data.Int.Int32 -> ListDefaultConfigsOutputBuilder ()
 setTotalItems value =
-   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { total_itemsBuilderState = Data.Maybe.Just value }))
 
-setData' :: Data.Maybe.Maybe ([] Io.Superposition.Model.DefaultConfigFull.DefaultConfigFull) -> ListDefaultConfigsOutputBuilder ()
+setData' :: [] Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse -> ListDefaultConfigsOutputBuilder ()
 setData' value =
-   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = Data.Maybe.Just value }))
 
 build :: ListDefaultConfigsOutputBuilder () -> Data.Either.Either Data.Text.Text ListDefaultConfigsOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    total_pages' <- Data.Either.Right (total_pagesBuilderState st)
-    total_items' <- Data.Either.Right (total_itemsBuilderState st)
-    data'' <- Data.Either.Right (data'BuilderState st)
+    total_pages' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListDefaultConfigsOutput.ListDefaultConfigsOutput.total_pages is a required property.") Data.Either.Right (total_pagesBuilderState st)
+    total_items' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListDefaultConfigsOutput.ListDefaultConfigsOutput.total_items is a required property.") Data.Either.Right (total_itemsBuilderState st)
+    data'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListDefaultConfigsOutput.ListDefaultConfigsOutput.data' is a required property.") Data.Either.Right (data'BuilderState st)
     Data.Either.Right (ListDefaultConfigsOutput { 
         total_pages = total_pages',
         total_items = total_items',

@@ -6,6 +6,7 @@ module Io.Superposition.Model.GetResolvedConfigInput (
     setShowReasoning,
     setMergeStrategy,
     setContextId,
+    setResolveRemote,
     setContext,
     build,
     GetResolvedConfigInputBuilder,
@@ -17,6 +18,7 @@ module Io.Superposition.Model.GetResolvedConfigInput (
     show_reasoning,
     merge_strategy,
     context_id,
+    resolve_remote,
     context
 ) where
 import qualified Control.Applicative
@@ -37,11 +39,12 @@ import qualified Network.HTTP.Types.Method
 data GetResolvedConfigInput = GetResolvedConfigInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
-    prefix :: Data.Maybe.Maybe Data.Text.Text,
+    prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     version :: Data.Maybe.Maybe Data.Text.Text,
     show_reasoning :: Data.Maybe.Maybe Bool,
     merge_strategy :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
     context_id :: Data.Maybe.Maybe Data.Text.Text,
+    resolve_remote :: Data.Maybe.Maybe Bool,
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Show.Show,
@@ -58,6 +61,7 @@ instance Data.Aeson.ToJSON GetResolvedConfigInput where
         "show_reasoning" Data.Aeson..= show_reasoning a,
         "merge_strategy" Data.Aeson..= merge_strategy a,
         "context_id" Data.Aeson..= context_id a,
+        "resolve_remote" Data.Aeson..= resolve_remote a,
         "context" Data.Aeson..= context a
         ]
     
@@ -73,6 +77,7 @@ instance Data.Aeson.FromJSON GetResolvedConfigInput where
         Control.Applicative.<*> (v Data.Aeson..: "show_reasoning")
         Control.Applicative.<*> (v Data.Aeson..: "merge_strategy")
         Control.Applicative.<*> (v Data.Aeson..: "context_id")
+        Control.Applicative.<*> (v Data.Aeson..: "resolve_remote")
         Control.Applicative.<*> (v Data.Aeson..: "context")
     
 
@@ -81,11 +86,12 @@ instance Data.Aeson.FromJSON GetResolvedConfigInput where
 data GetResolvedConfigInputBuilderState = GetResolvedConfigInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    prefixBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     show_reasoningBuilderState :: Data.Maybe.Maybe Bool,
     merge_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
     context_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    resolve_remoteBuilderState :: Data.Maybe.Maybe Bool,
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
@@ -100,6 +106,7 @@ defaultBuilderState = GetResolvedConfigInputBuilderState {
     show_reasoningBuilderState = Data.Maybe.Nothing,
     merge_strategyBuilderState = Data.Maybe.Nothing,
     context_idBuilderState = Data.Maybe.Nothing,
+    resolve_remoteBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing
 }
 
@@ -113,7 +120,7 @@ setOrgId :: Data.Text.Text -> GetResolvedConfigInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
-setPrefix :: Data.Maybe.Maybe Data.Text.Text -> GetResolvedConfigInputBuilder ()
+setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> GetResolvedConfigInputBuilder ()
 setPrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
 
@@ -133,6 +140,10 @@ setContextId :: Data.Maybe.Maybe Data.Text.Text -> GetResolvedConfigInputBuilder
 setContextId value =
    Control.Monad.State.Strict.modify (\s -> (s { context_idBuilderState = value }))
 
+setResolveRemote :: Data.Maybe.Maybe Bool -> GetResolvedConfigInputBuilder ()
+setResolveRemote value =
+   Control.Monad.State.Strict.modify (\s -> (s { resolve_remoteBuilderState = value }))
+
 setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> GetResolvedConfigInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -147,6 +158,7 @@ build builder = do
     show_reasoning' <- Data.Either.Right (show_reasoningBuilderState st)
     merge_strategy' <- Data.Either.Right (merge_strategyBuilderState st)
     context_id' <- Data.Either.Right (context_idBuilderState st)
+    resolve_remote' <- Data.Either.Right (resolve_remoteBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (GetResolvedConfigInput { 
         workspace_id = workspace_id',
@@ -156,6 +168,7 @@ build builder = do
         show_reasoning = show_reasoning',
         merge_strategy = merge_strategy',
         context_id = context_id',
+        resolve_remote = resolve_remote',
         context = context'
     })
 
@@ -171,6 +184,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetResolvedConfigInput wher
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "context_id" (context_id self)
         Io.Superposition.Utility.serQuery "version" (version self)
+        Io.Superposition.Utility.serQuery "resolve_remote" (resolve_remote self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-merge-strategy" (merge_strategy self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)

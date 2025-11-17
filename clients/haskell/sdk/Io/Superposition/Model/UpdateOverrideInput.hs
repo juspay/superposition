@@ -109,7 +109,7 @@ build builder = do
 
 instance Io.Superposition.Utility.IntoRequestBuilder UpdateOverrideInput where
     intoRequestBuilder self = do
-        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPut
+        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPatch
         Io.Superposition.Utility.setPath [
             "context",
             "overrides"

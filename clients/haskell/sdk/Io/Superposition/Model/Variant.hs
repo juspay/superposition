@@ -19,6 +19,7 @@ import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
@@ -31,7 +32,7 @@ data Variant = Variant {
     variant_type :: Io.Superposition.Model.VariantType.VariantType,
     context_id :: Data.Maybe.Maybe Data.Text.Text,
     override_id :: Data.Maybe.Maybe Data.Text.Text,
-    overrides :: Data.Aeson.Value
+    overrides :: Data.Map.Map Data.Text.Text Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -66,7 +67,7 @@ data VariantBuilderState = VariantBuilderState {
     variant_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.VariantType.VariantType,
     context_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     override_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    overridesBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
+    overridesBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
   )
@@ -98,7 +99,7 @@ setOverrideId :: Data.Maybe.Maybe Data.Text.Text -> VariantBuilder ()
 setOverrideId value =
    Control.Monad.State.Strict.modify (\s -> (s { override_idBuilderState = value }))
 
-setOverrides :: Data.Aeson.Value -> VariantBuilder ()
+setOverrides :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> VariantBuilder ()
 setOverrides value =
    Control.Monad.State.Strict.modify (\s -> (s { overridesBuilderState = Data.Maybe.Just value }))
 

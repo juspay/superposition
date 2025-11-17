@@ -35,12 +35,12 @@ import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data GetConfigOutput = GetConfigOutput {
-    contexts :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextPartial.ContextPartial),
-    overrides :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text (Data.Map.Map Data.Text.Text Data.Aeson.Value)),
-    default_configs :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
-    dimensions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo),
-    version :: Data.Maybe.Maybe Data.Text.Text,
-    last_modified :: Data.Maybe.Maybe Data.Time.UTCTime,
+    contexts :: [] Io.Superposition.Model.ContextPartial.ContextPartial,
+    overrides :: Data.Map.Map Data.Text.Text (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    default_configs :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
+    dimensions :: Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo,
+    version :: Data.Text.Text,
+    last_modified :: Data.Time.UTCTime,
     audit_id :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -100,29 +100,29 @@ defaultBuilderState = GetConfigOutputBuilderState {
 
 type GetConfigOutputBuilder = Control.Monad.State.Strict.State GetConfigOutputBuilderState
 
-setContexts :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextPartial.ContextPartial) -> GetConfigOutputBuilder ()
+setContexts :: [] Io.Superposition.Model.ContextPartial.ContextPartial -> GetConfigOutputBuilder ()
 setContexts value =
-   Control.Monad.State.Strict.modify (\s -> (s { contextsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { contextsBuilderState = Data.Maybe.Just value }))
 
-setOverrides :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text (Data.Map.Map Data.Text.Text Data.Aeson.Value)) -> GetConfigOutputBuilder ()
+setOverrides :: Data.Map.Map Data.Text.Text (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> GetConfigOutputBuilder ()
 setOverrides value =
-   Control.Monad.State.Strict.modify (\s -> (s { overridesBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { overridesBuilderState = Data.Maybe.Just value }))
 
-setDefaultConfigs :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> GetConfigOutputBuilder ()
+setDefaultConfigs :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> GetConfigOutputBuilder ()
 setDefaultConfigs value =
-   Control.Monad.State.Strict.modify (\s -> (s { default_configsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { default_configsBuilderState = Data.Maybe.Just value }))
 
-setDimensions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo) -> GetConfigOutputBuilder ()
+setDimensions :: Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo -> GetConfigOutputBuilder ()
 setDimensions value =
-   Control.Monad.State.Strict.modify (\s -> (s { dimensionsBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { dimensionsBuilderState = Data.Maybe.Just value }))
 
-setVersion :: Data.Maybe.Maybe Data.Text.Text -> GetConfigOutputBuilder ()
+setVersion :: Data.Text.Text -> GetConfigOutputBuilder ()
 setVersion value =
-   Control.Monad.State.Strict.modify (\s -> (s { versionBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { versionBuilderState = Data.Maybe.Just value }))
 
-setLastModified :: Data.Maybe.Maybe Data.Time.UTCTime -> GetConfigOutputBuilder ()
+setLastModified :: Data.Time.UTCTime -> GetConfigOutputBuilder ()
 setLastModified value =
-   Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = Data.Maybe.Just value }))
 
 setAuditId :: Data.Maybe.Maybe Data.Text.Text -> GetConfigOutputBuilder ()
 setAuditId value =
@@ -131,12 +131,12 @@ setAuditId value =
 build :: GetConfigOutputBuilder () -> Data.Either.Either Data.Text.Text GetConfigOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    contexts' <- Data.Either.Right (contextsBuilderState st)
-    overrides' <- Data.Either.Right (overridesBuilderState st)
-    default_configs' <- Data.Either.Right (default_configsBuilderState st)
-    dimensions' <- Data.Either.Right (dimensionsBuilderState st)
-    version' <- Data.Either.Right (versionBuilderState st)
-    last_modified' <- Data.Either.Right (last_modifiedBuilderState st)
+    contexts' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.contexts is a required property.") Data.Either.Right (contextsBuilderState st)
+    overrides' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.overrides is a required property.") Data.Either.Right (overridesBuilderState st)
+    default_configs' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.default_configs is a required property.") Data.Either.Right (default_configsBuilderState st)
+    dimensions' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.dimensions is a required property.") Data.Either.Right (dimensionsBuilderState st)
+    version' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.version is a required property.") Data.Either.Right (versionBuilderState st)
+    last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
     audit_id' <- Data.Either.Right (audit_idBuilderState st)
     Data.Either.Right (GetConfigOutput { 
         contexts = contexts',

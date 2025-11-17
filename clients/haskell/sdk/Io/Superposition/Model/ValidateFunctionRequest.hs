@@ -20,8 +20,8 @@ import qualified GHC.Show
 import qualified Io.Superposition.Utility
 
 data ValidateFunctionRequest = ValidateFunctionRequest {
-    key :: Data.Maybe.Maybe Data.Text.Text,
-    value :: Data.Maybe.Maybe Data.Aeson.Value
+    key :: Data.Text.Text,
+    value :: Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -60,19 +60,19 @@ defaultBuilderState = ValidateFunctionRequestBuilderState {
 
 type ValidateFunctionRequestBuilder = Control.Monad.State.Strict.State ValidateFunctionRequestBuilderState
 
-setKey :: Data.Maybe.Maybe Data.Text.Text -> ValidateFunctionRequestBuilder ()
+setKey :: Data.Text.Text -> ValidateFunctionRequestBuilder ()
 setKey value =
-   Control.Monad.State.Strict.modify (\s -> (s { keyBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { keyBuilderState = Data.Maybe.Just value }))
 
-setValue :: Data.Maybe.Maybe Data.Aeson.Value -> ValidateFunctionRequestBuilder ()
+setValue :: Data.Aeson.Value -> ValidateFunctionRequestBuilder ()
 setValue value =
-   Control.Monad.State.Strict.modify (\s -> (s { valueBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { valueBuilderState = Data.Maybe.Just value }))
 
 build :: ValidateFunctionRequestBuilder () -> Data.Either.Either Data.Text.Text ValidateFunctionRequest
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    key' <- Data.Either.Right (keyBuilderState st)
-    value' <- Data.Either.Right (valueBuilderState st)
+    key' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ValidateFunctionRequest.ValidateFunctionRequest.key is a required property.") Data.Either.Right (keyBuilderState st)
+    value' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ValidateFunctionRequest.ValidateFunctionRequest.value is a required property.") Data.Either.Right (valueBuilderState st)
     Data.Either.Right (ValidateFunctionRequest { 
         key = key',
         value = value'

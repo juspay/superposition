@@ -26,9 +26,9 @@ import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data GetResolvedConfigOutput = GetResolvedConfigOutput {
-    config :: Data.Maybe.Maybe Data.Aeson.Value,
-    version :: Data.Maybe.Maybe Data.Text.Text,
-    last_modified :: Data.Maybe.Maybe Data.Time.UTCTime,
+    config :: Data.Aeson.Value,
+    version :: Data.Text.Text,
+    last_modified :: Data.Time.UTCTime,
     audit_id :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -76,17 +76,17 @@ defaultBuilderState = GetResolvedConfigOutputBuilderState {
 
 type GetResolvedConfigOutputBuilder = Control.Monad.State.Strict.State GetResolvedConfigOutputBuilderState
 
-setConfig :: Data.Maybe.Maybe Data.Aeson.Value -> GetResolvedConfigOutputBuilder ()
+setConfig :: Data.Aeson.Value -> GetResolvedConfigOutputBuilder ()
 setConfig value =
-   Control.Monad.State.Strict.modify (\s -> (s { configBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { configBuilderState = Data.Maybe.Just value }))
 
-setVersion :: Data.Maybe.Maybe Data.Text.Text -> GetResolvedConfigOutputBuilder ()
+setVersion :: Data.Text.Text -> GetResolvedConfigOutputBuilder ()
 setVersion value =
-   Control.Monad.State.Strict.modify (\s -> (s { versionBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { versionBuilderState = Data.Maybe.Just value }))
 
-setLastModified :: Data.Maybe.Maybe Data.Time.UTCTime -> GetResolvedConfigOutputBuilder ()
+setLastModified :: Data.Time.UTCTime -> GetResolvedConfigOutputBuilder ()
 setLastModified value =
-   Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = value }))
+   Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = Data.Maybe.Just value }))
 
 setAuditId :: Data.Maybe.Maybe Data.Text.Text -> GetResolvedConfigOutputBuilder ()
 setAuditId value =
@@ -95,9 +95,9 @@ setAuditId value =
 build :: GetResolvedConfigOutputBuilder () -> Data.Either.Either Data.Text.Text GetResolvedConfigOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    config' <- Data.Either.Right (configBuilderState st)
-    version' <- Data.Either.Right (versionBuilderState st)
-    last_modified' <- Data.Either.Right (last_modifiedBuilderState st)
+    config' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetResolvedConfigOutput.GetResolvedConfigOutput.config is a required property.") Data.Either.Right (configBuilderState st)
+    version' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetResolvedConfigOutput.GetResolvedConfigOutput.version is a required property.") Data.Either.Right (versionBuilderState st)
+    last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetResolvedConfigOutput.GetResolvedConfigOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
     audit_id' <- Data.Either.Right (audit_idBuilderState st)
     Data.Either.Right (GetResolvedConfigOutput { 
         config = config',

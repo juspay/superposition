@@ -1,9 +1,9 @@
 module Io.Superposition.Model.BulkOperationOutput (
-    setBulkOperationOutput,
+    setOutput,
     build,
     BulkOperationOutputBuilder,
     BulkOperationOutput,
-    bulk_operation_output
+    output
 ) where
 import qualified Control.Monad.State.Strict
 import qualified Data.Aeson
@@ -14,12 +14,12 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.BulkOperationOut
+import qualified Io.Superposition.Model.ContextActionOut
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data BulkOperationOutput = BulkOperationOutput {
-    bulk_operation_output :: Data.Maybe.Maybe Io.Superposition.Model.BulkOperationOut.BulkOperationOut
+    output :: [] Io.Superposition.Model.ContextActionOut.ContextActionOut
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -28,7 +28,7 @@ data BulkOperationOutput = BulkOperationOutput {
 
 instance Data.Aeson.ToJSON BulkOperationOutput where
     toJSON a = Data.Aeson.object [
-        "bulk_operation_output" Data.Aeson..= bulk_operation_output a
+        "output" Data.Aeson..= output a
         ]
     
 
@@ -36,34 +36,34 @@ instance Io.Superposition.Utility.SerializeBody BulkOperationOutput
 
 instance Data.Aeson.FromJSON BulkOperationOutput where
     parseJSON = Data.Aeson.withObject "BulkOperationOutput" $ \v -> BulkOperationOutput
-        Data.Functor.<$> (v Data.Aeson..: "bulk_operation_output")
+        Data.Functor.<$> (v Data.Aeson..: "output")
     
 
 
 
 data BulkOperationOutputBuilderState = BulkOperationOutputBuilderState {
-    bulk_operation_outputBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.BulkOperationOut.BulkOperationOut
+    outputBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ContextActionOut.ContextActionOut)
 } deriving (
   GHC.Generics.Generic
   )
 
 defaultBuilderState :: BulkOperationOutputBuilderState
 defaultBuilderState = BulkOperationOutputBuilderState {
-    bulk_operation_outputBuilderState = Data.Maybe.Nothing
+    outputBuilderState = Data.Maybe.Nothing
 }
 
 type BulkOperationOutputBuilder = Control.Monad.State.Strict.State BulkOperationOutputBuilderState
 
-setBulkOperationOutput :: Data.Maybe.Maybe Io.Superposition.Model.BulkOperationOut.BulkOperationOut -> BulkOperationOutputBuilder ()
-setBulkOperationOutput value =
-   Control.Monad.State.Strict.modify (\s -> (s { bulk_operation_outputBuilderState = value }))
+setOutput :: [] Io.Superposition.Model.ContextActionOut.ContextActionOut -> BulkOperationOutputBuilder ()
+setOutput value =
+   Control.Monad.State.Strict.modify (\s -> (s { outputBuilderState = Data.Maybe.Just value }))
 
 build :: BulkOperationOutputBuilder () -> Data.Either.Either Data.Text.Text BulkOperationOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    bulk_operation_output' <- Data.Either.Right (bulk_operation_outputBuilderState st)
+    output' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.BulkOperationOutput.BulkOperationOutput.output is a required property.") Data.Either.Right (outputBuilderState st)
     Data.Either.Right (BulkOperationOutput { 
-        bulk_operation_output = bulk_operation_output'
+        output = output'
     })
 
 
@@ -71,8 +71,8 @@ instance Io.Superposition.Utility.FromResponseParser BulkOperationOutput where
     expectedStatus = Network.HTTP.Types.status200
     responseParser = do
         
-        var0 <- Io.Superposition.Utility.deSerBody
+        var0 <- Io.Superposition.Utility.deSerField "output"
         pure $ BulkOperationOutput {
-            bulk_operation_output = var0
+            output = var0
         }
 
