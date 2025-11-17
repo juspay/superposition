@@ -218,7 +218,7 @@ async fn main() -> Result<()> {
             .wrap(auth_n.clone())
     })
     .bind(("0.0.0.0", cac_port))?
-    .workers(5)
+    .workers(get_from_env_or_default("ACTIX_WORKER_COUNT", 5))
     .keep_alive(Duration::from_secs(
         get_from_env_unsafe("ACTIX_KEEP_ALIVE").unwrap_or(120),
     ))
