@@ -263,7 +263,7 @@ jobs:
               run: |
                   cargo build --package superposition_core --release --target ${{ matrix.platform.target }}
                   mv target/${{ matrix.platform.target }}/release/${{ matrix.platform.superposition_core_bin_name }} ${{ matrix.platform.superposition_core_bin_name }}
-                  mv crates/superposition_core/src/core.h core.h
+                  mv crates/superposition_core/include/superposition_core.h core.h
                   zip -r ${{ matrix.platform.superposition_core_zip_name }} ${{ matrix.platform.superposition_core_bin_name }} core.h
 
             - name: Build and package for ${{ matrix.platform.os }} on windows
@@ -271,7 +271,7 @@ jobs:
               run: |
                   cargo build --package superposition_core --release --target ${{ matrix.platform.target }}
                   Move-Item -Path "target\${{ matrix.platform.target }}\release\${{ matrix.platform.superposition_core_bin_name }}" -Destination "lib${{ matrix.platform.superposition_core_bin_name }}"
-                  Move-Item -Path "crates\superposition_core\src\core.h" -Destination "core.h"
+                  Move-Item -Path "crates\superposition_core\include\superposition_core.h" -Destination "core.h"
                   Compress-Archive -Path "lib${{ matrix.platform.superposition_core_bin_name }}","core.h" -DestinationPath ${{ matrix.platform.superposition_core_zip_name }}
 
             # Why multiple upload artifact jobs? Read: https://github.com/actions/upload-artifact/issues/331

@@ -5447,6 +5447,7 @@ version = "0.94.0"
 dependencies = [
  "actix-web",
  "anyhow",
+ "cbindgen",
  "cfg-if",
  "chrono",
  "derive_more",

@@ -224,7 +224,6 @@
             crane = {
               args = {
                 nativeBuildInputs = [
-                  pkgs.rust-cbindgen
                   pkgs.pkg-config
                 ];
                 buildInputs =
@@ -242,7 +241,8 @@
                 # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
                 postInstall = ''
                   ${if isDarwin then "fixDarwinDylibNames" else ""}
-                  cbindgen --config crates/superposition_core/cbindgen.toml --crate superposition_core --output $out/include/superposition_core.h
+                  mkdir -p $out/include
+                  cp crates/superposition_core/include/* $out/include/
                 '';
               };
             };
