@@ -4,5 +4,5 @@ fn main() {
     config.language = cbindgen::Language::C;
     cbindgen::generate_with_config(crate_dir, config)
         .expect("Failed to generate bindings")
-        .write_to_file("include/superposition_core.h");
+        .write_to_file("../../target/include/superposition_core.h");
 }
