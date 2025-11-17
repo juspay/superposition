@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: SuperpositionSDK
-version: 0.0.2
+version: 0.0.1
 category: Client
 build-type: Simple
 
@@ -63,6 +63,7 @@ library
                         Io.Superposition.Model.CreateExperimentInput,
                         Io.Superposition.Model.DeleteExperimentGroupOutput,
                         Io.Superposition.Model.UpdateTypeTemplatesOutput,
+                        Io.Superposition.Model.AuditAction,
                         Io.Superposition.Model.UpdateDimensionInput,
                         Io.Superposition.Model.GetContextOutput,
                         Io.Superposition.Command.GetFunction,
@@ -96,9 +97,7 @@ library
                         Io.Superposition.Model.ListWebhookOutput,
                         Io.Superposition.Command.GetOrganisation,
                         Io.Superposition.Model.UpdateWorkspaceInput,
-                        Io.Superposition.Model.BulkOperationOut,
                         Io.Superposition.Command.CreateExperiment,
-                        Io.Superposition.Model.DefaultConfigFull,
                         Io.Superposition.Command.GetDefaultConfig,
                         Io.Superposition.Model.DeleteDimensionInput,
                         Io.Superposition.Model.ApplicableVariantsInput,
@@ -193,6 +192,7 @@ library
                         Io.Superposition.Model.AutocompleteFunctionRequest,
                         Io.Superposition.Model.AuditLogFull,
                         Io.Superposition.Model.FunctionTypes,
+                        Io.Superposition.Model.DefaultConfigResponse,
                         Io.Superposition.Model.PublishOutput,
                         Io.Superposition.Model.WorkspaceResponse,
                         Io.Superposition.Model.DimensionInfo,
@@ -205,9 +205,8 @@ library
                         Io.Superposition.Model.UpdateOverrideOutput,
                         Io.Superposition.Model.UpdateWebhookOutput,
                         Io.Superposition.Model.ListContextsOutput,
-                        Io.Superposition.Model.BulkOperationReq,
+                        Io.Superposition.Model.ContextMoveBulkRequest,
                         Io.Superposition.Model.ListWorkspaceOutput,
-                        Io.Superposition.Model.DimensionExt,
                         Io.Superposition.Command.GetContext,
                         Io.Superposition.Model.UpdateOrganisationOutput,
                         Io.Superposition.Command.GetWebhook,
@@ -232,6 +231,7 @@ library
                         Io.Superposition.Command.ListWorkspace,
                         Io.Superposition.Model.GetConfigFastOutput,
                         Io.Superposition.Model.OrganisationResponse,
+                        Io.Superposition.Model.DimensionResponse,
                         Io.Superposition.Model.FunctionResponse,
                         Io.Superposition.Model.DeleteFunctionInput,
                         Io.Superposition.Model.CreateTypeTemplatesInput,
