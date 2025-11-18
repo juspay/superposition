@@ -1,8 +1,8 @@
-use actix_web::dev::ServiceRequest;
+use actix_web::HttpRequest;
 
 use crate::service::types::{OrganisationId, WorkspaceId};
 
-pub trait ServiceRequestExt {
+pub trait HttpRequestExt {
     fn get_header(&self, header_name: &str) -> Option<&str>;
     fn get_path_param(&self, param: &str) -> Option<&str>;
     fn get_query_param(&self, query_param: &str) -> Option<&str>;
@@ -11,7 +11,7 @@ pub trait ServiceRequestExt {
     fn get_workspace_id(&self) -> Option<WorkspaceId>;
 }
 
-impl ServiceRequestExt for ServiceRequest {
+impl HttpRequestExt for HttpRequest {
     fn get_path_param(&self, param: &str) -> Option<&str> {
         let p = self
             .match_pattern()?

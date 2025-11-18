@@ -16,7 +16,8 @@ use crate::utils::use_url_base;
 #[component]
 pub fn organisations() -> impl IntoView {
     let base = use_url_base();
-    let organisation_resource = create_blocking_resource(
+    // this has to remain as `create_local_resource` as this calls needs to be made from the client side, as long as cookie forwarding is not supported
+    let organisation_resource = create_local_resource(
         || (),
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );

@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+    # PostgreSQL Database for Keycloak
+    postgres:
+        image: postgres:15
+        container_name: keycloak-postgres
+        environment:
+            POSTGRES_DB: keycloak
+            POSTGRES_USER: keycloak
+            POSTGRES_PASSWORD: keycloak_password # Change this in production
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U keycloak"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    # Keycloak Server
+    keycloak:
+        image: quay.io/keycloak/keycloak:latest
+        container_name: keycloak
+        environment:
+            KC_DB: postgres
+            KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+            KC_DB_USERNAME: keycloak
+            KC_DB_PASSWORD: keycloak_password # Change this in production
+            KEYCLOAK_ADMIN: admin # Change this in production
+            KEYCLOAK_ADMIN_PASSWORD: admin # Change this in production
+            KC_HOSTNAME_STRICT: "false"
+            KC_HOSTNAME_STRICT_HTTPS: "false"
+            KC_HTTP_ENABLED: "true"
+        command:
+            - start-dev # Use 'start' instead of 'start-dev' in production
+        ports:
+            - "8081:8080" # Map container port 8080 to host port 8081
+        depends_on:
+            postgres:
+                condition: service_healthy
+        restart: unless-stopped
+
+volumes:
+    postgres_data:
+        name: keycloak_postgres_dat

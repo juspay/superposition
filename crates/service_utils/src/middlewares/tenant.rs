@@ -1,7 +1,7 @@
 use std::future::{ready, Ready};
 
 use crate::{
-    extensions::ServiceRequestExt,
+    extensions::HttpRequestExt,
     service::types::{
         AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
     },
@@ -104,13 +104,13 @@ where
                 || assets_regex.is_match(&request_path);
 
             if !is_excluded {
-                let workspace_id = match (enable_workspace_id, req.get_workspace_id()) {
+                let workspace_id = match (enable_workspace_id, req.request().get_workspace_id()) {
                     (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params.")),
                     (true, Some(WorkspaceId(workspace_id))) => workspace_id,
                     (false, _) => String::from("test"),
                 };
 
-                let org = req.get_organisation_id();
+                let org = req.request().get_organisation_id();
                 // TODO: validate the workspace
                 let schema_name =  match (enable_org_id, &org) {
                     (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params.")),

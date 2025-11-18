@@ -1,8 +1,6 @@
 use actix_web::{
-    cookie::{time::Duration, Cookie},
-    dev::ServiceRequest,
     error,
-    web::{Data, Json, Path},
+    web::{Data, Json},
     HttpRequest, HttpResponse, Scope,
 };
 use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
@@ -13,10 +11,7 @@ use superposition_types::{
 
 use crate::service::types::AppState;
 
-use super::{
-    authentication::{Authenticator, Login},
-    SwitchOrgParams,
-};
+use super::authentication::{Authenticator, Login};
 
 pub struct DisabledAuthenticator {
     path_prefix: String,
@@ -35,10 +30,10 @@ impl Authenticator for DisabledAuthenticator {
 
     fn authenticate(
         &self,
-        _: &ServiceRequest,
+        _: &HttpRequest,
         _: &Login,
-    ) -> Result<User, actix_web::HttpResponse> {
-        Ok(User::default())
+    ) -> LocalBoxFuture<'static, Result<User, HttpResponse>> {
+        Box::pin(async { Ok(User::default()) })
     }
 
     fn routes(&self) -> actix_web::Scope {
@@ -89,33 +84,12 @@ impl Authenticator for DisabledAuthenticator {
         }
     }
 
-    fn switch_organisation(
+    fn generate_org_user(
         &self,
         _: &HttpRequest,
-        path_params: &Path<SwitchOrgParams>,
-    ) -> LocalBoxFuture<'static, actix_web::Result<HttpResponse>> {
-        let path = if self.path_prefix.as_str() == "" {
-            String::from("/")
-        } else {
-            self.path_prefix.clone()
-        };
-        let cookie = Cookie::build(Login::Org.to_string(), "org_token")
-            .path(path)
-            .http_only(true)
-            .max_age(Duration::days(1))
-            .finish();
-
-        let org_id = path_params.organisation_id.clone();
-        let path_prefix = self.path_prefix.clone();
-
-        Box::pin(async move {
-            Ok(HttpResponse::Found()
-                .cookie(cookie)
-                .insert_header((
-                    "Location",
-                    format!("{path_prefix}/admin/{org_id}/workspaces"),
-                ))
-                .finish())
-        })
+        _: &str,
+        _: &Login,
+    ) -> LocalBoxFuture<'_, Result<String, HttpResponse>> {
+        Box::pin(async { Ok("org_token".to_string()) })
     }
 }

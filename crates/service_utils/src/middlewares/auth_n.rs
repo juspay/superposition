@@ -5,6 +5,7 @@ mod oidc;
 use std::{
     collections::HashSet,
     future::{ready, Ready},
+    rc::Rc,
     sync::Arc,
 };
 
@@ -26,12 +27,13 @@ use url::Url;
 
 use crate::{
     db::utils::get_oidc_client_secret,
+    extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
     service::types::{AppEnv, AppState},
 };
 
 pub struct AuthNMiddleware<S> {
-    service: S,
+    service: Rc<S>,
     auth_n_handler: AuthNHandler,
 }
 
@@ -55,14 +57,20 @@ impl<S> AuthNMiddleware<S> {
         match (excep, org_request) {
             (true, false) => Login::None,
             (_, true) => Login::Global,
-            (false, false) => Login::Org,
+            (false, false) => Login::Org(
+                request
+                    .request()
+                    .get_organisation_id()
+                    .map(|o| o.0)
+                    .unwrap_or_default(),
+            ),
         }
     }
 }
 
 impl<S, B> Service<ServiceRequest> for AuthNMiddleware<S>
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
 {
     type Response = ServiceResponse<EitherBody<B, BoxBody>>;
@@ -101,21 +109,33 @@ where
                 let login_type = self
                     .get_login_type(&request, &state.tenant_middleware_exclusion_list);
 
-                self.auth_n_handler.0.authenticate(&request, &login_type)
+                Err(self
+                    .auth_n_handler
+                    .0
+                    .authenticate(request.request(), &login_type))
             });
 
         match result {
             Ok(user) => {
                 request.extensions_mut().insert::<User>(user);
                 let fut = self.service.call(request);
-                Box::pin(async move { fut.await.map(|sr| sr.map_into_left_body()) })
+                Box::pin(async { fut.await.map(|sr| sr.map_into_left_body()) })
             }
-            Err(resp) => Box::pin(async move {
-                Ok(ServiceResponse::new(
-                    request.request().clone(),
-                    resp.map_into_right_body(),
-                ))
-            }),
+            Err(fut) => {
+                let srv = self.service.clone();
+                Box::pin(async move {
+                    match fut.await {
+                        Ok(user) => {
+                            request.extensions_mut().insert::<User>(user);
+                            srv.call(request).await.map(|sr| sr.map_into_left_body())
+                        }
+                        Err(resp) => Ok(ServiceResponse::new(
+                            request.request().clone(),
+                            resp.map_into_right_body(),
+                        )),
+                    }
+                })
+            }
         }
     }
 }
@@ -178,13 +198,13 @@ async fn switch_organisation(
     data: Data<AuthNHandler>,
     req: HttpRequest,
     path: Path<SwitchOrgParams>,
-) -> actix_web::Result<HttpResponse> {
+) -> HttpResponse {
     data.0.switch_organisation(&req, &path).await
 }
 
 impl<S, B> Transform<S, ServiceRequest> for AuthNHandler
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
 {
     type Response = ServiceResponse<EitherBody<B>>;
@@ -195,7 +215,7 @@ where
 
     fn new_transform(&self, service: S) -> Self::Future {
         ready(Ok(AuthNMiddleware {
-            service,
+            service: Rc::new(service),
             auth_n_handler: self.clone(),
         }))
     }
