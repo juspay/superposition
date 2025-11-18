@@ -1,32 +1,33 @@
 use std::collections::HashMap;
 
-#[cfg(feature = "high-performance-mode")]
-use actix_http::StatusCode;
-#[cfg(feature = "high-performance-mode")]
-use actix_web::http::header::ContentType;
+use actix_http::{header::HeaderValue, StatusCode};
 use actix_web::{
-    HttpRequest, HttpResponse, Scope, get, put, routes,
+    get,
+    http::header::ContentType,
+    put, routes,
     web::{Data, Header, Json, Path, Query},
+    HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-#[cfg(feature = "high-performance-mode")]
+use cac_client::{eval_cac, eval_cac_with_reasoning};
+use chrono::{DateTime, Timelike, Utc};
+use diesel::{
+    dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl,
+    SelectableHelper,
+};
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
-use serde_json::{Map, Value, json};
-#[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::AppHeader;
-use service_utils::{
-    helpers::fetch_dimensions_info_map,
-    service::types::{AppState, DbConnection, WorkspaceContext},
+use serde_json::{json, Map, Value};
+#[cfg(feature = "jsonlogic")]
+use service_utils::helpers::extract_dimensions;
+use service_utils::service::types::{
+    AppHeader, AppState, DbConnection, SchemaName, WorkspaceContext,
 };
 use superposition_core::{
     helpers::{calculate_context_weight, hash},
     serialize_to_toml,
 };
 use superposition_derives::authorized;
-#[cfg(feature = "high-performance-mode")]
-use superposition_macros::response_error;
-use superposition_macros::{bad_argument, unexpected_error};
+use superposition_macros::{bad_argument, db_error, response_error, unexpected_error};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
     Overrides, PaginatedResponse, User,
@@ -69,9 +70,7 @@ pub fn endpoints() -> Scope {
         .service(reduce_handler)
         .service(list_version_handler)
         .service(get_version_handler);
-    #[cfg(feature = "high-performance-mode")]
-    let scope = scope.service(get_fast_handler);
-    scope
+        .service(get_fast_handler);
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
@@ -476,8 +475,6 @@ async fn reduce_handler(
     Ok(HttpResponse::Ok().json(config))
 }
 
-#[cfg(feature = "high-performance-mode")]
-#[authorized]
 #[get("/fast")]
 async fn get_fast_handler(
     workspace_context: WorkspaceContext,
@@ -485,19 +482,23 @@ async fn get_fast_handler(
 ) -> superposition::Result<HttpResponse> {
     use fred::interfaces::MetricsInterface;
 
+    // Only use Redis if it's configured
+    let redis_pool = match &state.redis {
+        Some(pool) => pool,
+        None => {
+            return Err(response_error!(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Redis not configured, fast config endpoint unavailable"
+            ));
+        }
+    };
+
     log::debug!("Started redis fetch");
-    let config_key = format!("{}::cac_config", *workspace_context.schema_name);
-    let last_modified_at_key = format!(
-        "{}::cac_config::last_modified_at",
-        *workspace_context.schema_name
-    );
-    let audit_id_key =
-        format!("{}::cac_config::audit_id", *workspace_context.schema_name);
-    let config_version_key = format!(
-        "{}::cac_config::config_version",
-        *workspace_context.schema_name
-    );
-    let client = state.redis.next_connected();
+    let config_key = format!("{}::cac_config", *schema_name);
+    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *schema_name);
+    let audit_id_key = format!("{}::cac_config::audit_id", *schema_name);
+    let config_version_key = format!("{}::cac_config::config_version", *schema_name);
+    let client = redis_pool.next_connected();
     let config = client.get::<String, String>(config_key).await;
     let metrics = client.take_latency_metrics();
     let network_metrics = client.take_network_latency_metrics();

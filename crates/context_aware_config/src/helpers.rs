@@ -4,11 +4,9 @@ use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
 };
-#[cfg(feature = "high-performance-mode")]
-use chrono::DateTime;
-use chrono::Utc;
+use bigdecimal::{BigDecimal, Num};
+use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-#[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use serde_json::{Map, Value, json};
 use service_utils::{
@@ -16,7 +14,6 @@ use service_utils::{
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
-#[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DefaultConfigInfo,
@@ -43,7 +40,6 @@ use superposition_types::{
     result as superposition,
 };
 
-#[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
 
 use crate::{
@@ -224,13 +220,31 @@ pub fn add_config_version(
     Ok(version_id)
 }
 
-#[cfg(feature = "high-performance-mode")]
+pub fn get_workspace(
+    workspace_schema_name: &String,
+    db_conn: &mut DBConnection,
+) -> superposition::Result<Workspace> {
+    let workspace = workspaces::dsl::workspaces
+        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name))
+        .get_result::<Workspace>(db_conn)?;
+    Ok(workspace)
+}
+
 pub async fn put_config_in_redis(
     version_id: i64,
     state: Data<AppState>,
     schema_name: &SchemaName,
     db_conn: &mut DBConnection,
 ) -> superposition::Result<()> {
+    // Only perform Redis operations if Redis is configured
+    let redis_pool = match &state.redis {
+        Some(pool) => pool,
+        None => {
+            log::debug!("Redis not configured, skipping cache update");
+            return Ok(());
+        }
+    };
+
     let raw_config = generate_cac(db_conn, schema_name)?;
     let parsed_config = serde_json::to_string(&json!(raw_config)).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
@@ -241,12 +255,10 @@ pub async fn put_config_in_redis(
     let audit_id_key = format!("{}::cac_config::audit_id", **schema_name);
     let config_version_key = format!("{}::cac_config::config_version", **schema_name);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
-    let _ = state
-        .redis
+    let _ = redis_pool
         .set::<(), String, String>(config_key, parsed_config, None, None, false)
         .await;
-    let _ = state
-        .redis
+    let _ = redis_pool
         .set::<(), String, String>(last_modified_at_key, last_modified, None, None, false)
         .await;
     if let Ok(uuid) = event_log::event_log
@@ -255,13 +267,11 @@ pub async fn put_config_in_redis(
         .order_by(event_log::timestamp.desc())
         .first::<Uuid>(db_conn)
     {
-        let _ = state
-            .redis
+        let _ = redis_pool
             .set::<(), String, String>(audit_id_key, uuid.to_string(), None, None, false)
             .await;
     }
-    let _ = state
-        .redis
+    let _ = redis_pool
         .set::<(), String, i64>(config_version_key, version_id, None, None, false)
         .await;
     Ok(())

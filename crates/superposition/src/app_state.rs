@@ -1,12 +1,11 @@
 use std::{
     collections::HashSet,
     sync::{Arc, Mutex},
+    time::Duration,
 };
 
-#[cfg(feature = "high-performance-mode")]
-use std::time::Duration;
+use context_aware_config::helpers::get_meta_schema;
 
-#[cfg(feature = "high-performance-mode")]
 use fred::{
     clients::RedisPool,
     interfaces::ClientLike,
@@ -39,41 +38,45 @@ pub async fn get(
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
 
-    #[cfg(feature = "high-performance-mode")]
-    let redis_pool = {
-        let redis_url =
-            get_from_env_or_default("REDIS_URL", String::from("http://localhost:6379"));
-        let redis_pool_size = get_from_env_or_default("REDIS_POOL_SIZE", 10);
-        let redis_max_attempts = get_from_env_or_default("REDIS_MAX_ATTEMPTS", 10);
-        let redis_connection_timeout =
-            get_from_env_or_default("REDIS_CONN_TIMEOUT", 1000);
-        let config = RedisConfig::from_url(&redis_url).unwrap_or_else(|_| {
-            panic!("Failed to create RedisConfig from url {}", redis_url)
-        });
-        let reconnect_policy = ReconnectPolicy::new_constant(redis_max_attempts, 100);
-        let redis_pool = RedisPool::new(
-            config,
-            Some(PerformanceConfig {
-                auto_pipeline: true,
-                ..Default::default()
-            }),
-            Some(ConnectionConfig {
-                connection_timeout: Duration::from_millis(redis_connection_timeout),
-                ..Default::default()
-            }),
-            Some(reconnect_policy),
-            redis_pool_size,
-        )
-        .map_err(|e| format!("Could not connect to redis due to {e}"))
-        .unwrap();
+    // Initialize Redis pool only if REDIS_URL is explicitly set (not default)
+    let redis_pool = match std::env::var("REDIS_URL") {
+        Ok(redis_url) if !redis_url.is_empty() => {
+            let redis_pool_size = get_from_env_or_default("REDIS_POOL_SIZE", 10);
+            let redis_max_attempts = get_from_env_or_default("REDIS_MAX_ATTEMPTS", 10);
+            let redis_connection_timeout =
+                get_from_env_or_default("REDIS_CONN_TIMEOUT", 1000);
+            let config = RedisConfig::from_url(&redis_url).expect(
+                format!("Failed to create RedisConfig from url {}", redis_url).as_str(),
+            );
+            let reconnect_policy = ReconnectPolicy::new_constant(redis_max_attempts, 100);
+            let redis_pool = RedisPool::new(
+                config,
+                Some(PerformanceConfig {
+                    auto_pipeline: true,
+                    ..Default::default()
+                }),
+                Some(ConnectionConfig {
+                    connection_timeout: Duration::from_millis(redis_connection_timeout),
+                    ..Default::default()
+                }),
+                Some(reconnect_policy),
+                redis_pool_size,
+            )
+            .map_err(|e| format!("Could not connect to redis due to {e}"))
+            .unwrap();
 
-        redis_pool.connect();
-        redis_pool
-            .wait_for_connect()
-            .await
-            .expect("Failed to connect to Redis");
+            redis_pool.connect();
+            redis_pool
+                .wait_for_connect()
+                .await
+                .expect("Failed to connect to Redis");
 
-        redis_pool
+            Some(redis_pool)
+        }
+        _ => {
+            log::info!("REDIS_URL not set, Redis caching disabled");
+            None
+        }
     };
 
     AppState {
@@ -106,7 +109,6 @@ pub async fn get(
         .collect::<HashSet<_>>(),
         service_prefix,
         superposition_token: get_superposition_token(kms_client, &app_env).await,
-        #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
         http_client: reqwest::Client::new(),
         master_encryption_key,

@@ -17,7 +17,7 @@ context_aware_config = { path = "../context_aware_config" }
 diesel = { workspace = true }
 dotenv = "0.15.0"
 experimentation_platform = { path = "../experimentation_platform" }
-fred = { workspace = true, optional = true }
+fred = { workspace = true }
 frontend = { path = "../frontend" }
 idgenerator = "2.0.0"
 leptos = { workspace = true }
@@ -43,11 +43,7 @@ tracing-actix-web = { workspace = true }
 json-subscriber = { version = "0.2.7", features = ["tracing-log"] }
 
 [features]
-high-performance-mode = [
-    "context_aware_config/high-performance-mode",
-    "service_utils/high-performance-mode",
-    "dep:fred",
-]
+
 
 [lints]
 workspace = true
