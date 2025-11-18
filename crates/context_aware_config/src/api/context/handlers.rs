@@ -56,8 +56,9 @@ use crate::{
         helpers::{query_description, validate_ctx},
         operations,
     },
-    helpers::validate_change_reason,
+    dimension::fetch_dimensions_info_map,
 };
+use crate::helpers::{add_config_version, calculate_context_weight, put_config_in_redis};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -176,6 +177,9 @@ async fn create_handler(
         version_id.to_string(),
     ));
 
+    let DbConnection(mut conn) = db_conn;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+
     Ok(http_resp.json(put_response))
 }
 
@@ -260,6 +264,9 @@ async fn update_handler(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
+
+    let DbConnection(mut conn) = db_conn;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     Ok(http_resp.json(override_resp))
 }
@@ -368,6 +375,9 @@ async fn move_handler(
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
+
+    let DbConnection(mut conn) = db_conn;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     Ok(http_resp.json(move_response.context))
 }
@@ -598,16 +608,7 @@ async fn delete_handler(
         })?;
 
     let DbConnection(mut conn) = db_conn;
-
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
-        version_id,
-        &state,
-        &workspace_context.schema_name,
-        &mut conn,
-    )
-    .await?;
-
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     let data = WebhookData {
         payload: &deleted_ctx,
         resource: Resource::Context,
@@ -836,14 +837,8 @@ async fn bulk_operations_handler(
             Ok((response, version_id))
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
-        version_id,
-        &state,
-        &workspace_context.schema_name,
-        &mut conn,
-    )
-    .await?;
+
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     let data = WebhookData {
         payload: &webhook_contexts,
@@ -954,15 +949,7 @@ async fn weight_recompute_handler(
             let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)?;
             Ok(version_id)
         })?;
-
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
-        config_version_id,
-        &state,
-        &workspace_context.schema_name,
-        &mut conn,
-    )
-    .await?;
+    put_config_in_redis(config_version_id, state, &schema_name, &mut conn).await?;
 
     let data = WebhookData {
         payload: &response,
