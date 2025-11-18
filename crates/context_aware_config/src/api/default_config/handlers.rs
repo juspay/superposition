@@ -36,14 +36,12 @@ use superposition_types::{
     result as superposition, DBConnection, PaginatedResponse, User,
 };
 
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validate_value_with_function,
         functions::helpers::get_published_function_code,
     },
-    helpers::{add_config_version, validate_change_reason},
+    helpers::{add_config_version, put_config_in_redis, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {
@@ -154,7 +152,6 @@ async fn create_default_config(
             Ok(version_id)
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     let mut http_resp = HttpResponse::Ok();
 
@@ -277,7 +274,6 @@ async fn update_default_config(
             Ok((val, version_id))
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Ok();
@@ -491,7 +487,6 @@ async fn delete(
             });
 
         if resp.is_ok() {
-            #[cfg(feature = "high-performance-mode")]
             put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
         }
         resp
