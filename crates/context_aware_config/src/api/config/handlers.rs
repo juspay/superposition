@@ -1,35 +1,28 @@
 use std::collections::HashMap;
 
-use actix_http::header::HeaderValue;
-#[cfg(feature = "high-performance-mode")]
-use actix_http::StatusCode;
+use actix_http::{header::HeaderValue, StatusCode};
 use actix_web::{
-    get, put, routes,
-    web::{Header, Json, Path, Query},
+    get,
+    http::header::ContentType,
+    put, routes,
+    web::{Data, Header, Json, Path, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
-#[cfg(feature = "high-performance-mode")]
-use actix_web::{http::header::ContentType, web::Data};
 use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
 use diesel::{
     dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl,
     SelectableHelper,
 };
-#[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "jsonlogic")]
 use service_utils::helpers::extract_dimensions;
-#[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::AppState;
 use service_utils::service::types::{
-    AppHeader, DbConnection, SchemaName, WorkspaceContext,
+    AppHeader, AppState, DbConnection, SchemaName, WorkspaceContext,
 };
-#[cfg(feature = "high-performance-mode")]
-use superposition_macros::response_error;
-use superposition_macros::{bad_argument, db_error, unexpected_error};
+use superposition_macros::{bad_argument, db_error, response_error, unexpected_error};
 use superposition_types::{
     api::{
         config::{ConfigQuery, ContextPayload, MergeStrategy, ResolveConfigQuery},
@@ -62,15 +55,13 @@ use super::helpers::apply_prefix_filter_to_config;
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
-    let scope = Scope::new("")
+    Scope::new("")
         .service(get_config)
         .service(get_resolved_config)
         .service(reduce_config)
         .service(list_config_versions)
-        .service(fetch_config_version);
-    #[cfg(feature = "high-performance-mode")]
-    let scope = scope.service(get_config_fast);
-    scope
+        .service(fetch_config_version)
+        .service(get_config_fast)
 }
 
 fn get_config_version_from_workspace(
@@ -645,7 +636,6 @@ async fn reduce_config(
     Ok(HttpResponse::Ok().json(config))
 }
 
-#[cfg(feature = "high-performance-mode")]
 #[get("/fast")]
 async fn get_config_fast(
     schema_name: SchemaName,
@@ -653,12 +643,23 @@ async fn get_config_fast(
 ) -> superposition::Result<HttpResponse> {
     use fred::interfaces::MetricsInterface;
 
+    // Only use Redis if it's configured
+    let redis_pool = match &state.redis {
+        Some(pool) => pool,
+        None => {
+            return Err(response_error!(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Redis not configured, fast config endpoint unavailable"
+            ));
+        }
+    };
+
     log::debug!("Started redis fetch");
     let config_key = format!("{}::cac_config", *schema_name);
     let last_modified_at_key = format!("{}::cac_config::last_modified_at", *schema_name);
     let audit_id_key = format!("{}::cac_config::audit_id", *schema_name);
     let config_version_key = format!("{}::cac_config::config_version", *schema_name);
-    let client = state.redis.next_connected();
+    let client = redis_pool.next_connected();
     let config = client.get::<String, String>(config_key).await;
     let metrics = client.take_latency_metrics();
     let network_metrics = client.take_network_latency_metrics();

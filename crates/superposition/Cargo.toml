@@ -17,7 +17,7 @@ diesel = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.8"
 experimentation_platform = { path = "../experimentation_platform" }
-fred = { workspace = true, optional = true }
+fred = { workspace = true }
 frontend = { path = "../frontend" }
 futures-util = { workspace = true }
 idgenerator = "2.0.0"
@@ -37,11 +37,6 @@ superposition_types = { workspace = true, features = [
 ] }
 
 [features]
-high-performance-mode = [
-    "context_aware_config/high-performance-mode",
-    "service_utils/high-performance-mode",
-    "dep:fred",
-]
 jsonlogic = [
     "context_aware_config/jsonlogic",
     "experimentation_platform/jsonlogic",

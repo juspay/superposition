@@ -48,8 +48,7 @@ pub struct AppState {
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
     pub superposition_token: String,
-    #[cfg(feature = "high-performance-mode")]
-    pub redis: fred::clients::RedisPool,
+    pub redis: Option<fred::clients::RedisPool>,
     pub http_client: reqwest::Client,
     pub encrypted_keys: HashMap<String, String>,
 }
