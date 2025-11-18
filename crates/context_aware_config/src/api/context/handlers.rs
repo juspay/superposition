@@ -48,9 +48,7 @@ use crate::api::{
     },
     dimension::fetch_dimensions_info_map,
 };
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
-use crate::helpers::{add_config_version, calculate_context_weight};
+use crate::helpers::{add_config_version, calculate_context_weight, put_config_in_redis};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -121,11 +119,8 @@ async fn put_handler(
         version_id.to_string(),
     ));
 
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-    }
+    let DbConnection(mut conn) = db_conn;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     Ok(http_resp.json(put_response))
 }
@@ -171,11 +166,8 @@ async fn update_override_handler(
         version_id.to_string(),
     ));
 
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-    }
+    let DbConnection(mut conn) = db_conn;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     Ok(http_resp.json(override_resp))
 }
@@ -234,11 +226,8 @@ async fn move_handler(
         version_id.to_string(),
     ));
 
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-    }
+    let DbConnection(mut conn) = db_conn;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     Ok(http_resp.json(move_response))
 }
@@ -438,12 +427,8 @@ async fn delete_context_handler(
             Ok(version_id)
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
-    }
-
+    let DbConnection(mut conn) = db_conn;
+    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
     Ok(HttpResponse::NoContent()
         .insert_header((
             AppHeader::XConfigVersion.to_string().as_str(),
@@ -635,8 +620,6 @@ async fn bulk_operations(
         version_id.to_string(),
     ));
 
-    // Commit the transaction
-    #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     let http_resp = if is_v2 {
@@ -723,7 +706,6 @@ async fn weight_recompute(
             let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &schema_name)?;
             Ok(version_id)
         })?;
-    #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(config_version_id, state, &schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Ok();
