@@ -661,8 +661,8 @@ class Superposition:
 
     async def create_function(self, input: CreateFunctionInput, plugins: list[Plugin] | None = None) -> CreateFunctionOutput:
         """
-        Creates a new custom function for validation or autocompletion with specified
-        code, runtime version, and function type.
+        Creates a new custom function for value_validation, value_compute or
+        context_validation with specified code, runtime version, and function type.
 
         :param input: The operation's input.
 
@@ -1852,7 +1852,7 @@ class Superposition:
     async def publish(self, input: PublishInput, plugins: list[Plugin] | None = None) -> PublishOutput:
         """
         Publishes the draft version of a function, making it the active version used for
-        validation or autocompletion in the system.
+        value_validation, value_compute or context_validation in the system.
 
         :param input: The operation's input.
 

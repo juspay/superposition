@@ -48,8 +48,8 @@ pub(crate) fn de_default_config_response<'a, I>(tokens: &mut ::std::iter::Peekab
                                     ).transpose()?
                                 );
                             }
-                            "function_name" => {
-                                builder = builder.set_function_name(
+                            "value_validation_function_name" => {
+                                builder = builder.set_value_validation_function_name(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
                                             u.into_owned()
@@ -57,8 +57,8 @@ pub(crate) fn de_default_config_response<'a, I>(tokens: &mut ::std::iter::Peekab
                                     ).transpose()?
                                 );
                             }
-                            "autocomplete_function_name" => {
-                                builder = builder.set_autocomplete_function_name(
+                            "value_compute_function_name" => {
+                                builder = builder.set_value_compute_function_name(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
                                             u.into_owned()

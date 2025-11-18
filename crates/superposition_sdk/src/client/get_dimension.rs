@@ -10,7 +10,7 @@ impl super::Client {
     ///   - [`dimension(String)`](crate::operation::get_dimension::GetDimensionOutput::dimension): (undocumented)
     ///   - [`position(i32)`](crate::operation::get_dimension::GetDimensionOutput::position): (undocumented)
     ///   - [`schema(HashMap::<String, Document>)`](crate::operation::get_dimension::GetDimensionOutput::schema): Generic key-value object structure used for flexible data representation throughout the API.
-    ///   - [`function_name(Option<String>)`](crate::operation::get_dimension::GetDimensionOutput::function_name): (undocumented)
+    ///   - [`value_validation_function_name(Option<String>)`](crate::operation::get_dimension::GetDimensionOutput::value_validation_function_name): (undocumented)
     ///   - [`description(String)`](crate::operation::get_dimension::GetDimensionOutput::description): (undocumented)
     ///   - [`change_reason(String)`](crate::operation::get_dimension::GetDimensionOutput::change_reason): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::get_dimension::GetDimensionOutput::last_modified_at): (undocumented)
@@ -19,7 +19,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::get_dimension::GetDimensionOutput::created_by): (undocumented)
     ///   - [`dependency_graph(HashMap::<String, Vec::<String>>)`](crate::operation::get_dimension::GetDimensionOutput::dependency_graph): (undocumented)
     ///   - [`dimension_type(DimensionType)`](crate::operation::get_dimension::GetDimensionOutput::dimension_type): (undocumented)
-    ///   - [`autocomplete_function_name(Option<String>)`](crate::operation::get_dimension::GetDimensionOutput::autocomplete_function_name): (undocumented)
+    ///   - [`value_compute_function_name(Option<String>)`](crate::operation::get_dimension::GetDimensionOutput::value_compute_function_name): (undocumented)
     ///   - [`mandatory(bool)`](crate::operation::get_dimension::GetDimensionOutput::mandatory): (undocumented)
                             /// - On failure, responds with [`SdkError<GetDimensionError>`](crate::operation::get_dimension::GetDimensionError)
     pub fn get_dimension(&self) -> crate::operation::get_dimension::builders::GetDimensionFluentBuilder {
