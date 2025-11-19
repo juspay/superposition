@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.94.4 - 2025-11-19
+### Package updates
+- service_utils bumped to service_utils-v0.33.4
+### Global changes
+#### Bug Fixes
+- oidc redirect host (#753) - (960e04b) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.94.3 [skip ci] - (537ca09) - Superposition Bot
+
+- - -
+
 ## v0.94.3 - 2025-11-19
 ### Package updates
 - service_utils bumped to service_utils-v0.33.3

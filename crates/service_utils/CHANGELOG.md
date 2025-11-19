@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.33.4 - 2025-11-19
+#### Bug Fixes
+- oidc redirect host (#753) - (960e04b) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.94.3 [skip ci] - (537ca09) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.33.3 - 2025-11-19
 #### Bug Fixes
 - fetch orgs in FE and support redirect to requested url from keycloak (#752) - (8293a27) - Ayush Jain
