@@ -41,15 +41,20 @@ use superposition_types::{
     PaginatedResponse, SortBy, User,
 };
 
-use crate::api::{
-    context::{
-        hash,
-        helpers::{query_description, validate_ctx},
-        operations,
+use crate::{
+    api::{
+        context::{
+            hash,
+            helpers::{query_description, validate_ctx},
+            operations,
+        },
+        dimension::fetch_dimensions_info_map,
     },
-    dimension::fetch_dimensions_info_map,
+    helpers::{
+        add_config_version, calculate_context_weight, put_config_in_redis,
+        validate_change_reason,
+    },
 };
-use crate::helpers::{add_config_version, calculate_context_weight, put_config_in_redis};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
