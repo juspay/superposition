@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.46.3 - 2025-11-19
+#### Bug Fixes
+- fetch orgs in FE and support redirect to requested url from keycloak (#752) - (8293a27) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.93.2 [skip ci] - (49705df) - Superposition Bot
+
+- - -
+
 ## frontend-v0.46.2 - 2025-11-07
 #### Bug Fixes
 - **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain

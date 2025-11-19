@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.94.3 - 2025-11-19
+### Package updates
+- service_utils bumped to service_utils-v0.33.3
+- frontend bumped to frontend-v0.46.3
+### Global changes
+#### Bug Fixes
+- let number of workers come from env (#750) - (702b69f) - Datron
+- fetch orgs in FE and support redirect to requested url from keycloak (#752) - (8293a27) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.94.2 [skip ci] - (f81a172) - Superposition Bot
+
+- - -
+
 ## v0.94.2 - 2025-11-17
 ### Package updates
 - superposition_core bumped to superposition_core-v0.8.2
