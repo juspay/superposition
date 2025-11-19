@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.33.3 - 2025-11-19
+#### Bug Fixes
+- fetch orgs in FE and support redirect to requested url from keycloak (#752) - (8293a27) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.93.1 [skip ci] - (c7b9df1) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.33.2 - 2025-11-05
 #### Bug Fixes
 - Read orgs from db in no_auth (#739) - (f3318d3) - Ayush Jain
