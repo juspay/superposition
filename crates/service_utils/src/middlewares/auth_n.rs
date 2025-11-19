@@ -166,7 +166,7 @@ impl AuthNHandler {
                 let url = Url::parse(auth.next().unwrap())
                     .map_err(|e| e.to_string())
                     .unwrap();
-                let base_url = get_from_env_unsafe("CAC_HOST").unwrap();
+                let base_url = get_from_env_unsafe("OIDC_REDIRECT_HOST").unwrap();
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
                 Arc::new(
