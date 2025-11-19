@@ -27,7 +27,7 @@ use superposition_core::{
     serialize_to_toml,
 };
 use superposition_derives::authorized;
-use superposition_macros::{bad_argument, db_error, response_error, unexpected_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
     Overrides, PaginatedResponse, User,
@@ -51,12 +51,11 @@ use superposition_types::{
 
 use crate::api::context::{self, helpers::query_description};
 use crate::{
-    api::config::helpers::{
-        add_audit_id_to_header, add_config_version_to_header,
-        add_last_modified_to_header, generate_config_from_version, get_config_version,
-        get_max_created_at, is_not_modified,
+    api::{
+        context::{self, helpers::query_description},
+        dimension::fetch_dimensions_info_map,
     },
-    helpers::{generate_cac, generate_detailed_cac},
+    helpers::{generate_cac, generate_detailed_cac, get_config_from_redis},
 };
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
@@ -70,7 +69,6 @@ pub fn endpoints() -> Scope {
         .service(reduce_handler)
         .service(list_version_handler)
         .service(get_version_handler);
-        .service(get_fast_handler);
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
@@ -475,106 +473,6 @@ async fn reduce_handler(
     Ok(HttpResponse::Ok().json(config))
 }
 
-#[get("/fast")]
-async fn get_fast_handler(
-    workspace_context: WorkspaceContext,
-    state: Data<AppState>,
-) -> superposition::Result<HttpResponse> {
-    use fred::interfaces::MetricsInterface;
-
-    // Only use Redis if it's configured
-    let redis_pool = match &state.redis {
-        Some(pool) => pool,
-        None => {
-            return Err(response_error!(
-                StatusCode::SERVICE_UNAVAILABLE,
-                "Redis not configured, fast config endpoint unavailable"
-            ));
-        }
-    };
-
-    log::debug!("Started redis fetch");
-    let config_key = format!("{}::cac_config", *schema_name);
-    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *schema_name);
-    let audit_id_key = format!("{}::cac_config::audit_id", *schema_name);
-    let config_version_key = format!("{}::cac_config::config_version", *schema_name);
-    let client = redis_pool.next_connected();
-    let config = client.get::<String, String>(config_key).await;
-    let metrics = client.take_latency_metrics();
-    let network_metrics = client.take_network_latency_metrics();
-    log::trace!(
-        "Network metrics for config fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
-        network_metrics.max,
-        network_metrics.min,
-        network_metrics.avg,
-        metrics.max,
-        metrics.min,
-        metrics.avg
-    );
-    match config {
-        Ok(config) => {
-            let mut response = HttpResponse::Ok();
-            if let Ok(max_created_at) =
-                client.get::<String, String>(last_modified_at_key).await
-            {
-                let metrics = client.take_latency_metrics();
-                let network_metrics = client.take_network_latency_metrics();
-                log::trace!(
-                    "Network metrics max-created-by fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
-                    network_metrics.max,
-                    network_metrics.min,
-                    network_metrics.avg,
-                    metrics.max,
-                    metrics.min,
-                    metrics.avg
-                );
-                response
-                    .insert_header((AppHeader::LastModified.to_string(), max_created_at));
-            }
-            if let Ok(audit_id) = client.get::<String, String>(audit_id_key).await {
-                let metrics = client.take_latency_metrics();
-                let network_metrics = client.take_network_latency_metrics();
-                log::trace!(
-                    "Network metrics for audit ID in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
-                    network_metrics.max,
-                    network_metrics.min,
-                    network_metrics.avg,
-                    metrics.max,
-                    metrics.min,
-                    metrics.avg
-                );
-                response.insert_header((AppHeader::XAuditId.to_string(), audit_id));
-            }
-            if let Ok(config_version) =
-                client.get::<Option<i64>, String>(config_version_key).await
-            {
-                let metrics = client.take_latency_metrics();
-                let network_metrics = client.take_network_latency_metrics();
-                log::trace!(
-                    "Network metrics for version ID in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
-                    network_metrics.max,
-                    network_metrics.min,
-                    network_metrics.avg,
-                    metrics.max,
-                    metrics.min,
-                    metrics.avg
-                );
-                add_config_version_to_header(&config_version, &mut response);
-            }
-            response.insert_header(ContentType::json());
-            Ok(response.body(config))
-        }
-        Err(err) => {
-            log::error!("Could not get config in redis due to {}", err);
-            Err(response_error!(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "could not fetch config, please try /config API"
-            ))
-        }
-    }
-}
-
-#[authorized]
 #[routes]
 #[get("")]
 #[post("")]
@@ -585,8 +483,64 @@ async fn get_handler(
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ConfigQuery>,
     workspace_context: WorkspaceContext,
+    state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+
+    let mut response = HttpResponse::Ok();
+    let is_smithy = req.method() == actix_web::http::Method::GET;
+
+    if let Some(ref redis_pool) = state.redis {
+        let schema_name = workspace_context.schema_name;
+        let client = redis_pool.next_connected();
+        let last_modified_at_key = format!("{}{LAST_MODIFIED_KEY_SUFFIX}", *schema_name);
+        let audit_id_key = format!("{}{AUDIT_ID_KEY_SUFFIX}", *schema_name);
+        let config_version_key = format!("{}{CONFIG_VERSION_KEY_SUFFIX}", *schema_name);
+        let audit_id: String = client.get(&audit_id_key).await.map_err(|e| {
+            log::error!(
+                "failed to fetch audit id from redis for schema {}: {}",
+                *schema_name,
+                e
+            );
+            unexpected_error!("failed to fetch audit id from redis")
+        })?;
+        let last_modified_at = client
+            .get::<String, String>(last_modified_at_key)
+            .await
+            .map(|time| {
+                DateTime::parse_from_rfc2822(&time)
+                    .map_err(|err| {
+                        log::error!("Error occurred while parsing last_modified: {}", err)
+                    })
+                    .ok()
+                    .map(|dt| dt.with_timezone(&Utc))
+            })
+            .map_err(|e| {
+                log::error!(
+                    "failed to fetch last modified at from redis for schema {}: {}",
+                    *schema_name,
+                    e
+                );
+                unexpected_error!("failed to fetch last modified at from redis")
+            })?;
+        let version = client.get(&config_version_key).await.map_err(|e| {
+            log::error!(
+                "failed to fetch config version from redis for schema {}: {}",
+                *schema_name,
+                e
+            );
+            unexpected_error!("failed to fetch config version from redis")
+        })?;
+        let config =
+            get_config_from_redis(&schema_name, redis_pool, Some(client)).await?;
+
+        add_last_modified_to_header(last_modified_at, is_smithy, &mut response);
+        response.insert_header((AppHeader::XAuditId.to_string(), audit_id));
+        add_config_version_to_header(&version, &mut response);
+        return Ok(response.json(config));
+    }
+
+    // if fast mode isn't enabled, read from DB
 
     let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
@@ -610,20 +564,15 @@ async fn get_handler(
     )?;
 
     config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
-    let is_smithy: bool;
     let context = if req.method() == actix_web::http::Method::GET {
-        is_smithy = false;
         dimension_params.into_inner()
     } else {
-        // Assuming smithy.
-        is_smithy = true;
         body.map_or_else(QueryMap::default, |body| body.into_inner().context.into())
     };
     if !context.is_empty() {
         config = config.filter_by_dimensions(&context);
     }
 
-    let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
     add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
     add_config_version_to_header(&version, &mut response);

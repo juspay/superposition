@@ -43,17 +43,20 @@ use superposition_types::{
     result::{self as superposition, AppError},
 };
 
-use crate::helpers::add_config_version;
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
 use crate::{
-    api::context::{
-        helpers::{query_description, validate_ctx},
-        operations,
+    api::{
+        context::{
+            hash,
+            helpers::{query_description, validate_ctx},
+            operations,
+        },
+        dimension::fetch_dimensions_info_map,
     },
-    dimension::fetch_dimensions_info_map,
+    helpers::{
+        add_config_version, calculate_context_weight, put_config_in_redis,
+        validate_change_reason,
+    },
 };
-use crate::helpers::{add_config_version, calculate_context_weight, put_config_in_redis};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
