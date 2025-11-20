@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use actix_web::{
-    cookie::{time::Duration, Cookie, SameSite},
+    cookie::{time::Duration, Cookie},
     http::header,
     web::Path,
     HttpRequest, HttpResponse, Scope,
@@ -79,7 +79,6 @@ pub trait Authenticator: Sync + Send {
                 Ok(token) => {
                     let cookie = Cookie::build(login_type.to_string(), token)
                         .path(cookie_path)
-                        .same_site(SameSite::Strict)
                         .http_only(true)
                         .secure(true)
                         .max_age(Duration::days(1))

@@ -67,9 +67,10 @@ impl<'de> Deserialize<'de> for ProtectionCookie {
 }
 
 impl ProtectionCookie {
-    pub(super) fn from_req(req: &HttpRequest) -> Option<Self> {
+    pub(super) fn from_req(req: &HttpRequest) -> Result<Self, String> {
         req.cookie("protection")
-            .and_then(|c| serde_json::from_str(c.value()).ok())
+            .ok_or_else(|| "Protection cookie not found".to_string())
+            .and_then(|c| serde_json::from_str(c.value()).map_err(|e| e.to_string()))
     }
 }
 
