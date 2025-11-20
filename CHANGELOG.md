@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.94.5 - 2025-11-20
+### Package updates
+- service_utils bumped to service_utils-v0.33.5
+### Global changes
+#### Miscellaneous Chores
+- **(version)** v0.94.4 [skip ci] - (aa74f7f) - Superposition Bot
+
+- - -
+
 ## v0.94.4 - 2025-11-19
 ### Package updates
 - service_utils bumped to service_utils-v0.33.4

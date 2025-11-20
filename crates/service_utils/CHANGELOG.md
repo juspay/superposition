@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.33.5 - 2025-11-20
+#### Bug Fixes
+- cookie issue due to same-site:strict (#754) - (1557804) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.94.4 [skip ci] - (aa74f7f) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.33.4 - 2025-11-19
 #### Bug Fixes
 - oidc redirect host (#753) - (960e04b) - Ayush Jain
