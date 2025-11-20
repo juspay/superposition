@@ -4,7 +4,7 @@ mod utils;
 use std::sync::Arc;
 
 use actix_web::{
-    cookie::{time::Duration, Cookie, SameSite},
+    cookie::{time::Duration, Cookie},
     error::{ErrorBadRequest, ErrorInternalServerError},
     get,
     http::header,
@@ -176,7 +176,7 @@ impl OIDCAuthenticator {
                     .max_age(Duration::days(7))
                     .secure(true)
                     // .http_only(true)
-                    .same_site(SameSite::Strict)
+                    // .same_site(SameSite::Strict) -- TODO: figure out why this does not work for our case
                     .path(self.get_cookie_path())
                     .finish()
             });
@@ -189,7 +189,6 @@ impl OIDCAuthenticator {
                 .cookie(
                     Cookie::build(cookie_type.to_string(), "")
                         .max_age(Duration::seconds(0))
-                        .same_site(SameSite::Strict)
                         .secure(true)
                         .finish(),
                 )
@@ -272,7 +271,6 @@ impl OIDCAuthenticator {
                         .path(self.get_cookie_path())
                         .http_only(true)
                         .secure(true)
-                        .same_site(SameSite::Strict)
                         .max_age(Duration::days(1))
                         .finish();
                     Err(HttpResponse::Found()
@@ -421,14 +419,15 @@ async fn login(
     params: Query<LoginParams>,
 ) -> actix_web::Result<HttpResponse> {
     let login_type = Login::Global;
-    let p_cookie = if let Some(p_cookie) = ProtectionCookie::from_req(&req) {
-        p_cookie
-    } else {
-        log::error!("OIDC: Missing/Bad protection-cookie, redirecting...");
-        return Ok(data.new_redirect(
-            &login_type,
-            format!("{}/admin/organisations", data.path_prefix),
-        ));
+    let p_cookie = match ProtectionCookie::from_req(&req) {
+        Ok(p_cookie) => p_cookie,
+        Err(e) => {
+            log::error!("OIDC: Missing/Bad protection-cookie, redirecting... {}", e);
+            return Ok(data.new_redirect(
+                &login_type,
+                format!("{}/admin/organisations", data.path_prefix),
+            ));
+        }
     };
 
     if *params.state.csrf.secret() != *p_cookie.csrf.secret() {
@@ -466,7 +465,6 @@ async fn login(
                 .path(data.get_cookie_path())
                 .http_only(true)
                 .secure(true)
-                .same_site(SameSite::Strict)
                 .max_age(Duration::days(1))
                 .finish();
             Ok(HttpResponse::Found()
