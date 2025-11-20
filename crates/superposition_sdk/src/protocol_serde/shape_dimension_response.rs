@@ -32,8 +32,8 @@ pub(crate) fn de_dimension_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     crate::protocol_serde::shape_object::de_object(tokens)?
                                 );
                             }
-                            "function_name" => {
-                                builder = builder.set_function_name(
+                            "value_validation_function_name" => {
+                                builder = builder.set_value_validation_function_name(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
                                             u.into_owned()
@@ -97,8 +97,8 @@ pub(crate) fn de_dimension_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     crate::protocol_serde::shape_dimension_type::de_dimension_type(tokens)?
                                 );
                             }
-                            "autocomplete_function_name" => {
-                                builder = builder.set_autocomplete_function_name(
+                            "value_compute_function_name" => {
+                                builder = builder.set_value_compute_function_name(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
                                             u.into_owned()

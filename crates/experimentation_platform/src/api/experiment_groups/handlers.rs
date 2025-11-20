@@ -44,7 +44,8 @@ use crate::api::{
     experiments::{
         cac_api::validate_context,
         helpers::{
-            hash, validate_and_add_experiment_group_id,
+            fetch_and_validate_change_reason_with_function, get_workspace, hash,
+            validate_and_add_experiment_group_id,
             validate_and_remove_experiment_group_id,
         },
     },
@@ -73,6 +74,7 @@ async fn create_experiment_group(
     let DbConnection(mut conn) = db_conn;
     let req = req.into_inner();
     log::trace!("Creating experiment group with request: {:?}", req);
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
     let exp_context = req.context.into_inner();
     let member_experiments = if let Some(members) = req.member_experiment_ids {
         fetch_and_validate_members(
@@ -85,6 +87,14 @@ async fn create_experiment_group(
         Vec::new()
     };
 
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
     validate_context(&state, &exp_context, &workspace_request, &user).await?;
     validate_experiment_group_constraints(&member_experiments, &[], &exp_context)?;
 
@@ -139,9 +149,12 @@ async fn update_experiment_group(
     db_conn: DbConnection,
     schema_name: SchemaName,
     user: User,
+    workspace_request: WorkspaceContext,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
     let experiment_group = fetch_experiment_group(&id, &mut conn, &schema_name)?;
     if experiment_group.group_type == GroupType::SystemGenerated {
         return Err(bad_argument!(
@@ -151,6 +164,14 @@ async fn update_experiment_group(
     }
 
     let req = req.into_inner();
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
     let updated_group = diesel::update(experiment_groups::experiment_groups)
         .filter(experiment_groups::id.eq(&id))
         .set((
@@ -171,9 +192,20 @@ async fn add_members_to_group(
     db_conn: DbConnection,
     schema_name: SchemaName,
     user: User,
+    workspace_request: WorkspaceContext,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
     let id = exp_group_id.into_inner();
     let member_experiments = fetch_and_validate_members(
         &req.member_experiment_ids,
@@ -211,10 +243,21 @@ async fn remove_members_to_group(
     db_conn: DbConnection,
     schema_name: SchemaName,
     user: User,
+    workspace_request: WorkspaceContext,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
+
+    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+    if workspace_settings.enable_change_reason_validation {
+        fetch_and_validate_change_reason_with_function(
+            &req.change_reason,
+            &state,
+            &workspace_request,
+        )
+        .await?;
+    }
 
     let experiment_group =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {

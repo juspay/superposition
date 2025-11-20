@@ -45,9 +45,11 @@ pub use crate::types::_function_types::FunctionTypes;
 
 pub use crate::types::_function_execution_request::FunctionExecutionRequest;
 
-pub use crate::types::_autocomplete_function_request::AutocompleteFunctionRequest;
+pub use crate::types::_context_validation_function_request::ContextValidationFunctionRequest;
 
-pub use crate::types::_validate_function_request::ValidateFunctionRequest;
+pub use crate::types::_value_compute_function_request::ValueComputeFunctionRequest;
+
+pub use crate::types::_value_validation_function_request::ValueValidationFunctionRequest;
 
 pub use crate::types::_stage::Stage;
 
@@ -97,8 +99,6 @@ mod _audit_action;
 
 mod _audit_log_full;
 
-mod _autocomplete_function_request;
-
 mod _bucket;
 
 mod _context_action;
@@ -118,6 +118,8 @@ mod _context_partial;
 mod _context_put;
 
 mod _context_response;
+
+mod _context_validation_function_request;
 
 mod _default_config_response;
 
@@ -169,7 +171,9 @@ mod _unit;
 
 mod _update_context_override_request;
 
-mod _validate_function_request;
+mod _value_compute_function_request;
+
+mod _value_validation_function_request;
 
 mod _variant;
 

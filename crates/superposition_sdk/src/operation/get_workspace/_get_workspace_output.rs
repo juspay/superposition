@@ -35,6 +35,10 @@ pub struct GetWorkspaceOutput  {
     pub allow_experiment_self_approval: bool,
     #[allow(missing_docs)] // documentation missing in model
     pub auto_populate_control: bool,
+    #[allow(missing_docs)] // documentation missing in model
+    pub enable_context_validation: bool,
+    #[allow(missing_docs)] // documentation missing in model
+    pub enable_change_reason_validation: bool,
 }
 impl  GetWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -104,6 +108,14 @@ impl  GetWorkspaceOutput  {
     pub fn auto_populate_control(&self) -> bool {
         self.auto_populate_control
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn enable_context_validation(&self) -> bool {
+        self.enable_context_validation
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn enable_change_reason_validation(&self) -> bool {
+        self.enable_change_reason_validation
+    }
 }
 impl GetWorkspaceOutput {
     /// Creates a new builder-style object to manufacture [`GetWorkspaceOutput`](crate::operation::get_workspace::GetWorkspaceOutput).
@@ -132,6 +144,8 @@ pub struct GetWorkspaceOutputBuilder {
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
     pub(crate) auto_populate_control: ::std::option::Option<bool>,
+    pub(crate) enable_context_validation: ::std::option::Option<bool>,
+    pub(crate) enable_change_reason_validation: ::std::option::Option<bool>,
 }
 impl GetWorkspaceOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -361,6 +375,34 @@ impl GetWorkspaceOutputBuilder {
     pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
         &self.auto_populate_control
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn enable_context_validation(mut self, input: bool) -> Self {
+        self.enable_context_validation = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_enable_context_validation(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.enable_context_validation = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_enable_context_validation(&self) -> &::std::option::Option<bool> {
+        &self.enable_context_validation
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn enable_change_reason_validation(mut self, input: bool) -> Self {
+        self.enable_change_reason_validation = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_enable_change_reason_validation(mut self, input: ::std::option::Option<bool>) -> Self {
+        self.enable_change_reason_validation = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
+        &self.enable_change_reason_validation
+    }
     /// Consumes the builder and constructs a [`GetWorkspaceOutput`](crate::operation::get_workspace::GetWorkspaceOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`workspace_name`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::workspace_name)
@@ -377,6 +419,8 @@ impl GetWorkspaceOutputBuilder {
     /// - [`metrics`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::metrics)
     /// - [`allow_experiment_self_approval`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::allow_experiment_self_approval)
     /// - [`auto_populate_control`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::auto_populate_control)
+    /// - [`enable_context_validation`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::enable_context_validation)
+    /// - [`enable_change_reason_validation`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::enable_change_reason_validation)
     pub fn build(self) -> ::std::result::Result<crate::operation::get_workspace::GetWorkspaceOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::get_workspace::GetWorkspaceOutput {
@@ -452,6 +496,16 @@ impl GetWorkspaceOutputBuilder {
                 auto_populate_control: self.auto_populate_control
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("auto_populate_control", "auto_populate_control was not specified but it is required when building GetWorkspaceOutput")
+                    )?
+                ,
+                enable_context_validation: self.enable_context_validation
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("enable_context_validation", "enable_context_validation was not specified but it is required when building GetWorkspaceOutput")
+                    )?
+                ,
+                enable_change_reason_validation: self.enable_change_reason_validation
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("enable_change_reason_validation", "enable_change_reason_validation was not specified but it is required when building GetWorkspaceOutput")
                     )?
                 ,
             }

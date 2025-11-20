@@ -16,7 +16,7 @@ use crate::{
     },
     providers::{alert_provider::enqueue_alert, editor_provider::use_editor},
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
-    types::AutoCompleteCallback,
+    types::ValueComputeCallback,
     utils::get_element_by_id,
 };
 
@@ -247,7 +247,7 @@ fn basic_input(
     value: Value,
     schema_type: SchemaType,
     on_change: Callback<Value, ()>,
-    #[prop(default = None)] autocomplete_function: Option<AutoCompleteCallback>,
+    #[prop(default = None)] value_compute_function: Option<ValueComputeCallback>,
     #[prop(default = None)] operator: Option<Operator>,
     #[prop(default = Duration::from_millis(600))] debounce_delay: Duration,
 ) -> impl IntoView {
@@ -280,10 +280,10 @@ fn basic_input(
                         debounce_delay,
                         move |e| {
                             let v = event_target_value(&e);
-                            if let Some(autocomplete_function) = autocomplete_function {
+                            if let Some(value_compute_function) = value_compute_function {
                                 suggestions_loading_rws.set(true);
                                 show_suggestions_rws.set(true);
-                                autocomplete_function.call((v, suggestions_ws));
+                                value_compute_function.call((v, suggestions_ws));
                             }
                         },
                     )
@@ -326,11 +326,11 @@ fn basic_input(
             {move || {
                 suggestions_rs
                     .with(|suggestions| {
-                        if autocomplete_function.is_some() && !suggestions.is_empty()
+                        if value_compute_function.is_some() && !suggestions.is_empty()
                             && show_suggestions_rws.get()
                         {
                             let target_id = id.clone();
-                            let dropdown_id = format!("{}-autocomplete", id);
+                            let dropdown_id = format!("{}-value-compute", id);
                             suggestions_loading_rws.set(false);
                             // TODO: Handle loading state properly, this is not the correct way
                             view! {
@@ -618,7 +618,7 @@ pub fn input(
     #[prop(into, default = String::new())] class: String,
     #[prop(into, default = String::new())] name: String,
     #[prop(default = None)] operator: Option<Operator>,
-    #[prop(default = None)] autocomplete_function: Option<AutoCompleteCallback>,
+    #[prop(default = None)] value_compute_function: Option<ValueComputeCallback>,
 ) -> impl IntoView {
     match r#type {
         InputType::Toggle => match value.as_bool() {
@@ -654,7 +654,7 @@ pub fn input(
                     on_change
                     operator
                     placeholder
-                    autocomplete_function
+                    value_compute_function
                 />
             }
         }

@@ -11,6 +11,8 @@ impl super::Client {
     ///   - [`metrics(Document)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::metrics) / [`set_metrics(Option<Document>)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::set_metrics):<br>required: **false**<br>(undocumented)<br>
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::allow_experiment_self_approval) / [`set_allow_experiment_self_approval(Option<bool>)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::set_allow_experiment_self_approval):<br>required: **true**<br>(undocumented)<br>
     ///   - [`auto_populate_control(bool)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::auto_populate_control) / [`set_auto_populate_control(Option<bool>)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::set_auto_populate_control):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`enable_context_validation(bool)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::enable_context_validation) / [`set_enable_context_validation(Option<bool>)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::set_enable_context_validation):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`enable_change_reason_validation(bool)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::enable_change_reason_validation) / [`set_enable_change_reason_validation(Option<bool>)`](crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::set_enable_change_reason_validation):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`CreateWorkspaceOutput`](crate::operation::create_workspace::CreateWorkspaceOutput) with field(s):
     ///   - [`workspace_name(String)`](crate::operation::create_workspace::CreateWorkspaceOutput::workspace_name): (undocumented)
     ///   - [`organisation_id(String)`](crate::operation::create_workspace::CreateWorkspaceOutput::organisation_id): (undocumented)
@@ -28,6 +30,8 @@ impl super::Client {
     ///   - [`metrics(Document)`](crate::operation::create_workspace::CreateWorkspaceOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::create_workspace::CreateWorkspaceOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::create_workspace::CreateWorkspaceOutput::auto_populate_control): (undocumented)
+    ///   - [`enable_context_validation(bool)`](crate::operation::create_workspace::CreateWorkspaceOutput::enable_context_validation): (undocumented)
+    ///   - [`enable_change_reason_validation(bool)`](crate::operation::create_workspace::CreateWorkspaceOutput::enable_change_reason_validation): (undocumented)
                             /// - On failure, responds with [`SdkError<CreateWorkspaceError>`](crate::operation::create_workspace::CreateWorkspaceError)
     pub fn create_workspace(&self) -> crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder {
                                 crate::operation::create_workspace::builders::CreateWorkspaceFluentBuilder::new(self.handle.clone())
