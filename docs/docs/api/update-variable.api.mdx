@@ -1,0 +1,71 @@
+---
+id: update-variable
+title: "UpdateVariable"
+description: "Updates an existing variable's value, description, or tags."
+sidebar_label: "UpdateVariable"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VktP4zAQ/iuRL7srpbRi6aU3QKzgskJQ9lJVyE2mjSGJvbYDraL8951x3m2o0AIcqGt/8/5mpjkLwQRaKCtkymbsQYXcgvF46sFWGCvSjffCteCrGL4ZPMYZ+F5Hxvek9izfmBPmM6lAc7q9CRtdfyppfNbwNwNjL2S4Y7OcBTK1kFo6cqViETjR8ZMhT3JmgggSTie7U4D65OoJAot6lCZDVoChV+dTB2asRq9Z4fdDG3gPIp5u4FEDN4OIonRZaMBwFnvwpc+ssDEcBHpXRnlZRVf01VidAV4ornkCFjSGsMhZil9QkfvwmaBKKG4jPB9koXV/X2mjZjuSejMSYa0qAh6C/m9lr1I/G8UD+IC+Jd0YJVNTFu10MqGPIfLVefQQ49VCaOyT6FKGNeDx1/EIEfhmIXxc7Y4+c3v47LO11Am9MMrOyAr0H2VibuxjIkOxFm8r7oPer/4o83v+9mLrp2rA/IDbfs36Mv9H2qpkQqev0MuzydkhjxAqMx3Ab2l/ySwNPUS1TEKp6RD7blCvTnl8D/oF9JXWONimX0LBBIzhmyGuFW30A+4MpYAkcPpSlepMGUoiDpdIhuUcCWiQuHkyY+N6mptxTokvqI0hyLSwOzeKTCJstDvhSpxE1qoL4Br0eUbCiyX1cY2+p2jLgI7INCHSwx5BZux6Pr/1SrjHEY9RVUmtpwuJrhzAZYdSfdeukastT1QMnTXQ8rpvqbnea9ZOs4h0LZ3DVQXuM6yZkkZU/mAZTKnsdHI6HU1+jiZTkkOITXjaDpeKuV5n9e2NkIZIH1y4VW4tbO1YxRynM/qT6ZhslAVfsKbgiJ85B7GIEfpMj3m+4gYedFwUdI2J1USDpd+IOVKEwtAZ+bTmsYEj8Xy/q+bGD+8t/6pLnu6arp8xPD7Drt6BxRJx1Zr5dPulnc6SbHygtfclprortGetBFQNPZqTjhZxMGNaifMgAGWPYrtD4PZ8fnmN6FX10wsHMAlp/ko/y/C/K4B0QbqOdnc5Tut0k7lRxUql9PcPzDWKLw==
+sidebar_class_name: "patch api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"UpdateVariable"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/variables/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Updates an existing variable's value, description, or tags.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason"],"title":"UpdateVariableRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"UpdateVariable 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","name","value"],"title":"UpdateVariableResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

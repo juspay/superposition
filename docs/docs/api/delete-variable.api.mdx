@@ -1,0 +1,71 @@
+---
+id: delete-variable
+title: "DeleteVariable"
+description: "Permanently deletes a variable from the workspace."
+sidebar_label: "DeleteVariable"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VE1v2zAM/SuCThuQDyNLLrl1a4YVGIYiyXYpclBsJlZrSyoldzUM//eR/kiTJeuh23KJLL1Hke+RqmQCPkbtgrZGzuUtYK4MmJCVIoEMAnihxJNCrbYZiB3aXIQUxE+LD96pGEZyIK0DVBzgJqEQ1w3tR0ehY6dQ5bSFXs7vKmnog2DN30BqvtWpkNLaxynkSs4rGUrHGB9Qm72sBxLhsdAIFD9gAfXgEOZ5aHE/1EkfKgWVAL452KGuv4i34R3vrPHgGT+Jpvx3KvSpSoIwoidxyOklzhK8LTCGbzZ8toVJxPQ31iyKzlk3hqQ3KlsBPgEuEC0KAr4QBzK2hDGBucq5TMeNm+N7zwGq89Lt9h7iwNYiex90W2gO3qs9XNCIcgs6ZHA5nWWXyacujZp/xFB77hjZi+QlKUuNlFpus7Y7m/ai5pnLcd+kflyxnTV7BnGBOpRN3/lch7QcKadHaQjuIygEvCqYfLdh03r0isttK3qFc6iRD+iuU9G/rNe3ooULRXgqq1O1byWmbhtAI482O9sE7WRaFSSss153HNLKt6En0WQ2jD4MoxlbTpBAE8vUronbzhJHA3iSWvXi9tumvSs7wHMYu0zRlFAaBWYcuvXiTh68IPy8yYv0TSlVPqyqrfLwHbO65u3HApAdomVPa/xKtOc1eb1TmYdXyni37AbwvfhTft2mMiVrqbKCv2j5AGX/FtUbwnXj/s/vb+85eqwOOfDz81+uOn7KTm5rAVdxDC4cnZ1Nfn08bteLr4v1glr1Fxx3IHI=
+sidebar_class_name: "delete api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DeleteVariable"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/variables/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently deletes a variable from the workspace.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"DeleteVariable 204 response"},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

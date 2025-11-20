@@ -3,7 +3,7 @@ use service_utils::service::types::SchemaName;
 use superposition_types::{
     database::{
         models::cac::{Function, FunctionCode},
-        schema::{self, functions::dsl::functions},
+        schema::{self, functions::dsl::functions, variables::dsl as variables},
     },
     result as superposition, DBConnection,
 };
@@ -47,4 +47,33 @@ pub fn get_published_functions_by_names(
         .load(conn)?;
 
     Ok(function)
+}
+
+pub fn generate_vars_template(vars: &[(String, String)]) -> String {
+    if vars.is_empty() {
+        return String::new();
+    }
+
+    let json_entries: Vec<String> = vars
+        .iter()
+        .map(|(k, v)| format!("\"{}\":\"{}\"", k, v))
+        .collect();
+
+    format!("const VARS = {{\n{}\n}};", json_entries.join(",\n"))
+}
+
+pub fn inject_variables_into_code(
+    code: &str,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<FunctionCode> {
+    let vars: Vec<(String, String)> = variables::variables
+        .select((variables::name, variables::value))
+        .schema_name(schema_name)
+        .load(conn)?;
+
+    let vars_template = generate_vars_template(&vars);
+    let processed_code = format!("{}\n\n{}", vars_template, code);
+
+    Ok(FunctionCode(processed_code))
 }

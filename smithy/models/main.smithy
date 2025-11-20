@@ -24,6 +24,7 @@ service Superposition {
         Workspace
         Webhook
         ExperimentGroup
+        Variable
     ]
     errors: [
         InternalServerError

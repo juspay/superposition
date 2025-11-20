@@ -24,6 +24,7 @@ use crate::components::{
     description::ContentDescription,
     function_form::{FunctionEditor, Mode},
     skeleton::{Skeleton, SkeletonVariant},
+    tip::Tip,
 };
 use crate::query_updater::{
     use_param_updater, use_signal_from_query, use_update_url_query,
@@ -223,6 +224,12 @@ pub fn function_page() -> impl IntoView {
                             };
 
                             view! {
+                                <Tip
+                                    message="Reference variables using"
+                                    code_snippet="VARS.KEY_NAME"
+                                    example="VARS.API_KEY"
+                                />
+
                                 <FunctionCodeInfo
                                     version
                                     action_time
@@ -231,6 +238,7 @@ pub fn function_page() -> impl IntoView {
                                 />
                             }
                         }
+
                         <FunctionEditor
                             function_name=function_st.with_value(|f| f.function_name.clone())
                             function=function_st

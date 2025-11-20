@@ -64,6 +64,11 @@ import {
   CreateTypeTemplatesCommandOutput,
 } from "./commands/CreateTypeTemplatesCommand";
 import {
+  CreateVariableCommand,
+  CreateVariableCommandInput,
+  CreateVariableCommandOutput,
+} from "./commands/CreateVariableCommand";
+import {
   CreateWebhookCommand,
   CreateWebhookCommandInput,
   CreateWebhookCommandOutput,
@@ -103,6 +108,11 @@ import {
   DeleteTypeTemplatesCommandInput,
   DeleteTypeTemplatesCommandOutput,
 } from "./commands/DeleteTypeTemplatesCommand";
+import {
+  DeleteVariableCommand,
+  DeleteVariableCommandInput,
+  DeleteVariableCommandOutput,
+} from "./commands/DeleteVariableCommand";
 import {
   DeleteWebhookCommand,
   DeleteWebhookCommandInput,
@@ -179,6 +189,11 @@ import {
   GetTypeTemplatesListCommandOutput,
 } from "./commands/GetTypeTemplatesListCommand";
 import {
+  GetVariableCommand,
+  GetVariableCommandInput,
+  GetVariableCommandOutput,
+} from "./commands/GetVariableCommand";
+import {
   GetVersionCommand,
   GetVersionCommandInput,
   GetVersionCommandOutput,
@@ -238,6 +253,11 @@ import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "./commands/ListOrganisationCommand";
+import {
+  ListVariablesCommand,
+  ListVariablesCommandInput,
+  ListVariablesCommandOutput,
+} from "./commands/ListVariablesCommand";
 import {
   ListVersionsCommand,
   ListVersionsCommandInput,
@@ -334,6 +354,11 @@ import {
   UpdateTypeTemplatesCommandOutput,
 } from "./commands/UpdateTypeTemplatesCommand";
 import {
+  UpdateVariableCommand,
+  UpdateVariableCommandInput,
+  UpdateVariableCommandOutput,
+} from "./commands/UpdateVariableCommand";
+import {
   UpdateWebhookCommand,
   UpdateWebhookCommandInput,
   UpdateWebhookCommandOutput,
@@ -369,6 +394,7 @@ const commands = {
   CreateFunctionCommand,
   CreateOrganisationCommand,
   CreateTypeTemplatesCommand,
+  CreateVariableCommand,
   CreateWebhookCommand,
   CreateWorkspaceCommand,
   DeleteContextCommand,
@@ -377,6 +403,7 @@ const commands = {
   DeleteExperimentGroupCommand,
   DeleteFunctionCommand,
   DeleteTypeTemplatesCommand,
+  DeleteVariableCommand,
   DeleteWebhookCommand,
   DiscardExperimentCommand,
   GetConfigCommand,
@@ -392,6 +419,7 @@ const commands = {
   GetResolvedConfigCommand,
   GetTypeTemplateCommand,
   GetTypeTemplatesListCommand,
+  GetVariableCommand,
   GetVersionCommand,
   GetWebhookCommand,
   GetWebhookByEventCommand,
@@ -404,6 +432,7 @@ const commands = {
   ListExperimentGroupsCommand,
   ListFunctionCommand,
   ListOrganisationCommand,
+  ListVariablesCommand,
   ListVersionsCommand,
   ListWebhookCommand,
   ListWorkspaceCommand,
@@ -423,6 +452,7 @@ const commands = {
   UpdateOverrideCommand,
   UpdateOverridesExperimentCommand,
   UpdateTypeTemplatesCommand,
+  UpdateVariableCommand,
   UpdateWebhookCommand,
   UpdateWorkspaceCommand,
   ValidateContextCommand,
@@ -635,6 +665,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link CreateVariableCommand}
+   */
+  createVariable(
+    args: CreateVariableCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<CreateVariableCommandOutput>;
+  createVariable(
+    args: CreateVariableCommandInput,
+    cb: (err: any, data?: CreateVariableCommandOutput) => void
+  ): void;
+  createVariable(
+    args: CreateVariableCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: CreateVariableCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link CreateWebhookCommand}
    */
   createWebhook(
@@ -768,6 +815,23 @@ export interface Superposition {
     args: DeleteTypeTemplatesCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: DeleteTypeTemplatesCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link DeleteVariableCommand}
+   */
+  deleteVariable(
+    args: DeleteVariableCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<DeleteVariableCommandOutput>;
+  deleteVariable(
+    args: DeleteVariableCommandInput,
+    cb: (err: any, data?: DeleteVariableCommandOutput) => void
+  ): void;
+  deleteVariable(
+    args: DeleteVariableCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: DeleteVariableCommandOutput) => void
   ): void;
 
   /**
@@ -1026,6 +1090,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link GetVariableCommand}
+   */
+  getVariable(
+    args: GetVariableCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetVariableCommandOutput>;
+  getVariable(
+    args: GetVariableCommandInput,
+    cb: (err: any, data?: GetVariableCommandOutput) => void
+  ): void;
+  getVariable(
+    args: GetVariableCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetVariableCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link GetVersionCommand}
    */
   getVersion(
@@ -1228,6 +1309,23 @@ export interface Superposition {
     args: ListOrganisationCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: ListOrganisationCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ListVariablesCommand}
+   */
+  listVariables(
+    args: ListVariablesCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ListVariablesCommandOutput>;
+  listVariables(
+    args: ListVariablesCommandInput,
+    cb: (err: any, data?: ListVariablesCommandOutput) => void
+  ): void;
+  listVariables(
+    args: ListVariablesCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ListVariablesCommandOutput) => void
   ): void;
 
   /**
@@ -1551,6 +1649,23 @@ export interface Superposition {
     args: UpdateTypeTemplatesCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: UpdateTypeTemplatesCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link UpdateVariableCommand}
+   */
+  updateVariable(
+    args: UpdateVariableCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<UpdateVariableCommandOutput>;
+  updateVariable(
+    args: UpdateVariableCommandInput,
+    cb: (err: any, data?: UpdateVariableCommandOutput) => void
+  ): void;
+  updateVariable(
+    args: UpdateVariableCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: UpdateVariableCommandOutput) => void
   ): void;
 
   /**
