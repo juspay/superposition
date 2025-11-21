@@ -31,7 +31,7 @@ mod tests {
             None,
         );
 
-        let cac_config = CacConfig::new(superposition_options, config_options);
+        let cac_config = CacClient::new(superposition_options, config_options);
 
         assert!(cac_config.get_cached_config().await.is_none());
     }
@@ -49,7 +49,7 @@ mod tests {
             OnDemandStrategy::default(),
         ));
 
-        let exp_config = ExperimentationConfig::new(superposition_options, exp_options);
+        let exp_config = ExperimentationClient::new(superposition_options, exp_options);
 
         // Test that we can get None for cached experiments initially
         assert!(exp_config.get_cached_experiments().await.is_none());
