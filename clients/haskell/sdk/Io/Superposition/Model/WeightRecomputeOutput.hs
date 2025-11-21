@@ -36,7 +36,7 @@ instance Io.Superposition.Utility.SerializeBody WeightRecomputeOutput
 
 instance Data.Aeson.FromJSON WeightRecomputeOutput where
     parseJSON = Data.Aeson.withObject "WeightRecomputeOutput" $ \v -> WeightRecomputeOutput
-        Data.Functor.<$> (v Data.Aeson..: "data")
+        Data.Functor.<$> (v Data.Aeson..:? "data")
     
 
 

@@ -45,7 +45,7 @@ instance Io.Superposition.Utility.SerializeBody ContextMove
 instance Data.Aeson.FromJSON ContextMove where
     parseJSON = Data.Aeson.withObject "ContextMove" $ \v -> ContextMove
         Data.Functor.<$> (v Data.Aeson..: "context")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
 

@@ -38,7 +38,6 @@ resumeExperiment :: Io.Superposition.SuperpositionClient.SuperpositionClient -> 
 resumeExperiment client builder =
     let endpoint = Io.Superposition.SuperpositionClient.endpointUri client
         manager = Io.Superposition.SuperpositionClient.httpManager client
-        token = Io.Superposition.SuperpositionClient.token client
-        setAuth = Io.Superposition.Utility.serHeader "Authorization" ("Bearer " <> token)
-    in Io.Superposition.Utility.runOperation endpoint manager setAuth (Io.Superposition.Model.ResumeExperimentInput.build builder)
+        auth = Io.Superposition.SuperpositionClient.getAuth client
+    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.ResumeExperimentInput.build builder)
 

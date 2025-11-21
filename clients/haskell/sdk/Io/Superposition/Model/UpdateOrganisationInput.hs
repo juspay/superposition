@@ -61,13 +61,13 @@ instance Io.Superposition.Utility.SerializeBody UpdateOrganisationInput
 
 instance Data.Aeson.FromJSON UpdateOrganisationInput where
     parseJSON = Data.Aeson.withObject "UpdateOrganisationInput" $ \v -> UpdateOrganisationInput
-        Data.Functor.<$> (v Data.Aeson..: "country_code")
-        Control.Applicative.<*> (v Data.Aeson..: "contact_email")
-        Control.Applicative.<*> (v Data.Aeson..: "contact_phone")
-        Control.Applicative.<*> (v Data.Aeson..: "admin_email")
-        Control.Applicative.<*> (v Data.Aeson..: "sector")
+        Data.Functor.<$> (v Data.Aeson..:? "country_code")
+        Control.Applicative.<*> (v Data.Aeson..:? "contact_email")
+        Control.Applicative.<*> (v Data.Aeson..:? "contact_phone")
+        Control.Applicative.<*> (v Data.Aeson..:? "admin_email")
+        Control.Applicative.<*> (v Data.Aeson..:? "sector")
         Control.Applicative.<*> (v Data.Aeson..: "id")
-        Control.Applicative.<*> (v Data.Aeson..: "status")
+        Control.Applicative.<*> (v Data.Aeson..:? "status")
     
 
 

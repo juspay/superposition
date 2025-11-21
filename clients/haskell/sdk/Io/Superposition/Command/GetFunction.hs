@@ -38,7 +38,6 @@ getFunction :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Su
 getFunction client builder =
     let endpoint = Io.Superposition.SuperpositionClient.endpointUri client
         manager = Io.Superposition.SuperpositionClient.httpManager client
-        token = Io.Superposition.SuperpositionClient.token client
-        setAuth = Io.Superposition.Utility.serHeader "Authorization" ("Bearer " <> token)
-    in Io.Superposition.Utility.runOperation endpoint manager setAuth (Io.Superposition.Model.GetFunctionInput.build builder)
+        auth = Io.Superposition.SuperpositionClient.getAuth client
+    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.GetFunctionInput.build builder)
 

@@ -37,6 +37,12 @@ export const defaultSuperpositionHttpAuthSchemeParametersProvider = async (confi
   };
 };
 
+function createSmithyApiHttpBasicAuthHttpAuthOption(authParameters: SuperpositionHttpAuthSchemeParameters): HttpAuthOption {
+  return {
+    schemeId: "smithy.api#httpBasicAuth",
+  };
+};
+
 function createSmithyApiHttpBearerAuthHttpAuthOption(authParameters: SuperpositionHttpAuthSchemeParameters): HttpAuthOption {
   return {
     schemeId: "smithy.api#httpBearerAuth",
@@ -55,6 +61,7 @@ export const defaultSuperpositionHttpAuthSchemeProvider: SuperpositionHttpAuthSc
   const options: HttpAuthOption[] = [];
   switch (authParameters.operation) {
     default: {
+      options.push(createSmithyApiHttpBasicAuthHttpAuthOption(authParameters));
       options.push(createSmithyApiHttpBearerAuthHttpAuthOption(authParameters));
     };
   };

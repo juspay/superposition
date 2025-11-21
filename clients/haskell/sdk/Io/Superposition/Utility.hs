@@ -18,6 +18,9 @@ module Io.Superposition.Utility (
     RawRequest (..),
     RawResponse (..),
     HttpMetadata (..),
+    DynAuth (..),
+    BasicAuth (..),
+    BearerAuth (..),
     runOperation
 ) where
 
@@ -517,6 +520,20 @@ class OperationError e where
   mkDeSerializationError :: HttpMetadata -> Text -> e
   mkUnexpectedError :: Maybe HttpMetadata -> Text -> e
 
+class Authorization a where
+  setAuthorization :: a -> RequestBuilder ()
+
+newtype BearerAuth = BearerAuth { _btoken :: Text }
+
+instance Authorization BearerAuth where
+  setAuthorization (BearerAuth a) = serHeader "Authorization" $ "Bearer " <> a
+
+newtype BasicAuth = BasicAuth { _creds :: Text}
+instance Authorization BasicAuth where
+  setAuthorization (BasicAuth a) = serHeader "Authorization" $ "Basic " <> a
+
+data DynAuth = forall a. (Authorization a) => DynAuth a
+
 badHttpUrl :: Text
 badHttpUrl = "The provided endpoint is not a well-formed http url."
 
@@ -524,15 +541,19 @@ runOperation ::
   (FromResponseParser t, OperationError e, IntoRequestBuilder i) =>
   Network.URI ->
   HTTP.Manager ->
-  RequestBuilder () ->
+  (Maybe DynAuth) ->
   Either Text i ->
   IO (Either e t)
 runOperation _ _ _ (Left err) =
   pure $
     Left $
       mkBuilderError err
-runOperation endpoint manager setAuth (Right i) = do
-  let rbuilder = intoRequestBuilder i >> setAuth >> setContentType
+runOperation endpoint manager dauth (Right i) = do
+  let setAuth :: RequestBuilder ()
+      setAuth = case dauth of
+                  (Just (DynAuth a)) -> (setAuthorization a)
+                  _ -> pure ()
+      rbuilder = intoRequestBuilder i >> setAuth >> setContentType
       (_, reqSt) = MTL.runState rbuilder newRequestBuilderSt
       initReq = mergeWithHTTPRequest reqSt <$> HTTP.requestFromURI endpoint
       rawBody = getBodyContent (_body reqSt)
@@ -548,7 +569,7 @@ parseOutput ::
   HttpResponse ->
   IO (Either e t)
 parseOutput rawBody response = do
-  body <- HTTP.brRead (HTTP.responseBody response)
+  body <- mconcat <$> HTTP.brConsume (HTTP.responseBody response)
   let status = HTTP.responseStatus response
       code = HTTP.statusCode status
       parseInput = (response, Raw body)
@@ -564,4 +585,3 @@ parseOutput rawBody response = do
         (Right v, _) -> Left v
         (Left e, _) -> Left $ mkDeSerializationError metadata (pack e)
       Nothing -> pure $ Left $ mkUnexpectedError (Just metadata) "Un-expected status code."
-

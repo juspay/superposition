@@ -8,6 +8,7 @@ use aws.protocols#restJson1
 @title("Superposition")
 @restJson1
 @httpBearerAuth
+@httpBasicAuth
 service Superposition {
     version: "2025-03-05"
     resources: [

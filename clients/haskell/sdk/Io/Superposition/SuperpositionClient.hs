@@ -13,15 +13,21 @@ module Io.Superposition.SuperpositionClient (
     Io.Superposition.Utility.HttpMetadata,
     Io.Superposition.Utility.rawRequest,
     Io.Superposition.Utility.rawResponse,
+    Io.Superposition.Utility.BearerAuth(..),
+    Io.Superposition.Utility.BasicAuth(..),
     endpointUri,
     httpManager,
-    token,
+    bearerAuth,
+    basicAuth,
     setEndpointuri,
     setHttpmanager,
-    setToken,
+    setBearerauth,
+    setBasicauth,
     build,
-    SuperpositionClientBuilder
+    SuperpositionClientBuilder,
+    getAuth
 ) where
+import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
 import qualified Data.Either
 import qualified Data.Maybe
@@ -34,7 +40,8 @@ import qualified Network.URI
 data SuperpositionClient = SuperpositionClient {
     endpointUri :: Network.URI.URI,
     httpManager :: Network.HTTP.Client.Manager,
-    token :: Data.Text.Text
+    bearerAuth :: Data.Maybe.Maybe Io.Superposition.Utility.BearerAuth,
+    basicAuth :: Data.Maybe.Maybe Io.Superposition.Utility.BasicAuth
 } deriving (
   GHC.Generics.Generic
   )
@@ -42,7 +49,8 @@ data SuperpositionClient = SuperpositionClient {
 data SuperpositionClientBuilderState = SuperpositionClientBuilderState {
     endpointUriBuilderState :: Data.Maybe.Maybe Network.URI.URI,
     httpManagerBuilderState :: Data.Maybe.Maybe Network.HTTP.Client.Manager,
-    tokenBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    bearerAuthBuilderState :: Data.Maybe.Maybe Io.Superposition.Utility.BearerAuth,
+    basicAuthBuilderState :: Data.Maybe.Maybe Io.Superposition.Utility.BasicAuth
 } deriving (
   GHC.Generics.Generic
   )
@@ -51,7 +59,8 @@ defaultBuilderState :: SuperpositionClientBuilderState
 defaultBuilderState = SuperpositionClientBuilderState {
     endpointUriBuilderState = Data.Maybe.Nothing,
     httpManagerBuilderState = Data.Maybe.Nothing,
-    tokenBuilderState = Data.Maybe.Nothing
+    bearerAuthBuilderState = Data.Maybe.Nothing,
+    basicAuthBuilderState = Data.Maybe.Nothing
 }
 
 type SuperpositionClientBuilder = Control.Monad.State.Strict.State SuperpositionClientBuilderState
@@ -64,20 +73,32 @@ setHttpmanager :: Network.HTTP.Client.Manager -> SuperpositionClientBuilder ()
 setHttpmanager value =
    Control.Monad.State.Strict.modify (\s -> (s { httpManagerBuilderState = Data.Maybe.Just value }))
 
-setToken :: Data.Text.Text -> SuperpositionClientBuilder ()
-setToken value =
-   Control.Monad.State.Strict.modify (\s -> (s { tokenBuilderState = Data.Maybe.Just value }))
+setBearerauth :: Data.Maybe.Maybe Io.Superposition.Utility.BearerAuth -> SuperpositionClientBuilder ()
+setBearerauth value =
+   Control.Monad.State.Strict.modify (\s -> (s { bearerAuthBuilderState = value }))
+
+setBasicauth :: Data.Maybe.Maybe Io.Superposition.Utility.BasicAuth -> SuperpositionClientBuilder ()
+setBasicauth value =
+   Control.Monad.State.Strict.modify (\s -> (s { basicAuthBuilderState = value }))
 
 build :: SuperpositionClientBuilder () -> Data.Either.Either Data.Text.Text SuperpositionClient
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     endpointUri' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.SuperpositionClient.SuperpositionClient.endpointUri is a required property.") Data.Either.Right (endpointUriBuilderState st)
     httpManager' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.SuperpositionClient.SuperpositionClient.httpManager is a required property.") Data.Either.Right (httpManagerBuilderState st)
-    token' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.SuperpositionClient.SuperpositionClient.token is a required property.") Data.Either.Right (tokenBuilderState st)
+    bearerAuth' <- Data.Either.Right (bearerAuthBuilderState st)
+    basicAuth' <- Data.Either.Right (basicAuthBuilderState st)
     Data.Either.Right (SuperpositionClient { 
         endpointUri = endpointUri',
         httpManager = httpManager',
-        token = token'
+        bearerAuth = bearerAuth',
+        basicAuth = basicAuth'
     })
+
+getAuth :: SuperpositionClient -> Maybe Io.Superposition.Utility.DynAuth
+getAuth client = (Nothing
+    Control.Applicative.<|> (Io.Superposition.Utility.DynAuth <$> (basicAuth client))
+    Control.Applicative.<|> (Io.Superposition.Utility.DynAuth <$> (bearerAuth client))
+    )
 
 

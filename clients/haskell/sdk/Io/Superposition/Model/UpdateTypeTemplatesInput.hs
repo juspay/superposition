@@ -61,7 +61,7 @@ instance Data.Aeson.FromJSON UpdateTypeTemplatesInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "type_name")
         Control.Applicative.<*> (v Data.Aeson..: "type_schema")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
 

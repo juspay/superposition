@@ -62,7 +62,7 @@ instance Data.Aeson.FromJSON GetVersionOutput where
         Control.Applicative.<*> (v Data.Aeson..: "config_hash")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..: "description")
-        Control.Applicative.<*> (v Data.Aeson..: "tags")
+        Control.Applicative.<*> (v Data.Aeson..:? "tags")
     
 
 

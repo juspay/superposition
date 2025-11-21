@@ -74,8 +74,8 @@ instance Data.Aeson.FromJSON CreateDefaultConfigInput where
         Control.Applicative.<*> (v Data.Aeson..: "schema")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "function_name")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "autocomplete_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
     

@@ -72,13 +72,13 @@ instance Data.Aeson.FromJSON GetResolvedConfigInput where
     parseJSON = Data.Aeson.withObject "GetResolvedConfigInput" $ \v -> GetResolvedConfigInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "prefix")
-        Control.Applicative.<*> (v Data.Aeson..: "version")
-        Control.Applicative.<*> (v Data.Aeson..: "show_reasoning")
-        Control.Applicative.<*> (v Data.Aeson..: "merge_strategy")
-        Control.Applicative.<*> (v Data.Aeson..: "context_id")
-        Control.Applicative.<*> (v Data.Aeson..: "resolve_remote")
-        Control.Applicative.<*> (v Data.Aeson..: "context")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "version")
+        Control.Applicative.<*> (v Data.Aeson..:? "show_reasoning")
+        Control.Applicative.<*> (v Data.Aeson..:? "merge_strategy")
+        Control.Applicative.<*> (v Data.Aeson..:? "context_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "resolve_remote")
+        Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
 

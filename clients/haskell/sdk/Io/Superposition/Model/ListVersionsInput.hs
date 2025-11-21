@@ -51,8 +51,8 @@ instance Data.Aeson.FromJSON ListVersionsInput where
     parseJSON = Data.Aeson.withObject "ListVersionsInput" $ \v -> ListVersionsInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
     
 
 

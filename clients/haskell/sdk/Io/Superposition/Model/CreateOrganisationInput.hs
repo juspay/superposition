@@ -56,11 +56,11 @@ instance Io.Superposition.Utility.SerializeBody CreateOrganisationInput
 
 instance Data.Aeson.FromJSON CreateOrganisationInput where
     parseJSON = Data.Aeson.withObject "CreateOrganisationInput" $ \v -> CreateOrganisationInput
-        Data.Functor.<$> (v Data.Aeson..: "country_code")
-        Control.Applicative.<*> (v Data.Aeson..: "contact_email")
-        Control.Applicative.<*> (v Data.Aeson..: "contact_phone")
+        Data.Functor.<$> (v Data.Aeson..:? "country_code")
+        Control.Applicative.<*> (v Data.Aeson..:? "contact_email")
+        Control.Applicative.<*> (v Data.Aeson..:? "contact_phone")
         Control.Applicative.<*> (v Data.Aeson..: "admin_email")
-        Control.Applicative.<*> (v Data.Aeson..: "sector")
+        Control.Applicative.<*> (v Data.Aeson..:? "sector")
         Control.Applicative.<*> (v Data.Aeson..: "name")
     
 

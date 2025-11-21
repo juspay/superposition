@@ -51,7 +51,7 @@ instance Data.Aeson.FromJSON DeleteContextInput where
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "id")
-        Control.Applicative.<*> (v Data.Aeson..: "config_tags")
+        Control.Applicative.<*> (v Data.Aeson..:? "config_tags")
     
 
 

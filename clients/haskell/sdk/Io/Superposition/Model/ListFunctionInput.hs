@@ -58,12 +58,12 @@ instance Io.Superposition.Utility.SerializeBody ListFunctionInput
 
 instance Data.Aeson.FromJSON ListFunctionInput where
     parseJSON = Data.Aeson.withObject "ListFunctionInput" $ \v -> ListFunctionInput
-        Data.Functor.<$> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
+        Data.Functor.<$> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "function_type")
+        Control.Applicative.<*> (v Data.Aeson..:? "function_type")
     
 
 

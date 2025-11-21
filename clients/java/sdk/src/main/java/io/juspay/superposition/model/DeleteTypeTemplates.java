@@ -29,7 +29,7 @@ public final class DeleteTypeTemplates implements ApiOperation<DeleteTypeTemplat
         .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .build();
 
-    private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));
+    private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBasicAuth"), ShapeId.from("smithy.api#httpBearerAuth"));
 
     /**
      * Get an instance of this {@code ApiOperation}.

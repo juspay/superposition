@@ -63,10 +63,10 @@ instance Data.Aeson.FromJSON UpdateFunctionInput where
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "function")
-        Control.Applicative.<*> (v Data.Aeson..: "runtime_version")
+        Control.Applicative.<*> (v Data.Aeson..:? "function")
+        Control.Applicative.<*> (v Data.Aeson..:? "runtime_version")
     
 
 

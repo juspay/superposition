@@ -49,9 +49,9 @@ instance Io.Superposition.Utility.SerializeBody ListWorkspaceInput
 
 instance Data.Aeson.FromJSON ListWorkspaceInput where
     parseJSON = Data.Aeson.withObject "ListWorkspaceInput" $ \v -> ListWorkspaceInput
-        Data.Functor.<$> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
+        Data.Functor.<$> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
     
 

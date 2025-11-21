@@ -14901,6 +14901,7 @@ SUPERPOSITION = Schema(
     shape_type=ShapeType.SERVICE,
     traits=[
         Trait.new(id=ShapeID("smithy.api#title"), value="Superposition"),
+        Trait.new(id=ShapeID("smithy.api#httpBasicAuth")),
         Trait.new(id=ShapeID("aws.protocols#restJson1")),
         Trait.new(id=ShapeID("smithy.api#httpBearerAuth")),
 

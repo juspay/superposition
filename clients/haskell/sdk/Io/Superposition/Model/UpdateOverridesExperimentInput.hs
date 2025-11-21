@@ -69,10 +69,10 @@ instance Data.Aeson.FromJSON UpdateOverridesExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "id")
         Control.Applicative.<*> (v Data.Aeson..: "variant_list")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "metrics")
-        Control.Applicative.<*> (v Data.Aeson..: "experiment_group_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "metrics")
+        Control.Applicative.<*> (v Data.Aeson..:? "experiment_group_id")
     
 
 

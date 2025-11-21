@@ -82,15 +82,15 @@ instance Data.Aeson.FromJSON ListAuditLogsInput where
     parseJSON = Data.Aeson.withObject "ListAuditLogsInput" $ \v -> ListAuditLogsInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
-        Control.Applicative.<*> (v Data.Aeson..: "from_date")
-        Control.Applicative.<*> (v Data.Aeson..: "to_date")
-        Control.Applicative.<*> (v Data.Aeson..: "tables")
-        Control.Applicative.<*> (v Data.Aeson..: "action")
-        Control.Applicative.<*> (v Data.Aeson..: "username")
-        Control.Applicative.<*> (v Data.Aeson..: "sort_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
+        Control.Applicative.<*> (v Data.Aeson..:? "from_date")
+        Control.Applicative.<*> (v Data.Aeson..:? "to_date")
+        Control.Applicative.<*> (v Data.Aeson..:? "tables")
+        Control.Applicative.<*> (v Data.Aeson..:? "action")
+        Control.Applicative.<*> (v Data.Aeson..:? "username")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
     
 
 
