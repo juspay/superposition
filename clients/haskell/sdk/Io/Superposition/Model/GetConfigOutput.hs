@@ -70,7 +70,7 @@ instance Data.Aeson.FromJSON GetConfigOutput where
         Control.Applicative.<*> (v Data.Aeson..: "dimensions")
         Control.Applicative.<*> (v Data.Aeson..: "version")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified")
-        Control.Applicative.<*> (v Data.Aeson..: "audit_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "audit_id")
     
 
 

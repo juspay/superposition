@@ -55,8 +55,8 @@ instance Data.Aeson.FromJSON Variant where
     parseJSON = Data.Aeson.withObject "Variant" $ \v -> Variant
         Data.Functor.<$> (v Data.Aeson..: "id")
         Control.Applicative.<*> (v Data.Aeson..: "variant_type")
-        Control.Applicative.<*> (v Data.Aeson..: "context_id")
-        Control.Applicative.<*> (v Data.Aeson..: "override_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "context_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "override_id")
         Control.Applicative.<*> (v Data.Aeson..: "overrides")
     
 

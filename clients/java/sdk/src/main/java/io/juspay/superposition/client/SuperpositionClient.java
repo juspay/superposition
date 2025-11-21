@@ -150,9 +150,11 @@ import software.amazon.smithy.java.client.core.ClientConfig;
 import software.amazon.smithy.java.client.core.ProtocolSettings;
 import software.amazon.smithy.java.client.core.RequestOverrideConfig;
 import software.amazon.smithy.java.client.core.auth.scheme.AuthSchemeFactory;
+import software.amazon.smithy.java.client.http.auth.HttpBasicAuthAuthScheme;
 import software.amazon.smithy.java.client.http.auth.HttpBearerAuthScheme;
 import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.HttpBasicAuthTrait;
 import software.amazon.smithy.model.traits.HttpBearerAuthTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
@@ -1513,8 +1515,11 @@ public interface SuperpositionClient {
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
         private Builder() {
-            configBuilder().putSupportedAuthSchemes(httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));
+            configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));
         }
 
         @Override

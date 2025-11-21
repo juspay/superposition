@@ -58,7 +58,7 @@ instance Data.Aeson.FromJSON DimensionInfo where
         Control.Applicative.<*> (v Data.Aeson..: "position")
         Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
         Control.Applicative.<*> (v Data.Aeson..: "dependency_graph")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "autocomplete_function_name")
     
 
 

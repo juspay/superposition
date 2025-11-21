@@ -84,18 +84,18 @@ instance Io.Superposition.Utility.SerializeBody ListContextsInput
 
 instance Data.Aeson.FromJSON ListContextsInput where
     parseJSON = Data.Aeson.withObject "ListContextsInput" $ \v -> ListContextsInput
-        Data.Functor.<$> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
+        Data.Functor.<$> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "prefix")
-        Control.Applicative.<*> (v Data.Aeson..: "sort_on")
-        Control.Applicative.<*> (v Data.Aeson..: "sort_by")
-        Control.Applicative.<*> (v Data.Aeson..: "created_by")
-        Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
-        Control.Applicative.<*> (v Data.Aeson..: "plaintext")
-        Control.Applicative.<*> (v Data.Aeson..: "dimension_match_strategy")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_on")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "created_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "last_modified_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "plaintext")
+        Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
     
 
 

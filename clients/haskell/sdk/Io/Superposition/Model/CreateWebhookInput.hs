@@ -86,8 +86,8 @@ instance Data.Aeson.FromJSON CreateWebhookInput where
         Control.Applicative.<*> (v Data.Aeson..: "enabled")
         Control.Applicative.<*> (v Data.Aeson..: "url")
         Control.Applicative.<*> (v Data.Aeson..: "method")
-        Control.Applicative.<*> (v Data.Aeson..: "version")
-        Control.Applicative.<*> (v Data.Aeson..: "custom_headers")
+        Control.Applicative.<*> (v Data.Aeson..:? "version")
+        Control.Applicative.<*> (v Data.Aeson..:? "custom_headers")
         Control.Applicative.<*> (v Data.Aeson..: "events")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     

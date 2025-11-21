@@ -51,7 +51,7 @@ instance Data.Aeson.FromJSON UpdateContextOverrideRequest where
     parseJSON = Data.Aeson.withObject "UpdateContextOverrideRequest" $ \v -> UpdateContextOverrideRequest
         Data.Functor.<$> (v Data.Aeson..: "context")
         Control.Applicative.<*> (v Data.Aeson..: "override")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
 

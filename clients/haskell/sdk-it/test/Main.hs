@@ -18,7 +18,7 @@ import Prelude
 
 mkClient :: HTTP.Manager -> SDK.SuperpositionClient
 mkClient manager = expectRight $ SDK.build $ do
-  SDK.setToken "some-token"
+  SDK.setBasicauth (Just $ SDK.BasicAuth "some-token")
   SDK.setEndpointuri $ expectJust $ URI.parseURI "http://localhost:8080"
   SDK.setHttpmanager manager
 

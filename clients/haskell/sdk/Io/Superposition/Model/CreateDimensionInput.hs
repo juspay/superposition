@@ -80,11 +80,11 @@ instance Data.Aeson.FromJSON CreateDimensionInput where
         Control.Applicative.<*> (v Data.Aeson..: "dimension")
         Control.Applicative.<*> (v Data.Aeson..: "position")
         Control.Applicative.<*> (v Data.Aeson..: "schema")
-        Control.Applicative.<*> (v Data.Aeson..: "function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "function_name")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "dimension_type")
+        Control.Applicative.<*> (v Data.Aeson..:? "autocomplete_function_name")
     
 
 

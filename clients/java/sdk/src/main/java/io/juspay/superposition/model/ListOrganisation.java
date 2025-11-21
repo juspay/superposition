@@ -29,7 +29,7 @@ public final class ListOrganisation implements ApiOperation<ListOrganisationInpu
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
         .build();
 
-    private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBearerAuth"));
+    private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBasicAuth"), ShapeId.from("smithy.api#httpBearerAuth"));
 
     /**
      * Get an instance of this {@code ApiOperation}.

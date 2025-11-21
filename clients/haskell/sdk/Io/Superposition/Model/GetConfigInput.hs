@@ -55,9 +55,9 @@ instance Data.Aeson.FromJSON GetConfigInput where
     parseJSON = Data.Aeson.withObject "GetConfigInput" $ \v -> GetConfigInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "prefix")
-        Control.Applicative.<*> (v Data.Aeson..: "version")
-        Control.Applicative.<*> (v Data.Aeson..: "context")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "version")
+        Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
 
