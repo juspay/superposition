@@ -53,9 +53,9 @@ instance Io.Superposition.Utility.SerializeBody ListDimensionsInput
 
 instance Data.Aeson.FromJSON ListDimensionsInput where
     parseJSON = Data.Aeson.withObject "ListDimensionsInput" $ \v -> ListDimensionsInput
-        Data.Functor.<$> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
+        Data.Functor.<$> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
     

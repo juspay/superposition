@@ -130,14 +130,14 @@ instance Data.Aeson.FromJSON UpdateOverridesExperimentOutput where
         Control.Applicative.<*> (v Data.Aeson..: "context")
         Control.Applicative.<*> (v Data.Aeson..: "variants")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
-        Control.Applicative.<*> (v Data.Aeson..: "chosen_variant")
+        Control.Applicative.<*> (v Data.Aeson..:? "chosen_variant")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "started_at")
-        Control.Applicative.<*> (v Data.Aeson..: "started_by")
-        Control.Applicative.<*> (v Data.Aeson..: "metrics_url")
-        Control.Applicative.<*> (v Data.Aeson..: "metrics")
-        Control.Applicative.<*> (v Data.Aeson..: "experiment_group_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "started_at")
+        Control.Applicative.<*> (v Data.Aeson..:? "started_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "metrics_url")
+        Control.Applicative.<*> (v Data.Aeson..:? "metrics")
+        Control.Applicative.<*> (v Data.Aeson..:? "experiment_group_id")
     
 
 

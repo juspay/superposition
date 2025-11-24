@@ -94,7 +94,7 @@ instance Data.Aeson.FromJSON DimensionResponse where
         Data.Functor.<$> (v Data.Aeson..: "dimension")
         Control.Applicative.<*> (v Data.Aeson..: "position")
         Control.Applicative.<*> (v Data.Aeson..: "schema")
-        Control.Applicative.<*> (v Data.Aeson..: "function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "function_name")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
@@ -103,7 +103,7 @@ instance Data.Aeson.FromJSON DimensionResponse where
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "dependency_graph")
         Control.Applicative.<*> (v Data.Aeson..: "dimension_type")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "autocomplete_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "mandatory")
     
 

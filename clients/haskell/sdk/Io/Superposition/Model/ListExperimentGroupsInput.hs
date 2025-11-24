@@ -80,17 +80,17 @@ instance Io.Superposition.Utility.SerializeBody ListExperimentGroupsInput
 
 instance Data.Aeson.FromJSON ListExperimentGroupsInput where
     parseJSON = Data.Aeson.withObject "ListExperimentGroupsInput" $ \v -> ListExperimentGroupsInput
-        Data.Functor.<$> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
+        Data.Functor.<$> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "name")
-        Control.Applicative.<*> (v Data.Aeson..: "created_by")
-        Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
-        Control.Applicative.<*> (v Data.Aeson..: "sort_on")
-        Control.Applicative.<*> (v Data.Aeson..: "sort_by")
-        Control.Applicative.<*> (v Data.Aeson..: "group_type")
+        Control.Applicative.<*> (v Data.Aeson..:? "name")
+        Control.Applicative.<*> (v Data.Aeson..:? "created_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "last_modified_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_on")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "group_type")
     
 
 

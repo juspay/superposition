@@ -56,7 +56,7 @@ instance Data.Aeson.FromJSON ListVersionsMember where
         Control.Applicative.<*> (v Data.Aeson..: "config")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..: "description")
-        Control.Applicative.<*> (v Data.Aeson..: "tags")
+        Control.Applicative.<*> (v Data.Aeson..:? "tags")
     
 
 

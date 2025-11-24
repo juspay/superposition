@@ -78,13 +78,13 @@ instance Data.Aeson.FromJSON CreateExperimentInput where
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "name")
-        Control.Applicative.<*> (v Data.Aeson..: "experiment_type")
+        Control.Applicative.<*> (v Data.Aeson..:? "experiment_type")
         Control.Applicative.<*> (v Data.Aeson..: "context")
         Control.Applicative.<*> (v Data.Aeson..: "variants")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "metrics")
-        Control.Applicative.<*> (v Data.Aeson..: "experiment_group_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "metrics")
+        Control.Applicative.<*> (v Data.Aeson..:? "experiment_group_id")
     
 
 

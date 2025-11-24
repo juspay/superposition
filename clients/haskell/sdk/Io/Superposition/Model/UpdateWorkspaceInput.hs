@@ -72,12 +72,12 @@ instance Data.Aeson.FromJSON UpdateWorkspaceInput where
         Data.Functor.<$> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_admin_email")
-        Control.Applicative.<*> (v Data.Aeson..: "config_version")
-        Control.Applicative.<*> (v Data.Aeson..: "mandatory_dimensions")
-        Control.Applicative.<*> (v Data.Aeson..: "workspace_status")
-        Control.Applicative.<*> (v Data.Aeson..: "metrics")
-        Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
-        Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
+        Control.Applicative.<*> (v Data.Aeson..:? "config_version")
+        Control.Applicative.<*> (v Data.Aeson..:? "mandatory_dimensions")
+        Control.Applicative.<*> (v Data.Aeson..:? "workspace_status")
+        Control.Applicative.<*> (v Data.Aeson..:? "metrics")
+        Control.Applicative.<*> (v Data.Aeson..:? "allow_experiment_self_approval")
+        Control.Applicative.<*> (v Data.Aeson..:? "auto_populate_control")
     
 
 

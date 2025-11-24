@@ -60,7 +60,7 @@ instance Data.Aeson.FromJSON ConcludeExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "id")
         Control.Applicative.<*> (v Data.Aeson..: "chosen_variant")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
 

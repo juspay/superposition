@@ -10117,6 +10117,11 @@
             }
         },
         "securitySchemes": {
+            "smithy.api.httpBasicAuth": {
+                "type": "http",
+                "description": "HTTP Basic authentication",
+                "scheme": "Basic"
+            },
             "smithy.api.httpBearerAuth": {
                 "type": "http",
                 "description": "HTTP Bearer authentication",
@@ -10125,6 +10130,9 @@
         }
     },
     "security": [
+        {
+            "smithy.api.httpBasicAuth": []
+        },
         {
             "smithy.api.httpBearerAuth": []
         }

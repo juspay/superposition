@@ -102,22 +102,22 @@ instance Io.Superposition.Utility.SerializeBody ListExperimentInput
 
 instance Data.Aeson.FromJSON ListExperimentInput where
     parseJSON = Data.Aeson.withObject "ListExperimentInput" $ \v -> ListExperimentInput
-        Data.Functor.<$> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
+        Data.Functor.<$> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "status")
-        Control.Applicative.<*> (v Data.Aeson..: "from_date")
-        Control.Applicative.<*> (v Data.Aeson..: "to_date")
-        Control.Applicative.<*> (v Data.Aeson..: "experiment_name")
-        Control.Applicative.<*> (v Data.Aeson..: "experiment_ids")
-        Control.Applicative.<*> (v Data.Aeson..: "experiment_group_ids")
-        Control.Applicative.<*> (v Data.Aeson..: "created_by")
-        Control.Applicative.<*> (v Data.Aeson..: "sort_on")
-        Control.Applicative.<*> (v Data.Aeson..: "sort_by")
-        Control.Applicative.<*> (v Data.Aeson..: "global_experiments_only")
-        Control.Applicative.<*> (v Data.Aeson..: "dimension_match_strategy")
+        Control.Applicative.<*> (v Data.Aeson..:? "status")
+        Control.Applicative.<*> (v Data.Aeson..:? "from_date")
+        Control.Applicative.<*> (v Data.Aeson..:? "to_date")
+        Control.Applicative.<*> (v Data.Aeson..:? "experiment_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "experiment_ids")
+        Control.Applicative.<*> (v Data.Aeson..:? "experiment_group_ids")
+        Control.Applicative.<*> (v Data.Aeson..:? "created_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_on")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "global_experiments_only")
+        Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
     
 
 

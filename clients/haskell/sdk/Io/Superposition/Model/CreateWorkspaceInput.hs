@@ -68,9 +68,9 @@ instance Data.Aeson.FromJSON CreateWorkspaceInput where
         Data.Functor.<$> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_admin_email")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
-        Control.Applicative.<*> (v Data.Aeson..: "workspace_status")
+        Control.Applicative.<*> (v Data.Aeson..:? "workspace_status")
         Control.Applicative.<*> (v Data.Aeson..: "strict_mode")
-        Control.Applicative.<*> (v Data.Aeson..: "metrics")
+        Control.Applicative.<*> (v Data.Aeson..:? "metrics")
         Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
         Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
     

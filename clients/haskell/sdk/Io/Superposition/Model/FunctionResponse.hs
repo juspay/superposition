@@ -90,13 +90,13 @@ instance Io.Superposition.Utility.SerializeBody FunctionResponse
 instance Data.Aeson.FromJSON FunctionResponse where
     parseJSON = Data.Aeson.withObject "FunctionResponse" $ \v -> FunctionResponse
         Data.Functor.<$> (v Data.Aeson..: "function_name")
-        Control.Applicative.<*> (v Data.Aeson..: "published_code")
+        Control.Applicative.<*> (v Data.Aeson..:? "published_code")
         Control.Applicative.<*> (v Data.Aeson..: "draft_code")
-        Control.Applicative.<*> (v Data.Aeson..: "published_runtime_version")
+        Control.Applicative.<*> (v Data.Aeson..:? "published_runtime_version")
         Control.Applicative.<*> (v Data.Aeson..: "draft_runtime_version")
-        Control.Applicative.<*> (v Data.Aeson..: "published_at")
+        Control.Applicative.<*> (v Data.Aeson..:? "published_at")
         Control.Applicative.<*> (v Data.Aeson..: "draft_edited_at")
-        Control.Applicative.<*> (v Data.Aeson..: "published_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "published_by")
         Control.Applicative.<*> (v Data.Aeson..: "draft_edited_by")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")

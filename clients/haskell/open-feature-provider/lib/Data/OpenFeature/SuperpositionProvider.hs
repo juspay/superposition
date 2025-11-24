@@ -230,7 +230,7 @@ newSuperpositionProvider ::
 newSuperpositionProvider options@(SuperpositionProviderOptions {..}) = do
   manager <- Net.newTlsManager
   let result = Client.build $ do
-        Client.setToken token
+        Client.setBearerauth (Just $ Client.BearerAuth token)
         Client.setEndpointuri endpoint
         Client.setHttpmanager manager
   case result of

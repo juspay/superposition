@@ -51,7 +51,7 @@ instance Data.Aeson.FromJSON BulkOperationInput where
     parseJSON = Data.Aeson.withObject "BulkOperationInput" $ \v -> BulkOperationInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "config_tags")
+        Control.Applicative.<*> (v Data.Aeson..:? "config_tags")
         Control.Applicative.<*> (v Data.Aeson..: "operations")
     
 

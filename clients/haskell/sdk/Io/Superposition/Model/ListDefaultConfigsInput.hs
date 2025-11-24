@@ -59,10 +59,10 @@ instance Data.Aeson.FromJSON ListDefaultConfigsInput where
     parseJSON = Data.Aeson.withObject "ListDefaultConfigsInput" $ \v -> ListDefaultConfigsInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
-        Control.Applicative.<*> (v Data.Aeson..: "name")
+        Control.Applicative.<*> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
+        Control.Applicative.<*> (v Data.Aeson..:? "name")
     
 
 
