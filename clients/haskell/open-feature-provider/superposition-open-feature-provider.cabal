@@ -44,7 +44,10 @@ library
                         MultiParamTypeClasses,
                         FlexibleInstances,
                         TupleSections,
-                        TypeApplications
+                        TypeApplications,
+                        DeriveAnyClass,
+                        DeriveGeneric,
+                        StandaloneDeriving
 
 test-suite superposition-open-feature-provider-test
     import:           warnings
