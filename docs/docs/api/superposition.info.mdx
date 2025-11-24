@@ -51,6 +51,33 @@ import Export from "@theme/ApiExplorer/Export";
     className={"openapi-tabs__security-schemes"}
   >
     <TabItem
+      label={"HTTP: Basic Auth"}
+      value={"smithy.api.httpBasicAuth"}
+    >
+      
+      
+      HTTP Basic authentication
+      
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <th>
+                Security Scheme Type:
+              </th><td>
+                http
+              </td>
+            </tr><tr>
+              <th>
+                HTTP Authorization Scheme:
+              </th><td>
+                basic
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </TabItem><TabItem
       label={"HTTP: Bearer Auth"}
       value={"smithy.api.httpBearerAuth"}
     >

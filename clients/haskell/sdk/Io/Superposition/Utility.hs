@@ -585,3 +585,4 @@ parseOutput rawBody response = do
         (Right v, _) -> Left v
         (Left e, _) -> Left $ mkDeSerializationError metadata (pack e)
       Nothing -> pure $ Left $ mkUnexpectedError (Just metadata) "Un-expected status code."
+
