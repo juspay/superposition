@@ -61,8 +61,8 @@ instance Data.Aeson.FromJSON UpdateExperimentGroupInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "id")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
-        Control.Applicative.<*> (v Data.Aeson..: "traffic_percentage")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "traffic_percentage")
     
 
 

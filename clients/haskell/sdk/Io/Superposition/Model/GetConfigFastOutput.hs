@@ -49,10 +49,10 @@ instance Io.Superposition.Utility.SerializeBody GetConfigFastOutput
 
 instance Data.Aeson.FromJSON GetConfigFastOutput where
     parseJSON = Data.Aeson.withObject "GetConfigFastOutput" $ \v -> GetConfigFastOutput
-        Data.Functor.<$> (v Data.Aeson..: "config")
-        Control.Applicative.<*> (v Data.Aeson..: "version")
-        Control.Applicative.<*> (v Data.Aeson..: "last_modified")
-        Control.Applicative.<*> (v Data.Aeson..: "audit_id")
+        Data.Functor.<$> (v Data.Aeson..:? "config")
+        Control.Applicative.<*> (v Data.Aeson..:? "version")
+        Control.Applicative.<*> (v Data.Aeson..:? "last_modified")
+        Control.Applicative.<*> (v Data.Aeson..:? "audit_id")
     
 
 

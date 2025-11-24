@@ -50,7 +50,7 @@ instance Data.Aeson.FromJSON ContextPut where
     parseJSON = Data.Aeson.withObject "ContextPut" $ \v -> ContextPut
         Data.Functor.<$> (v Data.Aeson..: "context")
         Control.Applicative.<*> (v Data.Aeson..: "override")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
 

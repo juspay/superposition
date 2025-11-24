@@ -73,7 +73,7 @@ instance Data.Aeson.FromJSON CreateExperimentGroupInput where
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..: "context")
         Control.Applicative.<*> (v Data.Aeson..: "traffic_percentage")
-        Control.Applicative.<*> (v Data.Aeson..: "member_experiment_ids")
+        Control.Applicative.<*> (v Data.Aeson..:? "member_experiment_ids")
     
 
 

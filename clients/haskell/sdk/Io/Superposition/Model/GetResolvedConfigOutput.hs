@@ -52,7 +52,7 @@ instance Data.Aeson.FromJSON GetResolvedConfigOutput where
         Data.Functor.<$> (v Data.Aeson..: "config")
         Control.Applicative.<*> (v Data.Aeson..: "version")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified")
-        Control.Applicative.<*> (v Data.Aeson..: "audit_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "audit_id")
     
 
 

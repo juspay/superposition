@@ -73,12 +73,12 @@ instance Data.Aeson.FromJSON UpdateDimensionInput where
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "dimension")
-        Control.Applicative.<*> (v Data.Aeson..: "schema")
-        Control.Applicative.<*> (v Data.Aeson..: "position")
-        Control.Applicative.<*> (v Data.Aeson..: "function_name")
-        Control.Applicative.<*> (v Data.Aeson..: "description")
+        Control.Applicative.<*> (v Data.Aeson..:? "schema")
+        Control.Applicative.<*> (v Data.Aeson..:? "position")
+        Control.Applicative.<*> (v Data.Aeson..:? "function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..: "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "autocomplete_function_name")
     
 
 

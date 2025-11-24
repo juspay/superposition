@@ -46,7 +46,7 @@ instance Data.Aeson.FromJSON GetContextFromConditionInput where
     parseJSON = Data.Aeson.withObject "GetContextFromConditionInput" $ \v -> GetContextFromConditionInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
-        Control.Applicative.<*> (v Data.Aeson..: "context")
+        Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
 

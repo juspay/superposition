@@ -53,9 +53,9 @@ instance Io.Superposition.Utility.SerializeBody GetTypeTemplatesListInput
 
 instance Data.Aeson.FromJSON GetTypeTemplatesListInput where
     parseJSON = Data.Aeson.withObject "GetTypeTemplatesListInput" $ \v -> GetTypeTemplatesListInput
-        Data.Functor.<$> (v Data.Aeson..: "count")
-        Control.Applicative.<*> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "all")
+        Data.Functor.<$> (v Data.Aeson..:? "count")
+        Control.Applicative.<*> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
     

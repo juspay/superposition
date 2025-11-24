@@ -70,8 +70,8 @@ instance Data.Aeson.FromJSON AuditLogFull where
         Control.Applicative.<*> (v Data.Aeson..: "user_name")
         Control.Applicative.<*> (v Data.Aeson..: "timestamp")
         Control.Applicative.<*> (v Data.Aeson..: "action")
-        Control.Applicative.<*> (v Data.Aeson..: "original_data")
-        Control.Applicative.<*> (v Data.Aeson..: "new_data")
+        Control.Applicative.<*> (v Data.Aeson..:? "original_data")
+        Control.Applicative.<*> (v Data.Aeson..:? "new_data")
         Control.Applicative.<*> (v Data.Aeson..: "query")
     
 
