@@ -8,6 +8,7 @@ module Data.OpenFeature.SuperpositionProvider
     Log.LogLevel (..),
     newSuperpositionProvider,
     SuperpositionProvider,
+    Options.Authorization(..)
   )
 where
 
@@ -29,7 +30,7 @@ import Data.OpenFeature.EvaluationContext
 import Data.OpenFeature.SuperpositionProvider.OnDemandRefresh
 import Data.OpenFeature.SuperpositionProvider.PollingRefresh
 import Data.OpenFeature.SuperpositionProvider.RefreshTask (RefreshFn, RefreshTask (..))
-import Data.OpenFeature.SuperpositionProviderOptions
+import Data.OpenFeature.SuperpositionProviderOptions as Options
 import Data.String (IsString (..))
 import Data.Text as T (Text, unpack)
 import Data.Text.Lazy qualified as LT
@@ -230,7 +231,9 @@ newSuperpositionProvider ::
 newSuperpositionProvider options@(SuperpositionProviderOptions {..}) = do
   manager <- Net.newTlsManager
   let result = Client.build $ do
-        Client.setBearerauth (Just $ Client.BearerAuth token)
+        case auth of
+           Bearer t -> Client.setBearerauth (Just $ Client.BearerAuth t)
+           Basic c -> Client.setBasicauth (Just $ Client.BasicAuth c)
         Client.setEndpointuri endpoint
         Client.setHttpmanager manager
   case result of
@@ -250,5 +253,5 @@ newSuperpositionProvider options@(SuperpositionProviderOptions {..}) = do
             etask
             ctxTVar
             logger
-            fallbackConfig
+            ()
     Left err -> pure $ Left err

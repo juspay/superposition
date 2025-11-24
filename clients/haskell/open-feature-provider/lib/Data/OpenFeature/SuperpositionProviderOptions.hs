@@ -7,13 +7,15 @@ import Network.URI qualified as Net
 
 data RefreshOptions = OnDemand Int64 | Poll Int
 
+data Authorization = Bearer Text | Basic Text
+
 data SuperpositionProviderOptions = SuperpositionProviderOptions
   { orgId :: Text,
     workspaceId :: Text,
     endpoint :: Net.URI,
-    token :: Text,
+    auth :: Authorization,
     -- TODO
-    fallbackConfig :: (),
+    -- fallbackConfig :: (),
     refreshOptions :: RefreshOptions,
     experimentationRefreshOptions :: Maybe RefreshOptions,
     logLevel :: LogLevel
@@ -25,8 +27,8 @@ defaultProviderOptions =
     { orgId = "",
       workspaceId = "",
       endpoint = Net.URI "" Nothing "" "" "",
-      token = "",
-      fallbackConfig = (),
+      auth = Bearer "",
+      -- fallbackConfig = (),
       refreshOptions = OnDemand 0,
       experimentationRefreshOptions = Nothing,
       logLevel = LevelError
