@@ -931,7 +931,7 @@ async fn get_applicable_variants(
         actix_web::http::Method::POST => {
             Ok(Either::Right(Json(ListResponse::new(variants))))
         }
-        _ => Ok(Either::Left(Json(variants))),
+        _ => Ok(Either::Left(Json(variants))), // Why Left?
     }
 }
 
