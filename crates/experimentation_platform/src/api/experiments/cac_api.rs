@@ -175,6 +175,7 @@ pub async fn get_resolved_config(
     let http_client = state.http_client.clone();
     let resolve_params = ResolveConfigQuery {
         resolve_remote: Some(true),
+        version: Some("latest".to_string()),
         ..resolve_params
     };
 

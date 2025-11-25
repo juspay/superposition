@@ -66,8 +66,8 @@ use superposition_types::{
         },
     },
     logic::evaluate_local_cohorts,
-    result as superposition, Cac, Condition, Contextual, Exp, ListResponse, Overrides,
-    PaginatedResponse, SortBy, User,
+    result as superposition, Cac, Condition, Config, Contextual, Exp, ListResponse,
+    Overrides, PaginatedResponse, SortBy, User,
 };
 
 use crate::api::{
@@ -872,6 +872,51 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
+pub async fn get_applicable_variants_helper(
+    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    context: Map<String, Value>,
+    config: &Config,
+    identifier: String,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
+    use superposition_types::database::schema::experiments::dsl;
+
+    let experiment_groups = experiment_groups::experiment_groups
+        .schema_name(&workspace_request.schema_name)
+        .load::<ExperimentGroup>(db_conn)?;
+
+    let context = Value::Object(evaluate_local_cohorts(&config.dimensions, &context));
+
+    let buckets =
+        get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
+
+    let exp_ids = buckets
+        .iter()
+        .filter_map(|(_, bucket)| bucket.experiment_id.parse::<i64>().ok())
+        .collect::<HashSet<_>>();
+
+    let exps = dsl::experiments
+        .filter(
+            dsl::id
+                .eq_any(exp_ids)
+                .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
+        )
+        .schema_name(&workspace_request.schema_name)
+        .load::<Experiment>(db_conn)?
+        .into_iter()
+        .map(|exp| {
+            let exp_response = ExperimentResponse::from(exp);
+            let id = exp_response.id.clone();
+            (id, exp_response)
+        })
+        .collect::<HashMap<String, ExperimentResponse>>();
+
+    let applicable_variants =
+        get_applicable_variants_from_group_response(&exps, &context, &buckets);
+
+    Ok((applicable_variants, exps))
+}
+
 #[routes]
 #[get("/applicable-variants")]
 #[post("/applicable-variants")]
@@ -884,8 +929,6 @@ async fn get_applicable_variants(
     dimension_params: Option<DimensionQuery<QueryMap>>,
     workspace_request: WorkspaceContext,
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
-    use superposition_types::database::schema::experiments::dsl;
-
     let DbConnection(mut conn) = db_conn;
     let (context, identifier) =
         match (req.method().clone(), query_data, dimension_params, req_body) {
@@ -907,39 +950,15 @@ async fn get_applicable_variants(
             }
         };
 
-    let experiment_groups = experiment_groups::experiment_groups
-        .schema_name(&workspace_request.schema_name)
-        .load::<ExperimentGroup>(&mut conn)?;
-
     let (config, _) = fetch_cac_config(&state, &workspace_request).await?;
-    let context = Value::Object(evaluate_local_cohorts(&config.dimensions, &context));
-
-    let buckets =
-        get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
-
-    let exp_ids = buckets
-        .iter()
-        .filter_map(|(_, bucket)| bucket.experiment_id.parse::<i64>().ok())
-        .collect::<HashSet<_>>();
-
-    let exps = dsl::experiments
-        .filter(
-            dsl::id
-                .eq_any(exp_ids)
-                .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
-        )
-        .schema_name(&workspace_request.schema_name)
-        .load::<Experiment>(&mut conn)?
-        .into_iter()
-        .map(|exp| {
-            let exp_response = ExperimentResponse::from(exp);
-            let id = exp_response.id.clone();
-            (id, exp_response)
-        })
-        .collect::<HashMap<String, ExperimentResponse>>();
-
-    let applicable_variants =
-        get_applicable_variants_from_group_response(&exps, &context, &buckets);
+    let (applicable_variants, exps) = get_applicable_variants_helper(
+        &mut conn,
+        context,
+        &config,
+        identifier,
+        &workspace_request,
+    )
+    .await?;
 
     let variants = exps
         .into_iter()
