@@ -451,3 +451,13 @@ pub fn fetch_experiment_group(
         .get_result::<ExperimentGroup>(conn)?;
     Ok(experiment_group)
 }
+
+pub fn fetch_all_experiments_groups(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Vec<ExperimentGroup>> {
+    let experiment_groups_list = experiment_groups::experiment_groups
+        .schema_name(schema_name)
+        .get_results::<ExperimentGroup>(conn)?;
+    Ok(experiment_groups_list)
+}

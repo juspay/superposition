@@ -845,3 +845,16 @@ pub async fn validate_control_overrides(
 
     Ok(())
 }
+
+// Needs to be fetched from redis if present
+pub fn fetch_all_experiments(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Vec<Experiment>> {
+    use superposition_types::database::schema::experiments::dsl::*;
+    let results: Vec<Experiment> = experiments
+        .schema_name(schema_name)
+        .load::<Experiment>(conn)?;
+
+    Ok(results)
+}

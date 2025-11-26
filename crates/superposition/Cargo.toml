@@ -10,11 +10,13 @@ actix-files = { version = "0.6" }
 actix-web = { workspace = true }
 anyhow = { workspace = true }
 aws-sdk-kms = { workspace = true }
+cac_client = { path = "../cac_client" }
 chrono = { workspace = true }
 context_aware_config = { path = "../context_aware_config" }
 diesel = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.8"
+experimentation_client = { path = "../experimentation_client" }
 experimentation_platform = { path = "../experimentation_platform" }
 fred = { workspace = true, optional = true }
 frontend = { path = "../frontend" }
@@ -27,7 +29,9 @@ regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 service_utils = { workspace = true }
+superposition_derives = { workspace = true }
 superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
     "api",
