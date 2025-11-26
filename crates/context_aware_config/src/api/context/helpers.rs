@@ -127,7 +127,14 @@ pub fn validate_condition_with_functions(
             if let (function_name, Some(function_code)) =
                 (functions_map.name.clone(), functions_map.code.clone())
             {
-                validate_value_with_function(&function_name, &function_code, key, value)?;
+                validate_value_with_function(
+                    &function_name,
+                    &function_code,
+                    key,
+                    value,
+                    conn,
+                    schema_name,
+                )?;
             }
         }
     }
@@ -208,7 +215,14 @@ pub fn validate_override_with_functions(
             if let (function_name, Some(function_code)) =
                 (functions_map.name.clone(), functions_map.code.clone())
             {
-                validate_value_with_function(&function_name, &function_code, key, value)?;
+                validate_value_with_function(
+                    &function_name,
+                    &function_code,
+                    key,
+                    value,
+                    conn,
+                    schema_name,
+                )?;
             }
         }
     }
@@ -253,6 +267,8 @@ pub fn validate_value_with_function(
     function: &FunctionCode,
     key: &String,
     value: &Value,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     match execute_fn(
         function,
@@ -260,6 +276,8 @@ pub fn validate_value_with_function(
             key: key.clone(),
             value: value.to_owned(),
         },
+        conn,
+        schema_name,
     ) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();

@@ -1,0 +1,71 @@
+---
+id: create-variable
+title: "CreateVariable"
+description: "Creates a new variable with the specified name and value."
+sidebar_label: "CreateVariable"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv2kAQ/iurPbUSJCgVl9ySKFJzahRoLwhFiz3gTfzYzq4hCPHfO7N+G4dGinooBzAz3zz3m1kfZAg2QG2czlJ5Le8QlAMrlEhhJ7YKtVrFIHbaRcJFIKyBQK81hCJVCQiVhgSKc7iQI5kZQMV+HsLa06/SA6kRfudg3W0W7uX1QQZZ6iB1/KiMiXXgTS9fLOdxkDaIIFH85PYGyF+2eoHAkR+DHMhpsKzlNFoo61CnG3kcSZ/WoKZT8YA+iFS6gWfK3w4ijkUtGoHqXPTgXfejIr8qm+VIOu1iOGnPU9Gbu7Inx24MhzmQwCgkZw6QCl9Ulcu3cYabsQ4piOYTjECFgPTvpINNhX3XLWe7DF+tUQF8wt+SJdZkqS3O6Goy4Z8hplUNEIQRlREF+3/ZQQhfWfi82p9VK3eqHsl1hglrZEigsdOUP9nEyrrnJAv96L3nuAv6uPu/8LmVb6e2PtNPwg+k/fF5KJjQGgjKcjrEowdCYKriGeAW8B4xQzH9J2RKwFq1GWLNsaljIJ2hYthCbXiQZVWz5XbQfEcZr0+TWZ+BchH9u9zWIBpECHLUbu+3gE1oNe8vlNEXkXPmVlkd3ORstFjyYPf1oBCwBiwbbzPuQlHo+z7rylneY8C1/D6fPwqPForgVGvZ6mp7sOWK9UzXM5l9JIyHn4vjAf5s+KCfmtvn/k0lJoZmPzTjUa6FRtCNXIt7S6A1hDpdZ76Akg+znBhEh6nL/IgUtnB2NbmajiffxpMp2/F5JyptJVVMhGjdoL3VVNP6U7d22WkHb+7SxIp2PmWTY8wRCvYt5LZN0YiZScLDgY4SfmJ8PLKY2otMyeWohhccrG4QZmuoLSuI4GsVWzhT0penciV9Fe8l+Qr77v1XnZ5k4v+TUO3bsROtAJQTPp6zjwZxsnQai5sgAOPOYttb4fHHbE7gVfkORauVbVDt+P2Kvikbfg9jaz/JXnagPZxucr+6ZOGTP38APOF43g==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"CreateVariable"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/variables"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Creates a new variable with the specified name and value.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","description","name","value"],"title":"CreateVariableRequestContent"}}},"required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"CreateVariable 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","name","value"],"title":"CreateVariableResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

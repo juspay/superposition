@@ -54,6 +54,10 @@ import {
   CreateTypeTemplatesCommandOutput,
 } from "./commands/CreateTypeTemplatesCommand";
 import {
+  CreateVariableCommandInput,
+  CreateVariableCommandOutput,
+} from "./commands/CreateVariableCommand";
+import {
   CreateWebhookCommandInput,
   CreateWebhookCommandOutput,
 } from "./commands/CreateWebhookCommand";
@@ -85,6 +89,10 @@ import {
   DeleteTypeTemplatesCommandInput,
   DeleteTypeTemplatesCommandOutput,
 } from "./commands/DeleteTypeTemplatesCommand";
+import {
+  DeleteVariableCommandInput,
+  DeleteVariableCommandOutput,
+} from "./commands/DeleteVariableCommand";
 import {
   DeleteWebhookCommandInput,
   DeleteWebhookCommandOutput,
@@ -146,6 +154,10 @@ import {
   GetTypeTemplatesListCommandOutput,
 } from "./commands/GetTypeTemplatesListCommand";
 import {
+  GetVariableCommandInput,
+  GetVariableCommandOutput,
+} from "./commands/GetVariableCommand";
+import {
   GetVersionCommandInput,
   GetVersionCommandOutput,
 } from "./commands/GetVersionCommand";
@@ -193,6 +205,10 @@ import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "./commands/ListOrganisationCommand";
+import {
+  ListVariablesCommandInput,
+  ListVariablesCommandOutput,
+} from "./commands/ListVariablesCommand";
 import {
   ListVersionsCommandInput,
   ListVersionsCommandOutput,
@@ -269,6 +285,10 @@ import {
   UpdateTypeTemplatesCommandInput,
   UpdateTypeTemplatesCommandOutput,
 } from "./commands/UpdateTypeTemplatesCommand";
+import {
+  UpdateVariableCommandInput,
+  UpdateVariableCommandOutput,
+} from "./commands/UpdateVariableCommand";
 import {
   UpdateWebhookCommandInput,
   UpdateWebhookCommandOutput,
@@ -363,6 +383,7 @@ export type ServiceInputTypes =
   | CreateFunctionCommandInput
   | CreateOrganisationCommandInput
   | CreateTypeTemplatesCommandInput
+  | CreateVariableCommandInput
   | CreateWebhookCommandInput
   | CreateWorkspaceCommandInput
   | DeleteContextCommandInput
@@ -371,6 +392,7 @@ export type ServiceInputTypes =
   | DeleteExperimentGroupCommandInput
   | DeleteFunctionCommandInput
   | DeleteTypeTemplatesCommandInput
+  | DeleteVariableCommandInput
   | DeleteWebhookCommandInput
   | DiscardExperimentCommandInput
   | GetConfigCommandInput
@@ -386,6 +408,7 @@ export type ServiceInputTypes =
   | GetResolvedConfigCommandInput
   | GetTypeTemplateCommandInput
   | GetTypeTemplatesListCommandInput
+  | GetVariableCommandInput
   | GetVersionCommandInput
   | GetWebhookByEventCommandInput
   | GetWebhookCommandInput
@@ -398,6 +421,7 @@ export type ServiceInputTypes =
   | ListExperimentGroupsCommandInput
   | ListFunctionCommandInput
   | ListOrganisationCommandInput
+  | ListVariablesCommandInput
   | ListVersionsCommandInput
   | ListWebhookCommandInput
   | ListWorkspaceCommandInput
@@ -417,6 +441,7 @@ export type ServiceInputTypes =
   | UpdateOverrideCommandInput
   | UpdateOverridesExperimentCommandInput
   | UpdateTypeTemplatesCommandInput
+  | UpdateVariableCommandInput
   | UpdateWebhookCommandInput
   | UpdateWorkspaceCommandInput
   | ValidateContextCommandInput
@@ -438,6 +463,7 @@ export type ServiceOutputTypes =
   | CreateFunctionCommandOutput
   | CreateOrganisationCommandOutput
   | CreateTypeTemplatesCommandOutput
+  | CreateVariableCommandOutput
   | CreateWebhookCommandOutput
   | CreateWorkspaceCommandOutput
   | DeleteContextCommandOutput
@@ -446,6 +472,7 @@ export type ServiceOutputTypes =
   | DeleteExperimentGroupCommandOutput
   | DeleteFunctionCommandOutput
   | DeleteTypeTemplatesCommandOutput
+  | DeleteVariableCommandOutput
   | DeleteWebhookCommandOutput
   | DiscardExperimentCommandOutput
   | GetConfigCommandOutput
@@ -461,6 +488,7 @@ export type ServiceOutputTypes =
   | GetResolvedConfigCommandOutput
   | GetTypeTemplateCommandOutput
   | GetTypeTemplatesListCommandOutput
+  | GetVariableCommandOutput
   | GetVersionCommandOutput
   | GetWebhookByEventCommandOutput
   | GetWebhookCommandOutput
@@ -473,6 +501,7 @@ export type ServiceOutputTypes =
   | ListExperimentGroupsCommandOutput
   | ListFunctionCommandOutput
   | ListOrganisationCommandOutput
+  | ListVariablesCommandOutput
   | ListVersionsCommandOutput
   | ListWebhookCommandOutput
   | ListWorkspaceCommandOutput
@@ -492,6 +521,7 @@ export type ServiceOutputTypes =
   | UpdateOverrideCommandOutput
   | UpdateOverridesExperimentCommandOutput
   | UpdateTypeTemplatesCommandOutput
+  | UpdateVariableCommandOutput
   | UpdateWebhookCommandOutput
   | UpdateWorkspaceCommandOutput
   | ValidateContextCommandOutput

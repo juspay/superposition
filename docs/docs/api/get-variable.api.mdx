@@ -1,0 +1,71 @@
+---
+id: get-variable
+title: "GetVariable"
+description: "Retrieves detailed information about a specific variable by its name."
+sidebar_label: "GetVariable"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VU1v2zAM/SuCThvgNEHXXHLbhq7rZRjabpcgKBibjdXalirJWY3A/32kvxInTlBs7cmC+Eg+ks/URkboQquMVzqTM3mD3ipcoxMRelAJRkJlD9qmwAABS517AcIZDNWDCsUarIJlgmJZCOWdyCDFMxlIbdBWLtcRRb1C/7sBks2AJZRH6+RsvpHsQpjqE0jFLAz4mM4ujDEFOdtIXxjGOCKXrWQZSIvPubJIwb3NsQy6MC8jbVcjFbWhYoQI7T8H+6PtkzMQ4n/EW/CNMzpz6Bh/Ppnwp9/4nRYJAojWgzKFOvOYefYBYxIVVo0dPzp23BwS0ctHDD032vIYvKrT1jUN0F1Dkg9behQH7GEM2QrvLYI7hiCbx+h+WZw0gz80B7LWHd1EBBp5RfzJJwHn71Mdkf6OB+6DXh++N735XoE9vr3a+q0aSD9AO2glX/efVOKVT7CvhZtGBl8bDZQlU7yYXBwqiKA6tyH+0P6bzrNIEGorI/KaDunumuLaDJJbtGu0l9ZqK6bvor8UnYPVkNDKbekDdIZawB6w4v0h20457iCtlVjzxllhRYD3yEyO2y3lxhvuecm/L4a5Vb6oVpBLlY+LMzDqLPbefAGnws85+84XvA727QgWbQdYbKPdci/qco/H7Orn+z3pzOT3u7ufokILIDhV3DS83TnsuWQ7z/QEs9ekqeCn8lSAakL8DFRBm0nd5jRbo51qfGhcrg59PjmfjiafRpMpMySITyHbbiCWt9h5DvaWTKe2N3uLmjZ4fPFjkwCtcaKV24Sz1QqZy04hhJ9VPGmqMVFn42ZD/cZfNilLvn7O0bJuFkHnVqkoUo7PJL8HSByeqOzDTbNjPopj/JpLyIpuQ8wkHZ+waB/LkrTZvkdvnr/Os/Oadhz4h3iXVLtvbS9bDfgchmj8ju1gGZW7G+Dq8o50+xduyBJd
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetVariable"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/variables/{name}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves detailed information about a specific variable by its name.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetVariable 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"created_by":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"}},"required":["change_reason","created_at","created_by","description","last_modified_at","last_modified_by","name","value"],"title":"GetVariableResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

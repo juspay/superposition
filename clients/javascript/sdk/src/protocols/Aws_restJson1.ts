@@ -48,6 +48,10 @@ import {
   CreateTypeTemplatesCommandOutput,
 } from "../commands/CreateTypeTemplatesCommand";
 import {
+  CreateVariableCommandInput,
+  CreateVariableCommandOutput,
+} from "../commands/CreateVariableCommand";
+import {
   CreateWebhookCommandInput,
   CreateWebhookCommandOutput,
 } from "../commands/CreateWebhookCommand";
@@ -79,6 +83,10 @@ import {
   DeleteTypeTemplatesCommandInput,
   DeleteTypeTemplatesCommandOutput,
 } from "../commands/DeleteTypeTemplatesCommand";
+import {
+  DeleteVariableCommandInput,
+  DeleteVariableCommandOutput,
+} from "../commands/DeleteVariableCommand";
 import {
   DeleteWebhookCommandInput,
   DeleteWebhookCommandOutput,
@@ -140,6 +148,10 @@ import {
   GetTypeTemplatesListCommandOutput,
 } from "../commands/GetTypeTemplatesListCommand";
 import {
+  GetVariableCommandInput,
+  GetVariableCommandOutput,
+} from "../commands/GetVariableCommand";
+import {
   GetVersionCommandInput,
   GetVersionCommandOutput,
 } from "../commands/GetVersionCommand";
@@ -187,6 +199,10 @@ import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "../commands/ListOrganisationCommand";
+import {
+  ListVariablesCommandInput,
+  ListVariablesCommandOutput,
+} from "../commands/ListVariablesCommand";
 import {
   ListVersionsCommandInput,
   ListVersionsCommandOutput,
@@ -264,6 +280,10 @@ import {
   UpdateTypeTemplatesCommandOutput,
 } from "../commands/UpdateTypeTemplatesCommand";
 import {
+  UpdateVariableCommandInput,
+  UpdateVariableCommandOutput,
+} from "../commands/UpdateVariableCommand";
+import {
   UpdateWebhookCommandInput,
   UpdateWebhookCommandOutput,
 } from "../commands/UpdateWebhookCommand";
@@ -308,6 +328,7 @@ import {
   Unit,
   UpdateContextOverrideRequest,
   ValidateFunctionRequest,
+  VariableResponse,
   Variant,
   VariantUpdateRequest,
   WebhookResponse,
@@ -687,6 +708,33 @@ export const se_CreateTypeTemplatesCommand = async(
 }
 
 /**
+ * serializeAws_restJson1CreateVariableCommand
+ */
+export const se_CreateVariableCommand = async(
+  input: CreateVariableCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/variables");
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'description': [],
+    'name': [],
+    'value': [],
+  }));
+  b.m("POST")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1CreateWebhookCommand
  */
 export const se_CreateWebhookCommand = async(
@@ -867,6 +915,27 @@ export const se_DeleteTypeTemplatesCommand = async(
   });
   b.bp("/types/{type_name}");
   b.p('type_name', () => input.type_name!, '{type_name}', false)
+  let body: any;
+  b.m("DELETE")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1DeleteVariableCommand
+ */
+export const se_DeleteVariableCommand = async(
+  input: DeleteVariableCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/variables/{name}");
+  b.p('name', () => input.name!, '{name}', false)
   let body: any;
   b.m("DELETE")
   .h(headers)
@@ -1224,6 +1293,27 @@ export const se_GetTypeTemplatesListCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetVariableCommand
+ */
+export const se_GetVariableCommand = async(
+  input: GetVariableCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/variables/{name}");
+  b.p('name', () => input.name!, '{name}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1GetVersionCommand
  */
 export const se_GetVersionCommand = async(
@@ -1535,6 +1625,37 @@ export const se_ListOrganisationCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+  });
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ListVariablesCommand
+ */
+export const se_ListVariablesCommand = async(
+  input: ListVariablesCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/variables");
+  const query: any = map({
+    [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+    [_n]: [,input[_n]!],
+    [_cb]: [,input[_cb]!],
+    [_lmb]: [,input[_lmb]!],
+    [_so]: [,input[_so]!],
+    [_sb]: [,input[_sb]!],
   });
   let body: any;
   b.m("GET")
@@ -2055,6 +2176,33 @@ export const se_UpdateTypeTemplatesCommand = async(
 }
 
 /**
+ * serializeAws_restJson1UpdateVariableCommand
+ */
+export const se_UpdateVariableCommand = async(
+  input: UpdateVariableCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/variables/{name}");
+  b.p('name', () => input.name!, '{name}', false)
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'description': [],
+    'value': [],
+  }));
+  b.m("PATCH")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1UpdateWebhookCommand
  */
 export const se_UpdateWebhookCommand = async(
@@ -2542,6 +2690,34 @@ export const de_CreateTypeTemplatesCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1CreateVariableCommand
+ */
+export const de_CreateVariableCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<CreateVariableCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+    'value': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1CreateWebhookCommand
  */
 export const de_CreateWebhookCommand = async(
@@ -2737,6 +2913,34 @@ export const de_DeleteTypeTemplatesCommand = async(
     'last_modified_by': __expectString,
     'type_name': __expectString,
     'type_schema': _ => de_Object(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1DeleteVariableCommand
+ */
+export const de_DeleteVariableCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<DeleteVariableCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+    'value': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3189,6 +3393,34 @@ export const de_GetTypeTemplatesListCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1GetVariableCommand
+ */
+export const de_GetVariableCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetVariableCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+    'value': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1GetVersionCommand
  */
 export const de_GetVersionCommand = async(
@@ -3497,6 +3729,29 @@ export const de_ListOrganisationCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'data': _ => de_OrganisationList(_, context),
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1ListVariablesCommand
+ */
+export const de_ListVariablesCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ListVariablesCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'data': _ => de_VariableList(_, context),
     'total_items': __expectInt32,
     'total_pages': __expectInt32,
   });
@@ -4110,6 +4365,34 @@ export const de_UpdateTypeTemplatesCommand = async(
     'last_modified_by': __expectString,
     'type_name': __expectString,
     'type_schema': _ => de_Object(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1UpdateVariableCommand
+ */
+export const de_UpdateVariableCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<UpdateVariableCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+    'value': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -5137,6 +5420,38 @@ const de_CommandError = async(
       'last_modified_by': __expectString,
       'type_name': __expectString,
       'type_schema': (_: any) => de_Object(_, context),
+    }) as any;
+  }
+
+  /**
+   * deserializeAws_restJson1VariableList
+   */
+  const de_VariableList = (
+    output: any,
+    context: __SerdeContext
+  ): (VariableResponse)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_VariableResponse(entry, context);
+    });
+    return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1VariableResponse
+   */
+  const de_VariableResponse = (
+    output: any,
+    context: __SerdeContext
+  ): VariableResponse => {
+    return take(output, {
+      'change_reason': __expectString,
+      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'created_by': __expectString,
+      'description': __expectString,
+      'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'last_modified_by': __expectString,
+      'name': __expectString,
+      'value': __expectString,
     }) as any;
   }
 

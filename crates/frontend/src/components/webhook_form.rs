@@ -23,6 +23,7 @@ use crate::{
         form::label::Label,
         input::{Input, InputType, Toggle},
         skeleton::{Skeleton, SkeletonVariant},
+        tip::Tip,
     },
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
     schema::{JsonSchemaType, SchemaType::Single},
@@ -294,11 +295,17 @@ pub fn webhook_form(
                 />
             </div>
 
-            <div class="form-control">
+            <div class="form-control gap-3">
                 <Label
                     title="Custom Headers"
                     description="Custom headers are optional and can be used to pass additional information with the webhook request."
                 />
+                <Tip
+                    message="Reference variables using"
+                    code_snippet="{{VARS.KEY_NAME}}"
+                    example="{{VARS.API_KEY}}"
+                />
+
                 <EditorProvider>
                     <Input
                         id="custom_headers"

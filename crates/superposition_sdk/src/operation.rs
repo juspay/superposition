@@ -36,6 +36,9 @@ pub mod create_organisation;
 /// Types for the `CreateTypeTemplates` operation.
 pub mod create_type_templates;
 
+/// Types for the `CreateVariable` operation.
+pub mod create_variable;
+
 /// Types for the `CreateWebhook` operation.
 pub mod create_webhook;
 
@@ -59,6 +62,9 @@ pub mod delete_function;
 
 /// Types for the `DeleteTypeTemplates` operation.
 pub mod delete_type_templates;
+
+/// Types for the `DeleteVariable` operation.
+pub mod delete_variable;
 
 /// Types for the `DeleteWebhook` operation.
 pub mod delete_webhook;
@@ -105,6 +111,9 @@ pub mod get_type_template;
 /// Types for the `GetTypeTemplatesList` operation.
 pub mod get_type_templates_list;
 
+/// Types for the `GetVariable` operation.
+pub mod get_variable;
+
 /// Types for the `GetVersion` operation.
 pub mod get_version;
 
@@ -140,6 +149,9 @@ pub mod list_function;
 
 /// Types for the `ListOrganisation` operation.
 pub mod list_organisation;
+
+/// Types for the `ListVariables` operation.
+pub mod list_variables;
 
 /// Types for the `ListVersions` operation.
 pub mod list_versions;
@@ -197,6 +209,9 @@ pub mod update_overrides_experiment;
 
 /// Types for the `UpdateTypeTemplates` operation.
 pub mod update_type_templates;
+
+/// Types for the `UpdateVariable` operation.
+pub mod update_variable;
 
 /// Types for the `UpdateWebhook` operation.
 pub mod update_webhook;

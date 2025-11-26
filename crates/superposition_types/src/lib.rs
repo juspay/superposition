@@ -114,12 +114,17 @@ const ALPHANUMERIC_WITH_DOT_WORDS: &str =
 const ALPHANUMERIC_WITHOUT_DOT: &str = "^[a-zA-Z0-9-_]{1,64}$";
 const ALPHANUMERIC_WITHOUT_DOT_WORDS: &str =
     "It can contain the following characters only [a-zA-Z0-9-_]";
+const UPPERCASE_ALPHANUMERIC: &str = "^[A-Z][A-Z0-9_]{0,49}$";
+const UPPERCASE_ALPHANUMERIC_WORDS: &str =
+    "It can contain only uppercase letters, digits and underscores \
+        and must start with a letter and should be not be longer than 50 characters";
 
 pub enum RegexEnum {
     DefaultConfigKey,
     DimensionName,
     FunctionName,
     TypeTemplateName,
+    VariableName,
 }
 
 impl RegexEnum {
@@ -147,6 +152,7 @@ impl RegexEnum {
             Self::DimensionName => ALPHANUMERIC_WITH_DOT_WORDS,
             Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
             Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
+            Self::VariableName => UPPERCASE_ALPHANUMERIC_WORDS,
         }
         .to_string()
     }
@@ -159,6 +165,7 @@ impl Display for RegexEnum {
             Self::DimensionName => ALPHANUMERIC_WITH_DOT,
             Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT,
             Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT,
+            Self::VariableName => UPPERCASE_ALPHANUMERIC,
         }
         .to_string();
         write!(f, "{regex}")

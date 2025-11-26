@@ -80,6 +80,37 @@ final class SharedSerde {
         }
     }
 
+    static final class VariableListSerializer implements BiConsumer<List<VariableResponse>, ShapeSerializer> {
+        static final VariableListSerializer INSTANCE = new VariableListSerializer();
+
+        @Override
+        public void accept(List<VariableResponse> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.VARIABLE_LIST.listMember(), value);
+            }
+        }
+    }
+
+    static List<VariableResponse> deserializeVariableList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<VariableResponse> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, VariableList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class VariableList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<VariableResponse>> {
+        static final VariableList$MemberDeserializer INSTANCE = new VariableList$MemberDeserializer();
+
+        @Override
+        public void accept(List<VariableResponse> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(VariableResponse.builder().deserializeMember(deserializer, SharedSchemas.VARIABLE_LIST.listMember()).build());
+        }
+    }
+
     static final class OrganisationListSerializer implements BiConsumer<List<OrganisationResponse>, ShapeSerializer> {
         static final OrganisationListSerializer INSTANCE = new OrganisationListSerializer();
 

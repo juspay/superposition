@@ -37,6 +37,9 @@ import io.juspay.superposition.model.CreateOrganisationOutput;
 import io.juspay.superposition.model.CreateTypeTemplates;
 import io.juspay.superposition.model.CreateTypeTemplatesInput;
 import io.juspay.superposition.model.CreateTypeTemplatesOutput;
+import io.juspay.superposition.model.CreateVariable;
+import io.juspay.superposition.model.CreateVariableInput;
+import io.juspay.superposition.model.CreateVariableOutput;
 import io.juspay.superposition.model.CreateWebhook;
 import io.juspay.superposition.model.CreateWebhookInput;
 import io.juspay.superposition.model.CreateWebhookOutput;
@@ -61,6 +64,9 @@ import io.juspay.superposition.model.DeleteFunctionOutput;
 import io.juspay.superposition.model.DeleteTypeTemplates;
 import io.juspay.superposition.model.DeleteTypeTemplatesInput;
 import io.juspay.superposition.model.DeleteTypeTemplatesOutput;
+import io.juspay.superposition.model.DeleteVariable;
+import io.juspay.superposition.model.DeleteVariableInput;
+import io.juspay.superposition.model.DeleteVariableOutput;
 import io.juspay.superposition.model.DeleteWebhook;
 import io.juspay.superposition.model.DeleteWebhookInput;
 import io.juspay.superposition.model.DeleteWebhookOutput;
@@ -106,6 +112,9 @@ import io.juspay.superposition.model.GetTypeTemplateOutput;
 import io.juspay.superposition.model.GetTypeTemplatesList;
 import io.juspay.superposition.model.GetTypeTemplatesListInput;
 import io.juspay.superposition.model.GetTypeTemplatesListOutput;
+import io.juspay.superposition.model.GetVariable;
+import io.juspay.superposition.model.GetVariableInput;
+import io.juspay.superposition.model.GetVariableOutput;
 import io.juspay.superposition.model.GetVersion;
 import io.juspay.superposition.model.GetVersionInput;
 import io.juspay.superposition.model.GetVersionOutput;
@@ -142,6 +151,9 @@ import io.juspay.superposition.model.ListFunctionOutput;
 import io.juspay.superposition.model.ListOrganisation;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
+import io.juspay.superposition.model.ListVariables;
+import io.juspay.superposition.model.ListVariablesInput;
+import io.juspay.superposition.model.ListVariablesOutput;
 import io.juspay.superposition.model.ListVersions;
 import io.juspay.superposition.model.ListVersionsInput;
 import io.juspay.superposition.model.ListVersionsOutput;
@@ -199,6 +211,9 @@ import io.juspay.superposition.model.UpdateOverridesExperimentOutput;
 import io.juspay.superposition.model.UpdateTypeTemplates;
 import io.juspay.superposition.model.UpdateTypeTemplatesInput;
 import io.juspay.superposition.model.UpdateTypeTemplatesOutput;
+import io.juspay.superposition.model.UpdateVariable;
+import io.juspay.superposition.model.UpdateVariableInput;
+import io.juspay.superposition.model.UpdateVariableOutput;
 import io.juspay.superposition.model.UpdateWebhook;
 import io.juspay.superposition.model.UpdateWebhookInput;
 import io.juspay.superposition.model.UpdateWebhookOutput;
@@ -227,9 +242,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
-        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -289,6 +304,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<CreateVariableOutput> createVariable(CreateVariableInput input, RequestOverrideConfig overrideConfig) {return call(input, CreateVariable.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<CreateWebhookOutput> createWebhook(CreateWebhookInput input, RequestOverrideConfig overrideConfig) {return call(input, CreateWebhook.instance(), overrideConfig);
     }
 
@@ -318,6 +337,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<DeleteTypeTemplatesOutput> deleteTypeTemplates(DeleteTypeTemplatesInput input, RequestOverrideConfig overrideConfig) {return call(input, DeleteTypeTemplates.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<DeleteVariableOutput> deleteVariable(DeleteVariableInput input, RequestOverrideConfig overrideConfig) {return call(input, DeleteVariable.instance(), overrideConfig);
     }
 
     @Override
@@ -381,6 +404,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<GetVariableOutput> getVariable(GetVariableInput input, RequestOverrideConfig overrideConfig) {return call(input, GetVariable.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<GetVersionOutput> getVersion(GetVersionInput input, RequestOverrideConfig overrideConfig) {return call(input, GetVersion.instance(), overrideConfig);
     }
 
@@ -426,6 +453,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<ListOrganisationOutput> listOrganisation(ListOrganisationInput input, RequestOverrideConfig overrideConfig) {return call(input, ListOrganisation.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<ListVariablesOutput> listVariables(ListVariablesInput input, RequestOverrideConfig overrideConfig) {return call(input, ListVariables.instance(), overrideConfig);
     }
 
     @Override
@@ -502,6 +533,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<UpdateTypeTemplatesOutput> updateTypeTemplates(UpdateTypeTemplatesInput input, RequestOverrideConfig overrideConfig) {return call(input, UpdateTypeTemplates.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<UpdateVariableOutput> updateVariable(UpdateVariableInput input, RequestOverrideConfig overrideConfig) {return call(input, UpdateVariable.instance(), overrideConfig);
     }
 
     @Override

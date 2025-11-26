@@ -17,6 +17,8 @@ pub mod not_found;
 pub mod organisations;
 pub mod type_template;
 pub mod type_templates;
+pub mod variable;
+pub mod variables_list;
 pub mod webhook;
 pub mod webhooks;
 pub mod workspace;

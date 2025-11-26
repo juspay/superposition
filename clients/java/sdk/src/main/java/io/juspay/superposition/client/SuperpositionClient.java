@@ -25,6 +25,8 @@ import io.juspay.superposition.model.CreateOrganisationInput;
 import io.juspay.superposition.model.CreateOrganisationOutput;
 import io.juspay.superposition.model.CreateTypeTemplatesInput;
 import io.juspay.superposition.model.CreateTypeTemplatesOutput;
+import io.juspay.superposition.model.CreateVariableInput;
+import io.juspay.superposition.model.CreateVariableOutput;
 import io.juspay.superposition.model.CreateWebhookInput;
 import io.juspay.superposition.model.CreateWebhookOutput;
 import io.juspay.superposition.model.CreateWorkspaceInput;
@@ -41,6 +43,8 @@ import io.juspay.superposition.model.DeleteFunctionInput;
 import io.juspay.superposition.model.DeleteFunctionOutput;
 import io.juspay.superposition.model.DeleteTypeTemplatesInput;
 import io.juspay.superposition.model.DeleteTypeTemplatesOutput;
+import io.juspay.superposition.model.DeleteVariableInput;
+import io.juspay.superposition.model.DeleteVariableOutput;
 import io.juspay.superposition.model.DeleteWebhookInput;
 import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperimentInput;
@@ -71,6 +75,8 @@ import io.juspay.superposition.model.GetTypeTemplateInput;
 import io.juspay.superposition.model.GetTypeTemplateOutput;
 import io.juspay.superposition.model.GetTypeTemplatesListInput;
 import io.juspay.superposition.model.GetTypeTemplatesListOutput;
+import io.juspay.superposition.model.GetVariableInput;
+import io.juspay.superposition.model.GetVariableOutput;
 import io.juspay.superposition.model.GetVersionInput;
 import io.juspay.superposition.model.GetVersionOutput;
 import io.juspay.superposition.model.GetWebhookByEventInput;
@@ -96,6 +102,8 @@ import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
+import io.juspay.superposition.model.ListVariablesInput;
+import io.juspay.superposition.model.ListVariablesOutput;
 import io.juspay.superposition.model.ListVersionsInput;
 import io.juspay.superposition.model.ListVersionsOutput;
 import io.juspay.superposition.model.ListWebhookInput;
@@ -135,6 +143,8 @@ import io.juspay.superposition.model.UpdateOverridesExperimentInput;
 import io.juspay.superposition.model.UpdateOverridesExperimentOutput;
 import io.juspay.superposition.model.UpdateTypeTemplatesInput;
 import io.juspay.superposition.model.UpdateTypeTemplatesOutput;
+import io.juspay.superposition.model.UpdateVariableInput;
+import io.juspay.superposition.model.UpdateVariableOutput;
 import io.juspay.superposition.model.UpdateWebhookInput;
 import io.juspay.superposition.model.UpdateWebhookOutput;
 import io.juspay.superposition.model.UpdateWorkspaceInput;
@@ -382,6 +392,22 @@ public interface SuperpositionClient {
     CreateTypeTemplatesOutput createTypeTemplates(CreateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new variable with the specified name and value.
+     *
+     * @throws InternalServerError
+     */
+    default CreateVariableOutput createVariable(CreateVariableInput input) {
+        return createVariable(input, null);
+    }
+
+    /**
+     * Creates a new variable with the specified name and value.
+     *
+     * @throws InternalServerError
+     */
+    CreateVariableOutput createVariable(CreateVariableInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Creates a new webhook config to receive HTTP notifications when specified events occur in the
      * system.
      *
@@ -532,6 +558,24 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     DeleteTypeTemplatesOutput deleteTypeTemplates(DeleteTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Permanently deletes a variable from the workspace.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default DeleteVariableOutput deleteVariable(DeleteVariableInput input) {
+        return deleteVariable(input, null);
+    }
+
+    /**
+     * Permanently deletes a variable from the workspace.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    DeleteVariableOutput deleteVariable(DeleteVariableInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Permanently removes a webhook config from the workspace, stopping all future event notifications to
@@ -820,6 +864,24 @@ public interface SuperpositionClient {
     GetTypeTemplatesListOutput getTypeTemplatesList(GetTypeTemplatesListInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific variable by its name.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default GetVariableOutput getVariable(GetVariableInput input) {
+        return getVariable(input, null);
+    }
+
+    /**
+     * Retrieves detailed information about a specific variable by its name.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    GetVariableOutput getVariable(GetVariableInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves a specific config version along with its metadata for audit and rollback purposes.
      *
      * @throws ResourceNotFound
@@ -1036,6 +1098,22 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     ListOrganisationOutput listOrganisation(ListOrganisationInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Retrieves a paginated list of all variables in the workspace with optional filtering and sorting.
+     *
+     * @throws InternalServerError
+     */
+    default ListVariablesOutput listVariables(ListVariablesInput input) {
+        return listVariables(input, null);
+    }
+
+    /**
+     * Retrieves a paginated list of all variables in the workspace with optional filtering and sorting.
+     *
+     * @throws InternalServerError
+     */
+    ListVariablesOutput listVariables(ListVariablesInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves a paginated list of config versions with their metadata, hash values, and creation
@@ -1408,6 +1486,24 @@ public interface SuperpositionClient {
     UpdateTypeTemplatesOutput updateTypeTemplates(UpdateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Updates an existing variable's value, description, or tags.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default UpdateVariableOutput updateVariable(UpdateVariableInput input) {
+        return updateVariable(input, null);
+    }
+
+    /**
+     * Updates an existing variable's value, description, or tags.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    UpdateVariableOutput updateVariable(UpdateVariableInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook
      * properties.
      *
@@ -1512,11 +1608,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
-        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
-
         private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
         private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
+        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
+        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

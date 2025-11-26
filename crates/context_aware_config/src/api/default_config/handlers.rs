@@ -316,6 +316,8 @@ fn validate_and_get_function_code(
                 &f_code,
                 &key.to_string(),
                 value,
+                conn,
+                schema_name,
             )?;
         }
     }

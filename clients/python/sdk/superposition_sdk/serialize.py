@@ -27,6 +27,7 @@ from .models import (
     CreateFunctionInput,
     CreateOrganisationInput,
     CreateTypeTemplatesInput,
+    CreateVariableInput,
     CreateWebhookInput,
     CreateWorkspaceInput,
     DeleteContextInput,
@@ -35,6 +36,7 @@ from .models import (
     DeleteExperimentGroupInput,
     DeleteFunctionInput,
     DeleteTypeTemplatesInput,
+    DeleteVariableInput,
     DeleteWebhookInput,
     DiscardExperimentInput,
     GetConfigFastInput,
@@ -50,6 +52,7 @@ from .models import (
     GetResolvedConfigInput,
     GetTypeTemplateInput,
     GetTypeTemplatesListInput,
+    GetVariableInput,
     GetVersionInput,
     GetWebhookByEventInput,
     GetWebhookInput,
@@ -62,6 +65,7 @@ from .models import (
     ListExperimentInput,
     ListFunctionInput,
     ListOrganisationInput,
+    ListVariablesInput,
     ListVersionsInput,
     ListWebhookInput,
     ListWorkspaceInput,
@@ -82,6 +86,7 @@ from .models import (
     UpdateOverrideInput,
     UpdateOverridesExperimentInput,
     UpdateTypeTemplatesInput,
+    UpdateVariableInput,
     UpdateWebhookInput,
     UpdateWorkspaceInput,
     ValidateContextInput,
@@ -535,6 +540,42 @@ async def _serialize_create_type_templates(input: CreateTypeTemplatesInput, conf
         body=body,
     )
 
+async def _serialize_create_variable(input: CreateVariableInput, config: Config) -> HTTPRequest:
+    path = "/variables"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_create_webhook(input: CreateWebhookInput, config: Config) -> HTTPRequest:
     path = "/webhook"
     query: str = f''
@@ -773,6 +814,38 @@ async def _serialize_delete_type_templates(input: DeleteTypeTemplatesInput, conf
 
     path = "/types/{type_name}".format(
         type_name=urlquote(input.type_name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="DELETE",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_delete_variable(input: DeleteVariableInput, config: Config) -> HTTPRequest:
+    if not input.name:
+        raise ServiceError("name must not be empty.")
+
+    path = "/variables/{name}".format(
+        name=urlquote(input.name, safe=''),
     )
     query: str = f''
 
@@ -1320,6 +1393,38 @@ async def _serialize_get_type_templates_list(input: GetTypeTemplatesListInput, c
         body=body,
     )
 
+async def _serialize_get_variable(input: GetVariableInput, config: Config) -> HTTPRequest:
+    if not input.name:
+        raise ServiceError("name must not be empty.")
+
+    path = "/variables/{name}".format(
+        name=urlquote(input.name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_get_version(input: GetVersionInput, config: Config) -> HTTPRequest:
     if not input.id:
         raise ServiceError("id must not be empty.")
@@ -1790,6 +1895,53 @@ async def _serialize_list_organisation(input: ListOrganisationInput, config: Con
         ]
     )
 
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_list_variables(input: ListVariablesInput, config: Config) -> HTTPRequest:
+    path = "/variables"
+    query: str = f''
+
+    query_params: list[tuple[str, str | None]] = []
+    if input.count is not None:
+        query_params.append(("count", str(input.count)))
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
+    if input.name is not None:
+        query_params.append(("name", input.name))
+    if input.created_by is not None:
+        query_params.append(("created_by", input.created_by))
+    if input.last_modified_by is not None:
+        query_params.append(("last_modified_by", input.last_modified_by))
+    if input.sort_on is not None:
+        query_params.append(("sort_on", input.sort_on))
+    if input.sort_by is not None:
+        query_params.append(("sort_by", input.sort_by))
+
+    query = join_query_params(params=query_params, prefix=query)
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2524,6 +2676,47 @@ async def _serialize_update_type_templates(input: UpdateTypeTemplatesInput, conf
 
     path = "/types/{type_name}".format(
         type_name=urlquote(input.type_name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_update_variable(input: UpdateVariableInput, config: Config) -> HTTPRequest:
+    if not input.name:
+        raise ServiceError("name must not be empty.")
+
+    path = "/variables/{name}".format(
+        name=urlquote(input.name, safe=''),
     )
     query: str = f''
 
