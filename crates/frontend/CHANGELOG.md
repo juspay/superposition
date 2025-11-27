@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.47.0 - 2025-11-27
+#### Features
+- added variables (#741) - (fb51c6a) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.94.3 [skip ci] - (537ca09) - Superposition Bot
+
+- - -
+
 ## frontend-v0.46.3 - 2025-11-19
 #### Bug Fixes
 - fetch orgs in FE and support redirect to requested url from keycloak (#752) - (8293a27) - Ayush Jain

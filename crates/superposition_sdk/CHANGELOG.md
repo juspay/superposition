@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.11.0 - 2025-11-27
+#### Features
+- added variables (#741) - (fb51c6a) - sauraww
+- Enabled basic auth for smithy-clients. (#756) - (1d81ca0) - ShreyBana
+#### Miscellaneous Chores
+- **(version)** v0.93.2 [skip ci] - (49705df) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.10.2 - 2025-11-07
 #### Bug Fixes
 - **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain

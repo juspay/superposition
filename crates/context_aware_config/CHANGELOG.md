@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.65.0 - 2025-11-27
+#### Features
+- added variables (#741) - (fb51c6a) - sauraww
+#### Miscellaneous Chores
+- **(deps)** bump js-yaml in /crates/context_aware_config (#751) - (846070e) - dependabot[bot]
+- **(version)** v0.93.2 [skip ci] - (49705df) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.64.2 - 2025-11-07
 #### Bug Fixes
 - **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain
