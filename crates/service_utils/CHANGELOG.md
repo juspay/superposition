@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.34.0 - 2025-11-27
+#### Features
+- added variables (#741) - (fb51c6a) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.94.5 [skip ci] - (2b90db5) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.33.5 - 2025-11-20
 #### Bug Fixes
 - cookie issue due to same-site:strict (#754) - (1557804) - Ayush Jain

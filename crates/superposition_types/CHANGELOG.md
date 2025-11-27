@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.37.0 - 2025-11-27
+#### Features
+- added variables (#741) - (fb51c6a) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.93.2 [skip ci] - (49705df) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.36.2 - 2025-11-07
 #### Bug Fixes
 - **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain

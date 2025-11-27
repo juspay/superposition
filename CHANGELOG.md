@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.95.0 - 2025-11-27
+### Package updates
+- haskell_client bumped to haskell_client-v0.10.0
+- frontend bumped to frontend-v0.47.0
+- context_aware_config bumped to context_aware_config-v0.65.0
+- service_utils bumped to service_utils-v0.34.0
+- superposition_types bumped to superposition_types-v0.37.0
+- superposition_sdk bumped to superposition_sdk-v0.11.0
+### Global changes
+#### Bug Fixes
+- nix flake for haskell open-feature provider (#758) - (85b6960) - Ayush Jain
+- update lock files and images to fix CVEs (#761) - (4af29ca) - Datron
+- update release ubuntu version (#764) - (5a31dc6) - Datron
+#### Continuous Integration
+- Downgraded runner to ubuntu-20.04 to downgrade glibc link version. (#759) - (07b6554) - ShreyBana
+#### Features
+- Enabled basic auth for smithy-clients. (#756) - (1d81ca0) - ShreyBana
+- added variables (#741) - (fb51c6a) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.94.5 [skip ci] - (2b90db5) - Superposition Bot
+
+- - -
+
 ## v0.94.5 - 2025-11-20
 ### Package updates
 - service_utils bumped to service_utils-v0.33.5

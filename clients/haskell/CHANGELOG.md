@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.10.0 - 2025-11-27
+#### Features
+- added variables (#741) - (fb51c6a) - sauraww
+- Enabled basic auth for smithy-clients. (#756) - (1d81ca0) - ShreyBana
+#### Miscellaneous Chores
+- **(version)** v0.94.0 [skip ci] - (1cc06ea) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.9.0 - 2025-11-14
 #### Features
 - **(hs)** Open feature provider for Haskell. (#746) - (ca2d53b) - ShreyBana
