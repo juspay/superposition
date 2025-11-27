@@ -49,9 +49,14 @@ WORKDIR /app
 ARG SOURCE_COMMIT
 ARG SUPERPOSITION_VERSION
 
-RUN apt-get update && apt-get install -y libpq5 ca-certificates curl
-RUN apt-get install -y postgresql-common
-RUN apt-get update
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    libpq5 \
+    ca-certificates \
+    curl \
+    postgresql-common && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 
 ENV NVM_DIR=/root/.nvm
