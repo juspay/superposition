@@ -40,7 +40,7 @@ RUN cargo build --release --features=ssr
 RUN pwd
 RUN ls -l target
 
-FROM debian:bookworm-slim as runtime
+FROM ubuntu:24.04 as runtime
 
 RUN mkdir -p /app/crates/superposition
 ENV NODE_VERSION=18.19.0
@@ -49,7 +49,7 @@ WORKDIR /app
 ARG SOURCE_COMMIT
 ARG SUPERPOSITION_VERSION
 
-RUN apt-get update && apt-get upgrade -y && \
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libpq5 \
     ca-certificates \
