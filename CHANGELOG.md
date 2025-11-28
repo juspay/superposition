@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.95.1 - 2025-11-28
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.45.3
+### Global changes
+#### Bug Fixes
+- update docker base image - (b5a3e6e) - datron
+- update docker image (#767) - (9e00c4f) - Datron
+- update demo image's installed postgres version (#768) - (18cd298) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.95.0 [skip ci] - (b2a9dd2) - Superposition Bot
+
+- - -
+
 ## v0.95.0 - 2025-11-27
 ### Package updates
 - haskell_client bumped to haskell_client-v0.10.0
