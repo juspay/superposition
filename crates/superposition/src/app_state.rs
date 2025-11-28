@@ -130,5 +130,10 @@ pub async fn get(
         ).await
         .into_iter()
         .collect(),
+        ai_config: service_utils::service::types::AIConfig {
+            api_key: std::env::var("OPENAI_API_KEY").ok(),
+            base_url: std::env::var("OPENAI_BASE_URL").ok(),
+            model: get_from_env_or_default("OPENAI_MODEL", "gpt-4".to_string()),
+        },
     }
 }

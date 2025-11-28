@@ -1150,3 +1150,58 @@ pub mod audit_log {
         parse_json_response(response).await
     }
 }
+
+pub mod ai {
+    use serde::{Deserialize, Serialize};
+
+    use super::*;
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+    pub enum GenerationType {
+        Schema,
+        ValidationFunction,
+        AutocompleteFunction,
+    }
+
+    #[derive(Debug, Deserialize, Serialize)]
+    pub struct GenerateRequest {
+        pub generation_type: GenerationType,
+        pub description: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub context: Option<String>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct GenerateResponse {
+        pub generated_code: String,
+    }
+
+    pub async fn generate(
+        generation_type: GenerationType,
+        description: String,
+        context: Option<String>,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<String, String> {
+        let host = use_host_server();
+        let url = format!("{}/ai/generate", host);
+
+        let payload = GenerateRequest {
+            generation_type,
+            description,
+            context,
+        };
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        let result: GenerateResponse = parse_json_response(response).await?;
+        Ok(result.generated_code)
+    }
+}

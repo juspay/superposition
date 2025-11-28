@@ -360,6 +360,7 @@ pub fn default_config_form(
                                     })
                                     disabled=config_type_rs.get().is_empty() && !edit
                                     r#type=InputType::Monaco(vec![])
+                                    generation_type=Some(crate::api::ai::GenerationType::Schema)
                                 />
 
                                 <Show when=move || {

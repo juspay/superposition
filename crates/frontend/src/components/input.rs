@@ -6,6 +6,7 @@ use serde_json::{json, Map, Value};
 use web_sys::MouseEvent;
 
 use crate::{
+    api,
     components::{
         alert::AlertType,
         badge::GrayPill,
@@ -16,7 +17,7 @@ use crate::{
     },
     providers::{alert_provider::enqueue_alert, editor_provider::use_editor},
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
-    types::AutoCompleteCallback,
+    types::{AutoCompleteCallback, OrganisationId, Tenant},
     utils::get_element_by_id,
 };
 
@@ -371,14 +372,23 @@ pub fn monaco_input(
     #[prop(default = false)] disabled: bool,
     suggestions: Vec<Value>,
     #[prop(default = None)] operator: Option<Operator>,
+    #[prop(default = None)] generation_type: Option<api::ai::GenerationType>,
 ) -> impl IntoView {
     let id = store_value(id);
     let schema_type = store_value(schema_type);
     let suggestions = store_value(suggestions);
+    let generation_type = store_value(generation_type);
     let (value_rs, value_ws) = create_signal(value);
     let (expand_rs, expand_ws) = create_signal(false);
     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
     let show_error = Signal::derive(move || error_rs.get().is_some());
+    
+    // AI generation state
+    let (show_ai_modal_rs, show_ai_modal_ws) = create_signal(false);
+    let (ai_description_rs, ai_description_ws) = create_signal(String::new());
+    let (ai_generating_rs, ai_generating_ws) = create_signal(false);
+    let workspace = use_context::<Signal<Tenant>>();
+    let org = use_context::<Signal<OrganisationId>>();
 
     let (editor_rs, editor_ws) = use_editor();
 
@@ -426,6 +436,75 @@ pub fn monaco_input(
         });
         expand_ws.set(false);
         error_ws.set(None);
+    });
+    
+    // AI generation callback
+    let on_ai_generate = Callback::new(move |_: MouseEvent| {
+        show_ai_modal_ws.set(true);
+    });
+    
+    let on_ai_modal_close = Callback::new(move |_| {
+        show_ai_modal_ws.set(false);
+        ai_description_ws.set(String::new());
+        error_ws.set(None);
+    });
+    
+    let on_ai_generate_submit = Callback::new(move |_: MouseEvent| {
+        let description = ai_description_rs.get_untracked();
+        if description.trim().is_empty() {
+            error_ws.set(Some("Please enter a description".to_string()));
+            return;
+        }
+        
+        let Some(gen_type) = generation_type.get_value() else {
+            return;
+        };
+        
+        let Some(workspace) = workspace else {
+            error_ws.set(Some("Workspace not found".to_string()));
+            return;
+        };
+        
+        let Some(org) = org else {
+            error_ws.set(Some("Organization not found".to_string()));
+            return;
+        };
+        
+        ai_generating_ws.set(true);
+        error_ws.set(None);
+        
+        spawn_local(async move {
+            let result = api::ai::generate(
+                gen_type,
+                description,
+                None,
+                &workspace.get_untracked().0,
+                &org.get_untracked().0,
+            )
+            .await;
+            
+            ai_generating_ws.set(false);
+            
+            match result {
+                Ok(generated_code) => {
+                    // Update editor with generated code
+                    editor_ws.update(|v| {
+                        v.data = generated_code;
+                        v.id = id.get_value();
+                    });
+                    show_ai_modal_ws.set(false);
+                    ai_description_ws.set(String::new());
+                    enqueue_alert(
+                        "Code generated successfully!".to_string(),
+                        AlertType::Success,
+                        3000,
+                    );
+                }
+                Err(e) => {
+                    error_ws.set(Some(format!("AI generation failed: {}", e)));
+                }
+            }
+        });
     });
 
     view! {
@@ -492,7 +571,18 @@ pub fn monaco_input(
                                 classes=vec!["h-full"]
                                 suggestions=suggestions.get_value()
                             />
-                            <div class="absolute top-[0px] right-[0px]">
+                            <div class="absolute top-[0px] right-[0px] flex gap-1">
+                                <Show when=move || generation_type.get_value().is_some() && !disabled>
+                                    <button
+                                        class="btn btn-sm btn-ghost font-normal rounded-lg"
+                                        title="Generate with AI"
+                                        on:click=move |e| {
+                                            on_ai_generate.call(e);
+                                        }
+                                    >
+                                        <i class="ri-sparkling-line ri-lg cursor-pointer text-purple-500"></i>
+                                    </button>
+                                </Show>
                                 <button
                                     class="btn btn-sm btn-ghost font-normal rounded-lg"
                                     on:click=move |_| {
@@ -543,6 +633,56 @@ pub fn monaco_input(
                     }
                 }}
 
+            </Show>
+            
+            // AI Generation Modal
+            <Show when=move || show_ai_modal_rs.get()>
+                <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                        <h3 class="text-lg font-bold mb-4">Generate with AI</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Describe what you want to generate and AI will create it for you.
+                        </p>
+                        <textarea
+                            class="textarea textarea-bordered w-full h-32 mb-4"
+                            placeholder="Example: A validation function that checks if email is valid"
+                            value=move || ai_description_rs.get()
+                            on:input=move |ev| {
+                                ai_description_ws.set(event_target_value(&ev));
+                            }
+                        />
+                        
+                        <Show when=move || error_rs.get().is_some()>
+                            <div class="alert alert-error mb-4">
+                                <span class="text-sm">{move || error_rs.get().unwrap_or_default()}</span>
+                            </div>
+                        </Show>
+                        
+                        <div class="flex justify-end gap-2">
+                            <button
+                                class="btn btn-ghost"
+                                disabled=ai_generating_rs.get()
+                                on:click=move |e| {
+                                    on_ai_modal_close.call(e);
+                                }
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                class="btn btn-primary"
+                                disabled=ai_generating_rs.get()
+                                on:click=move |e| {
+                                    on_ai_generate_submit.call(e);
+                                }
+                            >
+                                <Show when=move || ai_generating_rs.get()>
+                                    <span class="loading loading-spinner loading-sm"></span>
+                                </Show>
+                                {move || if ai_generating_rs.get() { "Generating..." } else { "Generate" }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </Show>
         </div>
     }
@@ -619,6 +759,7 @@ pub fn input(
     #[prop(into, default = String::new())] name: String,
     #[prop(default = None)] operator: Option<Operator>,
     #[prop(default = None)] autocomplete_function: Option<AutoCompleteCallback>,
+    #[prop(default = None)] generation_type: Option<api::ai::GenerationType>,
 ) -> impl IntoView {
     match r#type {
         InputType::Toggle => match value.as_bool() {
@@ -638,7 +779,7 @@ pub fn input(
         InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone() /> }
         .into_view(),
         InputType::Monaco(suggestions) => {
-            view! { <MonacoInput id class value on_change disabled schema_type suggestions operator /> }.into_view()
+            view! { <MonacoInput id class value on_change disabled schema_type suggestions operator generation_type /> }.into_view()
         }
         _ => {
             view! {

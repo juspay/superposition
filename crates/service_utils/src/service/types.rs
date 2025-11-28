@@ -37,6 +37,12 @@ pub enum AppHeader {
     LastModified,
 }
 
+pub struct AIConfig {
+    pub api_key: Option<String>,
+    pub base_url: Option<String>,
+    pub model: String,
+}
+
 pub struct AppState {
     pub cac_host: String,
     pub app_env: AppEnv,
@@ -52,6 +58,7 @@ pub struct AppState {
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
     pub encrypted_keys: HashMap<String, String>,
+    pub ai_config: AIConfig,
 }
 
 impl FromStr for AppEnv {

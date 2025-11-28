@@ -502,6 +502,7 @@ pub fn dimension_form(
                                                                         dimension_schema_ws.set(new_type_schema)
                                                                     }
                                                                     r#type=InputType::Monaco(vec![])
+                                                                    generation_type=Some(crate::api::ai::GenerationType::Schema)
                                                                     disabled=matches!(
                                                                         dimension_type_rs.get(),
                                                                         DimensionTypeOptions::LocalCohort

@@ -9,6 +9,7 @@ edition = "2021"
 actix-files = { version = "0.6" }
 actix-web = { workspace = true }
 anyhow = { workspace = true }
+async-openai = "0.30.1"
 aws-sdk-kms = { workspace = true }
 chrono = { workspace = true }
 context_aware_config = { path = "../context_aware_config" }
@@ -27,6 +28,7 @@ regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 service_utils = { workspace = true }
 superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
