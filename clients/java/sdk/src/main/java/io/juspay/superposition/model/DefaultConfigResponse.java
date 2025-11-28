@@ -34,8 +34,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
                 new RequiredTrait())
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("function_name", PreludeSchemas.STRING)
-        .putMember("autocomplete_function_name", PreludeSchemas.STRING)
+        .putMember("value_validation_function_name", PreludeSchemas.STRING)
+        .putMember("value_compute_function_name", PreludeSchemas.STRING)
         .putMember("created_at", SharedSchemas.DATE_TIME,
                 new RequiredTrait())
         .putMember("created_by", PreludeSchemas.STRING,
@@ -51,8 +51,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
     private static final Schema $SCHEMA_SCHEMA_MEMBER = $SCHEMA.member("schema");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
-    private static final Schema $SCHEMA_FUNCTION_NAME = $SCHEMA.member("function_name");
-    private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_NAME = $SCHEMA.member("autocomplete_function_name");
+    private static final Schema $SCHEMA_VALUE_VALIDATION_FUNCTION_NAME = $SCHEMA.member("value_validation_function_name");
+    private static final Schema $SCHEMA_VALUE_COMPUTE_FUNCTION_NAME = $SCHEMA.member("value_compute_function_name");
     private static final Schema $SCHEMA_CREATED_AT = $SCHEMA.member("created_at");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_AT = $SCHEMA.member("last_modified_at");
@@ -63,8 +63,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
     private final transient Map<String, Document> schemaMember;
     private final transient String description;
     private final transient String changeReason;
-    private final transient String functionName;
-    private final transient String autocompleteFunctionName;
+    private final transient String valueValidationFunctionName;
+    private final transient String valueComputeFunctionName;
     private final transient Instant createdAt;
     private final transient String createdBy;
     private final transient Instant lastModifiedAt;
@@ -76,8 +76,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
         this.schemaMember = Collections.unmodifiableMap(builder.schemaMember);
         this.description = builder.description;
         this.changeReason = builder.changeReason;
-        this.functionName = builder.functionName;
-        this.autocompleteFunctionName = builder.autocompleteFunctionName;
+        this.valueValidationFunctionName = builder.valueValidationFunctionName;
+        this.valueComputeFunctionName = builder.valueComputeFunctionName;
         this.createdAt = builder.createdAt;
         this.createdBy = builder.createdBy;
         this.lastModifiedAt = builder.lastModifiedAt;
@@ -108,12 +108,12 @@ public final class DefaultConfigResponse implements SerializableStruct {
         return changeReason;
     }
 
-    public String functionName() {
-        return functionName;
+    public String valueValidationFunctionName() {
+        return valueValidationFunctionName;
     }
 
-    public String autocompleteFunctionName() {
-        return autocompleteFunctionName;
+    public String valueComputeFunctionName() {
+        return valueComputeFunctionName;
     }
 
     public Instant createdAt() {
@@ -151,8 +151,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
                && Objects.equals(this.schemaMember, that.schemaMember)
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
-               && Objects.equals(this.functionName, that.functionName)
-               && Objects.equals(this.autocompleteFunctionName, that.autocompleteFunctionName)
+               && Objects.equals(this.valueValidationFunctionName, that.valueValidationFunctionName)
+               && Objects.equals(this.valueComputeFunctionName, that.valueComputeFunctionName)
                && Objects.equals(this.createdAt, that.createdAt)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedAt, that.lastModifiedAt)
@@ -161,7 +161,7 @@ public final class DefaultConfigResponse implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(key, value, schemaMember, description, changeReason, functionName, autocompleteFunctionName, createdAt, createdBy, lastModifiedAt, lastModifiedBy);
+        return Objects.hash(key, value, schemaMember, description, changeReason, valueValidationFunctionName, valueComputeFunctionName, createdAt, createdBy, lastModifiedAt, lastModifiedBy);
     }
 
     @Override
@@ -176,11 +176,11 @@ public final class DefaultConfigResponse implements SerializableStruct {
         serializer.writeMap($SCHEMA_SCHEMA_MEMBER, schemaMember, schemaMember.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
-        if (functionName != null) {
-            serializer.writeString($SCHEMA_FUNCTION_NAME, functionName);
+        if (valueValidationFunctionName != null) {
+            serializer.writeString($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, valueValidationFunctionName);
         }
-        if (autocompleteFunctionName != null) {
-            serializer.writeString($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, autocompleteFunctionName);
+        if (valueComputeFunctionName != null) {
+            serializer.writeString($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, valueComputeFunctionName);
         }
         serializer.writeTimestamp($SCHEMA_CREATED_AT, createdAt);
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
@@ -201,8 +201,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, lastModifiedAt);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, functionName);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, autocompleteFunctionName);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, valueValidationFunctionName);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, valueComputeFunctionName);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -221,8 +221,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
         builder.schemaMember(this.schemaMember);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
-        builder.functionName(this.functionName);
-        builder.autocompleteFunctionName(this.autocompleteFunctionName);
+        builder.valueValidationFunctionName(this.valueValidationFunctionName);
+        builder.valueComputeFunctionName(this.valueComputeFunctionName);
         builder.createdAt(this.createdAt);
         builder.createdBy(this.createdBy);
         builder.lastModifiedAt(this.lastModifiedAt);
@@ -247,8 +247,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
         private Map<String, Document> schemaMember;
         private String description;
         private String changeReason;
-        private String functionName;
-        private String autocompleteFunctionName;
+        private String valueValidationFunctionName;
+        private String valueComputeFunctionName;
         private Instant createdAt;
         private String createdBy;
         private Instant lastModifiedAt;
@@ -314,16 +314,16 @@ public final class DefaultConfigResponse implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder functionName(String functionName) {
-            this.functionName = functionName;
+        public Builder valueValidationFunctionName(String valueValidationFunctionName) {
+            this.valueValidationFunctionName = valueValidationFunctionName;
             return this;
         }
 
         /**
          * @return this builder.
          */
-        public Builder autocompleteFunctionName(String autocompleteFunctionName) {
-            this.autocompleteFunctionName = autocompleteFunctionName;
+        public Builder valueComputeFunctionName(String valueComputeFunctionName) {
+            this.valueComputeFunctionName = valueComputeFunctionName;
             return this;
         }
 
@@ -386,8 +386,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
                 case 6 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
                 case 7 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
                 case 8 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
-                case 9 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
-                case 10 -> autocompleteFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_NAME, member, value));
+                case 9 -> valueValidationFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, value));
+                case 10 -> valueComputeFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -454,8 +454,8 @@ public final class DefaultConfigResponse implements SerializableStruct {
                     case 6 -> builder.createdBy(de.readString(member));
                     case 7 -> builder.lastModifiedAt(de.readTimestamp(member));
                     case 8 -> builder.lastModifiedBy(de.readString(member));
-                    case 9 -> builder.functionName(de.readString(member));
-                    case 10 -> builder.autocompleteFunctionName(de.readString(member));
+                    case 9 -> builder.valueValidationFunctionName(de.readString(member));
+                    case 10 -> builder.valueComputeFunctionName(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

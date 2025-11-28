@@ -4,10 +4,10 @@ module Io.Superposition.Model.UpdateDimensionInput (
     setDimension,
     setSchema,
     setPosition,
-    setFunctionName,
+    setValueValidationFunctionName,
     setDescription,
     setChangeReason,
-    setAutocompleteFunctionName,
+    setValueComputeFunctionName,
     build,
     UpdateDimensionInputBuilder,
     UpdateDimensionInput,
@@ -16,10 +16,10 @@ module Io.Superposition.Model.UpdateDimensionInput (
     dimension,
     schema,
     position,
-    function_name,
+    value_validation_function_name,
     description,
     change_reason,
-    autocomplete_function_name
+    value_compute_function_name
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -42,10 +42,10 @@ data UpdateDimensionInput = UpdateDimensionInput {
     dimension :: Data.Text.Text,
     schema :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     position :: Data.Maybe.Maybe Data.Int.Int32,
-    function_name :: Data.Maybe.Maybe Data.Text.Text,
+    value_validation_function_name :: Data.Maybe.Maybe Data.Text.Text,
     description :: Data.Maybe.Maybe Data.Text.Text,
     change_reason :: Data.Text.Text,
-    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text
+    value_compute_function_name :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -59,10 +59,10 @@ instance Data.Aeson.ToJSON UpdateDimensionInput where
         "dimension" Data.Aeson..= dimension a,
         "schema" Data.Aeson..= schema a,
         "position" Data.Aeson..= position a,
-        "function_name" Data.Aeson..= function_name a,
+        "value_validation_function_name" Data.Aeson..= value_validation_function_name a,
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
-        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a
+        "value_compute_function_name" Data.Aeson..= value_compute_function_name a
         ]
     
 
@@ -75,10 +75,10 @@ instance Data.Aeson.FromJSON UpdateDimensionInput where
         Control.Applicative.<*> (v Data.Aeson..: "dimension")
         Control.Applicative.<*> (v Data.Aeson..:? "schema")
         Control.Applicative.<*> (v Data.Aeson..:? "position")
-        Control.Applicative.<*> (v Data.Aeson..:? "function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "value_validation_function_name")
         Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..:? "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "value_compute_function_name")
     
 
 
@@ -89,10 +89,10 @@ data UpdateDimensionInputBuilderState = UpdateDimensionInputBuilderState {
     dimensionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     positionBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
-    function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    value_validation_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    value_compute_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -104,10 +104,10 @@ defaultBuilderState = UpdateDimensionInputBuilderState {
     dimensionBuilderState = Data.Maybe.Nothing,
     schemaBuilderState = Data.Maybe.Nothing,
     positionBuilderState = Data.Maybe.Nothing,
-    function_nameBuilderState = Data.Maybe.Nothing,
+    value_validation_function_nameBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
-    autocomplete_function_nameBuilderState = Data.Maybe.Nothing
+    value_compute_function_nameBuilderState = Data.Maybe.Nothing
 }
 
 type UpdateDimensionInputBuilder = Control.Monad.State.Strict.State UpdateDimensionInputBuilderState
@@ -132,9 +132,9 @@ setPosition :: Data.Maybe.Maybe Data.Int.Int32 -> UpdateDimensionInputBuilder ()
 setPosition value =
    Control.Monad.State.Strict.modify (\s -> (s { positionBuilderState = value }))
 
-setFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDimensionInputBuilder ()
-setFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { function_nameBuilderState = value }))
+setValueValidationFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDimensionInputBuilder ()
+setValueValidationFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_validation_function_nameBuilderState = value }))
 
 setDescription :: Data.Maybe.Maybe Data.Text.Text -> UpdateDimensionInputBuilder ()
 setDescription value =
@@ -144,9 +144,9 @@ setChangeReason :: Data.Text.Text -> UpdateDimensionInputBuilder ()
 setChangeReason value =
    Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
 
-setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDimensionInputBuilder ()
-setAutocompleteFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
+setValueComputeFunctionName :: Data.Maybe.Maybe Data.Text.Text -> UpdateDimensionInputBuilder ()
+setValueComputeFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_compute_function_nameBuilderState = value }))
 
 build :: UpdateDimensionInputBuilder () -> Data.Either.Either Data.Text.Text UpdateDimensionInput
 build builder = do
@@ -156,20 +156,20 @@ build builder = do
     dimension' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDimensionInput.UpdateDimensionInput.dimension is a required property.") Data.Either.Right (dimensionBuilderState st)
     schema' <- Data.Either.Right (schemaBuilderState st)
     position' <- Data.Either.Right (positionBuilderState st)
-    function_name' <- Data.Either.Right (function_nameBuilderState st)
+    value_validation_function_name' <- Data.Either.Right (value_validation_function_nameBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDimensionInput.UpdateDimensionInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
-    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    value_compute_function_name' <- Data.Either.Right (value_compute_function_nameBuilderState st)
     Data.Either.Right (UpdateDimensionInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         dimension = dimension',
         schema = schema',
         position = position',
-        function_name = function_name',
+        value_validation_function_name = value_validation_function_name',
         description = description',
         change_reason = change_reason',
-        autocomplete_function_name = autocomplete_function_name'
+        value_compute_function_name = value_compute_function_name'
     })
 
 
@@ -184,9 +184,9 @@ instance Io.Superposition.Utility.IntoRequestBuilder UpdateDimensionInput where
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "schema" (schema self)
-        Io.Superposition.Utility.serField "autocomplete_function_name" (autocomplete_function_name self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
-        Io.Superposition.Utility.serField "function_name" (function_name self)
+        Io.Superposition.Utility.serField "value_compute_function_name" (value_compute_function_name self)
         Io.Superposition.Utility.serField "description" (description self)
         Io.Superposition.Utility.serField "position" (position self)
+        Io.Superposition.Utility.serField "value_validation_function_name" (value_validation_function_name self)
 

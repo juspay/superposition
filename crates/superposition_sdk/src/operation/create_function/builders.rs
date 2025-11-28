@@ -19,7 +19,7 @@ impl crate::operation::create_function::builders::CreateFunctionInputBuilder {
                 }
 /// Fluent builder constructing a request to `CreateFunction`.
 /// 
-/// Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.
+/// Creates a new custom function for value_validation, value_compute, context_validation or change_reason_validation with specified code, runtime version, and function type.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateFunctionFluentBuilder {
                 handle: ::std::sync::Arc<crate::client::Handle>,
