@@ -14,7 +14,7 @@ pub struct CreateDimensionInput  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub function_name: ::std::option::Option<::std::string::String>,
+    pub value_validation_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -22,7 +22,7 @@ pub struct CreateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub dimension_type: ::std::option::Option<crate::types::DimensionType>,
     #[allow(missing_docs)] // documentation missing in model
-    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
 impl  CreateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -46,8 +46,8 @@ impl  CreateDimensionInput  {
         self.schema.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn function_name(&self) -> ::std::option::Option<&str> {
-        self.function_name.as_deref()
+    pub fn value_validation_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_validation_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> ::std::option::Option<&str> {
@@ -62,8 +62,8 @@ impl  CreateDimensionInput  {
         self.dimension_type.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
-        self.autocomplete_function_name.as_deref()
+    pub fn value_compute_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_compute_function_name.as_deref()
     }
 }
 impl CreateDimensionInput {
@@ -82,11 +82,11 @@ pub struct CreateDimensionInputBuilder {
     pub(crate) dimension: ::std::option::Option<::std::string::String>,
     pub(crate) position: ::std::option::Option<i32>,
     pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_validation_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
-    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
 impl CreateDimensionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -165,17 +165,17 @@ impl CreateDimensionInputBuilder {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.function_name = ::std::option::Option::Some(input.into());
+    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_validation_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_validation_function_name = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.function_name
+    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_validation_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -219,17 +219,17 @@ impl CreateDimensionInputBuilder {
         &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.autocomplete_function_name = input; self
+    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_compute_function_name = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.autocomplete_function_name
+    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_compute_function_name
     }
     /// Consumes the builder and constructs a [`CreateDimensionInput`](crate::operation::create_dimension::CreateDimensionInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_dimension::CreateDimensionInput, ::aws_smithy_types::error::operation::BuildError> {
@@ -245,7 +245,7 @@ impl CreateDimensionInputBuilder {
                 ,
                 schema: self.schema
                 ,
-                function_name: self.function_name
+                value_validation_function_name: self.value_validation_function_name
                 ,
                 description: self.description
                 ,
@@ -253,7 +253,7 @@ impl CreateDimensionInputBuilder {
                 ,
                 dimension_type: self.dimension_type
                 ,
-                autocomplete_function_name: self.autocomplete_function_name
+                value_compute_function_name: self.value_compute_function_name
                 ,
             }
         )

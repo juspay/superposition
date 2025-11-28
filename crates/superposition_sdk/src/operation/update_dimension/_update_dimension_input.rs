@@ -14,13 +14,13 @@ pub struct UpdateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub position: ::std::option::Option<i32>,
     /// To unset the function name, pass "null" string.
-    pub function_name: ::std::option::Option<::std::string::String>,
+    pub value_validation_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
     /// To unset the function name, pass "null" string.
-    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -44,8 +44,8 @@ impl  UpdateDimensionInput  {
         self.position
     }
     /// To unset the function name, pass "null" string.
-    pub fn function_name(&self) -> ::std::option::Option<&str> {
-        self.function_name.as_deref()
+    pub fn value_validation_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_validation_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> ::std::option::Option<&str> {
@@ -56,8 +56,8 @@ impl  UpdateDimensionInput  {
         self.change_reason.as_deref()
     }
     /// To unset the function name, pass "null" string.
-    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
-        self.autocomplete_function_name.as_deref()
+    pub fn value_compute_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_compute_function_name.as_deref()
     }
 }
 impl UpdateDimensionInput {
@@ -76,10 +76,10 @@ pub struct UpdateDimensionInputBuilder {
     pub(crate) dimension: ::std::option::Option<::std::string::String>,
     pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) position: ::std::option::Option<i32>,
-    pub(crate) function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_validation_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
-    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
 impl UpdateDimensionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -157,17 +157,17 @@ impl UpdateDimensionInputBuilder {
         &self.position
     }
     /// To unset the function name, pass "null" string.
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.function_name = ::std::option::Option::Some(input.into());
+    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_validation_function_name = ::std::option::Option::Some(input.into());
         self
     }
     /// To unset the function name, pass "null" string.
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_validation_function_name = input; self
     }
     /// To unset the function name, pass "null" string.
-    pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.function_name
+    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_validation_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -197,17 +197,17 @@ impl UpdateDimensionInputBuilder {
         &self.change_reason
     }
     /// To unset the function name, pass "null" string.
-    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     /// To unset the function name, pass "null" string.
-    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.autocomplete_function_name = input; self
+    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_compute_function_name = input; self
     }
     /// To unset the function name, pass "null" string.
-    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.autocomplete_function_name
+    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_compute_function_name
     }
     /// Consumes the builder and constructs a [`UpdateDimensionInput`](crate::operation::update_dimension::UpdateDimensionInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_dimension::UpdateDimensionInput, ::aws_smithy_types::error::operation::BuildError> {
@@ -223,13 +223,13 @@ impl UpdateDimensionInputBuilder {
                 ,
                 position: self.position
                 ,
-                function_name: self.function_name
+                value_validation_function_name: self.value_validation_function_name
                 ,
                 description: self.description
                 ,
                 change_reason: self.change_reason
                 ,
-                autocomplete_function_name: self.autocomplete_function_name
+                value_compute_function_name: self.value_compute_function_name
                 ,
             }
         )

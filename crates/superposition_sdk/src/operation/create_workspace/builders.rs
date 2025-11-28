@@ -208,5 +208,33 @@ impl CreateWorkspaceFluentBuilder {
     pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
                     self.inner.get_auto_populate_control()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn enable_context_validation(mut self, input: bool) -> Self {
+                    self.inner = self.inner.enable_context_validation(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_enable_context_validation(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_enable_context_validation(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_enable_context_validation(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_enable_context_validation()
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn enable_change_reason_validation(mut self, input: bool) -> Self {
+                    self.inner = self.inner.enable_change_reason_validation(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_enable_change_reason_validation(mut self, input: ::std::option::Option<bool>) -> Self {
+                    self.inner = self.inner.set_enable_change_reason_validation(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
+                    self.inner.get_enable_change_reason_validation()
+                }
 }
 

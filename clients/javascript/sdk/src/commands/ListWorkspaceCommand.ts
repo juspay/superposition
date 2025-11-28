@@ -73,6 +73,8 @@ export interface ListWorkspaceCommandOutput extends ListWorkspaceOutput, __Metad
  * //       metrics: "DOCUMENT_VALUE", // required
  * //       allow_experiment_self_approval: true || false, // required
  * //       auto_populate_control: true || false, // required
+ * //       enable_context_validation: true || false, // required
+ * //       enable_change_reason_validation: true || false, // required
  * //     },
  * //   ],
  * // };

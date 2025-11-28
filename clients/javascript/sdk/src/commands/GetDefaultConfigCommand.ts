@@ -57,8 +57,8 @@ export interface GetDefaultConfigCommandOutput extends DefaultConfigResponse, __
  * //   },
  * //   description: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
- * //   function_name: "STRING_VALUE",
- * //   autocomplete_function_name: "STRING_VALUE",
+ * //   value_validation_function_name: "STRING_VALUE",
+ * //   value_compute_function_name: "STRING_VALUE",
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   created_by: "STRING_VALUE", // required
  * //   last_modified_at: new Date("TIMESTAMP"), // required

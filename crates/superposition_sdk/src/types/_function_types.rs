@@ -12,8 +12,10 @@
 /// ```text
 /// # let functiontypes = unimplemented!();
 /// match functiontypes {
-///     FunctionTypes::Autocomplete => { /* ... */ },
-///     FunctionTypes::Validation => { /* ... */ },
+///     FunctionTypes::ChangeReasonValidation => { /* ... */ },
+///     FunctionTypes::ContextValidation => { /* ... */ },
+///     FunctionTypes::ValueCompute => { /* ... */ },
+///     FunctionTypes::ValueValidation => { /* ... */ },
 ///     other @ _ if other.as_str() == "NewFeature" => { /* handles a case for `NewFeature` */ },
 ///     _ => { /* ... */ },
 /// }
@@ -41,9 +43,13 @@
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
 pub enum FunctionTypes {
     #[allow(missing_docs)] // documentation missing in model
-    Autocomplete,
+    ChangeReasonValidation,
     #[allow(missing_docs)] // documentation missing in model
-    Validation,
+    ContextValidation,
+    #[allow(missing_docs)] // documentation missing in model
+    ValueCompute,
+    #[allow(missing_docs)] // documentation missing in model
+    ValueValidation,
     /// `Unknown` contains new variants that have been added since this code was generated.
     #[deprecated(note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants.")]
     Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue)
@@ -51,8 +57,10 @@ pub enum FunctionTypes {
 impl ::std::convert::From<&str> for FunctionTypes {
                     fn from(s: &str) -> Self {
                         match s {
-                            "AUTOCOMPLETE" => FunctionTypes::Autocomplete,
-"VALIDATION" => FunctionTypes::Validation,
+                            "CHANGE_REASON_VALIDATION" => FunctionTypes::ChangeReasonValidation,
+"CONTEXT_VALIDATION" => FunctionTypes::ContextValidation,
+"VALUE_COMPUTE" => FunctionTypes::ValueCompute,
+"VALUE_VALIDATION" => FunctionTypes::ValueValidation,
 other => FunctionTypes::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
                         }
                     }
@@ -68,14 +76,16 @@ impl FunctionTypes {
                 /// Returns the `&str` value of the enum member.
                 pub fn as_str(&self) -> &str {
                     match self {
-    FunctionTypes::Autocomplete => "AUTOCOMPLETE",
-    FunctionTypes::Validation => "VALIDATION",
+    FunctionTypes::ChangeReasonValidation => "CHANGE_REASON_VALIDATION",
+    FunctionTypes::ContextValidation => "CONTEXT_VALIDATION",
+    FunctionTypes::ValueCompute => "VALUE_COMPUTE",
+    FunctionTypes::ValueValidation => "VALUE_VALIDATION",
     FunctionTypes::Unknown(value) => value.as_str()
 }
                 }
                 /// Returns all the `&str` representations of the enum members.
                 pub const fn values() -> &'static [&'static str] {
-                    &["AUTOCOMPLETE", "VALIDATION"]
+                    &["CHANGE_REASON_VALIDATION", "CONTEXT_VALIDATION", "VALUE_COMPUTE", "VALUE_VALIDATION"]
                 }
             }
 impl ::std::convert::AsRef<str> for FunctionTypes {
@@ -98,8 +108,10 @@ impl FunctionTypes {
 impl ::std::fmt::Display for FunctionTypes {
                         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                             match self {
-                                FunctionTypes::Autocomplete => write!(f, "AUTOCOMPLETE"),
-FunctionTypes::Validation => write!(f, "VALIDATION"),
+                                FunctionTypes::ChangeReasonValidation => write!(f, "CHANGE_REASON_VALIDATION"),
+FunctionTypes::ContextValidation => write!(f, "CONTEXT_VALIDATION"),
+FunctionTypes::ValueCompute => write!(f, "VALUE_COMPUTE"),
+FunctionTypes::ValueValidation => write!(f, "VALUE_VALIDATION"),
 FunctionTypes::Unknown(value) => write!(f, "{}", value)
                             }
                         }

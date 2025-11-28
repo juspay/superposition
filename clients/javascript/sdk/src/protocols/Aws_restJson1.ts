@@ -302,7 +302,6 @@ import {
 import { SuperpositionServiceException as __BaseException } from "../models/SuperpositionServiceException";
 import {
   AuditLogFull,
-  AutocompleteFunctionRequest,
   Bucket,
   ContextAction,
   ContextActionOut,
@@ -312,6 +311,7 @@ import {
   ContextPartial,
   ContextPut,
   ContextResponse,
+  ContextValidationFunctionRequest,
   DefaultConfigResponse,
   DimensionInfo,
   DimensionResponse,
@@ -327,7 +327,8 @@ import {
   TypeTemplatesResponse,
   Unit,
   UpdateContextOverrideRequest,
-  ValidateFunctionRequest,
+  ValueComputeFunctionRequest,
+  ValueValidationFunctionRequest,
   VariableResponse,
   Variant,
   VariantUpdateRequest,
@@ -519,13 +520,13 @@ export const se_CreateDefaultConfigCommand = async(
   b.bp("/default-config");
   let body: any;
   body = JSON.stringify(take(input, {
-    'autocomplete_function_name': [],
     'change_reason': [],
     'description': [],
-    'function_name': [],
     'key': [],
     'schema': _ => se_Object(_, context),
     'value': _ => se_Document(_, context),
+    'value_compute_function_name': [],
+    'value_validation_function_name': [],
   }));
   b.m("POST")
   .h(headers)
@@ -549,14 +550,14 @@ export const se_CreateDimensionCommand = async(
   b.bp("/dimension");
   let body: any;
   body = JSON.stringify(take(input, {
-    'autocomplete_function_name': [],
     'change_reason': [],
     'description': [],
     'dimension': [],
     'dimension_type': _ => _json(_),
-    'function_name': [],
     'position': [],
     'schema': _ => se_Object(_, context),
+    'value_compute_function_name': [],
+    'value_validation_function_name': [],
   }));
   b.m("POST")
   .h(headers)
@@ -783,6 +784,8 @@ export const se_CreateWorkspaceCommand = async(
   body = JSON.stringify(take(input, {
     'allow_experiment_self_approval': [],
     'auto_populate_control': [],
+    'enable_change_reason_validation': [],
+    'enable_context_validation': [],
     'metrics': _ => se_Document(_, context),
     'strict_mode': [],
     'workspace_admin_email': [],
@@ -1964,12 +1967,12 @@ export const se_UpdateDefaultConfigCommand = async(
   b.p('key', () => input.key!, '{key}', false)
   let body: any;
   body = JSON.stringify(take(input, {
-    'autocomplete_function_name': [],
     'change_reason': [],
     'description': [],
-    'function_name': [],
     'schema': _ => se_Object(_, context),
     'value': _ => se_Document(_, context),
+    'value_compute_function_name': [],
+    'value_validation_function_name': [],
   }));
   b.m("PATCH")
   .h(headers)
@@ -1994,12 +1997,12 @@ export const se_UpdateDimensionCommand = async(
   b.p('dimension', () => input.dimension!, '{dimension}', false)
   let body: any;
   body = JSON.stringify(take(input, {
-    'autocomplete_function_name': [],
     'change_reason': [],
     'description': [],
-    'function_name': [],
     'position': [],
     'schema': _ => se_Object(_, context),
+    'value_compute_function_name': [],
+    'value_validation_function_name': [],
   }));
   b.m("PATCH")
   .h(headers)
@@ -2253,6 +2256,8 @@ export const se_UpdateWorkspaceCommand = async(
     'allow_experiment_self_approval': [],
     'auto_populate_control': [],
     'config_version': [],
+    'enable_change_reason_validation': [],
+    'enable_context_validation': [],
     'mandatory_dimensions': _ => _json(_),
     'metrics': _ => se_Document(_, context),
     'workspace_admin_email': [],
@@ -2471,17 +2476,17 @@ export const de_CreateDefaultConfigCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
-    'function_name': __expectString,
     'key': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'schema': _ => de_Object(_, context),
     'value': _ => de_Document(_, context),
+    'value_compute_function_name': __expectString,
+    'value_validation_function_name': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -2502,7 +2507,6 @@ export const de_CreateDimensionCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -2510,12 +2514,13 @@ export const de_CreateDimensionCommand = async(
     'description': __expectString,
     'dimension': __expectString,
     'dimension_type': _ => _json(__expectUnion(_)),
-    'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'mandatory': __expectBoolean,
     'position': __expectInt32,
     'schema': _ => de_Object(_, context),
+    'value_compute_function_name': __expectString,
+    'value_validation_function_name': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -2772,6 +2777,8 @@ export const de_CreateWorkspaceCommand = async(
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
+    'enable_change_reason_validation': __expectBoolean,
+    'enable_context_validation': __expectBoolean,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'mandatory_dimensions': _json,
@@ -3129,17 +3136,17 @@ export const de_GetDefaultConfigCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
-    'function_name': __expectString,
     'key': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'schema': _ => de_Object(_, context),
     'value': _ => de_Document(_, context),
+    'value_compute_function_name': __expectString,
+    'value_validation_function_name': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3160,7 +3167,6 @@ export const de_GetDimensionCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -3168,12 +3174,13 @@ export const de_GetDimensionCommand = async(
     'description': __expectString,
     'dimension': __expectString,
     'dimension_type': _ => _json(__expectUnion(_)),
-    'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'mandatory': __expectBoolean,
     'position': __expectInt32,
     'schema': _ => de_Object(_, context),
+    'value_compute_function_name': __expectString,
+    'value_validation_function_name': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -3536,6 +3543,8 @@ export const de_GetWorkspaceCommand = async(
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
+    'enable_change_reason_validation': __expectBoolean,
+    'enable_context_validation': __expectBoolean,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'mandatory_dimensions': _json,
@@ -3848,6 +3857,8 @@ export const de_MigrateWorkspaceSchemaCommand = async(
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
+    'enable_change_reason_validation': __expectBoolean,
+    'enable_context_validation': __expectBoolean,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'mandatory_dimensions': _json,
@@ -4121,17 +4132,17 @@ export const de_UpdateDefaultConfigCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
     'description': __expectString,
-    'function_name': __expectString,
     'key': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'schema': _ => de_Object(_, context),
     'value': _ => de_Document(_, context),
+    'value_compute_function_name': __expectString,
+    'value_validation_function_name': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -4152,7 +4163,6 @@ export const de_UpdateDimensionCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'autocomplete_function_name': __expectString,
     'change_reason': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -4160,12 +4170,13 @@ export const de_UpdateDimensionCommand = async(
     'description': __expectString,
     'dimension': __expectString,
     'dimension_type': _ => _json(__expectUnion(_)),
-    'function_name': __expectString,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'mandatory': __expectBoolean,
     'position': __expectInt32,
     'schema': _ => de_Object(_, context),
+    'value_compute_function_name': __expectString,
+    'value_validation_function_name': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -4453,6 +4464,8 @@ export const de_UpdateWorkspaceCommand = async(
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
+    'enable_change_reason_validation': __expectBoolean,
+    'enable_context_validation': __expectBoolean,
     'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'last_modified_by': __expectString,
     'mandatory_dimensions': _json,
@@ -4579,20 +4592,6 @@ const de_CommandError = async(
   };
 
   /**
-   * serializeAws_restJson1AutocompleteFunctionRequest
-   */
-  const se_AutocompleteFunctionRequest = (
-    input: AutocompleteFunctionRequest,
-    context: __SerdeContext
-  ): any => {
-    return take(input, {
-      'environment': _ => se_Document(_, context),
-      'name': [],
-      'prefix': [],
-    });
-  }
-
-  /**
    * serializeAws_restJson1BulkOperationList
    */
   const se_BulkOperationList = (
@@ -4708,6 +4707,18 @@ const de_CommandError = async(
     });
   }
 
+  /**
+   * serializeAws_restJson1ContextValidationFunctionRequest
+   */
+  const se_ContextValidationFunctionRequest = (
+    input: ContextValidationFunctionRequest,
+    context: __SerdeContext
+  ): any => {
+    return take(input, {
+      'environment': _ => se_Document(_, context),
+    });
+  }
+
   // se_DimensionType omitted.
 
   // se_Events omitted.
@@ -4720,8 +4731,9 @@ const de_CommandError = async(
     context: __SerdeContext
   ): any => {
     return FunctionExecutionRequest.visit(input, {
-      AutocompleteFunctionRequest: value => ({ "AutocompleteFunctionRequest": se_AutocompleteFunctionRequest(value, context) }),
-      ValidateFunctionRequest: value => ({ "ValidateFunctionRequest": se_ValidateFunctionRequest(value, context) }),
+      ContextValidationFunctionRequest: value => ({ "ContextValidationFunctionRequest": se_ContextValidationFunctionRequest(value, context) }),
+      ValueComputeFunctionRequest: value => ({ "ValueComputeFunctionRequest": se_ValueComputeFunctionRequest(value, context) }),
+      ValueValidationFunctionRequest: value => ({ "ValueValidationFunctionRequest": se_ValueValidationFunctionRequest(value, context) }),
       _: (name, value) => ({ name: value } as any)
     });
   }
@@ -4802,14 +4814,31 @@ const de_CommandError = async(
   }
 
   /**
-   * serializeAws_restJson1ValidateFunctionRequest
+   * serializeAws_restJson1ValueComputeFunctionRequest
    */
-  const se_ValidateFunctionRequest = (
-    input: ValidateFunctionRequest,
+  const se_ValueComputeFunctionRequest = (
+    input: ValueComputeFunctionRequest,
     context: __SerdeContext
   ): any => {
     return take(input, {
+      'environment': _ => se_Document(_, context),
+      'name': [],
+      'prefix': [],
+      'type': [],
+    });
+  }
+
+  /**
+   * serializeAws_restJson1ValueValidationFunctionRequest
+   */
+  const se_ValueValidationFunctionRequest = (
+    input: ValueValidationFunctionRequest,
+    context: __SerdeContext
+  ): any => {
+    return take(input, {
+      'environment': _ => se_Document(_, context),
       'key': [],
+      'type': [],
       'value': _ => se_Document(_, context),
     });
   }
@@ -5021,17 +5050,17 @@ const de_CommandError = async(
     context: __SerdeContext
   ): DefaultConfigResponse => {
     return take(output, {
-      'autocomplete_function_name': __expectString,
       'change_reason': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
       'description': __expectString,
-      'function_name': __expectString,
       'key': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
       'schema': (_: any) => de_Object(_, context),
       'value': (_: any) => de_Document(_, context),
+      'value_compute_function_name': __expectString,
+      'value_validation_function_name': __expectString,
     }) as any;
   }
 
@@ -5061,11 +5090,11 @@ const de_CommandError = async(
     context: __SerdeContext
   ): DimensionInfo => {
     return take(output, {
-      'autocomplete_function_name': __expectString,
       'dependency_graph': _json,
       'dimension_type': (_: any) => _json(__expectUnion(_)),
       'position': __expectInt32,
       'schema': (_: any) => de_Object(_, context),
+      'value_compute_function_name': __expectString,
     }) as any;
   }
 
@@ -5090,7 +5119,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): DimensionResponse => {
     return take(output, {
-      'autocomplete_function_name': __expectString,
       'change_reason': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
@@ -5098,12 +5126,13 @@ const de_CommandError = async(
       'description': __expectString,
       'dimension': __expectString,
       'dimension_type': (_: any) => _json(__expectUnion(_)),
-      'function_name': __expectString,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
       'mandatory': __expectBoolean,
       'position': __expectInt32,
       'schema': (_: any) => de_Object(_, context),
+      'value_compute_function_name': __expectString,
+      'value_validation_function_name': __expectString,
     }) as any;
   }
 
@@ -5564,6 +5593,8 @@ const de_CommandError = async(
       'config_version': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,
+      'enable_change_reason_validation': __expectBoolean,
+      'enable_context_validation': __expectBoolean,
       'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'last_modified_by': __expectString,
       'mandatory_dimensions': _json,

@@ -3203,7 +3203,7 @@
                 ]
             },
             "post": {
-                "description": "Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.",
+                "description": "Creates a new custom function for value_validation, value_compute, context_validation or change_reason_validation with specified code, runtime version, and function type.",
                 "operationId": "CreateFunction",
                 "requestBody": {
                     "content": {
@@ -3441,7 +3441,7 @@
         },
         "/function/{function_name}/publish": {
             "patch": {
-                "description": "Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.",
+                "description": "Publishes the draft version of a function, making it the active version used for value_validation, value_compute, context_validation or change_reason_validation in the system.",
                 "operationId": "Publish",
                 "requestBody": {
                     "content": {
@@ -5344,23 +5344,6 @@
                     "user_name"
                 ]
             },
-            "AutocompleteFunctionRequest": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "prefix": {
-                        "type": "string"
-                    },
-                    "environment": {}
-                },
-                "required": [
-                    "environment",
-                    "name",
-                    "prefix"
-                ]
-            },
             "Bucket": {
                 "type": "object",
                 "properties": {
@@ -5801,6 +5784,15 @@
                     "weight"
                 ]
             },
+            "ContextValidationFunctionRequest": {
+                "type": "object",
+                "properties": {
+                    "environment": {}
+                },
+                "required": [
+                    "environment"
+                ]
+            },
             "CreateContextResponseContent": {
                 "type": "object",
                 "properties": {
@@ -5871,10 +5863,10 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     }
                 },
@@ -5902,10 +5894,10 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "created_at": {
@@ -5947,7 +5939,7 @@
                     "schema": {
                         "$ref": "#/components/schemas/Object"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
                     "description": {
@@ -5959,7 +5951,7 @@
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     }
                 },
@@ -5983,7 +5975,7 @@
                     "schema": {
                         "$ref": "#/components/schemas/Object"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
                     "description": {
@@ -6012,7 +6004,7 @@
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "mandatory": {
@@ -6708,11 +6700,15 @@
                     },
                     "auto_populate_control": {
                         "type": "boolean"
+                    },
+                    "enable_context_validation": {
+                        "type": "boolean"
+                    },
+                    "enable_change_reason_validation": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
-                    "allow_experiment_self_approval",
-                    "auto_populate_control",
                     "strict_mode",
                     "workspace_admin_email",
                     "workspace_name"
@@ -6771,6 +6767,12 @@
                     },
                     "auto_populate_control": {
                         "type": "boolean"
+                    },
+                    "enable_context_validation": {
+                        "type": "boolean"
+                    },
+                    "enable_change_reason_validation": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -6778,6 +6780,8 @@
                     "auto_populate_control",
                     "created_at",
                     "created_by",
+                    "enable_change_reason_validation",
+                    "enable_context_validation",
                     "last_modified_at",
                     "last_modified_by",
                     "metrics",
@@ -6806,10 +6810,10 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "created_at": {
@@ -7056,7 +7060,7 @@
                     "schema": {
                         "$ref": "#/components/schemas/Object"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
                     "description": {
@@ -7085,7 +7089,7 @@
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "mandatory": {
@@ -7444,26 +7448,38 @@
                 "oneOf": [
                     {
                         "type": "object",
-                        "title": "ValidateFunctionRequest",
+                        "title": "ValueValidationFunctionRequest",
                         "properties": {
-                            "ValidateFunctionRequest": {
-                                "$ref": "#/components/schemas/ValidateFunctionRequest"
+                            "ValueValidationFunctionRequest": {
+                                "$ref": "#/components/schemas/ValueValidationFunctionRequest"
                             }
                         },
                         "required": [
-                            "ValidateFunctionRequest"
+                            "ValueValidationFunctionRequest"
                         ]
                     },
                     {
                         "type": "object",
-                        "title": "AutocompleteFunctionRequest",
+                        "title": "ValueComputeFunctionRequest",
                         "properties": {
-                            "AutocompleteFunctionRequest": {
-                                "$ref": "#/components/schemas/AutocompleteFunctionRequest"
+                            "ValueComputeFunctionRequest": {
+                                "$ref": "#/components/schemas/ValueComputeFunctionRequest"
                             }
                         },
                         "required": [
-                            "AutocompleteFunctionRequest"
+                            "ValueComputeFunctionRequest"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "title": "ContextValidationFunctionRequest",
+                        "properties": {
+                            "ContextValidationFunctionRequest": {
+                                "$ref": "#/components/schemas/ContextValidationFunctionRequest"
+                            }
+                        },
+                        "required": [
+                            "ContextValidationFunctionRequest"
                         ]
                     }
                 ]
@@ -7533,8 +7549,10 @@
             "FunctionTypes": {
                 "type": "string",
                 "enum": [
-                    "VALIDATION",
-                    "AUTOCOMPLETE"
+                    "VALUE_VALIDATION",
+                    "VALUE_COMPUTE",
+                    "CONTEXT_VALIDATION",
+                    "CHANGE_REASON_VALIDATION"
                 ]
             },
             "GetConfigFastOutputPayload": {},
@@ -7697,10 +7715,10 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "created_at": {
@@ -7742,7 +7760,7 @@
                     "schema": {
                         "$ref": "#/components/schemas/Object"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
                     "description": {
@@ -7771,7 +7789,7 @@
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "mandatory": {
@@ -8410,6 +8428,12 @@
                     },
                     "auto_populate_control": {
                         "type": "boolean"
+                    },
+                    "enable_context_validation": {
+                        "type": "boolean"
+                    },
+                    "enable_change_reason_validation": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -8417,6 +8441,8 @@
                     "auto_populate_control",
                     "created_at",
                     "created_by",
+                    "enable_change_reason_validation",
+                    "enable_context_validation",
                     "last_modified_at",
                     "last_modified_by",
                     "metrics",
@@ -8808,6 +8834,12 @@
                     },
                     "auto_populate_control": {
                         "type": "boolean"
+                    },
+                    "enable_context_validation": {
+                        "type": "boolean"
+                    },
+                    "enable_change_reason_validation": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -8815,6 +8847,8 @@
                     "auto_populate_control",
                     "created_at",
                     "created_by",
+                    "enable_change_reason_validation",
+                    "enable_context_validation",
                     "last_modified_at",
                     "last_modified_by",
                     "metrics",
@@ -9535,14 +9569,14 @@
                     "schema": {
                         "$ref": "#/components/schemas/Object"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string",
                         "description": "To unset the function name, pass \"null\" string."
                     },
                     "description": {
                         "type": "string"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string",
                         "description": "To unset the function name, pass \"null\" string."
                     }
@@ -9567,10 +9601,10 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "created_at": {
@@ -9609,7 +9643,7 @@
                     "position": {
                         "type": "number"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string",
                         "description": "To unset the function name, pass \"null\" string."
                     },
@@ -9619,7 +9653,7 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string",
                         "description": "To unset the function name, pass \"null\" string."
                     }
@@ -9640,7 +9674,7 @@
                     "schema": {
                         "$ref": "#/components/schemas/Object"
                     },
-                    "function_name": {
+                    "value_validation_function_name": {
                         "type": "string"
                     },
                     "description": {
@@ -9669,7 +9703,7 @@
                     "dimension_type": {
                         "$ref": "#/components/schemas/DimensionType"
                     },
-                    "autocomplete_function_name": {
+                    "value_compute_function_name": {
                         "type": "string"
                     },
                     "mandatory": {
@@ -10362,6 +10396,12 @@
                     },
                     "auto_populate_control": {
                         "type": "boolean"
+                    },
+                    "enable_context_validation": {
+                        "type": "boolean"
+                    },
+                    "enable_change_reason_validation": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -10421,6 +10461,12 @@
                     },
                     "auto_populate_control": {
                         "type": "boolean"
+                    },
+                    "enable_context_validation": {
+                        "type": "boolean"
+                    },
+                    "enable_change_reason_validation": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -10428,6 +10474,8 @@
                     "auto_populate_control",
                     "created_at",
                     "created_by",
+                    "enable_change_reason_validation",
+                    "enable_context_validation",
                     "last_modified_at",
                     "last_modified_by",
                     "metrics",
@@ -10451,16 +10499,43 @@
                     "context"
                 ]
             },
-            "ValidateFunctionRequest": {
+            "ValueComputeFunctionRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "prefix": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "environment": {}
+                },
+                "required": [
+                    "environment",
+                    "name",
+                    "prefix",
+                    "type"
+                ]
+            },
+            "ValueValidationFunctionRequest": {
                 "type": "object",
                 "properties": {
                     "key": {
                         "type": "string"
                     },
-                    "value": {}
+                    "value": {},
+                    "type": {
+                        "type": "string"
+                    },
+                    "environment": {}
                 },
                 "required": [
+                    "environment",
                     "key",
+                    "type",
                     "value"
                 ]
             },
@@ -10726,6 +10801,12 @@
                     },
                     "auto_populate_control": {
                         "type": "boolean"
+                    },
+                    "enable_context_validation": {
+                        "type": "boolean"
+                    },
+                    "enable_change_reason_validation": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -10733,6 +10814,8 @@
                     "auto_populate_control",
                     "created_at",
                     "created_by",
+                    "enable_change_reason_validation",
+                    "enable_context_validation",
                     "last_modified_at",
                     "last_modified_by",
                     "metrics",

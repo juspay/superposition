@@ -16,12 +16,14 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 public final class FunctionTypes implements SerializableShape {
     public static final ShapeId $ID = ShapeId.from("io.superposition#FunctionTypes");
-    public static final FunctionTypes VALIDATION = new FunctionTypes(Type.VALIDATION, "VALIDATION");
-    public static final FunctionTypes AUTOCOMPLETE = new FunctionTypes(Type.AUTOCOMPLETE, "AUTOCOMPLETE");
-    private static final List<FunctionTypes> $TYPES = List.of(VALIDATION, AUTOCOMPLETE);
+    public static final FunctionTypes VALUE_VALIDATION = new FunctionTypes(Type.VALUE_VALIDATION, "VALUE_VALIDATION");
+    public static final FunctionTypes VALUE_COMPUTE = new FunctionTypes(Type.VALUE_COMPUTE, "VALUE_COMPUTE");
+    public static final FunctionTypes CONTEXT_VALIDATION = new FunctionTypes(Type.CONTEXT_VALIDATION, "CONTEXT_VALIDATION");
+    public static final FunctionTypes CHANGE_REASON_VALIDATION = new FunctionTypes(Type.CHANGE_REASON_VALIDATION, "CHANGE_REASON_VALIDATION");
+    private static final List<FunctionTypes> $TYPES = List.of(VALUE_VALIDATION, VALUE_COMPUTE, CONTEXT_VALIDATION, CHANGE_REASON_VALIDATION);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
-        Set.of(VALIDATION.value, AUTOCOMPLETE.value)
+        Set.of(VALUE_VALIDATION.value, VALUE_COMPUTE.value, CONTEXT_VALIDATION.value, CHANGE_REASON_VALIDATION.value)
     );
 
     private final String value;
@@ -37,8 +39,10 @@ public final class FunctionTypes implements SerializableShape {
      */
     public enum Type {
         $UNKNOWN,
-        VALIDATION,
-        AUTOCOMPLETE
+        VALUE_VALIDATION,
+        VALUE_COMPUTE,
+        CONTEXT_VALIDATION,
+        CHANGE_REASON_VALIDATION
     }
 
     /**
@@ -89,8 +93,10 @@ public final class FunctionTypes implements SerializableShape {
      */
     public static FunctionTypes from(String value) {
         return switch (value) {
-            case "VALIDATION" -> VALIDATION;
-            case "AUTOCOMPLETE" -> AUTOCOMPLETE;
+            case "VALUE_VALIDATION" -> VALUE_VALIDATION;
+            case "VALUE_COMPUTE" -> VALUE_COMPUTE;
+            case "CONTEXT_VALIDATION" -> CONTEXT_VALIDATION;
+            case "CHANGE_REASON_VALIDATION" -> CHANGE_REASON_VALIDATION;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
     }
@@ -140,8 +146,10 @@ public final class FunctionTypes implements SerializableShape {
         @Override
         public FunctionTypes build() {
             return switch (value) {
-                case "VALIDATION" -> VALIDATION;
-                case "AUTOCOMPLETE" -> AUTOCOMPLETE;
+                case "VALUE_VALIDATION" -> VALUE_VALIDATION;
+                case "VALUE_COMPUTE" -> VALUE_COMPUTE;
+                case "CONTEXT_VALIDATION" -> CONTEXT_VALIDATION;
+                case "CHANGE_REASON_VALIDATION" -> CHANGE_REASON_VALIDATION;
                 default -> new FunctionTypes(Type.$UNKNOWN, value);
             };
         }

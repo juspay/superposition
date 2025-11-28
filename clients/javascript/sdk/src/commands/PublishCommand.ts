@@ -35,7 +35,7 @@ export interface PublishCommandInput extends PublishInput {}
 export interface PublishCommandOutput extends FunctionResponse, __MetadataBearer {}
 
 /**
- * Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.
+ * Publishes the draft version of a function, making it the active version used for value_validation, value_compute, context_validation or change_reason_validation in the system.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -64,7 +64,7 @@ export interface PublishCommandOutput extends FunctionResponse, __MetadataBearer
  * //   last_modified_by: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
  * //   description: "STRING_VALUE", // required
- * //   function_type: "VALIDATION" || "AUTOCOMPLETE", // required
+ * //   function_type: "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION", // required
  * // };
  *
  * ```

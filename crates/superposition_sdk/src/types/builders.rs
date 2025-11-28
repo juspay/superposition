@@ -19,9 +19,11 @@ pub use crate::types::_experiment_response::ExperimentResponseBuilder;
 
 pub use crate::types::_organisation_response::OrganisationResponseBuilder;
 
-pub use crate::types::_autocomplete_function_request::AutocompleteFunctionRequestBuilder;
+pub use crate::types::_context_validation_function_request::ContextValidationFunctionRequestBuilder;
 
-pub use crate::types::_validate_function_request::ValidateFunctionRequestBuilder;
+pub use crate::types::_value_compute_function_request::ValueComputeFunctionRequestBuilder;
+
+pub use crate::types::_value_validation_function_request::ValueValidationFunctionRequestBuilder;
 
 pub use crate::types::_function_response::FunctionResponseBuilder;
 
