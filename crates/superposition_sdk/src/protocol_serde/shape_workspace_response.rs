@@ -127,6 +127,16 @@ pub(crate) fn de_workspace_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                                 );
                             }
+                            "enable_context_validation" => {
+                                builder = builder.set_enable_context_validation(
+                                    ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                                );
+                            }
+                            "enable_change_reason_validation" => {
+                                builder = builder.set_enable_change_reason_validation(
+                                    ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                                );
+                            }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                         }
                     }
