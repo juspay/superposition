@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y libpq5 ca-certificates curl
 RUN apt-get install -y postgresql-common
-RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15
+RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 17
 # Update the package lists:
 RUN apt-get update
 
