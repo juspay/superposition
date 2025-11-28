@@ -89,15 +89,6 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
             Some(::aws_smithy_json::deserialize::Token::EndObject { .. }) => break,
                                     Some(::aws_smithy_json::deserialize::Token::ObjectKey { key, .. }) => {
                 match key.to_unescaped()?.as_ref() {
-                    "autocomplete_function_name" => {
-                        builder = builder.set_autocomplete_function_name(
-                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
-                                s.to_unescaped().map(|u|
-                                    u.into_owned()
-                                )
-                            ).transpose()?
-                        );
-                    }
                     "change_reason" => {
                         builder = builder.set_change_reason(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -149,15 +140,6 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                             crate::protocol_serde::shape_dimension_type::de_dimension_type(tokens)?
                         );
                     }
-                    "function_name" => {
-                        builder = builder.set_function_name(
-                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
-                                s.to_unescaped().map(|u|
-                                    u.into_owned()
-                                )
-                            ).transpose()?
-                        );
-                    }
                     "last_modified_at" => {
                         builder = builder.set_last_modified_at(
                             ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?
@@ -187,6 +169,24 @@ pub(crate) fn de_create_dimension(value: &[u8], mut builder: crate::operation::c
                     "schema" => {
                         builder = builder.set_schema(
                             crate::protocol_serde::shape_object::de_object(tokens)?
+                        );
+                    }
+                    "value_compute_function_name" => {
+                        builder = builder.set_value_compute_function_name(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "value_validation_function_name" => {
+                        builder = builder.set_value_validation_function_name(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
                         );
                     }
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

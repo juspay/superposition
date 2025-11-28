@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use leptos::*;
 use serde_json::{Map, Value};
+use superposition_types::api::functions::KeyType;
 use superposition_types::api::{
     dimension::DimensionResponse, functions::FunctionEnvironment,
     workspace::WorkspaceResponse,
@@ -12,8 +13,8 @@ use crate::components::input::{Input, InputType};
 use crate::components::tooltip::{Tooltip, TooltipPosition};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
-use crate::types::{AutoCompleteCallbacks, OrganisationId, Tenant};
-use crate::utils::autocomplete_fn_generator;
+use crate::types::{OrganisationId, Tenant, ValueComputeCallbacks};
+use crate::utils::value_compute_fn_generator;
 use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
@@ -33,7 +34,7 @@ pub fn condition_input(
     condition: Condition,
     input_type: InputType,
     schema_type: SchemaType,
-    autocomplete_callbacks: AutoCompleteCallbacks,
+    value_compute_callbacks: ValueComputeCallbacks,
     #[prop(into)] on_remove: Callback<String, ()>,
     #[prop(into)] on_value_change: Callback<Expression, ()>,
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
@@ -42,7 +43,7 @@ pub fn condition_input(
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let (dimension, operator) = (condition.variable.clone(), Operator::from(&condition));
 
-    let autocomplete_callback = autocomplete_callbacks.get(&dimension).cloned();
+    let value_compute_callback = value_compute_callbacks.get(&dimension).cloned();
 
     let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.expression.clone() {
         Expression::Is(c) => {
@@ -195,7 +196,7 @@ pub fn condition_input(
                                 class="w-[450px]"
                                 name=""
                                 operator=Some(operator.clone())
-                                autocomplete_function=autocomplete_callback
+                                value_compute_function=value_compute_callback
                             />
                         }
                     })
@@ -276,20 +277,21 @@ pub fn context_form(
             .map(|dim| dim.dimension)
             .collect::<HashSet<_>>(),
     );
-    let autocomplete_callbacks = Signal::derive(move || {
+    let value_compute_callbacks = Signal::derive(move || {
         dimensions
             .get_value()
             .into_iter()
             .filter_map(|d| {
-                autocomplete_fn_generator(
+                value_compute_fn_generator(
                     d.dimension.clone(),
-                    d.autocomplete_function_name.clone(),
+                    d.value_compute_function_name.clone(),
                     fn_environment,
+                    &KeyType::Dimension,
                     workspace.get_untracked().0,
                     org_id.get_untracked().0,
                 )
             })
-            .collect::<AutoCompleteCallbacks>()
+            .collect::<ValueComputeCallbacks>()
     });
 
     let insert_dimension =
@@ -526,7 +528,7 @@ pub fn context_form(
                                     on_value_change
                                     on_operator_change
                                     tooltip
-                                    autocomplete_callbacks=autocomplete_callbacks.get()
+                                    value_compute_callbacks=value_compute_callbacks.get()
                                 />
                                 {move || {
                                     if last_idx.get() != idx {

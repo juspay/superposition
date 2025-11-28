@@ -14,9 +14,9 @@ pub struct GetDefaultConfigOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub function_name: ::std::option::Option<::std::string::String>,
+    pub value_validation_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub value_compute_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
@@ -48,12 +48,12 @@ impl  GetDefaultConfigOutput  {
         use std::ops::Deref; self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn function_name(&self) -> ::std::option::Option<&str> {
-        self.function_name.as_deref()
+    pub fn value_validation_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_validation_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
-        self.autocomplete_function_name.as_deref()
+    pub fn value_compute_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_compute_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -88,8 +88,8 @@ pub struct GetDefaultConfigOutputBuilder {
     pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
-    pub(crate) function_name: ::std::option::Option<::std::string::String>,
-    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_validation_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -172,30 +172,30 @@ impl GetDefaultConfigOutputBuilder {
         &self.change_reason
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.function_name = ::std::option::Option::Some(input.into());
+    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_validation_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_validation_function_name = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.function_name
+    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_validation_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.autocomplete_function_name = input; self
+    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_compute_function_name = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.autocomplete_function_name
+    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_compute_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -292,9 +292,9 @@ impl GetDefaultConfigOutputBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building GetDefaultConfigOutput")
                     )?
                 ,
-                function_name: self.function_name
+                value_validation_function_name: self.value_validation_function_name
                 ,
-                autocomplete_function_name: self.autocomplete_function_name
+                value_compute_function_name: self.value_compute_function_name
                 ,
                 created_at: self.created_at
                     .ok_or_else(||

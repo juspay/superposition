@@ -10,8 +10,8 @@ pub mod sql_types {
     pub struct ExperimentType;
 
     #[derive(diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "function_types"))]
-    pub struct FunctionTypes;
+    #[diesel(postgres_type(name = "function_types_new"))]
+    pub struct FunctionTypesNew;
 
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "http_method"))]
@@ -58,13 +58,13 @@ diesel::table! {
         created_at -> Timestamptz,
         created_by -> Varchar,
         schema -> Json,
-        function_name -> Nullable<Text>,
+        value_validation_function_name -> Nullable<Text>,
         last_modified_at -> Timestamptz,
         #[max_length = 200]
         last_modified_by -> Varchar,
         description -> Text,
         change_reason -> Text,
-        autocomplete_function_name -> Nullable<Text>,
+        value_compute_function_name -> Nullable<Text>,
     }
 }
 
@@ -74,7 +74,7 @@ diesel::table! {
         created_at -> Timestamptz,
         created_by -> Varchar,
         schema -> Json,
-        function_name -> Nullable<Text>,
+        value_validation_function_name -> Nullable<Text>,
         last_modified_at -> Timestamptz,
         #[max_length = 200]
         last_modified_by -> Varchar,
@@ -82,7 +82,7 @@ diesel::table! {
         description -> Text,
         change_reason -> Text,
         dependency_graph -> Json,
-        autocomplete_function_name -> Nullable<Text>,
+        value_compute_function_name -> Nullable<Text>,
         dimension_type -> Text,
     }
 }
@@ -662,7 +662,7 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
-    use super::sql_types::FunctionTypes;
+    use super::sql_types::FunctionTypesNew;
 
     functions (function_name) {
         function_name -> Text,
@@ -681,7 +681,7 @@ diesel::table! {
         #[max_length = 200]
         last_modified_by -> Varchar,
         change_reason -> Text,
-        function_type -> FunctionTypes,
+        function_type -> FunctionTypesNew,
         created_by -> Text,
         created_at -> Timestamptz,
     }
@@ -762,8 +762,8 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(default_configs -> functions (function_name));
-diesel::joinable!(dimensions -> functions (function_name));
+diesel::joinable!(default_configs -> functions (value_validation_function_name));
+diesel::joinable!(dimensions -> functions (value_validation_function_name));
 
 diesel::allow_tables_to_appear_in_same_query!(
     config_versions,

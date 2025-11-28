@@ -48,13 +48,19 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  *   function_name: "STRING_VALUE", // required
  *   stage: "draft" || "published", // required
  *   request: { // FunctionExecutionRequest Union: only one key present
- *     ValidateFunctionRequest: { // ValidateFunctionRequest
+ *     ValueValidationFunctionRequest: { // ValueValidationFunctionRequest
  *       key: "STRING_VALUE", // required
  *       value: "DOCUMENT_VALUE", // required
+ *       type: "STRING_VALUE", // required
+ *       environment: "DOCUMENT_VALUE", // required
  *     },
- *     AutocompleteFunctionRequest: { // AutocompleteFunctionRequest
+ *     ValueComputeFunctionRequest: { // ValueComputeFunctionRequest
  *       name: "STRING_VALUE", // required
  *       prefix: "STRING_VALUE", // required
+ *       type: "STRING_VALUE", // required
+ *       environment: "DOCUMENT_VALUE", // required
+ *     },
+ *     ContextValidationFunctionRequest: { // ContextValidationFunctionRequest
  *       environment: "DOCUMENT_VALUE", // required
  *     },
  *   },
@@ -64,7 +70,7 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  * // { // FunctionExecutionResponse
  * //   fn_output: "DOCUMENT_VALUE", // required
  * //   stdout: "STRING_VALUE", // required
- * //   function_type: "VALIDATION" || "AUTOCOMPLETE", // required
+ * //   function_type: "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION", // required
  * // };
  *
  * ```

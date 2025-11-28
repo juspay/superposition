@@ -2,7 +2,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::SchemaName;
 use superposition_types::{
     database::{
-        models::cac::{Function, FunctionCode},
+        models::cac::{Function, FunctionCode, FunctionType},
         schema::{self, functions::dsl::functions, variables::dsl as variables},
     },
     result as superposition, DBConnection,
@@ -76,4 +76,17 @@ pub fn inject_variables_into_code(
     let processed_code = format!("{}\n\n{}", vars_template, code);
 
     Ok(FunctionCode(processed_code))
+}
+
+pub fn get_first_function_by_type(
+    function_type: FunctionType,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Option<FunctionCode>> {
+    let function: Option<FunctionCode> = functions
+        .filter(schema::functions::function_type.eq(function_type))
+        .select(schema::functions::published_code)
+        .schema_name(schema_name)
+        .first(conn)?;
+    Ok(function)
 }

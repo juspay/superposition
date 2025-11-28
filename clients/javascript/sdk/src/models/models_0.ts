@@ -254,15 +254,6 @@ export interface ListAuditLogsOutput {
 /**
  * @public
  */
-export interface AutocompleteFunctionRequest {
-  name: string | undefined;
-  prefix: string | undefined;
-  environment: __DocumentType | undefined;
-}
-
-/**
- * @public
- */
 export interface ContextMove {
   /**
    * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
@@ -766,7 +757,7 @@ export interface DimensionInfo {
   position: number | undefined;
   dimension_type: DimensionType | undefined;
   dependency_graph: Record<string, (string)[]> | undefined;
-  autocomplete_function_name?: string | undefined;
+  value_compute_function_name?: string | undefined;
 }
 
 /**
@@ -1111,6 +1102,13 @@ export interface WeightRecomputeOutput {
 /**
  * @public
  */
+export interface ContextValidationFunctionRequest {
+  environment: __DocumentType | undefined;
+}
+
+/**
+ * @public
+ */
 export interface CreateDefaultConfigInput {
   key: string | undefined;
   value: __DocumentType | undefined;
@@ -1122,8 +1120,8 @@ export interface CreateDefaultConfigInput {
 
   description: string | undefined;
   change_reason: string | undefined;
-  function_name?: string | undefined;
-  autocomplete_function_name?: string | undefined;
+  value_validation_function_name?: string | undefined;
+  value_compute_function_name?: string | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
 }
@@ -1142,8 +1140,8 @@ export interface DefaultConfigResponse {
 
   description: string | undefined;
   change_reason: string | undefined;
-  function_name?: string | undefined;
-  autocomplete_function_name?: string | undefined;
+  value_validation_function_name?: string | undefined;
+  value_compute_function_name?: string | undefined;
   created_at: Date | undefined;
   created_by: string | undefined;
   last_modified_at: Date | undefined;
@@ -1164,11 +1162,11 @@ export interface CreateDimensionInput {
    */
   schema: Record<string, __DocumentType> | undefined;
 
-  function_name?: string | undefined;
+  value_validation_function_name?: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
   dimension_type?: DimensionType | undefined;
-  autocomplete_function_name?: string | undefined;
+  value_compute_function_name?: string | undefined;
 }
 
 /**
@@ -1183,7 +1181,7 @@ export interface DimensionResponse {
    */
   schema: Record<string, __DocumentType> | undefined;
 
-  function_name?: string | undefined;
+  value_validation_function_name?: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
   last_modified_at: Date | undefined;
@@ -1192,7 +1190,7 @@ export interface DimensionResponse {
   created_by: string | undefined;
   dependency_graph: Record<string, (string)[]> | undefined;
   dimension_type: DimensionType | undefined;
-  autocomplete_function_name?: string | undefined;
+  value_compute_function_name?: string | undefined;
   mandatory: boolean | undefined;
 }
 
@@ -1251,8 +1249,10 @@ export interface CreateExperimentGroupRequest {
  * @enum
  */
 export const FunctionTypes = {
-  AUTOCOMPLETE: "AUTOCOMPLETE",
-  VALIDATION: "VALIDATION",
+  CHANGE_REASON_VALIDATION: "CHANGE_REASON_VALIDATION",
+  CONTEXT_VALIDATION: "CONTEXT_VALIDATION",
+  VALUE_COMPUTE: "VALUE_COMPUTE",
+  VALUE_VALIDATION: "VALUE_VALIDATION",
 } as const
 /**
  * @public
@@ -1499,8 +1499,10 @@ export interface CreateWorkspaceRequest {
   workspace_status?: WorkspaceStatus | undefined;
   strict_mode: boolean | undefined;
   metrics?: __DocumentType | undefined;
-  allow_experiment_self_approval: boolean | undefined;
-  auto_populate_control: boolean | undefined;
+  allow_experiment_self_approval?: boolean | undefined;
+  auto_populate_control?: boolean | undefined;
+  enable_context_validation?: boolean | undefined;
+  enable_change_reason_validation?: boolean | undefined;
 }
 
 /**
@@ -1523,6 +1525,8 @@ export interface WorkspaceResponse {
   metrics: __DocumentType | undefined;
   allow_experiment_self_approval: boolean | undefined;
   auto_populate_control: boolean | undefined;
+  enable_context_validation: boolean | undefined;
+  enable_change_reason_validation: boolean | undefined;
 }
 
 /**
@@ -1598,14 +1602,14 @@ export interface UpdateDefaultConfigInput {
    * To unset the function name, pass "null" string.
    * @public
    */
-  function_name?: string | undefined;
+  value_validation_function_name?: string | undefined;
 
   description?: string | undefined;
   /**
    * To unset the function name, pass "null" string.
    * @public
    */
-  autocomplete_function_name?: string | undefined;
+  value_compute_function_name?: string | undefined;
 }
 
 /**
@@ -1724,7 +1728,7 @@ export interface UpdateDimensionInput {
    * To unset the function name, pass "null" string.
    * @public
    */
-  function_name?: string | undefined;
+  value_validation_function_name?: string | undefined;
 
   description?: string | undefined;
   change_reason: string | undefined;
@@ -1732,7 +1736,7 @@ export interface UpdateDimensionInput {
    * To unset the function name, pass "null" string.
    * @public
    */
-  autocomplete_function_name?: string | undefined;
+  value_compute_function_name?: string | undefined;
 }
 
 /**
@@ -2083,17 +2087,30 @@ export interface FunctionExecutionResponse {
 /**
  * @public
  */
-export interface ValidateFunctionRequest {
+export interface ValueComputeFunctionRequest {
+  name: string | undefined;
+  prefix: string | undefined;
+  type: string | undefined;
+  environment: __DocumentType | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ValueValidationFunctionRequest {
   key: string | undefined;
   value: __DocumentType | undefined;
+  type: string | undefined;
+  environment: __DocumentType | undefined;
 }
 
 /**
  * @public
  */
 export type FunctionExecutionRequest =
-  | FunctionExecutionRequest.AutocompleteFunctionRequestMember
-  | FunctionExecutionRequest.ValidateFunctionRequestMember
+  | FunctionExecutionRequest.ContextValidationFunctionRequestMember
+  | FunctionExecutionRequest.ValueComputeFunctionRequestMember
+  | FunctionExecutionRequest.ValueValidationFunctionRequestMember
   | FunctionExecutionRequest.$UnknownMember
 
 /**
@@ -2101,15 +2118,24 @@ export type FunctionExecutionRequest =
  */
 export namespace FunctionExecutionRequest {
 
-  export interface ValidateFunctionRequestMember {
-    ValidateFunctionRequest: ValidateFunctionRequest;
-    AutocompleteFunctionRequest?: never;
+  export interface ValueValidationFunctionRequestMember {
+    ValueValidationFunctionRequest: ValueValidationFunctionRequest;
+    ValueComputeFunctionRequest?: never;
+    ContextValidationFunctionRequest?: never;
     $unknown?: never;
   }
 
-  export interface AutocompleteFunctionRequestMember {
-    ValidateFunctionRequest?: never;
-    AutocompleteFunctionRequest: AutocompleteFunctionRequest;
+  export interface ValueComputeFunctionRequestMember {
+    ValueValidationFunctionRequest?: never;
+    ValueComputeFunctionRequest: ValueComputeFunctionRequest;
+    ContextValidationFunctionRequest?: never;
+    $unknown?: never;
+  }
+
+  export interface ContextValidationFunctionRequestMember {
+    ValueValidationFunctionRequest?: never;
+    ValueComputeFunctionRequest?: never;
+    ContextValidationFunctionRequest: ContextValidationFunctionRequest;
     $unknown?: never;
   }
 
@@ -2117,14 +2143,16 @@ export namespace FunctionExecutionRequest {
    * @public
    */
   export interface $UnknownMember {
-    ValidateFunctionRequest?: never;
-    AutocompleteFunctionRequest?: never;
+    ValueValidationFunctionRequest?: never;
+    ValueComputeFunctionRequest?: never;
+    ContextValidationFunctionRequest?: never;
     $unknown: [string, any];
   }
 
   export interface Visitor<T> {
-    ValidateFunctionRequest: (value: ValidateFunctionRequest) => T;
-    AutocompleteFunctionRequest: (value: AutocompleteFunctionRequest) => T;
+    ValueValidationFunctionRequest: (value: ValueValidationFunctionRequest) => T;
+    ValueComputeFunctionRequest: (value: ValueComputeFunctionRequest) => T;
+    ContextValidationFunctionRequest: (value: ContextValidationFunctionRequest) => T;
     _: (name: string, value: any) => T;
   }
 
@@ -2132,8 +2160,9 @@ export namespace FunctionExecutionRequest {
     value: FunctionExecutionRequest,
     visitor: Visitor<T>
   ): T => {
-    if (value.ValidateFunctionRequest !== undefined) return visitor.ValidateFunctionRequest(value.ValidateFunctionRequest);
-    if (value.AutocompleteFunctionRequest !== undefined) return visitor.AutocompleteFunctionRequest(value.AutocompleteFunctionRequest);
+    if (value.ValueValidationFunctionRequest !== undefined) return visitor.ValueValidationFunctionRequest(value.ValueValidationFunctionRequest);
+    if (value.ValueComputeFunctionRequest !== undefined) return visitor.ValueComputeFunctionRequest(value.ValueComputeFunctionRequest);
+    if (value.ContextValidationFunctionRequest !== undefined) return visitor.ContextValidationFunctionRequest(value.ContextValidationFunctionRequest);
     return visitor._(value.$unknown[0], value.$unknown[1]);
   }
 
@@ -2531,4 +2560,6 @@ export interface UpdateWorkspaceRequest {
   metrics?: __DocumentType | undefined;
   allow_experiment_self_approval?: boolean | undefined;
   auto_populate_control?: boolean | undefined;
+  enable_context_validation?: boolean | undefined;
+  enable_change_reason_validation?: boolean | undefined;
 }

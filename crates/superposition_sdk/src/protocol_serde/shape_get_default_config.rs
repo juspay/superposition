@@ -97,15 +97,6 @@ pub(crate) fn de_get_default_config(value: &[u8], mut builder: crate::operation:
             Some(::aws_smithy_json::deserialize::Token::EndObject { .. }) => break,
                                     Some(::aws_smithy_json::deserialize::Token::ObjectKey { key, .. }) => {
                 match key.to_unescaped()?.as_ref() {
-                    "autocomplete_function_name" => {
-                        builder = builder.set_autocomplete_function_name(
-                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
-                                s.to_unescaped().map(|u|
-                                    u.into_owned()
-                                )
-                            ).transpose()?
-                        );
-                    }
                     "change_reason" => {
                         builder = builder.set_change_reason(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
@@ -131,15 +122,6 @@ pub(crate) fn de_get_default_config(value: &[u8], mut builder: crate::operation:
                     }
                     "description" => {
                         builder = builder.set_description(
-                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
-                                s.to_unescaped().map(|u|
-                                    u.into_owned()
-                                )
-                            ).transpose()?
-                        );
-                    }
-                    "function_name" => {
-                        builder = builder.set_function_name(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
                                     u.into_owned()
@@ -178,6 +160,24 @@ pub(crate) fn de_get_default_config(value: &[u8], mut builder: crate::operation:
                     "value" => {
                         builder = builder.set_value(
                             Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                        );
+                    }
+                    "value_compute_function_name" => {
+                        builder = builder.set_value_compute_function_name(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "value_validation_function_name" => {
+                        builder = builder.set_value_validation_function_name(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
                         );
                     }
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

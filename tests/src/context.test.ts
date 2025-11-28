@@ -88,7 +88,8 @@ describe("Context API Integration Tests", () => {
 
         // Delete dimensions
         console.log(`Cleaning up ${createdDimensions.length} dimensions...`);
-        for (const dim of createdDimensions) {
+        for (let i = createdDimensions.length - 1; i >= 0; i--) {
+            const dim = createdDimensions[i];
             try {
                 await client.send(
                     new DeleteDimensionCommand({

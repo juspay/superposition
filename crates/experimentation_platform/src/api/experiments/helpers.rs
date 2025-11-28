@@ -18,7 +18,10 @@ use service_utils::service::types::{
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
-        config::ResolveConfigQuery, experiment_groups::ExpGroupMemberRequest, I64Update,
+        config::ResolveConfigQuery,
+        experiment_groups::ExpGroupMemberRequest,
+        functions::{FunctionExecutionRequest, FunctionExecutionResponse, Stage},
+        I64Update,
     },
     custom_query::DimensionQuery,
     database::{
@@ -844,4 +847,55 @@ pub async fn validate_control_overrides(
     }
 
     Ok(())
+}
+
+pub async fn fetch_and_validate_change_reason_with_function(
+    change_reason: &ChangeReason,
+    state: &Data<AppState>,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<()> {
+    let http_client = reqwest::Client::new();
+    let url = format!(
+        "{}/function/{}/{}/test",
+        state.cac_host,
+        "change_reason_validation_function",
+        Stage::Published
+    );
+
+    let payload = FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+        change_reason: change_reason.clone(),
+    };
+
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        vec![],
+    )?;
+
+    let response = http_client
+        .post(&url)
+        .headers(headers_map.into())
+        .json(&payload)
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => match res.json::<FunctionExecutionResponse>().await {
+            Ok(response) => {
+                log::info!("Change reason validation function response: {:?}", response);
+                Ok(())
+            }
+            Err(err) => {
+                log::error!("Change reason validation function returned false for change reason: {:?} with error: {:?}", change_reason, err);
+                Err(bad_argument!("Change reason validation failed."))
+            }
+        },
+        Err(error) => {
+            log::error!(
+                "Failed to fetch change reason function response with error: {:?}",
+                error
+            );
+            Err(unexpected_error!(error))
+        }
+    }
 }
