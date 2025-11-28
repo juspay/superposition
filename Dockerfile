@@ -40,7 +40,7 @@ RUN cargo build --release --features=ssr
 RUN pwd
 RUN ls -l target
 
-FROM ubuntu:24.04 as runtime
+FROM ubuntu:24.10 as runtime
 
 
 RUN mkdir -p /app/crates/superposition
