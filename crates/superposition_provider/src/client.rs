@@ -483,8 +483,8 @@ impl ExperimentationClient {
             .await
             .map_err(|e| {
                 SuperpositionError::NetworkError(format!(
-                    "Failed to list experiments: {}",
-                    e
+                    "Failed to list experiments: {:?}",
+                    e.raw_response()
                 ))
             })?;
 
@@ -523,8 +523,8 @@ impl ExperimentationClient {
             .await
             .map_err(|e| {
                 SuperpositionError::NetworkError(format!(
-                    "Failed to list experiment groups: {}",
-                    e
+                    "Failed to list experiment groups: {:?}",
+                    e.raw_response()
                 ))
             })?;
 
