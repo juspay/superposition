@@ -26,6 +26,7 @@ service Superposition {
         Webhook
         ExperimentGroup
         Variable
+        Secret
     ]
     errors: [
         InternalServerError
