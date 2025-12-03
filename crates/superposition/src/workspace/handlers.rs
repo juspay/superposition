@@ -102,6 +102,8 @@ async fn create_handler(
     let email = user.get_email();
     validate_workspace_name(&request.workspace_name)?;
     let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
+    let encryption_key = service_utils::encryption::generate_encryption_key();
+
     let workspace = Workspace {
         organisation_id: org_info.id,
         organisation_name: org_info.name,
@@ -120,6 +122,9 @@ async fn create_handler(
         auto_populate_control: request.auto_populate_control,
         enable_context_validation: request.enable_context_validation,
         enable_change_reason_validation: request.enable_change_reason_validation,
+        encryption_key: Some(encryption_key),
+        previous_encryption_key: None,
+        key_rotation_at: None,
     };
 
     let created_workspace =

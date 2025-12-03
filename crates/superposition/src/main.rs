@@ -246,6 +246,11 @@ async fn main() -> Result<()> {
                             .app_data(Data::new(auth_z_manager.clone()))
                             .service(auth_z_manager.endpoints())
                     )
+                    .service(
+                        scope("/secrets")
+                        .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                        .service(secrets::endpoints())
+                    )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
                     // serve JS/WASM/CSS from `pkg`
