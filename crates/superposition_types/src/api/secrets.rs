@@ -54,10 +54,17 @@ pub struct CreateSecretRequest {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
-#[cfg_attr(feature = "diesel_derives", diesel(table_name = secrets))]
 pub struct UpdateSecretRequest {
     pub value: Option<String>,
+    pub description: Option<Description>,
+    pub change_reason: ChangeReason,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = secrets))]
+pub struct UpdateSecretChangeset {
+    pub encrypted_value: Option<String>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }
