@@ -708,3 +708,25 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+CREATE TABLE IF NOT EXISTS {replaceme}.secrets (
+    name VARCHAR(50) PRIMARY KEY,
+    encrypted_value TEXT NOT NULL,
+    key_version INTEGER NOT NULL DEFAULT 1,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR(200) NOT NULL,
+    last_modified_by VARCHAR(200) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_secrets_created_at ON {replaceme}.secrets(created_at);
+CREATE INDEX IF NOT EXISTS idx_secrets_last_modified_at ON {replaceme}.secrets(last_modified_at);
+CREATE INDEX IF NOT EXISTS idx_secrets_key_version ON {replaceme}.secrets(key_version);
+
+DO $$ BEGIN
+    CREATE TRIGGER secrets_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.secrets FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
