@@ -18,9 +18,12 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    api::default_config::{
-        DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
-        DefaultConfigUpdateRequest,
+    api::{
+        default_config::{
+            DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
+            DefaultConfigUpdateRequest,
+        },
+        functions::{FunctionEnvironment, FunctionExecutionRequest, KeyType},
     },
     custom_query::PaginationParams,
     database::{
@@ -40,7 +43,7 @@ use crate::{
         context::helpers::validate_value_with_function,
         functions::helpers::get_published_function_code,
     },
-    helpers::add_config_version,
+    helpers::{add_config_version, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {
@@ -72,20 +75,25 @@ async fn create_default_config(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
+    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
+        log::error!("change reason validation failed with error: {:?}", err);
+        err
+    })?;
+
     let value = req.value;
 
     let default_config = DefaultConfig {
         key: key.to_owned(),
         value,
         schema: req.schema,
-        function_name: req.function_name,
+        value_validation_function_name: req.value_validation_function_name,
         created_by: user.get_email(),
         created_at: Utc::now(),
         last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
         description: description.clone(),
         change_reason: change_reason.clone(),
-        autocomplete_function_name: req.autocomplete_function_name,
+        value_compute_function_name: req.value_compute_function_name,
     };
 
     let schema = Value::from(&default_config.schema);
@@ -114,16 +122,16 @@ async fn create_default_config(
         ));
     }
 
-    validate_and_get_function_code(
+    validate_default_config_with_function(
         &mut conn,
-        &default_config.function_name,
+        &default_config.value_validation_function_name,
         &default_config.key,
         &default_config.value,
         &schema_name,
     )?;
 
     validate_fn_published(
-        &default_config.autocomplete_function_name,
+        &default_config.value_compute_function_name,
         &mut conn,
         &schema_name,
     )?;
@@ -201,6 +209,10 @@ async fn update_default_config(
         })?;
 
     let change_reason = req.change_reason.clone();
+    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
+        log::error!("change reason validation failed with error: {:?}", err);
+        err
+    })?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -226,10 +238,10 @@ async fn update_default_config(
         })?;
     }
 
-    if let Some(ref validation_function_name) = req.function_name {
+    if let Some(ref validation_function_name) = req.value_validation_function_name {
         let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
-        validate_and_get_function_code(
+        validate_default_config_with_function(
             &mut conn,
             validation_function_name,
             &key_str,
@@ -238,8 +250,8 @@ async fn update_default_config(
         )?
     }
 
-    if let Some(ref autocomplete_function_name) = req.autocomplete_function_name {
-        validate_fn_published(autocomplete_function_name, &mut conn, &schema_name)?;
+    if let Some(ref value_compute_function_name) = req.value_compute_function_name {
+        validate_fn_published(value_compute_function_name, &mut conn, &schema_name)?;
     }
 
     let (db_row, version_id) =
@@ -295,7 +307,7 @@ fn validate_fn_published(
     }
 }
 
-fn validate_and_get_function_code(
+fn validate_default_config_with_function(
     conn: &mut DBConnection,
     function_name: &Option<String>,
     key: &str,
@@ -314,8 +326,12 @@ fn validate_and_get_function_code(
             validate_value_with_function(
                 f_name.as_str(),
                 &f_code,
-                &key.to_string(),
-                value,
+                &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                    key: key.to_string(),
+                    value: value.clone(),
+                    r#type: KeyType::ConfigKey,
+                    environment: FunctionEnvironment::default(),
+                },
                 conn,
                 schema_name,
             )?;

@@ -4,8 +4,8 @@ module Io.Superposition.Model.DefaultConfigResponse (
     setSchema,
     setDescription,
     setChangeReason,
-    setFunctionName,
-    setAutocompleteFunctionName,
+    setValueValidationFunctionName,
+    setValueComputeFunctionName,
     setCreatedAt,
     setCreatedBy,
     setLastModifiedAt,
@@ -18,8 +18,8 @@ module Io.Superposition.Model.DefaultConfigResponse (
     schema,
     description,
     change_reason,
-    function_name,
-    autocomplete_function_name,
+    value_validation_function_name,
+    value_compute_function_name,
     created_at,
     created_by,
     last_modified_at,
@@ -45,8 +45,8 @@ data DefaultConfigResponse = DefaultConfigResponse {
     schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
-    function_name :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_name :: Data.Maybe.Maybe Data.Text.Text,
+    value_validation_function_name :: Data.Maybe.Maybe Data.Text.Text,
+    value_compute_function_name :: Data.Maybe.Maybe Data.Text.Text,
     created_at :: Data.Time.UTCTime,
     created_by :: Data.Text.Text,
     last_modified_at :: Data.Time.UTCTime,
@@ -64,8 +64,8 @@ instance Data.Aeson.ToJSON DefaultConfigResponse where
         "schema" Data.Aeson..= schema a,
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
-        "function_name" Data.Aeson..= function_name a,
-        "autocomplete_function_name" Data.Aeson..= autocomplete_function_name a,
+        "value_validation_function_name" Data.Aeson..= value_validation_function_name a,
+        "value_compute_function_name" Data.Aeson..= value_compute_function_name a,
         "created_at" Data.Aeson..= created_at a,
         "created_by" Data.Aeson..= created_by a,
         "last_modified_at" Data.Aeson..= last_modified_at a,
@@ -82,8 +82,8 @@ instance Data.Aeson.FromJSON DefaultConfigResponse where
         Control.Applicative.<*> (v Data.Aeson..: "schema")
         Control.Applicative.<*> (v Data.Aeson..: "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
-        Control.Applicative.<*> (v Data.Aeson..:? "function_name")
-        Control.Applicative.<*> (v Data.Aeson..:? "autocomplete_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "value_validation_function_name")
+        Control.Applicative.<*> (v Data.Aeson..:? "value_compute_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
@@ -98,8 +98,8 @@ data DefaultConfigResponseBuilderState = DefaultConfigResponseBuilderState {
     schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    autocomplete_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    value_validation_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    value_compute_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -115,8 +115,8 @@ defaultBuilderState = DefaultConfigResponseBuilderState {
     schemaBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
-    function_nameBuilderState = Data.Maybe.Nothing,
-    autocomplete_function_nameBuilderState = Data.Maybe.Nothing,
+    value_validation_function_nameBuilderState = Data.Maybe.Nothing,
+    value_compute_function_nameBuilderState = Data.Maybe.Nothing,
     created_atBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_atBuilderState = Data.Maybe.Nothing,
@@ -145,13 +145,13 @@ setChangeReason :: Data.Text.Text -> DefaultConfigResponseBuilder ()
 setChangeReason value =
    Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
 
-setFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DefaultConfigResponseBuilder ()
-setFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { function_nameBuilderState = value }))
+setValueValidationFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DefaultConfigResponseBuilder ()
+setValueValidationFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_validation_function_nameBuilderState = value }))
 
-setAutocompleteFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DefaultConfigResponseBuilder ()
-setAutocompleteFunctionName value =
-   Control.Monad.State.Strict.modify (\s -> (s { autocomplete_function_nameBuilderState = value }))
+setValueComputeFunctionName :: Data.Maybe.Maybe Data.Text.Text -> DefaultConfigResponseBuilder ()
+setValueComputeFunctionName value =
+   Control.Monad.State.Strict.modify (\s -> (s { value_compute_function_nameBuilderState = value }))
 
 setCreatedAt :: Data.Time.UTCTime -> DefaultConfigResponseBuilder ()
 setCreatedAt value =
@@ -177,8 +177,8 @@ build builder = do
     schema' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.schema is a required property.") Data.Either.Right (schemaBuilderState st)
     description' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
-    function_name' <- Data.Either.Right (function_nameBuilderState st)
-    autocomplete_function_name' <- Data.Either.Right (autocomplete_function_nameBuilderState st)
+    value_validation_function_name' <- Data.Either.Right (value_validation_function_nameBuilderState st)
+    value_compute_function_name' <- Data.Either.Right (value_compute_function_nameBuilderState st)
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
     last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
@@ -189,8 +189,8 @@ build builder = do
         schema = schema',
         description = description',
         change_reason = change_reason',
-        function_name = function_name',
-        autocomplete_function_name = autocomplete_function_name',
+        value_validation_function_name = value_validation_function_name',
+        value_compute_function_name = value_compute_function_name',
         created_at = created_at',
         created_by = created_by',
         last_modified_at = last_modified_at',

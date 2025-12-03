@@ -64,23 +64,23 @@ pub(crate) fn de_dimension_type<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
     Ok(variant)
 }
 
-pub fn ser_dimension_type(object_6: &mut ::aws_smithy_json::serialize::JsonObjectWriter, input: &crate::types::DimensionType) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
+pub fn ser_dimension_type(object_5: &mut ::aws_smithy_json::serialize::JsonObjectWriter, input: &crate::types::DimensionType) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
     match input {
         crate::types::DimensionType::Regular => {
              {
                 #[allow(unused_mut)]
-                let mut object_1 = object_6.key("REGULAR").start_object();
+                let mut object_1 = object_5.key("REGULAR").start_object();
                 object_1.finish();
             }
         },
         crate::types::DimensionType::LocalCohort(inner) => {
              {
-                object_6.key("LOCAL_COHORT").string(inner.as_str());
+                object_5.key("LOCAL_COHORT").string(inner.as_str());
             }
         },
         crate::types::DimensionType::RemoteCohort(inner) => {
              {
-                object_6.key("REMOTE_COHORT").string(inner.as_str());
+                object_5.key("REMOTE_COHORT").string(inner.as_str());
             }
         },
         crate::types::DimensionType::Unknown => return Err(::aws_smithy_types::error::operation::SerializationError::unknown_variant("DimensionType"))

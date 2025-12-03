@@ -345,8 +345,6 @@ pub(crate) mod shape_workspace_list;
 
 pub(crate) mod shape_audit_log_full;
 
-pub(crate) mod shape_autocomplete_function_request;
-
 pub(crate) mod shape_bucket;
 
 pub(crate) mod shape_context_action_out;
@@ -358,6 +356,8 @@ pub(crate) mod shape_context_move_bulk_request;
 pub(crate) mod shape_context_partial;
 
 pub(crate) mod shape_context_response;
+
+pub(crate) mod shape_context_validation_function_request;
 
 pub(crate) mod shape_default_config_response;
 
@@ -377,7 +377,9 @@ pub(crate) mod shape_organisation_response;
 
 pub(crate) mod shape_type_templates_response;
 
-pub(crate) mod shape_validate_function_request;
+pub(crate) mod shape_value_compute_function_request;
+
+pub(crate) mod shape_value_validation_function_request;
 
 pub(crate) mod shape_variable_response;
 

@@ -17,12 +17,14 @@ public abstract class FunctionExecutionRequest implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#FunctionExecutionRequest");
 
     public static final Schema $SCHEMA = Schema.unionBuilder($ID)
-        .putMember("ValidateFunctionRequest", ValidateFunctionRequest.$SCHEMA)
-        .putMember("AutocompleteFunctionRequest", AutocompleteFunctionRequest.$SCHEMA)
+        .putMember("ValueValidationFunctionRequest", ValueValidationFunctionRequest.$SCHEMA)
+        .putMember("ValueComputeFunctionRequest", ValueComputeFunctionRequest.$SCHEMA)
+        .putMember("ContextValidationFunctionRequest", ContextValidationFunctionRequest.$SCHEMA)
         .build();
 
-    private static final Schema $SCHEMA_VALIDATE_FUNCTION_REQUEST = $SCHEMA.member("ValidateFunctionRequest");
-    private static final Schema $SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST = $SCHEMA.member("AutocompleteFunctionRequest");
+    private static final Schema $SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST = $SCHEMA.member("ValueValidationFunctionRequest");
+    private static final Schema $SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST = $SCHEMA.member("ValueComputeFunctionRequest");
+    private static final Schema $SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST = $SCHEMA.member("ContextValidationFunctionRequest");
 
     private final Type type;
 
@@ -39,8 +41,9 @@ public abstract class FunctionExecutionRequest implements SerializableStruct {
      */
     public enum Type {
         $UNKNOWN,
-        validateFunctionRequest,
-        autocompleteFunctionRequest
+        valueValidationFunctionRequest,
+        valueComputeFunctionRequest,
+        contextValidationFunctionRequest
     }
 
     @Override
@@ -61,20 +64,20 @@ public abstract class FunctionExecutionRequest implements SerializableStruct {
     public abstract <T> T getValue();
 
     @SmithyGenerated
-    public static final class ValidateFunctionRequestMember extends FunctionExecutionRequest {
-        private final transient ValidateFunctionRequest value;
+    public static final class ValueValidationFunctionRequestMember extends FunctionExecutionRequest {
+        private final transient ValueValidationFunctionRequest value;
 
-        public ValidateFunctionRequestMember(ValidateFunctionRequest value) {
-            super(Type.validateFunctionRequest);
+        public ValueValidationFunctionRequestMember(ValueValidationFunctionRequest value) {
+            super(Type.valueValidationFunctionRequest);
             this.value = Objects.requireNonNull(value, "Union value cannot be null");
         }
 
         @Override
         public void serializeMembers(ShapeSerializer serializer) {
-            serializer.writeStruct($SCHEMA_VALIDATE_FUNCTION_REQUEST, value);
+            serializer.writeStruct($SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST, value);
         }
 
-        public ValidateFunctionRequest validateFunctionRequest() {
+        public ValueValidationFunctionRequest valueValidationFunctionRequest() {
             return value;
         }
 
@@ -86,20 +89,45 @@ public abstract class FunctionExecutionRequest implements SerializableStruct {
     }
 
     @SmithyGenerated
-    public static final class AutocompleteFunctionRequestMember extends FunctionExecutionRequest {
-        private final transient AutocompleteFunctionRequest value;
+    public static final class ValueComputeFunctionRequestMember extends FunctionExecutionRequest {
+        private final transient ValueComputeFunctionRequest value;
 
-        public AutocompleteFunctionRequestMember(AutocompleteFunctionRequest value) {
-            super(Type.autocompleteFunctionRequest);
+        public ValueComputeFunctionRequestMember(ValueComputeFunctionRequest value) {
+            super(Type.valueComputeFunctionRequest);
             this.value = Objects.requireNonNull(value, "Union value cannot be null");
         }
 
         @Override
         public void serializeMembers(ShapeSerializer serializer) {
-            serializer.writeStruct($SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST, value);
+            serializer.writeStruct($SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST, value);
         }
 
-        public AutocompleteFunctionRequest autocompleteFunctionRequest() {
+        public ValueComputeFunctionRequest valueComputeFunctionRequest() {
+            return value;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T getValue() {
+            return (T) value;
+        }
+    }
+
+    @SmithyGenerated
+    public static final class ContextValidationFunctionRequestMember extends FunctionExecutionRequest {
+        private final transient ContextValidationFunctionRequest value;
+
+        public ContextValidationFunctionRequestMember(ContextValidationFunctionRequest value) {
+            super(Type.contextValidationFunctionRequest);
+            this.value = Objects.requireNonNull(value, "Union value cannot be null");
+        }
+
+        @Override
+        public void serializeMembers(ShapeSerializer serializer) {
+            serializer.writeStruct($SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST, value);
+        }
+
+        public ContextValidationFunctionRequest contextValidationFunctionRequest() {
             return value;
         }
 
@@ -177,12 +205,16 @@ public abstract class FunctionExecutionRequest implements SerializableStruct {
             return $SCHEMA;
         }
 
-        public BuildStage validateFunctionRequest(ValidateFunctionRequest value) {
-            return setValue(new ValidateFunctionRequestMember(value));
+        public BuildStage valueValidationFunctionRequest(ValueValidationFunctionRequest value) {
+            return setValue(new ValueValidationFunctionRequestMember(value));
         }
 
-        public BuildStage autocompleteFunctionRequest(AutocompleteFunctionRequest value) {
-            return setValue(new AutocompleteFunctionRequestMember(value));
+        public BuildStage valueComputeFunctionRequest(ValueComputeFunctionRequest value) {
+            return setValue(new ValueComputeFunctionRequestMember(value));
+        }
+
+        public BuildStage contextValidationFunctionRequest(ContextValidationFunctionRequest value) {
+            return setValue(new ContextValidationFunctionRequestMember(value));
         }
 
         public BuildStage $unknownMember(String memberName) {
@@ -209,8 +241,9 @@ public abstract class FunctionExecutionRequest implements SerializableStruct {
         @SuppressWarnings("unchecked")
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
-                case 0 -> validateFunctionRequest((ValidateFunctionRequest) SchemaUtils.validateSameMember($SCHEMA_VALIDATE_FUNCTION_REQUEST, member, value));
-                case 1 -> autocompleteFunctionRequest((AutocompleteFunctionRequest) SchemaUtils.validateSameMember($SCHEMA_AUTOCOMPLETE_FUNCTION_REQUEST, member, value));
+                case 0 -> valueValidationFunctionRequest((ValueValidationFunctionRequest) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_REQUEST, member, value));
+                case 1 -> valueComputeFunctionRequest((ValueComputeFunctionRequest) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_REQUEST, member, value));
+                case 2 -> contextValidationFunctionRequest((ContextValidationFunctionRequest) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_VALIDATION_FUNCTION_REQUEST, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -233,8 +266,9 @@ public abstract class FunctionExecutionRequest implements SerializableStruct {
             @Override
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
-                    case 0 -> builder.validateFunctionRequest(ValidateFunctionRequest.builder().deserializeMember(de, member).build());
-                    case 1 -> builder.autocompleteFunctionRequest(AutocompleteFunctionRequest.builder().deserializeMember(de, member).build());
+                    case 0 -> builder.valueValidationFunctionRequest(ValueValidationFunctionRequest.builder().deserializeMember(de, member).build());
+                    case 1 -> builder.valueComputeFunctionRequest(ValueComputeFunctionRequest.builder().deserializeMember(de, member).build());
+                    case 2 -> builder.contextValidationFunctionRequest(ContextValidationFunctionRequest.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -377,9 +377,9 @@ describe("Variable Operations", () => {
 
             console.log("Step 2: Creating function that uses the variable...");
             const functionCode = `
-                    async function validate(key, value) {
-                    console.log("API Key:", VARS.API_KEY);
-                    return VARS.API_KEY === 'secret-api-key-12345'
+                    async function validate_value(key, value) {
+                        console.log("API Key:", VARS.API_KEY);
+                        return VARS.API_KEY === 'secret-api-key-12345'
                     }
             `;
 
@@ -391,7 +391,7 @@ describe("Variable Operations", () => {
                 description: "Function that accesses variable",
                 change_reason: "Testing variable integration",
                 runtime_version: "1",
-                function_type: FunctionTypes.VALIDATION,
+                function_type: FunctionTypes.VALUE_VALIDATION,
             });
 
             const funcResponse = await superpositionClient.send(createFuncCommand);
@@ -408,9 +408,14 @@ describe("Variable Operations", () => {
                 function_name: functionName,
                 stage: "draft",
                 request: {
-                    ValidateFunctionRequest: {
+                    ValueValidationFunctionRequest: {
                         key: "",
                         value: "",
+                        type: "ConfigKey",
+                        environment: {
+                            context: {},
+                            overrides: {},
+                        }
                     },
                 },
             });

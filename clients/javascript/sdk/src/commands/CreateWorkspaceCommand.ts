@@ -49,8 +49,10 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *   workspace_status: "ENABLED" || "DISABLED",
  *   strict_mode: true || false, // required
  *   metrics: "DOCUMENT_VALUE",
- *   allow_experiment_self_approval: true || false, // required
- *   auto_populate_control: true || false, // required
+ *   allow_experiment_self_approval: true || false,
+ *   auto_populate_control: true || false,
+ *   enable_context_validation: true || false,
+ *   enable_change_reason_validation: true || false,
  * };
  * const command = new CreateWorkspaceCommand(input);
  * const response = await client.send(command);
@@ -73,6 +75,8 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   metrics: "DOCUMENT_VALUE", // required
  * //   allow_experiment_self_approval: true || false, // required
  * //   auto_populate_control: true || false, // required
+ * //   enable_context_validation: true || false, // required
+ * //   enable_change_reason_validation: true || false, // required
  * // };
  *
  * ```

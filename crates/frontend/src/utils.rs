@@ -8,15 +8,15 @@ use reqwest::{
     StatusCode,
 };
 use serde::de::DeserializeOwned;
-use superposition_types::api::functions::FunctionEnvironment;
+use superposition_types::api::functions::{FunctionEnvironment, KeyType};
 use url::Url;
 use wasm_bindgen::JsCast;
 
 use crate::{
-    api::execute_autocomplete_function,
+    api::execute_value_compute_function,
     components::alert::AlertType,
     providers::alert_provider::enqueue_alert,
-    types::{AutoCompleteCallback, Envs, ErrorResponse, FunctionsName},
+    types::{Envs, ErrorResponse, FunctionsName, ValueComputeCallback},
 };
 
 #[allow(dead_code)]
@@ -321,15 +321,17 @@ pub fn set_function(selected_function: FunctionsName, value: &mut Option<String>
     *value = fun_name;
 }
 
-pub fn autocomplete_fn_generator(
+pub fn value_compute_fn_generator(
     key: String,
-    autocomplete_fn_name: Option<String>,
+    value_compute_function_name: Option<String>,
     environment: Memo<FunctionEnvironment>,
+    r#type: &KeyType,
     tenant: String,
     org_id: String,
-) -> Option<(String, AutoCompleteCallback)> {
-    let fn_name = autocomplete_fn_name?;
+) -> Option<(String, ValueComputeCallback)> {
+    let fn_name = value_compute_function_name?;
     let return_key = key.clone();
+    let r#type = r#type.clone();
     let callback = Callback::new(
         move |(value, suggestions): (String, WriteSignal<Vec<String>>)| {
             let key_copy = key.clone();
@@ -337,11 +339,14 @@ pub fn autocomplete_fn_generator(
             let environment = environment.get();
             let org_id = org_id.clone();
             let tenant = tenant.clone();
+            let type_clone = r#type.clone();
             logging::log!("Calling {fn_copy} for {key} {value}");
+
             leptos::spawn_local(async move {
-                match execute_autocomplete_function(
+                match execute_value_compute_function(
                 &key_copy,
                 &value,
+                &type_clone,
                 &environment,
                 &fn_copy,
                 &tenant,
@@ -351,7 +356,7 @@ pub fn autocomplete_fn_generator(
             {
                 Ok(vec) => suggestions.set(vec),
                 // TODO: Handle error properly, in case of error the loader is stuck
-                Err(err) => logging::error!("An error occurred while running the autocomplete function: {err}"),
+                Err(err) => logging::error!("An error occurred while running the value_compute function: {err}"),
             };
             });
         },
