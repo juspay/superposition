@@ -27,6 +27,7 @@ pub fn endpoints() -> Scope {
         .service(get_secret)
         .service(update_secret)
         .service(delete_secret)
+        .service(super::key_rotation::rotate_encryption_key)
 }
 
 fn get_workspace_keys(

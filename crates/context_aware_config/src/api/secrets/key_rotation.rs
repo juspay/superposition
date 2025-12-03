@@ -14,7 +14,7 @@ use superposition_types::{
 };
 
 #[post("/rotate-key")]
-async fn rotate_encryption_key(
+pub async fn rotate_encryption_key(
     _req: Json<RotateKeyRequest>,
     user: User,
     db_conn: DbConnection,

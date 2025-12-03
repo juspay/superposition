@@ -10,6 +10,7 @@ use superposition_types::{
 use crate::api::workspaces;
 use crate::components::{
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
+    key_rotation_modal::KeyRotationModal,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -42,6 +43,9 @@ pub fn workspace() -> impl IntoView {
         },
     );
     let selected_workspace = create_rw_signal::<Option<RowData>>(None);
+    let (show_key_rotation_modal_rs, show_key_rotation_modal_ws) = create_signal(false);
+    let (key_rotation_workspace_rs, key_rotation_workspace_ws) =
+        create_signal(String::new());
 
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
@@ -95,9 +99,12 @@ pub fn workspace() -> impl IntoView {
                 .as_bool()
                 .unwrap_or_default();
 
+            let workspace_name_clone = workspace_name.clone();
+            let workspace_name_clone2 = workspace_name.clone();
+
             let edit_click_handler = move |_| {
                 let row_data = RowData {
-                    workspace_name: workspace_name.clone(),
+                    workspace_name: workspace_name_clone.clone(),
                     workspace_schema_name: workspace_schema_name.clone(),
                     workspace_status,
                     workspace_admin_email: workspace_admin_email.clone(),
@@ -117,10 +124,21 @@ pub fn workspace() -> impl IntoView {
                 selected_workspace.set(Some(row_data));
                 open_drawer("workspace_drawer");
             };
+
+            let rotate_key_click_handler = move |_| {
+                key_rotation_workspace_ws.set(workspace_name_clone2.clone());
+                show_key_rotation_modal_ws.set(true);
+            };
+
             view! {
-                <span class="cursor-pointer" on:click=edit_click_handler>
-                    <i class="ri-pencil-line ri-xl text-blue-500"></i>
-                </span>
+                <div class="flex gap-2">
+                    <span class="cursor-pointer" on:click=edit_click_handler title="Edit Workspace">
+                        <i class="ri-pencil-line ri-xl text-blue-500"></i>
+                    </span>
+                    <span class="cursor-pointer" on:click=rotate_key_click_handler title="Rotate Encryption Key">
+                        <i class="ri-key-2-line ri-xl text-yellow-600"></i>
+                    </span>
+                </div>
             }
             .into_view()
         };
@@ -281,5 +299,20 @@ pub fn workspace() -> impl IntoView {
                 }
             }}
         </Suspense>
+
+        {move || {
+            view! {
+                <KeyRotationModal
+                    visible=show_key_rotation_modal_rs.get()
+                    on_close=move |_| show_key_rotation_modal_ws.set(false)
+                    on_success=move |_| {
+                        logging::log!("Key rotation completed successfully");
+                        workspace_resource.refetch();
+                    }
+                    workspace_name=key_rotation_workspace_rs.get()
+                    org_id=org_id.get().0
+                />
+            }
+        }}
     }
 }
