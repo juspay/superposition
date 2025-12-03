@@ -60,6 +60,9 @@ pub mod superposition {
             auto_populate_control -> Bool,
             enable_context_validation -> Bool,
             enable_change_reason_validation -> Bool,
+            encryption_key -> Nullable<Text>,
+            previous_encryption_key -> Nullable<Text>,
+            key_rotation_at -> Nullable<Timestamptz>,
         }
     }
 
