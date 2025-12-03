@@ -1,7 +1,6 @@
 use reqwest::header::HeaderMap;
 use serde_json::{Map, Value};
 use superposition_types::{
-    Config, PaginatedResponse,
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         context::ContextListFilters,
@@ -24,12 +23,13 @@ use superposition_types::{
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::models::{
-        ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
         cac::{Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
         others::{Variable, VariableName},
+        ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
     },
+    Config, PaginatedResponse,
 };
 
 use crate::utils::{
@@ -116,7 +116,6 @@ pub mod snapshots {
 
 pub mod dimensions {
     use superposition_types::{
-        ExtendedMap,
         api::dimension::{CreateRequest, DimensionName, UpdateRequest},
         database::models::cac::{DimensionType, Position},
     };
@@ -543,6 +542,32 @@ pub mod workspaces {
             reqwest::Method::PATCH,
             Some(payload),
             construct_request_headers(&[("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn rotate_key(
+        change_reason: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<KeyRotationStatus, String> {
+        let payload = RotateKeyRequest {
+            change_reason: ChangeReason::try_from(change_reason)?,
+        };
+
+        let host = use_host_server();
+        let url = format!("{host}/workspaces/rotate-key");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -1013,9 +1038,148 @@ pub mod variables {
     }
 }
 
+pub mod secrets {
+    use superposition_types::{
+        api::secrets::{
+            CreateSecretRequest, KeyRotationStatus, RotateKeyRequest, SecretFilters,
+            SecretResponse, UpdateSecretRequest,
+        },
+        database::models::others::SecretName,
+    };
+
+    use super::*;
+
+    pub async fn fetch(
+        filters: &SecretFilters,
+        pagination_params: &PaginationParams,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<SecretResponse>, String> {
+        let host = use_host_server();
+        let url = format!(
+            "{host}/secrets?{}&{}",
+            filters.to_query_param(),
+            pagination_params.to_query_param()
+        );
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn create(
+        name: String,
+        value: String,
+        description: String,
+        change_reason: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let payload = CreateSecretRequest {
+            name: SecretName::try_from(name)?,
+            value,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+        };
+
+        let host = use_host_server();
+        let url = format!("{host}/secrets");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn get(
+        secret_name: &str,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/secrets/{}", secret_name);
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update(
+        secret_name: String,
+        payload: UpdateSecretRequest,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/secrets/{secret_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        secret_name: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = use_host_server();
+        let url = format!("{host}/secrets/{secret_name}");
+
+        request(
+            url,
+            reqwest::Method::DELETE,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+}
+
 pub mod experiment_groups {
     use superposition_types::{
-        Condition, Exp, database::models::experimentation::TrafficPercentage,
+        database::models::experimentation::TrafficPercentage, Condition, Exp,
     };
 
     use crate::logic::Conditions;
@@ -1240,6 +1404,42 @@ pub mod audit_log {
             ])?,
         )
         .await?;
+
+        parse_json_response(response).await
+    }
+}
+
+pub mod master_key {
+    use crate::types::{
+        GenerateMasterKeyResponse, RotateMasterKeyRequest, RotateMasterKeyResponse,
+    };
+
+    use super::*;
+
+    pub async fn generate() -> Result<GenerateMasterKeyResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/superposition/organisations/master-key/generate");
+
+        let response =
+            request(url, reqwest::Method::POST, None::<()>, HeaderMap::new()).await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn rotate(
+        change_reason: String,
+        new_master_key: Option<String>,
+    ) -> Result<RotateMasterKeyResponse, String> {
+        let payload = RotateMasterKeyRequest {
+            new_master_key,
+            change_reason,
+        };
+
+        let host = use_host_server();
+        let url = format!("{host}/superposition/organisations/rotate-master-key");
+
+        let response =
+            request(url, reqwest::Method::POST, Some(payload), HeaderMap::new()).await?;
 
         parse_json_response(response).await
     }

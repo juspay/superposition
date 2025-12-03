@@ -143,3 +143,9 @@ ADD COLUMN IF NOT EXISTS enable_context_validation BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS enable_change_reason_validation BOOLEAN DEFAULT FALSE;
 
 ALTER TABLE superposition.workspaces DROP COLUMN IF EXISTS strict_mode;
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS encryption_key TEXT,
+ADD COLUMN IF NOT EXISTS previous_encryption_key TEXT,
+ADD COLUMN IF NOT EXISTS key_rotation_at TIMESTAMPTZ;
+
+COMMIT;

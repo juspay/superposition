@@ -18,10 +18,16 @@ pub enum EncryptionError {
 impl std::fmt::Display for EncryptionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EncryptionError::EncryptionFailed(msg) => write!(f, "Encryption failed: {}", msg),
-            EncryptionError::DecryptionFailed(msg) => write!(f, "Decryption failed: {}", msg),
+            EncryptionError::EncryptionFailed(msg) => {
+                write!(f, "Encryption failed: {}", msg)
+            }
+            EncryptionError::DecryptionFailed(msg) => {
+                write!(f, "Decryption failed: {}", msg)
+            }
             EncryptionError::InvalidKey(msg) => write!(f, "Invalid key: {}", msg),
-            EncryptionError::InvalidCiphertext(msg) => write!(f, "Invalid ciphertext: {}", msg),
+            EncryptionError::InvalidCiphertext(msg) => {
+                write!(f, "Invalid ciphertext: {}", msg)
+            }
         }
     }
 }
@@ -35,27 +41,29 @@ pub fn generate_encryption_key() -> String {
 }
 
 pub fn encrypt_secret(plaintext: &str, key: &str) -> Result<String, EncryptionError> {
-    let key_bytes = general_purpose::STANDARD
-        .decode(key)
-        .map_err(|e| EncryptionError::InvalidKey(format!("Failed to decode key: {}", e)))?;
+    let key_bytes = general_purpose::STANDARD.decode(key).map_err(|e| {
+        EncryptionError::InvalidKey(format!("Failed to decode key: {}", e))
+    })?;
 
     if key_bytes.len() != 32 {
         return Err(EncryptionError::InvalidKey(format!(
-            "Key must be 32 bytes, got {}",
+            "Key {} must be 32 bytes, got {}",
+            key,
             key_bytes.len()
         )));
     }
 
-    let cipher = Aes256Gcm::new_from_slice(&key_bytes)
-        .map_err(|e| EncryptionError::InvalidKey(format!("Failed to create cipher: {}", e)))?;
+    let cipher = Aes256Gcm::new_from_slice(&key_bytes).map_err(|e| {
+        EncryptionError::InvalidKey(format!("Failed to create cipher: {}", e))
+    })?;
 
     let mut nonce_bytes = [0u8; NONCE_SIZE];
     OsRng.fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    let ciphertext = cipher
-        .encrypt(nonce, plaintext.as_bytes())
-        .map_err(|e| EncryptionError::EncryptionFailed(format!("AES-GCM encryption failed: {}", e)))?;
+    let ciphertext = cipher.encrypt(nonce, plaintext.as_bytes()).map_err(|e| {
+        EncryptionError::EncryptionFailed(format!("AES-GCM encryption failed: {}", e))
+    })?;
 
     let mut result = nonce_bytes.to_vec();
     result.extend_from_slice(&ciphertext);
@@ -64,9 +72,9 @@ pub fn encrypt_secret(plaintext: &str, key: &str) -> Result<String, EncryptionEr
 }
 
 pub fn decrypt_secret(ciphertext: &str, key: &str) -> Result<String, EncryptionError> {
-    let key_bytes = general_purpose::STANDARD
-        .decode(key)
-        .map_err(|e| EncryptionError::InvalidKey(format!("Failed to decode key: {}", e)))?;
+    let key_bytes = general_purpose::STANDARD.decode(key).map_err(|e| {
+        EncryptionError::InvalidKey(format!("Failed to decode key: {}", e))
+    })?;
 
     if key_bytes.len() != 32 {
         return Err(EncryptionError::InvalidKey(format!(
@@ -75,12 +83,13 @@ pub fn decrypt_secret(ciphertext: &str, key: &str) -> Result<String, EncryptionE
         )));
     }
 
-    let cipher = Aes256Gcm::new_from_slice(&key_bytes)
-        .map_err(|e| EncryptionError::InvalidKey(format!("Failed to create cipher: {}", e)))?;
+    let cipher = Aes256Gcm::new_from_slice(&key_bytes).map_err(|e| {
+        EncryptionError::InvalidKey(format!("Failed to create cipher: {}", e))
+    })?;
 
-    let encrypted_data = general_purpose::STANDARD
-        .decode(ciphertext)
-        .map_err(|e| EncryptionError::InvalidCiphertext(format!("Failed to decode ciphertext: {}", e)))?;
+    let encrypted_data = general_purpose::STANDARD.decode(ciphertext).map_err(|e| {
+        EncryptionError::InvalidCiphertext(format!("Failed to decode ciphertext: {}", e))
+    })?;
 
     if encrypted_data.len() < NONCE_SIZE {
         return Err(EncryptionError::InvalidCiphertext(format!(
@@ -92,12 +101,13 @@ pub fn decrypt_secret(ciphertext: &str, key: &str) -> Result<String, EncryptionE
     let (nonce_bytes, ciphertext_bytes) = encrypted_data.split_at(NONCE_SIZE);
     let nonce = Nonce::from_slice(nonce_bytes);
 
-    let plaintext_bytes = cipher
-        .decrypt(nonce, ciphertext_bytes)
-        .map_err(|e| EncryptionError::DecryptionFailed(format!("AES-GCM decryption failed: {}", e)))?;
+    let plaintext_bytes = cipher.decrypt(nonce, ciphertext_bytes).map_err(|e| {
+        EncryptionError::DecryptionFailed(format!("AES-GCM decryption failed: {}", e))
+    })?;
 
-    String::from_utf8(plaintext_bytes)
-        .map_err(|e| EncryptionError::DecryptionFailed(format!("Invalid UTF-8 in plaintext: {}", e)))
+    String::from_utf8(plaintext_bytes).map_err(|e| {
+        EncryptionError::DecryptionFailed(format!("Invalid UTF-8 in plaintext: {}", e))
+    })
 }
 
 pub fn decrypt_with_fallback(
@@ -110,10 +120,12 @@ pub fn decrypt_with_fallback(
         Err(e) => {
             if let Some(prev_key) = previous_key {
                 log::info!("Current key failed, trying previous key for decryption");
-                decrypt_secret(ciphertext, prev_key)
-                    .map_err(|_| EncryptionError::DecryptionFailed(
-                        "Failed to decrypt with both current and previous keys".to_string()
-                    ))
+                decrypt_secret(ciphertext, prev_key).map_err(|_| {
+                    EncryptionError::DecryptionFailed(
+                        "Failed to decrypt with both current and previous keys"
+                            .to_string(),
+                    )
+                })
             } else {
                 Err(e)
             }
@@ -136,10 +148,10 @@ mod tests {
     fn test_encrypt_decrypt() {
         let key = generate_encryption_key();
         let plaintext = "my secret value";
-        
+
         let encrypted = encrypt_secret(plaintext, &key).unwrap();
         let decrypted = decrypt_secret(&encrypted, &key).unwrap();
-        
+
         assert_eq!(plaintext, decrypted);
     }
 
@@ -148,10 +160,10 @@ mod tests {
         let key1 = generate_encryption_key();
         let key2 = generate_encryption_key();
         let plaintext = "my secret";
-        
+
         let encrypted = encrypt_secret(plaintext, &key1).unwrap();
         let result = decrypt_secret(&encrypted, &key2);
-        
+
         assert!(result.is_err());
     }
 
@@ -160,10 +172,11 @@ mod tests {
         let old_key = generate_encryption_key();
         let new_key = generate_encryption_key();
         let plaintext = "my secret";
-        
+
         let encrypted = encrypt_secret(plaintext, &old_key).unwrap();
-        
-        let decrypted = decrypt_with_fallback(&encrypted, &new_key, Some(&old_key)).unwrap();
+
+        let decrypted =
+            decrypt_with_fallback(&encrypted, &new_key, Some(&old_key)).unwrap();
         assert_eq!(plaintext, decrypted);
     }
 }

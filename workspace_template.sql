@@ -683,7 +683,7 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-ALTER TABLE {replaceme}.experiment_groups 
+ALTER TABLE {replaceme}.experiment_groups
 ADD COLUMN IF NOT EXISTS group_type public.group_type DEFAULT 'USER_CREATED';
 
 ALTER TABLE {replaceme}.functions
@@ -700,10 +700,10 @@ ALTER TABLE {replaceme}.functions
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
 ALTER COLUMN created_at SET NOT NULL;
 
-ALTER TABLE {replaceme}.dimensions 
+ALTER TABLE {replaceme}.dimensions
 ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
 
-ALTER TABLE {replaceme}.dimensions 
+ALTER TABLE {replaceme}.dimensions
     DROP COLUMN IF EXISTS dependencies,
     DROP COLUMN IF EXISTS dependents;
 
@@ -882,6 +882,7 @@ DO $$ BEGIN
     END IF;
 END $$;
 
+-- Add audit trigger for the secrets table
 DO $$ BEGIN
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
