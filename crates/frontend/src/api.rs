@@ -17,6 +17,10 @@ use superposition_types::{
             FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
             KeyType, ListFunctionFilters, Stage,
         },
+        secrets::{
+            CreateSecretRequest, KeyRotationStatus, RotateKeyRequest, SecretResponse,
+            UpdateSecretRequest,
+        },
         variables::{CreateVariableRequest, UpdateVariableRequest},
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
         workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
@@ -26,7 +30,7 @@ use superposition_types::{
         cac::{Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-        others::{Variable, VariableName},
+        others::{SecretName, Variable, VariableName},
         ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
     },
     Config, PaginatedResponse,
@@ -1010,6 +1014,146 @@ pub mod variables {
         .await?;
 
         Ok(())
+    }
+}
+
+pub mod secrets {
+    use superposition_types::api::secrets::SecretFilters;
+
+    use super::*;
+
+    pub async fn fetch(
+        filters: &SecretFilters,
+        pagination_params: &PaginationParams,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<SecretResponse>, String> {
+        let host = get_host();
+        let url = format!(
+            "{host}/secrets?{}&{}",
+            filters.to_query_param(),
+            pagination_params.to_query_param()
+        );
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn create(
+        name: String,
+        value: String,
+        description: String,
+        change_reason: String,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let payload = CreateSecretRequest {
+            name: SecretName::try_from(name)?,
+            value,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+        };
+
+        let host = get_host();
+        let url = format!("{host}/secrets");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn get(
+        secret_name: &str,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let host = get_host();
+        let url = format!("{host}/secrets/{}", secret_name);
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update(
+        secret_name: String,
+        payload: UpdateSecretRequest,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let host = get_host();
+        let url = format!("{host}/secrets/{secret_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        secret_name: String,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = get_host();
+        let url = format!("{host}/secrets/{secret_name}");
+
+        request(
+            url,
+            reqwest::Method::DELETE,
+            None::<()>,
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn rotate_key(
+        change_reason: String,
+        tenant: &str,
+        org_id: &str,
+    ) -> Result<KeyRotationStatus, String> {
+        let payload = RotateKeyRequest {
+            change_reason: ChangeReason::try_from(change_reason)?,
+        };
+
+        let host = get_host();
+        let url = format!("{host}/secrets/rotate-key");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
     }
 }
 
