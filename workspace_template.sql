@@ -663,7 +663,7 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-ALTER TABLE {replaceme}.experiment_groups 
+ALTER TABLE {replaceme}.experiment_groups
 ADD COLUMN IF NOT EXISTS group_type public.group_type DEFAULT 'USER_CREATED';
 
 ALTER TABLE {replaceme}.functions
@@ -680,10 +680,10 @@ ALTER TABLE {replaceme}.functions
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
 ALTER COLUMN created_at SET NOT NULL;
 
-ALTER TABLE {replaceme}.dimensions 
+ALTER TABLE {replaceme}.dimensions
 ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
 
-ALTER TABLE {replaceme}.dimensions 
+ALTER TABLE {replaceme}.dimensions
     DROP COLUMN IF EXISTS dependencies,
     DROP COLUMN IF EXISTS dependents;
 
@@ -725,6 +725,7 @@ CREATE INDEX IF NOT EXISTS idx_secrets_created_at ON {replaceme}.secrets(created
 CREATE INDEX IF NOT EXISTS idx_secrets_last_modified_at ON {replaceme}.secrets(last_modified_at);
 CREATE INDEX IF NOT EXISTS idx_secrets_key_version ON {replaceme}.secrets(key_version);
 
+-- Add audit trigger for the secrets table
 DO $$ BEGIN
     CREATE TRIGGER secrets_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.secrets FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
 EXCEPTION
