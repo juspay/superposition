@@ -99,6 +99,8 @@ async fn create_workspace(
     let email = user.get_email();
     validate_workspace_name(&request.workspace_name)?;
     let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
+    let encryption_key = service_utils::encryption::generate_encryption_key();
+    
     let workspace = Workspace {
         organisation_id: org_info.id,
         organisation_name: org_info.name,
@@ -119,6 +121,9 @@ async fn create_workspace(
         metrics: request.metrics.unwrap_or_default(),
         allow_experiment_self_approval: request.allow_experiment_self_approval,
         auto_populate_control: request.auto_populate_control,
+        encryption_key: Some(encryption_key),
+        previous_encryption_key: None,
+        key_rotation_at: None,
     };
 
     let created_workspace =
