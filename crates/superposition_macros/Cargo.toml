@@ -1,5 +1,6 @@
 [package]
 name = "superposition_macros"
+description = "macros used in the superposition code-base"
 version.workspace = true
 edition = "2021"
 
