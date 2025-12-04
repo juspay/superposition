@@ -10,7 +10,7 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::functions::helpers::inject_variables_into_code;
+use crate::api::functions::helpers::inject_secrets_and_variables_into_code;
 
 static FUNCTION_ENV_VARIABLES: &str =
     "HTTP_PROXY,HTTPS_PROXY,HTTP_PROXY_HOST,HTTP_PROXY_PORT,NO_PROXY";
@@ -181,9 +181,9 @@ pub fn execute_fn(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
-    let code =
-        inject_variables_into_code(code_str, conn, schema_name).map_err(|err| {
-            let err_msg = format!("Failed to inject variables: {:?}", err);
+    let code = inject_secrets_and_variables_into_code(code_str, conn, schema_name)
+        .map_err(|err| {
+            let err_msg = format!("Failed to inject variables/secrets: {:?}", err);
             log::error!("{}", err_msg);
             (err_msg, None)
         })?;
