@@ -2,6 +2,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
     systems.url = "github:nix-systems/default";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
@@ -71,8 +72,10 @@
               leptosfmt
               wasm-pack
               yq
-              (callPackage gradle-packages.gradle_8 {
-                java = pkgs.jdk17;
+              (gradle-packages.mkGradle {
+                version = "8.14.3";
+                hash = "sha256-vXEQIhNJMGCVbsIp2Ua+7lcVjb2J0OYrkbyg+ixfNTE=";
+                defaultJava = jdk17;
               })
               jdk17
               uv
