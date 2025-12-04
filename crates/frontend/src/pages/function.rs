@@ -225,9 +225,9 @@ pub fn function_page() -> impl IntoView {
 
                             view! {
                                 <Tip
-                                    message="Reference variables using"
-                                    code_snippet="VARS.KEY_NAME"
-                                    example="VARS.API_KEY"
+                                    message="Reference variables/secrets using"
+                                    code_snippet="VARS.{VARIABLE_NAME} or SECRETS.{SECRET_NAME}"
+                                    example="VARS.FOO_VAR or SECRETS.API_KEY"
                                 />
 
                                 <FunctionCodeInfo
