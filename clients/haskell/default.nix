@@ -7,7 +7,7 @@
       self',
       ...
     }:
-    let hpkgs = pkgs.haskell.packages.ghc964;
+    let hpkgs = pkgs.haskell.packages.ghc96;
     in {
       haskellProjects.default = {
         imports = [
