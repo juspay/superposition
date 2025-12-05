@@ -1,5 +1,6 @@
 [package]
 name = "service_utils"
+description = "utility functions used across crates"
 version.workspace = true
 edition = "2021"
 

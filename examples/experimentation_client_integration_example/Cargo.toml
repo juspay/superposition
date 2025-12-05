@@ -1,5 +1,6 @@
 [package]
 name = "experimentation_example"
+description = "experimentation_example"
 version.workspace = true
 edition = "2021"
 

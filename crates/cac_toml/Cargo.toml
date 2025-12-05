@@ -1,5 +1,6 @@
 [package]
 name = "cac_toml"
+description = "cac_toml is a DSL built to help use context-aware-config concepts at the file level "
 version.workspace = true
 edition = "2021"
 

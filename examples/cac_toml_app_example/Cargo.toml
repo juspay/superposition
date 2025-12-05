@@ -1,5 +1,6 @@
 [package]
 name = "cac_toml_app_example"
+description = "cac_toml_app_example"
 version = "0.1.0"
 edition = "2021"
 
