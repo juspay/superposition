@@ -207,6 +207,11 @@ async fn main() -> Result<()> {
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(variables::endpoints())
                     )
+                    .service(
+                        web::scope("/secrets")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .service(secrets::endpoints())
+                    )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
                     // serve JS/WASM/CSS from `pkg`

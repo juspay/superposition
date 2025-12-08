@@ -278,6 +278,9 @@ pub struct Workspace {
     pub metrics: Metrics,
     pub allow_experiment_self_approval: bool,
     pub auto_populate_control: bool,
+    pub encryption_key: Option<String>,
+    pub previous_encryption_key: Option<String>,
+    pub key_rotation_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

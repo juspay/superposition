@@ -1,6 +1,6 @@
 use actix_web::{
     delete, get, patch, post,
-    web::{Json, Path},
+    web::{Data, Json, Path},
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
@@ -224,6 +224,7 @@ async fn test(
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
+    app_state: Data<service_utils::service::types::AppState>,
 ) -> superposition::Result<Json<FunctionExecutionResponse>> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
@@ -245,7 +246,7 @@ async fn test(
     };
 
     let result =
-        execute_fn(&code, &req, &mut conn, &schema_name).map_err(|(e, stdout)| {
+        execute_fn(&code, &req, &mut conn, &schema_name, &app_state).await.map_err(|(e, stdout)| {
             bad_argument!(
                 "Function failed with error: {}, stdout: {:?}",
                 e,

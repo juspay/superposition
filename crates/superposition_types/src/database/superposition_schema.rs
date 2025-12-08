@@ -59,6 +59,9 @@ pub mod superposition {
             metrics -> Json,
             allow_experiment_self_approval -> Bool,
             auto_populate_control -> Bool,
+            encryption_key -> Nullable<Text>,
+            previous_encryption_key -> Nullable<Text>,
+            key_rotation_at -> Nullable<Timestamptz>,
         }
     }
 

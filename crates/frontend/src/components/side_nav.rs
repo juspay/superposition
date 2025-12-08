@@ -59,6 +59,12 @@ fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
             label: "Variables".to_string(),
         },
         AppRoute {
+            key: format!("{base}/admin/{org}/{tenant}/secrets"),
+            path: format!("{base}/admin/{org}/{tenant}/secrets"),
+            icon: "ri-key-2-line".to_string(),
+            label: "Secrets".to_string(),
+        },
+        AppRoute {
             key: format!("{base}/admin/{org}/{tenant}/function"),
             path: format!("{base}/admin/{org}/{tenant}/function"),
             icon: "ri-code-box-fill".to_string(),

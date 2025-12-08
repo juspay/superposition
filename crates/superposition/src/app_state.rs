@@ -130,5 +130,6 @@ pub async fn get(
         ).await
         .into_iter()
         .collect(),
+        kms_client: kms_client.clone(),
     }
 }

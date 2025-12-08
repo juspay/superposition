@@ -52,6 +52,7 @@ pub struct AppState {
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
     pub encrypted_keys: HashMap<String, String>,
+    pub kms_client: Option<aws_sdk_kms::Client>,
 }
 
 impl FromStr for AppEnv {

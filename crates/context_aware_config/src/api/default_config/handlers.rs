@@ -36,10 +36,7 @@ use superposition_types::{
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
 use crate::{
-    api::{
-        context::helpers::validate_value_with_function,
-        functions::helpers::get_published_function_code,
-    },
+    api::functions::helpers::get_published_function_code,
     helpers::add_config_version,
 };
 
@@ -114,13 +111,15 @@ async fn create_default_config(
         ));
     }
 
+    // Perform async validation outside transaction
     validate_and_get_function_code(
         &mut conn,
         &default_config.function_name,
         &default_config.key,
         &default_config.value,
         &schema_name,
-    )?;
+        &state,
+    ).await?;
 
     validate_fn_published(
         &default_config.autocomplete_function_name,
@@ -235,7 +234,8 @@ async fn update_default_config(
             &key_str,
             &value,
             &schema_name,
-        )?
+            &state,
+        ).await?
     }
 
     if let Some(ref autocomplete_function_name) = req.autocomplete_function_name {
@@ -295,12 +295,13 @@ fn validate_fn_published(
     }
 }
 
-fn validate_and_get_function_code(
+async fn validate_and_get_function_code(
     conn: &mut DBConnection,
     function_name: &Option<String>,
     key: &str,
     value: &Value,
     schema_name: &SchemaName,
+    app_state: &AppState,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
         let function_code = get_published_function_code(conn, f_name, schema_name)
@@ -311,6 +312,7 @@ fn validate_and_get_function_code(
                 )
             })?;
         if let Some(f_code) = function_code {
+            use crate::api::context::helpers::validate_value_with_function;
             validate_value_with_function(
                 f_name.as_str(),
                 &f_code,
@@ -318,7 +320,8 @@ fn validate_and_get_function_code(
                 value,
                 conn,
                 schema_name,
-            )?;
+                app_state,
+            ).await?;
         }
     }
     Ok(())

@@ -103,10 +103,11 @@ fn validate_condition_with_dependent_dimensions(
     Ok(())
 }
 
-pub fn validate_condition_with_functions(
+pub async fn validate_condition_with_functions(
     conn: &mut DBConnection,
     context_map: &Map<String, Value>,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
@@ -134,7 +135,8 @@ pub fn validate_condition_with_functions(
                     value,
                     conn,
                     schema_name,
-                )?;
+                    app_state,
+                ).await?;
             }
         }
     }
@@ -192,10 +194,11 @@ pub fn validate_condition_with_strict_mode(
     Ok(())
 }
 
-pub fn validate_override_with_functions(
+pub async fn validate_override_with_functions(
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::default_configs
@@ -222,7 +225,8 @@ pub fn validate_override_with_functions(
                     value,
                     conn,
                     schema_name,
-                )?;
+                    app_state,
+                ).await?;
             }
         }
     }
@@ -262,13 +266,14 @@ fn get_functions_map(
     Ok(function_to_primitives_map)
 }
 
-pub fn validate_value_with_function(
+pub async fn validate_value_with_function(
     fun_name: &str,
     function: &FunctionCode,
     key: &String,
     value: &Value,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<()> {
     match execute_fn(
         function,
@@ -278,7 +283,8 @@ pub fn validate_value_with_function(
         },
         conn,
         schema_name,
-    ) {
+        app_state,
+    ).await {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
             log::error!(
@@ -328,23 +334,24 @@ pub fn query_description(
     Ok(existing_context.description)
 }
 
-pub fn create_ctx_from_put_req(
+pub async fn create_ctx_from_put_req(
     req: PutRequest,
     req_description: Description,
     conn: &mut DBConnection,
     user: &User,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone())?;
+    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone(), app_state).await?;
     let change_reason = req.change_reason.clone();
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_override_with_functions(conn, &r_override, schema_name)?;
+    validate_override_with_functions(conn, &r_override, schema_name, app_state).await?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
@@ -440,10 +447,11 @@ pub fn update_override_of_existing_ctx(
     db_update_override(conn, new_ctx, user, schema_name)
 }
 
-pub fn validate_ctx(
+pub async fn validate_ctx(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
     condition: Condition,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     let workspace_settings = get_workspace(schema_name, conn)?;
 
@@ -472,6 +480,6 @@ pub fn validate_ctx(
         &condition_val,
         &dimension_info_map,
     )?;
-    validate_condition_with_functions(conn, context_map, schema_name)?;
+    validate_condition_with_functions(conn, context_map, schema_name, app_state).await?;
     Ok(dimension_info_map)
 }
