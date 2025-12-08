@@ -69,6 +69,7 @@ pub struct UpdateSecretChangeset {
     pub change_reason: ChangeReason,
 }
 
+pub const MASKED_VALUE: &str = "••••••••";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecretResponse {
     pub name: String,
@@ -82,6 +83,22 @@ pub struct SecretResponse {
     pub last_modified_by: String,
 }
 
+impl From<crate::database::models::others::Secret> for SecretResponse {
+    fn from(secret: crate::database::models::others::Secret) -> Self {
+        Self {
+            name: secret.name.0,
+            value: MASKED_VALUE.to_string(),
+            key_version: secret.key_version,
+            description: secret.description,
+            change_reason: secret.change_reason,
+            created_at: secret.created_at,
+            last_modified_at: secret.last_modified_at,
+            created_by: secret.created_by,
+            last_modified_by: secret.last_modified_by,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RotateKeyRequest {
     pub change_reason: ChangeReason,
@@ -92,5 +109,15 @@ pub struct KeyRotationStatus {
     pub success: bool,
     pub secrets_re_encrypted: i64,
     pub rotation_timestamp: DateTime<Utc>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MasterKeyRotationStatus {
+    pub success: bool,
+    pub workspaces_rotated: i64,
+    pub total_workspaces: i64,
+    pub total_secrets_re_encrypted: i64,
+    pub rotation_timestamp: chrono::DateTime<chrono::Utc>,
     pub message: String,
 }

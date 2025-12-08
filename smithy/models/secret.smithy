@@ -10,7 +10,7 @@ resource Secret {
         name: String
     }
     properties: {
-        encrypted_value: String
+        value: String
         key_version: Integer
         description: String
         change_reason: String
@@ -25,7 +25,6 @@ resource Secret {
     delete: DeleteSecret
     operations: [
         CreateSecret
-        RotateWorkspaceKey
     ]
 }
 

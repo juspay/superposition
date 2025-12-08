@@ -136,7 +136,11 @@ pub fn workspace() -> impl IntoView {
                     <span class="cursor-pointer" on:click=edit_click_handler title="Edit Workspace">
                         <i class="ri-pencil-line ri-xl text-blue-500"></i>
                     </span>
-                    <span class="cursor-pointer" on:click=rotate_key_click_handler title="Rotate Encryption Key">
+                    <span
+                        class="cursor-pointer"
+                        on:click=rotate_key_click_handler
+                        title="Rotate Encryption Key"
+                    >
                         <i class="ri-key-2-line ri-xl text-yellow-600"></i>
                     </span>
                 </div>
@@ -301,11 +305,11 @@ pub fn workspace() -> impl IntoView {
             view! {
                 <KeyRotationModal
                     visible=show_key_rotation_modal_rs.get()
-                    on_close=move |_| show_key_rotation_modal_ws.set(false)
-                    on_success=move |_| {
+                    on_close=Callback::new(move |()| show_key_rotation_modal_ws.set(false))
+                    on_success=Callback::new(move |()| {
                         logging::log!("Key rotation completed successfully");
                         workspace_resource.refetch();
-                    }
+                    })
                     workspace_name=key_rotation_workspace_rs.get()
                     org_id=org_id.get().0
                 />

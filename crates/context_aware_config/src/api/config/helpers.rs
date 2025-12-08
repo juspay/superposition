@@ -236,6 +236,7 @@ pub fn resolve(
     conn: &mut DBConnection,
     query_filters: &ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
+    master_key: &secrecy::SecretString,
 ) -> superposition::Result<Map<String, Value>> {
     if let Some(context_id) = &query_filters.context_id {
         config.contexts = if let Some(index) = config
@@ -258,6 +259,7 @@ pub fn resolve(
             &query_data,
             conn,
             &workspace_context.schema_name,
+            master_key,
         )?);
     }
 

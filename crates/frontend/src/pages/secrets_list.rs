@@ -4,7 +4,7 @@ use leptos::*;
 use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
-use superposition_types::api::secrets::{SortOn, SecretFilters};
+use superposition_types::api::secrets::{SecretFilters, SortOn};
 use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
     SortBy,
@@ -14,6 +14,7 @@ use crate::api::secrets;
 use crate::components::{
     button::Button,
     drawer::PortalDrawer,
+    secret_form::SecretForm,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -23,13 +24,12 @@ use crate::components::{
         },
         Table,
     },
-    secret_form::SecretForm,
 };
 
 use filter::{FilterSummary, SecretFilterWidget};
 
 use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[derive(Clone)]
 enum Action {
@@ -136,7 +136,7 @@ fn secret_table_columns(
 
 #[component]
 pub fn secrets_list() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let filters_rws = use_signal_from_query(move |query_string| {
@@ -183,7 +183,7 @@ pub fn secrets_list() -> impl IntoView {
                     .data
                     .into_iter()
                     .map(|secret| {
-                        let mut ele_map = json!(secret).as_object().unwrap().to_owned();
+                        let mut ele_map = json!(secret).as_object().cloned().unwrap_or_default();
                         ele_map
                             .insert(
                                 "created_at".to_string(),
@@ -212,11 +212,7 @@ pub fn secrets_list() -> impl IntoView {
                 view! {
                     <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
-                            <Stat
-                                heading="Secrets"
-                                icon="ri-key-2-line"
-                                number=total_secrets
-                            />
+                            <Stat heading="Secrets" icon="ri-key-2-line" number=total_secrets />
                             <div class="flex items-end gap-4">
                                 <SecretFilterWidget filters_rws pagination_params_rws />
                                 <Button
@@ -233,10 +229,7 @@ pub fn secrets_list() -> impl IntoView {
                                     class="!overflow-y-auto"
                                     rows=table_rows
                                     key_column="name"
-                                    columns=secret_table_columns(
-                                        filters_rws,
-                                        pagination_params_rws,
-                                    )
+                                    columns=secret_table_columns(filters_rws, pagination_params_rws)
                                     pagination=pagination_props
                                 />
                             </div>

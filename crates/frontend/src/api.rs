@@ -1028,7 +1028,7 @@ pub mod secrets {
         tenant: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<SecretResponse>, String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!(
             "{host}/secrets?{}&{}",
             filters.to_query_param(),
@@ -1061,7 +1061,7 @@ pub mod secrets {
             change_reason: ChangeReason::try_from(change_reason)?,
         };
 
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/secrets");
 
         let response = request(
@@ -1080,7 +1080,7 @@ pub mod secrets {
         tenant: &str,
         org_id: &str,
     ) -> Result<SecretResponse, String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/secrets/{}", secret_name);
 
         let response = request(
@@ -1100,7 +1100,7 @@ pub mod secrets {
         tenant: &str,
         org_id: &str,
     ) -> Result<SecretResponse, String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/secrets/{secret_name}");
 
         let response = request(
@@ -1119,7 +1119,7 @@ pub mod secrets {
         tenant: &str,
         org_id: &str,
     ) -> Result<(), String> {
-        let host = get_host();
+        let host = use_host_server();
         let url = format!("{host}/secrets/{secret_name}");
 
         request(
@@ -1142,8 +1142,8 @@ pub mod secrets {
             change_reason: ChangeReason::try_from(change_reason)?,
         };
 
-        let host = get_host();
-        let url = format!("{host}/secrets/rotate-key");
+        let host = use_host_server();
+        let url = format!("{host}/secrets/rotate-workspace-key");
 
         let response = request(
             url,

@@ -81,8 +81,8 @@ pub fn filter_summary(filters_rws: RwSignal<SecretFilters>) -> impl IntoView {
                                             <div class="flex gap-2 items-center">
                                                 <span class="text-xs">"Name"</span>
                                                 <GrayPill
-                                                    text=name.clone()
-                                                    on_delete=move |_| {
+                                                    data=name.clone()
+                                                    on_delete=move |_: String| {
                                                         filters_rws
                                                             .update(|f| { f.name = filter_index(&f.name, idx) });
                                                     }
@@ -107,7 +107,7 @@ pub fn filter_summary(filters_rws: RwSignal<SecretFilters>) -> impl IntoView {
                                             <div class="flex gap-2 items-center">
                                                 <span class="text-xs">"Created By"</span>
                                                 <GrayPill
-                                                    text=created_by.clone()
+                                                    data=created_by.clone()
                                                     on_delete=move |_| {
                                                         filters_rws
                                                             .update(|f| {
@@ -135,7 +135,7 @@ pub fn filter_summary(filters_rws: RwSignal<SecretFilters>) -> impl IntoView {
                                             <div class="flex gap-2 items-center">
                                                 <span class="text-xs">"Modified By"</span>
                                                 <GrayPill
-                                                    text=last_modified_by.clone()
+                                                    data=last_modified_by.clone()
                                                     on_delete=move |_| {
                                                         filters_rws
                                                             .update(|f| {

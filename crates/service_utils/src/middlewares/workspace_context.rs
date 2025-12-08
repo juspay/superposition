@@ -142,6 +142,7 @@ where
                 req.extensions_mut().insert(schema_name.clone());
                 req.extensions_mut().insert(workspace_id.clone());
                 req.extensions_mut().insert(organisation.clone());
+
                 req.extensions_mut().insert(WorkspaceContext {
                     organisation_id: organisation,
                     workspace_id,

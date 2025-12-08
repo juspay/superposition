@@ -71,8 +71,12 @@ async fn create_handler(
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    validate_change_reason(&create_req.change_reason, &mut conn, &schema_name)?;
-
+    validate_change_reason(
+        &create_req.change_reason,
+        &mut conn,
+        &schema_name,
+        &state.master_key,
+    )?;
     let num_rows = dimensions
         .count()
         .schema_name(&schema_name)
@@ -274,7 +278,12 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let update_req = req.into_inner();
 
-    validate_change_reason(&update_req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &update_req.change_reason,
+        &mut conn,
+        &schema_name,
+        &state.master_key,
+    )?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))

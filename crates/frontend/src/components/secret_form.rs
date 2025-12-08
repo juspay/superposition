@@ -20,7 +20,7 @@ use crate::{
     },
     providers::alert_provider::enqueue_alert,
     schema::{JsonSchemaType, SchemaType::Single},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[derive(Clone, Debug)]
@@ -49,7 +49,7 @@ pub fn secret_form(
     #[prop(default = String::new())] description: String,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (name_rs, name_ws) = create_signal(secret_name.clone());
@@ -229,7 +229,7 @@ pub fn change_log_summary(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let secret = create_local_resource(
@@ -281,7 +281,7 @@ pub fn change_log_summary(
                 {move || match secret.get() {
                     Some(Ok(sec)) => {
                         let (old_values, new_values) = match change_type.get_value() {
-                            ChangeType::Update(update_request) => {
+                            ChangeType::Update(_update_request) => {
                                 (
                                     Map::from_iter(
                                         vec![

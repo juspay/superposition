@@ -1,5 +1,6 @@
 use actix_web::web::Json;
 use chrono::Utc;
+
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
@@ -30,6 +31,7 @@ use super::{
     validations::validate_override_with_default_configs,
 };
 
+#[allow(clippy::too_many_arguments)]
 pub fn upsert(
     req: PutRequest,
     description: Description,
@@ -38,9 +40,12 @@ pub fn upsert(
     user: &User,
     schema_name: &SchemaName,
     replace: bool,
+    master_key: &secrecy::SecretString,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, description, conn, user, schema_name)?;
+
+    let new_ctx =
+        create_ctx_from_put_req(req, description, conn, user, schema_name, master_key)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -75,6 +80,7 @@ pub fn update(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
     schema_name: &SchemaName,
+    master_key: &secrecy::SecretString,
 ) -> result::Result<Context> {
     let (context_id, context) = match req.context {
         Identifier::Context(context) => {
@@ -94,7 +100,13 @@ pub fn update(
     let ctx_override = Value::Object(r_override.clone().into());
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_override_with_functions(conn, &r_override, &context, schema_name)?;
+    validate_override_with_functions(
+        conn,
+        &r_override,
+        &context,
+        schema_name,
+        master_key,
+    )?;
 
     let update_request = UpdateContextOverridesChangeset {
         override_id: hash(&ctx_override),
@@ -114,6 +126,7 @@ pub fn update(
         .map_err(|e| db_error!(e))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn r#move(
     old_ctx_id: String,
     req: Json<MoveRequest>,
@@ -122,6 +135,7 @@ pub fn r#move(
     already_under_txn: bool,
     user: &User,
     schema_name: &SchemaName,
+    master_key: &secrecy::SecretString,
 ) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -136,6 +150,7 @@ pub fn r#move(
         schema_name,
         ctx_condition.clone(),
         Overrides::default(),
+        master_key,
     )?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;

@@ -91,7 +91,12 @@ async fn create_handler(
     };
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name)?;
+    validate_change_reason(
+        &req_change_reason,
+        &mut db_conn,
+        &schema_name,
+        &state.master_key,
+    )?;
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -103,6 +108,7 @@ async fn create_handler(
                 &user,
                 &schema_name,
                 false,
+                &state.master_key,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context put failed with error: {:?}", err);
@@ -150,7 +156,12 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name)?;
+    validate_change_reason(
+        &req_change_reason,
+        &mut db_conn,
+        &schema_name,
+        &state.master_key,
+    )?;
 
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -159,6 +170,7 @@ async fn update_handler(
                 transaction_conn,
                 &user,
                 &schema_name,
+                &state.master_key,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context update failed with error: {:?}", err);
@@ -213,7 +225,12 @@ async fn move_handler(
         )?,
     };
 
-    validate_change_reason(&req.change_reason, &mut db_conn, &schema_name)?;
+    validate_change_reason(
+        &req.change_reason,
+        &mut db_conn,
+        &schema_name,
+        &state.master_key,
+    )?;
 
     let (move_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -225,6 +242,7 @@ async fn move_handler(
                 true,
                 &user,
                 &schema_name,
+                &state.master_key,
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -509,6 +527,7 @@ async fn bulk_operations_handler(
                             &put_req.change_reason,
                             transaction_conn,
                             &schema_name,
+                            &state.master_key,
                         )?;
 
                         let description = if put_req.description.is_none() {
@@ -532,6 +551,7 @@ async fn bulk_operations_handler(
                             &user,
                             &schema_name,
                             false,
+                            &state.master_key,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -552,6 +572,7 @@ async fn bulk_operations_handler(
                             transaction_conn,
                             &user,
                             &schema_name,
+                            &state.master_key,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -628,6 +649,7 @@ async fn bulk_operations_handler(
                             true,
                             &user,
                             &schema_name,
+                            &state.master_key,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -765,15 +787,19 @@ async fn validate_handler(
     db_conn: DbConnection,
     schema_name: SchemaName,
     request: Json<ContextValidationRequest>,
+    app_state: Data<service_utils::service::types::AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
+    let master_key = &app_state.master_key;
+
     validate_ctx(
         &mut conn,
         &schema_name,
         ctx_condition.clone(),
         Overrides::default(),
+        &master_key,
     )?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())

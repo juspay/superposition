@@ -24,6 +24,7 @@ use crate::components::{
     description::ContentDescription,
     function_form::{FunctionEditor, Mode},
     skeleton::{Skeleton, SkeletonVariant},
+    tip::Tip,
 };
 use crate::query_updater::{
     use_param_updater, use_signal_from_query, use_update_url_query,

@@ -4,6 +4,10 @@ use aes_gcm::{
 };
 use base64::{engine::general_purpose, Engine};
 use rand::RngCore;
+use secrecy::ExposeSecret;
+
+use crate::helpers::get_from_env_or_default;
+use crate::service::types::AppEnv;
 
 const NONCE_SIZE: usize = 12;
 
@@ -47,8 +51,7 @@ pub fn encrypt_secret(plaintext: &str, key: &str) -> Result<String, EncryptionEr
 
     if key_bytes.len() != 32 {
         return Err(EncryptionError::InvalidKey(format!(
-            "Key {} must be 32 bytes, got {}",
-            key,
+            "Key must be 32 bytes, got {}",
             key_bytes.len()
         )));
     }
@@ -113,14 +116,14 @@ pub fn decrypt_secret(ciphertext: &str, key: &str) -> Result<String, EncryptionE
 pub fn decrypt_with_fallback(
     ciphertext: &str,
     current_key: &str,
-    previous_key: Option<&str>,
+    previous_key: Option<&secrecy::SecretString>,
 ) -> Result<String, EncryptionError> {
     match decrypt_secret(ciphertext, current_key) {
         Ok(plaintext) => Ok(plaintext),
         Err(e) => {
             if let Some(prev_key) = previous_key {
                 log::info!("Current key failed, trying previous key for decryption");
-                decrypt_secret(ciphertext, prev_key).map_err(|_| {
+                decrypt_secret(ciphertext, prev_key.expose_secret()).map_err(|_| {
                     EncryptionError::DecryptionFailed(
                         "Failed to decrypt with both current and previous keys"
                             .to_string(),
@@ -175,8 +178,67 @@ mod tests {
 
         let encrypted = encrypt_secret(plaintext, &old_key).unwrap();
 
-        let decrypted =
-            decrypt_with_fallback(&encrypted, &new_key, Some(&old_key)).unwrap();
+        let decrypted = decrypt_with_fallback(
+            &encrypted,
+            &new_key,
+            Some(&secrecy::SecretString::from(old_key)),
+        )
+        .unwrap();
         assert_eq!(plaintext, decrypted);
+    }
+}
+
+pub fn encrypt_workspace_key(
+    workspace_key: &str,
+    master_key: &secrecy::SecretString,
+) -> Result<String, EncryptionError> {
+    encrypt_secret(workspace_key, master_key.expose_secret())
+}
+
+pub fn decrypt_workspace_key(
+    encrypted_workspace_key: &str,
+    master_key: &secrecy::SecretString,
+) -> Result<String, EncryptionError> {
+    decrypt_secret(encrypted_workspace_key, master_key.expose_secret())
+}
+
+pub async fn get_master_encryption_keys(
+    kms_client: &Option<aws_sdk_kms::Client>,
+    app_env: &AppEnv,
+) -> Result<(String, String), EncryptionError> {
+    match app_env {
+        AppEnv::DEV | AppEnv::TEST => {
+            let env_key = std::env::var("MASTER_ENCRYPTION_KEY").ok();
+            if env_key.is_none() {
+                log::warn!(
+                    r"MASTER_ENCRYPTION_KEY not set - generating random key. \ Previously encrypted secrets will be unrecoverable after restart!"
+                );
+            }
+            let master_key = get_from_env_or_default(
+                "MASTER_ENCRYPTION_KEY",
+                generate_encryption_key(),
+            );
+            let previous_master_key = get_from_env_or_default(
+                "PREVIOUS_MASTER_ENCRYPTION_KEY",
+                generate_encryption_key(),
+            );
+
+            Ok((master_key, previous_master_key))
+        }
+        _ => {
+            let kms_client = kms_client.as_ref().ok_or_else(|| {
+                EncryptionError::EncryptionFailed("KMS client not available".to_string())
+            })?;
+            let decrypted_master_key =
+                crate::aws::kms::decrypt(kms_client.clone(), "MASTER_ENCRYPTION_KEY")
+                    .await;
+            let decrypted_previous_master_key = crate::aws::kms::decrypt(
+                kms_client.clone(),
+                "PREVIOUS_MASTER_ENCRYPTION_KEY",
+            )
+            .await;
+
+            Ok((decrypted_master_key, decrypted_previous_master_key))
+        }
     }
 }

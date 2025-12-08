@@ -10,11 +10,11 @@ use crate::components::{
     button::Button,
     description::ContentDescription,
     drawer::PortalDrawer,
-    skeleton::{Skeleton, SkeletonVariant},
     secret_form::{ChangeLogSummary, ChangeType, SecretForm},
+    skeleton::{Skeleton, SkeletonVariant},
 };
 use crate::providers::alert_provider::enqueue_alert;
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[component]
 fn secret_info(secret: SecretResponse) -> impl IntoView {
@@ -44,7 +44,7 @@ enum Action {
 
 #[component]
 pub fn secret() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();
     let secret_name = Signal::derive(move || {
@@ -56,8 +56,8 @@ pub fn secret() -> impl IntoView {
 
     let secret_resource = create_blocking_resource(
         move || (secret_name.get(), workspace.get().0, org.get().0),
-        |(sec_name, tenant, org_id)| async move {
-            secrets::get(&sec_name, &tenant, &org_id).await.ok()
+        |(sec_name, workspace, org_id)| async move {
+            secrets::get(&sec_name, &workspace, &org_id).await.ok()
         },
     );
 
@@ -76,11 +76,8 @@ pub fn secret() -> impl IntoView {
                 Ok(_) => {
                     logging::log!("Secret deleted successfully");
                     let navigate = use_navigate();
-                    let redirect_url = format!(
-                        "/admin/{}/{}/secrets",
-                        org.get().0,
-                        workspace.get().0,
-                    );
+                    let redirect_url =
+                        format!("/admin/{}/{}/secrets", org.get().0, workspace.get().0,);
                     navigate(&redirect_url, Default::default());
                     enqueue_alert(
                         String::from("Secret deleted successfully"),
