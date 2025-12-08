@@ -7,9 +7,9 @@ use superposition_types::{
 use web_sys::MouseEvent;
 
 use crate::components::{
-    badge::GrayPill,
+    badge::ListPills,
     button::{Button, ButtonStyle},
-    drawer::{close_drawer, Drawer, DrawerBtn},
+    drawer::{Drawer, DrawerBtn, close_drawer},
     form::label::Label,
 };
 
@@ -67,88 +67,37 @@ pub fn filter_summary(filters_rws: RwSignal<SecretFilters>) -> impl IntoView {
                         if force_open_rws.get() { "max-h-[1000px]" } else { "max-h-0" },
                     )
                 }>
-                    {move || {
-                        filters_rws
-                            .with(|f| f.name.clone())
-                            .into_iter()
-                            .flat_map(|names| {
-                                names
-                                    .0
-                                    .into_iter()
-                                    .enumerate()
-                                    .map(|(idx, name)| {
-                                        view! {
-                                            <div class="flex gap-2 items-center">
-                                                <span class="text-xs">"Name"</span>
-                                                <GrayPill
-                                                    text=name.clone()
-                                                    on_delete=move |_| {
-                                                        filters_rws
-                                                            .update(|f| { f.name = filter_index(&f.name, idx) });
-                                                    }
-                                                />
-                                            </div>
-                                        }
-                                    })
+                    <ListPills
+                        label="Name"
+                        items=filters_rws
+                            .with(|f| { f.name.as_ref().map(|p| p.0.clone()).unwrap_or_default() })
+                        on_delete=move |idx| {
+                            filters_rws.update(|f| f.name = filter_index(&f.name, idx))
+                        }
+                    />
+                    <ListPills
+                        label="Created By"
+                        items=filters_rws
+                            .with(|f| {
+                                f.created_by.as_ref().map(|p| p.0.clone()).unwrap_or_default()
                             })
-                            .collect::<Vec<_>>()
-                    }}
-                    {move || {
-                        filters_rws
-                            .with(|f| f.created_by.clone())
-                            .into_iter()
-                            .flat_map(|created_bys| {
-                                created_bys
-                                    .0
-                                    .into_iter()
-                                    .enumerate()
-                                    .map(|(idx, created_by)| {
-                                        view! {
-                                            <div class="flex gap-2 items-center">
-                                                <span class="text-xs">"Created By"</span>
-                                                <GrayPill
-                                                    text=created_by.clone()
-                                                    on_delete=move |_| {
-                                                        filters_rws
-                                                            .update(|f| {
-                                                                f.created_by = filter_index(&f.created_by, idx)
-                                                            });
-                                                    }
-                                                />
-                                            </div>
-                                        }
-                                    })
+                        on_delete=move |idx| {
+                            filters_rws.update(|f| f.created_by = filter_index(&f.created_by, idx))
+                        }
+                    />
+                    <ListPills
+                        label="Modified By"
+                        items=filters_rws
+                            .with(|f| {
+                                f.last_modified_by.as_ref().map(|p| p.0.clone()).unwrap_or_default()
                             })
-                            .collect::<Vec<_>>()
-                    }}
-                    {move || {
-                        filters_rws
-                            .with(|f| f.last_modified_by.clone())
-                            .into_iter()
-                            .flat_map(|last_modified_bys| {
-                                last_modified_bys
-                                    .0
-                                    .into_iter()
-                                    .enumerate()
-                                    .map(|(idx, last_modified_by)| {
-                                        view! {
-                                            <div class="flex gap-2 items-center">
-                                                <span class="text-xs">"Modified By"</span>
-                                                <GrayPill
-                                                    text=last_modified_by.clone()
-                                                    on_delete=move |_| {
-                                                        filters_rws
-                                                            .update(|f| {
-                                                                f.last_modified_by = filter_index(&f.last_modified_by, idx)
-                                                            });
-                                                    }
-                                                />
-                                            </div>
-                                        }
-                                    })
-                            })
-                            .collect::<Vec<_>>()
-                    }}
+                        on_delete=move |idx| {
+                            filters_rws
+                                .update(|f| {
+                                    f.last_modified_by = filter_index(&f.last_modified_by, idx);
+                                })
+                        }
+                    />
                 </div>
             </div>
         </Show>

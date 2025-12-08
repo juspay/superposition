@@ -1,18 +1,14 @@
-#[cfg(feature = "diesel_derives")]
-use diesel::query_builder::AsChangeset;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum_macros;
 use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::custom_query::{CommaSeparatedStringQParams, QueryParam};
 use crate::database::models::{
-    others::SecretName,
+    others::{Secret, SecretName},
     {ChangeReason, Description},
 };
-#[cfg(feature = "diesel_derives")]
-use crate::database::schema::secrets;
 use crate::{IsEmpty, SortBy};
-use chrono::{DateTime, Utc};
 
 #[derive(
     Debug,
@@ -60,26 +56,29 @@ pub struct UpdateSecretRequest {
     pub change_reason: ChangeReason,
 }
 
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
-#[cfg_attr(feature = "diesel_derives", diesel(table_name = secrets))]
-pub struct UpdateSecretChangeset {
-    pub encrypted_value: Option<String>,
-    pub description: Option<Description>,
-    pub change_reason: ChangeReason,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecretResponse {
     pub name: String,
-    pub value: String,
-    pub key_version: i32,
     pub description: Description,
     pub change_reason: ChangeReason,
     pub created_at: DateTime<Utc>,
     pub last_modified_at: DateTime<Utc>,
     pub created_by: String,
     pub last_modified_by: String,
+}
+
+impl From<Secret> for SecretResponse {
+    fn from(secret: Secret) -> Self {
+        Self {
+            name: secret.name.0,
+            description: secret.description,
+            change_reason: secret.change_reason,
+            created_at: secret.created_at,
+            last_modified_at: secret.last_modified_at,
+            created_by: secret.created_by,
+            last_modified_by: secret.last_modified_by,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,8 +88,21 @@ pub struct RotateKeyRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeyRotationStatus {
-    pub success: bool,
     pub secrets_re_encrypted: i64,
     pub rotation_timestamp: DateTime<Utc>,
-    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MasterKeyRotationStatus {
+    pub workspaces_rotated: i64,
+    pub total_workspaces: i64,
+    pub total_secrets_re_encrypted: i64,
+    pub rotation_timestamp: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GenerateMasterKeyResponse {
+    pub master_key: String,
+    pub instructions: String,
+    pub warning: String,
 }

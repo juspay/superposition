@@ -20,7 +20,6 @@ env_logger = "0.8"
 experimentation_platform = { path = "../experimentation_platform" }
 fred = { workspace = true, optional = true }
 frontend = { path = "../frontend" }
-futures-util = { workspace = true }
 idgenerator = "2.0.0"
 leptos = { workspace = true }
 leptos_actix = { version = "0.6.11" }
@@ -28,6 +27,7 @@ log = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
+secrecy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { workspace = true }

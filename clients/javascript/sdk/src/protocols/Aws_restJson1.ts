@@ -44,6 +44,10 @@ import {
   CreateOrganisationCommandOutput,
 } from "../commands/CreateOrganisationCommand";
 import {
+  CreateSecretCommandInput,
+  CreateSecretCommandOutput,
+} from "../commands/CreateSecretCommand";
+import {
   CreateTypeTemplatesCommandInput,
   CreateTypeTemplatesCommandOutput,
 } from "../commands/CreateTypeTemplatesCommand";
@@ -79,6 +83,10 @@ import {
   DeleteFunctionCommandInput,
   DeleteFunctionCommandOutput,
 } from "../commands/DeleteFunctionCommand";
+import {
+  DeleteSecretCommandInput,
+  DeleteSecretCommandOutput,
+} from "../commands/DeleteSecretCommand";
 import {
   DeleteTypeTemplatesCommandInput,
   DeleteTypeTemplatesCommandOutput,
@@ -144,6 +152,10 @@ import {
   GetResolvedConfigWithIdentifierCommandOutput,
 } from "../commands/GetResolvedConfigWithIdentifierCommand";
 import {
+  GetSecretCommandInput,
+  GetSecretCommandOutput,
+} from "../commands/GetSecretCommand";
+import {
   GetTypeTemplateCommandInput,
   GetTypeTemplateCommandOutput,
 } from "../commands/GetTypeTemplateCommand";
@@ -203,6 +215,10 @@ import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "../commands/ListOrganisationCommand";
+import {
+  ListSecretsCommandInput,
+  ListSecretsCommandOutput,
+} from "../commands/ListSecretsCommand";
 import {
   ListVariablesCommandInput,
   ListVariablesCommandOutput,
@@ -280,6 +296,10 @@ import {
   UpdateOverridesExperimentCommandOutput,
 } from "../commands/UpdateOverridesExperimentCommand";
 import {
+  UpdateSecretCommandInput,
+  UpdateSecretCommandOutput,
+} from "../commands/UpdateSecretCommand";
+import {
   UpdateTypeTemplatesCommandInput,
   UpdateTypeTemplatesCommandOutput,
 } from "../commands/UpdateTypeTemplatesCommand";
@@ -329,6 +349,7 @@ import {
   ListVersionsMember,
   OrganisationResponse,
   ResourceNotFound,
+  SecretResponse,
   TypeTemplatesResponse,
   Unit,
   UpdateContextOverrideRequest,
@@ -687,6 +708,33 @@ export const se_CreateOrganisationCommand = async(
 }
 
 /**
+ * serializeAws_restJson1CreateSecretCommand
+ */
+export const se_CreateSecretCommand = async(
+  input: CreateSecretCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/secrets");
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'description': [],
+    'name': [],
+    'value': [],
+  }));
+  b.m("POST")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1CreateTypeTemplatesCommand
  */
 export const se_CreateTypeTemplatesCommand = async(
@@ -901,6 +949,27 @@ export const se_DeleteFunctionCommand = async(
   });
   b.bp("/function/{function_name}");
   b.p('function_name', () => input.function_name!, '{function_name}', false)
+  let body: any;
+  b.m("DELETE")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1DeleteSecretCommand
+ */
+export const se_DeleteSecretCommand = async(
+  input: DeleteSecretCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/secrets/{name}");
+  b.p('name', () => input.name!, '{name}', false)
   let body: any;
   b.m("DELETE")
   .h(headers)
@@ -1287,6 +1356,27 @@ export const se_GetResolvedConfigWithIdentifierCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetSecretCommand
+ */
+export const se_GetSecretCommand = async(
+  input: GetSecretCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/secrets/{name}");
+  b.p('name', () => input.name!, '{name}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1GetTypeTemplateCommand
  */
 export const se_GetTypeTemplateCommand = async(
@@ -1666,6 +1756,37 @@ export const se_ListOrganisationCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+  });
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ListSecretsCommand
+ */
+export const se_ListSecretsCommand = async(
+  input: ListSecretsCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/secrets");
+  const query: any = map({
+    [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+    [_n]: [,input[_n]!],
+    [_cb]: [,input[_cb]!],
+    [_lmb]: [,input[_lmb]!],
+    [_so]: [,input[_so]!],
+    [_sb]: [,input[_sb]!],
   });
   let body: any;
   b.m("GET")
@@ -2190,6 +2311,33 @@ export const se_UpdateOverridesExperimentCommand = async(
 }
 
 /**
+ * serializeAws_restJson1UpdateSecretCommand
+ */
+export const se_UpdateSecretCommand = async(
+  input: UpdateSecretCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/secrets/{name}");
+  b.p('name', () => input.name!, '{name}', false)
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'change_reason': [],
+    'description': [],
+    'value': [],
+  }));
+  b.m("PATCH")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1UpdateTypeTemplatesCommand
  */
 export const se_UpdateTypeTemplatesCommand = async(
@@ -2705,6 +2853,33 @@ export const de_CreateOrganisationCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1CreateSecretCommand
+ */
+export const de_CreateSecretCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<CreateSecretCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1CreateTypeTemplatesCommand
  */
 export const de_CreateTypeTemplatesCommand = async(
@@ -2931,6 +3106,33 @@ export const de_DeleteFunctionCommand = async(
     $metadata: deserializeMetadata(output),
   });
   await collectBody(output.body, context);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1DeleteSecretCommand
+ */
+export const de_DeleteSecretCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<DeleteSecretCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+  });
+  Object.assign(contents, doc);
   return contents;
 }
 
@@ -3408,6 +3610,33 @@ export const de_GetResolvedConfigWithIdentifierCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1GetSecretCommand
+ */
+export const de_GetSecretCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetSecretCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1GetTypeTemplateCommand
  */
 export const de_GetTypeTemplateCommand = async(
@@ -3796,6 +4025,29 @@ export const de_ListOrganisationCommand = async(
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'data': _ => de_OrganisationList(_, context),
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1ListSecretsCommand
+ */
+export const de_ListSecretsCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ListSecretsCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'data': _ => de_SecretList(_, context),
     'total_items': __expectInt32,
     'total_pages': __expectInt32,
   });
@@ -4405,6 +4657,33 @@ export const de_UpdateOverridesExperimentCommand = async(
     'status': __expectString,
     'traffic_percentage': __expectInt32,
     'variants': _ => de_ListVariant(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1UpdateSecretCommand
+ */
+export const de_UpdateSecretCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<UpdateSecretCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'change_reason': __expectString,
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'created_by': __expectString,
+    'description': __expectString,
+    'last_modified_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'last_modified_by': __expectString,
+    'name': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -5476,6 +5755,37 @@ const de_CommandError = async(
     }, {} as Record<string, Record<string, __DocumentType>>);}
 
   // de_OverrideWithKeys omitted.
+
+  /**
+   * deserializeAws_restJson1SecretList
+   */
+  const de_SecretList = (
+    output: any,
+    context: __SerdeContext
+  ): (SecretResponse)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_SecretResponse(entry, context);
+    });
+    return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1SecretResponse
+   */
+  const de_SecretResponse = (
+    output: any,
+    context: __SerdeContext
+  ): SecretResponse => {
+    return take(output, {
+      'change_reason': __expectString,
+      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'created_by': __expectString,
+      'description': __expectString,
+      'last_modified_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'last_modified_by': __expectString,
+      'name': __expectString,
+    }) as any;
+  }
 
   // de_StringList omitted.
 

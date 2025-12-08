@@ -262,7 +262,6 @@ impl From<&SecretName> for String {
 pub struct Secret {
     pub name: SecretName,
     pub encrypted_value: String,
-    pub key_version: i32,
     pub description: Description,
     pub change_reason: ChangeReason,
     pub created_at: DateTime<Utc>,

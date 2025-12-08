@@ -392,6 +392,7 @@ async fn create_handler(
             &workspace_context,
             WebhookEvent::ExperimentCreated,
             &state,
+            &mut conn,
         )
         .await
     } else {
@@ -458,6 +459,7 @@ async fn conclude_handler(
             &workspace_context,
             WebhookEvent::ExperimentConcluded,
             &state,
+            &mut conn,
         )
         .await
     } else {
@@ -739,6 +741,7 @@ async fn discard_handler(
             &workspace_context,
             WebhookEvent::ExperimentDiscarded,
             &state,
+            &mut conn,
         )
         .await
     } else {
@@ -1336,6 +1339,7 @@ async fn ramp_handler(
             &workspace_context,
             webhook_event,
             &state,
+            &mut conn,
         )
         .await
     } else {
@@ -1688,6 +1692,7 @@ async fn update_handler(
             &workspace_context,
             WebhookEvent::ExperimentUpdated,
             &state,
+            &mut conn,
         )
         .await
     } else {
@@ -1750,6 +1755,7 @@ async fn pause_handler(
             &workspace_context,
             WebhookEvent::ExperimentPaused,
             &state,
+            &mut conn,
         )
         .await
     } else {
@@ -1848,6 +1854,7 @@ async fn resume_handler(
             &workspace_context,
             WebhookEvent::ExperimentInprogress,
             &state,
+            &mut conn,
         )
         .await
     } else {

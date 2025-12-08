@@ -18,7 +18,7 @@ use service_utils::{
     helpers::generate_snowflake_id,
     service::types::{AppState, SchemaName, WorkspaceContext},
 };
-use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
@@ -287,6 +287,7 @@ pub async fn put_config_in_redis(
 
 #[allow(clippy::too_many_arguments)]
 fn compute_value_with_function(
+    workspace_context: &WorkspaceContext,
     fun_name: &str,
     function: &FunctionCode,
     key: &str,
@@ -294,9 +295,10 @@ fn compute_value_with_function(
     overrides: Map<String, Value>,
     runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
+    master_key: Option<&secrecy::SecretString>,
 ) -> superposition::Result<Value> {
     match execute_fn(
+        workspace_context,
         function,
         &FunctionExecutionRequest::ValueComputeFunctionRequest {
             name: key.to_string(),
@@ -306,7 +308,7 @@ fn compute_value_with_function(
         },
         runtime_version,
         conn,
-        schema_name,
+        master_key,
     ) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
@@ -346,7 +348,8 @@ fn evaluate_remote_cohorts_dependency(
     dimensions: &HashMap<String, DimensionInfo>,
     modified_context: &mut Map<String, Value>,
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
+    workspace_context: &WorkspaceContext,
+    master_key: Option<&secrecy::SecretString>,
 ) -> superposition::Result<()> {
     let mut stack = dependency_graph
         .get(dimension)
@@ -378,7 +381,7 @@ fn evaluate_remote_cohorts_dependency(
                 conn,
                 value_compute_function_name_,
                 FunctionType::ValueCompute,
-                schema_name,
+                &workspace_context.schema_name,
             )?;
 
             let fn_code = published_code.ok_or_else(|| {
@@ -397,6 +400,7 @@ fn evaluate_remote_cohorts_dependency(
                 })?;
 
             let value = compute_value_with_function(
+                workspace_context,
                 value_compute_function_name_,
                 &fn_code,
                 based_on,
@@ -404,7 +408,7 @@ fn evaluate_remote_cohorts_dependency(
                 Map::new(),
                 published_runtime_version,
                 conn,
-                schema_name,
+                master_key,
             )?;
 
             modified_context.insert(cohort_dimension.clone(), value);
@@ -436,7 +440,8 @@ pub fn evaluate_remote_cohorts(
     dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
+    workspace_context: &WorkspaceContext,
+    master_key: Option<&secrecy::SecretString>,
 ) -> superposition::Result<Map<String, Value>> {
     let mut modified_context = Map::new();
 
@@ -454,7 +459,8 @@ pub fn evaluate_remote_cohorts(
                             dimensions,
                             &mut modified_context,
                             conn,
-                            schema_name,
+                            workspace_context,
+                            master_key,
                         )?;
                     }
                 }
@@ -478,6 +484,7 @@ pub fn validate_change_reason(
     workspace_context: &WorkspaceContext,
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
+    master_key: Option<&secrecy::SecretString>,
 ) -> superposition::Result<()> {
     if !workspace_context.settings.enable_change_reason_validation {
         return Ok(());
@@ -492,7 +499,12 @@ pub fn validate_change_reason(
         change_reason_validation_function.published_code,
         change_reason_validation_function.published_runtime_version,
     ) {
+        let master_key = master_key.ok_or_else(|| {
+            log::error!("Master key not configured but required for change reason validation function");
+            bad_argument!("Master key not configured. Cannot execute change reason validation function.")
+        })?;
         validation_function_executor(
+            workspace_context,
             CHANGE_REASON_VALIDATION_FN_NAME,
             &function_code,
             &FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
@@ -500,7 +512,7 @@ pub fn validate_change_reason(
             },
             published_runtime_version,
             conn,
-            &workspace_context.schema_name,
+            Some(master_key),
         )?;
     }
     Ok(())

@@ -1,10 +1,12 @@
-use actix_web::web::{Json, Path, Query};
-use actix_web::{Scope, delete, get, post, routes};
+use actix_web::{
+    Scope, delete, get, post, routes,
+    web::{Data, Json, Path, Query},
+};
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use jsonschema::JSONSchema;
 use serde_json::Value;
-use service_utils::service::types::{DbConnection, WorkspaceContext};
+use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_macros::bad_argument;
 use superposition_types::{
@@ -38,6 +40,7 @@ async fn create_handler(
     request: Json<TypeTemplateCreateRequest>,
     db_conn: DbConnection,
     user: User,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     JSONSchema::compile(&Value::from(&request.type_schema)).map_err(|err| {
@@ -52,7 +55,12 @@ async fn create_handler(
         )
     })?;
 
-    validate_change_reason(&workspace_context, &request.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &request.change_reason,
+        &mut conn,
+        app_state.master_key.as_ref(),
+    )?;
 
     let now = Utc::now();
     let type_template = TypeTemplate {
@@ -101,6 +109,7 @@ async fn update_handler(
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
@@ -116,7 +125,12 @@ async fn update_handler(
         )
     })?;
 
-    validate_change_reason(&workspace_context, &request.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &request.change_reason,
+        &mut conn,
+        app_state.master_key.as_ref(),
+    )?;
 
     let type_name: String = path.into_inner().into();
 

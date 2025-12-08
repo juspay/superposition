@@ -275,3 +275,24 @@ impl DropdownOption for DimensionTypeOptions {
         self.to_string()
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GenerateMasterKeyResponse {
+    pub master_key: String,
+    pub instructions: String,
+    pub warning: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RotateMasterKeyRequest {
+    pub new_master_key: Option<String>,
+    pub change_reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RotateMasterKeyResponse {
+    pub workspaces_rotated: i64,
+    pub secrets_re_encrypted: i64,
+    pub rotated_at: String,
+    pub new_master_key: String,
+}
