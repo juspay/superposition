@@ -114,6 +114,7 @@ impl SuperpositionToml {
                             .unwrap(), // TODO
                             dimension_type: DimensionType::Regular {},
                             dependency_graph: DependencyGraph(HashMap::new()),
+                            autocomplete_function_name: None,
                         },
                     );
                     index += 1;
