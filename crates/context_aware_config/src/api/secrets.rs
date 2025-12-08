@@ -1,8 +1,5 @@
-mod handlers;
-mod key_rotation;
+pub mod handlers;
+pub mod helpers;
+mod types;
 
-use actix_web::Scope;
-
-pub fn endpoints() -> Scope {
-    handlers::endpoints()
-}
+pub use handlers::endpoints;

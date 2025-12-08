@@ -1,67 +1,76 @@
 use actix_web::{
-    delete, get, patch, post,
-    web::{self, Json, Query},
-    Scope,
+    Scope, delete, get, patch, post,
+    web::{self, Data, Json, Query},
 };
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::{
-    encryption::encrypt_secret,
-    service::types::{DbConnection, SchemaName},
+    encryption::{decrypt_workspace_key, encrypt_secret},
+    service::types::{AppState, DbConnection, WorkspaceContext},
 };
+use superposition_derives::authorized;
+use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
+    PaginatedResponse, SortBy, User,
     api::secrets::*,
     custom_query::PaginationParams,
     database::{
-        models::{others::Secret, Workspace},
+        models::{Workspace, others::Secret},
         schema::secrets::dsl::*,
     },
-    result as superposition, PaginatedResponse, SortBy, User,
+    result::{self as superposition},
 };
 
-const MASKED_VALUE: &str = "••••••••";
+use super::types::UpdateSecretChangeset;
 
 pub fn endpoints() -> Scope {
     web::scope("")
-        .service(list_secrets)
-        .service(create_secret)
-        .service(get_secret)
-        .service(update_secret)
-        .service(delete_secret)
-        .service(super::key_rotation::rotate_encryption_key)
+        .service(list_handler)
+        .service(create_handler)
+        .service(get_handler)
+        .service(update_handler)
+        .service(delete_handler)
 }
 
 fn get_workspace_keys(
-    conn: &mut diesel::PgConnection,
-    workspace_id: &str,
-    org_id: &str,
-) -> superposition::Result<(String, Option<String>)> {
-    use superposition_types::database::superposition_schema::superposition::workspaces::dsl as ws;
-    
-    let workspace: Workspace = ws::workspaces
-        .filter(ws::workspace_name.eq(workspace_id))
-        .filter(ws::organisation_id.eq(org_id))
-        .first(conn)?;
-    
-    let encryption_key = workspace
-        .encryption_key
-        .ok_or_else(|| superposition::AppError::BadArgument("Workspace encryption key not found. Please contact administrator.".to_string()))?;
-    
-    Ok((encryption_key, workspace.previous_encryption_key))
+    workspace_context: &WorkspaceContext,
+    app_state: &AppState,
+) -> superposition::Result<secrecy::SecretString> {
+    let workspace: &Workspace = &workspace_context.settings;
+
+    let encryption_key = workspace.encryption_key.as_deref().ok_or_else(|| {
+        log::error!("Workspace encryption key is not set");
+        unexpected_error!(
+            "Workspace encryption key is not set. Cannot perform secret operations."
+        )
+    })?;
+
+    let master_key = &app_state.master_key;
+
+    let decrypted_key =
+        decrypt_workspace_key(encryption_key, master_key).map_err(|e| {
+            log::error!("Failed to decrypt workspace key: {}", e);
+            unexpected_error!("Failed to decrypt workspace encryption key")
+        })?;
+
+    Ok(decrypted_key)
 }
 
+#[authorized]
 #[get("")]
-async fn list_secrets(
+async fn list_handler(
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<SecretFilters>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<SecretResponse>>> {
     let DbConnection(mut conn) = db_conn;
 
     let filters_inner = filters.into_inner();
 
     let query_builder = |filters: &SecretFilters| {
-        let mut builder = secrets.schema_name(&schema_name).into_boxed();
+        let mut builder = secrets
+            .schema_name(&workspace_context.schema_name)
+            .into_boxed();
 
         if let Some(ref secret_names) = filters.name {
             builder = builder.filter(name.eq_any(secret_names.0.clone()));
@@ -80,20 +89,8 @@ async fn list_secrets(
 
     if let Some(true) = pagination.all {
         let result: Vec<Secret> = query_builder(&filters_inner).get_results(&mut conn)?;
-        let masked_results: Vec<SecretResponse> = result
-            .into_iter()
-            .map(|s| SecretResponse {
-                name: s.name.0,
-                value: MASKED_VALUE.to_string(),
-                key_version: s.key_version,
-                description: s.description,
-                change_reason: s.change_reason,
-                created_at: s.created_at,
-                last_modified_at: s.last_modified_at,
-                created_by: s.created_by,
-                last_modified_by: s.last_modified_by,
-            })
-            .collect();
+        let masked_results: Vec<SecretResponse> =
+            result.into_iter().map(SecretResponse::from).collect();
         return Ok(Json(PaginatedResponse::all(masked_results)));
     }
 
@@ -122,22 +119,10 @@ async fn list_secrets(
         builder = builder.offset(offset);
     }
     let result: Vec<Secret> = builder.load(&mut conn)?;
-    
-    let masked_results: Vec<SecretResponse> = result
-        .into_iter()
-        .map(|s| SecretResponse {
-            name: s.name.0,
-            value: MASKED_VALUE.to_string(),
-            key_version: s.key_version,
-            description: s.description,
-            change_reason: s.change_reason,
-            created_at: s.created_at,
-            last_modified_at: s.last_modified_at,
-            created_by: s.created_by,
-            last_modified_by: s.last_modified_by,
-        })
-        .collect();
-    
+
+    let masked_results: Vec<SecretResponse> =
+        result.into_iter().map(SecretResponse::from).collect();
+
     let total_pages = (n_secrets as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,
@@ -146,30 +131,29 @@ async fn list_secrets(
     }))
 }
 
+#[authorized]
 #[post("")]
-async fn create_secret(
+async fn create_handler(
     req: web::Json<CreateSecretRequest>,
     user: User,
     db_conn: DbConnection,
-    schema_name: SchemaName,
-    workspace_id: service_utils::service::types::WorkspaceId,
-    org_id: service_utils::service::types::OrganisationId,
+    workspace_context: WorkspaceContext,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<SecretResponse>> {
+    let req = req.into_inner();
+
     let DbConnection(mut conn) = db_conn;
 
-    let req = req.into_inner();
-    
-    let (encryption_key, _) = get_workspace_keys(&mut conn, &workspace_id.0, &org_id.0)?;
-    
+    let encryption_key = get_workspace_keys(&workspace_context, &app_state)?;
+
     let encrypted_secret_value = encrypt_secret(&req.value, &encryption_key)
-        .map_err(|e| superposition::AppError::BadArgument(format!("Encryption failed: {}", e)))?;
+        .map_err(|e| bad_argument!("Encryption failed: {}", e))?;
 
     let now = chrono::Utc::now();
 
     let new_secret = Secret {
         name: req.name,
         encrypted_value: encrypted_secret_value.clone(),
-        key_version: 1,
         description: req.description,
         change_reason: req.change_reason.clone(),
         created_at: now,
@@ -181,27 +165,18 @@ async fn create_secret(
     let created_secret = diesel::insert_into(secrets)
         .values(&new_secret)
         .returning(Secret::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
 
-    Ok(Json(SecretResponse {
-        name: created_secret.name.0,
-        value: req.value,
-        key_version: created_secret.key_version,
-        description: created_secret.description,
-        change_reason: created_secret.change_reason,
-        created_at: created_secret.created_at,
-        last_modified_at: created_secret.last_modified_at,
-        created_by: created_secret.created_by,
-        last_modified_by: created_secret.last_modified_by,
-    }))
+    Ok(Json(SecretResponse::from(created_secret)))
 }
 
+#[authorized]
 #[get("/{secret_name}")]
-async fn get_secret(
+async fn get_handler(
     path: web::Path<String>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<Json<SecretResponse>> {
     let DbConnection(mut conn) = db_conn;
 
@@ -209,46 +184,38 @@ async fn get_secret(
 
     let secret = secrets
         .filter(name.eq(secret_name))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Secret>(&mut conn)?;
 
-    Ok(Json(SecretResponse {
-        name: secret.name.0,
-        value: MASKED_VALUE.to_string(),
-        key_version: secret.key_version,
-        description: secret.description,
-        change_reason: secret.change_reason,
-        created_at: secret.created_at,
-        last_modified_at: secret.last_modified_at,
-        created_by: secret.created_by,
-        last_modified_by: secret.last_modified_by,
-    }))
+    Ok(Json(SecretResponse::from(secret)))
 }
 
+#[authorized]
 #[patch("/{secret_name}")]
-async fn update_secret(
+async fn update_handler(
     path: web::Path<String>,
     req: web::Json<UpdateSecretRequest>,
     user: User,
     db_conn: DbConnection,
-    schema_name: SchemaName,
-    workspace_id: service_utils::service::types::WorkspaceId,
-    org_id: service_utils::service::types::OrganisationId,
+    workspace_context: WorkspaceContext,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<SecretResponse>> {
     let DbConnection(mut conn) = db_conn;
     let secret_name = path.into_inner();
     let req_inner = req.into_inner();
 
-    let (encryption_key, _) = get_workspace_keys(&mut conn, &workspace_id.0, &org_id.0)?;
+    let encryption_key = get_workspace_keys(&workspace_context, &app_state)?;
 
     let encrypted_value_opt = if let Some(ref plaintext_value) = req_inner.value {
-        Some(encrypt_secret(plaintext_value, &encryption_key)
-            .map_err(|e| superposition::AppError::BadArgument(format!("Encryption failed: {}", e)))?)
+        Some(
+            encrypt_secret(plaintext_value, &encryption_key)
+                .map_err(|e| bad_argument!("Encryption failed: {}", e))?,
+        )
     } else {
         None
     };
-    
-    let changeset = superposition_types::api::secrets::UpdateSecretChangeset {
+
+    let changeset = UpdateSecretChangeset {
         encrypted_value: encrypted_value_opt,
         description: req_inner.description,
         change_reason: req_inner.change_reason,
@@ -261,28 +228,19 @@ async fn update_secret(
             last_modified_at.eq(chrono::Utc::now()),
             last_modified_by.eq(user.get_email()),
         ))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Secret>(&mut conn)?;
-    
-    Ok(Json(SecretResponse {
-        name: updated_secret.name.0,
-        value: MASKED_VALUE.to_string(),
-        key_version: updated_secret.key_version,
-        description: updated_secret.description,
-        change_reason: updated_secret.change_reason,
-        created_at: updated_secret.created_at,
-        last_modified_at: updated_secret.last_modified_at,
-        created_by: updated_secret.created_by,
-        last_modified_by: updated_secret.last_modified_by,
-    }))
+
+    Ok(Json(SecretResponse::from(updated_secret)))
 }
 
+#[authorized]
 #[delete("/{secret_name}")]
-async fn delete_secret(
+async fn delete_handler(
     path: web::Path<String>,
     user: User,
     db_conn: DbConnection,
-    schema_name: SchemaName,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<Json<SecretResponse>> {
     let DbConnection(mut conn) = db_conn;
     let secret_name = path.into_inner();
@@ -293,23 +251,13 @@ async fn delete_secret(
             last_modified_at.eq(chrono::Utc::now()),
             last_modified_by.eq(user.get_email()),
         ))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
 
     let deleted_secret = diesel::delete(secrets)
         .filter(name.eq(&secret_name))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Secret>(&mut conn)?;
 
-    Ok(Json(SecretResponse {
-        name: deleted_secret.name.0,
-        value: MASKED_VALUE.to_string(),
-        key_version: deleted_secret.key_version,
-        description: deleted_secret.description,
-        change_reason: deleted_secret.change_reason,
-        created_at: deleted_secret.created_at,
-        last_modified_at: deleted_secret.last_modified_at,
-        created_by: deleted_secret.created_by,
-        last_modified_by: deleted_secret.last_modified_by,
-    }))
+    Ok(Json(SecretResponse::from(deleted_secret)))
 }

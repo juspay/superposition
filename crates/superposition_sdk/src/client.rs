@@ -126,6 +126,8 @@ mod create_function;
 
 mod create_organisation;
 
+mod create_secret;
+
 mod create_type_templates;
 
 mod create_variable;
@@ -171,6 +173,8 @@ mod delete_experiment_group;
 
 mod delete_function;
 
+mod delete_secret;
+
 mod delete_type_templates;
 
 mod delete_variable;
@@ -203,6 +207,8 @@ mod get_resolved_config;
 
 mod get_resolved_config_with_identifier;
 
+mod get_secret;
+
 mod get_type_template;
 
 mod get_type_templates_list;
@@ -232,6 +238,8 @@ mod list_experiment_groups;
 mod list_function;
 
 mod list_organisation;
+
+mod list_secrets;
 
 mod list_variables;
 
@@ -270,6 +278,8 @@ mod update_organisation;
 mod update_override;
 
 mod update_overrides_experiment;
+
+mod update_secret;
 
 mod update_type_templates;
 

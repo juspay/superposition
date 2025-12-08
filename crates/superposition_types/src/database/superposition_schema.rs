@@ -62,7 +62,7 @@ pub mod superposition {
             enable_change_reason_validation -> Bool,
             encryption_key -> Nullable<Text>,
             previous_encryption_key -> Nullable<Text>,
-            key_rotation_at -> Nullable<Timestamptz>,
+            key_rotated_at -> Nullable<Timestamptz>,
         }
     }
 

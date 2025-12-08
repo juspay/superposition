@@ -111,6 +111,37 @@ final class SharedSerde {
         }
     }
 
+    static final class SecretListSerializer implements BiConsumer<List<SecretResponse>, ShapeSerializer> {
+        static final SecretListSerializer INSTANCE = new SecretListSerializer();
+
+        @Override
+        public void accept(List<SecretResponse> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.SECRET_LIST.listMember(), value);
+            }
+        }
+    }
+
+    static List<SecretResponse> deserializeSecretList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<SecretResponse> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, SecretList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class SecretList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<SecretResponse>> {
+        static final SecretList$MemberDeserializer INSTANCE = new SecretList$MemberDeserializer();
+
+        @Override
+        public void accept(List<SecretResponse> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(SecretResponse.builder().deserializeMember(deserializer, SharedSchemas.SECRET_LIST.listMember()).build());
+        }
+    }
+
     static final class OrganisationListSerializer implements BiConsumer<List<OrganisationResponse>, ShapeSerializer> {
         static final OrganisationListSerializer INSTANCE = new OrganisationListSerializer();
 

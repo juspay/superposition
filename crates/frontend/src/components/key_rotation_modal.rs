@@ -2,7 +2,7 @@ use leptos::*;
 use web_sys::MouseEvent;
 
 use crate::{
-    api::secrets,
+    api::workspaces,
     components::{alert::AlertType, button::Button, change_form::ChangeForm},
     providers::alert_provider::enqueue_alert,
 };
@@ -24,7 +24,6 @@ pub fn key_rotation_modal(
 
     let on_rotate = Callback::new(move |_: MouseEvent| {
         logging::log!("Key rotation button clicked");
-        
         if !confirmation_step_rs.get_untracked() {
             logging::log!("Moving to confirmation step");
             confirmation_step_ws.set(true);
@@ -35,7 +34,6 @@ pub fn key_rotation_modal(
         let change_reason_val = change_reason_rs.get_untracked();
         let workspace_val = workspace_name_stored.get_value();
         let org_val = org_id_stored.get_value();
-        
         logging::log!(
             "Starting key rotation for workspace: {}, org: {}, reason: {}",
             workspace_val,
@@ -45,7 +43,7 @@ pub fn key_rotation_modal(
 
         spawn_local(async move {
             let result =
-                secrets::rotate_key(change_reason_val, &workspace_val, &org_val).await;
+                workspaces::rotate_key(change_reason_val, &workspace_val, &org_val).await;
 
             req_inprogress_ws.set(false);
 
@@ -99,95 +97,101 @@ pub fn key_rotation_modal(
         <div class=modal_class>
             <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div class="p-6 flex flex-col gap-6">
-                <div class="flex items-start gap-3">
-                    <i class="ri-key-2-line text-4xl text-yellow-500"></i>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold text-gray-900">
-                            {move || {
-                                if confirmation_step_rs.get() {
-                                    "⚠️ Final Confirmation Required"
-                                } else {
-                                    "Rotate Workspace Encryption Key"
-                                }
-                            }}
-                        </h3>
-                        <p class="text-sm text-gray-600 mt-2">
-                            {move || {
-                                if confirmation_step_rs.get() {
-                                    "This action will immediately rotate the encryption key for all secrets in this workspace. Are you absolutely sure you want to proceed?"
-                                } else {
-                                    "This will generate a new encryption key and re-encrypt all secrets in this workspace."
-                                }
-                            }}
-                        </p>
+                    <div class="flex items-start gap-3">
+                        <i class="ri-key-2-line text-4xl text-yellow-500"></i>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900">
+                                {move || {
+                                    if confirmation_step_rs.get() {
+                                        "⚠️ Final Confirmation Required"
+                                    } else {
+                                        "Rotate Workspace Encryption Key"
+                                    }
+                                }}
+                            </h3>
+                            <p class="text-sm text-gray-600 mt-2">
+                                {move || {
+                                    if confirmation_step_rs.get() {
+                                        "This action will immediately rotate the encryption key for all secrets in this workspace. Are you absolutely sure you want to proceed?"
+                                    } else {
+                                        "This will generate a new encryption key and re-encrypt all secrets in this workspace."
+                                    }
+                                }}
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-                <Show when=move || !confirmation_step_rs.get()>
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h4 class="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
-                            <i class="ri-alert-line"></i>
-                            "Important Information"
-                        </h4>
-                        <ul class="text-sm text-yellow-800 space-y-1 list-disc list-inside">
-                            <li>"All secrets will be re-encrypted with the new key"</li>
-                            <li>"The old key will be retained temporarily for rollback"</li>
-                            <li>"This operation is atomic - either all secrets rotate or none do"</li>
-                            <li>"Applications using secrets will continue to work without changes"</li>
-                        </ul>
+                    <Show when=move || !confirmation_step_rs.get()>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h4 class="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
+                                <i class="ri-alert-line"></i>
+                                "Important Information"
+                            </h4>
+                            <ul class="text-sm text-yellow-800 space-y-1 list-disc list-inside">
+                                <li>"All secrets will be re-encrypted with the new key"</li>
+                                <li>"The old key will be retained temporarily for rollback"</li>
+                                <li>
+                                    "This operation is atomic - either all secrets rotate or none do"
+                                </li>
+                                <li>
+                                    "Applications using secrets will continue to work without changes"
+                                </li>
+                            </ul>
+                        </div>
+                    </Show>
+
+                    <Show when=move || confirmation_step_rs.get()>
+                        <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                            <p class="text-red-900 font-semibold">
+                                "⚠️ WARNING: This action cannot be undone automatically. Please ensure you have documented this change."
+                            </p>
+                        </div>
+                    </Show>
+
+                    <div class="form-control">
+                        <ChangeForm
+                            title="Reason for Key Rotation"
+                            placeholder="e.g., Scheduled quarterly rotation, Security incident response, etc."
+                            value=change_reason_rs.get_untracked()
+                            on_change=move |new_reason| { change_reason_ws.set(new_reason) }
+                        />
                     </div>
-                </Show>
 
-                <Show when=move || confirmation_step_rs.get()>
-                    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-                        <p class="text-red-900 font-semibold">
-                            "⚠️ WARNING: This action cannot be undone automatically. Please ensure you have documented this change."
-                        </p>
-                    </div>
-                </Show>
-
-                <div class="form-control">
-                    <ChangeForm
-                        title="Reason for Key Rotation"
-                        placeholder="e.g., Scheduled quarterly rotation, Security incident response, etc."
-                        value=change_reason_rs.get_untracked()
-                        on_change=move |new_reason| { change_reason_ws.set(new_reason) }
-                    />
-                </div>
-
-                <div class="flex justify-end gap-3 pt-4 border-t">
-                    <Button
-                        class="btn-ghost"
-                        text="Cancel"
-                        on_click=move |_| {
-                            confirmation_step_ws.set(false);
-                            handle_close.call(());
-                        }
-                        loading=false
-                    />
-                    {move || {
-                        let is_confirmed = confirmation_step_rs.get();
-                        view! {
-                            <Button
-                                class={
-                                    if is_confirmed {
+                    <div class="flex justify-end gap-3 pt-4 border-t">
+                        <Button
+                            class="btn-ghost"
+                            text="Cancel"
+                            on_click=move |_| {
+                                confirmation_step_ws.set(false);
+                                handle_close.call(());
+                            }
+                            loading=false
+                        />
+                        {move || {
+                            let is_confirmed = confirmation_step_rs.get();
+                            view! {
+                                <Button
+                                    class=if is_confirmed {
                                         "bg-red-600 hover:bg-red-700 text-white"
                                     } else {
                                         "bg-yellow-600 hover:bg-yellow-700 text-white"
                                     }
-                                }
-                                text={
-                                    if is_confirmed { "Yes, Rotate Key Now" } else { "Proceed to Confirmation" }
-                                }
-                                icon_class={
-                                    if is_confirmed { "ri-lock-unlock-line" } else { "ri-arrow-right-line" }
-                                }
-                                on_click=on_rotate
-                                loading=req_inprogress_rs.get()
-                            />
-                        }
-                    }}
-                </div>
+                                    text=if is_confirmed {
+                                        "Yes, Rotate Key Now"
+                                    } else {
+                                        "Proceed to Confirmation"
+                                    }
+                                    icon_class=if is_confirmed {
+                                        "ri-lock-unlock-line"
+                                    } else {
+                                        "ri-arrow-right-line"
+                                    }
+                                    on_click=on_rotate
+                                    loading=req_inprogress_rs.get()
+                                />
+                            }
+                        }}
+                    </div>
                 </div>
             </div>
         </div>

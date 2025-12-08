@@ -1,5 +1,4 @@
 use leptos::*;
-use serde_json::Map;
 use serde_json::Value;
 use superposition_types::database::models::Description;
 use superposition_types::{
@@ -13,14 +12,13 @@ use crate::{
         alert::AlertType,
         button::Button,
         change_form::ChangeForm,
-        change_summary::{ChangeLogPopup, ChangeSummary},
+        change_summary::ChangeLogPopup,
         form::label::Label,
         input::{Input, InputType},
-        skeleton::{Skeleton, SkeletonVariant},
     },
     providers::alert_provider::enqueue_alert,
     schema::{JsonSchemaType, SchemaType::Single},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[derive(Clone, Debug)]
@@ -49,7 +47,7 @@ pub fn secret_form(
     #[prop(default = String::new())] description: String,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (name_rs, name_ws) = create_signal(secret_name.clone());
@@ -229,7 +227,7 @@ pub fn change_log_summary(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let secret = create_local_resource(
@@ -265,65 +263,16 @@ pub fn change_log_summary(
             disabled=disabled_rws
             inprogress
         >
-            <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
-            }>
-                {
-                    Effect::new(move |_| {
-                        let secret_result = secret.get();
-                        if let Some(Ok(_)) = secret_result {
-                            disabled_rws.set(false);
-                        } else if let Some(Err(e)) = secret_result {
-                            logging::error!("Error fetching secret: {}", e);
-                        }
-                    });
-                }
-                {move || match secret.get() {
-                    Some(Ok(sec)) => {
-                        let (old_values, new_values) = match change_type.get_value() {
-                            ChangeType::Update(update_request) => {
-                                (
-                                    Map::from_iter(
-                                        vec![
-                                            ("Value".to_string(), Value::String(sec.value.clone())),
-                                        ],
-                                    ),
-                                    Map::from_iter(
-                                        vec![
-                                            (
-                                                "Value".to_string(),
-                                                Value::String("••••••••".to_string()),
-                                            ),
-                                        ],
-                                    ),
-                                )
-                            }
-                            ChangeType::Delete => {
-                                (
-                                    Map::from_iter(
-                                        vec![("Value".to_string(), Value::String(sec.value))],
-                                    ),
-                                    Map::new(),
-                                )
-                            }
-                        };
-                        view! {
-                            <ChangeSummary
-                                title="Secret changes"
-                                key_column="Property"
-                                old_values
-                                new_values
-                            />
-                        }
-                            .into_view()
-                    }
-                    Some(Err(e)) => {
+            {
+                Effect::new(move |_| {
+                    let secret_result = secret.get();
+                    if let Some(Ok(_)) = secret_result {
+                        disabled_rws.set(false);
+                    } else if let Some(Err(e)) = secret_result {
                         logging::error!("Error fetching secret: {}", e);
-                        view! { <div>Error fetching secret</div> }.into_view()
                     }
-                    None => view! { <div>Loading...</div> }.into_view(),
-                }}
-            </Suspense>
+                });
+            }
         </ChangeLogPopup>
     }
 }

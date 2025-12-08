@@ -59,6 +59,11 @@ import {
   CreateOrganisationCommandOutput,
 } from "./commands/CreateOrganisationCommand";
 import {
+  CreateSecretCommand,
+  CreateSecretCommandInput,
+  CreateSecretCommandOutput,
+} from "./commands/CreateSecretCommand";
+import {
   CreateTypeTemplatesCommand,
   CreateTypeTemplatesCommandInput,
   CreateTypeTemplatesCommandOutput,
@@ -103,6 +108,11 @@ import {
   DeleteFunctionCommandInput,
   DeleteFunctionCommandOutput,
 } from "./commands/DeleteFunctionCommand";
+import {
+  DeleteSecretCommand,
+  DeleteSecretCommandInput,
+  DeleteSecretCommandOutput,
+} from "./commands/DeleteSecretCommand";
 import {
   DeleteTypeTemplatesCommand,
   DeleteTypeTemplatesCommandInput,
@@ -184,6 +194,11 @@ import {
   GetResolvedConfigWithIdentifierCommandOutput,
 } from "./commands/GetResolvedConfigWithIdentifierCommand";
 import {
+  GetSecretCommand,
+  GetSecretCommandInput,
+  GetSecretCommandOutput,
+} from "./commands/GetSecretCommand";
+import {
   GetTypeTemplateCommand,
   GetTypeTemplateCommandInput,
   GetTypeTemplateCommandOutput,
@@ -258,6 +273,11 @@ import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "./commands/ListOrganisationCommand";
+import {
+  ListSecretsCommand,
+  ListSecretsCommandInput,
+  ListSecretsCommandOutput,
+} from "./commands/ListSecretsCommand";
 import {
   ListVariablesCommand,
   ListVariablesCommandInput,
@@ -354,6 +374,11 @@ import {
   UpdateOverridesExperimentCommandOutput,
 } from "./commands/UpdateOverridesExperimentCommand";
 import {
+  UpdateSecretCommand,
+  UpdateSecretCommandInput,
+  UpdateSecretCommandOutput,
+} from "./commands/UpdateSecretCommand";
+import {
   UpdateTypeTemplatesCommand,
   UpdateTypeTemplatesCommandInput,
   UpdateTypeTemplatesCommandOutput,
@@ -398,6 +423,7 @@ const commands = {
   CreateExperimentGroupCommand,
   CreateFunctionCommand,
   CreateOrganisationCommand,
+  CreateSecretCommand,
   CreateTypeTemplatesCommand,
   CreateVariableCommand,
   CreateWebhookCommand,
@@ -407,6 +433,7 @@ const commands = {
   DeleteDimensionCommand,
   DeleteExperimentGroupCommand,
   DeleteFunctionCommand,
+  DeleteSecretCommand,
   DeleteTypeTemplatesCommand,
   DeleteVariableCommand,
   DeleteWebhookCommand,
@@ -423,6 +450,7 @@ const commands = {
   GetOrganisationCommand,
   GetResolvedConfigCommand,
   GetResolvedConfigWithIdentifierCommand,
+  GetSecretCommand,
   GetTypeTemplateCommand,
   GetTypeTemplatesListCommand,
   GetVariableCommand,
@@ -438,6 +466,7 @@ const commands = {
   ListExperimentGroupsCommand,
   ListFunctionCommand,
   ListOrganisationCommand,
+  ListSecretsCommand,
   ListVariablesCommand,
   ListVersionsCommand,
   ListWebhookCommand,
@@ -457,6 +486,7 @@ const commands = {
   UpdateOrganisationCommand,
   UpdateOverrideCommand,
   UpdateOverridesExperimentCommand,
+  UpdateSecretCommand,
   UpdateTypeTemplatesCommand,
   UpdateVariableCommand,
   UpdateWebhookCommand,
@@ -654,6 +684,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link CreateSecretCommand}
+   */
+  createSecret(
+    args: CreateSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<CreateSecretCommandOutput>;
+  createSecret(
+    args: CreateSecretCommandInput,
+    cb: (err: any, data?: CreateSecretCommandOutput) => void
+  ): void;
+  createSecret(
+    args: CreateSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: CreateSecretCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link CreateTypeTemplatesCommand}
    */
   createTypeTemplates(
@@ -804,6 +851,23 @@ export interface Superposition {
     args: DeleteFunctionCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: DeleteFunctionCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link DeleteSecretCommand}
+   */
+  deleteSecret(
+    args: DeleteSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<DeleteSecretCommandOutput>;
+  deleteSecret(
+    args: DeleteSecretCommandInput,
+    cb: (err: any, data?: DeleteSecretCommandOutput) => void
+  ): void;
+  deleteSecret(
+    args: DeleteSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: DeleteSecretCommandOutput) => void
   ): void;
 
   /**
@@ -1079,6 +1143,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link GetSecretCommand}
+   */
+  getSecret(
+    args: GetSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetSecretCommandOutput>;
+  getSecret(
+    args: GetSecretCommandInput,
+    cb: (err: any, data?: GetSecretCommandOutput) => void
+  ): void;
+  getSecret(
+    args: GetSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetSecretCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link GetTypeTemplateCommand}
    */
   getTypeTemplate(
@@ -1332,6 +1413,23 @@ export interface Superposition {
     args: ListOrganisationCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: ListOrganisationCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ListSecretsCommand}
+   */
+  listSecrets(
+    args: ListSecretsCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ListSecretsCommandOutput>;
+  listSecrets(
+    args: ListSecretsCommandInput,
+    cb: (err: any, data?: ListSecretsCommandOutput) => void
+  ): void;
+  listSecrets(
+    args: ListSecretsCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ListSecretsCommandOutput) => void
   ): void;
 
   /**
@@ -1655,6 +1753,23 @@ export interface Superposition {
     args: UpdateOverridesExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: UpdateOverridesExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link UpdateSecretCommand}
+   */
+  updateSecret(
+    args: UpdateSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<UpdateSecretCommandOutput>;
+  updateSecret(
+    args: UpdateSecretCommandInput,
+    cb: (err: any, data?: UpdateSecretCommandOutput) => void
+  ): void;
+  updateSecret(
+    args: UpdateSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: UpdateSecretCommandOutput) => void
   ): void;
 
   /**

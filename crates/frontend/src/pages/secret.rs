@@ -2,7 +2,6 @@ use std::ops::Deref;
 
 use leptos::*;
 use leptos_router::{use_navigate, use_params_map};
-use superposition_types::api::secrets::SecretResponse;
 
 use crate::api::secrets;
 use crate::components::{
@@ -10,30 +9,11 @@ use crate::components::{
     button::Button,
     description::ContentDescription,
     drawer::PortalDrawer,
-    skeleton::{Skeleton, SkeletonVariant},
     secret_form::{ChangeLogSummary, ChangeType, SecretForm},
+    skeleton::{Skeleton, SkeletonVariant},
 };
 use crate::providers::alert_provider::enqueue_alert;
-use crate::types::{OrganisationId, Tenant};
-
-#[component]
-fn secret_info(secret: SecretResponse) -> impl IntoView {
-    view! {
-        <div class="card bg-base-100 max-w-screen shadow">
-            <div class="card-body">
-                <h2 class="card-title">"Info"</h2>
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-row gap-6 flex-wrap">
-                        <div class="h-fit flex items-center gap-4">
-                            <div class="stat-title">"Value"</div>
-                            <div class="stat-value text-base font-mono">{secret.value}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
+use crate::types::{OrganisationId, Workspace};
 
 #[derive(Clone)]
 enum Action {
@@ -44,7 +24,7 @@ enum Action {
 
 #[component]
 pub fn secret() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();
     let secret_name = Signal::derive(move || {
@@ -56,8 +36,8 @@ pub fn secret() -> impl IntoView {
 
     let secret_resource = create_blocking_resource(
         move || (secret_name.get(), workspace.get().0, org.get().0),
-        |(sec_name, tenant, org_id)| async move {
-            secrets::get(&sec_name, &tenant, &org_id).await.ok()
+        |(sec_name, workspace, org_id)| async move {
+            secrets::get(&sec_name, &workspace, &org_id).await.ok()
         },
     );
 
@@ -76,11 +56,8 @@ pub fn secret() -> impl IntoView {
                 Ok(_) => {
                     logging::log!("Secret deleted successfully");
                     let navigate = use_navigate();
-                    let redirect_url = format!(
-                        "/admin/{}/{}/secrets",
-                        org.get().0,
-                        workspace.get().0,
-                    );
+                    let redirect_url =
+                        format!("/admin/{}/{}/secrets", org.get().0, workspace.get().0,);
                     navigate(&redirect_url, Default::default());
                     enqueue_alert(
                         String::from("Secret deleted successfully"),
@@ -133,7 +110,6 @@ pub fn secret() -> impl IntoView {
                             last_modified_by=secret.last_modified_by.clone()
                             last_modified_at=secret.last_modified_at
                         />
-                        <SecretInfo secret />
                     </div>
                     {match action_rws.get() {
                         Action::None => ().into_view(),
@@ -146,7 +122,7 @@ pub fn secret() -> impl IntoView {
                                     <SecretForm
                                         edit=true
                                         secret_name=secret_st.with_value(|s| s.name.clone())
-                                        secret_value=secret_st.with_value(|s| s.value.clone())
+                                        secret_value=String::new()
                                         description=secret_st
                                             .with_value(|s| s.description.deref().to_string())
                                         handle_submit=move |_| {

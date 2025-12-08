@@ -17,6 +17,7 @@ use reqwest::{
     StatusCode,
     header::{HeaderMap, HeaderName, HeaderValue},
 };
+use secrecy::ExposeSecret;
 use serde::Serialize;
 use serde_json::Value;
 use superposition_types::{
@@ -363,7 +364,7 @@ where
         let variables_url = format!("{}/variables", state.cac_host);
 
         let headers = match construct_request_headers(&[
-            ("x-tenant", &workspace_context.workspace_id),
+            ("x-workspace", &workspace_context.workspace_id),
             ("x-org-id", &workspace_context.organisation_id),
             (
                 "Authorization",
@@ -426,7 +427,7 @@ where
             .unwrap_or_else(|| value.to_string());
 
         let rendered = if let Some(decrypted) = state.encrypted_keys.get(&value_str) {
-            decrypted.to_string()
+            decrypted.expose_secret().to_string()
         } else {
             substitute_variables(value, &variables_map)
         };

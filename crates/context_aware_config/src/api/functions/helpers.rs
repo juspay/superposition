@@ -1,12 +1,10 @@
-use super::types::FunctionInfo;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use secrecy::ExposeSecret;
 use service_utils::{
-    encryption::{
-        decrypt_with_fallback, decrypt_workspace_key, get_master_encryption_key,
-    },
-    service::types::{AppState, SchemaName},
+    encryption::{decrypt_with_fallback, decrypt_workspace_key},
+    service::types::{SchemaName, WorkspaceContext},
 };
-use superposition_macros::validation_error;
+use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{
     DBConnection,
     database::{
@@ -22,9 +20,7 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::helpers::get_workspace;
-
-use superposition_macros::unexpected_error;
+use super::types::FunctionInfo;
 
 pub fn fetch_function(
     f_name: &String,
@@ -98,33 +94,20 @@ pub fn check_fn_published(
     }
 }
 
-pub fn generate_vars_template(vars: &[(String, String)]) -> String {
+pub fn generate_template(name: &str, vars: &[(String, String)]) -> String {
     if vars.is_empty() {
         return String::new();
     }
-
-    let json_entries: Vec<String> = vars
+    let map: serde_json::Map<String, serde_json::Value> = vars
         .iter()
-        .map(|(k, v)| format!("\"{}\":\"{}\"", k, v))
+        .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
         .collect();
-
-    format!("const VARS = {{\n{}\n}};", json_entries.join(",\n"))
+    let json = serde_json::to_string_pretty(&map).unwrap_or_default();
+    format!("const {} = {};", name, json)
 }
 
-pub fn generate_secrets_template(secrets: &[(String, String)]) -> String {
-    if secrets.is_empty() {
-        return String::new();
-    }
-
-    let json_entries: Vec<String> = secrets
-        .iter()
-        .map(|(k, v)| format!("\"{}\":\"{}\"", k, v))
-        .collect();
-
-    format!("const SECRETS = {{\n{}\n}};", json_entries.join(",\n"))
-}
-
-pub async fn get_decrypted_secrets(
+pub fn inject_variables_into_code(
+    code: &str,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<FunctionCode> {
@@ -133,8 +116,65 @@ pub async fn get_decrypted_secrets(
         .schema_name(schema_name)
         .load(conn)?;
 
-    let vars_template = generate_vars_template(&vars);
+    let vars_template = generate_template("VARS", &vars);
     let processed_code = format!("{}\n\n{}", vars_template, code);
+
+    Ok(FunctionCode(processed_code))
+}
+
+pub fn inject_secrets_into_code(
+    workspace_context: &WorkspaceContext,
+    code: &str,
+    conn: &mut DBConnection,
+    master_key: &secrecy::SecretString,
+) -> superposition::Result<FunctionCode> {
+    let all_secrets: Vec<Secret> = secrets_dsl::secrets
+        .schema_name(&workspace_context.schema_name)
+        .load(conn)?;
+
+    if all_secrets.is_empty() {
+        return Ok(FunctionCode(code.to_string()));
+    }
+
+    let workspace = &workspace_context.settings;
+
+    let encryption_key = workspace.encryption_key.as_deref().ok_or_else(|| {
+        log::error!("Workspace encryption key is not set");
+        bad_argument!(
+            "Workspace encryption key is not set. Cannot perform secret operations."
+        )
+    })?;
+
+    let workspace_key = decrypt_workspace_key(encryption_key, master_key)
+        .map_err(|e| bad_argument!("Failed to decrypt workspace key: {}", e))?;
+
+    let previous_workspace_key: Option<secrecy::SecretString> =
+        if let Some(ref prev_key) = workspace.previous_encryption_key {
+            Some(decrypt_workspace_key(prev_key, master_key).map_err(|e| {
+                bad_argument!("Failed to decrypt previous workspace key: {}", e)
+            })?)
+        } else {
+            None
+        };
+
+    let decrypted_secrets: superposition::Result<Vec<(String, String)>> = all_secrets
+        .into_iter()
+        .map(|secret| {
+            let decrypted_value = decrypt_with_fallback(
+                &secret.encrypted_value,
+                &workspace_key,
+                previous_workspace_key.as_ref(),
+            )
+            .map_err(|e| {
+                bad_argument!("Failed to decrypt secret '{}': {}", secret.name.0, e)
+            })?;
+            Ok((secret.name.0, decrypted_value.expose_secret().to_string()))
+        })
+        .collect();
+
+    let decrypted_secrets = decrypted_secrets?;
+    let secrets_template = generate_template("SECRETS", &decrypted_secrets);
+    let processed_code = format!("{}\n\n{}", secrets_template, code);
 
     Ok(FunctionCode(processed_code))
 }
@@ -151,110 +191,27 @@ pub fn get_first_function_by_type(
         .first(conn)?;
     Ok(function)
 }
+
 pub fn inject_secrets_and_variables_into_code(
     code: &str,
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
-    workspace_id: &str,
-    org_id: &str,
+    workspace_context: &WorkspaceContext,
+    master_key: &secrecy::SecretString,
 ) -> superposition::Result<FunctionCode> {
     let vars: Vec<(String, String)> = variables::variables
         .select((variables::name, variables::value))
-        .schema_name(schema_name)
+        .schema_name(&workspace_context.schema_name)
         .load(conn)?;
 
-    let all_secrets: Vec<Secret> =
-        secrets_dsl::secrets.schema_name(schema_name).load(conn)?;
+    let vars_template = generate_template("VARS", &vars);
+    let code_with_secrets =
+        inject_secrets_into_code(workspace_context, code, conn, master_key)?;
 
-    if all_secrets.is_empty() {
-        Ok(vec![])
+    let final_code = if vars_template.is_empty() {
+        code_with_secrets.0
     } else {
-        let workspace = get_workspace(schema_name, conn)?;
+        format!("{}\n\n{}", vars_template, code_with_secrets.0)
+    };
 
-        let encrypted_key = workspace.encryption_key.ok_or_else(|| {
-            superposition::AppError::BadArgument(
-                "Workspace encryption key not found".to_string(),
-            )
-        })?;
-
-        let master_key =
-            get_master_encryption_key(&app_state.kms_client, &app_state.app_env)
-                .await
-                .map_err(|e| {
-                    log::error!("Failed to get master encryption key: {}", e);
-                    unexpected_error!("Failed to decrypt workspace encryption key")
-                })?;
-
-        let encryption_key = decrypt_workspace_key(&encrypted_key, &master_key)
-            .await
-            .map_err(|e| {
-                log::error!("Failed to decrypt workspace key: {}", e);
-                unexpected_error!("Failed to decrypt workspace encryption key")
-            })?;
-
-        let previous_key = if let Some(ref encrypted_prev) =
-            workspace.previous_encryption_key
-        {
-            Some(
-                decrypt_workspace_key(encrypted_prev, &master_key)
-                    .await
-                    .map_err(|e| {
-                        log::error!("Failed to decrypt previous workspace key: {}", e);
-                        unexpected_error!(
-                            "Failed to decrypt previous workspace encryption key"
-                        )
-                    })?,
-            )
-        } else {
-            None
-        };
-
-        all_secrets
-            .into_iter()
-            .map(|secret| {
-                let decrypted_value = decrypt_with_fallback(
-                    &secret.encrypted_value,
-                    &encryption_key,
-                    previous_key.as_deref(),
-                )
-                .map_err(|e| {
-                    superposition::AppError::BadArgument(format!(
-                        "Failed to decrypt workspace secret '{}': {}",
-                        secret.name.0, e
-                    ))
-                })?;
-                Ok((secret.name.0, decrypted_value))
-            })
-            .collect()
-    }
-}
-
-pub async fn inject_secrets_and_variables_into_code(
-    code: &str,
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-    app_state: &AppState,
-) -> superposition::Result<FunctionCode> {
-    let vars: Vec<(String, String)> = variables::variables
-        .select((variables::name, variables::value))
-        .schema_name(schema_name)
-        .load(conn)?;
-
-    let decrypted_secrets = get_decrypted_secrets(conn, schema_name, app_state).await?;
-
-    let vars_template = generate_vars_template(&vars);
-    let secrets_template = generate_secrets_template(&decrypted_secrets);
-
-    let mut injected_code = String::new();
-    if !vars_template.is_empty() {
-        injected_code.push_str(&vars_template);
-        injected_code.push_str("\n\n");
-    }
-    if !secrets_template.is_empty() {
-        injected_code.push_str(&secrets_template);
-        injected_code.push_str("\n\n");
-    }
-    injected_code.push_str(code);
-
-    Ok(FunctionCode(injected_code))
+    Ok(FunctionCode(final_code))
 }

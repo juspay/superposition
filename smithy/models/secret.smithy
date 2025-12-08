@@ -10,8 +10,7 @@ resource Secret {
         name: String
     }
     properties: {
-        encrypted_value: String
-        key_version: Integer
+        value: String
         description: String
         change_reason: String
         created_by: String
@@ -25,70 +24,31 @@ resource Secret {
     delete: DeleteSecret
     operations: [
         CreateSecret
-        RotateWorkspaceKey
     ]
 }
 
-@documentation("Response structure for secret operations. The value is always masked except during creation.")
-structure SecretResponse for Secret {
+@documentation("Response structure for secret operations. Secret values are never returned for security.")
+structure SecretResponse {
     @required
-    $name
+    name: String
 
     @required
-    @documentation("Masked value shown as '••••••••' for security. Only shown unmasked during creation.")
-    value: String
+    description: String
 
     @required
-    $key_version
+    change_reason: String
 
     @required
-    $description
+    created_by: String
 
     @required
-    $change_reason
+    created_at: DateTime
 
     @required
-    $created_by
+    last_modified_by: String
 
     @required
-    $created_at
-
-    @required
-    $last_modified_by
-
-    @required
-    $last_modified_at
-}
-
-@documentation("Response structure for secret creation. The actual unmasked value is returned only once.")
-structure SecretUnmaskedResponse for Secret {
-    @required
-    $name
-
-    @required
-    @documentation("Actual unmasked secret value. This is only returned during creation and will not be shown again.")
-    value: String
-
-    @required
-    $key_version
-
-    @required
-    $description
-
-    @required
-    $change_reason
-
-    @required
-    $created_by
-
-    @required
-    $created_at
-
-    @required
-    $last_modified_by
-
-    @required
-    $last_modified_at
+    last_modified_at: DateTime
 }
 
 list SecretList {
@@ -101,26 +61,7 @@ enum SecretSortOn {
     LAST_MODIFIED_AT = "last_modified_at"
 }
 
-@documentation("Status response for encryption key rotation operation.")
-structure KeyRotationStatus {
-    @required
-    @documentation("Whether the key rotation completed successfully.")
-    success: Boolean
-
-    @required
-    @documentation("Number of secrets that were re-encrypted with the new key.")
-    secrets_re_encrypted: Long
-
-    @required
-    @documentation("Timestamp when the rotation was completed.")
-    rotation_timestamp: DateTime
-
-    @required
-    @documentation("Human-readable message about the rotation operation.")
-    message: String
-}
-
-@documentation("Creates a new encrypted secret with the specified name and value. The secret is encrypted with the workspace's current encryption key. Returns the unmasked value once - it will be masked in all subsequent operations.")
+@documentation("Creates a new encrypted secret with the specified name and value. The secret is encrypted with the workspace's current encryption key. Secret values are never returned in responses for security.")
 @http(method: "POST", uri: "/secrets")
 @tags(["Secrets"])
 operation CreateSecret {
@@ -139,7 +80,7 @@ operation CreateSecret {
         change_reason: String
     }
 
-    output: SecretUnmaskedResponse
+    output: SecretResponse
 }
 
 @documentation("Updates an existing secret's value or description. The value is re-encrypted with the current workspace encryption key. Returns masked value.")
@@ -226,17 +167,4 @@ operation DeleteSecret with [GetOperation] {
     }
 
     output: SecretResponse
-}
-
-@documentation("Rotates the workspace encryption key. Generates a new encryption key, re-encrypts all secrets with the new key, and stores the old key as previous_encryption_key for graceful migration. This is a critical operation that should be done during low-traffic periods.")
-@http(method: "POST", uri: "/secrets/rotate-key")
-@tags(["Secrets"])
-operation RotateWorkspaceKey {
-    input := with [WorkspaceMixin] {
-        @required
-        @documentation("Reason for rotating the encryption key (e.g., 'Scheduled rotation', 'Security incident').")
-        change_reason: String
-    }
-
-    output: KeyRotationStatus
 }

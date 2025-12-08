@@ -248,8 +248,9 @@ async fn main() -> Result<()> {
                     )
                     .service(
                         scope("/secrets")
-                        .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                        .service(secrets::endpoints())
+                            .app_data(Resource::Secret)
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .service(secrets::endpoints())
                     )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())

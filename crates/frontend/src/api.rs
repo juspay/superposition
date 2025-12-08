@@ -1,6 +1,7 @@
 use reqwest::header::HeaderMap;
 use serde_json::{Map, Value};
 use superposition_types::{
+    Config, PaginatedResponse,
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         context::ContextListFilters,
@@ -23,13 +24,12 @@ use superposition_types::{
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::models::{
+        ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
         cac::{Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
         others::{Variable, VariableName},
-        ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
     },
-    Config, PaginatedResponse,
 };
 
 use crate::utils::{
@@ -116,6 +116,7 @@ pub mod snapshots {
 
 pub mod dimensions {
     use superposition_types::{
+        ExtendedMap,
         api::dimension::{CreateRequest, DimensionName, UpdateRequest},
         database::models::cac::{DimensionType, Position},
     };
@@ -463,6 +464,8 @@ pub async fn fetch_types(
 }
 
 pub mod workspaces {
+    use superposition_types::api::secrets::{KeyRotationStatus, RotateKeyRequest};
+
     use super::*;
 
     pub async fn fetch_all(
@@ -1041,8 +1044,7 @@ pub mod variables {
 pub mod secrets {
     use superposition_types::{
         api::secrets::{
-            CreateSecretRequest, KeyRotationStatus, RotateKeyRequest, SecretFilters,
-            SecretResponse, UpdateSecretRequest,
+            CreateSecretRequest, SecretFilters, SecretResponse, UpdateSecretRequest,
         },
         database::models::others::SecretName,
     };
@@ -1174,12 +1176,11 @@ pub mod secrets {
 
         Ok(())
     }
-
 }
 
 pub mod experiment_groups {
     use superposition_types::{
-        database::models::experimentation::TrafficPercentage, Condition, Exp,
+        Condition, Exp, database::models::experimentation::TrafficPercentage,
     };
 
     use crate::logic::Conditions;

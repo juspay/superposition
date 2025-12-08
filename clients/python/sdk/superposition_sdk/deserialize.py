@@ -26,6 +26,7 @@ from .models import (
     CreateExperimentOutput,
     CreateFunctionOutput,
     CreateOrganisationOutput,
+    CreateSecretOutput,
     CreateTypeTemplatesOutput,
     CreateVariableOutput,
     CreateWebhookOutput,
@@ -35,6 +36,7 @@ from .models import (
     DeleteDimensionOutput,
     DeleteExperimentGroupOutput,
     DeleteFunctionOutput,
+    DeleteSecretOutput,
     DeleteTypeTemplatesOutput,
     DeleteVariableOutput,
     DeleteWebhookOutput,
@@ -51,6 +53,7 @@ from .models import (
     GetOrganisationOutput,
     GetResolvedConfigOutput,
     GetResolvedConfigWithIdentifierOutput,
+    GetSecretOutput,
     GetTypeTemplateOutput,
     GetTypeTemplatesListOutput,
     GetVariableOutput,
@@ -67,6 +70,7 @@ from .models import (
     ListExperimentOutput,
     ListFunctionOutput,
     ListOrganisationOutput,
+    ListSecretsOutput,
     ListVariablesOutput,
     ListVersionsOutput,
     ListWebhookOutput,
@@ -88,6 +92,7 @@ from .models import (
     UpdateOrganisationOutput,
     UpdateOverrideOutput,
     UpdateOverridesExperimentOutput,
+    UpdateSecretOutput,
     UpdateTypeTemplatesOutput,
     UpdateVariableOutput,
     UpdateWebhookOutput,
@@ -384,6 +389,31 @@ async def _deserialize_error_create_organisation(http_response: HTTPResponse, co
         case _:
             return UnknownApiError(f"{code}: {message}")
 
+async def _deserialize_create_secret(http_response: HTTPResponse, config: Config) -> CreateSecretOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_create_secret(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = CreateSecretOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return CreateSecretOutput(**kwargs)
+
+async def _deserialize_error_create_secret(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
 async def _deserialize_create_type_templates(http_response: HTTPResponse, config: Config) -> CreateTypeTemplatesOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_create_type_templates(http_response, config)
@@ -584,6 +614,34 @@ async def _deserialize_delete_function(http_response: HTTPResponse, config: Conf
     return DeleteFunctionOutput(**kwargs)
 
 async def _deserialize_error_delete_function(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_delete_secret(http_response: HTTPResponse, config: Config) -> DeleteSecretOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_delete_secret(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = DeleteSecretOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return DeleteSecretOutput(**kwargs)
+
+async def _deserialize_error_delete_secret(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
@@ -1086,6 +1144,34 @@ async def _deserialize_error_get_resolved_config_with_identifier(http_response: 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
+async def _deserialize_get_secret(http_response: HTTPResponse, config: Config) -> GetSecretOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_get_secret(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = GetSecretOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return GetSecretOutput(**kwargs)
+
+async def _deserialize_error_get_secret(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
 async def _deserialize_get_type_template(http_response: HTTPResponse, config: Config) -> GetTypeTemplateOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_get_type_template(http_response, config)
@@ -1470,6 +1556,31 @@ async def _deserialize_list_organisation(http_response: HTTPResponse, config: Co
     return ListOrganisationOutput(**kwargs)
 
 async def _deserialize_error_list_organisation(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_list_secrets(http_response: HTTPResponse, config: Config) -> ListSecretsOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_list_secrets(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ListSecretsOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ListSecretsOutput(**kwargs)
+
+async def _deserialize_error_list_secrets(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
@@ -1987,6 +2098,34 @@ async def _deserialize_update_overrides_experiment(http_response: HTTPResponse, 
     return UpdateOverridesExperimentOutput(**kwargs)
 
 async def _deserialize_error_update_overrides_experiment(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_update_secret(http_response: HTTPResponse, config: Config) -> UpdateSecretOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_update_secret(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = UpdateSecretOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return UpdateSecretOutput(**kwargs)
+
+async def _deserialize_error_update_secret(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
