@@ -281,7 +281,7 @@ pub fn change_log_summary(
                 {move || match secret.get() {
                     Some(Ok(sec)) => {
                         let (old_values, new_values) = match change_type.get_value() {
-                            ChangeType::Update(update_request) => {
+                            ChangeType::Update(_update_request) => {
                                 (
                                     Map::from_iter(
                                         vec![

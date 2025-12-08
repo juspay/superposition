@@ -70,12 +70,16 @@ async fn create(
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    validate_change_reason(&create_req.change_reason, &mut conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(
+        &create_req.change_reason,
+        &mut conn,
+        &schema_name,
+        &state.master_key,
+    )
+    .map_err(|err| {
+        log::error!("change reason validation failed with error: {:?}", err);
+        err
+    })?;
 
     let num_rows = dimensions
         .count()
@@ -275,12 +279,16 @@ async fn update(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let update_req = req.into_inner();
 
-    validate_change_reason(&update_req.change_reason, &mut conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(
+        &update_req.change_reason,
+        &mut conn,
+        &schema_name,
+        &state.master_key,
+    )
+    .map_err(|err| {
+        log::error!("change reason validation failed with error: {:?}", err);
+        err
+    })?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))

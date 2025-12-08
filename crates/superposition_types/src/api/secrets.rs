@@ -94,3 +94,13 @@ pub struct KeyRotationStatus {
     pub rotation_timestamp: DateTime<Utc>,
     pub message: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MasterKeyRotationStatus {
+    pub success: bool,
+    pub workspaces_rotated: i64,
+    pub total_workspaces: i64,
+    pub total_secrets_re_encrypted: i64,
+    pub rotation_timestamp: chrono::DateTime<chrono::Utc>,
+    pub message: String,
+}

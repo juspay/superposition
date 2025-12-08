@@ -1,9 +1,7 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::{
-    encryption::{
-        decrypt_with_fallback, decrypt_workspace_key, get_master_encryption_key,
-    },
-    service::types::{AppState, SchemaName},
+    encryption::{decrypt_with_fallback, decrypt_workspace_key},
+    service::types::SchemaName,
 };
 use superposition_types::{
     database::{
@@ -103,10 +101,10 @@ pub fn generate_secrets_template(secrets: &[(String, String)]) -> String {
     format!("const SECRETS = {{\n{}\n}};", json_entries.join(",\n"))
 }
 
-pub async fn get_decrypted_secrets(
+pub fn get_decrypted_secrets(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-    app_state: &AppState,
+    master_key: &str,
 ) -> superposition::Result<Vec<(String, String)>> {
     let all_secrets: Vec<Secret> =
         secrets_dsl::secrets.schema_name(schema_name).load(conn)?;
@@ -122,37 +120,25 @@ pub async fn get_decrypted_secrets(
             )
         })?;
 
-        let master_key =
-            get_master_encryption_key(&app_state.kms_client, &app_state.app_env)
-                .await
-                .map_err(|e| {
-                    log::error!("Failed to get master encryption key: {}", e);
-                    unexpected_error!("Failed to decrypt workspace encryption key")
-                })?;
-
-        let encryption_key = decrypt_workspace_key(&encrypted_key, &master_key)
-            .await
-            .map_err(|e| {
+        let encryption_key =
+            decrypt_workspace_key(&encrypted_key, master_key).map_err(|e| {
                 log::error!("Failed to decrypt workspace key: {}", e);
                 unexpected_error!("Failed to decrypt workspace encryption key")
             })?;
 
-        let previous_key = if let Some(ref encrypted_prev) =
-            workspace.previous_encryption_key
-        {
-            Some(
-                decrypt_workspace_key(encrypted_prev, &master_key)
-                    .await
-                    .map_err(|e| {
+        let previous_key =
+            if let Some(ref encrypted_prev) = workspace.previous_encryption_key {
+                Some(
+                    decrypt_workspace_key(encrypted_prev, master_key).map_err(|e| {
                         log::error!("Failed to decrypt previous workspace key: {}", e);
                         unexpected_error!(
                             "Failed to decrypt previous workspace encryption key"
                         )
                     })?,
-            )
-        } else {
-            None
-        };
+                )
+            } else {
+                None
+            };
 
         all_secrets
             .into_iter()
@@ -174,18 +160,18 @@ pub async fn get_decrypted_secrets(
     }
 }
 
-pub async fn inject_secrets_and_variables_into_code(
+pub fn inject_secrets_and_variables_into_code(
     code: &str,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-    app_state: &AppState,
+    master_key: &str,
 ) -> superposition::Result<FunctionCode> {
     let vars: Vec<(String, String)> = variables::variables
         .select((variables::name, variables::value))
         .schema_name(schema_name)
         .load(conn)?;
 
-    let decrypted_secrets = get_decrypted_secrets(conn, schema_name, app_state).await?;
+    let decrypted_secrets = get_decrypted_secrets(conn, schema_name, master_key)?;
 
     let vars_template = generate_vars_template(&vars);
     let secrets_template = generate_secrets_template(&decrypted_secrets);

@@ -23,6 +23,7 @@ use leptos_actix::{generate_route_list, LeptosRoutes};
 use log::{log_enabled, Level};
 use service_utils::{
     aws::kms,
+    encryption::get_master_encryption_keys,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     middlewares::{
         auth_n::AuthNHandler, request_response_logging::RequestResponseLogger,
@@ -99,6 +100,16 @@ async fn main() -> Result<()> {
         _ => Some(kms::new_client().await),
     };
 
+    let (master_key, prev_master_key) =
+        match get_master_encryption_keys(&kms_client, &app_env).await {
+            Ok((master_key, prev_master_key)) => {
+                (master_key.to_string(), prev_master_key.to_string())
+            }
+            Err(e) => {
+                panic!("Master Key Encryption Error: {e}");
+            }
+        };
+
     let app_state = Data::new(
         app_state::get(
             app_env,
@@ -106,6 +117,8 @@ async fn main() -> Result<()> {
             &kms_client,
             service_prefix_str.to_owned(),
             &base,
+            &master_key,
+            &prev_master_key,
         )
         .await,
     );
@@ -235,5 +248,3 @@ async fn main() -> Result<()> {
     .run()
     .await
 }
-
-

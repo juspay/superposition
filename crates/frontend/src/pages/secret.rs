@@ -10,8 +10,8 @@ use crate::components::{
     button::Button,
     description::ContentDescription,
     drawer::PortalDrawer,
-    skeleton::{Skeleton, SkeletonVariant},
     secret_form::{ChangeLogSummary, ChangeType, SecretForm},
+    skeleton::{Skeleton, SkeletonVariant},
 };
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{OrganisationId, Tenant};
@@ -76,11 +76,8 @@ pub fn secret() -> impl IntoView {
                 Ok(_) => {
                     logging::log!("Secret deleted successfully");
                     let navigate = use_navigate();
-                    let redirect_url = format!(
-                        "/admin/{}/{}/secrets",
-                        org.get().0,
-                        workspace.get().0,
-                    );
+                    let redirect_url =
+                        format!("/admin/{}/{}/secrets", org.get().0, workspace.get().0,);
                     navigate(&redirect_url, Default::default());
                     enqueue_alert(
                         String::from("Secret deleted successfully"),

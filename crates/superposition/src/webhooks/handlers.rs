@@ -1,7 +1,7 @@
 use super::helper::{fetch_webhook, validate_events};
 use actix_web::{
     delete, get, patch, post,
-    web::{self, Json, Query},
+    web::{self, Data, Json, Query},
     HttpResponse, Scope,
 };
 use chrono::Utc;
@@ -9,7 +9,9 @@ use context_aware_config::helpers::{get_workspace, validate_change_reason};
 use diesel::{
     delete, ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl,
 };
-use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
+use service_utils::service::types::{
+    AppState, DbConnection, SchemaName, WorkspaceContext,
+};
 use superposition_types::{
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     custom_query::PaginationParams,
@@ -36,12 +38,18 @@ async fn create(
     schema_name: SchemaName,
     user: User,
     workspace_request: WorkspaceContext,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
     if workspace_settings.enable_change_reason_validation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+        validate_change_reason(
+            &req.change_reason,
+            &mut conn,
+            &schema_name,
+            &app_state.master_key,
+        )?;
     }
 
     validate_events(&req.events, None, &schema_name, &mut conn)?;
@@ -80,13 +88,19 @@ async fn update(
     user: User,
     request: Json<UpdateWebhookRequest>,
     workspace_request: WorkspaceContext,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let w_name: String = params.into_inner().into();
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
     if workspace_settings.enable_change_reason_validation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+        validate_change_reason(
+            &req.change_reason,
+            &mut conn,
+            &schema_name,
+            &app_state.master_key,
+        )?;
     }
 
     if let Some(webhook_events) = &req.events {

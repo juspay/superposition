@@ -29,6 +29,8 @@ pub async fn get(
     kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &str,
+    master_key: &str,
+    previous_master_key: &str,
 ) -> AppState {
     let cac_host =
         get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
@@ -130,5 +132,8 @@ pub async fn get(
         ).await
         .into_iter()
         .collect(),
+        kms_client: kms_client.clone(),
+        master_key: master_key.to_string(),
+        previous_master_key: previous_master_key.to_string()
     }
 }

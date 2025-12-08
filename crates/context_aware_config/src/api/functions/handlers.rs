@@ -1,11 +1,11 @@
 use actix_web::{
     delete, get, patch, post,
-    web::{Json, Path},
+    web::{Data, Json, Path},
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
 use diesel::{delete, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use service_utils::service::types::{DbConnection, SchemaName};
+use service_utils::service::types::{AppState, DbConnection, SchemaName};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     api::functions::{
@@ -45,6 +45,7 @@ async fn create(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -62,12 +63,16 @@ async fn create(
         ));
     }
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+        &app_state.master_key,
+    )
+    .map_err(|err| {
+        log::error!("change reason validation failed with error: {:?}", err);
+        err
+    })?;
 
     compile_fn(&req.function_type.get_js_fn_name(), &req.function)?;
 
@@ -129,6 +134,7 @@ async fn update(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -145,12 +151,16 @@ async fn update(
         compile_fn(&function_type.get_js_fn_name(), function)?;
 
         if function_type != FunctionType::ChangeReasonValidation {
-            validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
-                |err| {
-                    log::error!("change reason validation failed with error: {:?}", err);
-                    err
-                },
-            )?;
+            validate_change_reason(
+                &req.change_reason,
+                &mut conn,
+                &schema_name,
+                &app_state.master_key,
+            )
+            .map_err(|err| {
+                log::error!("change reason validation failed with error: {:?}", err);
+                err
+            })?;
         }
     }
 
@@ -266,6 +276,7 @@ async fn test(
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
+    app_state: Data<service_utils::service::types::AppState>,
 ) -> superposition::Result<Json<FunctionExecutionResponse>> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
@@ -286,8 +297,8 @@ async fn test(
         },
     };
 
-    let result =
-        execute_fn(&code, &req, &mut conn, &schema_name).map_err(|(e, stdout)| {
+    let result = execute_fn(&code, &req, &mut conn, &schema_name, &app_state.master_key)
+        .map_err(|(e, stdout)| {
             bad_argument!(
                 "Function failed with error: {}, stdout: {:?}",
                 e,
@@ -305,6 +316,7 @@ async fn publish(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let fun_name: String = params.into_inner().into();
@@ -312,12 +324,16 @@ async fn publish(
     let req = request.into_inner();
 
     if function.function_type != FunctionType::ChangeReasonValidation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
-            |err| {
-                log::error!("change reason validation failed with error: {:?}", err);
-                err
-            },
-        )?;
+        validate_change_reason(
+            &req.change_reason,
+            &mut conn,
+            &schema_name,
+            &app_state.master_key,
+        )
+        .map_err(|err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        })?;
     }
 
     let updated_function = diesel::update(functions::functions)

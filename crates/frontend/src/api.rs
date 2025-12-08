@@ -1189,7 +1189,7 @@ pub mod secrets {
         };
 
         let host = get_host();
-        let url = format!("{host}/secrets/rotate-key");
+        let url = format!("{host}/secrets/rotate-workspace-key");
 
         let response = request(
             url,

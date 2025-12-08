@@ -194,9 +194,11 @@ pub fn execute_fn(
     args: &FunctionExecutionRequest,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    master_key: &str,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
-    let code = inject_secrets_and_variables_into_code(code_str, conn, schema_name)
-        .map_err(|err| {
+    let code =
+        inject_secrets_and_variables_into_code(code_str, conn, schema_name, master_key)
+            .map_err(|err| {
             let err_msg = format!("Failed to inject variables/secrets: {:?}", err);
             log::error!("{}", err_msg);
             (err_msg, None)

@@ -135,7 +135,11 @@ pub fn workspace() -> impl IntoView {
                     <span class="cursor-pointer" on:click=edit_click_handler title="Edit Workspace">
                         <i class="ri-pencil-line ri-xl text-blue-500"></i>
                     </span>
-                    <span class="cursor-pointer" on:click=rotate_key_click_handler title="Rotate Encryption Key">
+                    <span
+                        class="cursor-pointer"
+                        on:click=rotate_key_click_handler
+                        title="Rotate Encryption Key"
+                    >
                         <i class="ri-key-2-line ri-xl text-yellow-600"></i>
                     </span>
                 </div>

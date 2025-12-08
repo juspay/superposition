@@ -1,12 +1,15 @@
-use actix_web::web::{Json, Path, Query};
-use actix_web::{delete, get, post, routes, Scope};
+use actix_web::{
+    delete, get, post, routes,
+    web::{Data, Json, Path, Query},
+    Scope,
+};
 use chrono::Utc;
 use diesel::{
     ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use jsonschema::JSONSchema;
 use serde_json::Value;
-use service_utils::service::types::{DbConnection, SchemaName};
+use service_utils::service::types::{AppState, DbConnection, SchemaName};
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
     api::type_templates::{
@@ -37,6 +40,7 @@ async fn create_type(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     JSONSchema::compile(&Value::from(&request.type_schema)).map_err(|err| {
@@ -50,12 +54,16 @@ async fn create_type(
             err.to_string()
         )
     })?;
-    validate_change_reason(&request.change_reason, &mut conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(
+        &request.change_reason,
+        &mut conn,
+        &schema_name,
+        &app_state.master_key,
+    )
+    .map_err(|err| {
+        log::error!("change reason validation failed with error: {:?}", err);
+        err
+    })?;
     let type_name: String = request.type_name.clone().into();
     let type_template = diesel::insert_into(type_templates::table)
         .values((
@@ -101,6 +109,7 @@ async fn update_type(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
@@ -117,7 +126,13 @@ async fn update_type(
     })?;
 
     let change_reason = request.change_reason;
-    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
+    validate_change_reason(
+        &change_reason,
+        &mut conn,
+        &schema_name,
+        &app_state.master_key,
+    )
+    .map_err(|err| {
         log::error!("change reason validation failed with error: {:?}", err);
         err
     })?;

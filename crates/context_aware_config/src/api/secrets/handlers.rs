@@ -1,13 +1,14 @@
 use actix_web::{
     delete, get, patch, post,
-    web::{self, Json, Query},
+    web::{self, Data, Json, Query},
     Scope,
 };
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::{
-    encryption::encrypt_secret,
-    service::types::{DbConnection, SchemaName},
+    encryption::{decrypt_workspace_key, encrypt_secret},
+    service::types::{AppState, DbConnection, SchemaName},
 };
+use superposition_macros::unexpected_error;
 use superposition_types::{
     api::secrets::*,
     custom_query::PaginationParams,
@@ -28,25 +29,51 @@ pub fn endpoints() -> Scope {
         .service(update_secret)
         .service(delete_secret)
         .service(super::key_rotation::rotate_encryption_key)
+        .service(super::key_rotation::rotate_master_key)
 }
 
 fn get_workspace_keys(
     conn: &mut diesel::PgConnection,
     workspace_id: &str,
     org_id: &str,
+    app_state: &AppState,
 ) -> superposition::Result<(String, Option<String>)> {
     use superposition_types::database::superposition_schema::superposition::workspaces::dsl as ws;
-    
+
     let workspace: Workspace = ws::workspaces
         .filter(ws::workspace_name.eq(workspace_id))
         .filter(ws::organisation_id.eq(org_id))
         .first(conn)?;
-    
-    let encryption_key = workspace
-        .encryption_key
-        .ok_or_else(|| superposition::AppError::BadArgument("Workspace encryption key not found. Please contact administrator.".to_string()))?;
-    
-    Ok((encryption_key, workspace.previous_encryption_key))
+
+    let encrypted_key = workspace.encryption_key.ok_or_else(|| {
+        superposition::AppError::BadArgument(
+            "Workspace encryption key not found. Please contact administrator."
+                .to_string(),
+        )
+    })?;
+
+    let master_key = app_state.master_key.clone();
+
+    let decrypted_key =
+        decrypt_workspace_key(&encrypted_key, &master_key).map_err(|e| {
+            log::error!("Failed to decrypt workspace key: {}", e);
+            unexpected_error!("Failed to decrypt workspace encryption key")
+        })?;
+
+    let decrypted_previous_key = if let Some(ref encrypted_prev) =
+        workspace.previous_encryption_key
+    {
+        Some(
+            decrypt_workspace_key(encrypted_prev, &master_key).map_err(|e| {
+                log::error!("Failed to decrypt previous workspace key: {}", e);
+                unexpected_error!("Failed to decrypt previous workspace encryption key")
+            })?,
+        )
+    } else {
+        None
+    };
+
+    Ok((decrypted_key, decrypted_previous_key))
 }
 
 #[get("")]
@@ -122,7 +149,7 @@ async fn list_secrets(
         builder = builder.offset(offset);
     }
     let result: Vec<Secret> = builder.load(&mut conn)?;
-    
+
     let masked_results: Vec<SecretResponse> = result
         .into_iter()
         .map(|s| SecretResponse {
@@ -137,7 +164,7 @@ async fn list_secrets(
             last_modified_by: s.last_modified_by,
         })
         .collect();
-    
+
     let total_pages = (n_secrets as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,
@@ -154,15 +181,19 @@ async fn create_secret(
     schema_name: SchemaName,
     workspace_id: service_utils::service::types::WorkspaceId,
     org_id: service_utils::service::types::OrganisationId,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<SecretResponse>> {
     let DbConnection(mut conn) = db_conn;
 
     let req = req.into_inner();
-    
-    let (encryption_key, _) = get_workspace_keys(&mut conn, &workspace_id.0, &org_id.0)?;
-    
-    let encrypted_secret_value = encrypt_secret(&req.value, &encryption_key)
-        .map_err(|e| superposition::AppError::BadArgument(format!("Encryption failed: {}", e)))?;
+
+    let (encryption_key, _) =
+        get_workspace_keys(&mut conn, &workspace_id.0, &org_id.0, &app_state)?;
+
+    let encrypted_secret_value =
+        encrypt_secret(&req.value, &encryption_key).map_err(|e| {
+            superposition::AppError::BadArgument(format!("Encryption failed: {}", e))
+        })?;
 
     let now = chrono::Utc::now();
 
@@ -225,6 +256,7 @@ async fn get_secret(
     }))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[patch("/{secret_name}")]
 async fn update_secret(
     path: web::Path<String>,
@@ -234,20 +266,25 @@ async fn update_secret(
     schema_name: SchemaName,
     workspace_id: service_utils::service::types::WorkspaceId,
     org_id: service_utils::service::types::OrganisationId,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<SecretResponse>> {
     let DbConnection(mut conn) = db_conn;
     let secret_name = path.into_inner();
     let req_inner = req.into_inner();
 
-    let (encryption_key, _) = get_workspace_keys(&mut conn, &workspace_id.0, &org_id.0)?;
+    let (encryption_key, _) =
+        get_workspace_keys(&mut conn, &workspace_id.0, &org_id.0, &app_state)?;
 
     let encrypted_value_opt = if let Some(ref plaintext_value) = req_inner.value {
-        Some(encrypt_secret(plaintext_value, &encryption_key)
-            .map_err(|e| superposition::AppError::BadArgument(format!("Encryption failed: {}", e)))?)
+        Some(
+            encrypt_secret(plaintext_value, &encryption_key).map_err(|e| {
+                superposition::AppError::BadArgument(format!("Encryption failed: {}", e))
+            })?,
+        )
     } else {
         None
     };
-    
+
     let changeset = superposition_types::api::secrets::UpdateSecretChangeset {
         encrypted_value: encrypted_value_opt,
         description: req_inner.description,
@@ -263,7 +300,7 @@ async fn update_secret(
         ))
         .schema_name(&schema_name)
         .get_result::<Secret>(&mut conn)?;
-    
+
     Ok(Json(SecretResponse {
         name: updated_secret.name.0,
         value: MASKED_VALUE.to_string(),

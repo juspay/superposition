@@ -112,6 +112,7 @@ pub fn validate_condition_with_functions(
     override_: &Map<String, Value>,
     is_context_validation_enabled: bool,
     schema_name: &SchemaName,
+    master_key: &str,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
@@ -144,6 +145,7 @@ pub fn validate_condition_with_functions(
                 },
                 conn,
                 schema_name,
+                master_key,
             )?;
         }
     }
@@ -166,6 +168,7 @@ pub fn validate_condition_with_functions(
                     },
                     conn,
                     schema_name,
+                    master_key,
                 )?;
             }
         }
@@ -229,6 +232,7 @@ pub fn validate_override_with_functions(
     override_: &Map<String, Value>,
     context: &Map<String, Value>,
     schema_name: &SchemaName,
+    master_key: &str,
 ) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::default_configs
@@ -262,6 +266,7 @@ pub fn validate_override_with_functions(
                     },
                     conn,
                     schema_name,
+                    master_key,
                 )?;
             }
         }
@@ -308,8 +313,9 @@ pub fn validate_value_with_function(
     args: &FunctionExecutionRequest,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    master_key: &str,
 ) -> superposition::Result<()> {
-    match execute_fn(function, args, conn, schema_name) {
+    match execute_fn(function, args, conn, schema_name, master_key) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
             let key = args.function_identifier();
@@ -364,14 +370,20 @@ pub fn create_ctx_from_put_req(
     conn: &mut DBConnection,
     user: &User,
     schema_name: &SchemaName,
+    master_key: &str,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    let dimension_data_map =
-        validate_ctx(conn, schema_name, ctx_condition.clone(), r_override.clone())?;
+    let dimension_data_map = validate_ctx(
+        conn,
+        schema_name,
+        ctx_condition.clone(),
+        r_override.clone(),
+        master_key,
+    )?;
     let change_reason = req.change_reason.clone();
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
@@ -380,6 +392,7 @@ pub fn create_ctx_from_put_req(
         &r_override,
         &ctx_condition.clone(),
         schema_name,
+        master_key,
     )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
@@ -481,6 +494,7 @@ pub fn validate_ctx(
     schema_name: &SchemaName,
     condition: Condition,
     override_: Overrides,
+    master_key: &str,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     let workspace_settings = get_workspace(schema_name, conn)?;
 
@@ -515,6 +529,7 @@ pub fn validate_ctx(
         &override_,
         workspace_settings.enable_context_validation,
         schema_name,
+        master_key,
     )?;
     Ok(dimension_info_map)
 }
