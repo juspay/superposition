@@ -2,7 +2,7 @@ use std::fs;
 
 use actix_web::{
     get, post, routes,
-    web::{self, Json, Path, Query},
+    web::{self, Data, Json, Path, Query},
     Scope,
 };
 use chrono::Utc;
@@ -13,7 +13,7 @@ use diesel::{
     TextExpressionMethods,
 };
 use regex::Regex;
-use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
+use service_utils::service::types::{AppState, DbConnection, OrganisationId, SchemaName};
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
     api::{
@@ -89,6 +89,7 @@ async fn create_workspace(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
     let org_info: Organisation = organisations::dsl::organisations
@@ -99,7 +100,27 @@ async fn create_workspace(
     let email = user.get_email();
     validate_workspace_name(&request.workspace_name)?;
     let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
-    let encryption_key = service_utils::encryption::generate_encryption_key();
+    
+    let raw_encryption_key = service_utils::encryption::generate_encryption_key();
+    let master_key = service_utils::encryption::get_master_encryption_key(
+        &app_state.kms_client,
+        &app_state.app_env,
+    )
+    .await
+    .map_err(|e| {
+        log::error!("Failed to get master encryption key: {}", e);
+        unexpected_error!("Failed to encrypt workspace key")
+    })?;
+    
+    let encrypted_workspace_key = service_utils::encryption::encrypt_workspace_key(
+        &raw_encryption_key,
+        &master_key,
+    )
+    .await
+    .map_err(|e| {
+        log::error!("Failed to encrypt workspace key: {}", e);
+        unexpected_error!("Failed to encrypt workspace key")
+    })?;
     
     let workspace = Workspace {
         organisation_id: org_info.id,
@@ -121,7 +142,7 @@ async fn create_workspace(
         metrics: request.metrics.unwrap_or_default(),
         allow_experiment_self_approval: request.allow_experiment_self_approval,
         auto_populate_control: request.auto_populate_control,
-        encryption_key: Some(encryption_key),
+        encryption_key: Some(encrypted_workspace_key),
         previous_encryption_key: None,
         key_rotation_at: None,
     };

@@ -19,18 +19,17 @@ use superposition_types::{
 
 use crate::{
     api::context::helpers::{
-        create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
+        hash, replace_override_of_existing_ctx,
         update_override_of_existing_ctx, validate_ctx,
     },
     helpers::calculate_context_weight,
 };
 
-use super::{
-    helpers::validate_override_with_functions, types::UpdateContextOverridesChangeset,
-    validations::validate_override_with_default_configs,
-};
+// Re-export for convenience
+pub use crate::api::context::helpers::create_ctx_from_put_req;
 
-pub fn upsert(
+// Sync wrappers for use in transaction closures (uses actix runtime handle)
+pub fn upsert_sync(
     req: PutRequest,
     description: Description,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
@@ -38,9 +37,54 @@ pub fn upsert(
     user: &User,
     schema_name: &SchemaName,
     replace: bool,
+    app_state: &service_utils::service::types::AppState,
+) -> result::Result<Context> {
+    actix_web::rt::Runtime::new().unwrap().block_on(upsert(req, description, conn, already_under_txn, user, schema_name, replace, app_state))
+}
+
+pub fn update_sync(
+    req: UpdateRequest,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    user: &User,
+    schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
+) -> result::Result<Context> {
+    actix_web::rt::Runtime::new().unwrap().block_on(update(req, conn, user, schema_name, app_state))
+}
+
+pub fn move_sync(
+    old_ctx_id: String,
+    req: Json<MoveRequest>,
+    req_description: Description,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    already_under_txn: bool,
+    user: &User,
+    schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
+) -> result::Result<Context> {
+    actix_web::rt::Runtime::new().unwrap().block_on(r#move(old_ctx_id, req, req_description, conn, already_under_txn, user, schema_name, app_state))
+}
+
+use super::{
+    helpers::validate_override_with_functions, types::UpdateContextOverridesChangeset,
+    validations::validate_override_with_default_configs,
+};
+
+pub async fn upsert(
+    req: PutRequest,
+    description: Description,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    already_under_txn: bool,
+    user: &User,
+    schema_name: &SchemaName,
+    replace: bool,
+    app_state: &service_utils::service::types::AppState,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, description, conn, user, schema_name)?;
+    
+    let new_ctx = create_ctx_from_put_req(
+        req, description, conn, user, schema_name, app_state
+    ).await?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -70,11 +114,12 @@ pub fn upsert(
     }
 }
 
-pub fn update(
+pub async fn update(
     req: UpdateRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> result::Result<Context> {
     let context_id = match req.context {
         Identifier::Context(context) => hash(&Value::Object(context.into_inner().into())),
@@ -85,7 +130,7 @@ pub fn update(
     let ctx_override = Value::Object(r_override.clone().into());
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_override_with_functions(conn, &r_override, schema_name)?;
+    validate_override_with_functions(conn, &r_override, schema_name, app_state).await?;
 
     let update_request = UpdateContextOverridesChangeset {
         override_id: hash(&ctx_override),
@@ -105,7 +150,7 @@ pub fn update(
         .map_err(|e| db_error!(e))
 }
 
-pub fn r#move(
+pub async fn r#move(
     old_ctx_id: String,
     req: Json<MoveRequest>,
     req_description: Description,
@@ -113,6 +158,7 @@ pub fn r#move(
     already_under_txn: bool,
     user: &User,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -122,7 +168,7 @@ pub fn r#move(
 
     let new_ctx_id = hash(&ctx_condition_value);
 
-    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone())?;
+    let dimension_data_map = validate_ctx(conn, schema_name, ctx_condition.clone(), app_state).await?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 

@@ -299,7 +299,7 @@ pub async fn put_config_in_redis(
     Ok(())
 }
 
-fn compute_value_with_function(
+async fn compute_value_with_function(
     fun_name: &str,
     function: &FunctionCode,
     key: &str,
@@ -307,6 +307,7 @@ fn compute_value_with_function(
     overrides: Map<String, Value>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<Value> {
     match execute_fn(
         function,
@@ -317,7 +318,8 @@ fn compute_value_with_function(
         },
         conn,
         schema_name,
-    ) {
+        app_state,
+    ).await {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
             log::error!(
@@ -350,13 +352,14 @@ fn compute_value_with_function(
 }
 
 /// Evaluates dependencies of local cohort dimensions recursively using depth-first traversal
-fn evaluate_remote_cohorts_dependency(
+async fn evaluate_remote_cohorts_dependency(
     dimension: &str,
     dependency_graph: &DependencyGraph,
     dimensions: &HashMap<String, DimensionInfo>,
     modified_context: &mut Map<String, Value>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<()> {
     let mut stack = dependency_graph
         .get(dimension)
@@ -399,7 +402,8 @@ fn evaluate_remote_cohorts_dependency(
                 Map::new(),
                 conn,
                 schema_name,
-            )?;
+                app_state,
+            ).await?;
 
             modified_context.insert(cohort_dimension.clone(), value);
 
@@ -426,11 +430,12 @@ fn evaluate_remote_cohorts_dependency(
 /// Values of regular and local cohort dimensions in query_data are not modified.
 /// Returned value, might have a different value for remote cohort dimensions based on its based on dimensions,
 /// if the value provided for the remote cohort was incorrect in the query data.
-pub fn evaluate_remote_cohorts(
+pub async fn evaluate_remote_cohorts(
     dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<Map<String, Value>> {
     let mut modified_context = Map::new();
 
@@ -449,7 +454,8 @@ pub fn evaluate_remote_cohorts(
                             &mut modified_context,
                             conn,
                             schema_name,
-                        )?;
+                            app_state,
+                        ).await?;
                     }
                 }
             }

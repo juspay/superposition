@@ -5,6 +5,8 @@ use aes_gcm::{
 use base64::{engine::general_purpose, Engine};
 use rand::RngCore;
 
+use crate::service::types::AppEnv;
+
 const NONCE_SIZE: usize = 12;
 
 #[derive(Debug)]
@@ -178,5 +180,48 @@ mod tests {
         let decrypted =
             decrypt_with_fallback(&encrypted, &new_key, Some(&old_key)).unwrap();
         assert_eq!(plaintext, decrypted);
+    }
+}
+
+pub async fn encrypt_workspace_key(
+    workspace_key: &str,
+    master_key: &str,
+) -> Result<String, EncryptionError> {
+    encrypt_secret(workspace_key, master_key)
+}
+
+pub async fn decrypt_workspace_key(
+    encrypted_workspace_key: &str,
+    master_key: &str,
+) -> Result<String, EncryptionError> {
+    decrypt_secret(encrypted_workspace_key, master_key)
+}
+
+pub async fn get_master_encryption_key(
+    kms_client: &Option<aws_sdk_kms::Client>,
+    app_env: &AppEnv,
+) -> Result<String, EncryptionError> {
+    match app_env {
+        AppEnv::DEV | AppEnv::TEST => {
+            use crate::helpers::get_from_env_or_default;
+            let key = get_from_env_or_default(
+                "MASTER_ENCRYPTION_KEY",
+                generate_encryption_key(),
+            );
+            Ok(key)
+        }
+        _ => {
+            let kms_client = kms_client.as_ref().ok_or_else(|| {
+                EncryptionError::EncryptionFailed(
+                    "KMS client not available".to_string(),
+                )
+            })?;
+            let decrypted_key = crate::aws::kms::decrypt(
+                kms_client.clone(),
+                "MASTER_ENCRYPTION_KEY",
+            )
+            .await;
+            Ok(decrypted_key)
+        }
     }
 }

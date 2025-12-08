@@ -86,32 +86,33 @@ async fn put_handler(
     };
     let req_change_reason = req.change_reason.clone();
 
-    let (put_response, version_id) = db_conn
+    // Perform async validation+upsert outside transaction to avoid runtime issues
+    let put_response = operations::upsert(
+        req.into_inner(),
+        description,
+        &mut db_conn,
+        false,
+        &user,
+        &schema_name,
+        false,
+        &state,
+    )
+    .await
+    .map_err(|err: superposition::AppError| {
+        log::error!("context put failed with error: {:?}", err);
+        err
+    })?;
+
+    // Add config version in separate transaction
+    let version_id = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            // Use the helper function to ensure the description
-
-            let put_response = operations::upsert(
-                req.into_inner(),
-                description,
-                transaction_conn,
-                true,
-                &user,
-                &schema_name,
-                false,
-            )
-            .map_err(|err: superposition::AppError| {
-                log::error!("context put failed with error: {:?}", err);
-                err
-            })?;
-
-            let version_id = add_config_version(
+            add_config_version(
                 &state,
                 tags,
                 req_change_reason.into(),
                 transaction_conn,
                 &schema_name,
-            )?;
-            Ok((put_response, version_id))
+            )
         })?;
 
     let mut http_resp = HttpResponse::Ok();
@@ -143,26 +144,30 @@ async fn update_override_handler(
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
-    let (override_resp, version_id) = db_conn
+    
+    // Perform async validation+update outside transaction
+    let override_resp = operations::update(
+        req.into_inner(),
+        &mut db_conn,
+        &user,
+        &schema_name,
+        &state,
+    )
+    .await
+    .map_err(|err: superposition::AppError| {
+        log::error!("context update failed with error: {:?}", err);
+        err
+    })?;
+    
+    let version_id = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let override_resp = operations::update(
-                req.into_inner(),
-                transaction_conn,
-                &user,
-                &schema_name,
-            )
-            .map_err(|err: superposition::AppError| {
-                log::error!("context update failed with error: {:?}", err);
-                err
-            })?;
-            let version_id = add_config_version(
+            add_config_version(
                 &state,
                 tags,
                 req_change_reason.into(),
                 transaction_conn,
                 &schema_name,
-            )?;
-            Ok((override_resp, version_id))
+            )
         })?;
     let mut http_resp = HttpResponse::Ok();
 
@@ -202,30 +207,32 @@ async fn move_handler(
         )?,
     };
 
-    let (move_response, version_id) = db_conn
+    // Perform async validation+move outside transaction
+    let move_response = operations::r#move(
+        path.into_inner(),
+        req,
+        description,
+        &mut db_conn,
+        false,
+        &user,
+        &schema_name,
+        &state,
+    )
+    .await
+    .map_err(|err| {
+        log::error!("move api failed with error: {:?}", err);
+        err
+    })?;
+    
+    let version_id = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let move_response = operations::r#move(
-                path.into_inner(),
-                req,
-                description,
-                transaction_conn,
-                true,
-                &user,
-                &schema_name,
-            )
-            .map_err(|err| {
-                log::error!("move api failed with error: {:?}", err);
-                err
-            })?;
-            let version_id = add_config_version(
+            add_config_version(
                 &state,
                 tags,
                 move_response.change_reason.clone().into(),
                 transaction_conn,
                 &schema_name,
-            )?;
-
-            Ok((move_response, version_id))
+            )
         })?;
     let mut http_resp = HttpResponse::Ok();
 
@@ -500,7 +507,7 @@ async fn bulk_operations(
                                 .expect("Description should not be empty")
                         };
 
-                        let put_resp = operations::upsert(
+                        let put_resp = operations::upsert_sync(
                             put_req.clone(),
                             description.clone(),
                             transaction_conn,
@@ -508,6 +515,7 @@ async fn bulk_operations(
                             &user,
                             &schema_name,
                             false,
+                            &state,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -523,11 +531,12 @@ async fn bulk_operations(
                     }
                     ContextAction::Replace(update_request) => {
                         all_change_reasons.push(update_request.change_reason.clone());
-                        let update_resp = operations::update(
+                        let update_resp = operations::update_sync(
                             update_request,
                             transaction_conn,
                             &user,
                             &schema_name,
+                            &state,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -596,7 +605,7 @@ async fn bulk_operations(
                             )?,
                         };
 
-                        let move_context_resp = operations::r#move(
+                        let move_context_resp = operations::move_sync(
                             old_ctx_id,
                             Json(move_req),
                             description,
@@ -604,6 +613,7 @@ async fn bulk_operations(
                             true,
                             &user,
                             &schema_name,
+                            &state,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -739,11 +749,12 @@ async fn validate_context(
     db_conn: DbConnection,
     schema_name: SchemaName,
     request: Json<ContextValidationRequest>,
+    app_state: Data<service_utils::service::types::AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
-    validate_ctx(&mut conn, &schema_name, ctx_condition.clone())?;
+    validate_ctx(&mut conn, &schema_name, ctx_condition.clone(), &app_state).await?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())
 }
