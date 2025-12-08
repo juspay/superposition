@@ -4,8 +4,12 @@ pub mod types;
 pub mod utils;
 
 pub use client::*;
-pub use provider::*;
 pub use types::*;
+
+// Export specific provider types for clarity
+pub use provider::{
+    SuperpositionProvider, SuperpositionRemoteProvider, SuperpositionLocalProvider,
+};
 
 pub use open_feature::{
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},

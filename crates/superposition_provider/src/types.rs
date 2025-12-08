@@ -170,7 +170,7 @@ impl ExperimentationOptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuperpositionProviderOptions {
+pub struct SuperpositionRemoteProviderOptions {
     pub endpoint: String,
     pub token: String,
     pub org_id: String,
@@ -181,7 +181,36 @@ pub struct SuperpositionProviderOptions {
     pub experimentation_options: Option<ExperimentationOptions>,
 }
 
-impl SuperpositionProviderOptions {
+/// Configuration options for local TOML-based provider
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuperpositionLocalProviderOptions {
+    pub file_path: String,
+    pub evaluation_cache: Option<EvaluationCacheOptions>,
+    pub refresh_strategy: LocalRefreshStrategy,
+}
+
+/// Refresh strategy options specific to local file-based provider
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum LocalRefreshStrategy {
+    /// Watch file for changes and reload automatically
+    FileWatch,
+    /// Reload file on each evaluation
+    OnDemand,
+    /// Manual reload only
+    Manual,
+}
+
+impl Default for LocalRefreshStrategy {
+    fn default() -> Self {
+        LocalRefreshStrategy::OnDemand
+    }
+}
+
+/// Backwards compatibility alias
+#[deprecated(since = "0.1.0", note = "Use SuperpositionRemoteProviderOptions instead")]
+pub type SuperpositionProviderOptions = SuperpositionRemoteProviderOptions;
+
+impl SuperpositionRemoteProviderOptions {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         endpoint: String,
@@ -203,5 +232,37 @@ impl SuperpositionProviderOptions {
             refresh_strategy,
             experimentation_options,
         }
+    }
+}
+
+impl SuperpositionLocalProviderOptions {
+    pub fn new(
+        file_path: String,
+        evaluation_cache: Option<EvaluationCacheOptions>,
+        refresh_strategy: LocalRefreshStrategy,
+    ) -> Self {
+        Self {
+            file_path,
+            evaluation_cache,
+            refresh_strategy,
+        }
+    }
+
+    pub fn with_file_path(file_path: String) -> Self {
+        Self {
+            file_path,
+            evaluation_cache: Some(EvaluationCacheOptions::default()),
+            refresh_strategy: LocalRefreshStrategy::default(),
+        }
+    }
+
+    pub fn with_evaluation_cache(mut self, evaluation_cache: EvaluationCacheOptions) -> Self {
+        self.evaluation_cache = Some(evaluation_cache);
+        self
+    }
+
+    pub fn with_refresh_strategy(mut self, refresh_strategy: LocalRefreshStrategy) -> Self {
+        self.refresh_strategy = refresh_strategy;
+        self
     }
 }
