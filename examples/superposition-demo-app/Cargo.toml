@@ -1,5 +1,6 @@
 [package]
 name = "superposition-demo-app"
+description = "superposition-demo-app"
 version.workspace = true
 edition = "2021"
 

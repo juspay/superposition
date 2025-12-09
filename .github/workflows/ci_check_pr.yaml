@@ -130,6 +130,7 @@ jobs:
                   
             - name: Install postgres libs
               run: |
+                sudo apt update
                 sudo apt-get -y install postgresql libpq-dev
 
             - name: Install Bun
@@ -262,6 +263,7 @@ jobs:
             
             - name: Install postgres libs
               run: |
+                sudo apt update
                 sudo apt-get -y install postgresql libpq-dev
                 
             - name: Install Bun

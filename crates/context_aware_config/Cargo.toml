@@ -1,5 +1,6 @@
 [package]
 name = "context_aware_config"
+description = "context-aware-config introduces a new way to think about application configuration by defines dimensions, default configs and overrides."
 version.workspace = true
 edition = "2021"
 

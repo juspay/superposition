@@ -1,5 +1,6 @@
 [package]
 name = "cac_client_integration_example"
+description = "cac_client_integration_example"
 version.workspace = true
 edition = "2021"
 

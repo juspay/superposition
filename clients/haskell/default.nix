@@ -7,7 +7,7 @@
       self',
       ...
     }:
-    let hpkgs = pkgs.haskell.packages.ghc964;
+    let hpkgs = pkgs.haskell.packages.ghc96;
     in {
       haskellProjects.default = {
         imports = [
@@ -24,6 +24,7 @@
           cac_client.custom = _: self'.packages.cac_client;
           experimentation_client.custom = _: self'.packages.experimentation_client;
           superposition_core.custom = _: self'.packages.superposition_core;
+          monad-logger-aeson.broken = false;
         };
       };
       devShells.haskell = pkgs.mkShell {

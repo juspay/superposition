@@ -1,5 +1,6 @@
 [package]
 name = "redis_module_cac"
+description = "redis_module_cac"
 version = "0.1.0"
 edition = "2021"
 

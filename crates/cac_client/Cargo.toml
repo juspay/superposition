@@ -1,5 +1,6 @@
 [package]
 name = "cac_client"
+description = "CAC Client provides interfaces for applications to interact with the context-aware-config module in superposition. Note: this is deprecated, please use the provider"
 version.workspace = true
 edition = "2021"
 build = "build.rs"

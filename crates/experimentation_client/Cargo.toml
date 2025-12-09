@@ -1,5 +1,6 @@
 [package]
 name = "experimentation_client"
+description = "experimentation Client provides interfaces for applications to interact with the experimentation module in superposition. Note: this is deprecated, please use the provider"
 version.workspace = true
 edition = "2021"
 

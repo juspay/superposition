@@ -12,7 +12,6 @@
     }:
     let
       inherit (pkgs.stdenv) isDarwin;
-      inherit (pkgs.darwin) apple_sdk;
       globalCrateConfig = {
         crane.clippy.enable = false; # https://github.com/juspay/superposition/issues/19
       };
@@ -57,8 +56,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -85,8 +82,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -113,8 +108,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -141,8 +134,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -169,8 +160,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -197,8 +186,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -228,8 +215,6 @@
                 ];
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -258,8 +243,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -285,8 +268,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [
@@ -306,11 +287,7 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
-                  ])
-                  ++ [
+                  [
                     pkgs.openssl
                   ];
               };
@@ -321,11 +298,7 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
-                  ])
-                  ++ [
+                  [
                     pkgs.openssl
                     pkgs.postgresql_15
                   ];
@@ -338,8 +311,6 @@
               args = {
                 buildInputs =
                   lib.optionals isDarwin ([
-                    apple_sdk.frameworks.Security
-                    apple_sdk.frameworks.SystemConfiguration
                     pkgs.fixDarwinDylibNames
                   ])
                   ++ [

@@ -1,5 +1,6 @@
 [package]
 name = "superposition"
+description = "The main server runtime. Also home to modules that don't fall into other crates"
 version.workspace = true
 edition = "2021"
 
