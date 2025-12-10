@@ -1,8 +1,8 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Type};
+use quote::{format_ident, quote};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, ItemFn, LitStr, Type};
 
 /// Implements `FromSql` trait for converting `Json` type to the type for `Pg` backend
 ///
@@ -335,4 +335,60 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+/// For an action `test` and a function `my_func`, this macro generates a struct
+/// `AuthZActionTestMyFunc` that implements the `Action` trait from `service_utils::middlewares::auth_z`.
+/// It injects an additional parameter `_auth_z: AuthZ<AuthZActionTestMyFunc>` into the function signature.
+/// `AuthZ` struct implements `FromRequest` trait to handle authorization checks.
+///
+/// The struct is used to represent the action and is generated based on the action name and function name.
+#[proc_macro_attribute]
+pub fn auth_action(attr: TokenStream, item: TokenStream) -> TokenStream {
+    // Read the attribute value (e.g., #[action("test")])
+    let action_lit = parse_macro_input!(attr as LitStr);
+    let action_name = action_lit.value();
+
+    // Parse the function
+    let mut input_fn = parse_macro_input!(item as ItemFn);
+    let fn_name = input_fn.sig.ident.to_string();
+
+    // Generate mangled struct name: AuthZActionTestMyFunc
+    let struct_name = format_ident!(
+        "AuthZAction{}{}",
+        pascal_case(&action_name),
+        pascal_case(&fn_name)
+    );
+
+    // Inject parameter: _auth_z: AuthZ<AuthZActionTestMyFunc>
+    input_fn.sig.inputs.insert(
+        0,
+        syn::parse_quote!(_auth_z: service_utils::middlewares::auth_z::AuthZ<#struct_name>),
+    );
+
+    let output = quote! {
+        struct #struct_name;
+
+        impl service_utils::middlewares::auth_z::Action for #struct_name {
+            fn get() -> String {
+                #action_name.to_string()
+            }
+        }
+
+        #input_fn
+    };
+
+    output.into()
+}
+
+fn pascal_case(s: &str) -> String {
+    s.split(&['-', '_'])
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect()
 }

@@ -6,6 +6,7 @@ use actix_web::{
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::auth_action;
 use superposition_types::{
     api::variables::*,
     custom_query::PaginationParams,
@@ -22,6 +23,7 @@ pub fn endpoints() -> Scope {
         .service(delete_variable)
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_variables(
     db_conn: DbConnection,
@@ -89,6 +91,7 @@ async fn list_variables(
     }))
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create_variable(
     req: web::Json<CreateVariableRequest>,
@@ -122,6 +125,7 @@ async fn create_variable(
     Ok(Json(created_var))
 }
 
+#[auth_action("read")]
 #[get("/{variable_name}")]
 async fn get_variable(
     path: web::Path<String>,
@@ -140,6 +144,7 @@ async fn get_variable(
     Ok(Json(var))
 }
 
+#[auth_action("update")]
 #[patch("/{variable_name}")]
 async fn update_variable(
     path: web::Path<String>,
@@ -163,6 +168,7 @@ async fn update_variable(
     Ok(Json(updated_var))
 }
 
+#[auth_action("delete")]
 #[delete("/{variable_name}")]
 async fn delete_variable(
     path: web::Path<String>,
