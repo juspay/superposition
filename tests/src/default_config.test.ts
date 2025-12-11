@@ -63,20 +63,20 @@ describe("Default Config API Integration Tests", () => {
     });
 
     async function createFunctions() {
-        const validateCode1 = `
-            async function validate(key, value) {
+        const valueValidationCode1 = `
+            async function validate_value(key, value) {
                 return false;
             }
         `;
 
-        const validateCode2 = `
-            async function validate(key, value) {
+        const valueValidationCode2 = `
+            async function validate_value(key, value) {
                 return true;
             }
         `;
 
-        const autocompleteCode = `
-            async function autocomplete(name, prefix, environment) {
+        const valueComputeCode = `
+            async function value_compute(name, prefix, environment) {
                 return [];
             }
         `;
@@ -87,11 +87,11 @@ describe("Default Config API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 function_name: "false_validation",
-                function: validateCode1,
-                description: "Test validate function",
+                function: valueValidationCode1,
+                description: "Test value_validation function",
                 change_reason: "Initial creation",
                 runtime_version: "1",
-                function_type: FunctionTypes.VALIDATION,
+                function_type: FunctionTypes.VALUE_VALIDATION,
             })
         );
         // Track created function
@@ -103,11 +103,11 @@ describe("Default Config API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 function_name: "true_function",
-                function: validateCode2,
-                description: "Test validate function",
+                function: valueValidationCode2,
+                description: "Test value_validation function",
                 change_reason: "Initial creation",
                 runtime_version: "1",
-                function_type: FunctionTypes.VALIDATION,
+                function_type: FunctionTypes.VALUE_VALIDATION,
             })
         );
         // Track created function
@@ -118,11 +118,11 @@ describe("Default Config API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 function_name: "auto_fn",
-                function: autocompleteCode,
-                description: "Test autocomplete function",
+                function: valueComputeCode,
+                description: "Test value_compute function",
                 change_reason: "Initial creation",
                 runtime_version: "1",
-                function_type: FunctionTypes.AUTOCOMPLETE,
+                function_type: FunctionTypes.VALUE_COMPUTE,
             })
         );
 
@@ -273,7 +273,7 @@ describe("Default Config API Integration Tests", () => {
                 },
                 value: { name: "Invalid Value" },
                 description: "Test configuration",
-                function_name: "false_validation",
+                value_validation_function_name: "false_validation",
                 change_reason: "Test function validation",
             };
 
@@ -283,7 +283,7 @@ describe("Default Config API Integration Tests", () => {
             );
         });
 
-        test("should pass when autocomplete function attaches", async () => {
+        test("should pass when value_compute function attaches", async () => {
             const input = {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
@@ -297,7 +297,7 @@ describe("Default Config API Integration Tests", () => {
                 },
                 value: { name: "valid Value" },
                 description: "Test configuration",
-                autocomplete_function_name: "auto_fn",
+                value_compute_function_name: "auto_fn",
                 change_reason: "Test function completion",
             };
 
@@ -305,7 +305,7 @@ describe("Default Config API Integration Tests", () => {
             createdConfigs.push("test-key-3");
             let response = await superpositionClient.send(cmd);
             expect(response).toBeDefined();
-            expect(response.autocomplete_function_name).toBe("auto_fn");
+            expect(response.value_compute_function_name).toBe("auto_fn");
         });
 
         test("should fail when function does not exist", async () => {
@@ -322,7 +322,7 @@ describe("Default Config API Integration Tests", () => {
                 },
                 value: { name: "Invalid Value" },
                 description: "Test configuration",
-                function_name: "non_existent_function",
+                value_validation_function_name: "non_existent_function",
                 change_reason: "Test function validation",
             };
             const cmd = new CreateDefaultConfigCommand(input);
@@ -482,7 +482,7 @@ describe("Default Config API Integration Tests", () => {
                 org_id: ENV.org_id,
 
                 key: "test-key",
-                function_name: "true_function",
+                value_validation_function_name: "true_function",
                 change_reason:
                     "Update function to new_function_name for testing",
             };
@@ -509,7 +509,7 @@ describe("Default Config API Integration Tests", () => {
             expect(response.change_reason).toBe(
                 "Update function to new_function_name for testing"
             );
-            expect(response.function_name).toBe("true_function");
+            expect(response.value_validation_function_name).toBe("true_function");
         });
     });
 });

@@ -10,7 +10,7 @@ pub struct GetDimensionOutput  {
     /// Generic key-value object structure used for flexible data representation throughout the API.
     pub schema: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
-    pub function_name: ::std::option::Option<::std::string::String>,
+    pub value_validation_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -28,7 +28,7 @@ pub struct GetDimensionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub dimension_type: crate::types::DimensionType,
     #[allow(missing_docs)] // documentation missing in model
-    pub autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub value_compute_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub mandatory: bool,
 }
@@ -46,8 +46,8 @@ impl  GetDimensionOutput  {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn function_name(&self) -> ::std::option::Option<&str> {
-        self.function_name.as_deref()
+    pub fn value_validation_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_validation_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
@@ -82,8 +82,8 @@ impl  GetDimensionOutput  {
         &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn autocomplete_function_name(&self) -> ::std::option::Option<&str> {
-        self.autocomplete_function_name.as_deref()
+    pub fn value_compute_function_name(&self) -> ::std::option::Option<&str> {
+        self.value_compute_function_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn mandatory(&self) -> bool {
@@ -104,7 +104,7 @@ pub struct GetDimensionOutputBuilder {
     pub(crate) dimension: ::std::option::Option<::std::string::String>,
     pub(crate) position: ::std::option::Option<i32>,
     pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_validation_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -113,7 +113,7 @@ pub struct GetDimensionOutputBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>,
     pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
-    pub(crate) autocomplete_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory: ::std::option::Option<bool>,
 }
 impl GetDimensionOutputBuilder {
@@ -165,17 +165,17 @@ impl GetDimensionOutputBuilder {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.function_name = ::std::option::Option::Some(input.into());
+    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_validation_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_validation_function_name = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.function_name
+    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_validation_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -294,17 +294,17 @@ impl GetDimensionOutputBuilder {
         &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.autocomplete_function_name = ::std::option::Option::Some(input.into());
+    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.autocomplete_function_name = input; self
+    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.value_compute_function_name = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
-        &self.autocomplete_function_name
+    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+        &self.value_compute_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -352,7 +352,7 @@ impl GetDimensionOutputBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("schema", "schema was not specified but it is required when building GetDimensionOutput")
                     )?
                 ,
-                function_name: self.function_name
+                value_validation_function_name: self.value_validation_function_name
                 ,
                 description: self.description
                     .ok_or_else(||
@@ -394,7 +394,7 @@ impl GetDimensionOutputBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("dimension_type", "dimension_type was not specified but it is required when building GetDimensionOutput")
                     )?
                 ,
-                autocomplete_function_name: self.autocomplete_function_name
+                value_compute_function_name: self.value_compute_function_name
                 ,
                 mandatory: self.mandatory
                     .ok_or_else(||

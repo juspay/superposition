@@ -35,7 +35,7 @@ export interface CreateFunctionCommandInput extends CreateFunctionRequest {}
 export interface CreateFunctionCommandOutput extends FunctionResponse, __MetadataBearer {}
 
 /**
- * Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.
+ * Creates a new custom function for value_validation, value_compute, context_validation or change_reason_validation with specified code, runtime version, and function type.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -50,7 +50,7 @@ export interface CreateFunctionCommandOutput extends FunctionResponse, __Metadat
  *   change_reason: "STRING_VALUE", // required
  *   function: "STRING_VALUE", // required
  *   runtime_version: "STRING_VALUE", // required
- *   function_type: "VALIDATION" || "AUTOCOMPLETE", // required
+ *   function_type: "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION", // required
  * };
  * const command = new CreateFunctionCommand(input);
  * const response = await client.send(command);
@@ -68,7 +68,7 @@ export interface CreateFunctionCommandOutput extends FunctionResponse, __Metadat
  * //   last_modified_by: "STRING_VALUE", // required
  * //   change_reason: "STRING_VALUE", // required
  * //   description: "STRING_VALUE", // required
- * //   function_type: "VALIDATION" || "AUTOCOMPLETE", // required
+ * //   function_type: "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION", // required
  * // };
  *
  * ```

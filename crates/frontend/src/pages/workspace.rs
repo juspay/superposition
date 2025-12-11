@@ -87,6 +87,14 @@ pub fn workspace() -> impl IntoView {
             let auto_populate_control =
                 row["auto_populate_control"].as_bool().unwrap_or_default();
 
+            let enable_context_validation = row["enable_context_validation"]
+                .as_bool()
+                .unwrap_or_default();
+
+            let enable_change_reason_validation = row["enable_change_reason_validation"]
+                .as_bool()
+                .unwrap_or_default();
+
             let edit_click_handler = move |_| {
                 let row_data = RowData {
                     workspace_name: workspace_name.clone(),
@@ -102,6 +110,8 @@ pub fn workspace() -> impl IntoView {
                     metrics: metrics.clone(),
                     allow_experiment_self_approval,
                     auto_populate_control,
+                    enable_context_validation,
+                    enable_change_reason_validation,
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -181,6 +191,10 @@ pub fn workspace() -> impl IntoView {
                                 allow_experiment_self_approval=selected_workspace_data
                                     .allow_experiment_self_approval
                                 auto_populate_control=selected_workspace_data.auto_populate_control
+                                enable_context_validation=selected_workspace_data
+                                    .enable_context_validation
+                                enable_change_reason_validation=selected_workspace_data
+                                    .enable_change_reason_validation
                                 handle_submit=move |_| {
                                     workspace_resource.refetch();
                                     selected_workspace.set(None);

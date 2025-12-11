@@ -339,8 +339,8 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<CreateExperimentGroupOutput> createExperimentGroup(CreateExperimentGroupInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Creates a new custom function for validation or autocompletion with specified code, runtime version,
-     * and function type.
+     * Creates a new custom function for value_validation, value_compute, context_validation or
+     * change_reason_validation with specified code, runtime version, and function type.
      *
      * @throws InternalServerError
      */
@@ -349,8 +349,8 @@ public interface SuperpositionAsyncClient {
     }
 
     /**
-     * Creates a new custom function for validation or autocompletion with specified code, runtime version,
-     * and function type.
+     * Creates a new custom function for value_validation, value_compute, context_validation or
+     * change_reason_validation with specified code, runtime version, and function type.
      *
      * @throws InternalServerError
      */
@@ -1229,8 +1229,8 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<PauseExperimentOutput> pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Publishes the draft version of a function, making it the active version used for validation or
-     * autocompletion in the system.
+     * Publishes the draft version of a function, making it the active version used for value_validation,
+     * value_compute, context_validation or change_reason_validation in the system.
      *
      * @throws ResourceNotFound
      * @throws InternalServerError
@@ -1240,8 +1240,8 @@ public interface SuperpositionAsyncClient {
     }
 
     /**
-     * Publishes the draft version of a function, making it the active version used for validation or
-     * autocompletion in the system.
+     * Publishes the draft version of a function, making it the active version used for value_validation,
+     * value_compute, context_validation or change_reason_validation in the system.
      *
      * @throws ResourceNotFound
      * @throws InternalServerError
@@ -1609,11 +1609,11 @@ public interface SuperpositionAsyncClient {
             Node.objectNode()
         );
 
-        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
-        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
-
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
+
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

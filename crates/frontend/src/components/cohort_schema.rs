@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-use superposition_types::api::dimension::DimensionResponse;
 use superposition_types::api::functions::FunctionEnvironment;
+use superposition_types::api::{dimension::DimensionResponse, functions::KeyType};
 use web_sys::MouseEvent;
 
 use crate::components::alert::AlertType;
@@ -15,7 +15,7 @@ use crate::logic::{jsonlogic, Condition, Conditions, Operator};
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Tenant};
-use crate::utils::{autocomplete_fn_generator, to_title_case};
+use crate::utils::{to_title_case, value_compute_fn_generator};
 use crate::{
     components::{
         button::Button,
@@ -540,16 +540,17 @@ fn cohort_form(
                                     overrides: Map::new(),
                                 }
                             });
-                            let mut autocomplete_callbacks = HashMap::new();
-                            autocomplete_fn_generator(
+                            let mut value_compute_callbacks = HashMap::new();
+                            value_compute_fn_generator(
                                     cohort_based_on.dimension.clone(),
-                                    cohort_based_on.autocomplete_function_name.clone(),
+                                    cohort_based_on.value_compute_function_name.clone(),
                                     fn_environment,
+                                    &KeyType::Dimension,
                                     workspace.get().0,
                                     org_id.get().0,
                                 )
                                 .map(|(dimension, cb)| {
-                                    autocomplete_callbacks.insert(dimension, cb)
+                                    value_compute_callbacks.insert(dimension, cb)
                                 });
 
                             view! {
@@ -564,7 +565,7 @@ fn cohort_form(
                                         condition=condition.get()
                                         input_type
                                         schema_type=schema_type.clone()
-                                        autocomplete_callbacks
+                                        value_compute_callbacks
                                         on_remove=|_| ()
                                         on_value_change=move |new_expr| {
                                             value_rws

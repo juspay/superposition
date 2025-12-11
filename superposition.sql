@@ -102,4 +102,19 @@ ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT TRUE;
 
 UPDATE superposition.workspaces SET auto_populate_control = FALSE;
 
+DO $$ BEGIN
+    CREATE TYPE public.function_types_new AS ENUM (
+        'VALUE_VALIDATION',
+        'VALUE_COMPUTE',
+        'CONTEXT_VALIDATION',
+        'CHANGE_REASON_VALIDATION'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS enable_context_validation BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS enable_change_reason_validation BOOLEAN DEFAULT FALSE;
+
 COMMIT;

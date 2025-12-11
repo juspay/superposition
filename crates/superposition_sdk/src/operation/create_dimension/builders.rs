@@ -172,18 +172,18 @@ impl CreateDimensionFluentBuilder {
                     self.inner.get_schema()
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.function_name(input.into());
+    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.value_validation_function_name(input.into());
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_function_name(input);
+    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_value_validation_function_name(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_function_name()
+    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_value_validation_function_name()
                 }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -228,18 +228,18 @@ impl CreateDimensionFluentBuilder {
                     self.inner.get_dimension_type()
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn autocomplete_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.autocomplete_function_name(input.into());
+    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.value_compute_function_name(input.into());
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_autocomplete_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_autocomplete_function_name(input);
+    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_value_compute_function_name(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_autocomplete_function_name(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_autocomplete_function_name()
+    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_value_compute_function_name()
                 }
 }
 

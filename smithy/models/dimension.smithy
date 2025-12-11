@@ -23,7 +23,7 @@ resource Dimension {
     properties: {
         position: Integer
         schema: Object
-        function_name: String
+        value_validation_function_name: String
         description: String
         change_reason: String
         dependency_graph: DependencyGraph
@@ -31,7 +31,7 @@ resource Dimension {
         created_by: String
         last_modified_at: DateTime
         last_modified_by: String
-        autocomplete_function_name: String
+        value_compute_function_name: String
         dimension_type: DimensionType
     }
     list: ListDimensions
@@ -53,7 +53,7 @@ structure DimensionResponse for Dimension {
     @required
     $schema
 
-    $function_name
+    $value_validation_function_name
 
     @required
     $description
@@ -79,7 +79,7 @@ structure DimensionResponse for Dimension {
     @required
     $dimension_type
 
-    $autocomplete_function_name
+    $value_compute_function_name
 
     @notProperty
     @required
@@ -104,7 +104,7 @@ operation CreateDimension {
         @required
         $schema
 
-        $function_name
+        $value_validation_function_name
 
         @required
         $description
@@ -114,7 +114,7 @@ operation CreateDimension {
 
         $dimension_type
 
-        $autocomplete_function_name
+        $value_compute_function_name
     }
 
     output: DimensionResponse
@@ -162,7 +162,7 @@ operation UpdateDimension with [GetOperation] {
         $position
 
         @documentation("To unset the function name, pass \"null\" string.")
-        $function_name
+        $value_validation_function_name
 
         $description
 
@@ -170,7 +170,7 @@ operation UpdateDimension with [GetOperation] {
         $change_reason
 
         @documentation("To unset the function name, pass \"null\" string.")
-        $autocomplete_function_name
+        $value_compute_function_name
     }
 
     output: DimensionResponse

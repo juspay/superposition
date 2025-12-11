@@ -3,30 +3,30 @@ pub fn ser_update_default_config_input_input(
                          object: &mut ::aws_smithy_json::serialize::JsonObjectWriter,
                          input: &crate::operation::update_default_config::UpdateDefaultConfigInput,
                     ) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::SerializationError> {
-    if let Some(var_1) = &input.autocomplete_function_name {
-        object.key("autocomplete_function_name").string(var_1.as_str());
+    if let Some(var_1) = &input.change_reason {
+        object.key("change_reason").string(var_1.as_str());
     }
-    if let Some(var_2) = &input.change_reason {
-        object.key("change_reason").string(var_2.as_str());
+    if let Some(var_2) = &input.description {
+        object.key("description").string(var_2.as_str());
     }
-    if let Some(var_3) = &input.description {
-        object.key("description").string(var_3.as_str());
-    }
-    if let Some(var_4) = &input.function_name {
-        object.key("function_name").string(var_4.as_str());
-    }
-    if let Some(var_5) = &input.schema {
+    if let Some(var_3) = &input.schema {
         #[allow(unused_mut)]
-        let mut object_6 = object.key("schema").start_object();
-        for (key_7, value_8) in var_5 {
+        let mut object_4 = object.key("schema").start_object();
+        for (key_5, value_6) in var_3 {
              {
-                object_6.key(key_7.as_str()).document(value_8);
+                object_4.key(key_5.as_str()).document(value_6);
             }
         }
-        object_6.finish();
+        object_4.finish();
     }
-    if let Some(var_9) = &input.value {
-        object.key("value").document(var_9);
+    if let Some(var_7) = &input.value {
+        object.key("value").document(var_7);
+    }
+    if let Some(var_8) = &input.value_compute_function_name {
+        object.key("value_compute_function_name").string(var_8.as_str());
+    }
+    if let Some(var_9) = &input.value_validation_function_name {
+        object.key("value_validation_function_name").string(var_9.as_str());
     }
     Ok(())
 }

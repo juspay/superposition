@@ -49,7 +49,7 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
  *   function_type: [ // FunctionTypesList
- *     "VALIDATION" || "AUTOCOMPLETE",
+ *     "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION",
  *   ],
  * };
  * const command = new ListFunctionCommand(input);
@@ -72,7 +72,7 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  * //       last_modified_by: "STRING_VALUE", // required
  * //       change_reason: "STRING_VALUE", // required
  * //       description: "STRING_VALUE", // required
- * //       function_type: "VALIDATION" || "AUTOCOMPLETE", // required
+ * //       function_type: "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION", // required
  * //     },
  * //   ],
  * // };

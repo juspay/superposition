@@ -59,6 +59,8 @@ pub mod superposition {
             metrics -> Json,
             allow_experiment_self_approval -> Bool,
             auto_populate_control -> Bool,
+            enable_context_validation -> Bool,
+            enable_change_reason_validation -> Bool,
         }
     }
 

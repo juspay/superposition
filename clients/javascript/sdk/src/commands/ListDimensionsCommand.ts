@@ -61,7 +61,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //       schema: { // Object // required
  * //         "<keys>": "DOCUMENT_VALUE",
  * //       },
- * //       function_name: "STRING_VALUE",
+ * //       value_validation_function_name: "STRING_VALUE",
  * //       description: "STRING_VALUE", // required
  * //       change_reason: "STRING_VALUE", // required
  * //       last_modified_at: new Date("TIMESTAMP"), // required
@@ -78,7 +78,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  * //         LOCAL_COHORT: "STRING_VALUE",
  * //         REMOTE_COHORT: "STRING_VALUE",
  * //       },
- * //       autocomplete_function_name: "STRING_VALUE",
+ * //       value_compute_function_name: "STRING_VALUE",
  * //       mandatory: true || false, // required
  * //     },
  * //   ],

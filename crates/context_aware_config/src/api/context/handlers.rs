@@ -36,21 +36,24 @@ use superposition_types::{
         models::{cac::Context, ChangeReason, Description},
         schema::contexts::{self, id},
     },
-    result as superposition, Contextual, ListResponse, Overridden, PaginatedResponse,
-    SortBy, User,
+    result as superposition, Contextual, ListResponse, Overridden, Overrides,
+    PaginatedResponse, SortBy, User,
 };
 
-use crate::api::{
-    context::{
-        hash,
-        helpers::{query_description, validate_ctx},
-        operations,
-    },
-    dimension::fetch_dimensions_info_map,
-};
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
 use crate::helpers::{add_config_version, calculate_context_weight};
+use crate::{
+    api::{
+        context::{
+            hash,
+            helpers::{query_description, validate_ctx},
+            operations,
+        },
+        dimension::fetch_dimensions_info_map,
+    },
+    helpers::validate_change_reason,
+};
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -86,10 +89,15 @@ async fn put_handler(
     };
     let req_change_reason = req.change_reason.clone();
 
+    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
+
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            // Use the helper function to ensure the description
-
             let put_response = operations::upsert(
                 req.into_inner(),
                 description,
@@ -143,6 +151,14 @@ async fn update_override_handler(
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
+
+    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
+
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let override_resp = operations::update(
@@ -155,6 +171,7 @@ async fn update_override_handler(
                 log::error!("context update failed with error: {:?}", err);
                 err
             })?;
+
             let version_id = add_config_version(
                 &state,
                 tags,
@@ -201,6 +218,13 @@ async fn move_handler(
             &schema_name,
         )?,
     };
+
+    validate_change_reason(&req.change_reason, &mut db_conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
 
     let (move_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -487,6 +511,19 @@ async fn bulk_operations(
                         let ctx_condition_value =
                             Value::Object(ctx_condition.clone().into());
 
+                        validate_change_reason(
+                            &put_req.change_reason,
+                            transaction_conn,
+                            &schema_name,
+                        )
+                        .map_err(|err| {
+                            log::error!(
+                                "change reason validation failed with error: {:?}",
+                                err
+                            );
+                            err
+                        })?;
+
                         let description = if put_req.description.is_none() {
                             query_description(
                                 ctx_condition_value,
@@ -743,7 +780,12 @@ async fn validate_context(
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
-    validate_ctx(&mut conn, &schema_name, ctx_condition.clone())?;
+    validate_ctx(
+        &mut conn,
+        &schema_name,
+        ctx_condition.clone(),
+        Overrides::default(),
+    )?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())
 }

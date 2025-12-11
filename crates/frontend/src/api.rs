@@ -18,7 +18,7 @@ use superposition_types::{
         },
         functions::{
             FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
-            ListFunctionFilters, Stage,
+            KeyType, ListFunctionFilters, Stage,
         },
         variables::{CreateVariableRequest, UpdateVariableRequest},
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
@@ -174,8 +174,8 @@ pub mod dimensions {
         dimension: String,
         position: u32,
         schema: Value,
-        validation_fn_name: Option<String>,
-        autocomplete_fn_name: Option<String>,
+        value_validation_function_name: Option<String>,
+        value_compute_function_name: Option<String>,
         description: String,
         change_reason: String,
         tenant: String,
@@ -186,8 +186,8 @@ pub mod dimensions {
             dimension: DimensionName::try_from(dimension)?,
             position: Position::from(position),
             schema: ExtendedMap::try_from(schema)?,
-            function_name: validation_fn_name,
-            autocomplete_function_name: autocomplete_fn_name,
+            value_validation_function_name,
+            value_compute_function_name,
             description: Description::try_from(description)?,
             change_reason: ChangeReason::try_from(change_reason)?,
             dimension_type,
@@ -557,6 +557,7 @@ pub mod workspaces {
         parse_json_response(response).await
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn try_update_payload(
         workspace_admin_email: String,
         config_version: Value,
@@ -565,6 +566,8 @@ pub mod workspaces {
         metrics: Metrics,
         allow_experiment_self_approval: bool,
         auto_populate_control: bool,
+        enable_context_validation: bool,
+        enable_change_reason_validation: bool,
     ) -> Result<UpdateWorkspaceRequest, String> {
         Ok(UpdateWorkspaceRequest {
             workspace_admin_email,
@@ -577,6 +580,8 @@ pub mod workspaces {
             metrics: Some(metrics),
             allow_experiment_self_approval: Some(allow_experiment_self_approval),
             auto_populate_control: Some(auto_populate_control),
+            enable_context_validation: Some(enable_context_validation),
+            enable_change_reason_validation: Some(enable_change_reason_validation),
         })
     }
 
@@ -837,9 +842,10 @@ pub async fn get_context_from_condition(
     parse_json_response(response).await
 }
 
-pub async fn execute_autocomplete_function(
+pub async fn execute_value_compute_function(
     name: &str,
     value: &str,
+    r#type: &KeyType,
     environment: &FunctionEnvironment,
     fn_name: &str,
     tenant: &str,
@@ -847,9 +853,10 @@ pub async fn execute_autocomplete_function(
 ) -> Result<Vec<String>, String> {
     let host = use_host_server();
     let url = format!("{}/function/{}/{}/test", host, fn_name, Stage::Published);
-    let payload = FunctionExecutionRequest::AutocompleteFunctionRequest {
+    let payload = FunctionExecutionRequest::ValueComputeFunctionRequest {
         name: name.to_owned(),
         prefix: value.to_owned(),
+        r#type: r#type.clone(),
         environment: environment.clone(),
     };
     let resp = request(

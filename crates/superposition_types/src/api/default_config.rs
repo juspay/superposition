@@ -26,10 +26,12 @@ pub struct DefaultConfigCreateRequest {
     pub key: DefaultConfigKey,
     pub value: Value,
     pub schema: ExtendedMap,
-    pub function_name: Option<String>,
+    #[serde(alias = "function_name")]
+    pub value_validation_function_name: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub autocomplete_function_name: Option<String>,
+    #[serde(alias = "autocomplete_function_name")]
+    pub value_compute_function_name: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into)]
@@ -58,10 +60,18 @@ pub struct DefaultConfigUpdateRequest {
     #[serde(default, deserialize_with = "deserialize_option")]
     pub value: Option<Value>,
     pub schema: Option<ExtendedMap>,
-    #[serde(default, deserialize_with = "deserialize_function_name")]
-    pub function_name: Option<Option<String>>,
-    #[serde(default, deserialize_with = "deserialize_function_name")]
-    pub autocomplete_function_name: Option<Option<String>>,
+    #[serde(
+        alias = "function_name",
+        default,
+        deserialize_with = "deserialize_function_name"
+    )]
+    pub value_validation_function_name: Option<Option<String>>,
+    #[serde(
+        alias = "autocomplete_function_name",
+        default,
+        deserialize_with = "deserialize_function_name"
+    )]
+    pub value_compute_function_name: Option<Option<String>>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }

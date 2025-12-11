@@ -253,7 +253,7 @@ public class DefaultConfigPopulator {
             inputBuilder.functionName(functionName);
         }
         if (autocompleteFunctionName != null) {
-            inputBuilder.autocompleteFunctionName(autocompleteFunctionName);
+            inputBuilder.valueComputeFunctionName(autocompleteFunctionName);
         }
 
         CreateDefaultConfigInput input = inputBuilder.build();

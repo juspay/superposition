@@ -13,8 +13,8 @@ import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
- * Creates a new custom function for validation or autocompletion with specified code, runtime version,
- * and function type.
+ * Creates a new custom function for value_validation, value_compute, context_validation or
+ * change_reason_validation with specified code, runtime version, and function type.
  */
 @SmithyGenerated
 public final class CreateFunction implements ApiOperation<CreateFunctionInput, CreateFunctionOutput> {

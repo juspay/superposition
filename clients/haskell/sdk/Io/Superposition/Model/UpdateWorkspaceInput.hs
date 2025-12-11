@@ -8,6 +8,8 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     setMetrics,
     setAllowExperimentSelfApproval,
     setAutoPopulateControl,
+    setEnableContextValidation,
+    setEnableChangeReasonValidation,
     build,
     UpdateWorkspaceInputBuilder,
     UpdateWorkspaceInput,
@@ -19,7 +21,9 @@ module Io.Superposition.Model.UpdateWorkspaceInput (
     workspace_status,
     metrics,
     allow_experiment_self_approval,
-    auto_populate_control
+    auto_populate_control,
+    enable_context_validation,
+    enable_change_reason_validation
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -44,7 +48,9 @@ data UpdateWorkspaceInput = UpdateWorkspaceInput {
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
     metrics :: Data.Maybe.Maybe Data.Aeson.Value,
     allow_experiment_self_approval :: Data.Maybe.Maybe Bool,
-    auto_populate_control :: Data.Maybe.Maybe Bool
+    auto_populate_control :: Data.Maybe.Maybe Bool,
+    enable_context_validation :: Data.Maybe.Maybe Bool,
+    enable_change_reason_validation :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -61,7 +67,9 @@ instance Data.Aeson.ToJSON UpdateWorkspaceInput where
         "workspace_status" Data.Aeson..= workspace_status a,
         "metrics" Data.Aeson..= metrics a,
         "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
-        "auto_populate_control" Data.Aeson..= auto_populate_control a
+        "auto_populate_control" Data.Aeson..= auto_populate_control a,
+        "enable_context_validation" Data.Aeson..= enable_context_validation a,
+        "enable_change_reason_validation" Data.Aeson..= enable_change_reason_validation a
         ]
     
 
@@ -78,6 +86,8 @@ instance Data.Aeson.FromJSON UpdateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..:? "metrics")
         Control.Applicative.<*> (v Data.Aeson..:? "allow_experiment_self_approval")
         Control.Applicative.<*> (v Data.Aeson..:? "auto_populate_control")
+        Control.Applicative.<*> (v Data.Aeson..:? "enable_context_validation")
+        Control.Applicative.<*> (v Data.Aeson..:? "enable_change_reason_validation")
     
 
 
@@ -91,7 +101,9 @@ data UpdateWorkspaceInputBuilderState = UpdateWorkspaceInputBuilderState {
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
     metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
-    auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool
+    auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool,
+    enable_context_validationBuilderState :: Data.Maybe.Maybe Bool,
+    enable_change_reason_validationBuilderState :: Data.Maybe.Maybe Bool
 } deriving (
   GHC.Generics.Generic
   )
@@ -106,7 +118,9 @@ defaultBuilderState = UpdateWorkspaceInputBuilderState {
     workspace_statusBuilderState = Data.Maybe.Nothing,
     metricsBuilderState = Data.Maybe.Nothing,
     allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
-    auto_populate_controlBuilderState = Data.Maybe.Nothing
+    auto_populate_controlBuilderState = Data.Maybe.Nothing,
+    enable_context_validationBuilderState = Data.Maybe.Nothing,
+    enable_change_reason_validationBuilderState = Data.Maybe.Nothing
 }
 
 type UpdateWorkspaceInputBuilder = Control.Monad.State.Strict.State UpdateWorkspaceInputBuilderState
@@ -147,6 +161,14 @@ setAutoPopulateControl :: Data.Maybe.Maybe Bool -> UpdateWorkspaceInputBuilder (
 setAutoPopulateControl value =
    Control.Monad.State.Strict.modify (\s -> (s { auto_populate_controlBuilderState = value }))
 
+setEnableContextValidation :: Data.Maybe.Maybe Bool -> UpdateWorkspaceInputBuilder ()
+setEnableContextValidation value =
+   Control.Monad.State.Strict.modify (\s -> (s { enable_context_validationBuilderState = value }))
+
+setEnableChangeReasonValidation :: Data.Maybe.Maybe Bool -> UpdateWorkspaceInputBuilder ()
+setEnableChangeReasonValidation value =
+   Control.Monad.State.Strict.modify (\s -> (s { enable_change_reason_validationBuilderState = value }))
+
 build :: UpdateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text UpdateWorkspaceInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -159,6 +181,8 @@ build builder = do
     metrics' <- Data.Either.Right (metricsBuilderState st)
     allow_experiment_self_approval' <- Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     auto_populate_control' <- Data.Either.Right (auto_populate_controlBuilderState st)
+    enable_context_validation' <- Data.Either.Right (enable_context_validationBuilderState st)
+    enable_change_reason_validation' <- Data.Either.Right (enable_change_reason_validationBuilderState st)
     Data.Either.Right (UpdateWorkspaceInput { 
         org_id = org_id',
         workspace_name = workspace_name',
@@ -168,7 +192,9 @@ build builder = do
         workspace_status = workspace_status',
         metrics = metrics',
         allow_experiment_self_approval = allow_experiment_self_approval',
-        auto_populate_control = auto_populate_control'
+        auto_populate_control = auto_populate_control',
+        enable_context_validation = enable_context_validation',
+        enable_change_reason_validation = enable_change_reason_validation'
     })
 
 
@@ -184,8 +210,10 @@ instance Io.Superposition.Utility.IntoRequestBuilder UpdateWorkspaceInput where
         Io.Superposition.Utility.serField "allow_experiment_self_approval" (allow_experiment_self_approval self)
         Io.Superposition.Utility.serField "workspace_admin_email" (workspace_admin_email self)
         Io.Superposition.Utility.serField "auto_populate_control" (auto_populate_control self)
+        Io.Superposition.Utility.serField "enable_context_validation" (enable_context_validation self)
         Io.Superposition.Utility.serField "metrics" (metrics self)
         Io.Superposition.Utility.serField "config_version" (config_version self)
         Io.Superposition.Utility.serField "mandatory_dimensions" (mandatory_dimensions self)
+        Io.Superposition.Utility.serField "enable_change_reason_validation" (enable_change_reason_validation self)
         Io.Superposition.Utility.serField "workspace_status" (workspace_status self)
 

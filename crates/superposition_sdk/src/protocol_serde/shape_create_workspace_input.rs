@@ -9,20 +9,26 @@ pub fn ser_create_workspace_input_input(
     if let Some(var_2) = &input.auto_populate_control {
         object.key("auto_populate_control").boolean(*var_2);
     }
-    if let Some(var_3) = &input.metrics {
-        object.key("metrics").document(var_3);
+    if let Some(var_3) = &input.enable_change_reason_validation {
+        object.key("enable_change_reason_validation").boolean(*var_3);
     }
-    if let Some(var_4) = &input.strict_mode {
-        object.key("strict_mode").boolean(*var_4);
+    if let Some(var_4) = &input.enable_context_validation {
+        object.key("enable_context_validation").boolean(*var_4);
     }
-    if let Some(var_5) = &input.workspace_admin_email {
-        object.key("workspace_admin_email").string(var_5.as_str());
+    if let Some(var_5) = &input.metrics {
+        object.key("metrics").document(var_5);
     }
-    if let Some(var_6) = &input.workspace_name {
-        object.key("workspace_name").string(var_6.as_str());
+    if let Some(var_6) = &input.strict_mode {
+        object.key("strict_mode").boolean(*var_6);
     }
-    if let Some(var_7) = &input.workspace_status {
-        object.key("workspace_status").string(var_7.as_str());
+    if let Some(var_7) = &input.workspace_admin_email {
+        object.key("workspace_admin_email").string(var_7.as_str());
+    }
+    if let Some(var_8) = &input.workspace_name {
+        object.key("workspace_name").string(var_8.as_str());
+    }
+    if let Some(var_9) = &input.workspace_status {
+        object.key("workspace_status").string(var_9.as_str());
     }
     Ok(())
 }

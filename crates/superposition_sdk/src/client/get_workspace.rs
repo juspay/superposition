@@ -22,6 +22,8 @@ impl super::Client {
     ///   - [`metrics(Document)`](crate::operation::get_workspace::GetWorkspaceOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::auto_populate_control): (undocumented)
+    ///   - [`enable_context_validation(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::enable_context_validation): (undocumented)
+    ///   - [`enable_change_reason_validation(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::enable_change_reason_validation): (undocumented)
                             /// - On failure, responds with [`SdkError<GetWorkspaceError>`](crate::operation::get_workspace::GetWorkspaceError)
     pub fn get_workspace(&self) -> crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder {
                                 crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder::new(self.handle.clone())

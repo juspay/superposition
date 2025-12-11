@@ -22,6 +22,8 @@ impl super::Client {
     ///   - [`metrics(Document)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::auto_populate_control): (undocumented)
+    ///   - [`enable_context_validation(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::enable_context_validation): (undocumented)
+    ///   - [`enable_change_reason_validation(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::enable_change_reason_validation): (undocumented)
                             /// - On failure, responds with [`SdkError<MigrateWorkspaceSchemaError>`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError)
     pub fn migrate_workspace_schema(&self) -> crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder {
                                 crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::new(self.handle.clone())

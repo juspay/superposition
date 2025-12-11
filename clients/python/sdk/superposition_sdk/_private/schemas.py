@@ -871,40 +871,6 @@ LIST_AUDIT_LOGS = Schema(
 
 )
 
-AUTOCOMPLETE_FUNCTION_REQUEST = Schema.collection(
-    id=ShapeID("io.superposition#AutocompleteFunctionRequest"),
-
-    members={
-        "name": {
-            "target": STRING,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "prefix": {
-            "target": STRING,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "environment": {
-            "target": DOCUMENT,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-    }
-)
-
 CONTEXT_MOVE = Schema.collection(
     id=ShapeID("io.superposition#ContextMove"),
 
@@ -1926,7 +1892,7 @@ DIMENSION_INFO = Schema.collection(
             ],
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 4,
         },
@@ -4049,6 +4015,22 @@ WEIGHT_RECOMPUTE = Schema(
 
 )
 
+CONTEXT_VALIDATION_FUNCTION_REQUEST = Schema.collection(
+    id=ShapeID("io.superposition#ContextValidationFunctionRequest"),
+
+    members={
+        "environment": {
+            "target": DOCUMENT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
 CREATE_DEFAULT_CONFIG_INPUT = Schema.collection(
     id=ShapeID("io.superposition#CreateDefaultConfigInput"),
 
@@ -4102,12 +4084,12 @@ CREATE_DEFAULT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 5,
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 6,
         },
@@ -4189,12 +4171,12 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 5,
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 6,
         },
@@ -4309,7 +4291,7 @@ CREATE_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 5,
         },
@@ -4337,7 +4319,7 @@ CREATE_DIMENSION_INPUT = Schema.collection(
             "index": 8,
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 9,
         },
@@ -4381,7 +4363,7 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 3,
         },
@@ -4458,7 +4440,7 @@ CREATE_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 12,
         },
@@ -5016,20 +4998,38 @@ FUNCTION_TYPES = Schema.collection(
     id=ShapeID("io.superposition#FunctionTypes"),
     shape_type=ShapeType.ENUM,
     members={
-        "VALIDATION": {
+        "VALUE_VALIDATION": {
             "target": UNIT,
             "index": 0,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="VALIDATION"),
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="VALUE_VALIDATION"),
 
             ],
         },
 
-        "AUTOCOMPLETE": {
+        "VALUE_COMPUTE": {
             "target": UNIT,
             "index": 1,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="AUTOCOMPLETE"),
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="VALUE_COMPUTE"),
+
+            ],
+        },
+
+        "CONTEXT_VALIDATION": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CONTEXT_VALIDATION"),
+
+            ],
+        },
+
+        "CHANGE_REASON_VALIDATION": {
+            "target": UNIT,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CHANGE_REASON_VALIDATION"),
 
             ],
         },
@@ -6234,19 +6234,21 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
             "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
         },
 
         "auto_populate_control": {
             "target": BOOLEAN,
             "index": 7,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+        },
 
-            ],
+        "enable_context_validation": {
+            "target": BOOLEAN,
+            "index": 8,
+        },
+
+        "enable_change_reason_validation": {
+            "target": BOOLEAN,
+            "index": 9,
         },
 
     }
@@ -6403,6 +6405,24 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
         "auto_populate_control": {
             "target": BOOLEAN,
             "index": 15,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_context_validation": {
+            "target": BOOLEAN,
+            "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_change_reason_validation": {
+            "target": BOOLEAN,
+            "index": 17,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6593,12 +6613,12 @@ GET_DEFAULT_CONFIG_OUTPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 5,
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 6,
         },
@@ -6776,12 +6796,12 @@ DEFAULT_CONFIG_RESPONSE = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 5,
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 6,
         },
@@ -6949,7 +6969,7 @@ UPDATE_DEFAULT_CONFIG_INPUT = Schema.collection(
             "index": 5,
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 6,
         },
@@ -6959,7 +6979,7 @@ UPDATE_DEFAULT_CONFIG_INPUT = Schema.collection(
             "index": 7,
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 8,
         },
@@ -7021,12 +7041,12 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 5,
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 6,
         },
@@ -7858,7 +7878,7 @@ GET_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 3,
         },
@@ -7935,7 +7955,7 @@ GET_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 12,
         },
@@ -8059,7 +8079,7 @@ DIMENSION_RESPONSE = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 3,
         },
@@ -8136,7 +8156,7 @@ DIMENSION_RESPONSE = Schema.collection(
             ],
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 12,
         },
@@ -8269,7 +8289,7 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
             "index": 4,
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 5,
         },
@@ -8288,7 +8308,7 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 8,
         },
@@ -8332,7 +8352,7 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "value_validation_function_name": {
             "target": STRING,
             "index": 3,
         },
@@ -8409,7 +8429,7 @@ UPDATE_DIMENSION_OUTPUT = Schema.collection(
             ],
         },
 
-        "autocomplete_function_name": {
+        "value_compute_function_name": {
             "target": STRING,
             "index": 12,
         },
@@ -11991,8 +12011,51 @@ PUBLISH = Schema(
 
 )
 
-VALIDATE_FUNCTION_REQUEST = Schema.collection(
-    id=ShapeID("io.superposition#ValidateFunctionRequest"),
+VALUE_COMPUTE_FUNCTION_REQUEST = Schema.collection(
+    id=ShapeID("io.superposition#ValueComputeFunctionRequest"),
+
+    members={
+        "name": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "prefix": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "type": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "environment": {
+            "target": DOCUMENT,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+VALUE_VALIDATION_FUNCTION_REQUEST = Schema.collection(
+    id=ShapeID("io.superposition#ValueValidationFunctionRequest"),
 
     members={
         "key": {
@@ -12013,6 +12076,24 @@ VALIDATE_FUNCTION_REQUEST = Schema.collection(
             ],
         },
 
+        "type": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "environment": {
+            "target": DOCUMENT,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -12020,14 +12101,19 @@ FUNCTION_EXECUTION_REQUEST = Schema.collection(
     id=ShapeID("io.superposition#FunctionExecutionRequest"),
     shape_type=ShapeType.UNION,
     members={
-        "ValidateFunctionRequest": {
-            "target": VALIDATE_FUNCTION_REQUEST,
+        "ValueValidationFunctionRequest": {
+            "target": VALUE_VALIDATION_FUNCTION_REQUEST,
             "index": 0,
         },
 
-        "AutocompleteFunctionRequest": {
-            "target": AUTOCOMPLETE_FUNCTION_REQUEST,
+        "ValueComputeFunctionRequest": {
+            "target": VALUE_COMPUTE_FUNCTION_REQUEST,
             "index": 1,
+        },
+
+        "ContextValidationFunctionRequest": {
+            "target": CONTEXT_VALIDATION_FUNCTION_REQUEST,
+            "index": 2,
         },
 
     }
@@ -13593,6 +13679,24 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
+        "enable_context_validation": {
+            "target": BOOLEAN,
+            "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_change_reason_validation": {
+            "target": BOOLEAN,
+            "index": 17,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -14550,6 +14654,24 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
+        "enable_context_validation": {
+            "target": BOOLEAN,
+            "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_change_reason_validation": {
+            "target": BOOLEAN,
+            "index": 17,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -14791,6 +14913,24 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
         "auto_populate_control": {
             "target": BOOLEAN,
             "index": 15,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_context_validation": {
+            "target": BOOLEAN,
+            "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_change_reason_validation": {
+            "target": BOOLEAN,
+            "index": 17,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -15626,6 +15766,16 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
             "index": 8,
         },
 
+        "enable_context_validation": {
+            "target": BOOLEAN,
+            "index": 9,
+        },
+
+        "enable_change_reason_validation": {
+            "target": BOOLEAN,
+            "index": 10,
+        },
+
     }
 )
 
@@ -15768,6 +15918,24 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
         "auto_populate_control": {
             "target": BOOLEAN,
             "index": 15,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_context_validation": {
+            "target": BOOLEAN,
+            "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "enable_change_reason_validation": {
+            "target": BOOLEAN,
+            "index": 17,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 

@@ -8,16 +8,16 @@ use superposition_types::{
 pub fn try_update_payload(
     position: u32,
     schema: Value,
-    validation_fn_name: Option<String>,
-    autocomplete_fn_name: Option<String>,
+    value_validation_function_name: Option<String>,
+    value_compute_function_name: Option<String>,
     description: String,
     change_reason: String,
 ) -> Result<UpdateRequest, String> {
     Ok(UpdateRequest {
         position: Some(Position::from(position)),
         schema: Some(ExtendedMap::try_from(schema)?),
-        function_name: Some(validation_fn_name),
-        autocomplete_function_name: Some(autocomplete_fn_name),
+        value_validation_function_name: Some(value_validation_function_name),
+        value_compute_function_name: Some(value_compute_function_name),
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
     })

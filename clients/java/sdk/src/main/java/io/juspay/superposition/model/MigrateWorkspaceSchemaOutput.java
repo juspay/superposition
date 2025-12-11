@@ -54,6 +54,10 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("auto_populate_control", PreludeSchemas.BOOLEAN,
                 new RequiredTrait())
+        .putMember("enable_context_validation", PreludeSchemas.BOOLEAN,
+                new RequiredTrait())
+        .putMember("enable_change_reason_validation", PreludeSchemas.BOOLEAN,
+                new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_NAME = $SCHEMA.member("workspace_name");
@@ -72,6 +76,8 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
     private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
     private static final Schema $SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL = $SCHEMA.member("allow_experiment_self_approval");
     private static final Schema $SCHEMA_AUTO_POPULATE_CONTROL = $SCHEMA.member("auto_populate_control");
+    private static final Schema $SCHEMA_ENABLE_CONTEXT_VALIDATION = $SCHEMA.member("enable_context_validation");
+    private static final Schema $SCHEMA_ENABLE_CHANGE_REASON_VALIDATION = $SCHEMA.member("enable_change_reason_validation");
 
     private final transient String workspaceName;
     private final transient String organisationId;
@@ -89,6 +95,8 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
     private final transient Document metrics;
     private final transient boolean allowExperimentSelfApproval;
     private final transient boolean autoPopulateControl;
+    private final transient boolean enableContextValidation;
+    private final transient boolean enableChangeReasonValidation;
 
     private MigrateWorkspaceSchemaOutput(Builder builder) {
         this.workspaceName = builder.workspaceName;
@@ -107,6 +115,8 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
         this.metrics = builder.metrics;
         this.allowExperimentSelfApproval = builder.allowExperimentSelfApproval;
         this.autoPopulateControl = builder.autoPopulateControl;
+        this.enableContextValidation = builder.enableContextValidation;
+        this.enableChangeReasonValidation = builder.enableChangeReasonValidation;
     }
 
     public String workspaceName() {
@@ -180,6 +190,14 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
         return autoPopulateControl;
     }
 
+    public boolean enableContextValidation() {
+        return enableContextValidation;
+    }
+
+    public boolean enableChangeReasonValidation() {
+        return enableChangeReasonValidation;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -209,12 +227,14 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
                && this.strictMode == that.strictMode
                && Objects.equals(this.metrics, that.metrics)
                && this.allowExperimentSelfApproval == that.allowExperimentSelfApproval
-               && this.autoPopulateControl == that.autoPopulateControl;
+               && this.autoPopulateControl == that.autoPopulateControl
+               && this.enableContextValidation == that.enableContextValidation
+               && this.enableChangeReasonValidation == that.enableChangeReasonValidation;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceName, organisationId, organisationName, workspaceSchemaName, workspaceStatus, workspaceAdminEmail, configVersion, createdBy, lastModifiedBy, lastModifiedAt, createdAt, mandatoryDimensions, strictMode, metrics, allowExperimentSelfApproval, autoPopulateControl);
+        return Objects.hash(workspaceName, organisationId, organisationName, workspaceSchemaName, workspaceStatus, workspaceAdminEmail, configVersion, createdBy, lastModifiedBy, lastModifiedAt, createdAt, mandatoryDimensions, strictMode, metrics, allowExperimentSelfApproval, autoPopulateControl, enableContextValidation, enableChangeReasonValidation);
     }
 
     @Override
@@ -244,6 +264,8 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
         serializer.writeDocument($SCHEMA_METRICS, metrics);
         serializer.writeBoolean($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, allowExperimentSelfApproval);
         serializer.writeBoolean($SCHEMA_AUTO_POPULATE_CONTROL, autoPopulateControl);
+        serializer.writeBoolean($SCHEMA_ENABLE_CONTEXT_VALIDATION, enableContextValidation);
+        serializer.writeBoolean($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, enableChangeReasonValidation);
     }
 
     @Override
@@ -264,8 +286,10 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
             case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, allowExperimentSelfApproval);
             case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, autoPopulateControl);
-            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
-            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
+            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, enableContextValidation);
+            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, enableChangeReasonValidation);
+            case 16 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
+            case 17 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -295,6 +319,8 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
         builder.metrics(this.metrics);
         builder.allowExperimentSelfApproval(this.allowExperimentSelfApproval);
         builder.autoPopulateControl(this.autoPopulateControl);
+        builder.enableContextValidation(this.enableContextValidation);
+        builder.enableChangeReasonValidation(this.enableChangeReasonValidation);
         return builder;
     }
 
@@ -326,6 +352,8 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
         private Document metrics;
         private boolean allowExperimentSelfApproval;
         private boolean autoPopulateControl;
+        private boolean enableContextValidation;
+        private boolean enableChangeReasonValidation;
 
         private Builder() {}
 
@@ -490,6 +518,26 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder enableContextValidation(boolean enableContextValidation) {
+            this.enableContextValidation = enableContextValidation;
+            tracker.setMember($SCHEMA_ENABLE_CONTEXT_VALIDATION);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder enableChangeReasonValidation(boolean enableChangeReasonValidation) {
+            this.enableChangeReasonValidation = enableChangeReasonValidation;
+            tracker.setMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION);
+            return this;
+        }
+
         @Override
         public MigrateWorkspaceSchemaOutput build() {
             tracker.validate();
@@ -514,8 +562,10 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
                 case 11 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 case 12 -> allowExperimentSelfApproval((boolean) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, value));
                 case 13 -> autoPopulateControl((boolean) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, value));
-                case 14 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
-                case 15 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
+                case 14 -> enableContextValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, value));
+                case 15 -> enableChangeReasonValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, value));
+                case 16 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
+                case 17 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -567,6 +617,12 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_AUTO_POPULATE_CONTROL)) {
                 tracker.setMember($SCHEMA_AUTO_POPULATE_CONTROL);
             }
+            if (!tracker.checkMember($SCHEMA_ENABLE_CONTEXT_VALIDATION)) {
+                tracker.setMember($SCHEMA_ENABLE_CONTEXT_VALIDATION);
+            }
+            if (!tracker.checkMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION)) {
+                tracker.setMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION);
+            }
             return this;
         }
 
@@ -602,8 +658,10 @@ public final class MigrateWorkspaceSchemaOutput implements SerializableStruct {
                     case 11 -> builder.metrics(de.readDocument());
                     case 12 -> builder.allowExperimentSelfApproval(de.readBoolean(member));
                     case 13 -> builder.autoPopulateControl(de.readBoolean(member));
-                    case 14 -> builder.configVersion(de.readString(member));
-                    case 15 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
+                    case 14 -> builder.enableContextValidation(de.readBoolean(member));
+                    case 15 -> builder.enableChangeReasonValidation(de.readBoolean(member));
+                    case 16 -> builder.configVersion(de.readString(member));
+                    case 17 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

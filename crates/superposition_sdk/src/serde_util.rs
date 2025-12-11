@@ -207,6 +207,8 @@ if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()
 if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+if builder.enable_context_validation.is_none() { builder.enable_context_validation = Some(Default::default()) }
+if builder.enable_change_reason_validation.is_none() { builder.enable_change_reason_validation = Some(Default::default()) }
                 builder
             }
 
@@ -497,6 +499,8 @@ if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()
 if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+if builder.enable_context_validation.is_none() { builder.enable_context_validation = Some(Default::default()) }
+if builder.enable_change_reason_validation.is_none() { builder.enable_change_reason_validation = Some(Default::default()) }
                 builder
             }
 
@@ -599,6 +603,8 @@ if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()
 if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+if builder.enable_context_validation.is_none() { builder.enable_context_validation = Some(Default::default()) }
+if builder.enable_change_reason_validation.is_none() { builder.enable_change_reason_validation = Some(Default::default()) }
                 builder
             }
 
@@ -872,6 +878,8 @@ if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()
 if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+if builder.enable_context_validation.is_none() { builder.enable_context_validation = Some(Default::default()) }
+if builder.enable_change_reason_validation.is_none() { builder.enable_change_reason_validation = Some(Default::default()) }
                 builder
             }
 
@@ -1093,6 +1101,8 @@ if builder.strict_mode.is_none() { builder.strict_mode = Some(Default::default()
 if builder.metrics.is_none() { builder.metrics = Some(Default::default()) }
 if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_self_approval = Some(Default::default()) }
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
+if builder.enable_context_validation.is_none() { builder.enable_context_validation = Some(Default::default()) }
+if builder.enable_change_reason_validation.is_none() { builder.enable_change_reason_validation = Some(Default::default()) }
                 builder
             }
 

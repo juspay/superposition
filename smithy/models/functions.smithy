@@ -50,19 +50,26 @@ structure FunctionExecutionResponse {
 }
 
 union FunctionExecutionRequest for Function {
-    ValidateFunctionRequest: ValidateFunctionRequest
-    AutocompleteFunctionRequest: AutocompleteFunctionRequest
+    ValueValidationFunctionRequest: ValueValidationFunctionRequest
+    ValueComputeFunctionRequest: ValueComputeFunctionRequest
+    ContextValidationFunctionRequest: ContextValidationFunctionRequest
 }
 
-structure ValidateFunctionRequest {
+structure ValueValidationFunctionRequest {
     @required
     key: String
 
     @required
     value: Document
+
+    @required
+    type: String
+
+    @required
+    environment: Document
 }
 
-structure AutocompleteFunctionRequest {
+structure ValueComputeFunctionRequest {
     @required
     name: String
 
@@ -70,12 +77,22 @@ structure AutocompleteFunctionRequest {
     prefix: String
 
     @required
+    type: String
+
+    @required
+    environment: Document
+}
+
+structure ContextValidationFunctionRequest {
+    @required
     environment: Document
 }
 
 enum FunctionTypes {
-    VALIDATION
-    AUTOCOMPLETE
+    VALUE_VALIDATION
+    VALUE_COMPUTE
+    CONTEXT_VALIDATION
+    CHANGE_REASON_VALIDATION
 }
 
 list FunctionTypesList {
@@ -171,7 +188,7 @@ list FunctionListResponse {
 }
 
 // Operations
-@documentation("Creates a new custom function for validation or autocompletion with specified code, runtime version, and function type.")
+@documentation("Creates a new custom function for value_validation, value_compute, context_validation or change_reason_validation with specified code, runtime version, and function type.")
 @http(method: "POST", uri: "/function")
 @tags(["Functions"])
 operation CreateFunction {
@@ -254,7 +271,7 @@ operation Test with [GetOperation] {
     output: FunctionExecutionResponse
 }
 
-@documentation("Publishes the draft version of a function, making it the active version used for validation or autocompletion in the system.")
+@documentation("Publishes the draft version of a function, making it the active version used for value_validation, value_compute, context_validation or change_reason_validation in the system.")
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}/publish")
 @tags(["Functions"])

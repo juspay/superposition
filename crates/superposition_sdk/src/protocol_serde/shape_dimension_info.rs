@@ -33,8 +33,8 @@ pub(crate) fn de_dimension_info<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
                                     crate::protocol_serde::shape_dependency_graph::de_dependency_graph(tokens)?
                                 );
                             }
-                            "autocomplete_function_name" => {
-                                builder = builder.set_autocomplete_function_name(
+                            "value_compute_function_name" => {
+                                builder = builder.set_value_compute_function_name(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
                                             u.into_owned()

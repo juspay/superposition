@@ -60,6 +60,8 @@ class Main {
             .strictMode(true)
             .allowExperimentSelfApproval(true)
             .autoPopulateControl(false) // disable auto populate control for testing experiment
+            .enableContextValidation(true)
+            .enableChangeReasonValidation(true)
             .build()
 
         try {

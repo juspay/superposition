@@ -118,6 +118,16 @@ pub(crate) fn de_migrate_workspace_schema(value: &[u8], mut builder: crate::oper
                             ).transpose()?
                         );
                     }
+                    "enable_change_reason_validation" => {
+                        builder = builder.set_enable_change_reason_validation(
+                            ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                        );
+                    }
+                    "enable_context_validation" => {
+                        builder = builder.set_enable_context_validation(
+                            ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
+                        );
+                    }
                     "last_modified_at" => {
                         builder = builder.set_last_modified_at(
                             ::aws_smithy_json::deserialize::token::expect_timestamp_or_null(tokens.next(), ::aws_smithy_types::date_time::Format::DateTimeWithOffset)?

@@ -21,7 +21,10 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
-use crate::validation_functions::{compile_fn, execute_fn};
+use crate::{
+    helpers::validate_change_reason,
+    validation_functions::{compile_fn, execute_fn},
+};
 
 use super::helpers::fetch_function;
 
@@ -45,6 +48,26 @@ async fn create(
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
+
+    if req.function_type == FunctionType::ContextValidation
+        || req.function_type == FunctionType::ChangeReasonValidation
+    {
+        log::error!(
+            "Attempted to create reserved function type: {:?}",
+            req.function_type
+        );
+        return Err(bad_argument!(
+            "Cannot create function of type {:?}: This function type is reserved and cannot be created manually.",
+            req.function_type
+        ));
+    }
+
+    validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
+        |err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        },
+    )?;
 
     compile_fn(&req.function_type.get_js_fn_name(), &req.function)?;
 
@@ -120,6 +143,15 @@ async fn update(
             .get_result::<FunctionType>(&mut conn)?;
 
         compile_fn(&function_type.get_js_fn_name(), function)?;
+
+        if function_type != FunctionType::ChangeReasonValidation {
+            validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
+                |err| {
+                    log::error!("change reason validation failed with error: {:?}", err);
+                    err
+                },
+            )?;
+        }
     }
 
     let updated_function = diesel::update(functions::functions)
@@ -196,6 +228,16 @@ async fn delete_function(
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
 
+    if f_name == "context_validation_function"
+        || f_name == "change_reason_validation_function"
+    {
+        log::error!("Attempted to delete reserved function: {}", f_name);
+        return Err(bad_argument!(
+            "Cannot delete function {}: This function is reserved and cannot be deleted.",
+            f_name
+        ));
+    }
+
     diesel::update(functions::functions)
         .filter(functions::function_name.eq(&f_name))
         .set((
@@ -267,11 +309,21 @@ async fn publish(
     let DbConnection(mut conn) = db_conn;
     let fun_name: String = params.into_inner().into();
     let function = fetch_function(&fun_name, &mut conn, &schema_name)?;
+    let req = request.into_inner();
+
+    if function.function_type != FunctionType::ChangeReasonValidation {
+        validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
+            |err| {
+                log::error!("change reason validation failed with error: {:?}", err);
+                err
+            },
+        )?;
+    }
 
     let updated_function = diesel::update(functions::functions)
         .filter(functions::function_name.eq(fun_name.clone()))
         .set((
-            request.into_inner(),
+            req,
             functions::published_code.eq(Some(function.draft_code.clone())),
             functions::published_runtime_version
                 .eq(Some(function.draft_runtime_version.clone())),

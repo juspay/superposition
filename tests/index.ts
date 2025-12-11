@@ -29,6 +29,8 @@ async function setupWorkspace() {
             strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: false,
+            enable_context_validation: true,
+            enable_change_reason_validation: true,
         });
 
         console.info(`Create test workspace as ${TEST_WORKSPACE}`);
