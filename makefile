@@ -268,11 +268,14 @@ smithy-clients: smithy-build
 	mkdir -p clients/java/sdk/src/main/java
 	cp -r $(SMITHY_BUILD_SRC)/java-client-codegen/*\
 				clients/java/sdk/src/main/java
+	git restore clients/java/sdk/src/main/java/io/juspay/superposition/client/auth/AuthHelper.java
 
 	rm -rf clients/python/sdk
 	mkdir -p clients/python/sdk
 	cp -r $(SMITHY_BUILD_SRC)/python-client-codegen/*\
 				clients/python/sdk
+	git restore clients/python/sdk/superposition_sdk/auth_helpers.py
+	git restore clients/python/sdk/AUTH_README.md
 
 	rm -rf clients/haskell/sdk
 	mkdir -p clients/haskell/sdk

@@ -1,11 +1,8 @@
 package io.juspay.superposition.openfeature;
 
 import io.juspay.superposition.client.SuperpositionClient;
+import io.juspay.superposition.client.auth.BearerTokenIdentityResolver;
 import io.juspay.superposition.model.*;
-import software.amazon.smithy.java.auth.api.AuthProperties;
-import software.amazon.smithy.java.auth.api.identity.TokenIdentity;
-import software.amazon.smithy.java.client.core.auth.identity.IdentityResolver;
-import software.amazon.smithy.java.client.core.auth.identity.IdentityResult;
 import software.amazon.smithy.java.client.core.endpoint.EndpointResolver;
 import software.amazon.smithy.java.core.serde.document.Document;
 
@@ -16,9 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
-import static software.amazon.smithy.java.auth.api.identity.TokenIdentity.create;
 
 /**
  * Utility class to populate Superposition with default configuration data.
@@ -48,7 +42,7 @@ public class DefaultConfigPopulator {
         // Build Superposition client
         SuperpositionClient.Builder clientBuilder = SuperpositionClient.builder()
             .endpointResolver(EndpointResolver.staticEndpoint(baseUrl))
-            .addIdentityResolver(new IdentityResolverImpl(bearerToken));
+            .addIdentityResolver(new BearerTokenIdentityResolver(bearerToken));
         this.client = clientBuilder.build();
     }
 
@@ -277,24 +271,6 @@ public class DefaultConfigPopulator {
             this.changeReason = changeReason;
             this.functionName = functionName;
             this.autocompleteFunctionName = autocompleteFunctionName;
-        }
-    }
-
-    private static class IdentityResolverImpl implements IdentityResolver {
-        TokenIdentity identity;
-
-        IdentityResolverImpl(String token) {
-            this.identity = create(token);
-        }
-
-        @Override
-        public CompletableFuture<IdentityResult> resolveIdentity(AuthProperties requestProperties) {
-            return CompletableFuture.completedFuture(IdentityResult.of(identity));
-        }
-
-        @Override
-        public Class identityType() {
-            return TokenIdentity.class;
         }
     }
 
