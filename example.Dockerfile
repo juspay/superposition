@@ -8,7 +8,7 @@ RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 17
 # Update the package lists:
 RUN apt-get update
 
-COPY examples/superposition-demo-app/pg_hba.conf /etc/postgresql/15/main/pg_hba.conf
+COPY examples/superposition-demo-app/pg_hba.conf /etc/postgresql/17/main/pg_hba.conf
 
 COPY docker-compose/postgres/db_init.sql /app/db_init.sql
 
