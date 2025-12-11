@@ -3,7 +3,8 @@ import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
-from superposition_sdk.client import Superposition, Config, GetConfigInput
+from superposition_sdk.client import Superposition, GetConfigInput
+from superposition_sdk.auth_helpers import create_bearer_auth_config
 from superposition_sdk.models import (
     DimensionType as SDKDimensionType,
     DimensionTypeLOCAL_COHORT,
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 from smithy_core.documents import Document
 from smithy_core.shapes import ShapeType
+
 
 class DecimalEncoder(json.JSONEncoder):
     """Custom JSON encoder that handles Decimal types"""
@@ -185,9 +187,10 @@ class CacConfig:
             Dict containing the configuration data
         """
         try:
-            # Create SDK config
-            sdk_config = Config(
-                endpoint_uri=superposition_options.endpoint
+            # Create SDK config with bearer token authentication
+            sdk_config = create_bearer_auth_config(
+                endpoint=superposition_options.endpoint,
+                token=superposition_options.token
             )
 
             # Create Superposition client
