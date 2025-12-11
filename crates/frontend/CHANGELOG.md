@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.47.1 - 2025-12-11
+#### Bug Fixes
+- Modified validation and autocomplete functions (#732) - (3808aff) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.95.0 [skip ci] - (b2a9dd2) - Superposition Bot
+- Flake update (#775) - (4a2eaa2) - Datron
+
+- - -
+
 ## frontend-v0.47.0 - 2025-11-27
 #### Features
 - added variables (#741) - (fb51c6a) - sauraww

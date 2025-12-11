@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.95.2 - 2025-12-11
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.45.4
+- frontend bumped to frontend-v0.47.1
+- context_aware_config bumped to context_aware_config-v0.65.1
+- superposition_types bumped to superposition_types-v0.37.1
+- superposition_sdk bumped to superposition_sdk-v0.11.1
+- superposition_provider bumped to superposition_provider-v0.6.3
+- haskell_client bumped to haskell_client-v0.10.1
+### Global changes
+#### Bug Fixes
+- Modified validation and autocomplete functions (#732) - (3808aff) - Ankit Kumar Mahato
+- copy postgres config to the correct path (#776) - (4e88c46) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump werkzeug from 3.0.6 to 3.1.4 in /locust (#770) - (12e699e) - dependabot[bot]
+- **(deps)** bump mdast-util-to-hast from 13.2.0 to 13.2.1 in /docs (#769) - (3a07181) - dependabot[bot]
+- **(deps)** bump node-forge from 1.3.1 to 1.3.2 in /docs - (fb5a51c) - dependabot[bot]
+- **(deps-dev)** bump glob from 10.4.5 to 10.5.0 - (e6e4658) - dependabot[bot]
+- **(version)** v0.95.1 [skip ci] - (79732af) - Superposition Bot
+- Flake update (#775) - (4a2eaa2) - Datron
+
+- - -
+
 ## v0.95.1 - 2025-11-28
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.45.3

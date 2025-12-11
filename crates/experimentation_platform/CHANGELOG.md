@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.45.4 - 2025-12-11
+#### Bug Fixes
+- Modified validation and autocomplete functions (#732) - (3808aff) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.95.1 [skip ci] - (79732af) - Superposition Bot
+- Flake update (#775) - (4a2eaa2) - Datron
+
+- - -
+
 ## experimentation_platform-v0.45.3 - 2025-11-28
 #### Bug Fixes
 - update demo image's installed postgres version (#768) - (18cd298) - Datron
