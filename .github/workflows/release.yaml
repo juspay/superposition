@@ -521,7 +521,6 @@ jobs:
         runs-on: ubuntu-latest
         env:
             VERSION: ${{ needs.tag-release.outputs.version }}
-            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -617,6 +616,7 @@ jobs:
                   cargo upgrade --package superposition_provider@${{ env.VERSION }}
                   cargo upgrade --package superposition_sdk@${{ env.VERSION }}
                   cargo upgrade --package service_utils@${{ env.VERSION }}
+
                   cargo login ${{ secrets.CRATES_IO_TOKEN }}
                   cargo publish --package superposition_derives
                   cargo publish --package superposition_sdk
