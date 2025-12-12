@@ -132,6 +132,8 @@ pub fn function_editor(
                                     data=function_code_rws.get_untracked()
                                     on_change=move |value| function_code_rws.set(value)
                                     classes=vec!["w-[inherit] min-h-[500px]"]
+                                    read_only=mode.with(|v| *v != Mode::Editor)
+                                    language=crate::components::monaco_editor::Languages::Javascript
                                 />
                             </div>
                         }

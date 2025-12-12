@@ -9,8 +9,6 @@ pub(super) struct PageParams {
 
 impl Default for PageParams {
     fn default() -> Self {
-        Self {
-            tab: Stage::Published,
-        }
+        Self { tab: Stage::Draft }
     }
 }
