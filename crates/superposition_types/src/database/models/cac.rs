@@ -413,7 +413,7 @@ impl ToSql<Integer, Pg> for Position {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Deref, Into, AsRef)]
+#[derive(Debug, Serialize, Deserialize, Clone, Deref, Into, AsRef, PartialEq)]
 #[cfg_attr(feature = "diesel_derives", derive(AsExpression, FromSqlRow))]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = diesel::sql_types::Text))]
 pub struct FunctionCode(pub String);

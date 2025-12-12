@@ -144,6 +144,9 @@ pub fn function_page() -> impl IntoView {
                                 {Stage::iter()
                                     .map(|tab| {
                                         let get_updated_query = use_update_url_query();
+                                        let has_unpublished_changes = Some(
+                                            function.draft_code.clone(),
+                                        ) != function.published_code.clone();
                                         view! {
                                             <A
                                                 href=get_updated_query("tab", Some(tab.to_string()))
@@ -161,6 +164,16 @@ pub fn function_page() -> impl IntoView {
                                                 }
                                             >
                                                 {to_title_case(&tab.to_string())}
+                                                <Show when=move || {
+                                                    tab == Stage::Published && has_unpublished_changes
+                                                }>
+                                                    <div
+                                                        class="ml-1 tooltip tooltip-right before:z-10"
+                                                        data-tip="There are unpublished changes in the draft version"
+                                                    >
+                                                        <i class="ri-information-2-line text-yellow-400" />
+                                                    </div>
+                                                </Show>
                                             </A>
                                         }
                                     })
@@ -224,12 +237,6 @@ pub fn function_page() -> impl IntoView {
                             };
 
                             view! {
-                                <Tip
-                                    message="Reference variables using"
-                                    code_snippet="VARS.KEY_NAME"
-                                    example="VARS.API_KEY"
-                                />
-
                                 <FunctionCodeInfo
                                     version
                                     action_time
@@ -238,6 +245,14 @@ pub fn function_page() -> impl IntoView {
                                 />
                             }
                         }
+
+                        <Show when=move || mode_rws.get() == Mode::Editor>
+                            <Tip
+                                message="Reference variables using"
+                                code_snippet="VARS.KEY_NAME"
+                                example="VARS.API_KEY"
+                            />
+                        </Show>
 
                         <FunctionEditor
                             function_name=function_st.with_value(|f| f.function_name.clone())
