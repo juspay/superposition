@@ -231,16 +231,19 @@ impl SuperpositionProvider {
             self.get_context_from_evaluation_context(evaluation_context);
 
         let dimensions_info = self.get_dimensions_info().await;
-        let variant_ids = if let Some(exp_config) = &self.exp_client {
-            exp_config
-                .get_applicable_variants(&dimensions_info, &context, targeting_key)
-                .await?
-        } else {
-            vec![]
-        };
+        let mut variant_ids = Vec::new();
+        if targeting_key.is_some() {
+            if let Some(exp_config) = &self.exp_client {
+                let applicable_variant_ids = exp_config
+                    .get_applicable_variants(&dimensions_info, &context, targeting_key)
+                    .await?;
 
-        context.insert("variantIds".to_string(), json!(variant_ids));
-
+                context.insert("variantIds".to_string(), json!(applicable_variant_ids));
+                variant_ids = applicable_variant_ids;
+            } else {
+                log::warn!("Targeting key is set, but experiments have not been defined in the superposition provider builder options")
+            }
+        }
         let Some(ref client) = self.cac_client else {
             return Err(SuperpositionError::ConfigError(
                 "CAC config not initialized".into(),
