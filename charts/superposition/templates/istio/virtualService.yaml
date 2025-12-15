@@ -1,0 +1,52 @@
+{{- if and .Values.istio.enabled .Values.istio.virtualService.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "superposition.fullname" . }}-vs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "superposition.labels" . | nindent 4 }}
+    app.kubernetes.io/component: istio-virtual-service
+spec:
+  {{- with .Values.istio.virtualService.hosts }}
+  hosts:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.istio.virtualService.gateways }}
+  gateways:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.istio.virtualService.http }}
+  http:
+  {{- range .Values.istio.virtualService.http }}
+  - {{- if .name }}
+    name: {{ .name | quote }}
+    {{- end }}
+    {{- if .match }}
+    match:
+      {{- toYaml .match | nindent 6 }}
+    {{- end }}
+    {{- if .rewrite }}
+    rewrite:
+      {{- toYaml .rewrite | nindent 6 }}
+    {{- end }}
+    {{- if .timeout }}
+    timeout: {{ .timeout }}
+    {{- end }}
+    {{- if .retries }}
+    retries:
+      {{- toYaml .retries | nindent 6 }}
+    {{- end }}
+    route:
+    - destination:
+        host: {{ include "superposition.fullname" $ }}
+        port:
+          number: 80
+      {{- if .weight }}
+      weight: {{ .weight }}
+      {{- else }}
+      weight: 100
+      {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
