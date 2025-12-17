@@ -1139,7 +1139,7 @@ data class DimensionInfo (
     var `position`: kotlin.Int, 
     var `dimensionType`: DimensionType, 
     var `dependencyGraph`: DependencyGraph, 
-    var `autocompleteFunctionName`: kotlin.String?
+    var `valueComputeFunctionName`: kotlin.String?
 ) {
     
     companion object
@@ -1164,7 +1164,7 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterInt.allocationSize(value.`position`) +
             FfiConverterTypeDimensionType.allocationSize(value.`dimensionType`) +
             FfiConverterTypeDependencyGraph.allocationSize(value.`dependencyGraph`) +
-            FfiConverterOptionalString.allocationSize(value.`autocompleteFunctionName`)
+            FfiConverterOptionalString.allocationSize(value.`valueComputeFunctionName`)
     )
 
     override fun write(value: DimensionInfo, buf: ByteBuffer) {
@@ -1172,7 +1172,7 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterInt.write(value.`position`, buf)
             FfiConverterTypeDimensionType.write(value.`dimensionType`, buf)
             FfiConverterTypeDependencyGraph.write(value.`dependencyGraph`, buf)
-            FfiConverterOptionalString.write(value.`autocompleteFunctionName`, buf)
+            FfiConverterOptionalString.write(value.`valueComputeFunctionName`, buf)
     }
 }
 

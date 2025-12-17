@@ -6,7 +6,9 @@ from superposition_bindings.superposition_client import FfiExperiment, FfiExperi
 from superposition_sdk.models import ExperimentStatusType, GroupType as SDKGroupType
 from superposition_bindings.superposition_types import GroupType
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ExperimentationOptions
-from superposition_sdk.client import Superposition, Config, ListExperimentInput, ListExperimentGroupsInput
+from superposition_sdk.client import Superposition, ListExperimentInput, ListExperimentGroupsInput
+from superposition_sdk.config import Config
+from superposition_sdk.auth_helpers import bearer_auth_config
 import asyncio
 from datetime import datetime, timedelta
 from superposition_bindings.superposition_types import Variant, VariantType
@@ -137,9 +139,14 @@ class ExperimentationConfig():
             Dict containing the configuration data
         """
         try:
-            # Create SDK config
+            # Create SDK config with bearer token authentication
+            (resolver, schemes) = bearer_auth_config(   
+                token=superposition_options.token
+            )
             sdk_config = Config(
-                endpoint_uri=superposition_options.endpoint
+                endpoint_uri=superposition_options.endpoint,
+                http_auth_scheme_resolver=resolver,
+                http_auth_schemes=schemes
             )
 
             # Create Superposition client
@@ -208,9 +215,14 @@ class ExperimentationConfig():
             Dict containing the configuration data
         """
         try:
-            # Create SDK config
+            # Create SDK config with bearer token authentication
+            (resolver, schemes) = bearer_auth_config(   
+                token=superposition_options.token
+            )
             sdk_config = Config(
-                endpoint_uri=superposition_options.endpoint
+                endpoint_uri=superposition_options.endpoint,
+                http_auth_scheme_resolver=resolver,
+                http_auth_schemes=schemes
             )
 
             # Create Superposition client

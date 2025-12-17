@@ -2,15 +2,12 @@ package io.juspay.superposition.openfeature;
 
 import com.google.gson.JsonSyntaxException;
 import io.juspay.superposition.client.SuperpositionAsyncClient;
+import io.juspay.superposition.client.auth.BearerTokenIdentityResolver;
 import io.juspay.superposition.model.*;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-import software.amazon.smithy.java.auth.api.AuthProperties;
-import software.amazon.smithy.java.client.core.auth.identity.IdentityResolver;
-import software.amazon.smithy.java.auth.api.identity.TokenIdentity;
-import software.amazon.smithy.java.client.core.auth.identity.IdentityResult;
 import software.amazon.smithy.java.client.core.endpoint.EndpointResolver;
 import dev.openfeature.sdk.*;
 import com.google.gson.Gson;
@@ -22,10 +19,7 @@ import uniffi.superposition_client.OperationException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import static software.amazon.smithy.java.auth.api.identity.TokenIdentity.*;
 
 /**
  * Openfeature Provider implementation for Superposition.
@@ -85,7 +79,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         }
         var builder = SuperpositionAsyncClient.builder()
             .endpointResolver(EndpointResolver.staticEndpoint(options.endpoint))
-            .addIdentityResolver(new IdentityResolverImpl(options.token));
+            .addIdentityResolver(new BearerTokenIdentityResolver(options.token));
         this.sdk = builder.build();
         var getConfigInput = GetConfigInput.builder()
             .context(Map.of())
@@ -316,25 +310,5 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             }
         }
         return null;
-    }
-
-    // TODO EXPLAIN???
-    @SuppressWarnings("rawtypes")
-    private static class IdentityResolverImpl implements IdentityResolver {
-        TokenIdentity identity;
-
-        IdentityResolverImpl(String token) {
-            this.identity = create(token);
-        }
-
-        @Override
-        public CompletableFuture<IdentityResult> resolveIdentity(AuthProperties requestProperties) {
-            return CompletableFuture.completedFuture(IdentityResult.of(identity));
-        }
-
-        @Override
-        public Class identityType() {
-            return TokenIdentity.class;
-        }
     }
 }
