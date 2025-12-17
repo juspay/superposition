@@ -33,22 +33,7 @@ cd superposition/charts/superposition
 kubectl create namespace superposition
 ```
 
-### Step 3 - Configure Database Connection
-
-Update the values.yaml with your database connection details:
-
-```yaml
-configs:
-  database_url: postgres://user:password@host:5432/dbname?sslmode=disable
-  db_user: postgres
-  db_host: localhost:5432
-  db_name: config
-
-secrets:
-  db_password: "your-secure-password"
-```
-
-### Step 4 - Install Superposition
+### Step 3 - Install Superposition
 
 ```bash
 helm install superposition . -n superposition
