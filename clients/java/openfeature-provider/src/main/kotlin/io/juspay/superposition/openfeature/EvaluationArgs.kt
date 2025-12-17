@@ -14,6 +14,7 @@ import uniffi.superposition_types.Buckets
 import uniffi.superposition_types.Context
 import uniffi.superposition_types.DimensionInfo
 import uniffi.superposition_types.DimensionType
+import uniffi.superposition_types.ExperimentStatusType
 import uniffi.superposition_types.GroupType
 import uniffi.superposition_types.Variant
 import uniffi.superposition_types.VariantType
@@ -86,8 +87,19 @@ internal class EvaluationArgs {
                 er.id(),
                 er.trafficPercentage().toUByte(),
                 variants,
-                serializeDocumentValues(er.context())
+                serializeDocumentValues(er.context()),
+                    toFfiExperimentStatusType(er.status())
             )
+        }
+
+        private fun toFfiExperimentStatusType(est: io.juspay.superposition.model.ExperimentStatusType): ExperimentStatusType {
+            return when (est) {
+                io.juspay.superposition.model.ExperimentStatusType.CREATED -> ExperimentStatusType.CREATED
+                io.juspay.superposition.model.ExperimentStatusType.CONCLUDED -> ExperimentStatusType.CONCLUDED
+                io.juspay.superposition.model.ExperimentStatusType.INPROGRESS -> ExperimentStatusType.INPROGRESS
+                io.juspay.superposition.model.ExperimentStatusType.PAUSED -> ExperimentStatusType.PAUSED
+                else -> ExperimentStatusType.DISCARDED
+            }
         }
 
         private fun toFfiBucket(bucket: io.juspay.superposition.model.Bucket): Bucket {

@@ -6,10 +6,12 @@ use serde_json::{json, Map, Value};
 use superposition_core::experiment::{ExperimentGroups, FfiExperimentGroup};
 use superposition_core::{Experiments, FfiExperiment};
 use superposition_sdk::operation::list_experiment_groups::ListExperimentGroupsOutput;
-use superposition_sdk::types::GroupType as SdkGroupType;
+use superposition_sdk::types::{
+    ExperimentStatusType as SDKExperimentStatusType, GroupType as SdkGroupType,
+};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::database::models::experimentation::{
-    Bucket, Buckets, GroupType as DbGroupType, Variant, VariantType, Variants,
+    Bucket, Buckets, ExperimentStatusType, GroupType, Variant, VariantType, Variants,
 };
 use superposition_types::{
     Cac, Condition, Config, Context, DimensionInfo, Exp, ExtendedMap, OverrideWithKeys,
@@ -376,11 +378,24 @@ impl ConversionUtils {
                     ))
                 })?
                 .into_inner();
+            let status = match exp.status {
+                SDKExperimentStatusType::Created => ExperimentStatusType::CREATED,
+                SDKExperimentStatusType::Inprogress => ExperimentStatusType::INPROGRESS,
+                SDKExperimentStatusType::Paused => ExperimentStatusType::PAUSED,
+                SDKExperimentStatusType::Concluded => ExperimentStatusType::CONCLUDED,
+                SDKExperimentStatusType::Discarded => ExperimentStatusType::DISCARDED,
+                _ => {
+                    return Err(SuperpositionError::SerializationError(
+                        "Unknown experiment status".to_string(),
+                    ))
+                }
+            };
             let experiment = FfiExperiment {
                 id: exp.id.clone(),
                 context,
                 variants,
                 traffic_percentage: exp.traffic_percentage as u8,
+                status,
             };
 
             trimmed_exp_list.push(experiment);
@@ -410,8 +425,8 @@ impl ConversionUtils {
                 })?
                 .into_inner();
             let group_type = match exp_group.group_type {
-                SdkGroupType::SystemGenerated => DbGroupType::SystemGenerated,
-                SdkGroupType::UserCreated => DbGroupType::UserCreated,
+                SdkGroupType::SystemGenerated => GroupType::SystemGenerated,
+                SdkGroupType::UserCreated => GroupType::UserCreated,
                 _ => {
                     return Err(SuperpositionError::SerializationError(
                         "Unknown group type".to_string(),

@@ -28,6 +28,7 @@ export interface Experiment {
     context: Record<string, string>;
     variants: Variant[];
     traffic_percentage: number;
+    status: ExperimentStatusType;
 }
 
 export interface Bucket {
@@ -174,6 +175,7 @@ export class ExperimentationClient {
                     context: this.normalizeToStringRecord(exp.context),
                     variants: variants,
                     traffic_percentage: exp.traffic_percentage || 100,
+                    status: exp.status || ExperimentStatusType.DISCARDED,
                 });
             }
 
