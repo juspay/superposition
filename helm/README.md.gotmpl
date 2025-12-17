@@ -1,0 +1,330 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Deploy Superposition on Kubernetes using Helm
+
+This chart deploys Superposition, a context-aware configuration management platform, on Kubernetes.
+
+### Prerequisites
+
+- Kubernetes 1.16+
+- Helm 3.0+
+- PostgreSQL database (can be configured via values)
+
+## Installation
+
+### Step 1 - Add Helm Repository
+
+```bash
+git clone https://juspay.github.io/superposition
+cd superposition/charts/superposition
+```
+
+### Step 2 - Create Namespace (Optional)
+
+```bash
+kubectl create namespace superposition
+```
+
+### Step 3 - Install Superposition
+
+```bash
+helm install superposition . -n superposition
+```
+
+## Configuration
+
+### Database Configuration
+
+Superposition requires a PostgreSQL database:
+
+```yaml
+configs:
+  database_url: postgres://postgres:password@postgres-service:5432/config?sslmode=disable
+  db_user: postgres
+  db_host: postgres-service:5432
+  db_name: config
+  max_db_connection_pool_size: 3
+
+secrets:
+  db_password: "your-password"
+```
+
+### Application Settings
+
+Configure core application settings:
+
+```yaml
+configs:
+  port: 8080
+  rust_log: debug
+  app_env: DEV
+  superposition_version: "v0.1.0"
+  actix_keep_alive: 120
+```
+
+### Authentication Configuration
+
+Superposition supports different authentication providers:
+
+#### Disabled Authentication (Development)
+```yaml
+configs:
+  auth_provider: DISABLED
+```
+
+#### OIDC Authentication (Production)
+```yaml
+configs:
+  auth_provider: OIDC+http://localhost:8081/realms/users
+  oidc_client_id: superposition
+  oidc_redirect_host: "http://localhost:8080"
+
+secrets:
+  oidc_client_secret: "your-oidc-secret"
+```
+
+### AWS Configuration
+
+For AWS services integration:
+
+```yaml
+configs:
+  aws_access_key_id: test
+  aws_region: ap-south-1
+  aws_region_endpoint: http://localhost:4566
+
+secrets:
+  aws_secret_access_key: "your-aws-secret"
+  aws_session_token: "your-session-token"
+```
+
+### Access Control
+
+Configure ingress for external access:
+
+```yaml
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: superposition.yourdomain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: superposition-tls
+      hosts:
+        - superposition.yourdomain.com
+```
+
+### Istio Configuration
+
+For Istio service mesh integration:
+
+```yaml
+istio:
+  enabled: true
+  virtualService:
+    enabled: true
+    hosts:
+      - superposition.yourdomain.com
+    gateways:
+      - istio-system/gateway
+    http:
+      - name: "superposition-routes"
+        match:
+          - uri:
+              prefix: /
+        timeout: 30s
+```
+
+### Resource Configuration
+
+Set resource limits and requests:
+
+```yaml
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+```
+
+## Post-Deployment Verification
+
+After deployment, verify Superposition is working:
+
+### Health Check
+```bash
+kubectl port-forward service/superposition 8080:80 -n superposition
+curl http://localhost:8080/health
+```
+
+### Check Pods
+```bash
+kubectl get pods -n superposition
+kubectl logs -f deployment/superposition -n superposition
+```
+
+{{ template "chart.valuesSection" . }}
+
+## Examples
+
+### Example 1: Basic Development Setup
+
+```yaml
+replicaCount: 1
+
+configs:
+  database_url: postgres://postgres:docker@postgres:5432/config?sslmode=disable
+  port: 8080
+  rust_log: debug
+  app_env: DEV
+  auth_provider: DISABLED
+
+secrets:
+  db_password: "docker"
+
+service:
+  type: ClusterIP
+  port: 80
+```
+
+### Example 2: Production with Ingress
+
+```yaml
+replicaCount: 3
+
+configs:
+  database_url: postgres://postgres:password@postgres-prod:5432/config?sslmode=require
+  port: 8080
+  rust_log: info
+  app_env: PRODUCTION
+  auth_provider: OIDC+https://auth.yourdomain.com/realms/users
+  oidc_client_id: superposition
+  oidc_redirect_host: "https://superposition.yourdomain.com"
+  max_db_connection_pool_size: 10
+
+secrets:
+  db_password: "production-password"
+  oidc_client_secret: "oidc-secret"
+  superposition_token: "api-token"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: superposition.yourdomain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: superposition-tls
+      hosts:
+        - superposition.yourdomain.com
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+```
+
+### Example 3: With Istio Service Mesh
+
+```yaml
+replicaCount: 2
+
+configs:
+  database_url: postgres://postgres:password@postgres:5432/config?sslmode=disable
+  port: 8080
+  app_env: PRODUCTION
+  auth_provider: OIDC+https://auth.yourdomain.com/realms/users
+
+secrets:
+  db_password: "password"
+  oidc_client_secret: "secret"
+
+istio:
+  enabled: true
+  virtualService:
+    enabled: true
+    hosts:
+      - superposition.yourdomain.com
+    gateways:
+      - istio-system/gateway
+    http:
+      - name: "superposition-api"
+        match:
+          - uri:
+              prefix: /
+        timeout: 30s
+        retries:
+          attempts: 3
+          perTryTimeout: 10s
+  destinationRule:
+    enabled: true
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+      connectionPool:
+        tcp:
+          maxConnections: 50
+          connectTimeout: 30s
+```
+
+## Troubleshooting
+
+### Database Connection Issues
+
+Check database connectivity:
+```bash
+kubectl logs deployment/superposition -n superposition | grep -i database
+```
+
+### Authentication Problems
+
+Verify OIDC configuration:
+```bash
+kubectl get configmap superposition-cm -n superposition -o yaml
+```
+
+### Pod Startup Issues
+
+Check pod events:
+```bash
+kubectl describe pod <pod-name> -n superposition
+```
+
+## Support
+
+For issues and questions:
+- Documentation: https://github.com/juspay/superposition
+- GitHub Issues: https://github.com/juspay/superposition/issues
+
+{{ template "helm-docs.versionFooter" . }}
