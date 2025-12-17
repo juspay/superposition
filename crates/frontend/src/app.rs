@@ -20,7 +20,7 @@ use crate::pages::variable::Variable;
 use crate::pages::variables_list::VariablesList;
 use crate::pages::{
     audit_log::AuditLog, context_override::ContextOverride,
-    default_config::DefaultConfig, default_config_list::DefaultConfigList,
+    default_config::DefaultConfig, default_config_create::CreateDefaultConfig, default_config_list::DefaultConfigList,
     experiment::ExperimentPage, home::Home, organisations::Organisations,
     type_template::TypePage, type_templates::TypesPage, webhook::Webhook,
     webhooks::Webhooks, workspace::Workspace,
@@ -168,6 +168,11 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         />
 
                         <Route ssr=SsrMode::Async path="default-config" view=DefaultConfigList />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="default-config/create"
+                            view=CreateDefaultConfig
+                        />
                         <Route
                             ssr=SsrMode::Async
                             path="default-config/:config_key"

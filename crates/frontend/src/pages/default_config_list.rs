@@ -4,7 +4,7 @@ pub mod utils;
 
 use filter::{DefaultConfigFilterWidget, FilterSummary};
 use leptos::*;
-use leptos_router::A;
+use leptos_router::{use_navigate, A};
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
@@ -16,8 +16,6 @@ use utils::{get_bread_crums, modify_rows, BreadCrums};
 
 use crate::components::{
     datetime::DatetimeStr,
-    default_config_form::DefaultConfigForm,
-    drawer::PortalDrawer,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -32,19 +30,16 @@ use crate::query_updater::{
     use_param_updater, use_signal_from_query, use_update_url_query,
 };
 use crate::types::{OrganisationId, Workspace};
+use crate::utils::use_url_base;
 use crate::{api::fetch_default_config, components::button::Button};
-
-#[derive(Clone)]
-enum Action {
-    Create,
-    None,
-}
 
 #[component]
 pub fn default_config_list() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let action_rws = RwSignal::new(Action::None);
+    let navigate = use_navigate();
+    let base = use_url_base();
+
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<DefaultConfigFilters>::extract_non_empty(&query_string).into_inner()
     });
@@ -72,6 +67,37 @@ pub fn default_config_list() -> impl IntoView {
             filters_rws.get()
         )
     });
+
+    // Create button component outside the main closure
+    let create_key_button = {
+        let nav = navigate.clone();
+        let base_url = base.clone();
+        let org_ref = org.clone();
+        let workspace_ref = workspace.clone();
+        let page_params_ref = page_params_rws.clone();
+
+        view! {
+            <Button
+                on_click=move |_| {
+                    let current_prefix = page_params_ref.with(|p| p.prefix.clone());
+                    let navigate_to = if let Some(prefix) = current_prefix {
+                        format!(
+                            "{}/admin/{}/{}/default-config/create?prefix={}",
+                            base_url, org_ref.get().0, workspace_ref.get().0, prefix
+                        )
+                    } else {
+                        format!(
+                            "{}/admin/{}/{}/default-config/create",
+                            base_url, org_ref.get().0, workspace_ref.get().0
+                        )
+                    };
+                    nav(&navigate_to, Default::default());
+                }
+                text="Create Key"
+                icon_class="ri-add-line"
+            />
+        }
+    };
 
     let default_config_resource = create_blocking_resource(
         move || {
@@ -232,11 +258,7 @@ pub fn default_config_list() -> impl IntoView {
                                     pagination_params_rws
                                     prefix=page_params_rws.with(|p| p.prefix.clone())
                                 />
-                                <Button
-                                    on_click=move |_| action_rws.set(Action::Create)
-                                    text="Create Key"
-                                    icon_class="ri-add-line"
-                                />
+                                create_key_button
                             </div>
                         </div>
                         <FilterSummary filters_rws />
@@ -258,28 +280,6 @@ pub fn default_config_list() -> impl IntoView {
                         </div>
                     </div>
                 }
-            }}
-            {move || match action_rws.get() {
-                Action::Create => {
-                    view! {
-                        <PortalDrawer
-                            title="Create New Key"
-                            handle_close=move |_| action_rws.set(Action::None)
-                        >
-                            <DefaultConfigForm
-                                prefix=page_params_rws.with(|p| p.prefix.clone())
-                                handle_submit=move |_| {
-                                    filters_rws.set(DefaultConfigFilters::default());
-                                    pagination_params_rws.update(|f| f.reset_page());
-                                    default_config_resource.refetch();
-                                    action_rws.set(Action::None);
-                                }
-                            />
-                        </PortalDrawer>
-                    }
-                        .into_view()
-                }
-                Action::None => view! {}.into_view(),
             }}
         </Suspense>
     }
