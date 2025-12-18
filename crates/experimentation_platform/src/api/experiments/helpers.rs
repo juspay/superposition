@@ -9,17 +9,24 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
+use fred::{
+    prelude::{KeysInterface, RedisPool},
+    types::Expiration,
+};
 use serde_json::{Map, Value};
 #[cfg(feature = "jsonlogic")]
 use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+use service_utils::{
+    helpers::get_from_env_or_default,
+    redis::EXPERIMENTS_LIST_KEY_SUFFIX,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         experiment_groups::ExpGroupMemberRequest,
+        experiments::ExperimentResponse,
         functions::{
             FunctionExecutionRequest, FunctionExecutionResponse, Stage,
             CHANGE_REASON_VALIDATION_FN_NAME,
@@ -38,7 +45,8 @@ use superposition_types::{
         schema::experiments::dsl as experiments,
         superposition_schema::superposition::workspaces,
     },
-    result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
+    result as superposition, Condition, Config, DBConnection, Exp, Overrides,
+    PaginatedResponse, User,
 };
 
 pub fn get_workspace(
@@ -911,4 +919,52 @@ pub async fn fetch_and_validate_change_reason_with_function(
             Err(unexpected_error!(error))
         }
     }
+}
+
+pub async fn put_experiments_in_redis(
+    redis_pool: Option<RedisPool>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let pool = match redis_pool {
+        Some(pool) => pool,
+        None => {
+            log::debug!("Redis not configured, skipping experiments cache update");
+            return Ok(());
+        }
+    };
+
+    let active_statuses = ExperimentStatusType::active_list();
+
+    let experiment_list: Vec<Experiment> = experiments::experiments
+        .filter(experiments::status.eq_any(active_statuses))
+        .order(experiments::last_modified.desc())
+        .schema_name(schema_name)
+        .load::<Experiment>(conn)?;
+
+    let experiment_responses: Vec<ExperimentResponse> = experiment_list
+        .into_iter()
+        .map(ExperimentResponse::from)
+        .collect();
+
+    let paginated_response = PaginatedResponse::all(experiment_responses);
+
+    let serialized = serde_json::to_string(&paginated_response).map_err(|e| {
+        log::error!("Failed to serialize experiments for redis: {}", e);
+        unexpected_error!("Failed to serialize experiments for redis: {}", e)
+    })?;
+
+    let key = format!("{}{EXPERIMENTS_LIST_KEY_SUFFIX}", **schema_name);
+    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+    let expiration = Some(Expiration::EX(key_ttl));
+    pool.next_connected()
+        .set::<(), String, String>(key, serialized, expiration, None, false)
+        .await
+        .map_err(|e| {
+            log::error!("Failed to write experiments to redis: {}", e);
+            unexpected_error!("Failed to write experiments to redis: {}", e)
+        })?;
+
+    log::debug!("Successfully updated experiments cache in Redis");
+    Ok(())
 }

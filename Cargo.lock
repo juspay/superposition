@@ -2217,6 +2217,7 @@ dependencies = [
  "cfg-if",
  "chrono",
  "experimentation_client",
+ "fred",
  "juspay_diesel",
  "log",
  "reqwest",

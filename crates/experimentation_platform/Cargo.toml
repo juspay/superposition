@@ -16,6 +16,7 @@ cfg-if = { workspace = true }
 chrono = { workspace = true }
 diesel = { workspace = true }
 experimentation_client = { path = "../experimentation_client" }
+fred = { workspace = true, features = ["metrics"] }
 log = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
