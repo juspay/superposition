@@ -48,7 +48,7 @@ pub struct OIDCAuthenticator(Arc<OIDCAuthenticatorInner>);
 
 impl OIDCAuthenticator {
     pub async fn new(
-        idp_url: url::Url,
+        idp_url: String,
         base_url: String,
         path_prefix: String,
         client_id: String,
@@ -59,7 +59,9 @@ impl OIDCAuthenticator {
         let token_endpoint_format =
             get_from_env_unsafe::<String>("OIDC_TOKEN_ENDPOINT_FORMAT").unwrap();
 
-        let issuer_url = IssuerUrl::from_url(idp_url);
+        let issuer_url = IssuerUrl::new(idp_url)
+            .map_err(|e| format!("Unable to create issuer url: {}", e))
+            .unwrap();
 
         // Discover OpenID Provider metadata
         let provider_metadata = CoreProviderMetadata::discover_async(

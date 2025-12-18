@@ -23,7 +23,6 @@ use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
 use oidc::OIDCAuthenticator;
 use superposition_types::User;
-use url::Url;
 
 use crate::{
     db::utils::get_oidc_client_secret,
@@ -163,9 +162,7 @@ impl AuthNHandler {
         let ap: Arc<dyn Authenticator> = match auth.next() {
             Some("DISABLED") => Arc::new(DisabledAuthenticator::new(path_prefix)),
             Some("OIDC") => {
-                let url = Url::parse(auth.next().unwrap())
-                    .map_err(|e| e.to_string())
-                    .unwrap();
+                let url = auth.next().unwrap().to_string();
                 let base_url = get_from_env_unsafe("OIDC_REDIRECT_HOST").unwrap();
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
