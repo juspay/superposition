@@ -1,11 +1,24 @@
 pub mod client;
+pub mod data_source;
 pub mod provider;
+pub mod providers;
+pub mod traits;
 pub mod types;
 pub mod utils;
 
 pub use client::*;
 pub use provider::*;
 pub use types::*;
+
+// Re-export new traits and providers
+pub use traits::{
+    AllFeatureProvider, AllFeatureProviderMetadata, ExperimentMeta, FeatureExperimentMeta,
+};
+pub use data_source::{
+    ConfigData, ExperimentData, FileDataSource, FileDataSourceOptions, HttpDataSource,
+    SuperpositionDataSource,
+};
+pub use providers::{LocalResolutionProvider, LocalResolutionProviderOptions};
 
 pub use open_feature::{
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},

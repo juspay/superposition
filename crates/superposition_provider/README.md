@@ -79,6 +79,228 @@ async fn main() {
 }
 ```
 
+## New: Local Resolution Provider
+
+In addition to the original `SuperpositionProvider` (which remains fully supported), we now offer `LocalResolutionProvider` - a more flexible provider that supports:
+
+- **Pluggable Data Sources**: HTTP, File-based (CAC TOML), or custom implementations
+- **Bulk Configuration Resolution**: Resolve all features at once with the `AllFeatureProvider` trait
+- **Experiment Metadata**: Access detailed experiment information via `FeatureExperimentMeta` trait
+- **File-based Configuration**: Load configuration from local `.cac.toml` files with optional file watching
+
+### Using LocalResolutionProvider with HTTP
+
+```rust
+use std::sync::Arc;
+use superposition_provider::{
+    HttpDataSource, LocalResolutionProvider, LocalResolutionProviderOptions,
+    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+};
+use open_feature::OpenFeature;
+
+#[tokio::main]
+async fn main() {
+    // Create HTTP data source
+    let superposition_options = SuperpositionOptions::new(
+        "http://localhost:8080".to_string(),
+        "your_token".to_string(),
+        "your_org".to_string(),
+        "your_workspace".to_string(),
+    );
+    let data_source = Arc::new(HttpDataSource::new(superposition_options));
+
+    // Create provider with polling
+    let provider_options = LocalResolutionProviderOptions {
+        refresh_strategy: RefreshStrategy::Polling(PollingStrategy {
+            interval_seconds: 30,
+        }),
+        fallback_config: None,
+        enable_experiments: true,
+    };
+
+    let provider = Arc::new(LocalResolutionProvider::new(
+        data_source,
+        provider_options,
+    ));
+
+    // Initialize and register with OpenFeature
+    provider.init().await.unwrap();
+    let mut api = OpenFeature::singleton_mut().await;
+    api.set_provider(provider.clone()).await;
+
+    // Use like normal OpenFeature client
+    let client = api.create_client();
+    let value = client.get_bool_value("feature_flag", None, None).await.unwrap();
+}
+```
+
+### Using LocalResolutionProvider with File Source
+
+```rust
+use std::path::PathBuf;
+use std::sync::Arc;
+use superposition_provider::{
+    FileDataSource, FileDataSourceOptions, LocalResolutionProvider,
+    LocalResolutionProviderOptions, OnDemandStrategy, RefreshStrategy,
+};
+
+#[tokio::main]
+async fn main() {
+    // Create file data source from a .cac.toml file
+    let file_data_source = Arc::new(FileDataSource::new(FileDataSourceOptions {
+        config_path: PathBuf::from("config.cac.toml"),
+        watch_files: true, // Enable automatic reload on file changes
+    }).unwrap());
+
+    // Create provider
+    let provider_options = LocalResolutionProviderOptions {
+        refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy {
+            ttl_seconds: 60,
+        }),
+        fallback_config: None,
+        enable_experiments: false, // File source doesn't support experiments yet
+    };
+
+    let provider = Arc::new(LocalResolutionProvider::new(
+        file_data_source,
+        provider_options,
+    ));
+
+    provider.init().await.unwrap();
+
+    // Use with OpenFeature or directly with AllFeatureProvider trait
+}
+```
+
+### CAC TOML File Format
+
+The file data source uses CAC TOML format (`.cac.toml` files):
+
+```toml
+# Define default values and schemas
+[default-config.feature_enabled]
+value = false
+schema = { type = "boolean" }
+
+[default-config.api_endpoint]
+value = "https://api.example.com"
+schema = { type = "string" }
+
+# Define dimensions (context variables)
+[dimensions.country]
+schema = { type = "string", enum = ["US", "UK", "IN"] }
+
+[dimensions.platform]
+schema = { type = "string", enum = ["web", "mobile"] }
+
+# Define contextual overrides
+[context."$country == 'US'"]
+feature_enabled = true
+api_endpoint = "https://api-us.example.com"
+
+[context."$country == 'US' && $platform == 'web'"]
+feature_enabled = true
+api_endpoint = "https://web-us.example.com"
+```
+
+### Using AllFeatureProvider Trait
+
+Resolve all features at once (more efficient than individual lookups):
+
+```rust
+use superposition_provider::AllFeatureProvider;
+use open_feature::EvaluationContext;
+
+let mut context = EvaluationContext::default();
+context.custom_fields.insert("country".to_string(), "US".into());
+
+// Resolve all features at once
+let all_features = provider.resolve_all_features(&context).await.unwrap();
+for (key, value) in all_features.iter() {
+    println!("{} = {}", key, value);
+}
+
+// Or with prefix filtering
+let prefixes = vec!["feature".to_string(), "api".to_string()];
+let filtered = provider
+    .resolve_all_features_with_filter(&context, Some(&prefixes))
+    .await
+    .unwrap();
+```
+
+### Using Experiment Metadata
+
+Access detailed experiment information:
+
+```rust
+use superposition_provider::FeatureExperimentMeta;
+
+// Get applicable variant IDs
+let variants = provider.get_applicable_variants(&context).await.unwrap();
+println!("Variant IDs: {:?}", variants);
+
+// Get detailed experiment metadata
+let metadata = provider.get_experiment_metadata(&context).await.unwrap();
+for meta in metadata {
+    println!("Experiment: {}, Variant: {}", meta.experiment_id, meta.variant_id);
+}
+
+// Get variant for specific experiment
+let variant = provider
+    .get_experiment_variant("experiment_123", &context)
+    .await
+    .unwrap();
+```
+
+### Data Source Comparison
+
+| Feature | HttpDataSource | FileDataSource |
+|---------|----------------|----------------|
+| Configuration | ✅ Yes | ✅ Yes |
+| Experiments | ✅ Yes | ❌ No (yet) |
+| File Watching | N/A | ✅ Yes (optional) |
+| Polling | ✅ Yes | N/A |
+| On-Demand | ✅ Yes | ✅ Yes |
+| Format | JSON (API) | CAC TOML |
+
+### Migration from SuperpositionProvider
+
+The original `SuperpositionProvider` continues to work without any changes. To migrate to the new `LocalResolutionProvider`:
+
+**Before (SuperpositionProvider):**
+```rust
+let provider = SuperpositionProvider::new(SuperpositionProviderOptions {
+    endpoint: "http://localhost:8080".to_string(),
+    token: "token".to_string(),
+    org_id: "org".to_string(),
+    workspace_id: "workspace".to_string(),
+    refresh_strategy: RefreshStrategy::Polling(PollingStrategy { interval_seconds: 60 }),
+    fallback_config: None,
+    evaluation_cache: None,
+    experimentation_options: None,
+});
+```
+
+**After (LocalResolutionProvider):**
+```rust
+let superposition_options = SuperpositionOptions::new(
+    "http://localhost:8080".to_string(),
+    "token".to_string(),
+    "org".to_string(),
+    "workspace".to_string(),
+);
+let data_source = Arc::new(HttpDataSource::new(superposition_options));
+let provider = Arc::new(LocalResolutionProvider::new(
+    data_source,
+    LocalResolutionProviderOptions {
+        refresh_strategy: RefreshStrategy::Polling(PollingStrategy { interval_seconds: 60 }),
+        fallback_config: None,
+        enable_experiments: true,
+    },
+));
+provider.init().await.unwrap();
+```
+
 ## Configuration Options
 
 ### SuperpositionOptions
@@ -270,4 +492,25 @@ RUST_LOG=debug cargo run
 
 ## Examples
 
-See the `example.rs` file for a complete working example demonstrating basic usage with OpenFeature integration.
+The `examples/` directory contains several examples demonstrating different usage patterns:
+
+- **`local_http.rs`**: LocalResolutionProvider with HTTP data source and polling
+- **`local_file.rs`**: LocalResolutionProvider with file data source (CAC TOML)
+- **`local_file_watch.rs`**: LocalResolutionProvider with file watching for real-time updates
+- **`all_features.rs`**: Using AllFeatureProvider trait for bulk configuration resolution
+
+Run an example:
+```bash
+cargo run --example local_file
+cargo run --example local_file_watch
+cargo run --example all_features
+```
+
+For the HTTP example, set environment variables:
+```bash
+export SUPERPOSITION_ENDPOINT="http://localhost:8080"
+export SUPERPOSITION_TOKEN="your_token"
+export SUPERPOSITION_ORG_ID="your_org"
+export SUPERPOSITION_WORKSPACE_ID="your_workspace"
+cargo run --example local_http
+```

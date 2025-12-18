@@ -30,6 +30,17 @@ superposition_sdk = { workspace = true, features = ["behavior-version-latest"] }
 # Superposition types for proper type conversion
 superposition_types = { workspace = true }
 
+# CAC TOML parsing for FileDataSource
+cac_toml = { path = "../cac_toml" }
+toml = "0.8"
+pest = "2.7"
+
+# File watching for FileDataSource
+notify = "6.1"
+
+
+[dev-dependencies]
+env_logger = "0.11"
 
 [lints]
 workspace = true

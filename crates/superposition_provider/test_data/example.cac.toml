@@ -1,0 +1,96 @@
+# Example Context-Aware Configuration (CAC) TOML File
+#
+# This file demonstrates the CAC TOML format for defining feature flags
+# and contextual overrides in Superposition.
+
+# Default Configuration Section
+# Defines default values and JSON schemas for each configuration key
+
+[default-config.feature_enabled]
+value = false
+schema = { type = "boolean" }
+
+[default-config.api_endpoint]
+value = "https://api.example.com"
+schema = { type = "string" }
+
+[default-config.max_connections]
+value = 10
+schema = { type = "integer" }
+
+[default-config.timeout_seconds]
+value = 30.0
+schema = { type = "number" }
+
+[default-config.feature_flags]
+value = { enable_new_ui = false, enable_beta_features = false }
+schema = { type = "object" }
+
+[default-config.allowed_countries]
+value = ["US", "UK", "IN"]
+schema = { type = "array", items = { type = "string" } }
+
+# Dimensions Section
+# Defines dimensions (context variables) and their schemas
+
+[dimensions.country]
+schema = { type = "string", enum = ["US", "UK", "IN", "DE", "FR"] }
+
+[dimensions.platform]
+schema = { type = "string", enum = ["web", "mobile", "desktop"] }
+
+[dimensions.user_tier]
+schema = { type = "string", enum = ["free", "premium", "enterprise"] }
+
+[dimensions.app_version]
+schema = { type = "string" }
+
+[dimensions.is_beta_user]
+schema = { type = "boolean" }
+
+# Context Section
+# Defines contextual overrides based on dimension expressions
+# Expression format: "$dimension_name operator value"
+# Operators: ==, !=, <, >, <=, >=, &&, ||
+
+# Enable feature for US users
+[context."$country == 'US'"]
+feature_enabled = true
+api_endpoint = "https://api-us.example.com"
+
+# Increase max connections for premium users
+[context."$user_tier == 'premium'"]
+max_connections = 50
+timeout_seconds = 60.0
+
+# Enterprise configuration
+[context."$user_tier == 'enterprise'"]
+max_connections = 200
+timeout_seconds = 120.0
+feature_enabled = true
+
+# Mobile platform optimizations
+[context."$platform == 'mobile'"]
+timeout_seconds = 15.0
+max_connections = 5
+
+# US web users get special treatment
+[context."$country == 'US' && $platform == 'web'"]
+feature_enabled = true
+api_endpoint = "https://web-us.example.com"
+max_connections = 100
+feature_flags = { enable_new_ui = true, enable_beta_features = false }
+
+# Beta users get access to beta features
+[context."$is_beta_user == true"]
+feature_flags = { enable_new_ui = true, enable_beta_features = true }
+
+# UK premium users
+[context."$country == 'UK' && $user_tier == 'premium'"]
+api_endpoint = "https://api-uk-premium.example.com"
+max_connections = 75
+
+# Mobile enterprise users
+[context."$platform == 'mobile' && $user_tier == 'enterprise'"]
+max_connections = 100
+timeout_seconds = 60.0
