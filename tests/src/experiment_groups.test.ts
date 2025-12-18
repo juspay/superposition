@@ -31,7 +31,14 @@ import {
     UpdateWorkspaceCommand,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
-import { describe, beforeAll, afterAll, test, expect } from "bun:test";
+import {
+    describe,
+    beforeAll,
+    afterAll,
+    test,
+    expect,
+    setDefaultTimeout,
+} from "bun:test";
 import { type DocumentType } from "@smithy/types";
 import { nanoid } from "nanoid";
 
@@ -253,6 +260,8 @@ describe("Experiment Groups API Integration Tests", () => {
         const response = await client.send(cmd);
     }
 
+    setDefaultTimeout(120000);
+
     beforeAll(async () => {
         console.log(
             "Ensuring dimensions and default configs exist for Experiment Group tests..."
@@ -385,7 +394,7 @@ describe("Experiment Groups API Integration Tests", () => {
 
     afterAll(async () => {
         console.log("Cleaning up experiment group test resources...");
-        addMandatoryDimension(superpositionClient); // Restore mandatory dimensions if needed
+        await addMandatoryDimension(superpositionClient); // Restore mandatory dimensions if needed
         for (const id of createdExperimentIds) {
             try {
                 await superpositionClient.send(

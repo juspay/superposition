@@ -6,7 +6,7 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Map;
 use serde_json::{json, Value};
 use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
-use superposition_macros::validation_error;
+use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::dimension::DimensionName,
     database::{
@@ -16,7 +16,9 @@ use superposition_types::{
     result as superposition, DBConnection,
 };
 
-use crate::api::functions::helpers::get_published_function_code;
+use crate::api::{
+    dimension::fetch_dimensions_info_map, functions::helpers::get_published_function_code,
+};
 
 pub fn validate_dimension_position(
     dimension_name: DimensionName,
@@ -45,6 +47,46 @@ pub fn validate_dimension_position(
         }
         _ => Ok(()),
     }
+}
+
+pub fn validate_position_wrt_dependency(
+    dimension_name: &str,
+    position: &Position,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let dimensions_info = fetch_dimensions_info_map(conn, schema_name)?;
+
+    let Some(dimension) = dimensions_info.get(dimension_name) else {
+        return Err(unexpected_error!(
+            "Dimension {} not found while validating position with respect to dependencies",
+            dimension_name
+        ));
+    };
+
+    let Some(dependent_dimensions) = dimension.dependency_graph.0.get(dimension_name)
+    else {
+        return Ok(());
+    };
+
+    for dep_dimension in dependent_dimensions {
+        let Some(dep_dimension_info) = dimensions_info.get(dep_dimension) else {
+            return Err(unexpected_error!(
+                "Dependent Dimension {} not found while validating position with respect to dependencies",
+                dep_dimension
+            ));
+        };
+
+        if dep_dimension_info.position >= **position {
+            return Err(validation_error!(
+                    "Position value invalid: position must be greater than the position of dependent dimension {} which is {}",
+                    dep_dimension,
+                    dep_dimension_info.position,
+                ));
+        }
+    }
+
+    Ok(())
 }
 
 pub fn get_cohort_meta_schema() -> JSONSchema {

@@ -1127,6 +1127,36 @@ describe("Dimension API", () => {
         }
     });
 
+    test("fail to update a regular cohort with position <= dependency's position", async () => {
+        const localCohortDimensionInput = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: testLocalCohort.dimension,
+        };
+
+        const localCohortDimension = await superpositionClient.send(
+            new GetDimensionCommand(localCohortDimensionInput)
+        );
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            dimension: testDimension.dimension,
+            position: localCohortDimension.position,
+            change_reason: "Updating position to invalid value",
+        };
+        try {
+            expect(
+                superpositionClient.send(new UpdateDimensionCommand(input))
+            ).rejects.toThrow(
+                `Position value invalid: position must be greater than the position of dependent dimension ${localCohortDimension.dimension} which is ${localCohortDimension.position}`
+            );
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
     test("create a local cohort dimension on a remote dimension", async () => {
         const cohortData = {
             dimension: `test-cohort-local-${Date.now()}`,
