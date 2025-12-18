@@ -7,14 +7,20 @@ use actix_web::{
 use bigdecimal::{BigDecimal, Num};
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use fred::{
-    interfaces::KeysInterface,
-    prelude::{RedisClient, RedisPool},
-};
+use fred::{interfaces::KeysInterface, types::Expiration};
+use jsonschema::{Draft, JSONSchema};
+use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
+};
+use service_utils::{
+    helpers::get_from_env_or_default,
+    redis::{
+        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
+        LAST_MODIFIED_KEY_SUFFIX,
+    },
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::database::schema::event_log::dsl as event_log;
@@ -42,7 +48,6 @@ use superposition_types::{
     logic::dimensions_to_start_from,
     result as superposition,
 };
-
 use uuid::Uuid;
 
 use crate::{
@@ -55,11 +60,6 @@ use crate::{
     },
     validation_functions::execute_fn,
 };
-
-pub const LAST_MODIFIED_KEY_SUFFIX: &str = "::cac_config::last_modified_at";
-pub const AUDIT_ID_KEY_SUFFIX: &str = "::cac_config::audit_id";
-pub const CONFIG_VERSION_KEY_SUFFIX: &str = "::cac_config::config_version";
-pub const CONFIG_KEY_SUFFIX: &str = "::cac_config";
 
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();
@@ -238,50 +238,6 @@ pub fn get_workspace(
     Ok(workspace)
 }
 
-pub async fn get_config_from_redis(
-    schema_name: &SchemaName,
-    redis_pool: &RedisPool,
-    redis_client: Option<&RedisClient>,
-) -> superposition::Result<Config> {
-    use fred::interfaces::MetricsInterface;
-
-    log::debug!("Started redis fetch for config");
-    let config_key = format!("{}{CONFIG_KEY_SUFFIX}", **schema_name);
-    let config = {
-        // this block is so that the client connection is dropped
-        // before we move on to parsing the config
-        let client = match redis_client {
-            Some(client) => client,
-            None => redis_pool.next_connected(),
-        };
-        let config = client
-            .get::<String, String>(config_key)
-            .await
-            .map_err(|e| {
-                log::error!("Failed to fetch config from redis: {}", e);
-                unexpected_error!("Failed to fetch config from redis due to: {}", e)
-            })?;
-        let metrics = client.take_latency_metrics();
-        let network_metrics = client.take_network_latency_metrics();
-        log::trace!(
-            "Network metrics for config fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
-            network_metrics.max,
-            network_metrics.min,
-            network_metrics.avg,
-            metrics.max,
-            metrics.min,
-            metrics.avg
-        );
-        config
-    };
-
-    let config = serde_json::from_str(&config).map_err(|e| {
-        log::error!("Failed to parse config from redis: {}", e);
-        unexpected_error!("Failed to parse config from redis due to: {}", e)
-    })?;
-    Ok(config)
-}
-
 pub async fn put_config_in_redis(
     version_id: i64,
     state: Data<AppState>,
@@ -296,22 +252,35 @@ pub async fn put_config_in_redis(
             return Ok(());
         }
     };
-
+    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+    let expiration = Some(Expiration::EX(key_ttl));
     let raw_config = generate_cac(db_conn, schema_name)?;
     let parsed_config = serde_json::to_string(&json!(raw_config)).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")
     })?;
-    let config_key = format!("{}{CONFIG_KEY_SUFFIX}", **schema_name);
+    let config_key = format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, version_id);
     let last_modified_at_key = format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name);
     let audit_id_key = format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name);
     let config_version_key = format!("{}{CONFIG_VERSION_KEY_SUFFIX}", **schema_name);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
     let _ = redis_pool
-        .set::<(), String, String>(config_key, parsed_config, None, None, false)
+        .set::<(), String, String>(
+            config_key,
+            parsed_config,
+            expiration.clone(),
+            None,
+            false,
+        )
         .await;
     let _ = redis_pool
-        .set::<(), String, String>(last_modified_at_key, last_modified, None, None, false)
+        .set::<(), String, String>(
+            last_modified_at_key,
+            last_modified,
+            expiration.clone(),
+            None,
+            false,
+        )
         .await;
     if let Ok(uuid) = event_log::event_log
         .select(event_log::id)
@@ -321,11 +290,23 @@ pub async fn put_config_in_redis(
         .first::<Uuid>(db_conn)
     {
         let _ = redis_pool
-            .set::<(), String, String>(audit_id_key, uuid.to_string(), None, None, false)
+            .set::<(), String, String>(
+                audit_id_key,
+                uuid.to_string(),
+                expiration.clone(),
+                None,
+                false,
+            )
             .await;
     }
     let _ = redis_pool
-        .set::<(), String, i64>(config_version_key, version_id, None, None, false)
+        .set::<(), String, i64>(
+            config_version_key,
+            version_id,
+            expiration.clone(),
+            None,
+            false,
+        )
         .await;
     Ok(())
 }
