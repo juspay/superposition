@@ -8,7 +8,6 @@ import Data.Foldable (traverse_)
 import Data.Maybe (fromMaybe)
 import Foreign (callocBytes, nullPtr)
 import Foreign.C.String (CString, newCString, peekCAString)
-import Foreign.Marshal (free)
 import Prelude
 
 
@@ -35,6 +34,20 @@ foreign import capi "superposition_core.h core_get_resolved_config"
     -- | resolved config json
     IO CString
 
+foreign import capi "superposition_core.h core_free_string"
+  free_string :: CString -> IO ()
+
+foreign import capi "superposition_core.h core_get_applicable_variants"
+    get_applicable_variants ::
+      CString -> -- | experiments_json
+      CString -> -- | experiment_groups_json
+      CString -> -- | dimensions_json
+      CString -> -- | query_data_json
+      CString -> -- | targeting_key
+      CString -> -- | filter_prefixes_json
+      CString -> -- | error-buffer
+      IO CString -- | applicable variants json
+
 data MergeStrategy = Merge | Replace
 
 instance Show MergeStrategy where
@@ -52,6 +65,16 @@ data ResolveConfigParams = ResolveConfigParams
     experimentation :: Maybe String
   }
 
+data GetApplicableVariantsParams = GetApplicableVariantsParams
+  { experiments :: Maybe String,
+    experimentGroups :: Maybe String,
+    dimensions :: Maybe String,
+    queryData :: Maybe String,
+    targetingKey :: Maybe String,
+    filterPrefixes :: Maybe String
+  }
+
+
 defaultResolveParams :: ResolveConfigParams
 defaultResolveParams =
   ResolveConfigParams
@@ -65,12 +88,23 @@ defaultResolveParams =
       experimentation = Nothing
     }
 
+defaultApplicableVariantsParams :: GetApplicableVariantsParams
+defaultApplicableVariantsParams =
+  GetApplicableVariantsParams
+    { experiments = Nothing,
+      experimentGroups = Nothing,
+      dimensions = Nothing,
+      queryData = Nothing,
+      targetingKey = Nothing,
+      filterPrefixes = Nothing
+    }    
+
 getResolvedConfig :: ResolveConfigParams -> IO (Either String String)
 getResolvedConfig params = do
   ebuf <- callocBytes 256
   let ResolveConfigParams {..} = params
       newOrNull = maybe (pure nullPtr) newCString
-      freeNonNull p = when (p /= nullPtr) (free p)
+      freeNonNull p = when (p /= nullPtr) (free_string p)
       peekMaybe p | p /= nullPtr = Just <$> peekCAString p
                   | otherwise = pure Nothing
   dc <- newOrNull defaultConfig
@@ -94,8 +128,40 @@ getResolvedConfig params = do
         exp
         ebuf
   err <- peekCAString ebuf
-  traverse_ freeNonNull [dc, ctx, ovrs, qry, mergeS, pfltr, exp, ebuf]
+  traverse_ freeNonNull [dc, ctx, ovrs, di, qry, mergeS, pfltr, exp, ebuf]
   pure $ case (res, err) of
     (Just cfg, []) -> Right cfg
+    (Nothing, []) -> Left "null pointer returned"
+    _ -> Left err
+
+getApplicableVariants ::
+  GetApplicableVariantsParams ->
+  IO (Either String String)
+getApplicableVariants GetApplicableVariantsParams {..} = do
+  ebuf <- callocBytes 256
+  let newOrNull = maybe (pure nullPtr) newCString
+      freeNonNull p = when (p /= nullPtr) (free_string p)
+      peekMaybe p | p /= nullPtr = Just <$> peekCAString p
+                  | otherwise = pure Nothing
+  exps <- newOrNull experiments
+  expGrps <- newOrNull experimentGroups
+  dims <- newOrNull dimensions
+  qry <- newOrNull queryData
+  tkey <- newOrNull targetingKey
+  pfltr <- newOrNull filterPrefixes
+  res <-
+    peekMaybe
+      =<< get_applicable_variants
+        exps
+        expGrps
+        dims
+        qry
+        tkey
+        pfltr
+        ebuf
+  err <- peekCAString ebuf
+  traverse_ freeNonNull [exps, expGrps, dims, qry, tkey, pfltr, ebuf]
+  pure $ case (res, err) of
+    (Just vars, []) -> Right vars
     (Nothing, []) -> Left "null pointer returned"
     _ -> Left err
