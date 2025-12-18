@@ -134,134 +134,6 @@ async fn main() {
 }
 ```
 
-### Using LocalResolutionProvider with File Source
-
-```rust
-use std::path::PathBuf;
-use std::sync::Arc;
-use superposition_provider::{
-    FileDataSource, FileDataSourceOptions, LocalResolutionProvider,
-    LocalResolutionProviderOptions, OnDemandStrategy, RefreshStrategy,
-};
-
-#[tokio::main]
-async fn main() {
-    // Create file data source from a .cac.toml file
-    let file_data_source = Arc::new(FileDataSource::new(FileDataSourceOptions {
-        config_path: PathBuf::from("config.cac.toml"),
-        watch_files: true, // Enable automatic reload on file changes
-    }).unwrap());
-
-    // Create provider
-    let provider_options = LocalResolutionProviderOptions {
-        refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy {
-            ttl_seconds: 60,
-        }),
-        fallback_config: None,
-        enable_experiments: false, // File source doesn't support experiments yet
-    };
-
-    let provider = Arc::new(LocalResolutionProvider::new(
-        file_data_source,
-        provider_options,
-    ));
-
-    provider.init().await.unwrap();
-
-    // Use with OpenFeature or directly with AllFeatureProvider trait
-}
-```
-
-### CAC TOML File Format
-
-The file data source uses CAC TOML format (`.cac.toml` files):
-
-```toml
-# Define default values and schemas
-[default-config.feature_enabled]
-value = false
-schema = { type = "boolean" }
-
-[default-config.api_endpoint]
-value = "https://api.example.com"
-schema = { type = "string" }
-
-# Define dimensions (context variables)
-[dimensions.country]
-schema = { type = "string", enum = ["US", "UK", "IN"] }
-
-[dimensions.platform]
-schema = { type = "string", enum = ["web", "mobile"] }
-
-# Define contextual overrides
-[context."$country == 'US'"]
-feature_enabled = true
-api_endpoint = "https://api-us.example.com"
-
-[context."$country == 'US' && $platform == 'web'"]
-feature_enabled = true
-api_endpoint = "https://web-us.example.com"
-```
-
-### Using AllFeatureProvider Trait
-
-Resolve all features at once (more efficient than individual lookups):
-
-```rust
-use superposition_provider::AllFeatureProvider;
-use open_feature::EvaluationContext;
-
-let mut context = EvaluationContext::default();
-context.custom_fields.insert("country".to_string(), "US".into());
-
-// Resolve all features at once
-let all_features = provider.resolve_all_features(&context).await.unwrap();
-for (key, value) in all_features.iter() {
-    println!("{} = {}", key, value);
-}
-
-// Or with prefix filtering
-let prefixes = vec!["feature".to_string(), "api".to_string()];
-let filtered = provider
-    .resolve_all_features_with_filter(&context, Some(&prefixes))
-    .await
-    .unwrap();
-```
-
-### Using Experiment Metadata
-
-Access detailed experiment information:
-
-```rust
-use superposition_provider::FeatureExperimentMeta;
-
-// Get applicable variant IDs
-let variants = provider.get_applicable_variants(&context).await.unwrap();
-println!("Variant IDs: {:?}", variants);
-
-// Get detailed experiment metadata
-let metadata = provider.get_experiment_metadata(&context).await.unwrap();
-for meta in metadata {
-    println!("Experiment: {}, Variant: {}", meta.experiment_id, meta.variant_id);
-}
-
-// Get variant for specific experiment
-let variant = provider
-    .get_experiment_variant("experiment_123", &context)
-    .await
-    .unwrap();
-```
-
-### Data Source Comparison
-
-| Feature | HttpDataSource | FileDataSource |
-|---------|----------------|----------------|
-| Configuration | ✅ Yes | ✅ Yes |
-| Experiments | ✅ Yes | ❌ No (yet) |
-| File Watching | N/A | ✅ Yes (optional) |
-| Polling | ✅ Yes | N/A |
-| On-Demand | ✅ Yes | ✅ Yes |
-| Format | JSON (API) | CAC TOML |
 
 ### Migration from SuperpositionProvider
 
@@ -495,17 +367,10 @@ RUST_LOG=debug cargo run
 The `examples/` directory contains several examples demonstrating different usage patterns:
 
 - **`local_http.rs`**: LocalResolutionProvider with HTTP data source and polling
-- **`local_file.rs`**: LocalResolutionProvider with file data source (CAC TOML)
-- **`local_file_watch.rs`**: LocalResolutionProvider with file watching for real-time updates
 - **`all_features.rs`**: Using AllFeatureProvider trait for bulk configuration resolution
 
 Run an example:
 ```bash
-cargo run --example local_file
-cargo run --example local_file_watch
-cargo run --example all_features
-```
-
 For the HTTP example, set environment variables:
 ```bash
 export SUPERPOSITION_ENDPOINT="http://localhost:8080"
