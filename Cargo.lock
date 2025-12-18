@@ -5203,7 +5203,6 @@ dependencies = [
  "serde_json",
  "strum_macros",
  "superposition_types",
- "url",
  "urlencoding",
 ]
 

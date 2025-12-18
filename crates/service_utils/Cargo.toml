@@ -32,7 +32,6 @@ superposition_types = { workspace = true, features = [
     "api",
     "diesel_derives",
 ] }
-url = { workspace = true }
 urlencoding = "~2.1.2"
 
 [features]

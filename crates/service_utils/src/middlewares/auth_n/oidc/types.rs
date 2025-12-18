@@ -2,12 +2,11 @@ use actix_web::HttpRequest;
 use base64::{engine::general_purpose, Engine};
 use openidconnect::{
     core::{
-        CoreGenderClaim, CoreIdTokenClaims, CoreJsonWebKeyType,
-        CoreJweContentEncryptionAlgorithm, CoreJwsSigningAlgorithm, CoreTokenResponse,
-        CoreTokenType,
+        CoreGenderClaim, CoreJsonWebKeyType, CoreJweContentEncryptionAlgorithm,
+        CoreJwsSigningAlgorithm, CoreTokenType,
     },
-    AdditionalClaims, AuthorizationCode, CsrfToken, EmptyExtraTokenFields, IdTokenClaims,
-    IdTokenFields, Nonce, StandardTokenResponse,
+    AdditionalClaims, AuthorizationCode, CsrfToken, EmptyAdditionalClaims,
+    EmptyExtraTokenFields, IdTokenClaims, IdTokenFields, Nonce, StandardTokenResponse,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -20,7 +19,7 @@ pub(super) struct GlobalUserExtraClaims {
 impl AdditionalClaims for GlobalUserExtraClaims {}
 
 pub(super) type GlobalUserCoreIdTokenFields = IdTokenFields<
-    GlobalUserExtraClaims,
+    EmptyAdditionalClaims,
     EmptyExtraTokenFields,
     CoreGenderClaim,
     CoreJweContentEncryptionAlgorithm,
@@ -30,10 +29,7 @@ pub(super) type GlobalUserCoreIdTokenFields = IdTokenFields<
 
 pub(super) type GlobalUserTokenResponse =
     StandardTokenResponse<GlobalUserCoreIdTokenFields, CoreTokenType>;
-pub(super) type GlobalUserClaims = IdTokenClaims<GlobalUserExtraClaims, CoreGenderClaim>;
-
-pub(super) type OrgUserTokenResponse = CoreTokenResponse;
-pub(super) type OrgUserClaims = CoreIdTokenClaims;
+pub(super) type GlobalUserClaims = IdTokenClaims<EmptyAdditionalClaims, CoreGenderClaim>;
 
 #[derive(Serialize)]
 pub(super) struct ProtectionCookie {

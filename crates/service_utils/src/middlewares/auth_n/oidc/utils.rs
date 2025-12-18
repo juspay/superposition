@@ -9,10 +9,6 @@ pub(super) fn verify_presence(n: Option<&Nonce>) -> Result<(), String> {
     }
 }
 
-pub(super) fn presence_no_check(_: Option<&Nonce>) -> Result<(), String> {
-    Ok(())
-}
-
 pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
     claims: &IdTokenClaims<A, B>,
 ) -> Result<User, String> {
