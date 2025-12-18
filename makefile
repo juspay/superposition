@@ -10,6 +10,7 @@ CARGO_FLAGS := --color always --no-default-features
 EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
+CARGO_TARGET_DIR := $(shell cargo metadata --no-deps --format-version 1 | jq -r .target_directory)
 
 # Get all workspace members and filter out excluded ones
 #
@@ -154,7 +155,7 @@ setup-clients:
 clients: smithy-clients setup-clients
 
 kill:
-	-@pkill -f target/debug/superposition &
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
 
 get-password:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
@@ -162,7 +163,7 @@ get-password:
 superposition: CARGO_FLAGS += --features='$(FEATURES)'
 superposition:
 	cargo build $(CARGO_FLAGS) --bin superposition
-	@cd target && ln -s ../node_modules node_modules || true
+	@cd $(CARGO_TARGET_DIR) && ln -s ../node_modules node_modules || true
 
 superposition-example:
 	cargo run --bin cac-demo-app
@@ -189,38 +190,38 @@ frontend:
 		wasm-pack build --target web $(WASM_PACK_MODE) --no-default-features --features '$(FE_FEATURES)'
 	cd crates/frontend && \
 		npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
-	-rm -rf target/site
-	mkdir -p target/site/pkg
-	mv crates/frontend/pkg target/site/
-	cp -a crates/frontend/assets/. target/site/
+	-rm -rf $(CARGO_TARGET_DIR)/site
+	mkdir -p $(CARGO_TARGET_DIR)/site/pkg
+	mv crates/frontend/pkg $(CARGO_TARGET_DIR)/site/
+	cp -a crates/frontend/assets/. $(CARGO_TARGET_DIR)/site/
 
 backend: CARGO_FLAGS += --features='$(FEATURES)' --color always
 backend:
-	-rm -rf target/node_modules
+	-rm -rf $(CARGO_TARGET_DIR)/node_modules
 	npm --prefix ./crates/context_aware_config/ ci
-	mv crates/context_aware_config/node_modules target/
+	mv crates/context_aware_config/node_modules $(CARGO_TARGET_DIR)/
 	cargo build $(CARGO_FLAGS)
 
 build: frontend backend
 
 run: kill db frontend superposition
-	@./target/debug/superposition
+	@$(CARGO_TARGET_DIR)/debug/superposition
 
 %_run: kill db frontend superposition
-	@RUST_LOG=$* ./target/debug/superposition
+	@RUST_LOG=$* $(CARGO_TARGET_DIR)/debug/superposition
 
 run_legacy: kill build db superposition_legacy
-	@./target/debug/superposition
+	@$(CARGO_TARGET_DIR)/debug/superposition
 
 run_jsonlogic: FE_FEATURES += jsonlogic
 run_jsonlogic: kill db frontend superposition_jsonlogic
-	@./target/debug/superposition
+	@$(CARGO_TARGET_DIR)/debug/superposition
 
 test: WASM_PACK_MODE=--profiling
 test: setup frontend superposition
 	cargo test
 	@echo "Running superposition"
-	@./target/debug/superposition &
+	@$(CARGO_TARGET_DIR)/debug/superposition &
 	@echo "Awaiting superposition boot..."
 ## FIXME Curl doesn't retry.
 	@curl	--silent --retry 10 \
@@ -228,14 +229,14 @@ test: setup frontend superposition
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test
-	-@pkill -f target/debug/superposition &
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
 
 test_jsonlogic: WASM_PACK_MODE=--profiling
 test_jsonlogic: FE_FEATURES += jsonlogic
 test_jsonlogic: setup frontend superposition_jsonlogic
 	cargo test --features=jsonlogic
 	@echo "Running superposition"
-	@./target/debug/superposition &
+	@$(CARGO_TARGET_DIR)/debug/superposition &
 	@echo "Awaiting superposition boot..."
 ## FIXME Curl doesn't retry.
 	@curl	--silent --retry 10 \
@@ -243,7 +244,7 @@ test_jsonlogic: setup frontend superposition_jsonlogic
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && export JSONLOGIC_ENABLED=true && bun test
-	-@pkill -f target/debug/superposition &
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
 
 ## npm run test
 ## FIXME Broken as requires hardcoded 'org_id'. Current test setup doesn't create
@@ -367,35 +368,35 @@ schema-file:
 
 uniffi-bindings:
 	cargo build --package superposition_core --lib --release
-	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language kotlin --out-dir clients/java/bindings/src/main/kotlin
-	cargo run --bin uniffi-bindgen generate --library target/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib --language kotlin --out-dir clients/java/bindings/src/main/kotlin
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
 	git apply uniffi/patches/*.patch
 
 provider-template: setup superposition
-	@./target/debug/superposition &
+	@$(CARGO_TARGET_DIR)/debug/superposition &
 	@echo "Awaiting superposition boot..."
 	@curl	--silent --retry 10 \
 				--connect-timeout 2 \
 				--retry-all-errors \
-				'http://localhost:8080/health' 2>&1 > /dev/null	
+				'http://localhost:8080/health' 2>&1 > /dev/null
 
 test-js-provider: provider-template
 	cd clients/javascript/provider-sdk-tests && npm ci
 	bash ./scripts/setup_provider_binaries.sh js
 	node clients/javascript/provider-sdk-tests/index.js
-	-@pkill -f target/debug/superposition
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
 
 test-py-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh py
 	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
 	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
-	-@pkill -f target/debug/superposition
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
 
 test-kotlin-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh kotlin
 	cd clients/java && ./gradlew :provider-sdk-tests:run
-	-@pkill -f target/debug/superposition
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
 
 test-rust-provider: provider-template
 	cargo test --package superposition_provider --test integration_test -- --nocapture --ignored
-	-@pkill -f target/debug/superposition
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
