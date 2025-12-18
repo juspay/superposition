@@ -5,4 +5,5 @@ pub mod encryption;
 pub mod extensions;
 pub mod helpers;
 pub mod middlewares;
+pub mod redis;
 pub mod service;
