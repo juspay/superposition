@@ -2281,6 +2281,7 @@ dependencies = [
  "cac_client",
  "chrono",
  "experimentation_client",
+ "fred",
  "juspay_diesel",
  "log",
  "reqwest",

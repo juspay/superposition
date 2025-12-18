@@ -4,9 +4,11 @@ use actix_web::web::{Data, Json};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
+use fred::{prelude::{KeysInterface, RedisPool}, types::Expiration};
 use serde_json::Value;
 use service_utils::{
-    helpers::generate_snowflake_id,
+    helpers::{generate_snowflake_id, get_from_env_or_default},
+    redis::EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
     service::types::{AppState, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, unexpected_error};
@@ -25,7 +27,7 @@ use superposition_types::{
             experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
         },
     },
-    result as superposition,
+    result as superposition, Condition, DBConnection, PaginatedResponse, User,
 };
 
 use crate::api::experiments::helpers::{ensure_experiments_exist, hash};
@@ -451,4 +453,45 @@ pub fn fetch_experiment_group(
         .for_update()
         .get_result::<ExperimentGroup>(conn)?;
     Ok(experiment_group)
+}
+
+pub async fn put_experiment_groups_in_redis(
+    redis_pool: Option<RedisPool>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let pool = match redis_pool {
+        Some(pool) => pool,
+        None => {
+            log::debug!("Redis not configured, skipping experiment groups cache update");
+            return Ok(());
+        }
+    };
+
+    let experiment_group_list: Vec<ExperimentGroup> =
+        experiment_groups::experiment_groups
+            .order(experiment_groups::last_modified_at.desc())
+            .schema_name(schema_name)
+            .load::<ExperimentGroup>(conn)?;
+
+    let paginated_response = PaginatedResponse::all(experiment_group_list);
+
+    let serialized = serde_json::to_string(&paginated_response).map_err(|e| {
+        log::error!("Failed to serialize experiment groups for redis: {}", e);
+        unexpected_error!("Failed to serialize experiment groups for redis: {}", e)
+    })?;
+
+    let key = format!("{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}", **schema_name);
+    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+    let expiration = Some(Expiration::EX(key_ttl));
+    pool.next_connected()
+        .set::<(), String, String>(key, serialized, expiration, None, false)
+        .await
+        .map_err(|e| {
+            log::error!("Failed to write experiment groups to redis: {}", e);
+            unexpected_error!("Failed to write experiment groups to redis: {}", e)
+        })?;
+
+    log::debug!("Successfully updated experiment groups cache in Redis");
+    Ok(())
 }
