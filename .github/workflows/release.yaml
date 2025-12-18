@@ -41,6 +41,13 @@ jobs:
                   crate: cocogitto
                   version: "6.2.0"
 
+            - name: install yq
+              run: |
+                  mkdir -p ${{ github.workspace }}/bin
+                  wget -qO ${{ github.workspace }}/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64
+                  chmod +x ${{ github.workspace }}/bin/yq
+                  echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
             - name: Semver release
               shell: bash
               run: |
@@ -67,6 +74,12 @@ jobs:
                   cargo upgrade --package service_utils@${{ steps.git_tag.outputs.version }}
                   sed -i "s/superposition: \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/superposition: \"${{ steps.git_tag.outputs.version }}\"/" docs/src/constants/versions.js
                   git add .
+                  git commit --amend --no-edit
+
+            - name: Update Helm chart appVersion
+              run: |
+                  yq eval ".appVersion = \"${{ steps.git_tag.outputs.version }}\"" -i helm/Chart.yaml
+                  git add helm/Chart.yaml
                   git commit --amend --no-edit
 
             - name: Push code to main
