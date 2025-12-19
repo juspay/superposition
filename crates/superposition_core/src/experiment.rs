@@ -4,7 +4,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::experimentation::{
-    Bucket, Buckets, GroupType, Variant, Variants,
+    Bucket, Buckets, ExperimentStatusType, GroupType, Variant, Variants,
 };
 use superposition_types::{
     logic::evaluate_local_cohorts, Condition, DimensionInfo, Overridden,
@@ -31,6 +31,7 @@ pub struct FfiExperiment {
     pub traffic_percentage: u8,
     pub variants: Variants,
     pub context: Condition,
+    pub status: ExperimentStatusType,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]

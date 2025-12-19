@@ -33,6 +33,7 @@ from .superposition_types import Buckets
 from .superposition_types import Condition
 from .superposition_types import Context
 from .superposition_types import DimensionInfo
+from .superposition_types import ExperimentStatusType
 from .superposition_types import GroupType
 from .superposition_types import MergeStrategy
 from .superposition_types import Overrides
@@ -43,6 +44,7 @@ from .superposition_types import _UniffiConverterTypeBuckets
 from .superposition_types import _UniffiConverterTypeCondition
 from .superposition_types import _UniffiConverterTypeContext
 from .superposition_types import _UniffiConverterTypeDimensionInfo
+from .superposition_types import _UniffiConverterTypeExperimentStatusType
 from .superposition_types import _UniffiConverterTypeGroupType
 from .superposition_types import _UniffiConverterTypeMergeStrategy
 from .superposition_types import _UniffiConverterTypeOverrides
@@ -53,6 +55,7 @@ from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferBuckets
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferCondition
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferContext
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferDimensionInfo
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferExperimentStatusType
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferGroupType
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferMergeStrategy
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferOverrides
@@ -1014,14 +1017,16 @@ class FfiExperiment:
     traffic_percentage: "int"
     variants: "Variants"
     context: "Condition"
-    def __init__(self, *, id: "str", traffic_percentage: "int", variants: "Variants", context: "Condition"):
+    status: "ExperimentStatusType"
+    def __init__(self, *, id: "str", traffic_percentage: "int", variants: "Variants", context: "Condition", status: "ExperimentStatusType"):
         self.id = id
         self.traffic_percentage = traffic_percentage
         self.variants = variants
         self.context = context
+        self.status = status
 
     def __str__(self):
-        return "FfiExperiment(id={}, traffic_percentage={}, variants={}, context={})".format(self.id, self.traffic_percentage, self.variants, self.context)
+        return "FfiExperiment(id={}, traffic_percentage={}, variants={}, context={}, status={})".format(self.id, self.traffic_percentage, self.variants, self.context, self.status)
 
     def __eq__(self, other):
         if self.id != other.id:
@@ -1031,6 +1036,8 @@ class FfiExperiment:
         if self.variants != other.variants:
             return False
         if self.context != other.context:
+            return False
+        if self.status != other.status:
             return False
         return True
 
@@ -1042,6 +1049,7 @@ class _UniffiConverterTypeFfiExperiment(_UniffiConverterRustBuffer):
             traffic_percentage=_UniffiConverterUInt8.read(buf),
             variants=_UniffiConverterTypeVariants.read(buf),
             context=_UniffiConverterTypeCondition.read(buf),
+            status=_UniffiConverterTypeExperimentStatusType.read(buf),
         )
 
     @staticmethod
@@ -1050,6 +1058,7 @@ class _UniffiConverterTypeFfiExperiment(_UniffiConverterRustBuffer):
         _UniffiConverterUInt8.check_lower(value.traffic_percentage)
         _UniffiConverterTypeVariants.check_lower(value.variants)
         _UniffiConverterTypeCondition.check_lower(value.context)
+        _UniffiConverterTypeExperimentStatusType.check_lower(value.status)
 
     @staticmethod
     def write(value, buf):
@@ -1057,6 +1066,7 @@ class _UniffiConverterTypeFfiExperiment(_UniffiConverterRustBuffer):
         _UniffiConverterUInt8.write(value.traffic_percentage, buf)
         _UniffiConverterTypeVariants.write(value.variants, buf)
         _UniffiConverterTypeCondition.write(value.context, buf)
+        _UniffiConverterTypeExperimentStatusType.write(value.status, buf)
 
 
 class FfiExperimentGroup:
@@ -1516,6 +1526,8 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 # External type DimensionInfo: `from .superposition_types import DimensionInfo`
 
 # External type Variant: `from .superposition_types import Variant`
+
+# External type ExperimentStatusType: `from .superposition_types import ExperimentStatusType`
 
 # External type GroupType: `from .superposition_types import GroupType`
 

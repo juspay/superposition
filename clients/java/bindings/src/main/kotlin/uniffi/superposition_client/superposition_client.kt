@@ -35,11 +35,13 @@ import uniffi.superposition_types.Buckets
 import uniffi.superposition_types.Condition
 import uniffi.superposition_types.Context
 import uniffi.superposition_types.DimensionInfo
+import uniffi.superposition_types.ExperimentStatusType
 import uniffi.superposition_types.FfiConverterTypeBucket
 import uniffi.superposition_types.FfiConverterTypeBuckets
 import uniffi.superposition_types.FfiConverterTypeCondition
 import uniffi.superposition_types.FfiConverterTypeContext
 import uniffi.superposition_types.FfiConverterTypeDimensionInfo
+import uniffi.superposition_types.FfiConverterTypeExperimentStatusType
 import uniffi.superposition_types.FfiConverterTypeGroupType
 import uniffi.superposition_types.FfiConverterTypeMergeStrategy
 import uniffi.superposition_types.FfiConverterTypeOverrides
@@ -55,6 +57,7 @@ import uniffi.superposition_types.RustBuffer as RustBufferBuckets
 import uniffi.superposition_types.RustBuffer as RustBufferCondition
 import uniffi.superposition_types.RustBuffer as RustBufferContext
 import uniffi.superposition_types.RustBuffer as RustBufferDimensionInfo
+import uniffi.superposition_types.RustBuffer as RustBufferExperimentStatusType
 import uniffi.superposition_types.RustBuffer as RustBufferGroupType
 import uniffi.superposition_types.RustBuffer as RustBufferMergeStrategy
 import uniffi.superposition_types.RustBuffer as RustBufferOverrides
@@ -1156,7 +1159,8 @@ data class FfiExperiment (
     var `id`: kotlin.String, 
     var `trafficPercentage`: kotlin.UByte, 
     var `variants`: Variants, 
-    var `context`: Condition
+    var `context`: Condition, 
+    var `status`: ExperimentStatusType
 ) {
     
     companion object
@@ -1172,6 +1176,7 @@ public object FfiConverterTypeFfiExperiment: FfiConverterRustBuffer<FfiExperimen
             FfiConverterUByte.read(buf),
             FfiConverterTypeVariants.read(buf),
             FfiConverterTypeCondition.read(buf),
+            FfiConverterTypeExperimentStatusType.read(buf),
         )
     }
 
@@ -1179,7 +1184,8 @@ public object FfiConverterTypeFfiExperiment: FfiConverterRustBuffer<FfiExperimen
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterUByte.allocationSize(value.`trafficPercentage`) +
             FfiConverterTypeVariants.allocationSize(value.`variants`) +
-            FfiConverterTypeCondition.allocationSize(value.`context`)
+            FfiConverterTypeCondition.allocationSize(value.`context`) +
+            FfiConverterTypeExperimentStatusType.allocationSize(value.`status`)
     )
 
     override fun write(value: FfiExperiment, buf: ByteBuffer) {
@@ -1187,6 +1193,7 @@ public object FfiConverterTypeFfiExperiment: FfiConverterRustBuffer<FfiExperimen
             FfiConverterUByte.write(value.`trafficPercentage`, buf)
             FfiConverterTypeVariants.write(value.`variants`, buf)
             FfiConverterTypeCondition.write(value.`context`, buf)
+            FfiConverterTypeExperimentStatusType.write(value.`status`, buf)
     }
 }
 
@@ -1677,6 +1684,8 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
         }
     }
 }
+
+
 
 
 

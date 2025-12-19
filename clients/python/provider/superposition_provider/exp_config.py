@@ -2,9 +2,11 @@ import json
 import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
+from unittest import case
+
 from superposition_bindings.superposition_client import FfiExperiment, FfiExperimentGroup
-from superposition_sdk.models import ExperimentStatusType, GroupType as SDKGroupType
-from superposition_bindings.superposition_types import GroupType
+from superposition_sdk.models import ExperimentStatusType as SDKExperimentStatusType, GroupType as SDKGroupType
+from superposition_bindings.superposition_types import GroupType, ExperimentStatusType
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ExperimentationOptions
 from superposition_sdk.client import Superposition, ListExperimentInput, ListExperimentGroupsInput
 from superposition_sdk.config import Config
@@ -75,11 +77,25 @@ def document_to_python_value(doc: Document) -> Any:
             return val
 
 
-def to_group_type(sdk_group_type: SDKGroupType) -> GroupType:
-    if sdk_group_type == SDKGroupType.USER_CREATED:
-        return GroupType.USER_CREATED
-    return GroupType.SYSTEM_GENERATED
+def to_group_type(sdk_group_type: str) -> GroupType:
+    match sdk_group_type:
+        case SDKGroupType.USER_CREATED:
+            return SDKGroupType.USER_CREATED
+        case _:
+            return GroupType.SYSTEM_GENERATED
 
+def to_experiment_status_type(sdk_status_type: str) -> ExperimentStatusType:
+    match sdk_status_type:
+        case SDKExperimentStatusType.CREATED:
+            return ExperimentStatusType.CREATED
+        case SDKExperimentStatusType.CONCLUDED:
+            return ExperimentStatusType.CONCLUDED
+        case SDKExperimentStatusType.INPROGRESS:
+            return ExperimentStatusType.INPROGRESS
+        case SDKExperimentStatusType.PAUSED:
+            return ExperimentStatusType.PAUSED
+        case _:
+            return ExperimentStatusType.DISCARDED
 
 class ExperimentationConfig():
     def __init__(self, superposition_options: SuperpositionOptions, experiment_options: ExperimentationOptions):
@@ -156,7 +172,7 @@ class ExperimentationConfig():
                 workspace_id=superposition_options.workspace_id,
                 org_id=superposition_options.org_id,
                 all=True,
-                status=[ExperimentStatusType.CREATED, ExperimentStatusType.INPROGRESS]
+                status=[SDKExperimentStatusType.CREATED, SDKExperimentStatusType.INPROGRESS]
             )
 
             response = await client.list_experiment(list_exp_input)
@@ -192,6 +208,7 @@ class ExperimentationConfig():
                     context=condition,
                     variants=variants,
                     traffic_percentage=exp.traffic_percentage,
+                    status=to_experiment_status_type(exp.status),
                 )
 
                 trimmed_exp_list.append(trimmed_exp)
