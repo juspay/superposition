@@ -129,9 +129,6 @@ async fn main() -> Result<()> {
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
                     .add(("Cache-Control", "no-store".to_string()))
             )
-            .service(web::redirect("/", ui_redirect_path.to_string()))
-            .service(web::redirect("/admin", ui_redirect_path.to_string()))
-            .service(web::redirect("/admin/{tenant}/", "default-config"))
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
@@ -145,6 +142,12 @@ async fn main() -> Result<()> {
                     )
                     .service(auth_n.routes())
                     .service(auth_n.org_routes())
+                    .service(web::redirect("", ui_redirect_path.to_string()))
+                    .service(web::redirect("/", ui_redirect_path.to_string()))
+                    .service(web::redirect("/admin", ui_redirect_path.to_string()))
+                    .service(web::redirect("/admin/", ui_redirect_path.to_string()))
+                    .service(web::redirect("/admin/{org_id}/", "workspaces"))
+                    .service(web::redirect("/admin/{org_id}/{tenant}/", "default-config"))
                     /***************************** V1 Routes *****************************/
                     .service(
                         scope("/context")
@@ -230,5 +233,3 @@ async fn main() -> Result<()> {
     .run()
     .await
 }
-
-
