@@ -2,10 +2,7 @@ use leptos::*;
 use leptos_router::use_navigate;
 
 use crate::components::{
-    alert::AlertType,
-    button::Button,
-    default_config_form::DefaultConfigForm,
-    stat::Stat,
+    alert::AlertType, button::Button, default_config_form::DefaultConfigForm,
 };
 use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::use_signal_from_query;
@@ -19,30 +16,32 @@ pub fn CreateDefaultConfig() -> impl IntoView {
     let navigate = use_navigate();
     let base = use_url_base();
 
-    // Extract prefix from query parameters using the standard approach
+    // Extract prefix from query parameters using URL parsing
     let prefix = use_signal_from_query(move |query_string| {
-        url::Url::parse(&format!("http://placeholder.com/{}", query_string))
+        let parsed = url::Url::parse(&format!("http://placeholder.com/{}", query_string))
             .ok()
-            .and_then(|url| url.query_pairs().find(|(key, _)| key == "prefix").map(|(_, value)| value.into_owned()))
-            .unwrap_or_default()
+            .and_then(|url| {
+                url.query_pairs()
+                    .find(|(key, _)| key == "prefix")
+                    .map(|(_, value)| value.into_owned())
+            })
+            .unwrap_or_default();
+        // Debug: log the parsed prefix
+        web_sys::console::log_1(&format!("Extracted prefix: '{}'", parsed).into());
+        parsed
     });
 
     // Create breadcrumb navigation
-    let base_breadcrumb = base.clone();
     let bread_crumb_items = Signal::derive(move || {
-        let mut items = vec![
-            format!("{}/admin/{}/{}", base_breadcrumb, org.get().0, workspace.get().0),
-            "Default Config".to_string(),
-        ];
-        
-        let prefix_val = prefix.get();
-        if !prefix_val.is_empty() {
-            items.push(format!("Create in {}", prefix_val));
+        let current_prefix = prefix.get();
+        if current_prefix.is_empty() {
+            vec!["Default Config".to_string(), "Create".to_string()]
         } else {
-            items.push("Create".to_string());
+            vec![
+                "Default Config".to_string(),
+                format!("Create ({})", current_prefix),
+            ]
         }
-        
-        items
     });
 
     // Handle form submission - navigate back to list page
@@ -56,18 +55,26 @@ pub fn CreateDefaultConfig() -> impl IntoView {
             AlertType::Success,
             5000,
         );
-        
+
         // Navigate back to the list page, preserving current prefix if any
         let current_prefix = prefix.get();
         let navigate_to = if current_prefix.is_empty() {
-            format!("{}/admin/{}/{}/default-config", base_submit, org_submit.get().0, workspace_submit.get().0)
+            format!(
+                "{}/admin/{}/{}/default-config",
+                base_submit,
+                org_submit.get().0,
+                workspace_submit.get().0
+            )
         } else {
             format!(
                 "{}/admin/{}/{}/default-config?prefix={}",
-                base_submit, org_submit.get().0, workspace_submit.get().0, current_prefix
+                base_submit,
+                org_submit.get().0,
+                workspace_submit.get().0,
+                current_prefix
             )
         };
-        
+
         nav_submit(&navigate_to, Default::default());
     });
 
@@ -79,14 +86,22 @@ pub fn CreateDefaultConfig() -> impl IntoView {
     let handle_cancel = Callback::new(move |_| {
         let current_prefix = prefix.get();
         let navigate_to = if current_prefix.is_empty() {
-            format!("{}/admin/{}/{}/default-config", base_cancel, org_cancel.get().0, workspace_cancel.get().0)
+            format!(
+                "{}/admin/{}/{}/default-config",
+                base_cancel,
+                org_cancel.get().0,
+                workspace_cancel.get().0
+            )
         } else {
             format!(
                 "{}/admin/{}/{}/default-config?prefix={}",
-                base_cancel, org_cancel.get().0, workspace_cancel.get().0, current_prefix
+                base_cancel,
+                org_cancel.get().0,
+                workspace_cancel.get().0,
+                current_prefix
             )
         };
-        
+
         nav_cancel(&navigate_to, Default::default());
     });
 
@@ -95,11 +110,7 @@ pub fn CreateDefaultConfig() -> impl IntoView {
             // Header with title and stats
             <div class="flex justify-between items-start">
                 <div>
-                    <Stat
-                        heading="Create New Default Config Key"
-                        icon="ri-add-line"
-                        number="".to_string()
-                    />
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">"Create New Default Config Key"</h1>
                     // Breadcrumb navigation
                     <div class="breadcrumbs text-sm mt-2">
                         <ul>
@@ -110,15 +121,7 @@ pub fn CreateDefaultConfig() -> impl IntoView {
                                     let base_bread = base.clone();
                                     let org_bread = org;
                                     let workspace_bread = workspace;
-                                    if item.starts_with(&base_bread) {
-                                        view! {
-                                            <li>
-                                                <a href=item class="link link-hover">
-                                                    "Home"
-                                                </a>
-                                            </li>
-                                        }
-                                    } else if item == "Default Config" {
+                                    if item == "Default Config" {
                                         view! {
                                             <li>
                                                 <a href=format!("{}/admin/{}/{}/default-config", base_bread, org_bread.get().0, workspace_bread.get().0) class="link link-hover">
@@ -149,7 +152,16 @@ pub fn CreateDefaultConfig() -> impl IntoView {
                 <div class="card-body overflow-y-auto">
                     <DefaultConfigForm
                         edit=false
-                        prefix=if prefix.get().is_empty() { None } else { Some(prefix.get()) }
+                        prefix={
+                    let p = prefix.get();
+                    // Debug: log what we're passing to the form
+                    web_sys::console::log_1(&format!("Passing prefix to form: {:?}", if p.is_empty() { None } else { Some(if p.ends_with('/') { p.clone() } else { format!("{}/", p.clone()) }) }).into());
+                    if p.is_empty() {
+                        None
+                    } else {
+                        Some(if p.ends_with('/') { p } else { format!("{}/", p) })
+                    }
+                }
                         handle_submit=handle_submit
                     />
                 </div>
@@ -157,3 +169,4 @@ pub fn CreateDefaultConfig() -> impl IntoView {
         </div>
     }
 }
+

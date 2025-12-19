@@ -68,6 +68,7 @@ pub fn default_config_list() -> impl IntoView {
         )
     });
 
+<<<<<<< HEAD
     // Create button component outside the main closure
     let create_key_button = {
         let nav = navigate.clone();
@@ -99,6 +100,8 @@ pub fn default_config_list() -> impl IntoView {
         }
     };
 
+=======
+>>>>>>> 7dbcfc22 (feat: fixed create button visually)
     let default_config_resource = create_blocking_resource(
         move || {
             (
@@ -258,7 +261,12 @@ pub fn default_config_list() -> impl IntoView {
                                     pagination_params_rws
                                     prefix=page_params_rws.with(|p| p.prefix.clone())
                                 />
-                                create_key_button
+                                <ButtonAnchor
+                                    class="self-end h-10"
+                                    text="Create Config"
+                                    icon_class="ri-add-line"
+                                    href="-/create"
+                                />
                             </div>
                         </div>
                         <FilterSummary filters_rws />

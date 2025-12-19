@@ -170,7 +170,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         <Route ssr=SsrMode::Async path="default-config" view=DefaultConfigList />
                         <Route
                             ssr=SsrMode::Async
-                            path="default-config/create"
+                            path="default-config/-/create"
                             view=CreateDefaultConfig
                         />
                         <Route
