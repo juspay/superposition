@@ -48,7 +48,7 @@ pub struct OIDCAuthenticator(Arc<OIDCAuthenticatorInner>);
 
 impl OIDCAuthenticator {
     pub async fn new(
-        idp_url: url::Url,
+        idp_url: String,
         base_url: String,
         path_prefix: String,
         client_id: String,
@@ -59,7 +59,9 @@ impl OIDCAuthenticator {
         let token_endpoint_format =
             get_from_env_unsafe::<String>("OIDC_TOKEN_ENDPOINT_FORMAT").unwrap();
 
-        let issuer_url = IssuerUrl::from_url(idp_url);
+        let issuer_url = IssuerUrl::new(idp_url)
+            .map_err(|e| format!("Unable to create issuer url: {}", e))
+            .unwrap();
 
         // Discover OpenID Provider metadata
         let provider_metadata = CoreProviderMetadata::discover_async(
@@ -397,17 +399,32 @@ impl Authenticator for OIDCAuthenticator {
                 .add_scope(Scope::new(String::from("openid")))
                 .request_async(oidcrs::reqwest::async_http_client)
                 .await
-                .map_err(|e| log::error!("Failed to switch organisation for token: {e}"))
+                .map_err(|e| {
+                    log::error!("Failed to switch organisation for token: {e}");
+                    Some(ErrorInternalServerError(
+                        "Failed to switch organisation for token".to_string(),
+                    ))
+                })
                 .and_then(|tr| {
                     tr.id_token()
-                        .ok_or_else(|| log::error!("No identity-token!"))?
+                        .ok_or_else(|| {
+                            log::error!("No identity-token!");
+                            None
+                        })?
                         .claims(&client.id_token_verifier(), presence_no_check)
-                        .map_err(|e| log::error!("Couldn't verify claims: {e}"))?;
+                        .map_err(|e| {
+                            log::error!("Couldn't verify claims: {e}");
+                            None
+                        })?;
 
-                    serde_json::to_string(&tr)
-                        .map_err(|e| log::error!("Unable to stringify data: {e}"))
+                    serde_json::to_string(&tr).map_err(|e| {
+                        log::error!("Unable to stringify data: {e}");
+                        Some(ErrorInternalServerError(
+                            "Unable to stringify data".to_string(),
+                        ))
+                    })
                 })
-                .map_err(|_| redirect)
+                .map_err(|e| e.map(Into::into).unwrap_or(redirect))
         })
     }
 }
@@ -439,21 +456,24 @@ async fn login(
     }
 
     // Exchange the code with a token.
-    let response = data
+    let token_response = data
         .client
         .exchange_code(params.code.clone())
         .request_async(oidcrs::reqwest::async_http_client)
         .await
-        .map_err(|e| log::error!("Failed to exchange auth-code for token: {e}"))
-        .and_then(|tr| {
-            tr.id_token()
-                .ok_or_else(|| log::error!("No identity-token!"))
-                .and_then(|t| {
-                    t.claims(&data.client.id_token_verifier(), &p_cookie.nonce)
-                        .map_err(|e| log::error!("Couldn't verify claims: {e}"))
-                })?;
-            Ok(tr)
-        });
+        .map_err(|e| {
+            log::error!("Failed to exchange auth-code for token: {e}");
+            ErrorInternalServerError("Failed to exchange auth-code for token".to_string())
+        })?;
+
+    let response = token_response
+        .id_token()
+        .ok_or_else(|| log::error!("No identity-token!"))
+        .and_then(|t| {
+            t.claims(&data.client.id_token_verifier(), &p_cookie.nonce)
+                .map_err(|e| log::error!("Couldn't verify claims: {e}"))
+        })
+        .map(|_| token_response.clone());
 
     match response {
         Ok(r) => {

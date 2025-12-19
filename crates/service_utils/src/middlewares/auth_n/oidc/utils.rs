@@ -19,7 +19,7 @@ pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
     let user = User {
         email: claims
             .email()
-            .ok_or(String::from("Username not found"))?
+            .ok_or(String::from("Email not found"))?
             .to_string(),
         username: claims
             .preferred_username()
