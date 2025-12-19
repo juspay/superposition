@@ -30,5 +30,8 @@ superposition_sdk = { workspace = true, features = ["behavior-version-latest"] }
 # Superposition types for proper type conversion
 superposition_types = { workspace = true }
 
+[dev-dependencies]
+env_logger = "0.10"
+
 [lints]
 workspace = true

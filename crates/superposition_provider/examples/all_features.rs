@@ -10,16 +10,18 @@
 /// multiple configuration values at once.
 ///
 /// Prerequisites:
-/// - A .cac.toml configuration file (uses test_data/example.cac.toml)
+/// - A running Superposition server (e.g., http://localhost:8080)
+/// - Valid org_id, workspace_id, and authentication token
+/// - Some configuration data in the server
 
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use open_feature::EvaluationContext;
 use superposition_provider::{
-    AllFeatureProvider, FeatureExperimentMeta, FileDataSource, FileDataSourceOptions,
-    LocalResolutionProvider, LocalResolutionProviderOptions, OnDemandStrategy, RefreshStrategy,
+    AllFeatureProvider, FeatureExperimentMeta, HttpDataSource,
+    LocalResolutionProvider, LocalResolutionProviderOptions, PollingStrategy, RefreshStrategy,
+    SuperpositionOptions,
 };
 
 #[tokio::main]
@@ -29,30 +31,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("=== AllFeatureProvider Trait Example ===\n");
 
-    // Set up file data source
-    let config_path = PathBuf::from("test_data/example.cac.toml");
-    if !config_path.exists() {
-        eprintln!("Error: Configuration file not found at {:?}", config_path);
-        return Ok(());
-    }
+    // Configuration - replace with your actual values
+    let endpoint = std::env::var("SUPERPOSITION_ENDPOINT")
+        .unwrap_or_else(|_| "http://localhost:8080".to_string());
+    let token =
+        std::env::var("SUPERPOSITION_TOKEN").unwrap_or_else(|_| "test-token".to_string());
+    let org_id =
+        std::env::var("SUPERPOSITION_ORG_ID").unwrap_or_else(|_| "localorg".to_string());
+    let workspace_id =
+        std::env::var("SUPERPOSITION_WORKSPACE_ID").unwrap_or_else(|_| "dev".to_string());
 
-    let file_data_source = Arc::new(FileDataSource::new(FileDataSourceOptions {
-        config_path,
-        watch_files: false,
-    })?);
+    // Create HTTP data source
+    println!("Creating HTTP data source...");
+    let superposition_options =
+        SuperpositionOptions::new(endpoint.clone(), token, org_id, workspace_id);
+    let http_data_source = Arc::new(HttpDataSource::new(superposition_options));
 
+    // Create provider options with polling strategy
     let provider_options = LocalResolutionProviderOptions {
-        refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy {
-            ttl: 60,
+        refresh_strategy: RefreshStrategy::Polling(PollingStrategy {
+            interval: 5, // Poll every 5 seconds
             timeout: None,
-            use_stale_on_error: None,
         }),
         fallback_config: None,
-        enable_experiments: false,
+        enable_experiments: true,
     };
 
+    // Create and initialize the provider
+    println!("Creating LocalResolutionProvider with polling (5s interval)...");
     let provider = Arc::new(LocalResolutionProvider::new(
-        file_data_source,
+        http_data_source,
         provider_options,
     ));
     provider.init().await?;
@@ -90,15 +98,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!();
 
-    // Example 3: Resolve with prefix filtering
-    println!("=== Example 3: Resolve Features with Prefix Filter ===");
-    let prefixes = vec!["feature".to_string(), "api".to_string()];
-    match provider
-        .resolve_all_features_with_filter(&us_context, Some(&prefixes))
-        .await
-    {
+    // Example 3: Resolve with dimension context (d1)
+    println!("=== Example 3: Resolve All Features (US + dimension=d1) ===");
+    let mut d1_us_context = EvaluationContext::default();
+    d1_us_context
+        .custom_fields
+        .insert("country".to_string(), "US".into());
+    d1_us_context
+        .custom_fields
+        .insert("dimension".to_string(), "d1".into());
+
+    match provider.resolve_all_features(&d1_us_context).await {
         Ok(features) => {
-            println!("Filtered features (prefixes: {:?}):", prefixes);
+            println!("US + d1 user configuration ({} keys):", features.len());
             for (key, value) in features.iter() {
                 println!("  {} = {}", key, value);
             }
@@ -119,21 +131,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
         ({
             let mut ctx = EvaluationContext::default();
-            ctx.custom_fields
-                .insert("user_tier".to_string(), "premium".into());
-            ("Premium User", ctx)
-        }),
-        ({
-            let mut ctx = EvaluationContext::default();
-            ctx.custom_fields
-                .insert("user_tier".to_string(), "enterprise".into());
-            ("Enterprise User", ctx)
-        }),
-        ({
-            let mut ctx = EvaluationContext::default();
-            ctx.custom_fields
-                .insert("platform".to_string(), "mobile".into());
-            ("Mobile User", ctx)
+            ctx.custom_fields.insert("country".to_string(), "US".into());
+            ctx.custom_fields.insert("dimension".to_string(), "d1".into());
+            ("US + d1", ctx)
         }),
     ];
 
@@ -146,28 +146,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Compare a specific key across contexts
-    let key_to_compare = "max_connections";
-    println!("Comparing '{}' across contexts:", key_to_compare);
-    for (name, features) in &all_results {
-        let value = features
-            .get(key_to_compare)
-            .map(|v| v.to_string())
-            .unwrap_or_else(|| "not found".to_string());
-        println!("  {}: {}", name, value);
-    }
-    println!();
+    // Compare specific keys across contexts (matching local_http.rs feature flags)
+    let keys_to_compare = vec!["feature_enabled", "feature_mode", "max_connections"];
 
-    let key_to_compare = "timeout_seconds";
-    println!("Comparing '{}' across contexts:", key_to_compare);
-    for (name, features) in &all_results {
-        let value = features
-            .get(key_to_compare)
-            .map(|v| v.to_string())
-            .unwrap_or_else(|| "not found".to_string());
-        println!("  {}: {}", name, value);
+    for key in &keys_to_compare {
+        println!("Comparing '{}' across contexts:", key);
+        for (name, features) in &all_results {
+            let value = features
+                .get(*key)
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "not found".to_string());
+            println!("  {}: {}", name, value);
+        }
+        println!();
     }
-    println!();
 
     // Example 5: Experiment metadata (if experiments are enabled)
     println!("=== Example 5: Experiment Metadata ===");

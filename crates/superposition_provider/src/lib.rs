@@ -14,10 +14,7 @@ pub use types::*;
 pub use traits::{
     AllFeatureProvider, AllFeatureProviderMetadata, ExperimentMeta, FeatureExperimentMeta,
 };
-pub use data_source::{
-    ConfigData, ExperimentData, FileDataSource, FileDataSourceOptions, HttpDataSource,
-    SuperpositionDataSource,
-};
+pub use data_source::{ConfigData, ExperimentData, HttpDataSource, SuperpositionDataSource};
 pub use providers::{LocalResolutionProvider, LocalResolutionProviderOptions};
 
 pub use open_feature::{

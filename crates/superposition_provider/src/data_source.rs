@@ -6,10 +6,8 @@ use superposition_types::Config;
 
 use crate::types::Result;
 
-mod file;
 mod http;
 
-pub use file::{FileDataSource, FileDataSourceOptions};
 pub use http::HttpDataSource;
 
 /// Data fetched from a configuration source
