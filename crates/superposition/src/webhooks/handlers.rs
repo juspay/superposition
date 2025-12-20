@@ -10,6 +10,7 @@ use diesel::{
     delete, ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl,
 };
 use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
+use superposition_derives::auth_action;
 use superposition_types::{
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     custom_query::PaginationParams,
@@ -29,6 +30,7 @@ pub fn endpoints() -> Scope {
         .service(get_webhook_by_event)
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create(
     request: Json<CreateWebhookRequest>,
@@ -72,6 +74,7 @@ async fn create(
     Ok(Json(webhook_data))
 }
 
+#[auth_action("update")]
 #[patch("/{webhook_name}")]
 async fn update(
     params: web::Path<WebhookName>,
@@ -106,6 +109,7 @@ async fn update(
     Ok(Json(update))
 }
 
+#[auth_action("read")]
 #[get("/{webhook_name}")]
 async fn get(
     params: web::Path<WebhookName>,
@@ -117,6 +121,7 @@ async fn get(
     Ok(Json(webhook_row))
 }
 
+#[auth_action("read")]
 #[get("")]
 async fn list_webhooks(
     db_conn: DbConnection,
@@ -155,6 +160,7 @@ async fn list_webhooks(
     }))
 }
 
+#[auth_action("delete")]
 #[delete("/{webhook_name}")]
 async fn delete_webhook(
     params: web::Path<WebhookName>,
@@ -179,6 +185,7 @@ async fn delete_webhook(
     Ok(HttpResponse::NoContent().finish())
 }
 
+#[auth_action("read")]
 #[get("/event/{event}")]
 async fn get_webhook_by_event(
     params: web::Path<WebhookEvent>,

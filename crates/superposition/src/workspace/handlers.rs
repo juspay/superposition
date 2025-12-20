@@ -14,6 +14,7 @@ use diesel::{
 };
 use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
+use superposition_derives::auth_action;
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
     api::{
@@ -67,6 +68,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(migrate_workspace_schema)
 }
 
+#[auth_action("read")]
 #[get("/{workspace_name}")]
 async fn get_workspace(
     workspace_name: Path<String>,
@@ -83,6 +85,7 @@ async fn get_workspace(
     Ok(Json(response))
 }
 
+#[auth_action("create")]
 #[post("")]
 async fn create_workspace(
     request: Json<CreateWorkspaceRequest>,
@@ -141,6 +144,7 @@ async fn create_workspace(
     Ok(Json(response))
 }
 
+#[auth_action("update")]
 #[routes]
 #[put("/{workspace_name}")]
 #[patch("/{workspace_name}")]
@@ -154,7 +158,7 @@ async fn update_workspace(
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
     let timestamp = Utc::now();
-    let schema_name = SchemaName(org_id.clone().0 + "_" + &workspace_name);
+    let schema_name = SchemaName(org_id.clone().0 + "_" + workspace_name.as_str());
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
     let DbConnection(mut conn) = db_conn;
@@ -187,6 +191,8 @@ async fn update_workspace(
     let response = WorkspaceResponse::from(updated_workspace);
     Ok(Json(response))
 }
+
+#[auth_action("read")]
 #[get("")]
 async fn list_workspaces(
     db_conn: DbConnection,
@@ -271,6 +277,7 @@ fn validate_workspace_name(workspace_name: &String) -> superposition::Result<()>
     }
 }
 
+#[auth_action("migrate")]
 #[post("/{workspace_name}/db/migrate")]
 async fn migrate_workspace_schema(
     workspace_name: Path<String>,

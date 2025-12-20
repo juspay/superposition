@@ -27,6 +27,7 @@ use service_utils::service::types::AppState;
 use service_utils::service::types::{
     AppHeader, DbConnection, SchemaName, WorkspaceContext,
 };
+use superposition_derives::auth_action;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
@@ -604,6 +605,7 @@ async fn reduce_config_key(
     })
 }
 
+#[auth_action("reduce")]
 #[put("/reduce")]
 async fn reduce_config(
     req: HttpRequest,
@@ -646,6 +648,7 @@ async fn reduce_config(
 }
 
 #[cfg(feature = "high-performance-mode")]
+#[auth_action("read")]
 #[get("/fast")]
 async fn get_config_fast(
     schema_name: SchemaName,
@@ -734,6 +737,7 @@ async fn get_config_fast(
     }
 }
 
+#[auth_action("read")]
 #[routes]
 #[get("")]
 #[post("")]
@@ -790,6 +794,8 @@ async fn get_config(
     Ok(response.json(config))
 }
 
+#[allow(clippy::too_many_arguments)]
+#[auth_action("read")]
 #[routes]
 #[get("/resolve")]
 #[post("/resolve")]
@@ -884,6 +890,7 @@ async fn get_resolved_config(
     Ok(resp.json(response))
 }
 
+#[auth_action("read")]
 #[get("/versions")]
 async fn list_config_versions(
     db_conn: DbConnection,
@@ -926,6 +933,7 @@ async fn list_config_versions(
     }))
 }
 
+#[auth_action("read")]
 #[get("/version/{version}")]
 async fn fetch_config_version(
     db_conn: DbConnection,
