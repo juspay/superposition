@@ -3,9 +3,9 @@ use std::fmt;
 
 use itertools::Itertools;
 use serde_json::{Map, Value};
-use superposition_types::{Cac, Condition, Context, DimensionInfo, Overrides};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::ExtendedMap;
+use superposition_types::{Cac, Condition, Context, DimensionInfo, Overrides};
 
 /// Parsed TOML configuration structure
 #[derive(Clone, Debug)]
@@ -105,10 +105,8 @@ fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
         toml::Value::Boolean(b) => Value::Bool(b),
         toml::Value::Datetime(dt) => Value::String(dt.to_string()),
         toml::Value::Array(arr) => {
-            let values: Vec<Value> = arr
-                .into_iter()
-                .map(toml_value_to_serde_value)
-                .collect();
+            let values: Vec<Value> =
+                arr.into_iter().map(toml_value_to_serde_value).collect();
             Value::Array(values)
         }
         toml::Value::Table(table) => {
@@ -220,7 +218,9 @@ fn parse_context_expression(
 }
 
 /// Parse the default-config section
-fn parse_default_config(table: &toml::Table) -> Result<Map<String, Value>, TomlParseError> {
+fn parse_default_config(
+    table: &toml::Table,
+) -> Result<Map<String, Value>, TomlParseError> {
     let section = table
         .get("default-config")
         .ok_or_else(|| TomlParseError::MissingSection("default-config".into()))?
@@ -269,7 +269,9 @@ fn parse_dimensions(
         .get("dimensions")
         .ok_or_else(|| TomlParseError::MissingSection("dimensions".into()))?
         .as_table()
-        .ok_or_else(|| TomlParseError::ConversionError("dimensions must be a table".into()))?;
+        .ok_or_else(|| {
+            TomlParseError::ConversionError("dimensions must be a table".into())
+        })?;
 
     let mut result = HashMap::new();
     let mut position = 1i32;
@@ -292,7 +294,10 @@ fn parse_dimensions(
 
         let schema = toml_value_to_serde_value(table["schema"].clone());
         let schema_map = ExtendedMap::try_from(schema).map_err(|e| {
-            TomlParseError::ConversionError(format!("Invalid schema for dimension '{}': {}", key, e))
+            TomlParseError::ConversionError(format!(
+                "Invalid schema for dimension '{}': {}",
+                key, e
+            ))
         })?;
 
         let dimension_info = DimensionInfo {
@@ -320,7 +325,9 @@ fn parse_contexts(
         .get("context")
         .ok_or_else(|| TomlParseError::MissingSection("context".into()))?
         .as_table()
-        .ok_or_else(|| TomlParseError::ConversionError("context must be a table".into()))?;
+        .ok_or_else(|| {
+            TomlParseError::ConversionError("context must be a table".into())
+        })?;
 
     let mut contexts = Vec::new();
     let mut overrides_map = HashMap::new();
@@ -331,7 +338,10 @@ fn parse_contexts(
 
         // Parse override values
         let override_table = override_values.as_table().ok_or_else(|| {
-            TomlParseError::ConversionError(format!("context.{} must be a table", context_expr))
+            TomlParseError::ConversionError(format!(
+                "context.{} must be a table",
+                context_expr
+            ))
         })?;
 
         let mut override_config = Map::new();
@@ -364,7 +374,9 @@ fn parse_contexts(
             condition: condition.into_inner(),
             id: override_hash.clone(),
             priority,
-            override_with_keys: superposition_types::OverrideWithKeys::new(override_hash.clone()),
+            override_with_keys: superposition_types::OverrideWithKeys::new(
+                override_hash.clone(),
+            ),
             weight: 1,
         };
 
@@ -417,7 +429,8 @@ pub fn parse(toml_content: &str) -> Result<ParsedTomlConfig, TomlParseError> {
     let dimensions = parse_dimensions(&toml_table)?;
 
     // 4. Extract and parse "context" section
-    let (contexts, overrides) = parse_contexts(&toml_table, &default_config, &dimensions)?;
+    let (contexts, overrides) =
+        parse_contexts(&toml_table, &default_config, &dimensions)?;
 
     Ok(ParsedTomlConfig {
         default_config,

@@ -193,18 +193,20 @@ pub struct ParsedTomlResult {
 /// "os=linux" = { timeout = 60 }
 /// ```
 #[uniffi::export]
-fn ffi_parse_toml_config(toml_content: String) -> Result<ParsedTomlResult, OperationError> {
+fn ffi_parse_toml_config(
+    toml_content: String,
+) -> Result<ParsedTomlResult, OperationError> {
     // Parse TOML
-    let parsed = crate::parse_toml_config(&toml_content).map_err(|e| {
-        OperationError::Unexpected(e.to_string())
-    })?;
+    let parsed = crate::parse_toml_config(&toml_content)
+        .map_err(|e| OperationError::Unexpected(e.to_string()))?;
 
     // Convert default_config to HashMap<String, String> (JSON-encoded values)
     let default_config: HashMap<String, String> = parsed
         .default_config
         .into_iter()
         .map(|(k, v)| {
-            let json_str = serde_json::to_string(&v).unwrap_or_else(|_| "null".to_string());
+            let json_str =
+                serde_json::to_string(&v).unwrap_or_else(|_| "null".to_string());
             (k, json_str)
         })
         .collect();
@@ -251,7 +253,7 @@ fn ffi_eval_toml_config(
         .into_iter()
         .map(|(k, v)| {
             // Try to parse as JSON, fall back to string
-            let value = serde_json::from_str(&v).unwrap_or_else(|_| Value::String(v));
+            let value = serde_json::from_str(&v).unwrap_or(Value::String(v.clone()));
             (k, value)
         })
         .collect();
@@ -263,13 +265,14 @@ fn ffi_eval_toml_config(
 
     // Evaluate
     let result = crate::eval_toml_config(&toml_content, &dimensions_map, strategy)
-        .map_err(|e| OperationError::Unexpected(e))?;
+        .map_err(OperationError::Unexpected)?;
 
     // Convert result to HashMap<String, String>
     let result_map: HashMap<String, String> = result
         .into_iter()
         .map(|(k, v)| {
-            let json_str = serde_json::to_string(&v).unwrap_or_else(|_| "null".to_string());
+            let json_str =
+                serde_json::to_string(&v).unwrap_or_else(|_| "null".to_string());
             (k, json_str)
         })
         .collect();
