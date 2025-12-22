@@ -11,15 +11,16 @@ use utils::{create_function, test_function, update_function};
 use wasm_bindgen::prelude::*;
 use web_sys::MouseEvent;
 
-use crate::components::input::{Input, InputType};
 use crate::components::{
     alert::AlertType,
     button::{Button, ButtonAnchor},
     change_form::ChangeForm,
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     form::label::Label,
+    input::{Input, InputType},
     monaco_editor::MonacoEditor,
     skeleton::{Skeleton, SkeletonVariant},
+    tip::Tip,
 };
 use crate::providers::editor_provider::EditorProvider;
 use crate::providers::{
@@ -31,7 +32,7 @@ use crate::utils::use_url_base;
 
 use super::dropdown::utils::DropdownOption;
 
-const VALUE_VALIDATION_TEMPLATE_FN: &str = r#"// key: string - dimension or config name
+pub const VALUE_VALIDATION_TEMPLATE_FN: &str = r#"// key: string - dimension or config name
 // value: string - obeys the json schema type defined, json parse this if you want an object
 // type: string - type of key being validated
 // environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
@@ -41,7 +42,12 @@ async function validate_value(key, value, type, environment) {
 }
 "#;
 
-const VALUE_COMPUTE_TEMPLATE_FN: &str = r#"// name: string - dimension or config name
+pub const VALUE_VALIDATION_DEFAULT_FN: &str = r#"async function validate_value(key, value, type, environment) {
+    return true;
+}
+"#;
+
+pub const VALUE_COMPUTE_TEMPLATE_FN: &str = r#"// name: string - dimension or config name
 // prefix: string - characters entered in the input field
 // type: string - type of key being validated
 // environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
@@ -51,16 +57,31 @@ async function value_compute(name, prefix, type, environment) {
 }
 "#;
 
-const CONTEXT_VALIDATION_TEMPLATE_FN: &str = r#"// environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
+pub const VALUE_COMPUTE_DEFAULT_FN: &str = r#"async function value_compute(name, prefix, type, environment) {
+    return [];
+}
+"#;
+
+pub const CONTEXT_VALIDATION_TEMPLATE_FN: &str = r#"// environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
 // returns: boolean
 async function validate_context(environment) {
     return true;
 }
 "#;
 
-const CHANGE_REASON_VALIDATION_TEMPLATE_FN: &str = r#"// change_reason: string - reason for change provided by user
+pub const CONTEXT_VALIDATION_DEFAULT_FN: &str = r#"async function validate_context(environment) {
+    return true;
+}
+"#;
+
+pub const CHANGE_REASON_VALIDATION_TEMPLATE_FN: &str = r#"// change_reason: string - reason for change provided by user
 // returns: boolean
 async function validate_change_reason(change_reason) {
+    return true;
+}
+"#;
+
+pub const CHANGE_REASON_VALIDATION_DEFAULT_FN: &str = r#"async function validate_change_reason(change_reason) {
     return true;
 }
 "#;
@@ -92,7 +113,7 @@ pub enum Mode {
 pub fn function_editor(
     #[prop(default = true)] edit: bool,
     #[prop(into, default = String::new())] function_name: String,
-    #[prop(into, default = String::from(VALUE_VALIDATION_TEMPLATE_FN))] function: String,
+    #[prop(into, default = String::from(VALUE_VALIDATION_DEFAULT_FN))] function: String,
     #[prop(into, default = String::new())] runtime_version: String,
     #[prop(into, default = String::new())] description: String,
     #[prop(default = FunctionType::ValueValidation)] function_type: FunctionType,
@@ -123,9 +144,23 @@ pub fn function_editor(
                     view! { <Skeleton variant=SkeletonVariant::Block style_class="w-full" /> }
                 }
             >
-                {function_type_rws
-                    .with(|_| {
-                        view! {
+                {
+                    let function_code_signature = match function_type_rws.get() {
+                        FunctionType::ValueValidation => VALUE_VALIDATION_TEMPLATE_FN,
+                        FunctionType::ValueCompute => VALUE_COMPUTE_TEMPLATE_FN,
+                        FunctionType::ContextValidation => CONTEXT_VALIDATION_TEMPLATE_FN,
+                        FunctionType::ChangeReasonValidation => CHANGE_REASON_VALIDATION_TEMPLATE_FN,
+                    };
+
+                    view! {
+                        <div class="flex flex-col gap-4 w-full">
+                            <Tip
+                                message="Reference variables using"
+                                code_snippet="VARS.KEY_NAME"
+                                example="VARS.API_KEY"
+                                code_signature=function_code_signature
+                            />
+
                             <div class="w-full min-w-[800px] p-1 bg-base-100 rounded-2xl shadow">
                                 <MonacoEditor
                                     node_id="code_editor_fn"
@@ -136,8 +171,9 @@ pub fn function_editor(
                                     language=crate::components::monaco_editor::Languages::Javascript
                                 />
                             </div>
-                        }
-                    })}
+                        </div>
+                    }
+                }
             </Show>
             <Show when=move || mode.get() == Mode::Editor>
                 <EditForm
@@ -274,16 +310,22 @@ fn edit_form(
                             dropdown_text=function_type_rws.get().to_string()
                             dropdown_direction=DropdownDirection::Down
                             dropdown_btn_type=DropdownBtnType::Select
-                            dropdown_options=FunctionType::iter().collect()
+                            dropdown_options=FunctionType::iter()
+                                .filter(|ft| {
+                                    !matches!(
+                                        ft,
+                                        FunctionType::ContextValidation
+                                        | FunctionType::ChangeReasonValidation
+                                    )
+                                })
+                                .collect()
                             on_select=move |selected: FunctionType| {
                                 let code = match selected {
-                                    FunctionType::ValueValidation => VALUE_VALIDATION_TEMPLATE_FN,
-                                    FunctionType::ValueCompute => VALUE_COMPUTE_TEMPLATE_FN,
-                                    FunctionType::ContextValidation => {
-                                        CONTEXT_VALIDATION_TEMPLATE_FN
-                                    }
+                                    FunctionType::ValueValidation => VALUE_VALIDATION_DEFAULT_FN,
+                                    FunctionType::ValueCompute => VALUE_COMPUTE_DEFAULT_FN,
+                                    FunctionType::ContextValidation => CONTEXT_VALIDATION_DEFAULT_FN,
                                     FunctionType::ChangeReasonValidation => {
-                                        CHANGE_REASON_VALIDATION_TEMPLATE_FN
+                                        CHANGE_REASON_VALIDATION_DEFAULT_FN
                                     }
                                 };
                                 function_code_rws.set(code.to_string());

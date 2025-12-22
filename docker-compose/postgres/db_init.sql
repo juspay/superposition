@@ -1524,8 +1524,8 @@ INSERT INTO localorg_dev.functions (
     created_at
 ) VALUES (
     'context_validation_function',
-    'Ly8gZW52aXJvbm1lbnQ6IG9iamVjdCB7IGNvbnRleHQ6IFtPYmplY3RdLCBvdmVycmlkZXM6IFtPYmplY3RdIH0gLSBjYXB0dXJlcyBvdXQgZWxlbWVudHMgaW4gdGhlIGZvcm0gbGlrZSBjb250ZXh0LCBvdmVycmlkZXMgZXRjLgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NvbnRleHQoZW52aXJvbm1lbnQpIHsKICAgIHJldHVybiB0cnVlOwp9',
-    'Ly8gZW52aXJvbm1lbnQ6IG9iamVjdCB7IGNvbnRleHQ6IFtPYmplY3RdLCBvdmVycmlkZXM6IFtPYmplY3RdIH0gLSBjYXB0dXJlcyBvdXQgZWxlbWVudHMgaW4gdGhlIGZvcm0gbGlrZSBjb250ZXh0LCBvdmVycmlkZXMgZXRjLgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NvbnRleHQoZW52aXJvbm1lbnQpIHsKICAgIHJldHVybiB0cnVlOwp9',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
     'Validates the entire context object for the whole workspace before processing. Returns true if context is valid, false otherwise.',
     '1.0.0',
     '1.0.0',
@@ -1560,8 +1560,8 @@ INSERT INTO localorg_test.functions (
     created_at
 ) VALUES (
     'context_validation_function',
-    'Ly8gZW52aXJvbm1lbnQ6IG9iamVjdCB7IGNvbnRleHQ6IFtPYmplY3RdLCBvdmVycmlkZXM6IFtPYmplY3RdIH0gLSBjYXB0dXJlcyBvdXQgZWxlbWVudHMgaW4gdGhlIGZvcm0gbGlrZSBjb250ZXh0LCBvdmVycmlkZXMgZXRjLgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NvbnRleHQoZW52aXJvbm1lbnQpIHsKICAgIHJldHVybiB0cnVlOwp9',
-    'Ly8gZW52aXJvbm1lbnQ6IG9iamVjdCB7IGNvbnRleHQ6IFtPYmplY3RdLCBvdmVycmlkZXM6IFtPYmplY3RdIH0gLSBjYXB0dXJlcyBvdXQgZWxlbWVudHMgaW4gdGhlIGZvcm0gbGlrZSBjb250ZXh0LCBvdmVycmlkZXMgZXRjLgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NvbnRleHQoZW52aXJvbm1lbnQpIHsKICAgIHJldHVybiB0cnVlOwp9',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
     'Validates the entire context object for the whole workspace before processing. Returns true if context is valid, false otherwise.',
     '1.0.0',
     '1.0.0',
@@ -1596,8 +1596,8 @@ INSERT INTO localorg_dev.functions (
     created_at
 ) VALUES (
     'change_reason_validation_function',
-    'Ly8gY2hhbmdlX3JlYXNvbjogc3RyaW5nIC0gcmVhc29uIGZvciBjaGFuZ2UgcHJvdmlkZWQgYnkgdXNlcgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NoYW5nZV9yZWFzb24oY2hhbmdlX3JlYXNvbikgewogICAgcmV0dXJuIHRydWU7Cn0=',
-    'Ly8gY2hhbmdlX3JlYXNvbjogc3RyaW5nIC0gcmVhc29uIGZvciBjaGFuZ2UgcHJvdmlkZWQgYnkgdXNlcgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NoYW5nZV9yZWFzb24oY2hhbmdlX3JlYXNvbikgewogICAgcmV0dXJuIHRydWU7Cn0=',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
     'Validates the change reason for any creation/updation. Returns true if context is valid, false otherwise.',
     '1.0.0',
     '1.0.0',
@@ -1632,8 +1632,8 @@ INSERT INTO localorg_test.functions (
     created_at
 ) VALUES (
     'change_reason_validation_function',
-    'Ly8gY2hhbmdlX3JlYXNvbjogc3RyaW5nIC0gcmVhc29uIGZvciBjaGFuZ2UgcHJvdmlkZWQgYnkgdXNlcgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NoYW5nZV9yZWFzb24oY2hhbmdlX3JlYXNvbikgewogICAgcmV0dXJuIHRydWU7Cn0=',
-    'Ly8gY2hhbmdlX3JlYXNvbjogc3RyaW5nIC0gcmVhc29uIGZvciBjaGFuZ2UgcHJvdmlkZWQgYnkgdXNlcgovLyByZXR1cm5zOiBib29sZWFuCmFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlX2NoYW5nZV9yZWFzb24oY2hhbmdlX3JlYXNvbikgewogICAgcmV0dXJuIHRydWU7Cn0=',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
+    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
     'Validates the change reason for any creation/updation. Returns true if context is valid, false otherwise.',
     '1.0.0',
     '1.0.0',
@@ -1679,7 +1679,7 @@ DROP CONSTRAINT IF EXISTS dimensions_autocomplete_function_name_fkey;
 ALTER TABLE localorg_test.dimensions
 RENAME COLUMN autocomplete_function_name TO value_compute_function_name;
 
-ALTER TABLE localorg_test.default_configs
+ALTER TABLE localorg_test.dimensions
 ADD FOREIGN KEY (value_compute_function_name)
 REFERENCES localorg_test.functions(function_name);
 
@@ -1694,15 +1694,43 @@ ADD FOREIGN KEY (value_compute_function_name)
 REFERENCES localorg_test.functions(function_name);
 
 ALTER TABLE localorg_dev.dimensions
+DROP CONSTRAINT IF EXISTS dimensions_function_name_fkey;
+
+ALTER TABLE localorg_dev.dimensions
 rename column function_name to value_validation_function_name;
+
+ALTER TABLE localorg_dev.dimensions
+ADD FOREIGN KEY (value_validation_function_name)
+REFERENCES localorg_dev.functions(function_name);
+
+ALTER TABLE localorg_dev.default_configs
+DROP CONSTRAINT IF EXISTS default_configs_function_name_fkey;
 
 ALTER TABLE localorg_dev.default_configs
 rename column function_name to value_validation_function_name;
 
+ALTER TABLE localorg_dev.default_configs
+ADD FOREIGN KEY (value_validation_function_name)
+REFERENCES localorg_dev.functions(function_name);
+
+ALTER TABLE localorg_test.dimensions
+DROP CONSTRAINT IF EXISTS dimensions_function_name_fkey;
+
 ALTER TABLE localorg_test.dimensions
 rename column function_name to value_validation_function_name;
 
+ALTER TABLE localorg_test.dimensions
+ADD FOREIGN KEY (value_validation_function_name)
+REFERENCES localorg_test.functions(function_name);
+
+ALTER TABLE localorg_test.default_configs
+DROP CONSTRAINT IF EXISTS default_configs_function_name_fkey;
+
 ALTER TABLE localorg_test.default_configs
 rename column function_name to value_validation_function_name;
+
+ALTER TABLE localorg_test.default_configs
+ADD FOREIGN KEY (value_validation_function_name)
+REFERENCES localorg_test.functions(function_name);
 
 COMMIT;
