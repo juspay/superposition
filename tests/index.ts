@@ -62,7 +62,7 @@ async function setupOrg() {
     } else {
         ENV.org_id = testOrg?.id;
         console.info(
-            `Skipping test org creation. Found exisiting ${TEST_ORG_NAME}`
+            `Skipping test org creation. Found exisiting ${ENV.org_id} for ${TEST_ORG_NAME}`
         );
     }
 }

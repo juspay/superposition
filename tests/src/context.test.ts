@@ -21,7 +21,14 @@ import {
 } from "@juspay/superposition-sdk";
 import { ENV, superpositionClient } from "../env.ts";
 import { type DocumentType } from "@smithy/types";
-import { describe, beforeAll, afterAll, test, expect } from "bun:test";
+import {
+    describe,
+    beforeAll,
+    afterAll,
+    test,
+    expect,
+    setDefaultTimeout,
+} from "bun:test";
 
 describe("Context API Integration Tests", () => {
     let client: SuperpositionClient;
@@ -33,6 +40,8 @@ describe("Context API Integration Tests", () => {
     const createdDimensions: string[] = [];
     const createdDefaultConfigs: string[] = [];
     const createdContextIds: Set<string> = new Set(); // Using Set to avoid duplicates
+
+    setDefaultTimeout(120000);
 
     beforeAll(async () => {
         client = superpositionClient;

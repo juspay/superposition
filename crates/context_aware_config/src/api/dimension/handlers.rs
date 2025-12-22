@@ -41,7 +41,8 @@ use crate::{
         validations::{
             does_dimension_exist_for_cohorting, validate_cohort_position,
             validate_cohort_schema, validate_dimension_position, validate_jsonschema,
-            validate_validation_function, validate_value_compute_function,
+            validate_position_wrt_dependency, validate_validation_function,
+            validate_value_compute_function,
         },
     },
     helpers::{add_config_version, get_workspace, validate_change_reason},
@@ -352,6 +353,12 @@ async fn update(
                     path.into_inner(),
                     position_val,
                     num_rows - 1,
+                )?;
+                validate_position_wrt_dependency(
+                    &name,
+                    &position_val,
+                    transaction_conn,
+                    &schema_name,
                 )?;
                 let previous_position = dimension_data.position;
 
