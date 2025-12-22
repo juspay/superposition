@@ -153,24 +153,25 @@ pub fn function_editor(
                     };
 
                     view! {
-                        <div class="flex flex-col gap-4 w-full">
-                            <Tip
-                                message="Reference variables using"
-                                code_snippet="VARS.KEY_NAME"
-                                example="VARS.API_KEY"
-                                code_signature=function_code_signature
-                            />
-
-                            <div class="w-full min-w-[800px] p-1 bg-base-100 rounded-2xl shadow">
-                                <MonacoEditor
-                                    node_id="code_editor_fn"
-                                    data=function_code_rws.get_untracked()
-                                    on_change=move |value| function_code_rws.set(value)
-                                    classes=vec!["w-[inherit] min-h-[500px]"]
-                                    read_only=mode.with(|v| *v != Mode::Editor)
-                                    language=crate::components::monaco_editor::Languages::Javascript
+                        <div class="w-full min-w-[800px] flex flex-col gap-3">
+                            <Show when=move || mode.get() == Mode::Editor>
+                                <Tip
+                                    message="Reference variables using"
+                                    code_snippet="VARS.KEY_NAME"
+                                    example="VARS.API_KEY"
+                                    code_signature=function_code_signature
                                 />
-                            </div>
+                            </Show>
+                            <MonacoEditor
+                                node_id="code_editor_fn"
+                                data=function_code_rws.get_untracked()
+                                on_change=move |value| function_code_rws.set(value)
+                                classes=vec![
+                                    "w-[inherit] min-h-[500px] p-1 bg-base-100 rounded-2xl shadow",
+                                ]
+                                read_only=mode.with(|v| *v != Mode::Editor)
+                                language=crate::components::monaco_editor::Languages::Javascript
+                            />
                         </div>
                     }
                 }
