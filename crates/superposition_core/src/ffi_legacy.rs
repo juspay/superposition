@@ -601,22 +601,20 @@ pub unsafe extern "C" fn core_eval_toml_config(
     let merge_strategy: config::MergeStrategy = match merge_strategy_string.parse() {
         Ok(s) => s,
         Err(e) => {
-            copy_string(
-                ebuf,
-                format!("Failed to parse merge_strategy_str: {}", e),
-            );
+            copy_string(ebuf, format!("Failed to parse merge_strategy_str: {}", e));
             return ptr::null_mut();
         }
     };
 
     // Evaluate
-    let result = match crate::eval_toml_config(&toml_str, &input_dimensions, merge_strategy) {
-        Ok(r) => r,
-        Err(e) => {
-            copy_string(ebuf, e);
-            return ptr::null_mut();
-        }
-    };
+    let result =
+        match crate::eval_toml_config(&toml_str, &input_dimensions, merge_strategy) {
+            Ok(r) => r,
+            Err(e) => {
+                copy_string(ebuf, e);
+                return ptr::null_mut();
+            }
+        };
 
     // Serialize result
     let result_str = match serde_json::to_string(&result) {
