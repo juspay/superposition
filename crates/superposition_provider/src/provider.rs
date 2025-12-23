@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -9,9 +9,9 @@ use open_feature::{
     EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult,
     StructValue,
 };
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use superposition_core::Experiments;
-use superposition_types::DimensionInfo;
+use superposition_types::{Config, DimensionInfo};
 use tokio::sync::RwLock;
 
 use crate::client::{CacClient, ExperimentationClient};
@@ -157,6 +157,36 @@ impl SuperpositionProvider {
             }
         };
         Ok(())
+    }
+
+    pub async fn get_cached_config(
+        &self,
+        dimension_filter: Option<Map<String, Value>>,
+        prefix_filters: Option<Vec<String>>,
+    ) -> Result<Config> {
+        let Some(cac_client) = &self.cac_client else {
+            return Err(SuperpositionError::ConfigError(
+                "CAC client not initialized".into(),
+            ));
+        };
+
+        let Some(mut cached_config) = cac_client.get_cached_config().await else {
+            return Err(SuperpositionError::ConfigError(
+                    "No cached config available, please check if the config settings are configured correctly".into(),
+                ));
+        };
+
+        if let Some(prefix) = prefix_filters {
+            cached_config = cached_config.filter_by_prefix(&HashSet::from_iter(prefix));
+        }
+
+        if let Some(dimension_filter) =
+            dimension_filter.filter(|query_map| !query_map.is_empty())
+        {
+            cached_config = cached_config.filter_by_dimensions(&dimension_filter);
+        };
+
+        Ok(cached_config)
     }
 
     pub async fn resolve_full_config(
