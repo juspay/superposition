@@ -140,6 +140,10 @@ import {
   GetResolvedConfigCommandOutput,
 } from "../commands/GetResolvedConfigCommand";
 import {
+  GetResolvedConfigWithIdentifierCommandInput,
+  GetResolvedConfigWithIdentifierCommandOutput,
+} from "../commands/GetResolvedConfigWithIdentifierCommand";
+import {
   GetTypeTemplateCommandInput,
   GetTypeTemplateCommandOutput,
 } from "../commands/GetTypeTemplateCommand";
@@ -1236,6 +1240,40 @@ export const se_GetResolvedConfigCommand = async(
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
     [_rr]: [() => input.resolve_remote !== void 0, () => (input[_rr]!.toString())],
+  });
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'context': _ => se_ContextMap(_, context),
+  }));
+  b.m("POST")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetResolvedConfigWithIdentifierCommand
+ */
+export const se_GetResolvedConfigWithIdentifierCommand = async(
+  input: GetResolvedConfigWithIdentifierCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+    [_xms]: input[_ms]!,
+  });
+  b.bp("/resolve");
+  const query: any = map({
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_v]: [,input[_v]!],
+    [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
+    [_ci]: [,input[_ci]!],
+    [_rr]: [() => input.resolve_remote !== void 0, () => (input[_rr]!.toString())],
+    [_i]: [,input[_i]!],
   });
   let body: any;
   body = JSON.stringify(take(input, {
@@ -3333,6 +3371,28 @@ export const de_GetResolvedConfigCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
 ): Promise<GetResolvedConfigCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+    [_v]: [, output.headers[_xcv]],
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+    [_ai]: [, output.headers[_xai]],
+  });
+  const data: any = await collectBodyString(output.body, context);
+  contents.config = data;
+  contents.config = JSON.parse(data);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetResolvedConfigWithIdentifierCommand
+ */
+export const de_GetResolvedConfigWithIdentifierCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetResolvedConfigWithIdentifierCommandOutput> => {
   if (output.statusCode !== 200 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
@@ -5646,6 +5706,7 @@ const de_CommandError = async(
   const _ft = "function_type";
   const _geo = "global_experiments_only";
   const _gt = "group_type";
+  const _i = "identifier";
   const _lm = "last-modified";
   const _lm_ = "last_modified";
   const _lmb = "last_modified_by";

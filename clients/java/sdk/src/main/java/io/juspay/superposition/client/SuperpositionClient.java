@@ -71,6 +71,8 @@ import io.juspay.superposition.model.GetOrganisationInput;
 import io.juspay.superposition.model.GetOrganisationOutput;
 import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
+import io.juspay.superposition.model.GetResolvedConfigWithIdentifierInput;
+import io.juspay.superposition.model.GetResolvedConfigWithIdentifierOutput;
 import io.juspay.superposition.model.GetTypeTemplateInput;
 import io.juspay.superposition.model.GetTypeTemplateOutput;
 import io.juspay.superposition.model.GetTypeTemplatesListInput;
@@ -826,6 +828,24 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     GetResolvedConfigOutput getResolvedConfig(GetResolvedConfigInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Resolves and merges config values based on context conditions and identifier, applying overrides and
+     * merge strategies to produce the final configuration.
+     *
+     * @throws InternalServerError
+     */
+    default GetResolvedConfigWithIdentifierOutput getResolvedConfigWithIdentifier(GetResolvedConfigWithIdentifierInput input) {
+        return getResolvedConfigWithIdentifier(input, null);
+    }
+
+    /**
+     * Resolves and merges config values based on context conditions and identifier, applying overrides and
+     * merge strategies to produce the final configuration.
+     *
+     * @throws InternalServerError
+     */
+    GetResolvedConfigWithIdentifierOutput getResolvedConfigWithIdentifier(GetResolvedConfigWithIdentifierInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves detailed information about a specific type template including its schema and metadata.
@@ -1608,11 +1628,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
-        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
-
         private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
         private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
+        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
+        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

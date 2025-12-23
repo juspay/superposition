@@ -105,6 +105,9 @@ pub mod get_organisation;
 /// Types for the `GetResolvedConfig` operation.
 pub mod get_resolved_config;
 
+/// Types for the `GetResolvedConfigWithIdentifier` operation.
+pub mod get_resolved_config_with_identifier;
+
 /// Types for the `GetTypeTemplate` operation.
 pub mod get_type_template;
 
