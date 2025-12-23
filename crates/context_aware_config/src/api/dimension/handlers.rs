@@ -30,7 +30,6 @@ use superposition_types::{
 
 #[cfg(not(feature = "jsonlogic"))]
 use crate::api::dimension::validations::allow_primitive_types;
-#[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
 use crate::{
     api::dimension::{
@@ -225,7 +224,6 @@ async fn create(
             }
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Created();
@@ -430,7 +428,6 @@ async fn update(
             Ok((result, is_mandatory, version_id))
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Ok();
@@ -596,7 +593,6 @@ async fn delete_dimension(
             }
         })?;
 
-        #[cfg(feature = "high-performance-mode")]
         put_config_in_redis(_version_id, state, &schema_name, &mut conn).await?;
         Ok(resp)
     } else {

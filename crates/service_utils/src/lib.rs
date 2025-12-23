@@ -5,3 +5,4 @@ pub mod extensions;
 pub mod helpers;
 pub mod middlewares;
 pub mod service;
+pub mod redis;
