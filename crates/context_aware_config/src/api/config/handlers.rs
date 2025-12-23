@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use actix_http::header::HeaderValue;
 #[cfg(feature = "high-performance-mode")]
 use actix_http::StatusCode;
+#[cfg(feature = "high-performance-mode")]
+use actix_web::http::header::ContentType;
 use actix_web::{
     get, put, routes,
-    web::{Header, Json, Path, Query},
+    web::{Data, Header, Json, Path, Query},
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
-#[cfg(feature = "high-performance-mode")]
-use actix_web::{http::header::ContentType, web::Data};
 use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
 use diesel::{
@@ -22,10 +22,8 @@ use itertools::Itertools;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "jsonlogic")]
 use service_utils::helpers::extract_dimensions;
-#[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::AppState;
 use service_utils::service::types::{
-    AppHeader, DbConnection, SchemaName, WorkspaceContext,
+    AppHeader, AppState, DbConnection, SchemaName, WorkspaceContext,
 };
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -469,6 +467,7 @@ async fn reduce_config_key(
     default_config: Map<String, Value>,
     is_approve: bool,
     schema_name: &SchemaName,
+    app_state: &service_utils::service::types::AppState,
 ) -> superposition::Result<Config> {
     let default_config_val =
         default_config
@@ -554,6 +553,7 @@ async fn reduce_config_key(
                                 user,
                                 schema_name,
                                 false,
+                                &app_state.master_key,
                             );
                         }
                     }
@@ -610,6 +610,7 @@ async fn reduce_config(
     user: User,
     db_conn: DbConnection,
     schema_name: SchemaName,
+    app_state: Data<service_utils::service::types::AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_approve = req
@@ -635,6 +636,7 @@ async fn reduce_config(
             default_config.clone(),
             is_approve,
             &schema_name,
+            &app_state,
         )
         .await?;
         if is_approve {
@@ -801,6 +803,7 @@ async fn get_resolved_config(
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     workspace_context: WorkspaceContext,
+    app_state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_filters = query_filters.into_inner();
@@ -857,12 +860,16 @@ async fn get_resolved_config(
     };
 
     if query_filters.resolve_remote.unwrap_or_default() {
-        query_data = QueryMap::from(evaluate_remote_cohorts(
-            &config.dimensions,
-            &query_data,
-            &mut conn,
-            &workspace_context.schema_name,
-        )?);
+        query_data = QueryMap::from(
+            evaluate_remote_cohorts(
+                &config.dimensions,
+                &query_data,
+                &mut conn,
+                &workspace_context.schema_name,
+                &app_state.master_key,
+            )
+            .await?,
+        );
     }
 
     let response = if show_reason {

@@ -391,7 +391,7 @@ describe("Variable Operations", () => {
                 description: "Function that accesses variable",
                 change_reason: "Testing variable integration",
                 runtime_version: "1",
-                function_type: FunctionTypes.VALUE_VALIDATION,
+                function_type: FunctionTypes.VALIDATION,
             });
 
             const funcResponse = await superpositionClient.send(createFuncCommand);
@@ -408,14 +408,9 @@ describe("Variable Operations", () => {
                 function_name: functionName,
                 stage: "draft",
                 request: {
-                    ValueValidationFunctionRequest: {
+                    ValidateFunctionRequest: {
                         key: "",
-                        value: "",
-                        type: "ConfigKey",
-                        environment: {
-                            context: {},
-                            overrides: {},
-                        }
+                        value: ""
                     },
                 },
             });

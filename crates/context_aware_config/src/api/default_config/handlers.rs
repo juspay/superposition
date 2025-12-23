@@ -12,7 +12,9 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
-    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+    },
 };
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
@@ -39,10 +41,7 @@ use superposition_types::{
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
 use crate::{
-    api::{
-        context::helpers::validate_value_with_function,
-        functions::helpers::get_published_function_code,
-    },
+    api::functions::helpers::get_published_function_code,
     helpers::{add_config_version, validate_change_reason},
 };
 
@@ -75,10 +74,11 @@ async fn create_default_config(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
-        log::error!("change reason validation failed with error: {:?}", err);
-        err
-    })?;
+    validate_change_reason(&change_reason, &mut conn, &schema_name, &state.master_key)
+        .map_err(|err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        })?;
 
     let value = req.value;
 
@@ -128,6 +128,7 @@ async fn create_default_config(
         &default_config.key,
         &default_config.value,
         &schema_name,
+        &state.master_key,
     )?;
 
     validate_fn_published(
@@ -186,16 +187,17 @@ async fn update_default_config(
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigUpdateRequest>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
+    workspace_context: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let key_str = key.into_inner().into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
+    let schema_name = &workspace_context.schema_name;
 
     let existing =
-        fetch_default_key(&key_str, &mut conn, &schema_name).map_err(|e| match e {
+        fetch_default_key(&key_str, &mut conn, schema_name).map_err(|e| match e {
             superposition::AppError::DbError(diesel::NotFound) => {
                 bad_argument!(
                     "No record found for {}. Use create endpoint instead.",
@@ -209,10 +211,11 @@ async fn update_default_config(
         })?;
 
     let change_reason = req.change_reason.clone();
-    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
-        log::error!("change reason validation failed with error: {:?}", err);
-        err
-    })?;
+    validate_change_reason(&change_reason, &mut conn, schema_name, &state.master_key)
+        .map_err(|err| {
+            log::error!("change reason validation failed with error: {:?}", err);
+            err
+        })?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -246,12 +249,13 @@ async fn update_default_config(
             validation_function_name,
             &key_str,
             &value,
-            &schema_name,
+            schema_name,
+            &state.master_key,
         )?
     }
 
     if let Some(ref value_compute_function_name) = req.value_compute_function_name {
-        validate_fn_published(value_compute_function_name, &mut conn, &schema_name)?;
+        validate_fn_published(value_compute_function_name, &mut conn, schema_name)?;
     }
 
     let (db_row, version_id) =
@@ -263,7 +267,7 @@ async fn update_default_config(
                     dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
-                .schema_name(&schema_name)
+                .schema_name(schema_name)
                 .get_result::<DefaultConfig>(transaction_conn)?;
 
             let version_id = add_config_version(
@@ -271,14 +275,14 @@ async fn update_default_config(
                 tags.clone(),
                 change_reason.into(),
                 transaction_conn,
-                &schema_name,
+                schema_name,
             )?;
 
             Ok((val, version_id))
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    put_config_in_redis(version_id, state, schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
@@ -313,6 +317,7 @@ fn validate_default_config_with_function(
     key: &str,
     value: &Value,
     schema_name: &SchemaName,
+    master_key: &str,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
         let function_code = get_published_function_code(conn, f_name, schema_name)
@@ -323,6 +328,7 @@ fn validate_default_config_with_function(
                 )
             })?;
         if let Some(f_code) = function_code {
+            use crate::api::context::helpers::validate_value_with_function;
             validate_value_with_function(
                 f_name.as_str(),
                 &f_code,
@@ -334,9 +340,10 @@ fn validate_default_config_with_function(
                 },
                 conn,
                 schema_name,
+                master_key,
             )?;
         }
-    }
+    };
     Ok(())
 }
 
