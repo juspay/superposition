@@ -175,6 +175,9 @@ pub async fn get_resolved_config(
     let http_client = state.http_client.clone();
     let resolve_params = ResolveConfigQuery {
         resolve_remote: Some(true),
+        // Forced latest version to ensure we get the most recent config from CAC.
+        // Without this, CAC falls back to the workspace's default version setting, which may cause issue.
+        version: Some("latest".to_string()),
         ..resolve_params
     };
 

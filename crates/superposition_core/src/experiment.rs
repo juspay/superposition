@@ -4,7 +4,8 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::experimentation::{
-    Bucket, Buckets, ExperimentStatusType, GroupType, Variant, Variants,
+    Bucket, Buckets, Experiment, ExperimentGroup, ExperimentStatusType, GroupType,
+    Variant, Variants,
 };
 use superposition_types::{
     logic::evaluate_local_cohorts, Condition, DimensionInfo, Overridden,
@@ -34,6 +35,18 @@ pub struct FfiExperiment {
     pub status: ExperimentStatusType,
 }
 
+impl From<Experiment> for FfiExperiment {
+    fn from(experiment: Experiment) -> Self {
+        Self {
+            id: experiment.id.to_string(),
+            traffic_percentage: *experiment.traffic_percentage,
+            variants: experiment.variants,
+            context: experiment.context,
+            status: experiment.status,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, uniffi::Record)]
 pub struct FfiExperimentGroup {
     pub id: String,
@@ -42,6 +55,23 @@ pub struct FfiExperimentGroup {
     pub member_experiment_ids: Vec<String>,
     pub group_type: GroupType,
     pub buckets: Buckets,
+}
+
+impl From<ExperimentGroup> for FfiExperimentGroup {
+    fn from(experiment_group: ExperimentGroup) -> Self {
+        Self {
+            id: experiment_group.id.to_string(),
+            context: experiment_group.context,
+            traffic_percentage: *experiment_group.traffic_percentage,
+            member_experiment_ids: experiment_group
+                .member_experiment_ids
+                .iter()
+                .map(|id| id.to_string())
+                .collect(),
+            group_type: experiment_group.group_type,
+            buckets: experiment_group.buckets,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, uniffi::Record)]

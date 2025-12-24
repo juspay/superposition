@@ -179,6 +179,11 @@ import {
   GetResolvedConfigCommandOutput,
 } from "./commands/GetResolvedConfigCommand";
 import {
+  GetResolvedConfigWithIdentifierCommand,
+  GetResolvedConfigWithIdentifierCommandInput,
+  GetResolvedConfigWithIdentifierCommandOutput,
+} from "./commands/GetResolvedConfigWithIdentifierCommand";
+import {
   GetTypeTemplateCommand,
   GetTypeTemplateCommandInput,
   GetTypeTemplateCommandOutput,
@@ -417,6 +422,7 @@ const commands = {
   GetFunctionCommand,
   GetOrganisationCommand,
   GetResolvedConfigCommand,
+  GetResolvedConfigWithIdentifierCommand,
   GetTypeTemplateCommand,
   GetTypeTemplatesListCommand,
   GetVariableCommand,
@@ -1053,6 +1059,23 @@ export interface Superposition {
     args: GetResolvedConfigCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetResolvedConfigCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetResolvedConfigWithIdentifierCommand}
+   */
+  getResolvedConfigWithIdentifier(
+    args: GetResolvedConfigWithIdentifierCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetResolvedConfigWithIdentifierCommandOutput>;
+  getResolvedConfigWithIdentifier(
+    args: GetResolvedConfigWithIdentifierCommandInput,
+    cb: (err: any, data?: GetResolvedConfigWithIdentifierCommandOutput) => void
+  ): void;
+  getResolvedConfigWithIdentifier(
+    args: GetResolvedConfigWithIdentifierCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetResolvedConfigWithIdentifierCommandOutput) => void
   ): void;
 
   /**

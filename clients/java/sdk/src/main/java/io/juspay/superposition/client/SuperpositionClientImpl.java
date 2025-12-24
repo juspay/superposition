@@ -106,6 +106,9 @@ import io.juspay.superposition.model.GetOrganisationOutput;
 import io.juspay.superposition.model.GetResolvedConfig;
 import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
+import io.juspay.superposition.model.GetResolvedConfigWithIdentifier;
+import io.juspay.superposition.model.GetResolvedConfigWithIdentifierInput;
+import io.juspay.superposition.model.GetResolvedConfigWithIdentifierOutput;
 import io.juspay.superposition.model.GetTypeTemplate;
 import io.juspay.superposition.model.GetTypeTemplateInput;
 import io.juspay.superposition.model.GetTypeTemplateOutput;
@@ -243,8 +246,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -565,6 +568,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public GetResolvedConfigOutput getResolvedConfig(GetResolvedConfigInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetResolvedConfig.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public GetResolvedConfigWithIdentifierOutput getResolvedConfigWithIdentifier(GetResolvedConfigWithIdentifierInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetResolvedConfigWithIdentifier.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

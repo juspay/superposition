@@ -847,6 +847,43 @@ export interface GetResolvedConfigOutput {
 /**
  * @public
  */
+export interface GetResolvedConfigWithIdentifierInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  prefix?: (string)[] | undefined;
+  version?: string | undefined;
+  show_reasoning?: boolean | undefined;
+  merge_strategy?: MergeStrategy | undefined;
+  context_id?: string | undefined;
+  /**
+   * Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+   * @public
+   */
+  resolve_remote?: boolean | undefined;
+
+  /**
+   * Map representing the context.
+   * Keys correspond to the names of the dimensions.
+   * @public
+   */
+  context?: Record<string, __DocumentType> | undefined;
+
+  identifier?: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetResolvedConfigWithIdentifierOutput {
+  config: __DocumentType | undefined;
+  version: string | undefined;
+  last_modified: Date | undefined;
+  audit_id?: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface GetVersionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;

@@ -201,6 +201,8 @@ mod get_organisation;
 
 mod get_resolved_config;
 
+mod get_resolved_config_with_identifier;
+
 mod get_type_template;
 
 mod get_type_templates_list;
