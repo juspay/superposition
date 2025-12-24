@@ -305,9 +305,9 @@ smithy-clients: smithy-build
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
-	git apply smithy/patches/*.patch
 	git restore clients/python/sdk/README.md
 	git restore LICENSE
+	git apply smithy/patches/*.patch
 
 # API Documentation targets
 smithy-api-docs: smithy-build
@@ -367,10 +367,22 @@ schema-file:
 	git apply crates/superposition_types/src/database/superposition_schema.patch
 	git apply crates/superposition_types/src/database/schema-timestamp-migration.patch
 
+OS := $(shell uname -s)
+ifeq ($(OS),Darwin)
+  LIB_EXTENSION := dylib
+else ifeq ($(OS),Linux)
+  LIB_EXTENSION := so
+else ifneq (,$(findstring MINGW,$(OS)))
+  LIB_EXTENSION := dll
+else ifneq (,$(findstring CYGWIN,$(OS)))
+  LIB_EXTENSION := dll
+else
+  $(error Unsupported OS type: $(OS))
+endif
 uniffi-bindings:
 	cargo build --package superposition_core --lib --release
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib --language kotlin --out-dir clients/java/bindings/src/main/kotlin
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language kotlin --out-dir clients/java/bindings/src/main/kotlin
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language python --out-dir clients/python/bindings/superposition_bindings
 	git apply uniffi/patches/*.patch
 
 provider-template: setup superposition

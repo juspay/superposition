@@ -9,8 +9,6 @@ use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
 use diesel::{dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-#[cfg(feature = "jsonlogic")]
-use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::{AppHeader, SchemaName, WorkspaceContext};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{

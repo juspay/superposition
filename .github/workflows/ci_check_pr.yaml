@@ -52,14 +52,14 @@ jobs:
               uses: actions/cache/restore@v4
               id: cache-restore
               with:
-                path: |
-                  ~/.cargo/bin/
-                  ~/.cargo/registry/index/
-                  ~/.cargo/registry/cache/
-                  ~/.cargo/git/db/
-                  target/
-                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-                restore-keys: ${{ runner.os }}-cargo-test-
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: ${{ runner.os }}-cargo-test-
 
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
@@ -114,24 +114,24 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  
+
             - name: Restore cache (if present)
               uses: actions/cache/restore@v4
               id: cache-restore
               with:
-                path: |
-                  ~/.cargo/bin/
-                  ~/.cargo/registry/index/
-                  ~/.cargo/registry/cache/
-                  ~/.cargo/git/db/
-                  target/
-                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-                restore-keys: ${{ runner.os }}-cargo-test-
-                  
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: ${{ runner.os }}-cargo-test-
+
             - name: Install postgres libs
               run: |
-                sudo apt update
-                sudo apt-get -y install postgresql libpq-dev
+                  sudo apt update
+                  sudo apt-get -y install postgresql libpq-dev
 
             - name: Install Bun
               uses: oven-sh/setup-bun@v2
@@ -142,7 +142,7 @@ jobs:
                   toolchain: 1.86.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
-                  
+
             - name: install node
               uses: actions/setup-node@v4
               with:
@@ -164,19 +164,19 @@ jobs:
                   make test_jsonlogic CI=1
               env:
                   APP_ENV: "TEST"
-            
+
             - name: save/update cache for future runs
               uses: actions/cache/save@v4
               id: cache-save
               if: github.ref == 'refs/heads/main'
               with:
-                path: |
-                  ~/.cargo/bin/
-                  ~/.cargo/registry/index/
-                  ~/.cargo/registry/cache/
-                  ~/.cargo/git/db/
-                  target/
-                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
 
     java-build:
         name: Java build
@@ -188,16 +188,16 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-              
+
             - name: Restore cache (if present)
               uses: actions/cache/restore@v4
               with:
-                path: |
-                  ~/.gradle/caches
-                  ~/.gradle/wrapper
-                key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-                restore-keys: |
-                  ${{ runner.os }}-gradle-
+                  path: |
+                      ~/.gradle/caches
+                      ~/.gradle/wrapper
+                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+                  restore-keys: |
+                      ${{ runner.os }}-gradle-
 
             - name: Set up JDK 17
               uses: actions/setup-java@v4
@@ -215,16 +215,16 @@ jobs:
             ## some dummy data.
             # - name: Run tests
             #   run: ./gradlew test
-            
+
             - name: save/update cache for future runs
               uses: actions/cache/save@v4
               if: github.ref == 'refs/heads/main'
               with:
-                path: |
-                  ~/.gradle/caches
-                  ~/.gradle/wrapper
-                key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-            
+                  path: |
+                      ~/.gradle/caches
+                      ~/.gradle/wrapper
+                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
             - name: Upload build artifacts
               if: failure()
               uses: actions/upload-artifact@v4
@@ -240,7 +240,7 @@ jobs:
         runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         strategy:
             matrix:
-                provider: 
+                provider:
                     - kotlin
                     - js
                     - py
@@ -254,21 +254,21 @@ jobs:
                     POSTGRES_PASSWORD: "docker"
                     POSTGRES_DB: "config"
                     restart: on-failure
-                
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-            
+
             - name: Install postgres libs
               run: |
-                sudo apt update
-                sudo apt-get -y install postgresql libpq-dev
-                
+                  sudo apt update
+                  sudo apt-get -y install postgresql libpq-dev
+
             - name: Install Bun
               uses: oven-sh/setup-bun@v2
-              
+
             - name: make binary executable
               run: chmod +x scripts/setup_provider_binaries.sh
 
@@ -276,14 +276,14 @@ jobs:
               uses: actions/cache/restore@v4
               id: cache-restore
               with:
-                path: |
-                  ~/.cargo/bin/
-                  ~/.cargo/registry/index/
-                  ~/.cargo/registry/cache/
-                  ~/.cargo/git/db/
-                  target/
-                key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-                restore-keys: ${{ runner.os }}-cargo-test-
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: ${{ runner.os }}-cargo-test-
 
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
@@ -291,14 +291,14 @@ jobs:
                   toolchain: 1.86.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
-            
+
             - name: Set up JDK 17 (for Kotlin tests)
               if: matrix.provider == 'kotlin'
               uses: actions/setup-java@v4
               with:
                   java-version: "17"
                   distribution: "temurin"
-            
+
             - name: Make gradlew executable
               if: matrix.provider == 'kotlin'
               run: chmod +x clients/java/gradlew
@@ -312,13 +312,13 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: 24.1.0
-                  
+
             - name: Set up Python (for Python tests)
               if: matrix.provider == 'py'
               uses: actions/setup-python@v6
               with:
                   python-version: "3.12"
-            
+
             - name: Install uv
               if: matrix.provider == 'py'
               uses: astral-sh/setup-uv@v3
@@ -334,3 +334,86 @@ jobs:
                   make test-${{ matrix.provider }}-provider
               env:
                   APP_ENV: "TEST"
+
+    binding-generation-check:
+        name: Check generation of uniffi bindings
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: 1.86.0
+                  targets: wasm32-unknown-unknown
+                  components: rustfmt, clippy
+
+            - name: Generate bindings
+              run: |
+                  make uniffi-bindings
+
+            - name: Ensure no file changed
+              run: git diff --exit-code
+
+            - name: Show git diff on failure
+              if: failure()
+              run: |
+                  echo "❌ The following files were modified:"
+                  git diff --name-only
+                  exit 1
+
+    smithy-sdk-generation-check:
+        name: Check generation of sdk from smithy models
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Install Smithy CLI
+              run: |
+                  mkdir -p smithy-install/smithy && \
+                    curl -L https://github.com/smithy-lang/smithy/releases/download/1.55.0/smithy-cli-linux-x86_64.zip -o smithy-install/smithy-cli-linux-x86_64.zip && \
+                    unzip -qo smithy-install/smithy-cli-linux-x86_64.zip -d smithy-install && \
+                    mv smithy-install/smithy-cli-linux-x86_64/* smithy-install/smithy/ && \
+                    rm -rf smithy-install/smithy-cli-linux-x86_64.zip
+                  echo 'export PATH="$HOME/.smithy/bin:$PATH"' >> ~/.bashrc
+                  source ~/.bashrc
+                  smithy-install/smithy/install
+                  rm -rf smithy-install
+
+            - name: Generate SDKs
+              run: |
+                  make smithy-updates
+
+            - name: Ensure no unwanted file changes
+              run: |
+                  git diff --exit-code -- \
+                    . \
+                    ':(exclude)**/*.api.mdx' \
+                    ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClientImpl.java' \
+                    ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClient.java' \
+                    ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClient.java' \
+                    ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClientImpl.java'
+                  git diff -I '^api:' --exit-code -- '**/*.api.mdx'
+
+            - name: Show git diff on failure
+              if: failure()
+              run: |
+                  echo "❌ The following files were modified:"
+                  git diff --name-only
+                  exit 1
+
+            # on failure, create a commit of the modified files for easier debugging
+            # - name: Commit modified files for debugging
+            #   if: failure()
+            #   run: |
+            #       git config --global user.name "github-actions"
+            #       git config --global user.email "github-actions@github.com"
+            #       git add -A
+            #       git commit -m "Debug: Commit modified files from generation-tests job"
+            #       git push origin HEAD:refs/heads/debug/${{ github.run_id }}-${{ github.run_attempt }} --force
