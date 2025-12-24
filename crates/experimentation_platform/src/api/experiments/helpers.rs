@@ -451,6 +451,8 @@ pub async fn fetch_cac_config(
 ) -> superposition::Result<(Config, Option<String>)> {
     let http_client = reqwest::Client::new();
     let query_params = ConfigQuery {
+        // Forced latest version to ensure we get the most recent config from CAC.
+        // Without this, CAC falls back to the workspace's default version setting, which may cause issue.
         version: Some("latest".to_string()),
         prefix: None,
     };
