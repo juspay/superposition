@@ -397,12 +397,10 @@ jobs:
               run: |
                   git diff --exit-code -- \
                     . \
-                    ':(exclude)**/*.api.mdx' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClientImpl.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClient.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClient.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClientImpl.java'
-                  git diff -I '^api:' --exit-code -- '**/*.api.mdx'
 
             - name: Show git diff on failure
               if: failure()
@@ -412,11 +410,11 @@ jobs:
                   exit 1
 
             # on failure, create a commit of the modified files for easier debugging
-            # - name: Commit modified files for debugging
-            #   if: failure()
-            #   run: |
-            #       git config --global user.name "github-actions"
-            #       git config --global user.email "github-actions@github.com"
-            #       git add -A
-            #       git commit -m "Debug: Commit modified files from generation-tests job"
-            #       git push origin HEAD:refs/heads/debug/${{ github.run_id }}-${{ github.run_attempt }} --force
+            - name: Commit modified files for debugging
+              if: failure()
+              run: |
+                  git config --global user.name "github-actions"
+                  git config --global user.email "github-actions@github.com"
+                  git add -A
+                  git commit -m "Debug: Commit modified files from generation-tests job"
+                  git push origin HEAD:refs/heads/debug/${{ github.run_id }}-${{ github.run_attempt }} --force
