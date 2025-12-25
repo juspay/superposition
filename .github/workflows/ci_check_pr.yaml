@@ -1,5 +1,8 @@
 name: CI Checks on PRs
 
+permissions:
+    contents: read
+
 on:
     pull_request:
         branches: [main]
@@ -409,6 +412,8 @@ jobs:
                   exit 1
 
             # on failure, create a commit of the modified files for easier debugging
+            # to enable this, make sure to update the workflow permissions at the top of this file to include
+            # 'contents: write'
             # - name: Commit modified files for debugging
             #   if: failure()
             #   run: |
