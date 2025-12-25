@@ -1,6 +1,10 @@
 CREATE SCHEMA IF NOT EXISTS superposition;
 
-CREATE TYPE superposition.org_status AS ENUM ('ACTIVE', 'INACTIVE', 'PENDING_KYB');
+DO $$ BEGIN
+    CREATE TYPE superposition.org_status AS ENUM ('ACTIVE', 'INACTIVE', 'PENDING_KYB');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS superposition.organisations (
     id VARCHAR(30) PRIMARY KEY NOT NULL,
@@ -26,8 +30,12 @@ CREATE INDEX IF NOT EXISTS idx_organisation_created_at ON superposition.organisa
 
 CREATE INDEX IF NOT EXISTS idx_organisation_admin_email ON superposition.organisations (admin_email);
 
+DO $$ BEGIN
+    CREATE TYPE superposition.workspace_status AS ENUM ('ENABLED', 'DISABLED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TYPE superposition.workspace_status AS ENUM ('ENABLED', 'DISABLED');
 CREATE TABLE IF NOT EXISTS superposition.workspaces (
     organisation_id VARCHAR(30) NOT NULL,
     organisation_name TEXT NOT NULL,
@@ -47,9 +55,6 @@ CREATE TABLE IF NOT EXISTS superposition.workspaces (
 CREATE INDEX IF NOT EXISTS idx_workspace_name ON superposition.workspaces (workspace_name);
 CREATE INDEX IF NOT EXISTS idx_last_modified_created_by ON superposition.workspaces (last_modified_by, created_by);
 
-BEGIN;
--- Setup workspace schema
--- Your SQL goes here
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DO $$ BEGIN
@@ -63,44 +68,64 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-CREATE TYPE public.function_types AS ENUM (
-'VALIDATION',
-'AUTOCOMPLETE'
-);
+DO $$ BEGIN
+    CREATE TYPE public.function_types AS ENUM (
+    'VALIDATION',
+    'AUTOCOMPLETE'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TYPE public.http_method AS ENUM (
-    'GET',
-    'PUT',
-    'POST',
-    'DELETE',
-    'PATCH',
-    'HEAD'
-);
+DO $$ BEGIN
+    CREATE TYPE public.http_method AS ENUM (
+        'GET',
+        'PUT',
+        'POST',
+        'DELETE',
+        'PATCH',
+        'HEAD'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS strict_mode BOOLEAN DEFAULT TRUE;
 
 ALTER TABLE superposition.workspaces ADD COLUMN IF NOT EXISTS metrics JSON DEFAULT '{"enabled": false}'::json NOT NULL;
 
-ALTER TYPE public.experiment_status_type ADD VALUE 'PAUSED';
-CREATE TYPE public.experiment_type AS ENUM (
-    'DEFAULT',
-    'DELETE_OVERRIDES'
-);
+ALTER TYPE public.experiment_status_type ADD VALUE IF NOT EXISTS 'PAUSED';
+
+DO $$ BEGIN
+    CREATE TYPE public.experiment_type AS ENUM (
+        'DEFAULT',
+        'DELETE_OVERRIDES'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 ALTER TABLE superposition.workspaces add column if not exists config_version bigint;
 
 ALTER TABLE superposition.workspaces ADD COLUMN IF NOT EXISTS allow_experiment_self_approval boolean NOT NULL DEFAULT false;
 
-CREATE TYPE public.GROUP_TYPE AS ENUM (
-    'USER_CREATED',
-    'SYSTEM_GENERATED'
-);
+DO $$ BEGIN
+    CREATE TYPE public.GROUP_TYPE AS ENUM (
+        'USER_CREATED',
+        'SYSTEM_GENERATED'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
+-- Add column with DEFAULT FALSE (applies to existing rows)
 ALTER TABLE superposition.workspaces
-ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT TRUE;
+ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT FALSE;
 
-UPDATE superposition.workspaces SET auto_populate_control = FALSE;
+-- Set the default to TRUE for future inserts
+ALTER TABLE superposition.workspaces
+ALTER COLUMN auto_populate_control SET DEFAULT TRUE;
 
 DO $$ BEGIN
     CREATE TYPE public.function_types_new AS ENUM (
@@ -116,5 +141,3 @@ END $$;
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS enable_context_validation BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS enable_change_reason_validation BOOLEAN DEFAULT FALSE;
-
-COMMIT;

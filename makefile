@@ -2,7 +2,6 @@ SMITHY_BUILD_SRC := smithy/output/source
 SMITHY_CLIENT_DIR := clients/generated/smithy
 IMAGE_NAME ?= context-aware-config
 DOCKER_DNS ?= localhost
-TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 FE_FEATURES ?= hydrate
@@ -107,7 +106,7 @@ endif
 	done
 
 db-init:
-	diesel migration run --locked-schema --config-file=crates/superposition_types/src/database/diesel.toml
+	set -a; . .env; set +a; psql "$$DATABASE_URL" -f superposition.sql
 
 cleanup:
 	-$(DOCKER) rm -f $$($(DOCKER) container ls --filter name=^superposition -a -q)
@@ -120,28 +119,18 @@ migration: cleanup db
 legacy_db_setup:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/legacy-db-setup.sh
 
-tenant:
-	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh -t $(TENANT) -d
-
 validate-aws-connection:
 	aws --no-cli-pager --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
 
 validate-psql-connection:
 	pg_isready -h $(DOCKER_DNS) -p 5432
 
-
-test-tenant: TENANT = 'test'
-test-tenant: tenant
-
-dev-tenant: TENANT = 'dev'
-dev-tenant: tenant
-
 node-dependencies:
 	npm ci
 
 SETUP_DEPS = env-file db
 ifdef CI
-	SETUP_DEPS += test-tenant
+	SETUP_DEPS += db-init
 endif
 setup: $(SETUP_DEPS) node-dependencies setup-clients
 
