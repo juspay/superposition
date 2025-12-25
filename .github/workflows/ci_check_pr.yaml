@@ -1,5 +1,8 @@
 name: CI Checks on PRs
 
+permissions:
+    contents: read
+
 on:
     pull_request:
         branches: [main]
