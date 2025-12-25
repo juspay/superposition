@@ -55,6 +55,6 @@ function create_schema() {
 }
 
 create_schema "superposition_types" $TENANT_SCHEMA
-psql "$DB_URL" -c "INSERT INTO $TENANT_SCHEMA.dimensions (dimension, priority, created_at, created_by, schema, function_name) VALUES ('variantIds', 1, CURRENT_TIMESTAMP, 'user@example.com', '{\"type\": \"string\",\"pattern\": \".*\"}'::json, null);"
+psql "$DB_URL" -c "INSERT INTO $TENANT_SCHEMA.dimensions (dimension, priority, created_at, created_by, schema) VALUES ('variantIds', 1, CURRENT_TIMESTAMP, 'user@example.com', '{\"type\": \"string\",\"pattern\": \".*\"}'::json);"
 
 shopt -u extglob
