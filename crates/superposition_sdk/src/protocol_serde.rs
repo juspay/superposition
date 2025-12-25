@@ -97,6 +97,8 @@ pub(crate) mod shape_get_organisation;
 
 pub(crate) mod shape_get_resolved_config;
 
+pub(crate) mod shape_get_resolved_config_with_identifier;
+
 pub(crate) mod shape_get_type_template;
 
 pub(crate) mod shape_get_type_templates_list;
@@ -232,6 +234,10 @@ pub(crate) mod shape_get_config_output;
 pub(crate) mod shape_get_resolved_config_input;
 
 pub(crate) mod shape_get_resolved_config_output;
+
+pub(crate) mod shape_get_resolved_config_with_identifier_input;
+
+pub(crate) mod shape_get_resolved_config_with_identifier_output;
 
 pub(crate) mod shape_internal_server_error;
 

@@ -139,6 +139,9 @@ from ._private.schemas import (
     GET_RESOLVED_CONFIG as _SCHEMA_GET_RESOLVED_CONFIG,
     GET_RESOLVED_CONFIG_INPUT as _SCHEMA_GET_RESOLVED_CONFIG_INPUT,
     GET_RESOLVED_CONFIG_OUTPUT as _SCHEMA_GET_RESOLVED_CONFIG_OUTPUT,
+    GET_RESOLVED_CONFIG_WITH_IDENTIFIER as _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER,
+    GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT as _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT,
+    GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT as _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT,
     GET_TYPE_TEMPLATE as _SCHEMA_GET_TYPE_TEMPLATE,
     GET_TYPE_TEMPLATES_LIST as _SCHEMA_GET_TYPE_TEMPLATES_LIST,
     GET_TYPE_TEMPLATES_LIST_INPUT as _SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT,
@@ -2879,6 +2882,143 @@ GET_RESOLVED_CONFIG = APIOperation(
         schema = _SCHEMA_GET_RESOLVED_CONFIG,
         input_schema = _SCHEMA_GET_RESOLVED_CONFIG_INPUT,
         output_schema = _SCHEMA_GET_RESOLVED_CONFIG_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class GetResolvedConfigWithIdentifierInput:
+    """
+
+    :param resolve_remote:
+         Intended for control resolution. If true, evaluates and includes remote
+         cohort-based contexts during config resolution.
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    prefix: list[str] | None = None
+    version: str | None = None
+    show_reasoning: bool | None = None
+    merge_strategy: str | None = None
+    context_id: str | None = None
+    resolve_remote: bool | None = None
+    context: dict[str, Document] | None = None
+    identifier: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.context is not None:
+            _serialize_context_map(serializer, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"], self.context)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["prefix"])
+
+                case 3:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["version"])
+
+                case 4:
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["show_reasoning"])
+
+                case 5:
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["merge_strategy"])
+
+                case 6:
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context_id"])
+
+                case 7:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["resolve_remote"])
+
+                case 8:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"])
+
+                case 9:
+                    kwargs["identifier"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["identifier"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetResolvedConfigWithIdentifierOutput:
+
+    config: Document
+
+    version: str
+
+    last_modified: datetime
+
+    audit_id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["config"] = de.read_document(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT.members["config"])
+
+                case 1:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT.members["version"])
+
+                case 2:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT.members["last_modified"])
+
+                case 3:
+                    kwargs["audit_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT.members["audit_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_RESOLVED_CONFIG_WITH_IDENTIFIER = APIOperation(
+        input = GetResolvedConfigWithIdentifierInput,
+        output = GetResolvedConfigWithIdentifierOutput,
+        schema = _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER,
+        input_schema = _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT,
+        output_schema = _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),

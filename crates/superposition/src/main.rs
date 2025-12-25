@@ -1,6 +1,7 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
 mod organisation;
+mod resolve;
 mod webhooks;
 mod workspace;
 
@@ -206,9 +207,14 @@ async fn main() -> Result<()> {
                             .service(webhooks::endpoints()),
                     )
                     .service(
-                        web::scope("/variables")
+                        scope("/variables")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(variables::endpoints())
+                    )
+                    .service(
+                        scope("/resolve")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .service(resolve::endpoints()),
                     )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())

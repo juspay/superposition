@@ -410,6 +410,13 @@ if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_t
                 builder
             }
 
+pub(crate) fn get_resolved_config_with_identifier_output_output_correct_errors(mut builder: crate::operation::get_resolved_config_with_identifier::builders::GetResolvedConfigWithIdentifierOutputBuilder) -> crate::operation::get_resolved_config_with_identifier::builders::GetResolvedConfigWithIdentifierOutputBuilder {
+                if builder.config.is_none() { builder.config = Some(Default::default()) }
+if builder.version.is_none() { builder.version = Some(Default::default()) }
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+                builder
+            }
+
 pub(crate) fn get_type_template_output_output_correct_errors(mut builder: crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder) -> crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder {
                 if builder.type_name.is_none() { builder.type_name = Some(Default::default()) }
 if builder.type_schema.is_none() { builder.type_schema = Some(Default::default()) }

@@ -1,4 +1,5 @@
 mod authentication;
+mod helpers;
 mod no_auth;
 mod oidc;
 
@@ -21,7 +22,7 @@ use authentication::{Authenticator, Login, SwitchOrgParams};
 use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
-use oidc::OIDCAuthenticator;
+use oidc::{SaasOIDCAuthenticator, SimpleOIDCAuthenticator};
 use superposition_types::User;
 
 use crate::{
@@ -167,7 +168,24 @@ impl AuthNHandler {
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
                 Arc::new(
-                    OIDCAuthenticator::new(url, base_url, path_prefix, cid, csecret)
+                    SimpleOIDCAuthenticator::new(
+                        url,
+                        base_url,
+                        path_prefix,
+                        cid,
+                        csecret,
+                    )
+                    .await
+                    .unwrap(),
+                )
+            }
+            Some("OIDC_SAAS") => {
+                let url = auth.next().unwrap().to_string();
+                let base_url = get_from_env_unsafe("OIDC_REDIRECT_HOST").unwrap();
+                let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
+                let csecret = get_oidc_client_secret(kms_client, app_env).await;
+                Arc::new(
+                    SaasOIDCAuthenticator::new(url, base_url, path_prefix, cid, csecret)
                         .await
                         .unwrap(),
                 )

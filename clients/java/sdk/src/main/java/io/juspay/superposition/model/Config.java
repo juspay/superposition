@@ -21,7 +21,8 @@ public final class Config implements ApiResource {
 
     private static final List<Schema> $OPERATIONS = List.of(GetConfigFast.$SCHEMA,
         GetConfig.$SCHEMA,
-        GetResolvedConfig.$SCHEMA);
+        GetResolvedConfig.$SCHEMA,
+        GetResolvedConfigWithIdentifier.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**

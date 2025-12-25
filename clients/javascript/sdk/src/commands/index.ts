@@ -34,6 +34,7 @@ export * from "./GetExperimentGroupCommand";
 export * from "./GetFunctionCommand";
 export * from "./GetOrganisationCommand";
 export * from "./GetResolvedConfigCommand";
+export * from "./GetResolvedConfigWithIdentifierCommand";
 export * from "./GetTypeTemplateCommand";
 export * from "./GetTypeTemplatesListCommand";
 export * from "./GetVariableCommand";

@@ -16,6 +16,7 @@ resource Config {
         GetConfigFast
         GetConfig
         GetResolvedConfig
+        GetResolvedConfigWithIdentifier
     ]
 }
 
@@ -291,5 +292,62 @@ operation ListVersions {
     output := with [PaginatedResponse] {
         @required
         data: ListVersionsOut
+    }
+}
+
+@documentation("Resolves and merges config values based on context conditions and identifier, applying overrides and merge strategies to produce the final configuration.")
+@http(method: "POST", uri: "/resolve")
+@tags(["Configuration Management"])
+operation GetResolvedConfigWithIdentifier {
+    input := with [WorkspaceMixin] {
+        @httpQuery("prefix")
+        @notProperty
+        prefix: StringList
+
+        @httpQuery("version")
+        @notProperty
+        version: String
+
+        @httpQuery("show_reasoning")
+        @notProperty
+        show_reasoning: Boolean
+
+        @httpHeader("x-merge-strategy")
+        @notProperty
+        merge_strategy: MergeStrategy
+
+        @httpQuery("context_id")
+        @notProperty
+        context_id: String
+
+        @httpQuery("resolve_remote")
+        @notProperty
+        @documentation("Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.")
+        resolve_remote: Boolean
+
+        @notProperty
+        context: ContextMap
+
+        @httpQuery("identifier")
+        @notProperty
+        identifier: String
+    }
+
+    output := for Config {
+        @httpPayload
+        @required
+        $config
+
+        @httpHeader("x-config-version")
+        @required
+        $version
+
+        @httpHeader("last-modified")
+        @required
+        $last_modified
+
+        @httpHeader("x-audit-id")
+        @notProperty
+        audit_id: String
     }
 }

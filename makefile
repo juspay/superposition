@@ -2,7 +2,6 @@ SMITHY_BUILD_SRC := smithy/output/source
 SMITHY_CLIENT_DIR := clients/generated/smithy
 IMAGE_NAME ?= context-aware-config
 DOCKER_DNS ?= localhost
-TENANT ?= dev
 SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 FE_FEATURES ?= hydrate
@@ -107,7 +106,7 @@ endif
 	done
 
 db-init:
-	diesel migration run --locked-schema --config-file=crates/superposition_types/src/database/diesel.toml
+	set -a; . .env; set +a; psql "$$DATABASE_URL" -f superposition.sql
 
 cleanup:
 	-$(DOCKER) rm -f $$($(DOCKER) container ls --filter name=^superposition -a -q)
@@ -120,28 +119,18 @@ migration: cleanup db
 legacy_db_setup:
 	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/legacy-db-setup.sh
 
-tenant:
-	grep 'DATABASE_URL=' .env | sed -e 's/DATABASE_URL=//' | xargs ./scripts/create-tenant.sh -t $(TENANT) -d
-
 validate-aws-connection:
 	aws --no-cli-pager --endpoint-url=http://$(DOCKER_DNS):4566 --region=ap-south-1 sts get-caller-identity
 
 validate-psql-connection:
 	pg_isready -h $(DOCKER_DNS) -p 5432
 
-
-test-tenant: TENANT = 'test'
-test-tenant: tenant
-
-dev-tenant: TENANT = 'dev'
-dev-tenant: tenant
-
 node-dependencies:
 	npm ci
 
 SETUP_DEPS = env-file db
 ifdef CI
-	SETUP_DEPS += test-tenant
+	SETUP_DEPS += db-init
 endif
 setup: $(SETUP_DEPS) node-dependencies setup-clients
 
@@ -305,9 +294,9 @@ smithy-clients: smithy-build
 		mkdir -p "$(SMITHY_CLIENT_DIR)/$$name"; \
 		cp -r "$$d"/* "$(SMITHY_CLIENT_DIR)/$$name"; \
 	done
-	git apply smithy/patches/*.patch
 	git restore clients/python/sdk/README.md
 	git restore LICENSE
+	git apply smithy/patches/*.patch
 
 # API Documentation targets
 smithy-api-docs: smithy-build
@@ -367,10 +356,22 @@ schema-file:
 	git apply crates/superposition_types/src/database/superposition_schema.patch
 	git apply crates/superposition_types/src/database/schema-timestamp-migration.patch
 
+OS := $(shell uname -s)
+ifeq ($(OS),Darwin)
+  LIB_EXTENSION := dylib
+else ifeq ($(OS),Linux)
+  LIB_EXTENSION := so
+else ifneq (,$(findstring MINGW,$(OS)))
+  LIB_EXTENSION := dll
+else ifneq (,$(findstring CYGWIN,$(OS)))
+  LIB_EXTENSION := dll
+else
+  $(error Unsupported OS type: $(OS))
+endif
 uniffi-bindings:
 	cargo build --package superposition_core --lib --release
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib --language kotlin --out-dir clients/java/bindings/src/main/kotlin
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib --language python --out-dir clients/python/bindings/superposition_bindings
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language kotlin --out-dir clients/java/bindings/src/main/kotlin
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language python --out-dir clients/python/bindings/superposition_bindings
 	git apply uniffi/patches/*.patch
 
 provider-template: setup superposition

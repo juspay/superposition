@@ -531,11 +531,7 @@ VALUES (
         'initial setup'
     ) ON CONFLICT DO NOTHING;
 
-DO $$ BEGIN
-    ALTER TYPE public.experiment_status_type ADD VALUE 'DISCARDED';
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+ALTER TYPE public.experiment_status_type ADD VALUE IF NOT EXISTS 'DISCARDED';
 
 DO $$ BEGIN
     CREATE TYPE public.function_types AS ENUM (
@@ -612,11 +608,7 @@ ADD COLUMN IF NOT EXISTS metrics JSON DEFAULT '{"enabled": false}'::json NOT NUL
 ADD COLUMN IF NOT EXISTS started_at TIMESTAMP,
 ADD COLUMN IF NOT EXISTS started_by TEXT;
 
-DO $$ BEGIN
-    ALTER TYPE public.experiment_status_type ADD VALUE 'PAUSED';
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+ALTER TYPE public.experiment_status_type ADD VALUE IF NOT EXISTS 'PAUSED';
 
 DO $$ BEGIN
     CREATE TYPE public.experiment_type AS ENUM (

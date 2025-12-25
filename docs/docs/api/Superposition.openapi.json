@@ -3587,6 +3587,139 @@
                 ]
             }
         },
+        "/resolve": {
+            "post": {
+                "description": "Resolves and merges config values based on context conditions and identifier, applying overrides and merge strategies to produce the final configuration.",
+                "operationId": "GetResolvedConfigWithIdentifier",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetResolvedConfigWithIdentifierRequestContent"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "version",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "show_reasoning",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "context_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "resolve_remote",
+                        "in": "query",
+                        "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution."
+                        }
+                    },
+                    {
+                        "name": "identifier",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-merge-strategy",
+                        "in": "header",
+                        "schema": {
+                            "$ref": "#/components/schemas/MergeStrategy"
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetResolvedConfigWithIdentifier 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            },
+                            "x-audit-id": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "x-config-version": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetResolvedConfigWithIdentifierOutputPayload"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
         "/superposition/organisations": {
             "get": {
                 "description": "Retrieves a paginated list of all organisations with their basic information, creation details, and current status.",
@@ -8090,6 +8223,15 @@
             },
             "GetResolvedConfigOutputPayload": {},
             "GetResolvedConfigRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/ContextMap"
+                    }
+                }
+            },
+            "GetResolvedConfigWithIdentifierOutputPayload": {},
+            "GetResolvedConfigWithIdentifierRequestContent": {
                 "type": "object",
                 "properties": {
                     "context": {

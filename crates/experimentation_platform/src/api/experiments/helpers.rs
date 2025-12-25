@@ -18,12 +18,12 @@ use service_utils::service::types::{
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
-        config::ResolveConfigQuery,
+        config::{ConfigQuery, ResolveConfigQuery},
         experiment_groups::ExpGroupMemberRequest,
         functions::{FunctionExecutionRequest, FunctionExecutionResponse, Stage},
         I64Update,
     },
-    custom_query::DimensionQuery,
+    custom_query::{DimensionQuery, QueryParam},
     database::{
         models::{
             experimentation::{
@@ -450,7 +450,17 @@ pub async fn fetch_cac_config(
     workspace_request: &WorkspaceContext,
 ) -> superposition::Result<(Config, Option<String>)> {
     let http_client = reqwest::Client::new();
-    let url = state.cac_host.clone() + "/config";
+    let query_params = ConfigQuery {
+        // Forced latest version to ensure we get the most recent config from CAC.
+        // Without this, CAC falls back to the workspace's default version setting, which may cause issue.
+        version: Some("latest".to_string()),
+        prefix: None,
+    };
+    let url = format!(
+        "{}/config?{}",
+        state.cac_host,
+        query_params.to_query_param(),
+    );
     let headers_map = construct_header_map(
         &workspace_request.workspace_id,
         &workspace_request.organisation_id,

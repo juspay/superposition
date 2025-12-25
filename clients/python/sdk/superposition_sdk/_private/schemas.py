@@ -2319,6 +2319,183 @@ GET_RESOLVED_CONFIG = Schema(
 
 )
 
+GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetResolvedConfigWithIdentifierInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "prefix": {
+            "target": STRING_LIST,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
+
+            ],
+        },
+
+        "version": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
+
+            ],
+        },
+
+        "show_reasoning": {
+            "target": BOOLEAN,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="show_reasoning"),
+
+            ],
+        },
+
+        "merge_strategy": {
+            "target": MERGE_STRATEGY,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "context_id": {
+            "target": STRING,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
+
+            ],
+        },
+
+        "resolve_remote": {
+            "target": BOOLEAN,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
+
+            ],
+        },
+
+        "context": {
+            "target": CONTEXT_MAP,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "identifier": {
+            "target": STRING,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="identifier"),
+
+            ],
+        },
+
+    }
+)
+
+GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetResolvedConfigWithIdentifierOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "config": {
+            "target": DOCUMENT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpPayload")),
+
+            ],
+        },
+
+        "version": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-version"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified": {
+            "target": DATE_TIME,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="last-modified"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "audit_id": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-audit-id"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+    }
+)
+
+GET_RESOLVED_CONFIG_WITH_IDENTIFIER = Schema(
+    id=ShapeID("io.superposition#GetResolvedConfigWithIdentifier"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/resolve",
+            })),
+
+    ],
+
+)
+
 GET_VERSION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#GetVersionInput"),
 

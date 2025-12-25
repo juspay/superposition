@@ -146,6 +146,10 @@ import {
   GetResolvedConfigCommandOutput,
 } from "./commands/GetResolvedConfigCommand";
 import {
+  GetResolvedConfigWithIdentifierCommandInput,
+  GetResolvedConfigWithIdentifierCommandOutput,
+} from "./commands/GetResolvedConfigWithIdentifierCommand";
+import {
   GetTypeTemplateCommandInput,
   GetTypeTemplateCommandOutput,
 } from "./commands/GetTypeTemplateCommand";
@@ -406,6 +410,7 @@ export type ServiceInputTypes =
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
+  | GetResolvedConfigWithIdentifierCommandInput
   | GetTypeTemplateCommandInput
   | GetTypeTemplatesListCommandInput
   | GetVariableCommandInput
@@ -486,6 +491,7 @@ export type ServiceOutputTypes =
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
+  | GetResolvedConfigWithIdentifierCommandOutput
   | GetTypeTemplateCommandOutput
   | GetTypeTemplatesListCommandOutput
   | GetVariableCommandOutput
