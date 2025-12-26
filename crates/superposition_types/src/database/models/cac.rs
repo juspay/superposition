@@ -13,7 +13,7 @@ use diesel::{
     expression::AsExpression,
     pg::{Pg, PgValue},
     serialize::{Output, Result as SResult, ToSql},
-    sql_types::{Integer, Json},
+    sql_types::{Integer, Json, Text},
     AsChangeset, Insertable, QueryId, Queryable, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
@@ -204,34 +204,6 @@ pub enum FunctionType {
     ChangeReasonValidation,
 }
 
-impl FunctionType {
-    pub fn get_fn_signature(&self) -> String {
-        match self {
-            FunctionType::ValueValidation => {
-                "validate_value({key}, {value}, {type}, {environment})".to_string()
-            }
-            FunctionType::ValueCompute => {
-                "value_compute({name}, {prefix}, {type}, {environment})".to_string()
-            }
-            FunctionType::ContextValidation => {
-                "validate_context({environment})".to_string()
-            }
-            FunctionType::ChangeReasonValidation => {
-                "validate_change_reason({change_reason})".to_string()
-            }
-        }
-    }
-
-    pub fn get_js_fn_name(&self) -> String {
-        match self {
-            FunctionType::ValueValidation => "validate_value".to_string(),
-            FunctionType::ValueCompute => "value_compute".to_string(),
-            FunctionType::ContextValidation => "validate_context".to_string(),
-            FunctionType::ChangeReasonValidation => "validate_change_reason".to_string(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -244,8 +216,8 @@ pub struct Function {
     pub published_code: Option<FunctionCode>,
     pub draft_code: FunctionCode,
     pub description: Description,
-    pub published_runtime_version: Option<String>,
-    pub draft_runtime_version: String,
+    pub published_runtime_version: Option<FunctionRuntimeVersion>,
+    pub draft_runtime_version: FunctionRuntimeVersion,
     pub published_at: Option<DateTime<Utc>>,
     pub draft_edited_at: DateTime<Utc>,
     pub published_by: Option<String>,
@@ -256,6 +228,47 @@ pub struct Function {
     pub function_type: FunctionType,
     pub created_by: String,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    Default,
+    strum_macros::Display,
+    strum_macros::EnumString,
+    strum_macros::EnumIter,
+)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Eq, AsExpression, FromSqlRow, TextFromSql, TextToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
+pub enum FunctionRuntimeVersion {
+    #[default]
+    #[strum(serialize = "1.0")]
+    #[serde(rename = "1.0")]
+    V1,
+}
+
+impl TryFrom<String> for FunctionRuntimeVersion {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value
+            .as_str()
+            .try_into()
+            .map_err(|e| format!("Invalid FunctionRuntimeVersion: {e}"))
+    }
+}
+
+impl From<&FunctionRuntimeVersion> for String {
+    fn from(value: &FunctionRuntimeVersion) -> Self {
+        value.to_string()
+    }
 }
 
 #[derive(

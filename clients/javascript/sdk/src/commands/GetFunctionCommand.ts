@@ -53,8 +53,8 @@ export interface GetFunctionCommandOutput extends FunctionResponse, __MetadataBe
  * //   function_name: "STRING_VALUE", // required
  * //   published_code: "STRING_VALUE",
  * //   draft_code: "STRING_VALUE", // required
- * //   published_runtime_version: "STRING_VALUE",
- * //   draft_runtime_version: "STRING_VALUE", // required
+ * //   published_runtime_version: "1.0",
+ * //   draft_runtime_version: "1.0", // required
  * //   published_at: new Date("TIMESTAMP"),
  * //   draft_edited_at: new Date("TIMESTAMP"), // required
  * //   published_by: "STRING_VALUE",

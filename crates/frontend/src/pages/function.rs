@@ -15,6 +15,7 @@ use superposition_macros::box_params;
 use superposition_types::{
     api::functions::Stage,
     custom_query::{CustomQuery, Query},
+    database::models::cac::FunctionRuntimeVersion,
 };
 use types::PageParams;
 
@@ -40,7 +41,7 @@ fn stage_to_action(stage: Stage) -> String {
 
 #[component]
 fn function_code_info(
-    #[prop(into)] version: Option<String>,
+    version: Option<FunctionRuntimeVersion>,
     action_time: Option<DateTime<Utc>>,
     action_by: Option<String>,
     tab_type: Stage,
@@ -52,10 +53,15 @@ fn function_code_info(
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body flex flex-row gap-2 flex-wrap">
-                <div class="h-fit w-[250px]">
-                    <div class="stat-title">"Version"</div>
-                    <div class="stat-value text-sm">{version}</div>
-                </div>
+                {version
+                    .map(|version| {
+                        view! {
+                            <div class="h-fit w-[250px]">
+                                <div class="stat-title">"Version"</div>
+                                <div class="stat-value text-sm">{version.to_string()}</div>
+                            </div>
+                        }
+                    })}
                 {action_by
                     .map(|by| {
                         view! {
@@ -221,14 +227,14 @@ pub fn function_page() -> impl IntoView {
                             let (version, action_time, action_by) = match selected_tab {
                                 Stage::Published => {
                                     (
-                                        function.published_runtime_version.clone(),
+                                        function.published_runtime_version,
                                         function.published_at,
                                         function.published_by.clone(),
                                     )
                                 }
                                 Stage::Draft => {
                                     (
-                                        Some(function.draft_runtime_version.clone()),
+                                        Some(function.draft_runtime_version),
                                         Some(function.draft_edited_at),
                                         Some(function.draft_edited_by.clone()),
                                     )
@@ -261,8 +267,7 @@ pub fn function_page() -> impl IntoView {
                                     Stage::Draft => String::from(f.draft_code.clone()),
                                 })
                             function_type=function_st.with_value(|f| f.function_type)
-                            runtime_version=function_st
-                                .with_value(|f| f.draft_runtime_version.clone())
+                            runtime_version=function_st.with_value(|f| f.draft_runtime_version)
                             description=function_st
                                 .with_value(|f| f.description.deref().to_string())
                             handle_submit=move |_| {

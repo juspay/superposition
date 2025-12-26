@@ -26,6 +26,7 @@ from ._private.schemas import (
     BULK_OPERATION as _SCHEMA_BULK_OPERATION,
     BULK_OPERATION_INPUT as _SCHEMA_BULK_OPERATION_INPUT,
     BULK_OPERATION_OUTPUT as _SCHEMA_BULK_OPERATION_OUTPUT,
+    CHANGE_REASON_VALIDATION_FUNCTION_REQUEST as _SCHEMA_CHANGE_REASON_VALIDATION_FUNCTION_REQUEST,
     CONCLUDE_EXPERIMENT as _SCHEMA_CONCLUDE_EXPERIMENT,
     CONCLUDE_EXPERIMENT_INPUT as _SCHEMA_CONCLUDE_EXPERIMENT_INPUT,
     CONCLUDE_EXPERIMENT_OUTPUT as _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT,
@@ -1891,6 +1892,36 @@ ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
+
+@dataclass(kw_only=True)
+class ChangeReasonValidationFunctionRequest:
+
+    change_reason: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CHANGE_REASON_VALIDATION_FUNCTION_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_CHANGE_REASON_VALIDATION_FUNCTION_REQUEST.members["change_reason"], self.change_reason)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CHANGE_REASON_VALIDATION_FUNCTION_REQUEST.members["change_reason"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CHANGE_REASON_VALIDATION_FUNCTION_REQUEST, consumer=_consumer)
+        return kwargs
 
 @dataclass(kw_only=True)
 class ConcludeExperimentInput:
@@ -5610,6 +5641,9 @@ class FunctionTypes(StrEnum):
     VALUE_COMPUTE = "VALUE_COMPUTE"
     CONTEXT_VALIDATION = "CONTEXT_VALIDATION"
     CHANGE_REASON_VALIDATION = "CHANGE_REASON_VALIDATION"
+
+class FunctionRuntimeVersion(StrEnum):
+    V1 = "1.0"
 
 @dataclass(kw_only=True)
 class CreateFunctionInput:
@@ -12192,7 +12226,7 @@ class ValueValidationFunctionRequest:
         return kwargs
 
 @dataclass
-class FunctionExecutionRequestValueValidationFunctionRequest:
+class FunctionExecutionRequestValue_validate:
 
     value: ValueValidationFunctionRequest
 
@@ -12200,14 +12234,14 @@ class FunctionExecutionRequestValueValidationFunctionRequest:
         serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["ValueValidationFunctionRequest"], self.value)
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["value_validate"], self.value)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ValueValidationFunctionRequest.deserialize(deserializer))
 
 @dataclass
-class FunctionExecutionRequestValueComputeFunctionRequest:
+class FunctionExecutionRequestValue_compute:
 
     value: ValueComputeFunctionRequest
 
@@ -12215,14 +12249,14 @@ class FunctionExecutionRequestValueComputeFunctionRequest:
         serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["ValueComputeFunctionRequest"], self.value)
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["value_compute"], self.value)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ValueComputeFunctionRequest.deserialize(deserializer))
 
 @dataclass
-class FunctionExecutionRequestContextValidationFunctionRequest:
+class FunctionExecutionRequestContext_validate:
 
     value: ContextValidationFunctionRequest
 
@@ -12230,11 +12264,26 @@ class FunctionExecutionRequestContextValidationFunctionRequest:
         serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["ContextValidationFunctionRequest"], self.value)
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["context_validate"], self.value)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ContextValidationFunctionRequest.deserialize(deserializer))
+
+@dataclass
+class FunctionExecutionRequestChange_reason_validate:
+
+    value: ChangeReasonValidationFunctionRequest
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_FUNCTION_EXECUTION_REQUEST.members["change_reason_validate"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ChangeReasonValidationFunctionRequest.deserialize(deserializer))
 
 @dataclass
 class FunctionExecutionRequestUnknown:
@@ -12258,7 +12307,7 @@ class FunctionExecutionRequestUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-FunctionExecutionRequest = Union[FunctionExecutionRequestValueValidationFunctionRequest | FunctionExecutionRequestValueComputeFunctionRequest | FunctionExecutionRequestContextValidationFunctionRequest | FunctionExecutionRequestUnknown]
+FunctionExecutionRequest = Union[FunctionExecutionRequestValue_validate | FunctionExecutionRequestValue_compute | FunctionExecutionRequestContext_validate | FunctionExecutionRequestChange_reason_validate | FunctionExecutionRequestUnknown]
 
 class _FunctionExecutionRequestDeserializer:
     _result: FunctionExecutionRequest | None = None
@@ -12275,13 +12324,16 @@ class _FunctionExecutionRequestDeserializer:
     def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
         match schema.expect_member_index():
             case 0:
-                self._set_result(FunctionExecutionRequestValueValidationFunctionRequest.deserialize(de))
+                self._set_result(FunctionExecutionRequestValue_validate.deserialize(de))
 
             case 1:
-                self._set_result(FunctionExecutionRequestValueComputeFunctionRequest.deserialize(de))
+                self._set_result(FunctionExecutionRequestValue_compute.deserialize(de))
 
             case 2:
-                self._set_result(FunctionExecutionRequestContextValidationFunctionRequest.deserialize(de))
+                self._set_result(FunctionExecutionRequestContext_validate.deserialize(de))
+
+            case 3:
+                self._set_result(FunctionExecutionRequestChange_reason_validate.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)

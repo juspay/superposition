@@ -11,16 +11,17 @@ use service_utils::service::types::SchemaName;
 #[cfg(feature = "jsonlogic")]
 use superposition_macros::bad_argument;
 use superposition_macros::{unexpected_error, validation_error};
-use superposition_types::api::functions::{FunctionEnvironment, KeyType};
-use superposition_types::database::models::cac::FunctionType;
 use superposition_types::{
     api::{
         context::PutRequest,
-        functions::{FunctionExecutionRequest, FunctionExecutionResponse},
+        functions::{
+            FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
+            KeyType, CONTEXT_VALIDATION_FN_NAME,
+        },
     },
     database::{
         models::{
-            cac::{Context, FunctionCode},
+            cac::{Context, FunctionCode, FunctionRuntimeVersion, FunctionType},
             Description,
         },
         schema::{contexts, default_configs::dsl, dimensions},
@@ -36,11 +37,10 @@ use crate::{
     helpers::{calculate_context_weight, get_workspace},
 };
 use crate::{
-    api::functions::helpers::get_published_functions_by_names,
+    api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
     validation_functions::execute_fn,
 };
 
-use super::types::FunctionsInfo;
 use super::validations::{validate_dimensions, validate_override_with_default_configs};
 
 pub fn hash(val: &Value) -> String {
@@ -135,13 +135,17 @@ pub fn validate_condition_with_functions(
 
     // workspace_setting check
     if is_context_validation_enabled {
-        if let Some(function_code) = context_validation_function {
-            validate_value_with_function(
-                "context_validation_function",
+        if let (Some(function_code), Some(published_runtime_version)) = (
+            context_validation_function.published_code,
+            context_validation_function.published_runtime_version,
+        ) {
+            validation_function_executor(
+                CONTEXT_VALIDATION_FN_NAME,
                 &function_code,
                 &FunctionExecutionRequest::ContextValidationFunctionRequest {
                     environment: environment.clone(),
                 },
+                published_runtime_version,
                 conn,
                 schema_name,
             )?;
@@ -152,10 +156,12 @@ pub fn validate_condition_with_functions(
         get_functions_map(conn, new_keys_function_array, schema_name)?;
     for (key, value) in context_map.iter() {
         if let Some(functions_map) = dimension_functions_map.get(key) {
-            if let (function_name, Some(function_code)) =
-                (functions_map.name.clone(), functions_map.code.clone())
-            {
-                validate_value_with_function(
+            if let (function_name, Some(function_code), Some(published_runtime_version)) = (
+                functions_map.function_name.clone(),
+                functions_map.published_code.clone(),
+                functions_map.published_runtime_version,
+            ) {
+                validation_function_executor(
                     &function_name,
                     &function_code,
                     &FunctionExecutionRequest::ValueValidationFunctionRequest {
@@ -164,6 +170,7 @@ pub fn validate_condition_with_functions(
                         r#type: KeyType::Dimension,
                         environment: environment.clone(),
                     },
+                    published_runtime_version,
                     conn,
                     schema_name,
                 )?;
@@ -245,10 +252,12 @@ pub fn validate_override_with_functions(
         get_functions_map(conn, new_keys_function_array, schema_name)?;
     for (key, value) in override_.iter() {
         if let Some(functions_map) = default_config_functions_map.get(key) {
-            if let (function_name, Some(function_code)) =
-                (functions_map.name.clone(), functions_map.code.clone())
-            {
-                validate_value_with_function(
+            if let (function_name, Some(function_code), Some(published_runtime_version)) = (
+                functions_map.function_name.clone(),
+                functions_map.published_code.clone(),
+                functions_map.published_runtime_version,
+            ) {
+                validation_function_executor(
                     &function_name,
                     &function_code,
                     &FunctionExecutionRequest::ValueValidationFunctionRequest {
@@ -260,6 +269,7 @@ pub fn validate_override_with_functions(
                             overrides: override_.clone(),
                         },
                     },
+                    published_runtime_version,
                     conn,
                     schema_name,
                 )?;
@@ -273,43 +283,42 @@ fn get_functions_map(
     conn: &mut DBConnection,
     keys_function_array: Vec<(String, String)>,
     schema_name: &SchemaName,
-) -> superposition::Result<HashMap<String, FunctionsInfo>> {
-    let functions_map: HashMap<String, Option<FunctionCode>> =
-        get_published_functions_by_names(
-            conn,
-            keys_function_array
-                .iter()
-                .map(|(_, f_name)| f_name.clone())
-                .collect(),
-            schema_name,
-        )?
-        .into_iter()
-        .collect();
+) -> superposition::Result<HashMap<String, FunctionInfo>> {
+    let functions_map: HashMap<String, FunctionInfo> = get_published_functions_by_names(
+        conn,
+        keys_function_array
+            .iter()
+            .map(|(_, f_name)| f_name.clone())
+            .collect(),
+        schema_name,
+    )?
+    .into_iter()
+    .map(|functions_info| (functions_info.function_name.clone(), functions_info))
+    .collect();
 
     // primitives here either imply dimensions or default configs based on who is calling it
-    let function_to_primitives_map: HashMap<String, FunctionsInfo> = keys_function_array
+    let function_to_primitives_map: HashMap<String, FunctionInfo> = keys_function_array
         .into_iter()
-        .map(|(key, function_name)| {
-            (
-                key.clone(),
-                FunctionsInfo {
-                    name: function_name.clone(),
-                    code: functions_map.get(&function_name).cloned().flatten(),
-                },
-            )
+        .filter_map(|(key, function_name)| {
+            functions_map
+                .get(&function_name)
+                .cloned()
+                .map(|func_info| (key, func_info))
         })
         .collect();
+
     Ok(function_to_primitives_map)
 }
 
-pub fn validate_value_with_function(
+pub fn validation_function_executor(
     fun_name: &str,
     function: &FunctionCode,
     args: &FunctionExecutionRequest,
+    runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    match execute_fn(function, args, conn, schema_name) {
+    match execute_fn(function, args, runtime_version, conn, schema_name) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
             let key = args.function_identifier();

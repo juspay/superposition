@@ -1,4 +1,4 @@
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::service::types::SchemaName;
 use superposition_types::{
     database::{
@@ -7,6 +7,8 @@ use superposition_types::{
     },
     result as superposition, DBConnection,
 };
+
+use super::types::FunctionInfo;
 
 pub fn fetch_function(
     f_name: &String,
@@ -23,10 +25,10 @@ pub fn get_published_function_code(
     conn: &mut DBConnection,
     f_name: &str,
     schema_name: &SchemaName,
-) -> superposition::Result<Option<FunctionCode>> {
-    let function: Option<FunctionCode> = functions
+) -> superposition::Result<FunctionInfo> {
+    let function = functions
         .filter(schema::functions::function_name.eq(f_name))
-        .select(schema::functions::published_code)
+        .select(FunctionInfo::as_select())
         .schema_name(schema_name)
         .first(conn)?;
     Ok(function)
@@ -36,17 +38,14 @@ pub fn get_published_functions_by_names(
     conn: &mut DBConnection,
     function_names: Vec<String>,
     schema_name: &SchemaName,
-) -> superposition::Result<Vec<(String, Option<FunctionCode>)>> {
-    let function: Vec<(String, Option<FunctionCode>)> = functions
+) -> superposition::Result<Vec<FunctionInfo>> {
+    let functions_data = functions
         .filter(schema::functions::function_name.eq_any(function_names))
-        .select((
-            schema::functions::function_name,
-            schema::functions::published_code,
-        ))
+        .select(FunctionInfo::as_select())
         .schema_name(schema_name)
-        .load(conn)?;
+        .load::<FunctionInfo>(conn)?;
 
-    Ok(function)
+    Ok(functions_data)
 }
 
 pub fn generate_vars_template(vars: &[(String, String)]) -> String {
@@ -82,10 +81,10 @@ pub fn get_first_function_by_type(
     function_type: FunctionType,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> superposition::Result<Option<FunctionCode>> {
-    let function: Option<FunctionCode> = functions
+) -> superposition::Result<FunctionInfo> {
+    let function = functions
         .filter(schema::functions::function_type.eq(function_type))
-        .select(schema::functions::published_code)
+        .select(FunctionInfo::as_select())
         .schema_name(schema_name)
         .first(conn)?;
     Ok(function)

@@ -128,7 +128,7 @@ if builder.group_type.is_none() { builder.group_type = "no value was set".parse:
 pub(crate) fn create_function_output_output_correct_errors(mut builder: crate::operation::create_function::builders::CreateFunctionOutputBuilder) -> crate::operation::create_function::builders::CreateFunctionOutputBuilder {
                 if builder.function_name.is_none() { builder.function_name = Some(Default::default()) }
 if builder.draft_code.is_none() { builder.draft_code = Some(Default::default()) }
-if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = Some(Default::default()) }
+if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = "no value was set".parse::<crate::types::FunctionRuntimeVersion>().ok() }
 if builder.draft_edited_at.is_none() { builder.draft_edited_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.draft_edited_by.is_none() { builder.draft_edited_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
@@ -380,7 +380,7 @@ if builder.group_type.is_none() { builder.group_type = "no value was set".parse:
 pub(crate) fn get_function_output_output_correct_errors(mut builder: crate::operation::get_function::builders::GetFunctionOutputBuilder) -> crate::operation::get_function::builders::GetFunctionOutputBuilder {
                 if builder.function_name.is_none() { builder.function_name = Some(Default::default()) }
 if builder.draft_code.is_none() { builder.draft_code = Some(Default::default()) }
-if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = Some(Default::default()) }
+if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = "no value was set".parse::<crate::types::FunctionRuntimeVersion>().ok() }
 if builder.draft_edited_at.is_none() { builder.draft_edited_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.draft_edited_by.is_none() { builder.draft_edited_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
@@ -651,7 +651,7 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
 pub(crate) fn publish_output_output_correct_errors(mut builder: crate::operation::publish::builders::PublishOutputBuilder) -> crate::operation::publish::builders::PublishOutputBuilder {
                 if builder.function_name.is_none() { builder.function_name = Some(Default::default()) }
 if builder.draft_code.is_none() { builder.draft_code = Some(Default::default()) }
-if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = Some(Default::default()) }
+if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = "no value was set".parse::<crate::types::FunctionRuntimeVersion>().ok() }
 if builder.draft_edited_at.is_none() { builder.draft_edited_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.draft_edited_by.is_none() { builder.draft_edited_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
@@ -773,7 +773,7 @@ if builder.group_type.is_none() { builder.group_type = "no value was set".parse:
 pub(crate) fn update_function_output_output_correct_errors(mut builder: crate::operation::update_function::builders::UpdateFunctionOutputBuilder) -> crate::operation::update_function::builders::UpdateFunctionOutputBuilder {
                 if builder.function_name.is_none() { builder.function_name = Some(Default::default()) }
 if builder.draft_code.is_none() { builder.draft_code = Some(Default::default()) }
-if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = Some(Default::default()) }
+if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = "no value was set".parse::<crate::types::FunctionRuntimeVersion>().ok() }
 if builder.draft_edited_at.is_none() { builder.draft_edited_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.draft_edited_by.is_none() { builder.draft_edited_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
@@ -1006,7 +1006,7 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
 pub(crate) fn function_response_correct_errors(mut builder: crate::types::builders::FunctionResponseBuilder) -> crate::types::builders::FunctionResponseBuilder {
                 if builder.function_name.is_none() { builder.function_name = Some(Default::default()) }
 if builder.draft_code.is_none() { builder.draft_code = Some(Default::default()) }
-if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = Some(Default::default()) }
+if builder.draft_runtime_version.is_none() { builder.draft_runtime_version = "no value was set".parse::<crate::types::FunctionRuntimeVersion>().ok() }
 if builder.draft_edited_at.is_none() { builder.draft_edited_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.draft_edited_by.is_none() { builder.draft_edited_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }

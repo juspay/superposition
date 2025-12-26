@@ -4,7 +4,7 @@ use superposition_types::{
         FunctionName, Stage, UpdateFunctionRequest,
     },
     database::models::{
-        cac::{Function, FunctionCode, FunctionType},
+        cac::{Function, FunctionCode, FunctionRuntimeVersion, FunctionType},
         ChangeReason, Description,
     },
 };
@@ -15,7 +15,7 @@ use crate::utils::{construct_request_headers, get_host, parse_json_response, req
 pub async fn create_function(
     function_name: String,
     function: String,
-    runtime_version: String,
+    runtime_version: FunctionRuntimeVersion,
     description: String,
     change_reason: String,
     function_type: FunctionType,
@@ -48,7 +48,7 @@ pub async fn create_function(
 pub async fn update_function(
     function_name: String,
     function: String,
-    runtime_version: String,
+    runtime_version: FunctionRuntimeVersion,
     description: String,
     change_reason: String,
     tenant: String,

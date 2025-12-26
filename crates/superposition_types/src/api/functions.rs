@@ -11,7 +11,7 @@ use crate::database::schema::functions;
 use crate::{
     custom_query::{CommaSeparatedQParams, QueryParam},
     database::models::{
-        cac::{FunctionCode, FunctionType},
+        cac::{FunctionCode, FunctionRuntimeVersion, FunctionType},
         ChangeReason, Description,
     },
     IsEmpty, RegexEnum,
@@ -24,7 +24,7 @@ pub struct UpdateFunctionRequest {
     #[serde(rename = "function")]
     pub draft_code: Option<FunctionCode>,
     #[serde(rename = "runtime_version")]
-    pub draft_runtime_version: Option<String>,
+    pub draft_runtime_version: Option<FunctionRuntimeVersion>,
     pub description: Option<Description>,
     pub change_reason: ChangeReason,
 }
@@ -35,7 +35,7 @@ pub struct CreateFunctionRequest {
     pub function: FunctionCode,
     #[serde(default = "FunctionType::default")]
     pub function_type: FunctionType,
-    pub runtime_version: String,
+    pub runtime_version: FunctionRuntimeVersion,
     pub description: Description,
     pub change_reason: ChangeReason,
 }
@@ -89,7 +89,9 @@ pub struct TestParam {
     pub stage: Stage,
 }
 
-#[derive(Debug, Display, Clone, Serialize, Deserialize)]
+#[derive(
+    Debug, Display, Clone, Serialize, Deserialize, PartialEq, strum_macros::EnumIter,
+)]
 pub enum KeyType {
     ConfigKey,
     Dimension,
@@ -97,24 +99,24 @@ pub enum KeyType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FunctionExecutionRequest {
+    #[serde(rename = "value_validate")]
     ValueValidationFunctionRequest {
         key: String,
         value: Value,
         r#type: KeyType,
         environment: FunctionEnvironment,
     },
+    #[serde(rename = "value_compute")]
     ValueComputeFunctionRequest {
         name: String,
         prefix: String,
         r#type: KeyType,
         environment: FunctionEnvironment,
     },
-    ContextValidationFunctionRequest {
-        environment: FunctionEnvironment,
-    },
-    ChangeReasonValidationFunctionRequest {
-        change_reason: ChangeReason,
-    },
+    #[serde(rename = "context_validate")]
+    ContextValidationFunctionRequest { environment: FunctionEnvironment },
+    #[serde(rename = "change_reason_validate")]
+    ChangeReasonValidationFunctionRequest { change_reason: ChangeReason },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
@@ -122,6 +124,9 @@ pub struct FunctionEnvironment {
     pub context: Map<String, Value>,
     pub overrides: Map<String, Value>,
 }
+
+pub const CONTEXT_VALIDATION_FN_NAME: &str = "context_validation";
+pub const CHANGE_REASON_VALIDATION_FN_NAME: &str = "change_reason_validation";
 
 impl FunctionExecutionRequest {
     pub fn value_validation_default() -> Self {
@@ -159,11 +164,11 @@ impl FunctionExecutionRequest {
                 String::from(name)
             }
             FunctionExecutionRequest::ContextValidationFunctionRequest { .. } => {
-                String::from("context_validation_function")
+                String::from(CONTEXT_VALIDATION_FN_NAME)
             }
             FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
                 ..
-            } => String::from("change_reason_validation_function"),
+            } => String::from(CHANGE_REASON_VALIDATION_FN_NAME),
         }
     }
 }

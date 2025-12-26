@@ -6,6 +6,7 @@ import {
     DeleteFunctionCommand,
     PublishCommand,
     FunctionTypes,
+    FunctionRuntimeVersion,
 } from "@juspay/superposition-sdk";
 import { expect, describe, it, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
@@ -17,7 +18,9 @@ describe("Function Operations", () => {
     // Value Validation Function Tests
     it("should create and test value_validation function", async () => {
         const valueValidationCode = `
-            async function validate_value(key, value) {
+            async function execute(payload) {
+                let value = payload.value_validate.value;
+                let key = payload.value_validate.key;
                 if (key === "test-dimension" && value === "valid") {
                     return true;
                 }
@@ -32,7 +35,7 @@ describe("Function Operations", () => {
             function: valueValidationCode,
             description: "Test value_validation function",
             change_reason: "Initial creation",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
             function_type: FunctionTypes.VALUE_VALIDATION,
         });
 
@@ -51,7 +54,9 @@ describe("Function Operations", () => {
             const getResponse = await superpositionClient.send(getCommand);
 
             expect(getResponse.function_name).toBe(valueValidationFunctionName);
-            expect(getResponse.function_type).toBe(FunctionTypes.VALUE_VALIDATION);
+            expect(getResponse.function_type).toBe(
+                FunctionTypes.VALUE_VALIDATION
+            );
         } catch (error) {
             console.error(error);
             throw error;
@@ -61,7 +66,9 @@ describe("Function Operations", () => {
     // Value Compute Function Tests
     it("should create and test value_compute function", async () => {
         const valueComputeCode = `
-            async function value_compute(name, prefix, environment) {
+            async function execute(payload) {
+                let name = payload.value_compute.name;
+                let prefix = payload.value_compute.prefix;
                 if (name === "test-dimension" && prefix === "t") {
                     return ["test1", "test2", "test3"];
                 }
@@ -76,7 +83,7 @@ describe("Function Operations", () => {
             function: valueComputeCode,
             description: "Test value_compute function",
             change_reason: "Initial creation",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
             function_type: FunctionTypes.VALUE_COMPUTE,
         });
 
@@ -122,7 +129,9 @@ describe("Function Operations", () => {
     // Update function tests
     it("should update value_validation function", async () => {
         const updatedValueValidationCode = `
-            async function validate_value(key, value) {
+            async function execute(payload) {
+                let value = payload.value_validate.value;
+                let key = payload.value_validate.key;
                 if (key === "test-dimension" && value === "updated-valid") {
                     return true;
                 }
@@ -137,14 +146,16 @@ describe("Function Operations", () => {
             function: updatedValueValidationCode,
             description: "Updated value_validation function",
             change_reason: "Test update",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
         });
 
         try {
             const updateResponse = await superpositionClient.send(
                 updateCommand
             );
-            expect(updateResponse.function_name).toBe(valueValidationFunctionName);
+            expect(updateResponse.function_name).toBe(
+                valueValidationFunctionName
+            );
             expect(updateResponse.description).toBe(
                 "Updated value_validation function"
             );
@@ -156,7 +167,9 @@ describe("Function Operations", () => {
 
     it("should update value_compute function", async () => {
         const updatedValueComputeCode = `
-            async function value_compute(name, prefix, environment) {
+            async function execute(payload) {
+                let name = payload.value_compute.name;
+                let prefix = payload.value_compute.prefix;
                 if (name === "test-dimension" && prefix === "updated") {
                     return ["updated1", "updated2", "updated3"];
                 }
@@ -171,7 +184,7 @@ describe("Function Operations", () => {
             function: updatedValueComputeCode,
             description: "Updated value_compute function",
             change_reason: "Test update",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
         });
 
         try {
@@ -195,7 +208,7 @@ describe("Function Operations", () => {
             function: "invalid code",
             description: "Test value_validation function",
             change_reason: "Initial creation",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
             function_type: FunctionTypes.VALUE_VALIDATION,
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
@@ -211,7 +224,7 @@ describe("Function Operations", () => {
 
     it("should fail to create value_compute function with invalid return type", async () => {
         const invalidCode = `
-            async function value_compute(name, prefix, environment) {
+            async function execute(payload) {
                 return "invalid return type";
             }
         `;
@@ -221,7 +234,7 @@ describe("Function Operations", () => {
             function: invalidCode,
             description: "Test value_validation function",
             change_reason: "Initial creation",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
             function_type: FunctionTypes.VALUE_COMPUTE,
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,

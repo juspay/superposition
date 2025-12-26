@@ -26,8 +26,8 @@ public final class CreateFunctionOutput implements SerializableStruct {
         .putMember("published_code", PreludeSchemas.STRING)
         .putMember("draft_code", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("published_runtime_version", PreludeSchemas.STRING)
-        .putMember("draft_runtime_version", PreludeSchemas.STRING,
+        .putMember("published_runtime_version", FunctionRuntimeVersion.$SCHEMA)
+        .putMember("draft_runtime_version", FunctionRuntimeVersion.$SCHEMA,
                 new RequiredTrait())
         .putMember("published_at", SharedSchemas.DATE_TIME)
         .putMember("draft_edited_at", SharedSchemas.DATE_TIME,
@@ -65,8 +65,8 @@ public final class CreateFunctionOutput implements SerializableStruct {
     private final transient String functionName;
     private final transient String publishedCode;
     private final transient String draftCode;
-    private final transient String publishedRuntimeVersion;
-    private final transient String draftRuntimeVersion;
+    private final transient FunctionRuntimeVersion publishedRuntimeVersion;
+    private final transient FunctionRuntimeVersion draftRuntimeVersion;
     private final transient Instant publishedAt;
     private final transient Instant draftEditedAt;
     private final transient String publishedBy;
@@ -106,11 +106,11 @@ public final class CreateFunctionOutput implements SerializableStruct {
         return draftCode;
     }
 
-    public String publishedRuntimeVersion() {
+    public FunctionRuntimeVersion publishedRuntimeVersion() {
         return publishedRuntimeVersion;
     }
 
-    public String draftRuntimeVersion() {
+    public FunctionRuntimeVersion draftRuntimeVersion() {
         return draftRuntimeVersion;
     }
 
@@ -198,9 +198,9 @@ public final class CreateFunctionOutput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_DRAFT_CODE, draftCode);
         if (publishedRuntimeVersion != null) {
-            serializer.writeString($SCHEMA_PUBLISHED_RUNTIME_VERSION, publishedRuntimeVersion);
+            serializer.writeString($SCHEMA_PUBLISHED_RUNTIME_VERSION, publishedRuntimeVersion.value());
         }
-        serializer.writeString($SCHEMA_DRAFT_RUNTIME_VERSION, draftRuntimeVersion);
+        serializer.writeString($SCHEMA_DRAFT_RUNTIME_VERSION, draftRuntimeVersion.value());
         if (publishedAt != null) {
             serializer.writeTimestamp($SCHEMA_PUBLISHED_AT, publishedAt);
         }
@@ -279,8 +279,8 @@ public final class CreateFunctionOutput implements SerializableStruct {
         private String functionName;
         private String publishedCode;
         private String draftCode;
-        private String publishedRuntimeVersion;
-        private String draftRuntimeVersion;
+        private FunctionRuntimeVersion publishedRuntimeVersion;
+        private FunctionRuntimeVersion draftRuntimeVersion;
         private Instant publishedAt;
         private Instant draftEditedAt;
         private String publishedBy;
@@ -329,7 +329,7 @@ public final class CreateFunctionOutput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder publishedRuntimeVersion(String publishedRuntimeVersion) {
+        public Builder publishedRuntimeVersion(FunctionRuntimeVersion publishedRuntimeVersion) {
             this.publishedRuntimeVersion = publishedRuntimeVersion;
             return this;
         }
@@ -338,7 +338,7 @@ public final class CreateFunctionOutput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder draftRuntimeVersion(String draftRuntimeVersion) {
+        public Builder draftRuntimeVersion(FunctionRuntimeVersion draftRuntimeVersion) {
             this.draftRuntimeVersion = Objects.requireNonNull(draftRuntimeVersion, "draftRuntimeVersion cannot be null");
             tracker.setMember($SCHEMA_DRAFT_RUNTIME_VERSION);
             return this;
@@ -442,7 +442,7 @@ public final class CreateFunctionOutput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> functionName((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_NAME, member, value));
                 case 1 -> draftCode((String) SchemaUtils.validateSameMember($SCHEMA_DRAFT_CODE, member, value));
-                case 2 -> draftRuntimeVersion((String) SchemaUtils.validateSameMember($SCHEMA_DRAFT_RUNTIME_VERSION, member, value));
+                case 2 -> draftRuntimeVersion((FunctionRuntimeVersion) SchemaUtils.validateSameMember($SCHEMA_DRAFT_RUNTIME_VERSION, member, value));
                 case 3 -> draftEditedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_DRAFT_EDITED_AT, member, value));
                 case 4 -> draftEditedBy((String) SchemaUtils.validateSameMember($SCHEMA_DRAFT_EDITED_BY, member, value));
                 case 5 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
@@ -451,7 +451,7 @@ public final class CreateFunctionOutput implements SerializableStruct {
                 case 8 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 9 -> functionType((FunctionTypes) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, value));
                 case 10 -> publishedCode((String) SchemaUtils.validateSameMember($SCHEMA_PUBLISHED_CODE, member, value));
-                case 11 -> publishedRuntimeVersion((String) SchemaUtils.validateSameMember($SCHEMA_PUBLISHED_RUNTIME_VERSION, member, value));
+                case 11 -> publishedRuntimeVersion((FunctionRuntimeVersion) SchemaUtils.validateSameMember($SCHEMA_PUBLISHED_RUNTIME_VERSION, member, value));
                 case 12 -> publishedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_PUBLISHED_AT, member, value));
                 case 13 -> publishedBy((String) SchemaUtils.validateSameMember($SCHEMA_PUBLISHED_BY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
@@ -470,7 +470,7 @@ public final class CreateFunctionOutput implements SerializableStruct {
                 draftCode("");
             }
             if (!tracker.checkMember($SCHEMA_DRAFT_RUNTIME_VERSION)) {
-                draftRuntimeVersion("");
+                draftRuntimeVersion(FunctionRuntimeVersion.unknown(""));
             }
             if (!tracker.checkMember($SCHEMA_DRAFT_EDITED_AT)) {
                 draftEditedAt(Instant.EPOCH);
@@ -516,7 +516,7 @@ public final class CreateFunctionOutput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.functionName(de.readString(member));
                     case 1 -> builder.draftCode(de.readString(member));
-                    case 2 -> builder.draftRuntimeVersion(de.readString(member));
+                    case 2 -> builder.draftRuntimeVersion(FunctionRuntimeVersion.builder().deserializeMember(de, member).build());
                     case 3 -> builder.draftEditedAt(de.readTimestamp(member));
                     case 4 -> builder.draftEditedBy(de.readString(member));
                     case 5 -> builder.lastModifiedAt(de.readTimestamp(member));
@@ -525,7 +525,7 @@ public final class CreateFunctionOutput implements SerializableStruct {
                     case 8 -> builder.description(de.readString(member));
                     case 9 -> builder.functionType(FunctionTypes.builder().deserializeMember(de, member).build());
                     case 10 -> builder.publishedCode(de.readString(member));
-                    case 11 -> builder.publishedRuntimeVersion(de.readString(member));
+                    case 11 -> builder.publishedRuntimeVersion(FunctionRuntimeVersion.builder().deserializeMember(de, member).build());
                     case 12 -> builder.publishedAt(de.readTimestamp(member));
                     case 13 -> builder.publishedBy(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());

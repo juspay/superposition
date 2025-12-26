@@ -49,7 +49,7 @@ export interface CreateFunctionCommandOutput extends FunctionResponse, __Metadat
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   function: "STRING_VALUE", // required
- *   runtime_version: "STRING_VALUE", // required
+ *   runtime_version: "1.0", // required
  *   function_type: "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION", // required
  * };
  * const command = new CreateFunctionCommand(input);
@@ -58,8 +58,8 @@ export interface CreateFunctionCommandOutput extends FunctionResponse, __Metadat
  * //   function_name: "STRING_VALUE", // required
  * //   published_code: "STRING_VALUE",
  * //   draft_code: "STRING_VALUE", // required
- * //   published_runtime_version: "STRING_VALUE",
- * //   draft_runtime_version: "STRING_VALUE", // required
+ * //   published_runtime_version: "1.0",
+ * //   draft_runtime_version: "1.0", // required
  * //   published_at: new Date("TIMESTAMP"),
  * //   draft_edited_at: new Date("TIMESTAMP"), // required
  * //   published_by: "STRING_VALUE",

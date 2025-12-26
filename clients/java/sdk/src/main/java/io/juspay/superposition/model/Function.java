@@ -17,7 +17,7 @@ public final class Function implements ApiResource {
         "org_id", PreludeSchemas.STRING,
         "function_name", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
-        Map.entry("published_runtime_version", PreludeSchemas.STRING),
+        Map.entry("published_runtime_version", FunctionRuntimeVersion.$SCHEMA),
         Map.entry("description", PreludeSchemas.STRING),
         Map.entry("function_type", FunctionTypes.$SCHEMA),
         Map.entry("last_modified_by", PreludeSchemas.STRING),
@@ -27,7 +27,7 @@ public final class Function implements ApiResource {
         Map.entry("draft_edited_by", PreludeSchemas.STRING),
         Map.entry("draft_edited_at", SharedSchemas.DATE_TIME),
         Map.entry("draft_code", PreludeSchemas.STRING),
-        Map.entry("draft_runtime_version", PreludeSchemas.STRING),
+        Map.entry("draft_runtime_version", FunctionRuntimeVersion.$SCHEMA),
         Map.entry("published_at", SharedSchemas.DATE_TIME),
         Map.entry("published_code", PreludeSchemas.STRING));
 

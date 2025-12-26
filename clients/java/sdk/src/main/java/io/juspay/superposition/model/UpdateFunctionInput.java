@@ -35,7 +35,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("function", PreludeSchemas.STRING)
-        .putMember("runtime_version", PreludeSchemas.STRING)
+        .putMember("runtime_version", FunctionRuntimeVersion.$SCHEMA)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -52,7 +52,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
     private final transient String description;
     private final transient String changeReason;
     private final transient String function;
-    private final transient String runtimeVersion;
+    private final transient FunctionRuntimeVersion runtimeVersion;
 
     private UpdateFunctionInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -88,7 +88,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
         return function;
     }
 
-    public String runtimeVersion() {
+    public FunctionRuntimeVersion runtimeVersion() {
         return runtimeVersion;
     }
 
@@ -138,7 +138,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
             serializer.writeString($SCHEMA_FUNCTION, function);
         }
         if (runtimeVersion != null) {
-            serializer.writeString($SCHEMA_RUNTIME_VERSION, runtimeVersion);
+            serializer.writeString($SCHEMA_RUNTIME_VERSION, runtimeVersion.value());
         }
     }
 
@@ -194,7 +194,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
         private String description;
         private String changeReason;
         private String function;
-        private String runtimeVersion;
+        private FunctionRuntimeVersion runtimeVersion;
 
         private Builder() {}
 
@@ -262,7 +262,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
         /**
          * @return this builder.
          */
-        public Builder runtimeVersion(String runtimeVersion) {
+        public Builder runtimeVersion(FunctionRuntimeVersion runtimeVersion) {
             this.runtimeVersion = runtimeVersion;
             return this;
         }
@@ -283,7 +283,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 5 -> function((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, value));
-                case 6 -> runtimeVersion((String) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
+                case 6 -> runtimeVersion((FunctionRuntimeVersion) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -332,7 +332,7 @@ public final class UpdateFunctionInput implements SerializableStruct {
                     case 3 -> builder.changeReason(de.readString(member));
                     case 4 -> builder.description(de.readString(member));
                     case 5 -> builder.function(de.readString(member));
-                    case 6 -> builder.runtimeVersion(de.readString(member));
+                    case 6 -> builder.runtimeVersion(FunctionRuntimeVersion.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

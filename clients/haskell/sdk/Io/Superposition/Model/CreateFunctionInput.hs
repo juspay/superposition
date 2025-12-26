@@ -29,6 +29,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.FunctionRuntimeVersion
 import qualified Io.Superposition.Model.FunctionTypes
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
@@ -40,7 +41,7 @@ data CreateFunctionInput = CreateFunctionInput {
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     function :: Data.Text.Text,
-    runtime_version :: Data.Text.Text,
+    runtime_version :: Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion,
     function_type :: Io.Superposition.Model.FunctionTypes.FunctionTypes
 } deriving (
   GHC.Show.Show,
@@ -84,7 +85,7 @@ data CreateFunctionInputBuilderState = CreateFunctionInputBuilderState {
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     functionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    runtime_versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    runtime_versionBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion,
     function_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.FunctionTypes.FunctionTypes
 } deriving (
   GHC.Generics.Generic
@@ -128,7 +129,7 @@ setFunction :: Data.Text.Text -> CreateFunctionInputBuilder ()
 setFunction value =
    Control.Monad.State.Strict.modify (\s -> (s { functionBuilderState = Data.Maybe.Just value }))
 
-setRuntimeVersion :: Data.Text.Text -> CreateFunctionInputBuilder ()
+setRuntimeVersion :: Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion -> CreateFunctionInputBuilder ()
 setRuntimeVersion value =
    Control.Monad.State.Strict.modify (\s -> (s { runtime_versionBuilderState = Data.Maybe.Just value }))
 

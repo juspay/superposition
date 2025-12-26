@@ -17,7 +17,8 @@ use superposition_types::{
 };
 
 use crate::api::{
-    dimension::fetch_dimensions_info_map, functions::helpers::get_published_function_code,
+    dimension::fetch_dimensions_info_map,
+    functions::{helpers::get_published_function_code, types::FunctionInfo},
 };
 
 pub fn validate_dimension_position(
@@ -244,7 +245,9 @@ fn check_fn_published(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    if get_published_function_code(conn, fn_name, schema_name)?.is_some() {
+    let FunctionInfo { published_code, .. } =
+        get_published_function_code(conn, fn_name, schema_name)?;
+    if published_code.is_some() {
         Ok(())
     } else {
         Err(validation_error!(

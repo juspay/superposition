@@ -25,12 +25,14 @@ use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     api::functions::{
-        FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse, KeyType,
+        FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
+        KeyType, CHANGE_REASON_VALIDATION_FN_NAME,
     },
     database::{
         models::{
             cac::{
-                ConfigVersion, DependencyGraph, DimensionType, FunctionCode, FunctionType,
+                ConfigVersion, DependencyGraph, DimensionType, FunctionCode,
+                FunctionRuntimeVersion, FunctionType,
             },
             ChangeReason, Description, Workspace,
         },
@@ -38,7 +40,6 @@ use superposition_types::{
             config_versions,
             contexts::dsl::{self as ctxt},
             default_configs::dsl as def_conf,
-            functions::dsl as functions,
         },
         superposition_schema::superposition::workspaces,
     },
@@ -52,9 +53,12 @@ use uuid::Uuid;
 
 use crate::{
     api::{
-        context::helpers::validate_value_with_function,
+        context::helpers::validation_function_executor,
         dimension::fetch_dimensions_info_map,
-        functions::helpers::get_first_function_by_type,
+        functions::{
+            helpers::{get_first_function_by_type, get_published_function_code},
+            types::FunctionInfo,
+        },
     },
     validation_functions::execute_fn,
 };
@@ -306,12 +310,14 @@ pub async fn put_config_in_redis(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn compute_value_with_function(
     fun_name: &str,
     function: &FunctionCode,
     key: &str,
     context: Map<String, Value>,
     overrides: Map<String, Value>,
+    runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<Value> {
@@ -323,6 +329,7 @@ fn compute_value_with_function(
             r#type: KeyType::Dimension,
             environment: FunctionEnvironment { context, overrides },
         },
+        runtime_version,
         conn,
         schema_name,
     ) {
@@ -388,14 +395,27 @@ fn evaluate_remote_cohorts_dependency(
                 ));
             };
 
-            let fn_code = functions::functions
-                .filter(functions::function_name.eq(value_compute_function_name_))
-                .select(functions::published_code)
-                .schema_name(schema_name)
-                .first::<Option<FunctionCode>>(conn)?
-                .ok_or_else(|| {
+            let FunctionInfo {
+                published_code,
+                published_runtime_version,
+                ..
+            } = get_published_function_code(
+                conn,
+                value_compute_function_name_,
+                schema_name,
+            )?;
+
+            let fn_code = published_code.ok_or_else(|| {
+                validation_error!(
+                    "Published code not found for function {}",
+                    value_compute_function_name_
+                )
+            })?;
+
+            let published_runtime_version =
+                published_runtime_version.ok_or_else(|| {
                     validation_error!(
-                        "Published code not found for function {}",
+                        "Published runtime version not found for function {}",
                         value_compute_function_name_
                     )
                 })?;
@@ -406,6 +426,7 @@ fn evaluate_remote_cohorts_dependency(
                 based_on,
                 modified_context.clone(),
                 Map::new(),
+                published_runtime_version,
                 conn,
                 schema_name,
             )?;
@@ -487,13 +508,17 @@ pub fn validate_change_reason(
         conn,
         schema_name,
     )?;
-    if let Some(function_code) = change_reason_validation_function {
-        validate_value_with_function(
-            "change_reason_validation_function",
+    if let (Some(function_code), Some(published_runtime_version)) = (
+        change_reason_validation_function.published_code,
+        change_reason_validation_function.published_runtime_version,
+    ) {
+        validation_function_executor(
+            CHANGE_REASON_VALIDATION_FN_NAME,
             &function_code,
             &FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
                 change_reason: change_reason.clone(),
             },
+            published_runtime_version,
             conn,
             schema_name,
         )?;

@@ -5520,6 +5520,17 @@
                     "output"
                 ]
             },
+            "ChangeReasonValidationFunctionRequest": {
+                "type": "object",
+                "properties": {
+                    "change_reason": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "change_reason"
+                ]
+            },
             "ConcludeExperimentRequestContent": {
                 "type": "object",
                 "properties": {
@@ -6412,7 +6423,7 @@
                         "type": "string"
                     },
                     "runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "function_type": {
                         "$ref": "#/components/schemas/FunctionTypes"
@@ -6440,10 +6451,10 @@
                         "type": "string"
                     },
                     "published_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "draft_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "published_at": {
                         "type": "string",
@@ -7581,38 +7592,50 @@
                 "oneOf": [
                     {
                         "type": "object",
-                        "title": "ValueValidationFunctionRequest",
+                        "title": "value_validate",
                         "properties": {
-                            "ValueValidationFunctionRequest": {
+                            "value_validate": {
                                 "$ref": "#/components/schemas/ValueValidationFunctionRequest"
                             }
                         },
                         "required": [
-                            "ValueValidationFunctionRequest"
+                            "value_validate"
                         ]
                     },
                     {
                         "type": "object",
-                        "title": "ValueComputeFunctionRequest",
+                        "title": "value_compute",
                         "properties": {
-                            "ValueComputeFunctionRequest": {
+                            "value_compute": {
                                 "$ref": "#/components/schemas/ValueComputeFunctionRequest"
                             }
                         },
                         "required": [
-                            "ValueComputeFunctionRequest"
+                            "value_compute"
                         ]
                     },
                     {
                         "type": "object",
-                        "title": "ContextValidationFunctionRequest",
+                        "title": "context_validate",
                         "properties": {
-                            "ContextValidationFunctionRequest": {
+                            "context_validate": {
                                 "$ref": "#/components/schemas/ContextValidationFunctionRequest"
                             }
                         },
                         "required": [
-                            "ContextValidationFunctionRequest"
+                            "context_validate"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "title": "change_reason_validate",
+                        "properties": {
+                            "change_reason_validate": {
+                                "$ref": "#/components/schemas/ChangeReasonValidationFunctionRequest"
+                            }
+                        },
+                        "required": [
+                            "change_reason_validate"
                         ]
                     }
                 ]
@@ -7630,10 +7653,10 @@
                         "type": "string"
                     },
                     "published_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "draft_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "published_at": {
                         "type": "string",
@@ -7677,6 +7700,12 @@
                     "function_type",
                     "last_modified_at",
                     "last_modified_by"
+                ]
+            },
+            "FunctionRuntimeVersion": {
+                "type": "string",
+                "enum": [
+                    "1.0"
                 ]
             },
             "FunctionTypes": {
@@ -8119,10 +8148,10 @@
                         "type": "string"
                     },
                     "published_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "draft_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "published_at": {
                         "type": "string",
@@ -9257,10 +9286,10 @@
                         "type": "string"
                     },
                     "published_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "draft_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "published_at": {
                         "type": "string",
@@ -9977,7 +10006,7 @@
                         "type": "string"
                     },
                     "runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     }
                 },
                 "required": [
@@ -9997,10 +10026,10 @@
                         "type": "string"
                     },
                     "published_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "draft_runtime_version": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/FunctionRuntimeVersion"
                     },
                     "published_at": {
                         "type": "string",

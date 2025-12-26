@@ -47,7 +47,11 @@ pub use crate::types::_organisation_response::OrganisationResponse;
 
 pub use crate::types::_function_types::FunctionTypes;
 
+pub use crate::types::_function_runtime_version::FunctionRuntimeVersion;
+
 pub use crate::types::_function_execution_request::FunctionExecutionRequest;
+
+pub use crate::types::_change_reason_validation_function_request::ChangeReasonValidationFunctionRequest;
 
 pub use crate::types::_context_validation_function_request::ContextValidationFunctionRequest;
 
@@ -105,6 +109,8 @@ mod _audit_log_full;
 
 mod _bucket;
 
+mod _change_reason_validation_function_request;
+
 mod _context_action;
 
 mod _context_action_out;
@@ -150,6 +156,8 @@ mod _experiment_type;
 mod _function_execution_request;
 
 mod _function_response;
+
+mod _function_runtime_version;
 
 mod _function_types;
 

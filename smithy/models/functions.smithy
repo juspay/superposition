@@ -13,8 +13,8 @@ resource Function {
         published_code: String
         draft_code: String
         description: String
-        published_runtime_version: String
-        draft_runtime_version: String
+        published_runtime_version: FunctionRuntimeVersion
+        draft_runtime_version: FunctionRuntimeVersion
         published_at: DateTime
         draft_edited_at: DateTime
         published_by: String
@@ -35,6 +35,10 @@ resource Function {
     ]
 }
 
+enum FunctionRuntimeVersion {
+    V1 = "1.0"
+}
+
 structure FunctionExecutionResponse {
     @notProperty
     @required
@@ -50,9 +54,10 @@ structure FunctionExecutionResponse {
 }
 
 union FunctionExecutionRequest for Function {
-    ValueValidationFunctionRequest: ValueValidationFunctionRequest
-    ValueComputeFunctionRequest: ValueComputeFunctionRequest
-    ContextValidationFunctionRequest: ContextValidationFunctionRequest
+    value_validate: ValueValidationFunctionRequest
+    value_compute: ValueComputeFunctionRequest
+    context_validate: ContextValidationFunctionRequest
+    change_reason_validate: ChangeReasonValidationFunctionRequest
 }
 
 structure ValueValidationFunctionRequest {
@@ -88,6 +93,11 @@ structure ContextValidationFunctionRequest {
     environment: Document
 }
 
+structure ChangeReasonValidationFunctionRequest {
+    @required
+    change_reason: String
+}
+
 enum FunctionTypes {
     VALUE_VALIDATION
     VALUE_COMPUTE
@@ -120,7 +130,7 @@ structure CreateFunctionRequest for Function with [WorkspaceMixin] {
 
     @required
     @notProperty
-    runtime_version: String
+    runtime_version: FunctionRuntimeVersion
 
     @required
     $function_type
@@ -140,7 +150,7 @@ structure UpdateFunctionRequest for Function with [WorkspaceMixin] {
     function: String
 
     @notProperty
-    runtime_version: String
+    runtime_version: FunctionRuntimeVersion
 }
 
 structure FunctionResponse for Function {

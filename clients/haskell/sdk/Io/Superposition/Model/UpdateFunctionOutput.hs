@@ -42,6 +42,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.FunctionRuntimeVersion
 import qualified Io.Superposition.Model.FunctionTypes
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
@@ -50,8 +51,8 @@ data UpdateFunctionOutput = UpdateFunctionOutput {
     function_name :: Data.Text.Text,
     published_code :: Data.Maybe.Maybe Data.Text.Text,
     draft_code :: Data.Text.Text,
-    published_runtime_version :: Data.Maybe.Maybe Data.Text.Text,
-    draft_runtime_version :: Data.Text.Text,
+    published_runtime_version :: Data.Maybe.Maybe Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion,
+    draft_runtime_version :: Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion,
     published_at :: Data.Maybe.Maybe Data.Time.UTCTime,
     draft_edited_at :: Data.Time.UTCTime,
     published_by :: Data.Maybe.Maybe Data.Text.Text,
@@ -112,8 +113,8 @@ data UpdateFunctionOutputBuilderState = UpdateFunctionOutputBuilderState {
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     published_codeBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     draft_codeBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    published_runtime_versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    draft_runtime_versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    published_runtime_versionBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion,
+    draft_runtime_versionBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion,
     published_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     draft_edited_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     published_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -159,11 +160,11 @@ setDraftCode :: Data.Text.Text -> UpdateFunctionOutputBuilder ()
 setDraftCode value =
    Control.Monad.State.Strict.modify (\s -> (s { draft_codeBuilderState = Data.Maybe.Just value }))
 
-setPublishedRuntimeVersion :: Data.Maybe.Maybe Data.Text.Text -> UpdateFunctionOutputBuilder ()
+setPublishedRuntimeVersion :: Data.Maybe.Maybe Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion -> UpdateFunctionOutputBuilder ()
 setPublishedRuntimeVersion value =
    Control.Monad.State.Strict.modify (\s -> (s { published_runtime_versionBuilderState = value }))
 
-setDraftRuntimeVersion :: Data.Text.Text -> UpdateFunctionOutputBuilder ()
+setDraftRuntimeVersion :: Io.Superposition.Model.FunctionRuntimeVersion.FunctionRuntimeVersion -> UpdateFunctionOutputBuilder ()
 setDraftRuntimeVersion value =
    Control.Monad.State.Strict.modify (\s -> (s { draft_runtime_versionBuilderState = Data.Maybe.Just value }))
 

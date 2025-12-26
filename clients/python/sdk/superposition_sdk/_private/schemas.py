@@ -1298,6 +1298,22 @@ BULK_OPERATION = Schema(
 
 )
 
+CHANGE_REASON_VALIDATION_FUNCTION_REQUEST = Schema.collection(
+    id=ShapeID("io.superposition#ChangeReasonValidationFunctionRequest"),
+
+    members={
+        "change_reason": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
 CONCLUDE_EXPERIMENT_INPUT = Schema.collection(
     id=ShapeID("io.superposition#ConcludeExperimentInput"),
 
@@ -5214,6 +5230,22 @@ FUNCTION_TYPES = Schema.collection(
     }
 )
 
+FUNCTION_RUNTIME_VERSION = Schema.collection(
+    id=ShapeID("io.superposition#FunctionRuntimeVersion"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "V1": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="1.0"),
+
+            ],
+        },
+
+    }
+)
+
 CREATE_FUNCTION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#CreateFunctionInput"),
 
@@ -5281,7 +5313,7 @@ CREATE_FUNCTION_INPUT = Schema.collection(
         },
 
         "runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -5335,12 +5367,12 @@ CREATE_FUNCTION_OUTPUT = Schema.collection(
         },
 
         "published_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 3,
         },
 
         "draft_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -11630,12 +11662,12 @@ GET_FUNCTION_OUTPUT = Schema.collection(
         },
 
         "published_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 3,
         },
 
         "draft_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -11843,12 +11875,12 @@ FUNCTION_RESPONSE = Schema.collection(
         },
 
         "published_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 3,
         },
 
         "draft_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -12082,12 +12114,12 @@ PUBLISH_OUTPUT = Schema.collection(
         },
 
         "published_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 3,
         },
 
         "draft_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -12278,19 +12310,24 @@ FUNCTION_EXECUTION_REQUEST = Schema.collection(
     id=ShapeID("io.superposition#FunctionExecutionRequest"),
     shape_type=ShapeType.UNION,
     members={
-        "ValueValidationFunctionRequest": {
+        "value_validate": {
             "target": VALUE_VALIDATION_FUNCTION_REQUEST,
             "index": 0,
         },
 
-        "ValueComputeFunctionRequest": {
+        "value_compute": {
             "target": VALUE_COMPUTE_FUNCTION_REQUEST,
             "index": 1,
         },
 
-        "ContextValidationFunctionRequest": {
+        "context_validate": {
             "target": CONTEXT_VALIDATION_FUNCTION_REQUEST,
             "index": 2,
+        },
+
+        "change_reason_validate": {
+            "target": CHANGE_REASON_VALIDATION_FUNCTION_REQUEST,
+            "index": 3,
         },
 
     }
@@ -12506,7 +12543,7 @@ UPDATE_FUNCTION_INPUT = Schema.collection(
         },
 
         "runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -12550,12 +12587,12 @@ UPDATE_FUNCTION_OUTPUT = Schema.collection(
         },
 
         "published_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 3,
         },
 
         "draft_runtime_version": {
-            "target": STRING,
+            "target": FUNCTION_RUNTIME_VERSION,
             "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),

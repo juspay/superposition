@@ -134,7 +134,7 @@ pub(crate) fn de_create_function(value: &[u8], mut builder: crate::operation::cr
                         builder = builder.set_draft_runtime_version(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
-                                    u.into_owned()
+                                    crate::types::FunctionRuntimeVersion::from(u.as_ref())
                                 )
                             ).transpose()?
                         );
@@ -198,7 +198,7 @@ pub(crate) fn de_create_function(value: &[u8], mut builder: crate::operation::cr
                         builder = builder.set_published_runtime_version(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
-                                    u.into_owned()
+                                    crate::types::FunctionRuntimeVersion::from(u.as_ref())
                                 )
                             ).transpose()?
                         );

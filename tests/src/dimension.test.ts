@@ -8,6 +8,7 @@ import {
     DeleteFunctionCommand,
     FunctionTypes,
     PublishCommand,
+    FunctionRuntimeVersion,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, afterAll, test, expect, beforeAll } from "bun:test";
@@ -84,8 +85,9 @@ describe("Dimension API", () => {
     beforeAll(async () => {
         const functionName = `dimension-validator-${Date.now()}`;
         const valueValidationCode = `
-            async function validate_value(key, value) {
+            async function execute(payload) {
                 // Simple value_validation: value must be a string with length between 3 and 20
+                let value = payload.value_validate.value;
                 if (typeof value !== 'string') {
                     return false;
                 }
@@ -100,7 +102,7 @@ describe("Dimension API", () => {
             function: valueValidationCode,
             description: "Value Validation function for dimension test",
             change_reason: "Creating test value validation function",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
             function_type: FunctionTypes.VALUE_VALIDATION,
         });
 
@@ -118,7 +120,7 @@ describe("Dimension API", () => {
 
         const functionNameAC = `dimension-completor-${Date.now()}`;
         const valueComputeCode = `
-            async function value_compute(name, prefix, environment) {
+            async function execute(payload) {
                 return ["hello", "world"];
             }
         `;
@@ -130,7 +132,7 @@ describe("Dimension API", () => {
             function: valueComputeCode,
             description: "value compute function for dimension test",
             change_reason: "Creating test value compute function",
-            runtime_version: "1",
+            runtime_version: FunctionRuntimeVersion.V1,
             function_type: FunctionTypes.VALUE_COMPUTE,
         });
 
