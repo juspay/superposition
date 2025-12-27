@@ -68,17 +68,12 @@ async fn create_default_config(
     let req = request.into_inner();
     let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let description = req.description;
-    let change_reason = req.change_reason;
 
     if req.schema.is_empty() {
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
-        log::error!("change reason validation failed with error: {:?}", err);
-        err
-    })?;
+    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
 
     let value = req.value;
 
@@ -91,8 +86,8 @@ async fn create_default_config(
         created_at: Utc::now(),
         last_modified_at: Utc::now(),
         last_modified_by: user.get_email(),
-        description: description.clone(),
-        change_reason: change_reason.clone(),
+        description: req.description,
+        change_reason: req.change_reason.clone(),
         value_compute_function_name: req.value_compute_function_name,
     };
 
@@ -147,7 +142,7 @@ async fn create_default_config(
             let version_id = add_config_version(
                 &state,
                 tags,
-                change_reason.into(),
+                req.change_reason.into(),
                 transaction_conn,
                 &schema_name,
             )?;
@@ -208,11 +203,7 @@ async fn update_default_config(
             }
         })?;
 
-    let change_reason = req.change_reason.clone();
-    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
-        log::error!("change reason validation failed with error: {:?}", err);
-        err
-    })?;
+    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -256,6 +247,7 @@ async fn update_default_config(
 
     let (db_row, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let change_reason = req.change_reason.clone();
             let val = diesel::update(dsl::default_configs)
                 .filter(dsl::key.eq(key_str.clone()))
                 .set((

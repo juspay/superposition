@@ -5,7 +5,7 @@
     "private": true,
     "repository": {
         "type": "git",
-        "url": "https://github.com/juspay/superposition.git"
+        "url": "git+https://github.com/juspay/superposition.git"
     },
     "workspaces": [
         "bindings",
