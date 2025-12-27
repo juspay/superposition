@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use superposition_types::{
     database::{
-        models::{cac::FunctionCode, ChangeReason, Description},
+        models::{ChangeReason, Description},
         schema::contexts,
     },
     Overrides,
@@ -27,10 +27,4 @@ pub(crate) struct UpdateContextOverridesChangeset {
 #[derive(Deserialize, Clone)]
 pub struct DimensionCondition {
     pub var: String,
-}
-
-#[derive(Clone)]
-pub struct FunctionsInfo {
-    pub name: String,
-    pub code: Option<FunctionCode>,
 }

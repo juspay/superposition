@@ -353,6 +353,8 @@ pub(crate) mod shape_audit_log_full;
 
 pub(crate) mod shape_bucket;
 
+pub(crate) mod shape_change_reason_validation_function_request;
+
 pub(crate) mod shape_context_action_out;
 
 pub(crate) mod shape_context_identifier;

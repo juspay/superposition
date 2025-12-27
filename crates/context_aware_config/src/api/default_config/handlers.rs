@@ -40,8 +40,8 @@ use superposition_types::{
 use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
-        context::helpers::validate_value_with_function,
-        functions::helpers::get_published_function_code,
+        context::helpers::validation_function_executor,
+        functions::{helpers::get_published_function_code, types::FunctionInfo},
     },
     helpers::{add_config_version, validate_change_reason},
 };
@@ -294,7 +294,9 @@ fn validate_fn_published(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(func_name) = function {
-        if get_published_function_code(conn, func_name, schema_name)?.is_some() {
+        let FunctionInfo { published_code, .. } =
+            get_published_function_code(conn, func_name, schema_name)?;
+        if published_code.is_some() {
             Ok(())
         } else {
             Err(validation_error!(
@@ -315,15 +317,18 @@ fn validate_default_config_with_function(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
-        let function_code = get_published_function_code(conn, f_name, schema_name)
-            .map_err(|_| {
-                bad_argument!(
-                    "Function {} doesn't exist / function code not published yet.",
-                    f_name
-                )
-            })?;
-        if let Some(f_code) = function_code {
-            validate_value_with_function(
+        let FunctionInfo {
+            published_code: function_code,
+            published_runtime_version: function_version,
+            ..
+        } = get_published_function_code(conn, f_name, schema_name).map_err(|_| {
+            bad_argument!(
+                "Function {} doesn't exist / function code not published yet.",
+                f_name
+            )
+        })?;
+        if let (Some(f_code), Some(f_version)) = (function_code, function_version) {
+            validation_function_executor(
                 f_name.as_str(),
                 &f_code,
                 &FunctionExecutionRequest::ValueValidationFunctionRequest {
@@ -332,6 +337,7 @@ fn validate_default_config_with_function(
                     r#type: KeyType::ConfigKey,
                     environment: FunctionEnvironment::default(),
                 },
+                f_version,
                 conn,
                 schema_name,
             )?;

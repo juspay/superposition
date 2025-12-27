@@ -330,18 +330,32 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 -- Your SQL goes here
-ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS function_name text NULL;
-
 DO $$ BEGIN
-    ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND column_name = 'value_validation_function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS function_name text NULL;
+        
+        ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+    END IF;
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS function_name text NULL;
-
 DO $$ BEGIN
-    ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND column_name = 'value_validation_function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS function_name text NULL;
+        
+        ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(function_name) REFERENCES {replaceme}.functions(function_name);
+    END IF;
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -550,18 +564,32 @@ ADD COLUMN IF NOT EXISTS dependents TEXT[] default '{}' NOT NULL,
 ADD COLUMN IF NOT EXISTS dependencies TEXT[] default '{}' NOT NULL;
 
 
-ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS autocomplete_function_name text NULL;
-
 DO $$ BEGIN
-    ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND column_name = 'value_compute_function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.dimensions ADD COLUMN IF NOT EXISTS autocomplete_function_name text NULL;
+        
+        ALTER TABLE {replaceme}.dimensions ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
+    END IF;
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS autocomplete_function_name text NULL;
-
 DO $$ BEGIN
-    ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND column_name = 'value_compute_function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.default_configs ADD COLUMN IF NOT EXISTS autocomplete_function_name text NULL;
+        
+        ALTER TABLE {replaceme}.default_configs ADD FOREIGN KEY(autocomplete_function_name) REFERENCES {replaceme}.functions(function_name);
+    END IF;
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -712,14 +740,25 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-ALTER TABLE {replaceme}.functions
-  ALTER COLUMN function_type DROP DEFAULT,
-  ALTER COLUMN function_type TYPE public.function_types_new
-  USING CASE function_type::text
-          WHEN 'VALIDATION' THEN 'VALUE_VALIDATION'::public.function_types_new
-          WHEN 'AUTOCOMPLETE' THEN 'VALUE_COMPUTE'::public.function_types_new
-        END,
-  ALTER COLUMN function_type SET DEFAULT 'VALUE_VALIDATION'::public.function_types_new;
+DO $$ BEGIN
+    -- Check if column type needs conversion
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'functions' 
+        AND column_name = 'function_type'
+        AND udt_name = 'function_types' -- old type
+    ) THEN
+        ALTER TABLE {replaceme}.functions
+          ALTER COLUMN function_type DROP DEFAULT,
+          ALTER COLUMN function_type TYPE public.function_types_new
+          USING CASE function_type::text
+                  WHEN 'VALIDATION' THEN 'VALUE_VALIDATION'::public.function_types_new
+                  WHEN 'AUTOCOMPLETE' THEN 'VALUE_COMPUTE'::public.function_types_new
+                END,
+          ALTER COLUMN function_type SET DEFAULT 'VALUE_VALIDATION'::public.function_types_new;
+    END IF;
+END $$;
 
 INSERT INTO {replaceme}.functions (
     function_name,
@@ -739,12 +778,12 @@ INSERT INTO {replaceme}.functions (
     created_by,
     created_at
 ) VALUES (
-    'context_validation_function',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
+    'context_validation',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNvbnRleHRfdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGVudmlyb25tZW50IH0gPSBjb250ZXh0X3ZhbGlkYXRlOwoKICAgIC8vIHZhbGlkYXRpb24gbG9naWMgZ29lcyBoZXJlCgogICAgcmV0dXJuIHRydWU7Cn0K',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNvbnRleHRfdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGVudmlyb25tZW50IH0gPSBjb250ZXh0X3ZhbGlkYXRlOwoKICAgIC8vIHZhbGlkYXRpb24gbG9naWMgZ29lcyBoZXJlCgogICAgcmV0dXJuIHRydWU7Cn0K',
     'Validates the entire context object for the whole workspace before processing. Returns true if context is valid, false otherwise.',
-    '1.0.0',
-    '1.0.0',
+    '1.0',
+    '1.0',
     NOW(),
     NOW(),
     'user@superposition.io',
@@ -755,7 +794,7 @@ INSERT INTO {replaceme}.functions (
     'CONTEXT_VALIDATION',
     'user@superposition.io',
     NOW()
-);
+) ON CONFLICT DO NOTHING;
 
 INSERT INTO {replaceme}.functions (
     function_name,
@@ -775,12 +814,12 @@ INSERT INTO {replaceme}.functions (
     created_by,
     created_at
 ) VALUES (
-    'change_reason_validation_function',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
+    'change_reason_validation',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb25fdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb24gfSA9IGNoYW5nZV9yZWFzb25fdmFsaWRhdGU7CgogICAgLy8gdmFsaWRhdGlvbiBsb2dpYyBnb2VzIGhlcmUKICAgIAogICAgcmV0dXJuIHRydWU7Cn0K',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb25fdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb24gfSA9IGNoYW5nZV9yZWFzb25fdmFsaWRhdGU7CgogICAgLy8gdmFsaWRhdGlvbiBsb2dpYyBnb2VzIGhlcmUKICAgIAogICAgcmV0dXJuIHRydWU7Cn0K',
     'Validates the change reason for any creation/updation. Returns true if context is valid, false otherwise.',
-    '1.0.0',
-    '1.0.0',
+    '1.0',
+    '1.0',
     NOW(),
     NOW(),
     'user@superposition.io',
@@ -791,44 +830,150 @@ INSERT INTO {replaceme}.functions (
     'CHANGE_REASON_VALIDATION',
     'user@superposition.io',
     NOW()
-);
+) ON CONFLICT DO NOTHING;
 
 ALTER TABLE {replaceme}.dimensions
 DROP CONSTRAINT IF EXISTS dimensions_autocomplete_function_name_fkey;
 
-ALTER TABLE {replaceme}.dimensions
-RENAME COLUMN autocomplete_function_name TO value_compute_function_name;
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND column_name = 'autocomplete_function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.dimensions
+        RENAME COLUMN autocomplete_function_name TO value_compute_function_name;
+    END IF;
+END $$;
 
-ALTER TABLE {replaceme}.dimensions
-ADD FOREIGN KEY (value_compute_function_name)
-REFERENCES {replaceme}.functions(function_name);
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND column_name = 'value_compute_function_name'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND constraint_name = 'dimensions_value_compute_function_name_fkey'
+    ) THEN
+        ALTER TABLE {replaceme}.dimensions
+        ADD CONSTRAINT dimensions_value_compute_function_name_fkey
+        FOREIGN KEY (value_compute_function_name)
+        REFERENCES {replaceme}.functions(function_name);
+    END IF;
+END $$;
+
 
 ALTER TABLE {replaceme}.default_configs
 DROP CONSTRAINT IF EXISTS default_configs_autocomplete_function_name_fkey;
 
-ALTER TABLE {replaceme}.default_configs
-RENAME COLUMN autocomplete_function_name TO value_compute_function_name;
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND column_name = 'autocomplete_function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.default_configs
+        RENAME COLUMN autocomplete_function_name TO value_compute_function_name;
+    END IF;
+END $$;
 
-ALTER TABLE {replaceme}.default_configs
-ADD FOREIGN KEY (value_compute_function_name)
-REFERENCES {replaceme}.functions(function_name);
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND column_name = 'value_compute_function_name'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND constraint_name = 'default_configs_value_compute_function_name_fkey'
+    ) THEN
+        ALTER TABLE {replaceme}.default_configs
+        ADD CONSTRAINT default_configs_value_compute_function_name_fkey
+        FOREIGN KEY (value_compute_function_name)
+        REFERENCES {replaceme}.functions(function_name);
+    END IF;
+END $$;
+
 
 ALTER TABLE {replaceme}.dimensions
 DROP CONSTRAINT IF EXISTS dimensions_function_name_fkey;
 
-ALTER TABLE {replaceme}.dimensions
-rename column function_name to value_validation_function_name;
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND column_name = 'function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.dimensions
+        RENAME COLUMN function_name TO value_validation_function_name;
+    END IF;
+END $$;
 
-ALTER TABLE {replaceme}.dimensions
-ADD FOREIGN KEY (value_validation_function_name)
-REFERENCES {replaceme}.functions(function_name);
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND column_name = 'value_validation_function_name'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'dimensions' 
+        AND constraint_name = 'dimensions_value_validation_function_name_fkey'
+    ) THEN
+        ALTER TABLE {replaceme}.dimensions
+        ADD CONSTRAINT dimensions_value_validation_function_name_fkey
+        FOREIGN KEY (value_validation_function_name)
+        REFERENCES {replaceme}.functions(function_name);
+    END IF;
+END $$;
 
 ALTER TABLE {replaceme}.default_configs
 DROP CONSTRAINT IF EXISTS default_configs_function_name_fkey;
 
-ALTER TABLE {replaceme}.default_configs
-rename column function_name to value_validation_function_name;
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND column_name = 'function_name'
+    ) THEN
+        ALTER TABLE {replaceme}.default_configs
+        RENAME COLUMN function_name TO value_validation_function_name;
+    END IF;
+END $$;
 
-ALTER TABLE {replaceme}.default_configs
-ADD FOREIGN KEY (value_validation_function_name)
-REFERENCES {replaceme}.functions(function_name);
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND column_name = 'value_validation_function_name'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_schema = '{replaceme}' 
+        AND table_name = 'default_configs' 
+        AND constraint_name = 'default_configs_value_validation_function_name_fkey'
+    ) THEN
+        ALTER TABLE {replaceme}.default_configs
+        ADD CONSTRAINT default_configs_value_validation_function_name_fkey
+        FOREIGN KEY (value_validation_function_name)
+        REFERENCES {replaceme}.functions(function_name);
+    END IF;
+END $$;
+
+UPDATE {replaceme}.functions
+SET draft_runtime_version = '1.0'
+WHERE draft_runtime_version = '1.0.0';
+
+UPDATE {replaceme}.functions
+SET published_runtime_version = '1.0'
+WHERE published_runtime_version = '1.0.0';

@@ -7,6 +7,7 @@ import {
     FunctionTypes,
     PublishCommand,
     type UpdateDefaultConfigCommandOutput,
+    FunctionRuntimeVersion,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 
@@ -64,19 +65,19 @@ describe("Default Config API Integration Tests", () => {
 
     async function createFunctions() {
         const valueValidationCode1 = `
-            async function validate_value(key, value) {
+            async function execute(payload) {
                 return false;
             }
         `;
 
         const valueValidationCode2 = `
-            async function validate_value(key, value) {
+            async function execute(payload) {
                 return true;
             }
         `;
 
         const valueComputeCode = `
-            async function value_compute(name, prefix, environment) {
+            async function execute(payload) {
                 return [];
             }
         `;
@@ -90,7 +91,7 @@ describe("Default Config API Integration Tests", () => {
                 function: valueValidationCode1,
                 description: "Test value_validation function",
                 change_reason: "Initial creation",
-                runtime_version: "1",
+                runtime_version: FunctionRuntimeVersion.V1,
                 function_type: FunctionTypes.VALUE_VALIDATION,
             })
         );
@@ -106,7 +107,7 @@ describe("Default Config API Integration Tests", () => {
                 function: valueValidationCode2,
                 description: "Test value_validation function",
                 change_reason: "Initial creation",
-                runtime_version: "1",
+                runtime_version: FunctionRuntimeVersion.V1,
                 function_type: FunctionTypes.VALUE_VALIDATION,
             })
         );
@@ -121,7 +122,7 @@ describe("Default Config API Integration Tests", () => {
                 function: valueComputeCode,
                 description: "Test value_compute function",
                 change_reason: "Initial creation",
-                runtime_version: "1",
+                runtime_version: FunctionRuntimeVersion.V1,
                 function_type: FunctionTypes.VALUE_COMPUTE,
             })
         );
@@ -509,7 +510,9 @@ describe("Default Config API Integration Tests", () => {
             expect(response.change_reason).toBe(
                 "Update function to new_function_name for testing"
             );
-            expect(response.value_validation_function_name).toBe("true_function");
+            expect(response.value_validation_function_name).toBe(
+                "true_function"
+            );
         });
     });
 });

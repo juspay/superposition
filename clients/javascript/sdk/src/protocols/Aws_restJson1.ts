@@ -307,6 +307,7 @@ import { SuperpositionServiceException as __BaseException } from "../models/Supe
 import {
   AuditLogFull,
   Bucket,
+  ChangeReasonValidationFunctionRequest,
   ContextAction,
   ContextActionOut,
   ContextIdentifier,
@@ -4663,6 +4664,8 @@ const de_CommandError = async(
     });
   }
 
+  // se_ChangeReasonValidationFunctionRequest omitted.
+
   /**
    * serializeAws_restJson1Condition
    */
@@ -4791,9 +4794,10 @@ const de_CommandError = async(
     context: __SerdeContext
   ): any => {
     return FunctionExecutionRequest.visit(input, {
-      ContextValidationFunctionRequest: value => ({ "ContextValidationFunctionRequest": se_ContextValidationFunctionRequest(value, context) }),
-      ValueComputeFunctionRequest: value => ({ "ValueComputeFunctionRequest": se_ValueComputeFunctionRequest(value, context) }),
-      ValueValidationFunctionRequest: value => ({ "ValueValidationFunctionRequest": se_ValueValidationFunctionRequest(value, context) }),
+      change_reason_validate: value => ({ "change_reason_validate": _json(value) }),
+      context_validate: value => ({ "context_validate": se_ContextValidationFunctionRequest(value, context) }),
+      value_compute: value => ({ "value_compute": se_ValueComputeFunctionRequest(value, context) }),
+      value_validate: value => ({ "value_validate": se_ValueValidationFunctionRequest(value, context) }),
       _: (name, value) => ({ name: value } as any)
     });
   }

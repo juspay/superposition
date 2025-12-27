@@ -33,12 +33,12 @@ INSERT INTO public.functions (
     created_by,
     created_at
 ) VALUES (
-    'context_validation_function',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY29udGV4dChlbnZpcm9ubWVudCkgewogICAgcmV0dXJuIHRydWU7Cn0=',
+    'context_validation',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNvbnRleHRfdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGVudmlyb25tZW50IH0gPSBjb250ZXh0X3ZhbGlkYXRlOwoKICAgIC8vIHZhbGlkYXRpb24gbG9naWMgZ29lcyBoZXJlCgogICAgcmV0dXJuIHRydWU7Cn0K',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNvbnRleHRfdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGVudmlyb25tZW50IH0gPSBjb250ZXh0X3ZhbGlkYXRlOwoKICAgIC8vIHZhbGlkYXRpb24gbG9naWMgZ29lcyBoZXJlCgogICAgcmV0dXJuIHRydWU7Cn0K',
     'Validates the entire context object for the whole workspace before processing. Returns true if context is valid, false otherwise.',
-    '1.0.0',
-    '1.0.0',
+    '1.0',
+    '1.0',
     NOW(),
     NOW(),
     'user@superposition.io',
@@ -69,12 +69,12 @@ INSERT INTO public.functions (
     created_by,
     created_at
 ) VALUES (
-    'change_reason_validation_function',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
-    'YXN5bmMgZnVuY3Rpb24gdmFsaWRhdGVfY2hhbmdlX3JlYXNvbihjaGFuZ2VfcmVhc29uKSB7CiAgICByZXR1cm4gdHJ1ZTsKfQ==',
+    'change_reason_validation',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb25fdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb24gfSA9IGNoYW5nZV9yZWFzb25fdmFsaWRhdGU7CgogICAgLy8gdmFsaWRhdGlvbiBsb2dpYyBnb2VzIGhlcmUKICAgIAogICAgcmV0dXJuIHRydWU7Cn0K',
+    'YXN5bmMgZnVuY3Rpb24gZXhlY3V0ZShwYXlsb2FkKSB7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb25fdmFsaWRhdGUgfSA9IHBheWxvYWQ7CiAgICBjb25zdCB7IGNoYW5nZV9yZWFzb24gfSA9IGNoYW5nZV9yZWFzb25fdmFsaWRhdGU7CgogICAgLy8gdmFsaWRhdGlvbiBsb2dpYyBnb2VzIGhlcmUKICAgIAogICAgcmV0dXJuIHRydWU7Cn0K',
     'Validates the change reason for any creation/updation. Returns true if context is valid, false otherwise.',
-    '1.0.0',
-    '1.0.0',
+    '1.0',
+    '1.0',
     NOW(),
     NOW(),
     'user@superposition.io',
@@ -130,3 +130,11 @@ rename column function_name to value_validation_function_name;
 ALTER TABLE public.default_configs
 ADD FOREIGN KEY (value_validation_function_name)
 REFERENCES public.functions(function_name);
+
+UPDATE {replaceme}.functions
+SET draft_runtime_version = '1.0'
+WHERE draft_runtime_version = '1.0.0';
+
+UPDATE {replaceme}.functions
+SET published_runtime_version = '1.0'
+WHERE published_runtime_version = '1.0.0';

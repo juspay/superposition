@@ -285,7 +285,10 @@ async fn migrate_workspace_schema(
         .filter(workspaces::workspace_name.eq(workspace_name))
         .get_result(&mut conn)?;
 
-    setup_workspace_schema(&mut conn, &workspace.workspace_schema_name)?;
+    conn.transaction::<(), superposition::AppError, _>(|transaction_conn| {
+        setup_workspace_schema(transaction_conn, &workspace.workspace_schema_name)?;
+        Ok(())
+    })?;
 
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))

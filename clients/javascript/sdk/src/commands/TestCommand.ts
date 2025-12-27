@@ -48,20 +48,23 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  *   function_name: "STRING_VALUE", // required
  *   stage: "draft" || "published", // required
  *   request: { // FunctionExecutionRequest Union: only one key present
- *     ValueValidationFunctionRequest: { // ValueValidationFunctionRequest
+ *     value_validate: { // ValueValidationFunctionRequest
  *       key: "STRING_VALUE", // required
  *       value: "DOCUMENT_VALUE", // required
  *       type: "STRING_VALUE", // required
  *       environment: "DOCUMENT_VALUE", // required
  *     },
- *     ValueComputeFunctionRequest: { // ValueComputeFunctionRequest
+ *     value_compute: { // ValueComputeFunctionRequest
  *       name: "STRING_VALUE", // required
  *       prefix: "STRING_VALUE", // required
  *       type: "STRING_VALUE", // required
  *       environment: "DOCUMENT_VALUE", // required
  *     },
- *     ContextValidationFunctionRequest: { // ContextValidationFunctionRequest
+ *     context_validate: { // ContextValidationFunctionRequest
  *       environment: "DOCUMENT_VALUE", // required
+ *     },
+ *     change_reason_validate: { // ChangeReasonValidationFunctionRequest
+ *       change_reason: "STRING_VALUE", // required
  *     },
  *   },
  * };

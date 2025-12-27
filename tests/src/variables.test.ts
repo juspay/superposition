@@ -7,6 +7,7 @@ import {
     DeleteVariableCommand,
     TestCommand,
     FunctionTypes,
+    FunctionRuntimeVersion,
 } from "@juspay/superposition-sdk";
 import { expect, describe, test, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
@@ -36,7 +37,10 @@ describe("Variable Operations", () => {
                 await superpositionClient.send(deleteCommand);
                 console.log(`Deleted variable: ${varName}`);
             } catch (error: any) {
-                console.error(`Failed to delete variable ${varName}:`, error.message);
+                console.error(
+                    `Failed to delete variable ${varName}:`,
+                    error.message
+                );
             }
         }
 
@@ -52,7 +56,10 @@ describe("Variable Operations", () => {
                 await superpositionClient.send(deleteCommand);
                 console.log(`Deleted function: ${funcName}`);
             } catch (error: any) {
-                console.error(`Failed to delete function ${funcName}:`, error.message);
+                console.error(
+                    `Failed to delete function ${funcName}:`,
+                    error.message
+                );
             }
         }
     });
@@ -94,7 +101,9 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(createCommand);
+            const createResponse = await superpositionClient.send(
+                createCommand
+            );
             const varName = createResponse.name!;
             trackVariable(varName);
 
@@ -116,7 +125,6 @@ describe("Variable Operations", () => {
     });
 
     test("Update Variable Value", async () => {
-
         const uniqueVariableName = `UPDATE_TEST_${Date.now()}`;
 
         try {
@@ -134,7 +142,9 @@ describe("Variable Operations", () => {
 
             trackVariable(uniqueVariableName);
 
-            console.log(`Created template ${uniqueVariableName} for update test`);
+            console.log(
+                `Created template ${uniqueVariableName} for update test`
+            );
         } catch (error: any) {
             if (!error.message?.includes("duplicate key value")) {
                 console.log(
@@ -178,7 +188,9 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(createCommand);
+            const createResponse = await superpositionClient.send(
+                createCommand
+            );
             const varName = createResponse.name!;
             trackVariable(varName);
 
@@ -190,7 +202,9 @@ describe("Variable Operations", () => {
                 change_reason: "Updating description",
             });
 
-            const updateResponse = await superpositionClient.send(updateCommand);
+            const updateResponse = await superpositionClient.send(
+                updateCommand
+            );
 
             expect(updateResponse.description).toBe("Updated description");
         } catch (error: any) {
@@ -210,7 +224,9 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(createCommand);
+            const createResponse = await superpositionClient.send(
+                createCommand
+            );
             const varName = createResponse.name!;
 
             const deleteCommand = new DeleteVariableCommand({
@@ -231,7 +247,9 @@ describe("Variable Operations", () => {
             // const response = await superpositionClient.send(getCommand);
             // console.log(`1 response: ${response}`);
 
-            expect(superpositionClient.send(getCommand)).rejects.toThrow("No records found");
+            expect(superpositionClient.send(getCommand)).rejects.toThrow(
+                "No records found"
+            );
         } catch (error: any) {
             console.log("Error testing delete:", error.message);
             throw error;
@@ -251,7 +269,9 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(createCommand);
+            const createResponse = await superpositionClient.send(
+                createCommand
+            );
             trackVariable(createResponse.name!);
 
             // Try to create duplicate
@@ -328,13 +348,13 @@ describe("Variable Operations", () => {
 
     test("Fail on Invalid Variable Name Pattern", async () => {
         const invalidNames = [
-            "invalid-name-with-dashes",  // dashes not allowed
-            "invalid name with spaces",   // spaces not allowed
-            "invalid.name.with.dots",     // dots not allowed
-            "123_STARTS_WITH_NUMBER",     // starts with number
-            "special@chars#not$allowed",  // special characters
-            "lowercase_not_allowed",      // lowercase not allowed
-            "Mixed_Case_Name",            // mixed case not allowed
+            "invalid-name-with-dashes", // dashes not allowed
+            "invalid name with spaces", // spaces not allowed
+            "invalid.name.with.dots", // dots not allowed
+            "123_STARTS_WITH_NUMBER", // starts with number
+            "special@chars#not$allowed", // special characters
+            "lowercase_not_allowed", // lowercase not allowed
+            "Mixed_Case_Name", // mixed case not allowed
         ];
 
         for (const invalidName of invalidNames) {
@@ -354,7 +374,6 @@ describe("Variable Operations", () => {
     });
 
     test("Use Variable in Function and Verify Test Output", async () => {
-
         const variableName = `API_KEY`;
         const functionName = `test_variable_function_${Date.now()}`;
         const variableValue = `secret-api-key-12345`;
@@ -371,13 +390,14 @@ describe("Variable Operations", () => {
                 change_reason: "Testing variable usage in functions",
             });
 
-            const varResponse = await superpositionClient.send(createVarCommand);
+            const varResponse = await superpositionClient.send(
+                createVarCommand
+            );
             trackVariable(varResponse.name!);
-
 
             console.log("Step 2: Creating function that uses the variable...");
             const functionCode = `
-                    async function validate_value(key, value) {
+                    async function execute(payload) {
                         console.log("API Key:", VARS.API_KEY);
                         return VARS.API_KEY === 'secret-api-key-12345'
                     }
@@ -390,11 +410,13 @@ describe("Variable Operations", () => {
                 function: functionCode,
                 description: "Function that accesses variable",
                 change_reason: "Testing variable integration",
-                runtime_version: "1",
+                runtime_version: FunctionRuntimeVersion.V1,
                 function_type: FunctionTypes.VALUE_VALIDATION,
             });
 
-            const funcResponse = await superpositionClient.send(createFuncCommand);
+            const funcResponse = await superpositionClient.send(
+                createFuncCommand
+            );
             trackFunction(funcResponse.function_name!);
 
             expect(funcResponse.function_name).toBe(functionName);
@@ -408,14 +430,14 @@ describe("Variable Operations", () => {
                 function_name: functionName,
                 stage: "draft",
                 request: {
-                    ValueValidationFunctionRequest: {
+                    value_validate: {
                         key: "",
                         value: "",
                         type: "ConfigKey",
                         environment: {
                             context: {},
                             overrides: {},
-                        }
+                        },
                     },
                 },
             });
@@ -429,12 +451,16 @@ describe("Variable Operations", () => {
             expect(testResponse.fn_output).toBe(true);
             expect(testResponse.stdout).toContain(variableValue);
 
-            console.log(`✅ Function successfully accessed variable value: ${variableValue}`);
-
+            console.log(
+                `✅ Function successfully accessed variable value: ${variableValue}`
+            );
         } catch (error: any) {
-            console.error("Error in variable-function integration test:", error.message);
+            console.error(
+                "Error in variable-function integration test:",
+                error.message,
+                error.$response
+            );
             throw error;
         }
     });
-
 });

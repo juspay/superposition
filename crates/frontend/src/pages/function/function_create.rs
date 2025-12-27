@@ -23,11 +23,12 @@ pub fn create_function_view() -> impl IntoView {
             <h1 class="text-2xl font-extrabold">"Create Function"</h1>
             <FunctionEditor
                 edit=false
-                handle_submit=move |_| {
+                handle_submit=move |function_name| {
                     let redirect_url = format!(
-                        "/admin/{}/{}/function",
+                        "/admin/{}/{}/function/{}",
                         org.get().0,
                         workspace.get().0,
+                        function_name,
                     );
                     let navigate = use_navigate();
                     navigate(&redirect_url, Default::default())

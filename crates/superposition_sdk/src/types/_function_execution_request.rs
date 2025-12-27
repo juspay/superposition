@@ -4,11 +4,13 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub enum FunctionExecutionRequest {
     #[allow(missing_docs)] // documentation missing in model
-    ContextValidationFunctionRequest(crate::types::ContextValidationFunctionRequest),
+    ChangeReasonValidate(crate::types::ChangeReasonValidationFunctionRequest),
     #[allow(missing_docs)] // documentation missing in model
-    ValueComputeFunctionRequest(crate::types::ValueComputeFunctionRequest),
+    ContextValidate(crate::types::ContextValidationFunctionRequest),
     #[allow(missing_docs)] // documentation missing in model
-    ValueValidationFunctionRequest(crate::types::ValueValidationFunctionRequest),
+    ValueCompute(crate::types::ValueComputeFunctionRequest),
+    #[allow(missing_docs)] // documentation missing in model
+    ValueValidate(crate::types::ValueValidationFunctionRequest),
     /// The `Unknown` variant represents cases where new union variant was received. Consider upgrading the SDK to the latest available version.
     /// An unknown enum variant
     ///
@@ -20,32 +22,41 @@ pub enum FunctionExecutionRequest {
     Unknown,
 }
 impl FunctionExecutionRequest {
-    /// Tries to convert the enum instance into [`ContextValidationFunctionRequest`](crate::types::FunctionExecutionRequest::ContextValidationFunctionRequest), extracting the inner [`ContextValidationFunctionRequest`](crate::types::ContextValidationFunctionRequest).
+    /// Tries to convert the enum instance into [`ChangeReasonValidate`](crate::types::FunctionExecutionRequest::ChangeReasonValidate), extracting the inner [`ChangeReasonValidationFunctionRequest`](crate::types::ChangeReasonValidationFunctionRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_context_validation_function_request(&self) -> ::std::result::Result<&crate::types::ContextValidationFunctionRequest, &Self> {
-        if let FunctionExecutionRequest::ContextValidationFunctionRequest(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_change_reason_validate(&self) -> ::std::result::Result<&crate::types::ChangeReasonValidationFunctionRequest, &Self> {
+        if let FunctionExecutionRequest::ChangeReasonValidate(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
-    /// Returns true if this is a [`ContextValidationFunctionRequest`](crate::types::FunctionExecutionRequest::ContextValidationFunctionRequest).
-    pub fn is_context_validation_function_request(&self) -> bool {
-        self.as_context_validation_function_request().is_ok()
+    /// Returns true if this is a [`ChangeReasonValidate`](crate::types::FunctionExecutionRequest::ChangeReasonValidate).
+    pub fn is_change_reason_validate(&self) -> bool {
+        self.as_change_reason_validate().is_ok()
     }
-    /// Tries to convert the enum instance into [`ValueComputeFunctionRequest`](crate::types::FunctionExecutionRequest::ValueComputeFunctionRequest), extracting the inner [`ValueComputeFunctionRequest`](crate::types::ValueComputeFunctionRequest).
+    /// Tries to convert the enum instance into [`ContextValidate`](crate::types::FunctionExecutionRequest::ContextValidate), extracting the inner [`ContextValidationFunctionRequest`](crate::types::ContextValidationFunctionRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_value_compute_function_request(&self) -> ::std::result::Result<&crate::types::ValueComputeFunctionRequest, &Self> {
-        if let FunctionExecutionRequest::ValueComputeFunctionRequest(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_context_validate(&self) -> ::std::result::Result<&crate::types::ContextValidationFunctionRequest, &Self> {
+        if let FunctionExecutionRequest::ContextValidate(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
-    /// Returns true if this is a [`ValueComputeFunctionRequest`](crate::types::FunctionExecutionRequest::ValueComputeFunctionRequest).
-    pub fn is_value_compute_function_request(&self) -> bool {
-        self.as_value_compute_function_request().is_ok()
+    /// Returns true if this is a [`ContextValidate`](crate::types::FunctionExecutionRequest::ContextValidate).
+    pub fn is_context_validate(&self) -> bool {
+        self.as_context_validate().is_ok()
     }
-    /// Tries to convert the enum instance into [`ValueValidationFunctionRequest`](crate::types::FunctionExecutionRequest::ValueValidationFunctionRequest), extracting the inner [`ValueValidationFunctionRequest`](crate::types::ValueValidationFunctionRequest).
+    /// Tries to convert the enum instance into [`ValueCompute`](crate::types::FunctionExecutionRequest::ValueCompute), extracting the inner [`ValueComputeFunctionRequest`](crate::types::ValueComputeFunctionRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_value_validation_function_request(&self) -> ::std::result::Result<&crate::types::ValueValidationFunctionRequest, &Self> {
-        if let FunctionExecutionRequest::ValueValidationFunctionRequest(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_value_compute(&self) -> ::std::result::Result<&crate::types::ValueComputeFunctionRequest, &Self> {
+        if let FunctionExecutionRequest::ValueCompute(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
     }
-    /// Returns true if this is a [`ValueValidationFunctionRequest`](crate::types::FunctionExecutionRequest::ValueValidationFunctionRequest).
-    pub fn is_value_validation_function_request(&self) -> bool {
-        self.as_value_validation_function_request().is_ok()
+    /// Returns true if this is a [`ValueCompute`](crate::types::FunctionExecutionRequest::ValueCompute).
+    pub fn is_value_compute(&self) -> bool {
+        self.as_value_compute().is_ok()
+    }
+    /// Tries to convert the enum instance into [`ValueValidate`](crate::types::FunctionExecutionRequest::ValueValidate), extracting the inner [`ValueValidationFunctionRequest`](crate::types::ValueValidationFunctionRequest).
+    /// Returns `Err(&Self)` if it can't be converted.
+    pub fn as_value_validate(&self) -> ::std::result::Result<&crate::types::ValueValidationFunctionRequest, &Self> {
+        if let FunctionExecutionRequest::ValueValidate(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    }
+    /// Returns true if this is a [`ValueValidate`](crate::types::FunctionExecutionRequest::ValueValidate).
+    pub fn is_value_validate(&self) -> bool {
+        self.as_value_validate().is_ok()
     }
     /// Returns true if the enum instance is the `Unknown` variant.
     pub fn is_unknown(&self) -> bool {

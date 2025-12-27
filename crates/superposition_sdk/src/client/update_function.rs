@@ -9,13 +9,13 @@ impl super::Client {
     ///   - [`description(impl Into<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::set_description):<br>required: **false**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
     ///   - [`function(impl Into<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::function) / [`set_function(Option<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::set_function):<br>required: **false**<br>(undocumented)<br>
-    ///   - [`runtime_version(impl Into<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::runtime_version) / [`set_runtime_version(Option<String>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::set_runtime_version):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`runtime_version(FunctionRuntimeVersion)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::runtime_version) / [`set_runtime_version(Option<FunctionRuntimeVersion>)`](crate::operation::update_function::builders::UpdateFunctionFluentBuilder::set_runtime_version):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateFunctionOutput`](crate::operation::update_function::UpdateFunctionOutput) with field(s):
     ///   - [`function_name(String)`](crate::operation::update_function::UpdateFunctionOutput::function_name): (undocumented)
     ///   - [`published_code(Option<String>)`](crate::operation::update_function::UpdateFunctionOutput::published_code): (undocumented)
     ///   - [`draft_code(String)`](crate::operation::update_function::UpdateFunctionOutput::draft_code): (undocumented)
-    ///   - [`published_runtime_version(Option<String>)`](crate::operation::update_function::UpdateFunctionOutput::published_runtime_version): (undocumented)
-    ///   - [`draft_runtime_version(String)`](crate::operation::update_function::UpdateFunctionOutput::draft_runtime_version): (undocumented)
+    ///   - [`published_runtime_version(Option<FunctionRuntimeVersion>)`](crate::operation::update_function::UpdateFunctionOutput::published_runtime_version): (undocumented)
+    ///   - [`draft_runtime_version(FunctionRuntimeVersion)`](crate::operation::update_function::UpdateFunctionOutput::draft_runtime_version): (undocumented)
     ///   - [`published_at(Option<DateTime>)`](crate::operation::update_function::UpdateFunctionOutput::published_at): (undocumented)
     ///   - [`draft_edited_at(DateTime)`](crate::operation::update_function::UpdateFunctionOutput::draft_edited_at): (undocumented)
     ///   - [`published_by(Option<String>)`](crate::operation::update_function::UpdateFunctionOutput::published_by): (undocumented)

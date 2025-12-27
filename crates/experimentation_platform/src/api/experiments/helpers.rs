@@ -20,7 +20,10 @@ use superposition_types::{
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         experiment_groups::ExpGroupMemberRequest,
-        functions::{FunctionExecutionRequest, FunctionExecutionResponse, Stage},
+        functions::{
+            FunctionExecutionRequest, FunctionExecutionResponse, Stage,
+            CHANGE_REASON_VALIDATION_FN_NAME,
+        },
         I64Update,
     },
     custom_query::{DimensionQuery, QueryParam},
@@ -868,7 +871,7 @@ pub async fn fetch_and_validate_change_reason_with_function(
     let url = format!(
         "{}/function/{}/{}/test",
         state.cac_host,
-        "change_reason_validation_function",
+        CHANGE_REASON_VALIDATION_FN_NAME,
         Stage::Published
     );
 

@@ -16,7 +16,7 @@ pub struct UpdateFunctionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub function: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub runtime_version: ::std::option::Option<::std::string::String>,
+    pub runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
 }
 impl  UpdateFunctionInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -44,8 +44,8 @@ impl  UpdateFunctionInput  {
         self.function.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn runtime_version(&self) -> ::std::option::Option<&str> {
-        self.runtime_version.as_deref()
+    pub fn runtime_version(&self) -> ::std::option::Option<&crate::types::FunctionRuntimeVersion> {
+        self.runtime_version.as_ref()
     }
 }
 impl UpdateFunctionInput {
@@ -65,7 +65,7 @@ pub struct UpdateFunctionInputBuilder {
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) function: ::std::option::Option<::std::string::String>,
-    pub(crate) runtime_version: ::std::option::Option<::std::string::String>,
+    pub(crate) runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
 }
 impl UpdateFunctionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -151,16 +151,16 @@ impl UpdateFunctionInputBuilder {
         &self.function
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn runtime_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.runtime_version = ::std::option::Option::Some(input.into());
+    pub fn runtime_version(mut self, input: crate::types::FunctionRuntimeVersion) -> Self {
+        self.runtime_version = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_runtime_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_runtime_version(mut self, input: ::std::option::Option<crate::types::FunctionRuntimeVersion>) -> Self {
         self.runtime_version = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_runtime_version(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_runtime_version(&self) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
         &self.runtime_version
     }
     /// Consumes the builder and constructs a [`UpdateFunctionInput`](crate::operation::update_function::UpdateFunctionInput).

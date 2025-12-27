@@ -131,7 +131,7 @@ index 813c9e17..d0a445a7 100644
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
          "org_id", PreludeSchemas.STRING,
          "function_name", PreludeSchemas.STRING);
--    private static final Map<String, Schema> $PROPERTIES = Map.of("published_runtime_version", PreludeSchemas.STRING,
+-    private static final Map<String, Schema> $PROPERTIES = Map.of("published_runtime_version", FunctionRuntimeVersion.$SCHEMA,
 -        "description", PreludeSchemas.STRING,
 -        "function_type", FunctionTypes.$SCHEMA,
 -        "last_modified_by", PreludeSchemas.STRING,
@@ -141,11 +141,11 @@ index 813c9e17..d0a445a7 100644
 -        "draft_edited_by", PreludeSchemas.STRING,
 -        "draft_edited_at", SharedSchemas.DATE_TIME,
 -        "draft_code", PreludeSchemas.STRING,
--        "draft_runtime_version", PreludeSchemas.STRING,
+-        "draft_runtime_version", FunctionRuntimeVersion.$SCHEMA,
 -        "published_at", SharedSchemas.DATE_TIME,
 -        "published_code", PreludeSchemas.STRING);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
-+        Map.entry("published_runtime_version", PreludeSchemas.STRING),
++        Map.entry("published_runtime_version", FunctionRuntimeVersion.$SCHEMA),
 +        Map.entry("description", PreludeSchemas.STRING),
 +        Map.entry("function_type", FunctionTypes.$SCHEMA),
 +        Map.entry("last_modified_by", PreludeSchemas.STRING),
@@ -155,7 +155,7 @@ index 813c9e17..d0a445a7 100644
 +        Map.entry("draft_edited_by", PreludeSchemas.STRING),
 +        Map.entry("draft_edited_at", SharedSchemas.DATE_TIME),
 +        Map.entry("draft_code", PreludeSchemas.STRING),
-+        Map.entry("draft_runtime_version", PreludeSchemas.STRING),
++        Map.entry("draft_runtime_version", FunctionRuntimeVersion.$SCHEMA),
 +        Map.entry("published_at", SharedSchemas.DATE_TIME),
 +        Map.entry("published_code", PreludeSchemas.STRING));
  

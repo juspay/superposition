@@ -69,7 +69,7 @@ async fn create(
         },
     )?;
 
-    compile_fn(&req.function_type.get_js_fn_name(), &req.function)?;
+    compile_fn(&req.function)?;
 
     let now = Utc::now();
     let function = Function {
@@ -142,7 +142,7 @@ async fn update(
             .schema_name(&schema_name)
             .get_result::<FunctionType>(&mut conn)?;
 
-        compile_fn(&function_type.get_js_fn_name(), function)?;
+        compile_fn(function)?;
 
         if function_type != FunctionType::ChangeReasonValidation {
             validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
@@ -228,14 +228,19 @@ async fn delete_function(
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
 
-    if f_name == "context_validation_function"
-        || f_name == "change_reason_validation_function"
-    {
-        log::error!("Attempted to delete reserved function: {}", f_name);
-        return Err(bad_argument!(
-            "Cannot delete function {}: This function is reserved and cannot be deleted.",
-            f_name
-        ));
+    let function = fetch_function(&f_name, &mut conn, &schema_name)?;
+    match function.function_type {
+        FunctionType::ContextValidation | FunctionType::ChangeReasonValidation => {
+            log::error!(
+                "Attempted to delete reserved function type: {:?}",
+                function.function_type
+            );
+            return Err(bad_argument!(
+                "Cannot delete function of type {:?}: This function type is reserved and cannot be deleted.",
+                function.function_type
+            ));
+        }
+        _ => {}
     }
 
     diesel::update(functions::functions)
@@ -273,27 +278,30 @@ async fn test(
     let req = request.into_inner();
     let function = fetch_function(fun_name, &mut conn, &schema_name)?;
 
-    let code = match path_params.stage {
-        Stage::Draft => function.draft_code,
-        Stage::Published => match function.published_code {
-            Some(code) => code,
-            None => {
-                log::error!("Function test failed: function not published yet");
-                return Err(bad_argument!(
-                    "Function test failed as function not published yet"
-                ));
+    let (code, version) = match path_params.stage {
+        Stage::Draft => (function.draft_code, function.draft_runtime_version),
+        Stage::Published => {
+            match (function.published_code, function.published_runtime_version) {
+                (Some(code), Some(version)) => (code, version),
+                _ => {
+                    log::error!("Function test failed: function not published yet");
+                    return Err(bad_argument!(
+                        "Function test failed as function not published yet"
+                    ));
+                }
             }
-        },
+        }
     };
 
-    let result =
-        execute_fn(&code, &req, &mut conn, &schema_name).map_err(|(e, stdout)| {
+    let result = execute_fn(&code, &req, version, &mut conn, &schema_name).map_err(
+        |(e, stdout)| {
             bad_argument!(
                 "Function failed with error: {}, stdout: {:?}",
                 e,
                 stdout.unwrap_or_default()
             )
-        })?;
+        },
+    )?;
 
     Ok(Json(result))
 }
@@ -325,8 +333,7 @@ async fn publish(
         .set((
             req,
             functions::published_code.eq(Some(function.draft_code.clone())),
-            functions::published_runtime_version
-                .eq(Some(function.draft_runtime_version.clone())),
+            functions::published_runtime_version.eq(Some(function.draft_runtime_version)),
             functions::published_by.eq(Some(user.get_email())),
             functions::published_at.eq(Some(Utc::now())),
         ))

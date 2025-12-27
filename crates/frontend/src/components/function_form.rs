@@ -4,9 +4,10 @@ use leptos::*;
 use serde_json::{from_str, Value};
 use strum::IntoEnumIterator;
 use superposition_types::api::functions::{
-    FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse, Stage,
+    FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse, KeyType,
+    Stage,
 };
-use superposition_types::database::models::cac::FunctionType;
+use superposition_types::database::models::cac::{FunctionRuntimeVersion, FunctionType};
 use utils::{create_function, test_function, update_function};
 use wasm_bindgen::prelude::*;
 use web_sys::MouseEvent;
@@ -32,61 +33,99 @@ use crate::utils::use_url_base;
 
 use super::dropdown::utils::DropdownOption;
 
-pub const VALUE_VALIDATION_TEMPLATE_FN: &str = r#"// key: string - dimension or config name
-// value: string - obeys the json schema type defined, json parse this if you want an object
-// type: string - type of key being validated
-// environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
-// returns: boolean
-async function validate_value(key, value, type, environment) {
+pub const VALUE_VALIDATION_TEMPLATE_FN: &str = r#"Payload structure: {
+  version: "1.0",
+  value_validate: { key, value, type, environment: { context, overrides } }
+}
+
+Returns: boolean
+"#;
+
+pub const VALUE_VALIDATION_DEFAULT_FN: &str = r#"async function execute(payload) {
+    const { value_validate } = payload;
+    const { key, value, type, environment } = value_validate;
+
+    // validation logic goes here
+
     return true;
 }
 "#;
 
-pub const VALUE_VALIDATION_DEFAULT_FN: &str = r#"async function validate_value(key, value, type, environment) {
-    return true;
+pub const VALUE_COMPUTE_TEMPLATE_FN: &str = r#"Payload structure: {
+  version: "1.0",
+  value_compute: { name, prefix, type, environment: { context, overrides } }
 }
+
+Returns: [string]
 "#;
 
-pub const VALUE_COMPUTE_TEMPLATE_FN: &str = r#"// name: string - dimension or config name
-// prefix: string - characters entered in the input field
-// type: string - type of key being validated
-// environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
-// returns: [string]
-async function value_compute(name, prefix, type, environment) {
+pub const VALUE_COMPUTE_DEFAULT_FN: &str = r#"async function execute(payload) {
+    const { value_compute } = payload;
+    const { name, prefix, type, environment } = value_compute;
+
+    // computation logic goes here
+
     return [];
 }
 "#;
 
-pub const VALUE_COMPUTE_DEFAULT_FN: &str = r#"async function value_compute(name, prefix, type, environment) {
-    return [];
+pub const CONTEXT_VALIDATION_TEMPLATE_FN: &str = r#"Payload structure: {
+  version: "1.0",
+  context_validate: { environment: { context, overrides } },
 }
+
+Returns: boolean
 "#;
 
-pub const CONTEXT_VALIDATION_TEMPLATE_FN: &str = r#"// environment: object { context: [Object], overrides: [Object] } - captures out elements in the form like context, overrides etc.
-// returns: boolean
-async function validate_context(environment) {
+pub const CONTEXT_VALIDATION_DEFAULT_FN: &str = r#"async function execute(payload) {
+    const { context_validate } = payload;
+    const { environment } = context_validate;
+
+    // validation logic goes here
+
     return true;
 }
 "#;
 
-pub const CONTEXT_VALIDATION_DEFAULT_FN: &str = r#"async function validate_context(environment) {
-    return true;
+pub const CHANGE_REASON_VALIDATION_TEMPLATE_FN: &str = r#"Payload structure: {
+  version: "1.0",
+  change_reason_validate: { change_reason }
 }
+
+Returns: boolean
 "#;
 
-pub const CHANGE_REASON_VALIDATION_TEMPLATE_FN: &str = r#"// change_reason: string - reason for change provided by user
-// returns: boolean
-async function validate_change_reason(change_reason) {
-    return true;
-}
-"#;
+pub const CHANGE_REASON_VALIDATION_DEFAULT_FN: &str = r#"async function execute(payload) {
+    const { change_reason_validate } = payload;
+    const { change_reason } = change_reason_validate;
 
-pub const CHANGE_REASON_VALIDATION_DEFAULT_FN: &str = r#"async function validate_change_reason(change_reason) {
+    // validation logic goes here
+    
     return true;
 }
 "#;
 
 impl DropdownOption for FunctionType {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+
+    fn label(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl DropdownOption for FunctionRuntimeVersion {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+
+    fn label(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl DropdownOption for KeyType {
     fn key(&self) -> String {
         self.to_string()
     }
@@ -114,27 +153,33 @@ pub fn function_editor(
     #[prop(default = true)] edit: bool,
     #[prop(into, default = String::new())] function_name: String,
     #[prop(into, default = String::from(VALUE_VALIDATION_DEFAULT_FN))] function: String,
-    #[prop(into, default = String::new())] runtime_version: String,
+    #[prop(into, default = FunctionRuntimeVersion::default())]
+    runtime_version: FunctionRuntimeVersion,
     #[prop(into, default = String::new())] description: String,
     #[prop(default = FunctionType::ValueValidation)] function_type: FunctionType,
-    #[prop(into)] handle_submit: Callback<()>,
+    #[prop(into)] handle_submit: Callback<String>,
     #[prop(into)] on_cancel: Callback<()>,
     #[prop(into, default = Signal::derive(|| Mode::Editor))] mode: Signal<Mode>,
     #[prop(into, default = Signal::derive(|| Stage::Draft))] selected_tab: Signal<Stage>,
 ) -> impl IntoView {
     let client_side_ready = use_client_side_ready();
     let function_name_rws = RwSignal::new(function_name);
-    let function_code_rws = RwSignal::new(function);
+    let function_code_rws = RwSignal::new(function.clone());
     let runtime_version_rws = RwSignal::new(if edit {
         runtime_version
     } else {
-        "1.0.0".to_string()
+        FunctionRuntimeVersion::default()
     });
 
     let description_rws = RwSignal::new(description);
     let change_reason_rws = RwSignal::new(String::new());
     let req_inprogress_rws = RwSignal::new(false);
     let function_type_rws = RwSignal::new(function_type);
+
+    let on_cancel = Callback::new(move |_| {
+        function_code_rws.set(function.clone());
+        on_cancel.call(());
+    });
 
     view! {
         <form class="w-full flex flex-col 2.5xl:flex-row gap-5 justify-between">
@@ -207,12 +252,12 @@ fn edit_form(
     edit: bool,
     function_name_rws: RwSignal<String>,
     function_code_rws: RwSignal<String>,
-    runtime_version_rws: RwSignal<String>,
+    runtime_version_rws: RwSignal<FunctionRuntimeVersion>,
     description_rws: RwSignal<String>,
     change_reason_rws: RwSignal<String>,
     function_type_rws: RwSignal<FunctionType>,
     req_inprogress_rws: RwSignal<bool>,
-    #[prop(into)] handle_submit: Callback<()>,
+    #[prop(into)] handle_submit: Callback<String>,
     #[prop(into)] on_cancel: Callback<()>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Tenant>>().unwrap();
@@ -236,6 +281,7 @@ fn edit_form(
 
         spawn_local({
             async move {
+                let f_name = f_function_name.clone();
                 let result = if edit {
                     update_function(
                         f_function_name,
@@ -264,7 +310,7 @@ fn edit_form(
                 req_inprogress_rws.set(false);
                 match result {
                     Ok(_) => {
-                        handle_submit.call(());
+                        handle_submit.call(f_name);
                         let success_message = if edit {
                             "Function updated successfully!"
                         } else {
@@ -337,15 +383,17 @@ fn edit_form(
                 </Show>
                 <div class="form-control w-full max-w-md">
                     <Label title="Draft Runtime Version" />
-                    <input
-                        disabled=true
-                        value=move || runtime_version_rws.get()
-                        on:input=move |ev| runtime_version_rws.set(event_target_value(&ev))
-                        type="text"
-                        name="runVersion"
-                        id="runVersion"
-                        placeholder="Js Runtime Version"
-                        class="input input-bordered"
+                    <Dropdown
+                        dropdown_width="w-100"
+                        dropdown_icon="".to_string()
+                        dropdown_text=runtime_version_rws.get_untracked().to_string()
+                        dropdown_direction=DropdownDirection::Down
+                        dropdown_btn_type=DropdownBtnType::Select
+                        dropdown_options=FunctionRuntimeVersion::iter().collect()
+                        on_select=Callback::new(move |selected_item: FunctionRuntimeVersion| {
+                            logging::log!("selected item {:?}", selected_item);
+                            runtime_version_rws.set(selected_item);
+                        })
                     />
                 </div>
                 <ChangeForm
@@ -458,169 +506,193 @@ pub fn test_form(
     view! {
         <div class="w-full 2.5xl:max-w-xl flex flex-col gap-5">
             <div class="w-full flex 2.5xl:flex-col flex-wrap 2.5xl:flex-nowrap gap-5">
-                {move || match function_args_rs.get_untracked() {
-                    FunctionExecutionRequest::ValueValidationFunctionRequest {
-                        key,
-                        value,
-                        r#type: _,
-                        environment: _,
-                    } => {
-                        // change here needed maybe
+                {match function_args_rs.get_untracked() {
+                    FunctionExecutionRequest::ValueValidationFunctionRequest { key, value, .. } => {
                         view! {
-                            <div>
-                                <div class="form-control w-full max-w-md">
-                                    <Label title="Key Name" />
-                                    <input
-                                        disabled=false
-                                        value=key
-                                        on:input=move |ev| {
-                                            function_args_ws
-                                                .update(|args| {
-                                                    if let FunctionExecutionRequest::ValueValidationFunctionRequest {
-                                                        key,
-                                                        ..
-                                                    } = args {
-                                                        *key = event_target_value(&ev);
-                                                    }
-                                                })
-                                        }
-                                        type="text"
-                                        name="key name"
-                                        id="keyName"
-                                        placeholder="key"
-                                        class="input input-bordered"
-                                    />
-                                </div>
-
-                                <div class="form-control w-full max-w-md">
-                                    <Label title="Value" />
-                                    <textarea
-                                        type="text"
-                                        class="textarea textarea-bordered"
-                                        name="value"
-                                        id="value"
-                                        placeholder="value"
-                                        on:change=move |ev| {
-                                            let value = event_target_value(&ev);
-                                            match from_str::<Value>(&value) {
-                                                Ok(test_val) => {
-                                                    function_args_ws
-                                                        .update(|args| {
-                                                            if let FunctionExecutionRequest::ValueValidationFunctionRequest {
-                                                                value,
-                                                                ..
-                                                            } = args {
-                                                                *value = test_val;
-                                                            }
-                                                        });
-                                                    set_error_message.set("".to_string());
-                                                    out_message_ws.set(None);
+                            <div class="form-control w-full max-w-md">
+                                <Label title="Key Name" />
+                                <input
+                                    disabled=false
+                                    value=key
+                                    on:input=move |ev| {
+                                        function_args_ws
+                                            .update(|args| {
+                                                if let FunctionExecutionRequest::ValueValidationFunctionRequest {
+                                                    key,
+                                                    ..
+                                                } = args {
+                                                    *key = event_target_value(&ev);
                                                 }
-                                                Err(_) => {
-                                                    set_error_message.set("".to_string());
-                                                    out_message_ws.set(None);
-                                                }
-                                            };
-                                        }
-                                    >
-                                        {value.to_string()}
-                                    </textarea>
-                                </div>
+                                            })
+                                    }
+                                    type="text"
+                                    name="key name"
+                                    id="keyName"
+                                    placeholder="key"
+                                    class="input input-bordered"
+                                />
                             </div>
-                        }
-                    }
-                    FunctionExecutionRequest::ValueComputeFunctionRequest {
-                        name,
-                        prefix,
-                        r#type: _,
-                        environment,
-                    } => {
-                        view! {
-                            <div>
-                                <div class="form-control w-full max-w-md">
-                                    <Label title="Name" />
-                                    <input
-                                        disabled=false
-                                        value=name
-                                        on:input=move |ev| {
-                                            function_args_ws
-                                                .update(|args| {
-                                                    if let FunctionExecutionRequest::ValueComputeFunctionRequest {
-                                                        name,
-                                                        ..
-                                                    } = args {
-                                                        *name = event_target_value(&ev);
-                                                    }
-                                                })
-                                        }
-                                        type="text"
-                                        name="key name"
-                                        id="keyName"
-                                        placeholder="key"
-                                        class="input input-bordered"
-                                    />
-                                </div>
-                                <div class="form-control w-full max-w-md">
-                                    <Label title="Prefix" />
-                                    <input
-                                        disabled=false
-                                        value=prefix
-                                        on:input=move |ev| {
-                                            function_args_ws
-                                                .update(|args| {
-                                                    if let FunctionExecutionRequest::ValueComputeFunctionRequest {
-                                                        prefix,
-                                                        ..
-                                                    } = args {
-                                                        *prefix = event_target_value(&ev);
-                                                    }
-                                                })
-                                        }
-                                        type="text"
-                                        name="key name"
-                                        id="keyName"
-                                        placeholder="key"
-                                        class="input input-bordered"
-                                    />
-                                </div>
 
-                                <div class="form-control w-full max-w-md">
-                                    <Label title="Environment" />
-                                    <EditorProvider>
-                                        <Input
-                                            id="function-environment-input"
-                                            class="rounded-md resize-y w-full max-w-md"
-                                            schema_type=SchemaType::Single(JsonSchemaType::Object)
-                                            value=serde_json::to_value(environment).unwrap_or_default()
-                                            on_change=move |value| {
-                                                match serde_json::from_value::<FunctionEnvironment>(value) {
-                                                    Ok(test_val) => {
-                                                        function_args_ws
-                                                            .update(|args| {
-                                                                if let FunctionExecutionRequest::ValueComputeFunctionRequest {
-                                                                    environment,
-                                                                    ..
-                                                                } = args {
-                                                                    *environment = test_val;
-                                                                }
-                                                            });
-                                                        set_error_message.set("".to_string());
-                                                        out_message_ws.set(None);
-                                                    }
-                                                    Err(_) => {
-                                                        set_error_message.set("".to_string());
-                                                        out_message_ws.set(None);
-                                                    }
-                                                }
+                            <div class="form-control w-full max-w-md">
+                                <Label title="Value" />
+                                <textarea
+                                    type="text"
+                                    class="textarea textarea-bordered"
+                                    name="value"
+                                    id="value"
+                                    placeholder="value"
+                                    on:change=move |ev| {
+                                        let value = event_target_value(&ev);
+                                        match from_str::<Value>(&value) {
+                                            Ok(test_val) => {
+                                                function_args_ws
+                                                    .update(|args| {
+                                                        if let FunctionExecutionRequest::ValueValidationFunctionRequest {
+                                                            value,
+                                                            ..
+                                                        } = args {
+                                                            *value = test_val;
+                                                        }
+                                                    });
+                                                set_error_message.set("".to_string());
+                                                out_message_ws.set(None);
                                             }
-                                            r#type=InputType::Monaco(vec![])
-                                        />
-                                    </EditorProvider>
-                                </div>
+                                            Err(_) => {
+                                                set_error_message.set("".to_string());
+                                                out_message_ws.set(None);
+                                            }
+                                        };
+                                    }
+                                >
+                                    {value.to_string()}
+                                </textarea>
                             </div>
                         }
+                            .into_view()
                     }
-                    FunctionExecutionRequest::ContextValidationFunctionRequest { environment } => {
+                    _ => ().into_view(),
+                }}
+                {match function_args_rs.get_untracked() {
+                    FunctionExecutionRequest::ValueComputeFunctionRequest { name, prefix, .. } => {
+                        view! {
+                            <div class="form-control w-full max-w-md">
+                                <Label title="Name" />
+                                <input
+                                    disabled=false
+                                    value=name
+                                    on:input=move |ev| {
+                                        function_args_ws
+                                            .update(|args| {
+                                                if let FunctionExecutionRequest::ValueComputeFunctionRequest {
+                                                    name,
+                                                    ..
+                                                } = args {
+                                                    *name = event_target_value(&ev);
+                                                }
+                                            })
+                                    }
+                                    type="text"
+                                    name="key name"
+                                    id="keyName"
+                                    placeholder="key"
+                                    class="input input-bordered"
+                                />
+                            </div>
+                            <div class="form-control w-full max-w-md">
+                                <Label title="Prefix" />
+                                <input
+                                    disabled=false
+                                    value=prefix
+                                    on:input=move |ev| {
+                                        function_args_ws
+                                            .update(|args| {
+                                                if let FunctionExecutionRequest::ValueComputeFunctionRequest {
+                                                    prefix,
+                                                    ..
+                                                } = args {
+                                                    *prefix = event_target_value(&ev);
+                                                }
+                                            })
+                                    }
+                                    type="text"
+                                    name="key name"
+                                    id="keyName"
+                                    placeholder="key"
+                                    class="input input-bordered"
+                                />
+                            </div>
+                        }
+                            .into_view()
+                    }
+                    _ => ().into_view(),
+                }}
+                {match function_args_rs.get_untracked() {
+                    FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                        change_reason,
+                    } => {
+                        view! {
+                            <ChangeForm
+                                title="Change Reason".to_string()
+                                placeholder="Enter a reason for this change".to_string()
+                                value=change_reason.to_string()
+                                on_change=Callback::new(move |reason| {
+                                    function_args_ws
+                                        .update(|args| {
+                                            if let FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                                                change_reason,
+                                            } = args {
+                                                **change_reason = reason;
+                                            }
+                                        });
+                                })
+                            />
+                        }
+                    }
+                    _ => ().into_view(),
+                }}
+                {match function_args_rs.get_untracked() {
+                    FunctionExecutionRequest::ValueValidationFunctionRequest { r#type, .. }
+                    | FunctionExecutionRequest::ValueComputeFunctionRequest { r#type, .. } => {
+                        view! {
+                            <div class="form-control w-full max-w-md">
+                                <Label title="Key Type" />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=r#type.to_string()
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=KeyType::iter().collect()
+                                    on_select=Callback::new(move |selected_item: KeyType| {
+                                        logging::log!("selected item {:?}", selected_item);
+                                        function_args_ws
+                                            .update(|args| {
+                                                match args {
+                                                    FunctionExecutionRequest::ValueValidationFunctionRequest {
+                                                        r#type,
+                                                        ..
+                                                    }
+                                                    | FunctionExecutionRequest::ValueComputeFunctionRequest {
+                                                        r#type,
+                                                        ..
+                                                    } => {
+                                                        *r#type = selected_item;
+                                                    }
+                                                    _ => {}
+                                                }
+                                            });
+                                    })
+                                />
+                            </div>
+                        }
+                            .into_view()
+                    }
+                    _ => ().into_view(),
+                }}
+                {match function_args_rs.get_untracked() {
+                    FunctionExecutionRequest::ValueValidationFunctionRequest { environment, .. }
+                    | FunctionExecutionRequest::ValueComputeFunctionRequest { environment, .. }
+                    | FunctionExecutionRequest::ContextValidationFunctionRequest { environment } => {
                         view! {
                             <div class="form-control w-full max-w-md">
                                 <Label title="Environment" />
@@ -635,10 +707,21 @@ pub fn test_form(
                                                 Ok(test_val) => {
                                                     function_args_ws
                                                         .update(|args| {
-                                                            if let FunctionExecutionRequest::ContextValidationFunctionRequest {
-                                                                environment,
-                                                            } = args {
-                                                                *environment = test_val;
+                                                            match args {
+                                                                FunctionExecutionRequest::ValueValidationFunctionRequest {
+                                                                    environment,
+                                                                    ..
+                                                                }
+                                                                | FunctionExecutionRequest::ValueComputeFunctionRequest {
+                                                                    environment,
+                                                                    ..
+                                                                }
+                                                                | FunctionExecutionRequest::ContextValidationFunctionRequest {
+                                                                    environment,
+                                                                } => {
+                                                                    *environment = test_val;
+                                                                }
+                                                                _ => {}
                                                             }
                                                         });
                                                     set_error_message.set("".to_string());
@@ -655,35 +738,9 @@ pub fn test_form(
                                 </EditorProvider>
                             </div>
                         }
+                            .into_view()
                     }
-                    FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
-                        change_reason,
-                    } => {
-                        view! {
-                            <div class="form-control w-full max-w-md">
-                                <Label title="Change Reason" />
-                                <textarea
-                                    type="text"
-                                    class="textarea textarea-bordered"
-                                    name="changeReason"
-                                    id="changeReason"
-                                    placeholder="change reason"
-                                    on:input=move |ev| {
-                                        function_args_ws
-                                            .update(|args| {
-                                                if let FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
-                                                    change_reason,
-                                                } = args {
-                                                    **change_reason = event_target_value(&ev);
-                                                }
-                                            });
-                                    }
-                                >
-                                    {change_reason.to_string()}
-                                </textarea>
-                            </div>
-                        }
-                    }
+                    _ => ().into_view(),
                 }}
             </div>
             {move || {

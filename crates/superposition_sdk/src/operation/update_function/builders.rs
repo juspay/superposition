@@ -181,17 +181,17 @@ impl UpdateFunctionFluentBuilder {
                     self.inner.get_function()
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn runtime_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.runtime_version(input.into());
+    pub fn runtime_version(mut self, input: crate::types::FunctionRuntimeVersion) -> Self {
+                    self.inner = self.inner.runtime_version(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_runtime_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_runtime_version(mut self, input: ::std::option::Option<crate::types::FunctionRuntimeVersion>) -> Self {
                     self.inner = self.inner.set_runtime_version(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_runtime_version(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_runtime_version(&self) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
                     self.inner.get_runtime_version()
                 }
 }

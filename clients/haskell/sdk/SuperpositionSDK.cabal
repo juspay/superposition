@@ -271,6 +271,7 @@ library
                         Io.Superposition.Model.DeleteContextInput,
                         Io.Superposition.Command.GetWebhookByEvent,
                         Io.Superposition.Command.WeightRecompute,
+                        Io.Superposition.Model.FunctionRuntimeVersion,
                         Io.Superposition.Model.OrgStatus,
                         Io.Superposition.Model.UpdateOverrideInput,
                         Io.Superposition.Command.UpdateOrganisation,
@@ -297,6 +298,7 @@ library
                         Io.Superposition.Model.ListVariablesInput,
                         Io.Superposition.Model.MigrateWorkspaceSchemaOutput,
                         Io.Superposition.Model.GetContextFromConditionOutput,
+                        Io.Superposition.Model.ChangeReasonValidationFunctionRequest,
                         Io.Superposition.Model.ExperimentGroupResponse
     other-modules:      Io.Superposition.Utility
     default-language:   Haskell2010

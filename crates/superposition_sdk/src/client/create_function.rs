@@ -9,14 +9,14 @@ impl super::Client {
     ///   - [`description(impl Into<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::description) / [`set_description(Option<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::set_description):<br>required: **true**<br>(undocumented)<br>
     ///   - [`change_reason(impl Into<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::set_change_reason):<br>required: **true**<br>(undocumented)<br>
     ///   - [`function(impl Into<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::function) / [`set_function(Option<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::set_function):<br>required: **true**<br>(undocumented)<br>
-    ///   - [`runtime_version(impl Into<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::runtime_version) / [`set_runtime_version(Option<String>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::set_runtime_version):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`runtime_version(FunctionRuntimeVersion)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::runtime_version) / [`set_runtime_version(Option<FunctionRuntimeVersion>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::set_runtime_version):<br>required: **true**<br>(undocumented)<br>
     ///   - [`function_type(FunctionTypes)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::function_type) / [`set_function_type(Option<FunctionTypes>)`](crate::operation::create_function::builders::CreateFunctionFluentBuilder::set_function_type):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`CreateFunctionOutput`](crate::operation::create_function::CreateFunctionOutput) with field(s):
     ///   - [`function_name(String)`](crate::operation::create_function::CreateFunctionOutput::function_name): (undocumented)
     ///   - [`published_code(Option<String>)`](crate::operation::create_function::CreateFunctionOutput::published_code): (undocumented)
     ///   - [`draft_code(String)`](crate::operation::create_function::CreateFunctionOutput::draft_code): (undocumented)
-    ///   - [`published_runtime_version(Option<String>)`](crate::operation::create_function::CreateFunctionOutput::published_runtime_version): (undocumented)
-    ///   - [`draft_runtime_version(String)`](crate::operation::create_function::CreateFunctionOutput::draft_runtime_version): (undocumented)
+    ///   - [`published_runtime_version(Option<FunctionRuntimeVersion>)`](crate::operation::create_function::CreateFunctionOutput::published_runtime_version): (undocumented)
+    ///   - [`draft_runtime_version(FunctionRuntimeVersion)`](crate::operation::create_function::CreateFunctionOutput::draft_runtime_version): (undocumented)
     ///   - [`published_at(Option<DateTime>)`](crate::operation::create_function::CreateFunctionOutput::published_at): (undocumented)
     ///   - [`draft_edited_at(DateTime)`](crate::operation::create_function::CreateFunctionOutput::draft_edited_at): (undocumented)
     ///   - [`published_by(Option<String>)`](crate::operation::create_function::CreateFunctionOutput::published_by): (undocumented)

@@ -1,10 +1,11 @@
 use std::{process::Command, str};
 
+use serde::Serialize;
 use service_utils::service::types::SchemaName;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
-    database::models::cac::{FunctionCode, FunctionType},
+    database::models::cac::{FunctionCode, FunctionRuntimeVersion, FunctionType},
     result as superposition, DBConnection,
 };
 
@@ -18,6 +19,8 @@ const CODE_TOKEN: &str = "{replaceme-with-code}";
 const FUNCTION_ENV_TOKEN: &str = "{function-envs}";
 
 const FUNCTION_NAME_TOKEN: &str = "{function-name}";
+
+const FUNCTION_NAME: &str = "execute";
 
 const FUNCTION_TYPE_CHECK_SNIPPET: &str = r#"const vm = require("node:vm")
         const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
@@ -113,73 +116,54 @@ const CODE_GENERATION_SNIPPET: &str = r#"
     }
     "#;
 
-fn type_check(code_str: &FunctionCode, function_name: &str) -> String {
+fn type_check(code_str: &FunctionCode) -> String {
     FUNCTION_TYPE_CHECK_SNIPPET
-        .replace(FUNCTION_NAME_TOKEN, function_name)
+        .replace(FUNCTION_NAME_TOKEN, FUNCTION_NAME)
         .replace(CODE_TOKEN, code_str)
+}
+
+#[derive(Serialize)]
+struct FunctionPayload {
+    version: FunctionRuntimeVersion,
+    #[serde(flatten)]
+    payload: FunctionExecutionRequest,
 }
 
 fn generate_fn_code(
     code_str: &FunctionCode,
     function_args: &FunctionExecutionRequest,
+    runtime_version: FunctionRuntimeVersion,
 ) -> String {
-    let (function_invocation, output_check) = match function_args {
-        FunctionExecutionRequest::ValueValidationFunctionRequest {
-            key,
-            value,
-            r#type,
-            environment,
-        } => (
-            FunctionType::ValueValidation
-                .get_fn_signature()
-                .replace("{key}", format!("\"{}\"", &key).as_str())
-                .replace("{value}", &value.to_string())
-                .replace("{type}", &format!("\"{}\"", &r#type.to_string()))
-                .replace(
-                    "{environment}",
-                    &serde_json::to_string(&environment).unwrap_or_default(),
-                ),
-            "output!=true",
-        ),
-        FunctionExecutionRequest::ValueComputeFunctionRequest {
-            name,
-            prefix,
-            r#type,
-            environment,
-        } => (
-            FunctionType::ValueCompute
-                .get_fn_signature()
-                .replace("{name}", format!("\"{}\"", &name).as_str())
-                .replace("{prefix}", format!("\"{}\"", &prefix).as_str())
-                .replace("{type}", &format!("\"{}\"", &r#type.to_string()))
-                .replace(
-                    "{environment}",
-                    &serde_json::to_string(&environment).unwrap_or_default(),
-                ),
-            "!(Array.isArray(output))",
-        ),
-        FunctionExecutionRequest::ContextValidationFunctionRequest { environment } => (
-            FunctionType::ContextValidation.get_fn_signature().replace(
-                "{environment}",
-                &serde_json::to_string(&environment).unwrap_or_default(),
-            ),
-            "output!=true",
-        ),
-        FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
-            change_reason,
-        } => (
-            FunctionType::ChangeReasonValidation
-                .get_fn_signature()
-                .replace(
-                    "{change_reason}",
-                    &serde_json::to_string(&change_reason).unwrap_or_default(),
-                ),
-            "output!=true",
-        ),
+    let payload = match runtime_version {
+        FunctionRuntimeVersion::V1 => FunctionPayload {
+            version: runtime_version,
+            payload: function_args.clone(),
+        },
     };
+
+    let output_check = match function_args {
+        FunctionExecutionRequest::ValueValidationFunctionRequest { .. } => "output!=true",
+        FunctionExecutionRequest::ValueComputeFunctionRequest { .. } => {
+            "!(Array.isArray(output))"
+        }
+        FunctionExecutionRequest::ContextValidationFunctionRequest { .. } => {
+            "output!=true"
+        }
+        FunctionExecutionRequest::ChangeReasonValidationFunctionRequest { .. } => {
+            "output!=true"
+        }
+    };
+
     FUNCTION_EXECUTION_SNIPPET
         .replace("{condition}", output_check)
-        .replace("{function-invocation}", &function_invocation)
+        .replace(
+            "{function-invocation}",
+            &format!(
+                "{}({})",
+                FUNCTION_NAME,
+                serde_json::to_string(&payload).unwrap_or("Invalid Payload".to_string())
+            ),
+        )
         .replace(CODE_TOKEN, code_str)
 }
 
@@ -192,6 +176,7 @@ fn generate_wrapper_runtime(code_str: &str) -> String {
 pub fn execute_fn(
     code_str: &FunctionCode,
     args: &FunctionExecutionRequest,
+    runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
@@ -201,8 +186,7 @@ pub fn execute_fn(
             log::error!("{}", err_msg);
             (err_msg, None)
         })?;
-
-    let exec_code = generate_fn_code(&code, args);
+    let exec_code = generate_fn_code(&code, args, runtime_version);
     log::trace!("{}", format!("Running function code: {:?}", exec_code));
     let output = Command::new("node")
         .arg("-e")
@@ -249,11 +233,8 @@ pub fn execute_fn(
     }
 }
 
-pub fn compile_fn(
-    function_name: &str,
-    code_str: &FunctionCode,
-) -> superposition::Result<()> {
-    let type_check_code = type_check(code_str, function_name);
+pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
+    let type_check_code = type_check(code_str);
     log::trace!(
         "{}",
         format!(

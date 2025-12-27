@@ -49,7 +49,7 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  *   description: "STRING_VALUE",
  *   change_reason: "STRING_VALUE", // required
  *   function: "STRING_VALUE",
- *   runtime_version: "STRING_VALUE",
+ *   runtime_version: "1.0",
  * };
  * const command = new UpdateFunctionCommand(input);
  * const response = await client.send(command);
@@ -57,8 +57,8 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  * //   function_name: "STRING_VALUE", // required
  * //   published_code: "STRING_VALUE",
  * //   draft_code: "STRING_VALUE", // required
- * //   published_runtime_version: "STRING_VALUE",
- * //   draft_runtime_version: "STRING_VALUE", // required
+ * //   published_runtime_version: "1.0",
+ * //   draft_runtime_version: "1.0", // required
  * //   published_at: new Date("TIMESTAMP"),
  * //   draft_edited_at: new Date("TIMESTAMP"), // required
  * //   published_by: "STRING_VALUE",

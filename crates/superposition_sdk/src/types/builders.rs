@@ -19,6 +19,8 @@ pub use crate::types::_experiment_response::ExperimentResponseBuilder;
 
 pub use crate::types::_organisation_response::OrganisationResponseBuilder;
 
+pub use crate::types::_change_reason_validation_function_request::ChangeReasonValidationFunctionRequestBuilder;
+
 pub use crate::types::_context_validation_function_request::ContextValidationFunctionRequestBuilder;
 
 pub use crate::types::_value_compute_function_request::ValueComputeFunctionRequestBuilder;

@@ -10,9 +10,9 @@ pub struct GetFunctionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub draft_code: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub published_runtime_version: ::std::option::Option<::std::string::String>,
+    pub published_runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
     #[allow(missing_docs)] // documentation missing in model
-    pub draft_runtime_version: ::std::string::String,
+    pub draft_runtime_version: crate::types::FunctionRuntimeVersion,
     #[allow(missing_docs)] // documentation missing in model
     pub published_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
@@ -46,12 +46,12 @@ impl  GetFunctionOutput  {
         use std::ops::Deref; self.draft_code.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn published_runtime_version(&self) -> ::std::option::Option<&str> {
-        self.published_runtime_version.as_deref()
+    pub fn published_runtime_version(&self) -> ::std::option::Option<&crate::types::FunctionRuntimeVersion> {
+        self.published_runtime_version.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn draft_runtime_version(&self) -> &str {
-        use std::ops::Deref; self.draft_runtime_version.deref()
+    pub fn draft_runtime_version(&self) -> &crate::types::FunctionRuntimeVersion {
+        &self.draft_runtime_version
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn published_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
@@ -104,8 +104,8 @@ pub struct GetFunctionOutputBuilder {
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
     pub(crate) published_code: ::std::option::Option<::std::string::String>,
     pub(crate) draft_code: ::std::option::Option<::std::string::String>,
-    pub(crate) published_runtime_version: ::std::option::Option<::std::string::String>,
-    pub(crate) draft_runtime_version: ::std::option::Option<::std::string::String>,
+    pub(crate) published_runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    pub(crate) draft_runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
     pub(crate) published_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) draft_edited_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) published_by: ::std::option::Option<::std::string::String>,
@@ -159,30 +159,30 @@ impl GetFunctionOutputBuilder {
         &self.draft_code
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn published_runtime_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.published_runtime_version = ::std::option::Option::Some(input.into());
+    pub fn published_runtime_version(mut self, input: crate::types::FunctionRuntimeVersion) -> Self {
+        self.published_runtime_version = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_published_runtime_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_published_runtime_version(mut self, input: ::std::option::Option<crate::types::FunctionRuntimeVersion>) -> Self {
         self.published_runtime_version = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_published_runtime_version(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_published_runtime_version(&self) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
         &self.published_runtime_version
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn draft_runtime_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.draft_runtime_version = ::std::option::Option::Some(input.into());
+    pub fn draft_runtime_version(mut self, input: crate::types::FunctionRuntimeVersion) -> Self {
+        self.draft_runtime_version = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_draft_runtime_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_draft_runtime_version(mut self, input: ::std::option::Option<crate::types::FunctionRuntimeVersion>) -> Self {
         self.draft_runtime_version = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_draft_runtime_version(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_draft_runtime_version(&self) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
         &self.draft_runtime_version
     }
     #[allow(missing_docs)] // documentation missing in model

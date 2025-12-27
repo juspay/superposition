@@ -573,6 +573,13 @@ export interface BulkOperationOutput {
 /**
  * @public
  */
+export interface ChangeReasonValidationFunctionRequest {
+  change_reason: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface ConcludeExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1298,6 +1305,18 @@ export type FunctionTypes = typeof FunctionTypes[keyof typeof FunctionTypes]
 
 /**
  * @public
+ * @enum
+ */
+export const FunctionRuntimeVersion = {
+  V1: "1.0",
+} as const
+/**
+ * @public
+ */
+export type FunctionRuntimeVersion = typeof FunctionRuntimeVersion[keyof typeof FunctionRuntimeVersion]
+
+/**
+ * @public
  */
 export interface CreateFunctionRequest {
   workspace_id: string | undefined;
@@ -1306,7 +1325,7 @@ export interface CreateFunctionRequest {
   description: string | undefined;
   change_reason: string | undefined;
   function: string | undefined;
-  runtime_version: string | undefined;
+  runtime_version: FunctionRuntimeVersion | undefined;
   function_type: FunctionTypes | undefined;
 }
 
@@ -1317,8 +1336,8 @@ export interface FunctionResponse {
   function_name: string | undefined;
   published_code?: string | undefined;
   draft_code: string | undefined;
-  published_runtime_version?: string | undefined;
-  draft_runtime_version: string | undefined;
+  published_runtime_version?: FunctionRuntimeVersion | undefined;
+  draft_runtime_version: FunctionRuntimeVersion | undefined;
   published_at?: Date | undefined;
   draft_edited_at: Date | undefined;
   published_by?: string | undefined;
@@ -2145,9 +2164,10 @@ export interface ValueValidationFunctionRequest {
  * @public
  */
 export type FunctionExecutionRequest =
-  | FunctionExecutionRequest.ContextValidationFunctionRequestMember
-  | FunctionExecutionRequest.ValueComputeFunctionRequestMember
-  | FunctionExecutionRequest.ValueValidationFunctionRequestMember
+  | FunctionExecutionRequest.Change_reason_validateMember
+  | FunctionExecutionRequest.Context_validateMember
+  | FunctionExecutionRequest.Value_computeMember
+  | FunctionExecutionRequest.Value_validateMember
   | FunctionExecutionRequest.$UnknownMember
 
 /**
@@ -2155,24 +2175,35 @@ export type FunctionExecutionRequest =
  */
 export namespace FunctionExecutionRequest {
 
-  export interface ValueValidationFunctionRequestMember {
-    ValueValidationFunctionRequest: ValueValidationFunctionRequest;
-    ValueComputeFunctionRequest?: never;
-    ContextValidationFunctionRequest?: never;
+  export interface Value_validateMember {
+    value_validate: ValueValidationFunctionRequest;
+    value_compute?: never;
+    context_validate?: never;
+    change_reason_validate?: never;
     $unknown?: never;
   }
 
-  export interface ValueComputeFunctionRequestMember {
-    ValueValidationFunctionRequest?: never;
-    ValueComputeFunctionRequest: ValueComputeFunctionRequest;
-    ContextValidationFunctionRequest?: never;
+  export interface Value_computeMember {
+    value_validate?: never;
+    value_compute: ValueComputeFunctionRequest;
+    context_validate?: never;
+    change_reason_validate?: never;
     $unknown?: never;
   }
 
-  export interface ContextValidationFunctionRequestMember {
-    ValueValidationFunctionRequest?: never;
-    ValueComputeFunctionRequest?: never;
-    ContextValidationFunctionRequest: ContextValidationFunctionRequest;
+  export interface Context_validateMember {
+    value_validate?: never;
+    value_compute?: never;
+    context_validate: ContextValidationFunctionRequest;
+    change_reason_validate?: never;
+    $unknown?: never;
+  }
+
+  export interface Change_reason_validateMember {
+    value_validate?: never;
+    value_compute?: never;
+    context_validate?: never;
+    change_reason_validate: ChangeReasonValidationFunctionRequest;
     $unknown?: never;
   }
 
@@ -2180,16 +2211,18 @@ export namespace FunctionExecutionRequest {
    * @public
    */
   export interface $UnknownMember {
-    ValueValidationFunctionRequest?: never;
-    ValueComputeFunctionRequest?: never;
-    ContextValidationFunctionRequest?: never;
+    value_validate?: never;
+    value_compute?: never;
+    context_validate?: never;
+    change_reason_validate?: never;
     $unknown: [string, any];
   }
 
   export interface Visitor<T> {
-    ValueValidationFunctionRequest: (value: ValueValidationFunctionRequest) => T;
-    ValueComputeFunctionRequest: (value: ValueComputeFunctionRequest) => T;
-    ContextValidationFunctionRequest: (value: ContextValidationFunctionRequest) => T;
+    value_validate: (value: ValueValidationFunctionRequest) => T;
+    value_compute: (value: ValueComputeFunctionRequest) => T;
+    context_validate: (value: ContextValidationFunctionRequest) => T;
+    change_reason_validate: (value: ChangeReasonValidationFunctionRequest) => T;
     _: (name: string, value: any) => T;
   }
 
@@ -2197,9 +2230,10 @@ export namespace FunctionExecutionRequest {
     value: FunctionExecutionRequest,
     visitor: Visitor<T>
   ): T => {
-    if (value.ValueValidationFunctionRequest !== undefined) return visitor.ValueValidationFunctionRequest(value.ValueValidationFunctionRequest);
-    if (value.ValueComputeFunctionRequest !== undefined) return visitor.ValueComputeFunctionRequest(value.ValueComputeFunctionRequest);
-    if (value.ContextValidationFunctionRequest !== undefined) return visitor.ContextValidationFunctionRequest(value.ContextValidationFunctionRequest);
+    if (value.value_validate !== undefined) return visitor.value_validate(value.value_validate);
+    if (value.value_compute !== undefined) return visitor.value_compute(value.value_compute);
+    if (value.context_validate !== undefined) return visitor.context_validate(value.context_validate);
+    if (value.change_reason_validate !== undefined) return visitor.change_reason_validate(value.change_reason_validate);
     return visitor._(value.$unknown[0], value.$unknown[1]);
   }
 
@@ -2239,7 +2273,7 @@ export interface UpdateFunctionRequest {
   description?: string | undefined;
   change_reason: string | undefined;
   function?: string | undefined;
-  runtime_version?: string | undefined;
+  runtime_version?: FunctionRuntimeVersion | undefined;
 }
 
 /**

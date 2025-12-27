@@ -35,7 +35,7 @@ public final class CreateFunctionInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("function", PreludeSchemas.STRING,
                 new RequiredTrait())
-        .putMember("runtime_version", PreludeSchemas.STRING,
+        .putMember("runtime_version", FunctionRuntimeVersion.$SCHEMA,
                 new RequiredTrait())
         .putMember("function_type", FunctionTypes.$SCHEMA,
                 new RequiredTrait())
@@ -56,7 +56,7 @@ public final class CreateFunctionInput implements SerializableStruct {
     private final transient String description;
     private final transient String changeReason;
     private final transient String function;
-    private final transient String runtimeVersion;
+    private final transient FunctionRuntimeVersion runtimeVersion;
     private final transient FunctionTypes functionType;
 
     private CreateFunctionInput(Builder builder) {
@@ -94,7 +94,7 @@ public final class CreateFunctionInput implements SerializableStruct {
         return function;
     }
 
-    public String runtimeVersion() {
+    public FunctionRuntimeVersion runtimeVersion() {
         return runtimeVersion;
     }
 
@@ -144,7 +144,7 @@ public final class CreateFunctionInput implements SerializableStruct {
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
         serializer.writeString($SCHEMA_FUNCTION, function);
-        serializer.writeString($SCHEMA_RUNTIME_VERSION, runtimeVersion);
+        serializer.writeString($SCHEMA_RUNTIME_VERSION, runtimeVersion.value());
         serializer.writeString($SCHEMA_FUNCTION_TYPE, functionType.value());
     }
 
@@ -202,7 +202,7 @@ public final class CreateFunctionInput implements SerializableStruct {
         private String description;
         private String changeReason;
         private String function;
-        private String runtimeVersion;
+        private FunctionRuntimeVersion runtimeVersion;
         private FunctionTypes functionType;
 
         private Builder() {}
@@ -276,7 +276,7 @@ public final class CreateFunctionInput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder runtimeVersion(String runtimeVersion) {
+        public Builder runtimeVersion(FunctionRuntimeVersion runtimeVersion) {
             this.runtimeVersion = Objects.requireNonNull(runtimeVersion, "runtimeVersion cannot be null");
             tracker.setMember($SCHEMA_RUNTIME_VERSION);
             return this;
@@ -308,7 +308,7 @@ public final class CreateFunctionInput implements SerializableStruct {
                 case 3 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 4 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 case 5 -> function((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, value));
-                case 6 -> runtimeVersion((String) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
+                case 6 -> runtimeVersion((FunctionRuntimeVersion) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
                 case 7 -> functionType((FunctionTypes) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
@@ -338,7 +338,7 @@ public final class CreateFunctionInput implements SerializableStruct {
                 function("");
             }
             if (!tracker.checkMember($SCHEMA_RUNTIME_VERSION)) {
-                runtimeVersion("");
+                runtimeVersion(FunctionRuntimeVersion.unknown(""));
             }
             if (!tracker.checkMember($SCHEMA_FUNCTION_TYPE)) {
                 functionType(FunctionTypes.unknown(""));
@@ -370,7 +370,7 @@ public final class CreateFunctionInput implements SerializableStruct {
                     case 3 -> builder.description(de.readString(member));
                     case 4 -> builder.changeReason(de.readString(member));
                     case 5 -> builder.function(de.readString(member));
-                    case 6 -> builder.runtimeVersion(de.readString(member));
+                    case 6 -> builder.runtimeVersion(FunctionRuntimeVersion.builder().deserializeMember(de, member).build());
                     case 7 -> builder.functionType(FunctionTypes.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
