@@ -17,7 +17,7 @@ use serde_json::{json, Map, Value};
 #[cfg(feature = "jsonlogic")]
 use service_utils::helpers::extract_dimensions;
 #[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::AppState;
+use service_utils::service::types::{AppHeader, AppState};
 use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
