@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.37.2 - 2025-12-27
+#### Bug Fixes
+- Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
+- functions changes (#785) - (efab6a8) - Ankit Kumar Mahato
+- Function editor page (#779) - (b885d35) - Ayush Jain
+#### Build system
+- clean setup for test (#803) - (0e7e689) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.95.2 [skip ci] - (55f72ef) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.37.1 - 2025-12-11
 #### Bug Fixes
 - Modified validation and autocomplete functions (#732) - (3808aff) - Ankit Kumar Mahato

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.46.0 - 2025-12-27
+#### Bug Fixes
+- Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
+#### Features
+- full fledged evaluation endpoint (#760) - (332fc78) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.95.2 [skip ci] - (55f72ef) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.45.4 - 2025-12-11
 #### Bug Fixes
 - Modified validation and autocomplete functions (#732) - (3808aff) - Ankit Kumar Mahato

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.9.0 - 2025-12-27
+#### Bug Fixes
+- Add status in FfiExperiment type (#788) - (1fb6c8e) - Ayush Jain
+#### Features
+- full fledged evaluation endpoint (#760) - (332fc78) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.94.2 [skip ci] - (f81a172) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.8.2 - 2025-11-17
 #### Bug Fixes
 - Moved header file generation outside of crate dir as it causes an error during publish. (#749) - (599d2a5) - ShreyBana

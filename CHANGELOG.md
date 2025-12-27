@@ -2,6 +2,48 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.96.0 - 2025-12-27
+### Package updates
+- superposition_sdk bumped to superposition_sdk-v0.12.0
+- service_utils bumped to service_utils-v0.35.0
+- context_aware_config bumped to context_aware_config-v0.66.0
+- experimentation_platform bumped to experimentation_platform-v0.46.0
+- superposition_core bumped to superposition_core-v0.9.0
+- frontend bumped to frontend-v0.47.2
+- superposition_provider bumped to superposition_provider-v0.6.4
+- haskell_client bumped to haskell_client-v0.11.0
+- superposition_types bumped to superposition_types-v0.37.2
+### Global changes
+#### Bug Fixes
+- **(UI)** Default redirection while using prefix (#794) - (75deabb) - Ayush Jain
+- Auth behaviour in python provider (#777) - (097ad54) - Ayush Jain
+- replace http with 80 (#790) - (5139e82) - Shailesh
+- Add status in FfiExperiment type (#788) - (1fb6c8e) - Ayush Jain
+- Dimension position update validation (#791) - (8f53910) - Ayush Jain
+- functions changes (#785) - (efab6a8) - Ankit Kumar Mahato
+- Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
+#### Build system
+- **(release)** remove with.token in checkout step (#805) - (43d7c57) - Ayush Jain
+- **(release)** move yq install to after version bump (#806) - (dec3562) - Ayush Jain
+- **(revert)** remove with.token in checkout step (#807) - (cb2e757) - Ayush Jain
+- respect cargo target dir set via cargo/env config (#781) - (4c549ce) - Natarajan Kannan
+- fix local client build (#798) - (377563a) - Natarajan Kannan
+- remove token from env (#780) - (5712bc0) - George James
+- add check for smithy and uniffi changes (#799) - (97408bb) - Ayush Jain
+- fix query in test (#800) - (081fde7) - Ayush Jain
+- clean setup for test (#803) - (0e7e689) - Ayush Jain
+#### Continuous Integration
+- update release workflow to update version in helm chart (#789) - (3c5d8bc) - Shailesh
+#### Features
+- **(auth_n)** Separate Saas OIDC login from core OIDC login (#795) - (f4d0c86) - Ayush Jain
+- Add helm charts for superposition deployment (#783) - (1e554ae) - Shailesh
+- full fledged evaluation endpoint (#760) - (332fc78) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(deps)** bump urllib3 from 2.5.0 to 2.6.0 in /locust (#772) - (9f216f3) - dependabot[bot]
+- **(version)** v0.95.2 [skip ci] - (55f72ef) - Superposition Bot
+
+- - -
+
 ## v0.95.2 - 2025-12-11
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.45.4
