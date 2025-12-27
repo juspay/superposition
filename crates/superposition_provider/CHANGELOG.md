@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.6.4 - 2025-12-27
+#### Bug Fixes
+- Add status in FfiExperiment type (#788) - (1fb6c8e) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.95.2 [skip ci] - (55f72ef) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.6.3 - 2025-12-11
 #### Bug Fixes
 - Modified validation and autocomplete functions (#732) - (3808aff) - Ankit Kumar Mahato

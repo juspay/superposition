@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.35.0 - 2025-12-27
+#### Bug Fixes
+- **(OIDC)** Url parsing for issuer paths having no prefix (#793) - (75dee8f) - Ayush Jain
+#### Features
+- **(auth_n)** Separate Saas OIDC login from core OIDC login (#795) - (f4d0c86) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.95.0 [skip ci] - (b2a9dd2) - Superposition Bot
+- Flake update (#775) - (4a2eaa2) - Datron
+
+- - -
+
 ## service_utils-v0.34.0 - 2025-11-27
 #### Features
 - added variables (#741) - (fb51c6a) - sauraww

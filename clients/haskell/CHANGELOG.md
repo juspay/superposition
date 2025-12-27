@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.11.0 - 2025-12-27
+#### Bug Fixes
+- Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
+- Dimension position update validation (#791) - (8f53910) - Ayush Jain
+#### Features
+- full fledged evaluation endpoint (#760) - (332fc78) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.95.2 [skip ci] - (55f72ef) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.10.1 - 2025-12-11
 #### Bug Fixes
 - Modified validation and autocomplete functions (#732) - (3808aff) - Ankit Kumar Mahato
