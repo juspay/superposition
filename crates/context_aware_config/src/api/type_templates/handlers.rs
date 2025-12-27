@@ -50,12 +50,7 @@ async fn create_type(
             err.to_string()
         )
     })?;
-    validate_change_reason(&request.change_reason, &mut conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(&request.change_reason, &mut conn, &schema_name)?;
     let type_name: String = request.type_name.clone().into();
     let type_template = diesel::insert_into(type_templates::table)
         .values((
@@ -68,11 +63,7 @@ async fn create_type(
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&schema_name)
-        .get_result::<TypeTemplate>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to insert custom type with error: {}", err);
-            db_error!(err)
-        })?;
+        .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(type_template))
 }
 
@@ -116,11 +107,7 @@ async fn update_type(
         )
     })?;
 
-    let change_reason = request.change_reason;
-    validate_change_reason(&change_reason, &mut conn, &schema_name).map_err(|err| {
-        log::error!("change reason validation failed with error: {:?}", err);
-        err
-    })?;
+    validate_change_reason(&request.change_reason, &mut conn, &schema_name)?;
 
     let description = request.description;
     let type_name: String = path.into_inner().into();
@@ -154,15 +141,11 @@ async fn update_type(
             type_templates::last_modified_at.eq(timestamp),
             type_templates::last_modified_by.eq(user.email.clone()),
             type_templates::description.eq(final_description),
-            type_templates::change_reason.eq(change_reason),
+            type_templates::change_reason.eq(request.change_reason),
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&schema_name)
-        .get_result::<TypeTemplate>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to insert custom type with error: {}", err);
-            db_error!(err)
-        })?;
+        .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(updated_type))
 }
 
