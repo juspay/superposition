@@ -62,12 +62,7 @@ async fn create(
         ));
     }
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
 
     compile_fn(&req.function)?;
 
@@ -145,12 +140,7 @@ async fn update(
         compile_fn(function)?;
 
         if function_type != FunctionType::ChangeReasonValidation {
-            validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
-                |err| {
-                    log::error!("change reason validation failed with error: {:?}", err);
-                    err
-                },
-            )?;
+            validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
         }
     }
 
@@ -231,10 +221,6 @@ async fn delete_function(
     let function = fetch_function(&f_name, &mut conn, &schema_name)?;
     match function.function_type {
         FunctionType::ContextValidation | FunctionType::ChangeReasonValidation => {
-            log::error!(
-                "Attempted to delete reserved function type: {:?}",
-                function.function_type
-            );
             return Err(bad_argument!(
                 "Cannot delete function of type {:?}: This function type is reserved and cannot be deleted.",
                 function.function_type
@@ -284,7 +270,6 @@ async fn test(
             match (function.published_code, function.published_runtime_version) {
                 (Some(code), Some(version)) => (code, version),
                 _ => {
-                    log::error!("Function test failed: function not published yet");
                     return Err(bad_argument!(
                         "Function test failed as function not published yet"
                     ));
@@ -320,12 +305,7 @@ async fn publish(
     let req = request.into_inner();
 
     if function.function_type != FunctionType::ChangeReasonValidation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name).map_err(
-            |err| {
-                log::error!("change reason validation failed with error: {:?}", err);
-                err
-            },
-        )?;
+        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
     }
 
     let updated_function = diesel::update(functions::functions)

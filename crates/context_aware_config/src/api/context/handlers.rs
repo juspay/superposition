@@ -89,12 +89,7 @@ async fn put_handler(
     };
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name)?;
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -152,12 +147,7 @@ async fn update_override_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name)?;
 
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -219,12 +209,7 @@ async fn move_handler(
         )?,
     };
 
-    validate_change_reason(&req.change_reason, &mut db_conn, &schema_name).map_err(
-        |err| {
-            log::error!("change reason validation failed with error: {:?}", err);
-            err
-        },
-    )?;
+    validate_change_reason(&req.change_reason, &mut db_conn, &schema_name)?;
 
     let (move_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -515,14 +500,7 @@ async fn bulk_operations(
                             &put_req.change_reason,
                             transaction_conn,
                             &schema_name,
-                        )
-                        .map_err(|err| {
-                            log::error!(
-                                "change reason validation failed with error: {:?}",
-                                err
-                            );
-                            err
-                        })?;
+                        )?;
 
                         let description = if put_req.description.is_none() {
                             query_description(
