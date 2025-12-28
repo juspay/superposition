@@ -3,10 +3,14 @@ use actix_web::{
     web::{Header, Json},
     HttpRequest, HttpResponse, Scope,
 };
+use context_aware_config::api::config::helpers::{
+    add_audit_id_to_header, add_config_version_to_header, add_last_modified_to_header,
+    generate_config_from_version, get_config_version, get_max_created_at,
+    is_not_modified, resolve, setup_query_data,
+};
 use experimentation_platform::api::experiments::handlers::get_applicable_variants_helper;
 use serde_json::{Map, Value};
 use service_utils::service::types::{DbConnection, WorkspaceContext};
-
 use superposition_types::{
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
@@ -14,11 +18,6 @@ use superposition_types::{
 };
 
 use super::types::IdentifierQuery;
-use context_aware_config::api::config::helpers::{
-    add_audit_id_to_header, add_config_version_to_header, add_last_modified_to_header,
-    generate_config_from_version, get_config_version, get_max_created_at,
-    is_not_modified, resolve, setup_query_data,
-};
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(evaluate)

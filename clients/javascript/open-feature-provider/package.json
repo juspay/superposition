@@ -15,7 +15,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/juspay/superposition.git"
+        "url": "git+https://github.com/juspay/superposition.git"
     },
     "scripts": {
         "prebuild": "node build-deps.js",
@@ -56,7 +56,7 @@
         "dist/**/*"
     ],
     "bundledDependencies": [
-      "superposition-bindings",
-      "superposition-sdk"
+        "superposition-bindings",
+        "superposition-sdk"
     ]
 }
