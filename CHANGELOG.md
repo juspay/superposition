@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.96.1 - 2025-12-28
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.66.1
+### Global changes
+#### Bug Fixes
+- Use macos-15-intel for intel based builds (#808) - (0df10b7) - Ayush Jain
+- remove redundant logs and npm release (#809) - (9836880) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+
+- - -
+
 ## v0.96.0 - 2025-12-27
 ### Package updates
 - superposition_sdk bumped to superposition_sdk-v0.12.0

@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.66.1 - 2025-12-28
+#### Bug Fixes
+- remove redundant logs and npm release (#809) - (9836880) - Ayush Jain
+- compilation error in high-performance-mode (#810) - (a092f98) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.66.0 - 2025-12-27
 #### Bug Fixes
 - Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
