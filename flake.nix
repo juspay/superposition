@@ -82,6 +82,11 @@
               # go client
               # go
             ];
+
+            shellHook = ''
+                # If it exists from the host system, kill it
+                unset DEVELOPER_DIR
+            '';
           };
 
         };
