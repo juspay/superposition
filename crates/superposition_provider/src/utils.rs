@@ -113,7 +113,7 @@ impl ConversionUtils {
         let config = Config {
             contexts,
             overrides,
-            default_configs,
+            default_configs: default_configs.into(),
             dimensions,
         };
 
@@ -309,7 +309,7 @@ impl ConversionUtils {
         Ok(Config {
             contexts,
             overrides,
-            default_configs,
+            default_configs: default_configs.into(),
             dimensions,
         })
     }
@@ -584,7 +584,7 @@ impl ConversionUtils {
         // Convert default_configs
         result.insert(
             "default_configs".to_string(),
-            Value::Object(config.default_configs.clone()),
+            Value::Object((*config.default_configs).clone()),
         );
 
         // Convert overrides to the expected format
@@ -652,7 +652,7 @@ impl ConversionUtils {
         );
 
         // Start with default configs
-        let mut result = final_config.default_configs.clone();
+        let mut result = (*final_config.default_configs).clone();
 
         // Apply overrides based on context priority (higher priority wins)
         let mut sorted_contexts = final_config.contexts.clone();
