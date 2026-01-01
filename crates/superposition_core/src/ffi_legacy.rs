@@ -503,120 +503,39 @@ pub unsafe extern "C" fn core_parse_toml_config(
         }
     };
 
-    // Serialize to JSON
+    // Serialize contexts, overrides, and dimensions to JSON strings
+    let contexts_json = match serde_json::to_string(&parsed.contexts) {
+        Ok(s) => s,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to serialize contexts: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    let overrides_json = match serde_json::to_string(&parsed.overrides) {
+        Ok(s) => s,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to serialize overrides: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    let dimensions_json = match serde_json::to_string(&parsed.dimensions) {
+        Ok(s) => s,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to serialize dimensions: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    // Create result with default_config as Map and others as JSON strings
     let result = serde_json::json!({
-        "default_config": parsed.default_config,
-        "contexts": parsed.contexts,
-        "overrides": parsed.overrides,
-        "dimensions": parsed.dimensions,
+        "default_config": &*parsed.default_configs,
+        "contexts_json": contexts_json,
+        "overrides_json": overrides_json,
+        "dimensions_json": dimensions_json,
     });
 
-    let result_str = match serde_json::to_string(&result) {
-        Ok(s) => s,
-        Err(e) => {
-            copy_string(ebuf, format!("JSON serialization error: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    // Convert to C string
-    string_to_c_str(result_str)
-}
-
-/// Parse TOML configuration and evaluate with input dimensions
-///
-/// # Safety
-///
-/// Caller ensures that all pointers are valid null-terminated C strings and `ebuf` is
-/// a sufficiently long buffer (2048 bytes minimum) to store error messages.
-///
-/// # Arguments
-/// * `toml_content` - C string containing TOML configuration
-/// * `input_dimensions_json` - C string with JSON object of dimension values
-/// * `merge_strategy_str` - C string with merge strategy ("MERGE" or "REPLACE")
-/// * `ebuf` - Error buffer (2048 bytes) for error messages
-///
-/// # Returns
-/// * Success: JSON string with resolved configuration
-/// * Failure: NULL pointer, error written to ebuf
-///
-/// # Example input_dimensions_json
-/// ```json
-/// { "os": "linux", "region": "us-east" }
-/// ```
-///
-/// # Memory Management
-/// Caller must free the returned string using core_free_string()
-#[no_mangle]
-pub unsafe extern "C" fn core_eval_toml_config(
-    toml_content: *const c_char,
-    input_dimensions_json: *const c_char,
-    merge_strategy_str: *const c_char,
-    ebuf: *mut c_char,
-) -> *mut c_char {
-    // Null pointer checks
-    if toml_content.is_null() {
-        copy_string(ebuf, "toml_content is null");
-        return ptr::null_mut();
-    }
-    if input_dimensions_json.is_null() {
-        copy_string(ebuf, "input_dimensions_json is null");
-        return ptr::null_mut();
-    }
-    if merge_strategy_str.is_null() {
-        copy_string(ebuf, "merge_strategy_str is null");
-        return ptr::null_mut();
-    }
-
-    // Convert C strings
-    let toml_str = match c_str_to_string(toml_content) {
-        Ok(s) => s,
-        Err(e) => {
-            copy_string(ebuf, format!("Invalid UTF-8 in toml_content: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    // Parse input dimensions
-    let input_dimensions: Map<String, Value> = match parse_json(input_dimensions_json) {
-        Ok(v) => v,
-        Err(e) => {
-            copy_string(
-                ebuf,
-                format!("Failed to parse input_dimensions_json: {}", e),
-            );
-            return ptr::null_mut();
-        }
-    };
-
-    // Parse merge strategy
-    let merge_strategy_string = match c_str_to_string(merge_strategy_str) {
-        Ok(s) => s,
-        Err(e) => {
-            copy_string(ebuf, format!("Invalid UTF-8 in merge_strategy_str: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    let merge_strategy: config::MergeStrategy = match merge_strategy_string.parse() {
-        Ok(s) => s,
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to parse merge_strategy_str: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    // Evaluate
-    let result =
-        match crate::eval_toml_config(&toml_str, &input_dimensions, merge_strategy) {
-            Ok(r) => r,
-            Err(e) => {
-                copy_string(ebuf, e);
-                return ptr::null_mut();
-            }
-        };
-
-    // Serialize result
     let result_str = match serde_json::to_string(&result) {
         Ok(s) => s,
         Err(e) => {

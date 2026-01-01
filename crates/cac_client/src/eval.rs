@@ -105,7 +105,7 @@ pub fn eval_cac(
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {
-    let mut default_config = config.default_configs.clone();
+    let mut default_config = (*config.default_configs).clone();
     let on_override_select: Option<&mut dyn FnMut(Context)> = None;
     let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
     let overrides: Map<String, Value> = get_overrides(
@@ -127,7 +127,7 @@ pub fn eval_cac_with_reasoning(
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
 ) -> Result<Map<String, Value>, String> {
-    let mut default_config = config.default_configs.clone();
+    let mut default_config = (*config.default_configs).clone();
     let mut reasoning: Vec<Value> = vec![];
 
     let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);

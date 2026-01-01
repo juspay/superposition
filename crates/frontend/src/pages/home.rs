@@ -491,7 +491,7 @@ pub fn Home() -> impl IntoView {
                                             .with(move |conf| {
                                                 match conf {
                                                     Some(Ok(config)) => {
-                                                        let default_configs = config.default_configs.clone();
+                                                        let default_configs_map = (*config.default_configs).clone();
                                                         view! {
                                                             <div class="card m-6 shadow bg-base-100">
                                                                 <div class="card-body">
@@ -505,8 +505,7 @@ pub fn Home() -> impl IntoView {
                                                                         </thead>
                                                                         <tbody id="resolved_table_body">
                                                                             <For
-                                                                                each=move || { default_configs.clone().into_iter() }
-
+                                                                                each=move || { default_configs_map.clone().into_iter() }
                                                                                 key=|(key, value)| format!("{key}-{value}")
                                                                                 children=move |(config, value)| {
                                                                                     view! {

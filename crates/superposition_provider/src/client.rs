@@ -224,7 +224,7 @@ impl CacConfig {
             Some(cached_config) => {
                 // Use ConversionUtils to evaluate config
                 eval_config(
-                    cached_config.default_configs.clone(),
+                    (*cached_config.default_configs).clone(),
                     &cached_config.contexts,
                     &cached_config.overrides,
                     &cached_config.dimensions,

@@ -13,7 +13,8 @@ pub use experiment::{
 pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
 };
-pub use toml_parser::{ParsedTomlConfig, TomlParseError};
+pub use superposition_types::Config;
+pub use toml_parser::TomlParseError;
 
 use serde_json::{Map, Value};
 
@@ -67,7 +68,7 @@ use serde_json::{Map, Value};
 /// println!("Parsed {} contexts", parsed.contexts.len());
 /// # Ok::<(), superposition_core::TomlParseError>(())
 /// ```
-pub fn parse_toml_config(toml_content: &str) -> Result<ParsedTomlConfig, TomlParseError> {
+pub fn parse_toml_config(toml_content: &str) -> Result<Config, TomlParseError> {
     toml_parser::parse(toml_content)
 }
 
@@ -117,7 +118,7 @@ pub fn eval_toml_config(
     let parsed = toml_parser::parse(toml_content).map_err(|e| e.to_string())?;
 
     eval_config(
-        parsed.default_config,
+        (*parsed.default_configs).clone(),
         &parsed.contexts,
         &parsed.overrides,
         &parsed.dimensions,

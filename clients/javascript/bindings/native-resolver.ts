@@ -29,6 +29,9 @@ export class NativeResolver {
             this.lib.core_test_connection = this.lib.func(
                 "int core_test_connection()"
             );
+            this.lib.core_parse_toml_config = this.lib.func(
+                "char* core_parse_toml_config(const char*, char*)"
+            );
 
             this.isAvailable = true;
         } catch (error) {
@@ -319,6 +322,56 @@ export class NativeResolver {
     }
 
     /**
+     * Parse TOML configuration into structured format
+     *
+     * @param tomlContent - TOML configuration string
+     * @returns Parsed configuration with default_config, contexts_json, overrides_json, dimensions_json
+     * @throws Error if parsing fails
+     */
+    parseTomlConfig(tomlContent: string): {
+        default_config: Record<string, any>;
+        contexts_json: string;
+        overrides_json: string;
+        dimensions_json: string;
+    } {
+        if (!this.isAvailable) {
+            throw new Error(
+                "Native resolver is not available. Please ensure the native library is built and accessible."
+            );
+        }
+
+        if (typeof tomlContent !== 'string') {
+            throw new TypeError('tomlContent must be a string');
+        }
+
+        // Allocate error buffer (matching the Rust implementation)
+        const ERROR_BUFFER_SIZE = 2048;
+        const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
+        errorBuffer.fill(0);
+
+        // Call the C function - koffi automatically converts the result from char* to string
+        const resultJson = this.lib.core_parse_toml_config(tomlContent, errorBuffer);
+
+        // Check for errors
+        if (!resultJson) {
+            // Read error message from buffer
+            const nullTermIndex = errorBuffer.indexOf(0);
+            const errorMsg = errorBuffer.toString('utf8', 0, nullTermIndex > 0 ? nullTermIndex : errorBuffer.length);
+            throw new Error(`TOML parsing failed: ${errorMsg}`);
+        }
+
+        // Parse the JSON result
+        try {
+            const result = JSON.parse(resultJson);
+            return result;
+        } catch (parseError) {
+            console.error("Failed to parse TOML result:", parseError);
+            console.error("Raw result string:", resultJson);
+            throw new Error(`Failed to parse TOML result: ${parseError}`);
+        }
+    }
+
+    /**
      * Get the path to the native library.
      * Uses the same approach as Java and Python - looks for GitHub artifacts first,
      * then falls back to local build.
@@ -411,7 +464,32 @@ export class NativeResolver {
             return localBuildPath;
         }
 
-        // 4. Final fallback - assume it's in the system path
+        // 4. Try simple library name format (libsuperposition_core.dylib/so/dll)
+        let simpleLibName: string;
+        if (platform === "win32") {
+            simpleLibName = "superposition_core.dll";
+        } else if (platform === "darwin") {
+            simpleLibName = "libsuperposition_core.dylib";
+        } else {
+            simpleLibName = "libsuperposition_core.so";
+        }
+
+        const simpleLocalBuildPath = path.resolve(
+            dirname,
+            "..",
+            "..",
+            "..",
+            "..",
+            "target",
+            "release",
+            simpleLibName
+        );
+        if (this.fileExists(simpleLocalBuildPath)) {
+            console.log(`Using simple local build: ${simpleLocalBuildPath}`);
+            return simpleLocalBuildPath;
+        }
+
+        // 5. Final fallback - assume it's in the system path
         console.warn(
             `Native library not found in expected locations, trying: ${filename}`
         );

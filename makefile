@@ -381,8 +381,8 @@ else
 endif
 uniffi-bindings:
 	cargo build --package superposition_core --lib --release
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language kotlin --out-dir clients/java/bindings/src/main/kotlin
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language python --out-dir clients/python/bindings/superposition_bindings
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language kotlin --out-dir clients/java/bindings/src/main/kotlin --no-format
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language python --out-dir clients/python/bindings/superposition_bindings --no-format
 	git apply uniffi/patches/*.patch
 
 provider-template: setup superposition
