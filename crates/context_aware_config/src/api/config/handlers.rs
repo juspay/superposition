@@ -424,7 +424,7 @@ async fn reduce_config_key(
     Ok(Config {
         contexts: og_contexts,
         overrides: og_overrides,
-        default_configs: default_config,
+        default_configs: default_config.into(),
         dimensions: dimension_schema_map.clone(),
     })
 }
@@ -445,7 +445,7 @@ async fn reduce_config(
 
     let dimensions_info_map = fetch_dimensions_info_map(&mut conn, &schema_name)?;
     let mut config = generate_cac(&mut conn, &schema_name)?;
-    let default_config = (config.default_configs).clone();
+    let default_config = (*config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
         let overrides = config.overrides;
@@ -457,7 +457,7 @@ async fn reduce_config(
             overrides.clone(),
             key.as_str(),
             &dimensions_info_map,
-            default_config.clone(),
+            (*default_config).clone(),
             is_approve,
             &schema_name,
         )

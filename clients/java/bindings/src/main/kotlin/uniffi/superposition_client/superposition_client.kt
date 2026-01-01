@@ -33,12 +33,14 @@ import java.util.concurrent.ConcurrentHashMap
 import uniffi.superposition_types.Bucket
 import uniffi.superposition_types.Buckets
 import uniffi.superposition_types.Condition
+import uniffi.superposition_types.Config
 import uniffi.superposition_types.Context
 import uniffi.superposition_types.DimensionInfo
 import uniffi.superposition_types.ExperimentStatusType
 import uniffi.superposition_types.FfiConverterTypeBucket
 import uniffi.superposition_types.FfiConverterTypeBuckets
 import uniffi.superposition_types.FfiConverterTypeCondition
+import uniffi.superposition_types.FfiConverterTypeConfig
 import uniffi.superposition_types.FfiConverterTypeContext
 import uniffi.superposition_types.FfiConverterTypeDimensionInfo
 import uniffi.superposition_types.FfiConverterTypeExperimentStatusType
@@ -55,6 +57,7 @@ import uniffi.superposition_types.Variants
 import uniffi.superposition_types.RustBuffer as RustBufferBucket
 import uniffi.superposition_types.RustBuffer as RustBufferBuckets
 import uniffi.superposition_types.RustBuffer as RustBufferCondition
+import uniffi.superposition_types.RustBuffer as RustBufferConfig
 import uniffi.superposition_types.RustBuffer as RustBufferContext
 import uniffi.superposition_types.RustBuffer as RustBufferDimensionInfo
 import uniffi.superposition_types.RustBuffer as RustBufferExperimentStatusType
@@ -750,6 +753,8 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -770,6 +775,8 @@ internal interface IntegrityCheckingUniffiLib : Library {
 fun uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning(
 ): Short
 fun uniffi_superposition_core_checksum_func_ffi_get_applicable_variants(
+): Short
+fun uniffi_superposition_core_checksum_func_ffi_parse_toml_config(
 ): Short
 fun ffi_superposition_core_uniffi_contract_version(
 ): Int
@@ -823,6 +830,8 @@ fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultCon
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`dimensionsInfo`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+fun uniffi_superposition_core_fn_func_ffi_parse_toml_config(`tomlContent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBufferConfig.ByValue
 fun ffi_superposition_core_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun ffi_superposition_core_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -956,6 +965,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 60659.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1706,6 +1718,8 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
 
 
 
+
+
     @Throws(OperationException::class) fun `ffiEvalConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `experimentation`: ExperimentationArgs?): Map<kotlin.String, kotlin.String> {
             return FfiConverterMapStringString.lift(
     uniffiRustCallWithError(OperationException) { _status ->
@@ -1731,6 +1745,38 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_get_applicable_variants(
         FfiConverterTypeExperimentationArgs.lower(`eargs`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensionsInfo`),FfiConverterMapStringString.lower(`queryData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * Parse TOML configuration string
+         *
+         * # Arguments
+         * * `toml_content` - TOML string with configuration
+         *
+         * # Returns
+         * * `Ok(Config)` - Parsed configuration with all components
+         * * `Err(OperationError)` - Detailed error message
+         *
+         * # Example TOML
+         * ```toml
+         * [default-config]
+         * timeout = { value = 30, schema = { type = "integer" } }
+         *
+         * [dimensions]
+         * os = { schema = { type = "string" } }
+         *
+         * [context]
+         * "os=linux" = { timeout = 60 }
+         * ```
+         */
+    @Throws(OperationException::class) fun `ffiParseTomlConfig`(`tomlContent`: kotlin.String): Config {
+            return FfiConverterTypeConfig.lift(
+    uniffiRustCallWithError(OperationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_parse_toml_config(
+        FfiConverterString.lower(`tomlContent`),_status)
 }
     )
     }

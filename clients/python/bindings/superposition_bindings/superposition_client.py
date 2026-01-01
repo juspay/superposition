@@ -31,6 +31,7 @@ import platform
 from .superposition_types import Bucket
 from .superposition_types import Buckets
 from .superposition_types import Condition
+from .superposition_types import Config
 from .superposition_types import Context
 from .superposition_types import DimensionInfo
 from .superposition_types import ExperimentStatusType
@@ -42,6 +43,7 @@ from .superposition_types import Variants
 from .superposition_types import _UniffiConverterTypeBucket
 from .superposition_types import _UniffiConverterTypeBuckets
 from .superposition_types import _UniffiConverterTypeCondition
+from .superposition_types import _UniffiConverterTypeConfig
 from .superposition_types import _UniffiConverterTypeContext
 from .superposition_types import _UniffiConverterTypeDimensionInfo
 from .superposition_types import _UniffiConverterTypeExperimentStatusType
@@ -53,6 +55,7 @@ from .superposition_types import _UniffiConverterTypeVariants
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferBucket
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferBuckets
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferCondition
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferConfig
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferContext
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferDimensionInfo
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferExperimentStatusType
@@ -498,6 +501,8 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 60659:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
 # This is an implementation detail which will be called internally by the public API.
@@ -636,6 +641,11 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants.argtype
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_toml_config.argtypes = (
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_toml_config.restype = _UniffiRustBufferConfig
 _UniffiLib.ffi_superposition_core_rustbuffer_alloc.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -913,6 +923,9 @@ _UniffiLib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasonin
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config.restype = ctypes.c_uint16
 _UniffiLib.ffi_superposition_core_uniffi_contract_version.argtypes = (
 )
 _UniffiLib.ffi_superposition_core_uniffi_contract_version.restype = ctypes.c_uint32
@@ -1521,6 +1534,8 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # External type Bucket: `from .superposition_types import Bucket`
 
+# External type Config: `from .superposition_types import Config`
+
 # External type Context: `from .superposition_types import Context`
 
 # External type DimensionInfo: `from .superposition_types import DimensionInfo`
@@ -1615,6 +1630,36 @@ def ffi_get_applicable_variants(eargs: "ExperimentationArgs",dimensions_info: "d
         _UniffiConverterOptionalSequenceString.lower(prefix)))
 
 
+def ffi_parse_toml_config(toml_content: "str") -> "Config":
+    """
+    Parse TOML configuration string
+
+    # Arguments
+    * `toml_content` - TOML string with configuration
+
+    # Returns
+    * `Ok(Config)` - Parsed configuration with all components
+    * `Err(OperationError)` - Detailed error message
+
+    # Example TOML
+    ```toml
+    [default-config]
+    timeout = { value = 30, schema = { type = "integer" } }
+
+    [dimensions]
+    os = { schema = { type = "string" } }
+
+    [context]
+    "os=linux" = { timeout = 60 }
+    ```
+    """
+
+    _UniffiConverterString.check_lower(toml_content)
+    
+    return _UniffiConverterTypeConfig.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_toml_config,
+        _UniffiConverterString.lower(toml_content)))
+
+
 __all__ = [
     "InternalError",
     "OperationError",
@@ -1624,5 +1669,6 @@ __all__ = [
     "ffi_eval_config",
     "ffi_eval_config_with_reasoning",
     "ffi_get_applicable_variants",
+    "ffi_parse_toml_config",
 ]
 
