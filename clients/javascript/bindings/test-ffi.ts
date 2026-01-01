@@ -1,5 +1,5 @@
 // Create a separate test file to test the FFI directly
-import { NativeResolver } from "./native-resolver";
+import { NativeResolver } from "./native-resolver.js";
 
 async function testFFIDirectly() {
     console.log("Testing FFI directly with known data...");
@@ -15,24 +15,8 @@ async function testFFIDirectly() {
         {
             id: "31b2d57af6e58dc9bc943916346cace7a8ed622665e8654d77f39c04886a57c9",
             condition: {
-                and: [
-                    {
-                        "==": [
-                            {
-                                var: "clientId",
-                            },
-                            "meesho",
-                        ],
-                    },
-                    {
-                        "==": [
-                            {
-                                var: "os",
-                            },
-                            "android",
-                        ],
-                    },
-                ],
+                clientId: "meesho",
+                os: "android"
             },
             priority: 0,
             weight: 0,

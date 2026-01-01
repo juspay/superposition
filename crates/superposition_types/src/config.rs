@@ -274,12 +274,12 @@ impl From<OverrideWithKeys> for Vec<String> {
 uniffi::custom_type!(OverrideWithKeys, Vec<String>);
 
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, uniffi::Record)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
-    pub default_configs: Map<String, Value>,
+    pub default_configs: ExtendedMap,
     #[serde(default)]
     pub dimensions: HashMap<String, DimensionInfo>,
 }
@@ -346,7 +346,7 @@ impl Config {
         Self {
             contexts: filtered_context,
             overrides: filtered_overrides,
-            default_configs: filtered_default_config,
+            default_configs: ExtendedMap(filtered_default_config),
             dimensions: self.dimensions.clone(),
         }
     }
