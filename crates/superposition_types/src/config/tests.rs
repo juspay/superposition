@@ -195,7 +195,7 @@ fn filter_by_prefix_with_dimension() {
         Config {
             contexts: Vec::new(),
             overrides: HashMap::new(),
-            default_configs: Map::new(),
+            default_configs: Map::new().into(),
             dimensions: config.dimensions.clone(),
         }
     );
@@ -227,7 +227,7 @@ fn filter_by_prefix_without_dimension() {
         Config {
             contexts: Vec::new(),
             overrides: HashMap::new(),
-            default_configs: Map::new(),
+            default_configs: Map::new().into(),
             dimensions: config.dimensions.clone(),
         }
     );

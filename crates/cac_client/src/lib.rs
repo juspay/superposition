@@ -215,7 +215,7 @@ impl Client {
         filter_keys: Option<Vec<String>>,
     ) -> Result<Map<String, Value>, String> {
         let configs = self.config.read().await;
-        let mut default_configs = configs.default_configs.clone();
+        let mut default_configs = (*configs.default_configs).clone();
         if let Some(keys) = filter_keys {
             default_configs = configs.filter_default_by_prefix(&HashSet::from_iter(keys));
         }

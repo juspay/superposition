@@ -209,7 +209,7 @@ pub fn generate_cac(
     Ok(Config {
         contexts,
         overrides,
-        default_configs,
+        default_configs: default_configs.into(),
         dimensions,
     })
 }
