@@ -926,6 +926,56 @@ class _UniffiConverterTypeBucket(_UniffiConverterRustBuffer):
         _UniffiConverterString.write(value.experiment_id, buf)
 
 
+class Config:
+    contexts: "typing.List[Context]"
+    overrides: "dict[str, Overrides]"
+    default_configs: "ExtendedMap"
+    dimensions: "dict[str, DimensionInfo]"
+    def __init__(self, *, contexts: "typing.List[Context]", overrides: "dict[str, Overrides]", default_configs: "ExtendedMap", dimensions: "dict[str, DimensionInfo]"):
+        self.contexts = contexts
+        self.overrides = overrides
+        self.default_configs = default_configs
+        self.dimensions = dimensions
+
+    def __str__(self):
+        return "Config(contexts={}, overrides={}, default_configs={}, dimensions={})".format(self.contexts, self.overrides, self.default_configs, self.dimensions)
+
+    def __eq__(self, other):
+        if self.contexts != other.contexts:
+            return False
+        if self.overrides != other.overrides:
+            return False
+        if self.default_configs != other.default_configs:
+            return False
+        if self.dimensions != other.dimensions:
+            return False
+        return True
+
+class _UniffiConverterTypeConfig(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return Config(
+            contexts=_UniffiConverterSequenceTypeContext.read(buf),
+            overrides=_UniffiConverterMapStringTypeOverrides.read(buf),
+            default_configs=_UniffiConverterTypeExtendedMap.read(buf),
+            dimensions=_UniffiConverterMapStringTypeDimensionInfo.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterSequenceTypeContext.check_lower(value.contexts)
+        _UniffiConverterMapStringTypeOverrides.check_lower(value.overrides)
+        _UniffiConverterTypeExtendedMap.check_lower(value.default_configs)
+        _UniffiConverterMapStringTypeDimensionInfo.check_lower(value.dimensions)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterSequenceTypeContext.write(value.contexts, buf)
+        _UniffiConverterMapStringTypeOverrides.write(value.overrides, buf)
+        _UniffiConverterTypeExtendedMap.write(value.default_configs, buf)
+        _UniffiConverterMapStringTypeDimensionInfo.write(value.dimensions, buf)
+
+
 class Context:
     id: "str"
     condition: "Condition"
@@ -1515,6 +1565,31 @@ class _UniffiConverterSequenceString(_UniffiConverterRustBuffer):
 
 
 
+class _UniffiConverterSequenceTypeContext(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        for item in value:
+            _UniffiConverterTypeContext.check_lower(item)
+
+    @classmethod
+    def write(cls, value, buf):
+        items = len(value)
+        buf.write_i32(items)
+        for item in value:
+            _UniffiConverterTypeContext.write(item, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative sequence length")
+
+        return [
+            _UniffiConverterTypeContext.read(buf) for i in range(count)
+        ]
+
+
+
 class _UniffiConverterSequenceTypeVariant(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, value):
@@ -1598,6 +1673,39 @@ class _UniffiConverterMapStringString(_UniffiConverterRustBuffer):
 
 
 
+class _UniffiConverterMapStringTypeDimensionInfo(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, items):
+        for (key, value) in items.items():
+            _UniffiConverterString.check_lower(key)
+            _UniffiConverterTypeDimensionInfo.check_lower(value)
+
+    @classmethod
+    def write(cls, items, buf):
+        buf.write_i32(len(items))
+        for (key, value) in items.items():
+            _UniffiConverterString.write(key, buf)
+            _UniffiConverterTypeDimensionInfo.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative map size")
+
+        # It would be nice to use a dict comprehension,
+        # but in Python 3.7 and before the evaluation order is not according to spec,
+        # so we we're reading the value before the key.
+        # This loop makes the order explicit: first reading the key, then the value.
+        d = {}
+        for i in range(count):
+            key = _UniffiConverterString.read(buf)
+            val = _UniffiConverterTypeDimensionInfo.read(buf)
+            d[key] = val
+        return d
+
+
+
 class _UniffiConverterMapStringSequenceString(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, items):
@@ -1626,6 +1734,39 @@ class _UniffiConverterMapStringSequenceString(_UniffiConverterRustBuffer):
         for i in range(count):
             key = _UniffiConverterString.read(buf)
             val = _UniffiConverterSequenceString.read(buf)
+            d[key] = val
+        return d
+
+
+
+class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, items):
+        for (key, value) in items.items():
+            _UniffiConverterString.check_lower(key)
+            _UniffiConverterTypeOverrides.check_lower(value)
+
+    @classmethod
+    def write(cls, items, buf):
+        buf.write_i32(len(items))
+        for (key, value) in items.items():
+            _UniffiConverterString.write(key, buf)
+            _UniffiConverterTypeOverrides.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative map size")
+
+        # It would be nice to use a dict comprehension,
+        # but in Python 3.7 and before the evaluation order is not according to spec,
+        # so we we're reading the value before the key.
+        # This loop makes the order explicit: first reading the key, then the value.
+        d = {}
+        for i in range(count):
+            key = _UniffiConverterString.read(buf)
+            val = _UniffiConverterTypeOverrides.read(buf)
             d[key] = val
         return d
 
@@ -1826,6 +1967,7 @@ __all__ = [
     "MergeStrategy",
     "VariantType",
     "Bucket",
+    "Config",
     "Context",
     "DimensionInfo",
     "Variant",
