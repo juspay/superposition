@@ -24,7 +24,8 @@ use reqwest::{Method, StatusCode};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
-        construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
+        construct_request_headers, execute_webhook_call, generate_snowflake_id,
+        get_workspace, request,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
@@ -79,8 +80,7 @@ use crate::api::{
     experiments::{
         helpers::{
             fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
-            get_workspace, validate_control_overrides,
-            validate_delete_experiment_variants,
+            validate_control_overrides, validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -141,14 +141,13 @@ async fn create_handler(
 
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
@@ -427,14 +426,13 @@ async fn conclude_handler(
     let DbConnection(mut conn) = db_conn;
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     let (response, config_version_id) = conclude(
         &state,
@@ -712,14 +710,13 @@ async fn discard_handler(
     let DbConnection(mut conn) = db_conn;
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     let (response, config_version_id) = discard(
         &state,
@@ -1186,14 +1183,13 @@ async fn ramp_handler(
     let change_reason = req.change_reason.clone();
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     let experiment: Experiment = experiments::experiments
         .find(exp_id)
@@ -1205,8 +1201,6 @@ async fn ramp_handler(
             "Experiment is not active, cannot ramp a concluded experiment"
         ));
     }
-
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     if !user_allowed_to_ramp(
         &experiment,
@@ -1385,14 +1379,13 @@ async fn update_handler(
     let change_reason = req.change_reason.clone();
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     let payload = req.into_inner();
     let variants = payload.variants;
@@ -1432,8 +1425,6 @@ async fn update_handler(
             "Number of variants passed in the request does not match with existing experiment variants"
         ))?;
     }
-
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     /****************** Validating override_keys and variant overrides *********************/
 
@@ -1737,14 +1728,13 @@ async fn pause_handler(
     let DbConnection(mut conn) = db_conn;
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     let response = pause(
         path.into_inner(),
@@ -1838,14 +1828,13 @@ async fn resume_handler(
     let DbConnection(mut conn) = db_conn;
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     let response = resume(
         path.into_inner(),

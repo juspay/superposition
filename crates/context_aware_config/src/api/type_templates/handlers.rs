@@ -1,14 +1,12 @@
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, routes, Scope};
 use chrono::Utc;
-use diesel::{
-    ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
-};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_derives::authorized;
-use superposition_macros::{bad_argument, db_error};
+use superposition_macros::bad_argument;
 use superposition_types::{
     api::type_templates::{
         TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
@@ -52,17 +50,24 @@ async fn create_handler(
             err.to_string()
         )
     })?;
-    validate_change_reason(&request.change_reason, &mut conn, &schema_name)?;
-    let type_name: String = request.type_name.clone().into();
+
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &request.change_reason, &mut conn, &schema_name)?;
+
+    let now = Utc::now();
+    let type_template = TypeTemplate {
+        type_schema: request.type_schema.clone(),
+        type_name: request.type_name.clone().into(),
+        created_at: now,
+        created_by: user.email.clone(),
+        last_modified_at: now,
+        last_modified_by: user.email.clone(),
+        description: request.description.clone(),
+        change_reason: request.change_reason.clone(),
+    };
+
     let type_template = diesel::insert_into(type_templates::table)
-        .values((
-            type_templates::type_schema.eq(request.type_schema.clone()),
-            type_templates::type_name.eq(type_name),
-            type_templates::created_by.eq(user.email.clone()),
-            type_templates::last_modified_by.eq(user.email.clone()),
-            type_templates::description.eq(request.description.clone()),
-            type_templates::change_reason.eq(request.change_reason.clone()),
-        ))
+        .values(&type_template)
         .returning(TypeTemplate::as_returning())
         .schema_name(&schema_name)
         .get_result::<TypeTemplate>(&mut conn)?;
@@ -111,41 +116,18 @@ async fn update_handler(
         )
     })?;
 
-    validate_change_reason(&request.change_reason, &mut conn, &schema_name)?;
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &request.change_reason, &mut conn, &schema_name)?;
 
-    let description = request.description;
     let type_name: String = path.into_inner().into();
-    let final_description = if let Some(description) = description {
-        description
-    } else {
-        let existing_template = type_templates::table
-            .filter(type_templates::type_name.eq(&type_name))
-            .schema_name(&schema_name)
-            .first::<TypeTemplate>(&mut conn)
-            .optional()
-            .map_err(|err| {
-                log::error!("Failed to fetch existing type template: {}", err);
-                db_error!(err)
-            })?;
 
-        match existing_template {
-            Some(template) => template.description.clone(), // Use existing description
-            None => {
-                return Err(bad_argument!(
-                    "Description is required as the type template does not exist."
-                ));
-            }
-        }
-    };
     let timestamp = Utc::now();
     let updated_type = diesel::update(type_templates::table)
         .filter(type_templates::type_name.eq(type_name))
         .set((
-            type_templates::type_schema.eq(request.type_schema),
+            request,
             type_templates::last_modified_at.eq(timestamp),
             type_templates::last_modified_by.eq(user.email.clone()),
-            type_templates::description.eq(final_description),
-            type_templates::change_reason.eq(request.change_reason),
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&schema_name)
