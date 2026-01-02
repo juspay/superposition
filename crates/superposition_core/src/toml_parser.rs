@@ -528,6 +528,90 @@ fn value_to_string_simple(value: &Value) -> String {
     }
 }
 
+/// Serialize Config structure to TOML format
+///
+/// Converts a Config object back to TOML string format matching the input specification.
+/// The output can be parsed by `parse()` to recreate an equivalent Config.
+///
+/// # Arguments
+/// * `config` - The Config structure to serialize
+///
+/// # Returns
+/// * `Ok(String)` - TOML formatted string
+/// * `Err(TomlError)` - Serialization error
+pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
+    let mut output = String::new();
+
+    // 1. Serialize [default-config] section
+    output.push_str("[default-config]\n");
+    for (key, value) in config.default_configs.iter() {
+        // Infer a basic schema type based on the value
+        let schema = match value {
+            Value::String(_) => r#"{ type = "string" }"#,
+            Value::Number(n) => {
+                if n.is_i64() {
+                    r#"{ type = "integer" }"#
+                } else {
+                    r#"{ type = "number" }"#
+                }
+            }
+            Value::Bool(_) => r#"{ type = "boolean" }"#,
+            Value::Array(_) => r#"{ type = "array" }"#,
+            Value::Object(_) => r#"{ type = "object" }"#,
+            Value::Null => r#"{ type = "null" }"#,
+        };
+        let toml_entry = format!(
+            "{} = {{ value = {}, schema = {} }}\n",
+            key,
+            value_to_toml(value),
+            schema
+        );
+        output.push_str(&toml_entry);
+    }
+    output.push('\n');
+
+    // 2. Serialize [dimensions] section
+    output.push_str("[dimensions]\n");
+    let mut sorted_dims: Vec<_> = config.dimensions.iter().collect();
+    sorted_dims.sort_by_key(|(_, info)| info.position);
+
+    for (name, info) in sorted_dims {
+        let schema_json = serde_json::to_value(&info.schema)
+            .map_err(|e| TomlError::SerializationError(e.to_string()))?;
+        let toml_entry = format!(
+            "{} = {{ position = {}, schema = {} }}\n",
+            name,
+            info.position,
+            value_to_toml(&schema_json)
+        );
+        output.push_str(&toml_entry);
+    }
+    output.push('\n');
+
+    // 3. Serialize [context.*] sections
+    for context in &config.contexts {
+        // Wrap Condition in Cac for condition_to_string
+        let condition_cac = Cac::<Condition>::try_from(context.condition.clone())
+            .map_err(|e| TomlError::InvalidContextCondition(e.to_string()))?;
+        let condition_str = condition_to_string(&condition_cac)?;
+
+        output.push_str(&format!("[context.\"{}\"]\n", condition_str));
+
+        if let Some(overrides) = config.overrides.get(&context.id) {
+            for (key, value) in overrides.iter() {
+                output.push_str(&format!(
+                    "{} = {}\n",
+                    key,
+                    value_to_toml(value)
+                ));
+            }
+        }
+        output.push('\n');
+    }
+
+    Ok(output)
+}
+
 #[cfg(test)]
 mod serialization_tests {
     use super::*;
@@ -587,6 +671,34 @@ mod serialization_tests {
         assert!(result.contains("city=Bangalore"));
         assert!(result.contains("vehicle_type=cab"));
         assert!(result.contains("; "));
+    }
+
+    #[test]
+    fn test_toml_round_trip_simple() {
+        let original_toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { "type" = "string" } }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        // Parse TOML -> Config
+        let config = parse(original_toml).unwrap();
+
+        // Serialize Config -> TOML
+        let serialized = serialize_to_toml(&config).unwrap();
+
+        // Parse again
+        let reparsed = parse(&serialized).unwrap();
+
+        // Configs should be functionally equivalent
+        assert_eq!(config.default_configs, reparsed.default_configs);
+        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
+        assert_eq!(config.contexts.len(), reparsed.contexts.len());
     }
 }
 
