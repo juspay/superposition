@@ -5598,14 +5598,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "superposition-toml-example"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "superposition_core",
-]
-
-[[package]]
 name = "superposition_core"
 version = "0.98.0"
 dependencies = [
@@ -5682,6 +5674,14 @@ dependencies = [
  "fastrand 2.3.0",
  "http 0.2.9",
  "tracing",
+]
+
+[[package]]
+name = "superposition_toml_example"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "superposition_core",
 ]
 
 [[package]]
