@@ -1,5 +1,5 @@
 [package]
-name = "superposition-toml-example"
+name = "superposition_toml_example"
 description = "Example demonstrating TOML parsing with superposition_core"
 version = "0.1.0"
 edition = "2021"
