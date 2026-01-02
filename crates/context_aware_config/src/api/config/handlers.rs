@@ -657,7 +657,7 @@ async fn get_handler(
         ResponseFormat::Toml => {
             let toml_str = serialize_to_toml(&config).map_err(|e| {
                 log::error!("Failed to serialize config to TOML: {}", e);
-                superposition::AppError::InternalServerError(format!(
+                superposition::AppError::UnexpectedError(anyhow::anyhow!(
                     "Failed to serialize config to TOML: {}",
                     e
                 ))
