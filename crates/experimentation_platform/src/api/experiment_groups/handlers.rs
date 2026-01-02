@@ -10,7 +10,7 @@ use diesel::{
 };
 use serde_json::Value;
 use service_utils::{
-    helpers::{generate_snowflake_id, get_from_env_or_default},
+    helpers::{generate_snowflake_id, get_from_env_or_default, get_workspace},
     service::types::{AppState, DbConnection, SchemaName, WorkspaceContext},
 };
 use superposition_derives::authorized;
@@ -45,7 +45,7 @@ use crate::api::{
     experiments::{
         cac_api::validate_context,
         helpers::{
-            fetch_and_validate_change_reason_with_function, get_workspace, hash,
+            fetch_and_validate_change_reason_with_function, hash,
             validate_and_add_experiment_group_id,
             validate_and_remove_experiment_group_id,
         },
@@ -89,14 +89,14 @@ async fn create_handler(
         Vec::new()
     };
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
+
     validate_context(&state, &exp_context, &workspace_request, &user).await?;
     validate_experiment_group_constraints(&member_experiments, &[], &exp_context)?;
 
@@ -167,14 +167,15 @@ async fn update_handler(
     }
 
     let req = req.into_inner();
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
+
     let updated_group = diesel::update(experiment_groups::experiment_groups)
         .filter(experiment_groups::id.eq(&id))
         .set((
@@ -201,14 +202,15 @@ async fn add_members_handler(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
+
     let id = exp_group_id.into_inner();
     let member_experiments = fetch_and_validate_members(
         &req.member_experiment_ids,
@@ -253,14 +255,14 @@ async fn remove_members_handler(
     let id = exp_group_id.into_inner();
 
     let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+
+    fetch_and_validate_change_reason_with_function(
+        &workspace_settings,
+        &req.change_reason,
+        &state,
+        &workspace_request,
+    )
+    .await?;
 
     let experiment_group =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {

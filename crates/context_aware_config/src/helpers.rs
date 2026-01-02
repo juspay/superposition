@@ -15,7 +15,7 @@ use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
 use service_utils::{
-    helpers::generate_snowflake_id,
+    helpers::{generate_snowflake_id, get_workspace},
     service::types::{AppState, SchemaName},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
@@ -39,7 +39,6 @@ use superposition_types::{
             contexts::dsl::{self as ctxt},
             default_configs::dsl as def_conf,
         },
-        superposition_schema::superposition::workspaces,
     },
     logic::dimensions_to_start_from,
     result as superposition, Cac, Condition, Config, Context, DBConnection,
@@ -240,16 +239,6 @@ pub fn add_config_version(
         .schema_name(schema_name)
         .execute(db_conn)?;
     Ok(version_id)
-}
-
-pub fn get_workspace(
-    workspace_schema_name: &String,
-    db_conn: &mut DBConnection,
-) -> superposition::Result<Workspace> {
-    let workspace = workspaces::dsl::workspaces
-        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name))
-        .get_result::<Workspace>(db_conn)?;
-    Ok(workspace)
 }
 
 #[cfg(feature = "high-performance-mode")]
@@ -484,10 +473,19 @@ pub fn evaluate_remote_cohorts(
 }
 
 pub fn validate_change_reason(
+    workspace_settings: Option<&Workspace>,
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
+    let workspace_setting = match workspace_settings {
+        Some(ws) => ws,
+        None => &get_workspace(schema_name, conn)?,
+    };
+    if !workspace_setting.enable_change_reason_validation {
+        return Ok(());
+    }
+
     let change_reason_validation_function = get_first_function_by_type(
         FunctionType::ChangeReasonValidation,
         conn,

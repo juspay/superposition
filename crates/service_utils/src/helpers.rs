@@ -8,6 +8,7 @@ use std::{
 use actix_web::{error::ErrorInternalServerError, web::Data, Error};
 use anyhow::anyhow;
 use chrono::Utc;
+use diesel::{query_dsl::methods::FilterDsl, ExpressionMethods, RunQueryDsl};
 use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
 use once_cell::sync::Lazy;
@@ -20,12 +21,18 @@ use serde::Serialize;
 use serde_json::Value;
 use superposition_types::{
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
-    database::models::others::{HttpMethod, Variable, Webhook, WebhookEvent},
+    database::{
+        models::{
+            others::{HttpMethod, Variable, Webhook, WebhookEvent},
+            Workspace,
+        },
+        superposition_schema::superposition::workspaces,
+    },
     result::{self},
-    PaginatedResponse,
+    DBConnection, PaginatedResponse,
 };
 
-use crate::service::types::{AppState, WorkspaceContext};
+use crate::service::types::{AppState, SchemaName, WorkspaceContext};
 
 static VAR_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
     regex::Regex::new(r"\{\{VARS\.([A-Z0-9_]+)\}\}")
@@ -464,4 +471,18 @@ where
             false
         }
     }
+}
+
+// TODO: Consider moving this to middleware in such a way that it does not block db connection
+// for the entire request duration. Doing so, will also allow us to validate workspace
+// existence per request,  which is currently not being done.
+// Caveat: Might not be that frequently used to justify the overhead
+pub fn get_workspace(
+    workspace_schema_name: &SchemaName,
+    db_conn: &mut DBConnection,
+) -> result::Result<Workspace> {
+    let workspace = workspaces::dsl::workspaces
+        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
+        .get_result::<Workspace>(db_conn)?;
+    Ok(workspace)
 }

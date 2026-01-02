@@ -75,7 +75,8 @@ async fn create_handler(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     let value = req.value;
 
@@ -208,7 +209,8 @@ async fn update_handler(
             }
         })?;
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 

@@ -18,7 +18,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{Context, FunctionCode, FunctionRuntimeVersion, FunctionType},
-            Description,
+            Description, Workspace,
         },
         schema::{contexts, default_configs::dsl, dimensions},
     },
@@ -29,8 +29,7 @@ use superposition_types::{
 
 use crate::api::functions::helpers::get_first_function_by_type;
 use crate::{
-    api::dimension::fetch_dimensions_info_map,
-    helpers::{calculate_context_weight, get_workspace},
+    api::dimension::fetch_dimensions_info_map, helpers::calculate_context_weight,
 };
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
@@ -318,14 +317,20 @@ pub fn create_ctx_from_put_req(
     conn: &mut DBConnection,
     user: &User,
     schema_name: &SchemaName,
+    workspace_settings: &Workspace,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    let dimension_data_map =
-        validate_ctx(conn, schema_name, ctx_condition.clone(), r_override.clone())?;
+    let dimension_data_map = validate_ctx(
+        conn,
+        schema_name,
+        ctx_condition.clone(),
+        r_override.clone(),
+        workspace_settings,
+    )?;
     let change_reason = req.change_reason.clone();
 
     validate_override_with_default_configs(conn, &r_override, schema_name)?;
@@ -435,12 +440,14 @@ pub fn validate_ctx(
     schema_name: &SchemaName,
     condition: Condition,
     override_: Overrides,
+    workspace_settings: &Workspace,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
-    let workspace_settings = get_workspace(schema_name, conn)?;
-
     validate_condition_with_mandatory_dimensions(
         &condition,
-        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
+        workspace_settings
+            .mandatory_dimensions
+            .as_ref()
+            .unwrap_or(&vec![]),
     )?;
 
     let dimension_info_map = fetch_dimensions_info_map(conn, schema_name)?;

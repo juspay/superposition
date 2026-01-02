@@ -15,7 +15,7 @@ use diesel::{
 };
 use serde_json::{Map, Value};
 use service_utils::{
-    helpers::parse_config_tags,
+    helpers::{get_workspace, parse_config_tags},
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
 use superposition_derives::authorized;
@@ -37,8 +37,8 @@ use superposition_types::{
         models::{cac::Context, ChangeReason, Description},
         schema::contexts::{self, id},
     },
-    result as superposition, Contextual, ListResponse, Overridden, Overrides,
-    PaginatedResponse, SortBy, User,
+    result::{self as superposition, AppError},
+    Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, SortBy, User,
 };
 
 #[cfg(feature = "high-performance-mode")]
@@ -83,15 +83,34 @@ async fn create_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
         Some(val) => val,
-        None => query_description(
-            Value::Object(req.context.clone().into_inner().into()),
-            &mut db_conn,
-            &schema_name,
-        )?,
+        None => {
+            // TODO: get rid of `query_description` function altogether
+            let resp = query_description(
+                Value::Object(req.context.clone().into_inner().into()),
+                &mut db_conn,
+                &schema_name,
+            );
+            match resp {
+                Err(AppError::DbError(diesel::result::Error::NotFound)) => {
+                    return Err(bad_argument!(
+                        "Description is required when context does not exist"
+                    ));
+                }
+                Ok(desc) => desc,
+                Err(e) => return Err(e),
+            }
+        }
     };
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name)?;
+    let workspace_settings = get_workspace(&schema_name, &mut db_conn)?;
+
+    validate_change_reason(
+        Some(&workspace_settings),
+        &req_change_reason,
+        &mut db_conn,
+        &schema_name,
+    )?;
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -102,6 +121,7 @@ async fn create_handler(
                 true,
                 &user,
                 &schema_name,
+                &workspace_settings,
                 false,
             )
             .map_err(|err: superposition::AppError| {
@@ -150,7 +170,8 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&req_change_reason, &mut db_conn, &schema_name)?;
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req_change_reason, &mut db_conn, &schema_name)?;
 
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -206,14 +227,32 @@ async fn move_handler(
 
     let description = match req.description.clone() {
         Some(val) => val,
-        None => query_description(
-            Value::Object(req.context.clone().into_inner().into()),
-            &mut db_conn,
-            &schema_name,
-        )?,
+        None => {
+            // TODO: get rid of `query_description` function altogether
+            let resp = query_description(
+                Value::Object(req.context.clone().into_inner().into()),
+                &mut db_conn,
+                &schema_name,
+            );
+            match resp {
+                Err(AppError::DbError(diesel::result::Error::NotFound)) => {
+                    return Err(bad_argument!(
+                        "Description is required when context does not exist"
+                    ));
+                }
+                Ok(desc) => desc,
+                Err(e) => return Err(e),
+            }
+        }
     };
 
-    validate_change_reason(&req.change_reason, &mut db_conn, &schema_name)?;
+    let workspace_settings = get_workspace(&schema_name, &mut db_conn)?;
+    validate_change_reason(
+        Some(&workspace_settings),
+        &req.change_reason,
+        &mut db_conn,
+        &schema_name,
+    )?;
 
     let (move_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -225,6 +264,7 @@ async fn move_handler(
                 true,
                 &user,
                 &schema_name,
+                &workspace_settings,
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -494,6 +534,8 @@ async fn bulk_operations_handler(
     let mut all_descriptions = Vec::new();
     let mut all_change_reasons = Vec::new();
 
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
+
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (response, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -506,6 +548,7 @@ async fn bulk_operations_handler(
                             Value::Object(ctx_condition.clone().into());
 
                         validate_change_reason(
+                            Some(&workspace_settings),
                             &put_req.change_reason,
                             transaction_conn,
                             &schema_name,
@@ -531,6 +574,7 @@ async fn bulk_operations_handler(
                             true,
                             &user,
                             &schema_name,
+                            &workspace_settings,
                             false,
                         )
                         .map_err(|err| {
@@ -628,6 +672,7 @@ async fn bulk_operations_handler(
                             true,
                             &user,
                             &schema_name,
+                            &workspace_settings,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -768,12 +813,14 @@ async fn validate_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
     validate_ctx(
         &mut conn,
         &schema_name,
         ctx_condition.clone(),
         Overrides::default(),
+        &workspace_settings,
     )?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())

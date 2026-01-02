@@ -11,7 +11,7 @@ use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     api::context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
     database::{
-        models::{cac::Context, Description},
+        models::{cac::Context, Description, Workspace},
         schema::contexts::{self, dsl},
     },
     result, DBConnection, Overrides, User,
@@ -30,6 +30,7 @@ use super::{
     validations::validate_override_with_default_configs,
 };
 
+#[allow(clippy::too_many_arguments)]
 pub fn upsert(
     req: PutRequest,
     description: Description,
@@ -37,10 +38,18 @@ pub fn upsert(
     already_under_txn: bool,
     user: &User,
     schema_name: &SchemaName,
+    workspace_settings: &Workspace,
     replace: bool,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, description, conn, user, schema_name)?;
+    let new_ctx = create_ctx_from_put_req(
+        req,
+        description,
+        conn,
+        user,
+        schema_name,
+        workspace_settings,
+    )?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -114,6 +123,7 @@ pub fn update(
         .map_err(|e| db_error!(e))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn r#move(
     old_ctx_id: String,
     req: Json<MoveRequest>,
@@ -122,6 +132,7 @@ pub fn r#move(
     already_under_txn: bool,
     user: &User,
     schema_name: &SchemaName,
+    workspace_settings: &Workspace,
 ) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -136,6 +147,7 @@ pub fn r#move(
         schema_name,
         ctx_condition.clone(),
         Overrides::default(),
+        workspace_settings,
     )?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;

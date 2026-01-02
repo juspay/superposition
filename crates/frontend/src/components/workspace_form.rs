@@ -48,9 +48,9 @@ pub fn workspace_form(
     let (auto_populate_control_rs, auto_populate_control_ws) =
         create_signal(auto_populate_control);
     let (enable_context_validation_rs, enable_context_validation_ws) =
-        create_signal(enable_change_reason_validation);
-    let (enable_change_reason_validation_rs, enable_change_reason_validation_ws) =
         create_signal(enable_context_validation);
+    let (enable_change_reason_validation_rs, enable_change_reason_validation_ws) =
+        create_signal(enable_change_reason_validation);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);

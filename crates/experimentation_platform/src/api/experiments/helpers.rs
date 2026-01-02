@@ -34,20 +34,10 @@ use superposition_types::{
             ChangeReason, Workspace,
         },
         schema::experiments::dsl as experiments,
-        superposition_schema::superposition::workspaces,
     },
     result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
 };
 
-pub fn get_workspace(
-    workspace_schema_name: &SchemaName,
-    db_conn: &mut DBConnection,
-) -> superposition::Result<Workspace> {
-    let workspace = workspaces::dsl::workspaces
-        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
-        .get_result::<Workspace>(db_conn)?;
-    Ok(workspace)
-}
 use crate::api::experiment_groups::helpers::{
     add_members, create_system_generated_experiment_group, fetch_experiment_group,
     remove_members,
@@ -805,10 +795,15 @@ pub async fn validate_control_overrides(
 }
 
 pub async fn fetch_and_validate_change_reason_with_function(
+    workspace_settings: &Workspace,
     change_reason: &ChangeReason,
     state: &Data<AppState>,
     workspace_request: &WorkspaceContext,
 ) -> superposition::Result<()> {
+    if !workspace_settings.enable_change_reason_validation {
+        return Ok(());
+    }
+
     let http_client = reqwest::Client::new();
     let url = format!(
         "{}/function/{}/{}/test",

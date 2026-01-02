@@ -16,7 +16,10 @@ use itertools::Itertools;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppHeader, AppState};
-use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
+use service_utils::{
+    helpers::get_workspace,
+    service::types::{DbConnection, SchemaName, WorkspaceContext},
+};
 use superposition_derives::authorized;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -33,7 +36,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{ConfigVersion, ConfigVersionListItem},
-            ChangeReason,
+            ChangeReason, Workspace,
         },
         schema::config_versions::dsl as config_versions,
     },
@@ -279,6 +282,7 @@ async fn reduce_config_key(
     default_config: Map<String, Value>,
     is_approve: bool,
     schema_name: &SchemaName,
+    workspace_settings: &Workspace,
 ) -> superposition::Result<Config> {
     let default_config_val =
         default_config
@@ -356,6 +360,7 @@ async fn reduce_config_key(
                                     schema_name,
                                 )?,
                             };
+
                             let _ = context::upsert(
                                 put_req,
                                 description,
@@ -363,6 +368,7 @@ async fn reduce_config_key(
                                 false,
                                 user,
                                 schema_name,
+                                workspace_settings,
                                 false,
                             );
                         }
@@ -429,6 +435,7 @@ async fn reduce_handler(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     let dimensions_info_map = fetch_dimensions_info_map(&mut conn, &schema_name)?;
     let mut config = generate_cac(&mut conn, &schema_name)?;
     let default_config = (config.default_configs).clone();
@@ -446,6 +453,7 @@ async fn reduce_handler(
             default_config.clone(),
             is_approve,
             &schema_name,
+            &workspace_settings,
         )
         .await?;
         if is_approve {

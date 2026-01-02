@@ -7,7 +7,7 @@ use chrono::Utc;
 use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::Value;
 use service_utils::{
-    helpers::parse_config_tags,
+    helpers::{get_workspace, parse_config_tags},
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
 use superposition_derives::authorized;
@@ -20,7 +20,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{DependencyGraph, Dimension, DimensionType},
-            Description, Workspace,
+            Description,
         },
         schema::dimensions::{self, dsl::*},
     },
@@ -43,7 +43,7 @@ use crate::{
             validate_value_compute_function,
         },
     },
-    helpers::{add_config_version, get_workspace, validate_change_reason},
+    helpers::{add_config_version, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {
@@ -70,7 +70,13 @@ async fn create_handler(
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    validate_change_reason(&create_req.change_reason, &mut conn, &schema_name)?;
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
+    validate_change_reason(
+        Some(&workspace_settings),
+        &create_req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let num_rows = dimensions
         .count()
@@ -180,8 +186,6 @@ async fn create_handler(
 
             match insert_resp {
                 Ok(inserted_dimension) => {
-                    let workspace_settings: Workspace =
-                        get_workspace(&schema_name, transaction_conn)?;
                     let is_mandatory = workspace_settings
                         .mandatory_dimensions
                         .unwrap_or_default()
@@ -271,7 +275,13 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let update_req = req.into_inner();
 
-    validate_change_reason(&update_req.change_reason, &mut conn, &schema_name)?;
+    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
+    validate_change_reason(
+        Some(&workspace_settings),
+        &update_req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
@@ -400,8 +410,6 @@ async fn update_handler(
                 .schema_name(&schema_name)
                 .get_result::<Dimension>(transaction_conn)
                 .map_err(|err| db_error!(err))?;
-
-            let workspace_settings = get_workspace(&schema_name, transaction_conn)?;
 
             let is_mandatory = workspace_settings
                 .mandatory_dimensions
