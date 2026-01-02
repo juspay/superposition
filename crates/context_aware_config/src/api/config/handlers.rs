@@ -56,6 +56,33 @@ use crate::{
 };
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
+use superposition_core::serialize_to_toml;
+
+/// Supported response formats for get_config
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum ResponseFormat {
+    Json,
+    Toml,
+}
+
+/// Determine response format from Accept header
+fn determine_response_format(req: &HttpRequest) -> ResponseFormat {
+    use actix_web::http::header;
+
+    let accept_header = req
+        .headers()
+        .get(header::ACCEPT)
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("*/*");
+
+    if accept_header.contains("application/toml") {
+        ResponseFormat::Toml
+    } else if accept_header.contains("application/json") {
+        ResponseFormat::Json
+    } else {
+        ResponseFormat::Json // Default to JSON for backwards compatibility
+    }
+}
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
@@ -424,7 +451,7 @@ async fn reduce_config_key(
     Ok(Config {
         contexts: og_contexts,
         overrides: og_overrides,
-        default_configs: default_config,
+        default_configs: default_config.into(),
         dimensions: dimension_schema_map.clone(),
     })
 }
@@ -445,7 +472,7 @@ async fn reduce_config(
 
     let dimensions_info_map = fetch_dimensions_info_map(&mut conn, &schema_name)?;
     let mut config = generate_cac(&mut conn, &schema_name)?;
-    let default_config = (config.default_configs).clone();
+    let default_config = (*config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
         let overrides = config.overrides;
@@ -457,7 +484,7 @@ async fn reduce_config(
             overrides.clone(),
             key.as_str(),
             &dimensions_info_map,
-            default_config.clone(),
+            (*default_config).clone(),
             is_approve,
             &schema_name,
         )
@@ -608,11 +635,27 @@ async fn get_config(
         config = config.filter_by_dimensions(&context);
     }
 
+    let response_format = determine_response_format(&req);
+
     let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
     add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
     add_config_version_to_header(&version, &mut response);
-    Ok(response.json(config))
+
+    match response_format {
+        ResponseFormat::Toml => {
+            let toml_str = serialize_to_toml(&config).map_err(|e| {
+                log::error!("Failed to serialize config to TOML: {}", e);
+                superposition::AppError::UnexpectedError(anyhow::anyhow!(
+                    "Failed to serialize config to TOML: {}",
+                    e
+                ))
+            })?;
+            response.insert_header(("Content-Type", "application/toml"));
+            Ok(response.body(toml_str))
+        }
+        ResponseFormat::Json => Ok(response.json(config)),
+    }
 }
 
 #[routes]
