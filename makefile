@@ -9,7 +9,7 @@ CARGO_FLAGS := --color always --no-default-features
 EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
-COMPONENT_NAME_FLAGS := 
+COMPONENT_NAME_FLAGS :=
 CARGO_TARGET_DIR := $(shell cargo metadata --no-deps --format-version 1 | jq -r .target_directory)
 
 # Get all workspace members and filter out excluded ones
@@ -54,6 +54,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 .PHONY: amend \
 	amend-no-edit \
 	backend \
+	bindings-test \
 	build \
 	check \
 	cleanup \
@@ -406,3 +407,40 @@ test-kotlin-provider: provider-template
 test-rust-provider: provider-template
 	cargo test --package superposition_provider --test integration_test -- --nocapture --ignored
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+
+# Target to run all TOML bindings tests
+bindings-test:
+	@echo "========================================"
+	@echo "Building Rust library for TOML bindings"
+	@echo "========================================"
+	cargo build --release -p superposition_core
+	@echo ""
+	@echo "========================================"
+	@echo "Running Python TOML binding tests"
+	@echo "========================================"
+	cd clients/python/bindings && python3 test_toml_functions.py
+	@echo ""
+	@echo "========================================"
+	@echo "Running JavaScript/TypeScript TOML binding tests"
+	@echo "========================================"
+	cd clients/javascript/bindings && npm run build && node dist/test-toml.js
+	@echo ""
+	@echo "========================================"
+	@echo "Running Java/Kotlin TOML binding tests"
+	@echo "========================================"
+	cd clients/java/bindings && SUPERPOSITION_LIB_PATH=$(CARGO_TARGET_DIR)/release gradle test
+	@echo ""
+	@echo "========================================"
+	@echo "Running Haskell TOML binding tests"
+	@echo "========================================"
+	cd clients/haskell/superposition-bindings && \
+		export LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LIBRARY_PATH && \
+		export LD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LD_LIBRARY_PATH && \
+		export DYLD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$DYLD_LIBRARY_PATH && \
+		echo "packages: ." > cabal.project.local && \
+		cabal test --project-file=cabal.project.local && \
+		rm -f cabal.project.local
+	@echo ""
+	@echo "========================================"
+	@echo "All TOML binding tests passed!"
+	@echo "========================================"
