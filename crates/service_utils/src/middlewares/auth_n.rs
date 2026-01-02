@@ -23,7 +23,7 @@ use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
 use oidc::{SaasOIDCAuthenticator, SimpleOIDCAuthenticator};
-use superposition_types::User;
+use superposition_types::{InternalUser, User};
 
 use crate::{
     db::utils::get_oidc_client_secret,
@@ -98,7 +98,12 @@ where
                             .and_then(|user_str| {
                                 serde_json::from_str::<User>(user_str).ok()
                             })
-                            .map(Ok)
+                            .map(|user| {
+                                request
+                                    .extensions_mut()
+                                    .insert::<InternalUser>(InternalUser);
+                                Ok(user)
+                            })
                     }
                     (_, _) => None,
                 }
@@ -127,10 +132,9 @@ where
                             request.extensions_mut().insert::<User>(user);
                             srv.call(request).await.map(|sr| sr.map_into_left_body())
                         }
-                        Err(resp) => Ok(ServiceResponse::new(
-                            request.request().clone(),
-                            resp.map_into_right_body(),
-                        )),
+                        Err(resp) => {
+                            Ok(request.into_response(resp.map_into_right_body()))
+                        }
                     }
                 })
             }

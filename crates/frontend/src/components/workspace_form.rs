@@ -31,8 +31,8 @@ pub fn workspace_form(
     #[prop(default = Metrics::default())] metrics: Metrics,
     #[prop(default = false)] allow_experiment_self_approval: bool,
     #[prop(default = true)] auto_populate_control: bool,
-    #[prop(default = true)] enable_context_validation: bool,
-    #[prop(default = true)] enable_change_reason_validation: bool,
+    #[prop(default = false)] enable_context_validation: bool,
+    #[prop(default = false)] enable_change_reason_validation: bool,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
@@ -92,18 +92,13 @@ pub fn workspace_form(
                         #[cfg(feature = "jsonlogic")]
                         strict_mode: strict_mode_rs.get_untracked(),
                         metrics: Some(metrics_rws.get_untracked()),
-                        allow_experiment_self_approval: Some(
-                            allow_experiment_self_approval_rs.get_untracked(),
-                        ),
-                        auto_populate_control: Some(
-                            auto_populate_control_rs.get_untracked(),
-                        ),
-                        enable_context_validation: Some(
-                            enable_context_validation_rs.get_untracked(),
-                        ),
-                        enable_change_reason_validation: Some(
+                        allow_experiment_self_approval: allow_experiment_self_approval_rs
+                            .get_untracked(),
+                        auto_populate_control: auto_populate_control_rs.get_untracked(),
+                        enable_context_validation: enable_context_validation_rs
+                            .get_untracked(),
+                        enable_change_reason_validation:
                             enable_change_reason_validation_rs.get_untracked(),
-                        ),
                     };
                     workspaces::create(create_payload, &org_id.get_untracked().0).await
                 };

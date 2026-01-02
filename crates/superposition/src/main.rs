@@ -29,7 +29,6 @@ use service_utils::{
         auth_n::AuthNHandler,
         auth_z::{AuthZHandler, AuthZManager},
         request_response_logging::RequestResponseLogger,
-        resource::ResourceMiddlewareFactory,
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
     service::types::{AppEnv, Resource},
@@ -134,18 +133,9 @@ async fn main() -> Result<()> {
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
         App::new()
-            .wrap(Condition::new(matches!(app_env, AppEnv::PROD | AppEnv::SANDBOX), Compress::default()))
-            .wrap(Logger::default())
-            // Conditionally add request/response logging middleware for development
-            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger))
             .app_data(app_state.clone())
             .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
-            .wrap(
-                actix_web::middleware::DefaultHeaders::new()
-                    .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
-                    .add(("Cache-Control", "no-store".to_string()))
-            )
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
@@ -171,89 +161,87 @@ async fn main() -> Result<()> {
                     /***************************** V1 Routes *****************************/
                     .service(
                         scope("/context")
+                            .app_data(Resource::Context)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Context))
                             .service(context::endpoints()),
                     )
                     .service(
                         scope("/dimension")
+                            .app_data(Resource::Dimension)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Dimension))
                             .service(dimension::endpoints()),
                     )
                     .service(
                         scope("/default-config")
+                            .app_data(Resource::DefaultConfig)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(ResourceMiddlewareFactory::new(Resource::DefaultConfig))
                             .service(default_config::endpoints()),
                     )
                     .service(
                         scope("/config")
+                            .app_data(Resource::Config)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Config))
                             .service(config::endpoints()),
                     )
                     .service(
                         scope("/audit")
+                            .app_data(Resource::AuditLog)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .wrap(ResourceMiddlewareFactory::new(Resource::AuditLog))
                             .service(audit_log::endpoints()),
                     )
                     .service(
                         scope("/function")
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Function))
+                            .app_data(Resource::Function)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(functions::endpoints()),
                     )
                     .service(
                         scope("/types")
-                            .wrap(ResourceMiddlewareFactory::new(Resource::TypeTemplate))
+                            .app_data(Resource::TypeTemplate)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(type_templates::endpoints()),
                     )
                     .service(
                         experiments::endpoints(scope("/experiments"))
-                            .wrap(
-                                ResourceMiddlewareFactory::new(Resource::Experiment),
-                            )
+                            .app_data(Resource::Experiment)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
                     )
                     .service(
                         experiment_groups::endpoints(scope("/experiment-groups"))
-                            .wrap(ResourceMiddlewareFactory::new(Resource::ExperimentGroup))
+                            .app_data(Resource::ExperimentGroup)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                     )
                     .service(
                         scope("/superposition/organisations")
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Organisation))
+                            .app_data(Resource::Organisation)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(organisation::endpoints()),
                     )
                     .service(workspace::endpoints(scope("/workspaces"))
-                        .wrap(ResourceMiddlewareFactory::new(Resource::Workspace))
+                        .app_data(Resource::Workspace)
                         .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
                     )
                     .service(
                         scope("/webhook")
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Webhook))
+                            .app_data(Resource::Webhook)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(webhooks::endpoints()),
                     )
                     .service(
                         scope("/variables")
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Variable))
+                            .app_data(Resource::Variable)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(variables::endpoints())
                     )
                     .service(
                         scope("/resolve")
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Config))
+                            .app_data(Resource::Config)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(resolve::endpoints()),
                     )
                     .service(
                         scope("/auth")
-                            .wrap(ResourceMiddlewareFactory::new(Resource::Auth))
+                            .app_data(Resource::Auth)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .app_data(Data::new(auth_z_manager.clone()))
                             .service(auth_z_manager.endpoints())
@@ -271,8 +259,22 @@ async fn main() -> Result<()> {
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
             .app_data(Data::new(leptos_options.to_owned()))
+            // Auth middlewares are innermost so outer middlewares still run on auth failures.
+            // Note: in actix-web, the last `.wrap()` runs first on requests.
             .wrap(auth_z.clone())
             .wrap(auth_n.clone())
+            .wrap(
+                actix_web::middleware::DefaultHeaders::new()
+                    .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))
+                    .add(("Cache-Control", "no-store".to_string()))
+            )
+            .wrap(Condition::new(
+                matches!(app_env, AppEnv::PROD | AppEnv::SANDBOX),
+                Compress::default(),
+            ))
+            // Conditionally add request/response logging middleware for development
+            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger))
+            .wrap(Logger::default())
     })
     .bind(("0.0.0.0", cac_port))?
     .workers(get_from_env_or_default("ACTIX_WORKER_COUNT", 5))

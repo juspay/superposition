@@ -17,7 +17,7 @@ use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::NoAuth;
 use superposition_macros::{forbidden, unexpected_error};
-use superposition_types::{result as superposition, User};
+use superposition_types::{result as superposition, InternalUser, User};
 
 use crate::{
     helpers::get_from_env_unsafe,
@@ -32,12 +32,24 @@ pub struct AuthZ<A: Action> {
     action: std::marker::PhantomData<A>,
 }
 
+impl<A: Action> AuthZ<A> {
+    fn new() -> Self {
+        Self {
+            action: std::marker::PhantomData,
+        }
+    }
+}
+
 impl<A: Action> FromRequest for AuthZ<A> {
     type Error = superposition::AppError;
 
     type Future = LocalBoxFuture<'static, Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        if req.extensions().get::<InternalUser>().is_some() {
+            return Box::pin(async { Ok(AuthZ::new()) });
+        }
+
         let auth_z_handler = match req.extensions().get::<AuthZHandler>() {
             Some(handler) => handler.clone(),
             None => {
@@ -49,13 +61,11 @@ impl<A: Action> FromRequest for AuthZ<A> {
             }
         };
 
-        let resource = match req.extensions().get::<Resource>() {
+        let resource = match req.app_data::<Resource>() {
             Some(resource) => *resource,
             None => {
                 return Box::pin(async {
-                    Err(unexpected_error!(
-                        "Resource not found in request extensions."
-                    ))
+                    Err(unexpected_error!("Resource not found in request app data."))
                 });
             }
         };
@@ -88,9 +98,7 @@ impl<A: Action> FromRequest for AuthZ<A> {
                 Err(e) => Err(unexpected_error!("Error checking authorization: {}", e)),
                 Ok(is_allowed) => {
                     if is_allowed {
-                        Ok(AuthZ::<A> {
-                            action: std::marker::PhantomData,
-                        })
+                        Ok(AuthZ::new())
                     } else {
                         Err(forbidden!("You are not authorized to perform this action."))
                     }

@@ -7,7 +7,7 @@ use crate::database::models::{Metrics, NonEmptyString, Workspace, WorkspaceStatu
 #[cfg(feature = "diesel_derives")]
 use crate::database::superposition_schema::superposition::workspaces;
 
-use super::{deserialize_option_i64, I64Update};
+use super::{default_true, deserialize_option_i64, I64Update};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct WorkspaceResponse {
@@ -68,10 +68,14 @@ pub struct CreateWorkspaceRequest {
     #[serde(alias = "workspace_strict_mode")]
     pub strict_mode: bool,
     pub metrics: Option<Metrics>,
-    pub allow_experiment_self_approval: Option<bool>,
-    pub auto_populate_control: Option<bool>,
-    pub enable_context_validation: Option<bool>,
-    pub enable_change_reason_validation: Option<bool>,
+    #[serde(default)]
+    pub allow_experiment_self_approval: bool,
+    #[serde(default = "default_true")]
+    pub auto_populate_control: bool,
+    #[serde(default)]
+    pub enable_context_validation: bool,
+    #[serde(default)]
+    pub enable_change_reason_validation: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

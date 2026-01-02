@@ -1,4 +1,16 @@
 use std::future::{ready, Ready};
+use std::rc::Rc;
+
+use actix_web::{
+    body::EitherBody,
+    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    error,
+    web::Data,
+    Error, HttpMessage,
+};
+use futures_util::future::LocalBoxFuture;
+use regex::Regex;
+use superposition_macros::bad_argument;
 
 use crate::{
     extensions::HttpRequestExt,
@@ -6,15 +18,6 @@ use crate::{
         AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
     },
 };
-use actix_web::{
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error::{self},
-    web::Data,
-    Error, HttpMessage,
-};
-use futures_util::future::LocalBoxFuture;
-use regex::Regex;
-use std::rc::Rc;
 
 pub struct OrgWorkspaceMiddlewareFactory {
     enable_org_id: bool,
@@ -36,7 +39,7 @@ where
     S::Future: 'static,
     B: 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<EitherBody<B>>;
     type Error = Error;
     type InitError = ();
     type Transform = OrgWorkspaceMiddleware<S>;
@@ -63,7 +66,7 @@ where
     S::Future: 'static,
     B: 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<EitherBody<B>>;
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -104,20 +107,33 @@ where
                 || assets_regex.is_match(&request_path);
 
             if !is_excluded {
-                let workspace_id = match (enable_workspace_id, req.request().get_workspace_id()) {
-                    (true, None) => return Err(error::ErrorBadRequest("The parameter workspace id is required, and must be passed through headers/url params/query params.")),
+                let workspace_id = match (
+                    enable_workspace_id,
+                    req.request().get_workspace_id(),
+                ) {
+                    (true, None) => {
+                        let error: Error = bad_argument!("The parameter workspace id is required, and must be passed through headers/url params/query params.").into();
+                        return Ok(req.into_response(
+                            error.error_response().map_into_right_body(),
+                        ));
+                    }
                     (true, Some(workspace_id)) => workspace_id,
                     (false, _) => WorkspaceId(String::from("test")),
                 };
 
                 let org = req.request().get_organisation_id();
                 // TODO: validate the workspace
-                let schema_name =  match (enable_org_id, &org) {
-                    (true, None) => return Err(error::ErrorBadRequest("The parameter org id is required, and must be passed through headers/url params/query params.")),
+                let schema_name = match (enable_org_id, &org) {
+                    (true, None) => {
+                        let error: Error = bad_argument!("The parameter org id is required, and must be passed through headers/url params/query params.").into();
+                        return Ok(req.into_response(
+                            error.error_response().map_into_right_body(),
+                        ));
+                    }
                     (true, Some(OrganisationId(org_id))) => {
                         let schema = format!("{org_id}_{}", *workspace_id);
                         SchemaName(schema)
-                    },
+                    }
                     (false, _) => SchemaName::default(),
                 };
 
@@ -133,7 +149,7 @@ where
                 });
             }
 
-            let res = srv.call(req).await?;
+            let res = srv.call(req).await?.map_into_left_body();
 
             Ok(res)
         })
