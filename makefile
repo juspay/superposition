@@ -74,6 +74,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	test-py-provider
 	test-kotlin-provider
 	test-rust-provider
+	bindings-test
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -402,3 +403,40 @@ test-kotlin-provider: provider-template
 test-rust-provider: provider-template
 	cargo test --package superposition_provider --test integration_test -- --nocapture --ignored
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+
+# Target to run all TOML bindings tests
+bindings-test:
+	@echo "========================================"
+	@echo "Building Rust library for TOML bindings"
+	@echo "========================================"
+	cargo build --release -p superposition_core
+	@echo ""
+	@echo "========================================"
+	@echo "Running Python TOML binding tests"
+	@echo "========================================"
+	cd clients/python/bindings && python3 test_toml_functions.py
+	@echo ""
+	@echo "========================================"
+	@echo "Running JavaScript/TypeScript TOML binding tests"
+	@echo "========================================"
+	cd clients/javascript/bindings && npm run build && node dist/test-toml.js
+	@echo ""
+	@echo "========================================"
+	@echo "Running Java/Kotlin TOML binding tests"
+	@echo "========================================"
+	cd clients/java/bindings && SUPERPOSITION_LIB_PATH=$(CARGO_TARGET_DIR)/release gradle test
+	@echo ""
+	@echo "========================================"
+	@echo "Running Haskell TOML binding tests"
+	@echo "========================================"
+	cd clients/haskell/superposition-bindings && \
+		export LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LIBRARY_PATH && \
+		export LD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LD_LIBRARY_PATH && \
+		export DYLD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$DYLD_LIBRARY_PATH && \
+		echo "packages: ." > cabal.project.local && \
+		cabal test --project-file=cabal.project.local && \
+		rm -f cabal.project.local
+	@echo ""
+	@echo "========================================"
+	@echo "All TOML binding tests passed!"
+	@echo "========================================"
