@@ -956,18 +956,7 @@ timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
-
-[dimensions.os_cohort]
-position = 2
-type = "local_cohort:os"
-
-[dimensions.os_cohort.schema]
-type = "string"
-enum = ["linux", "windows", "otherwise"]
-
-[dimensions.os_cohort.schema.definitions]
-linux = "rule_for_linux"
-windows = "rule_for_windows"
+os_cohort = { position = 2, type = "local_cohort:os", schema = { type = "string", enum = ["linux", "windows", "otherwise"], definitions = { linux = "rule_for_linux", windows = "rule_for_windows" } } }
 
 [context."os=linux"]
 timeout = 60
@@ -1027,14 +1016,7 @@ timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
-
-[dimensions.os_cohort]
-position = 2
-type = "remote_cohort:os"
-
-[dimensions.os_cohort.schema]
-type = "string"
-enum = ["linux", "windows", "macos"]
+os_cohort = { position = 2, type = "remote_cohort:os", schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
 [context."os=linux"]
 timeout = 60
@@ -1094,13 +1076,7 @@ timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
-
-[dimensions.os_cohort]
-position = 2
-type = "remote_cohort:os"
-
-[dimensions.os_cohort.schema]
-type = "invalid_type"
+os_cohort = { position = 2, type = "remote_cohort:os", schema = { type = "invalid_type" } }
 
 [context."os=linux"]
 timeout = 60
