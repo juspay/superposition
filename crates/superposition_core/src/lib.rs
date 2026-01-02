@@ -16,8 +16,6 @@ pub use ffi_legacy::{
 pub use superposition_types::Config;
 pub use toml_parser::TomlParseError;
 
-use serde_json::{Map, Value};
-
 /// Parse TOML configuration string into structured components
 ///
 /// This function parses a TOML string containing default-config, dimensions, and context sections,
@@ -71,61 +69,3 @@ use serde_json::{Map, Value};
 pub fn parse_toml_config(toml_content: &str) -> Result<Config, TomlParseError> {
     toml_parser::parse(toml_content)
 }
-
-/// Parse TOML configuration and evaluate with input dimensions
-///
-/// This is a convenience function that combines TOML parsing and configuration evaluation
-/// in a single call. It parses the TOML content and immediately evaluates it against the
-/// provided input dimensions using the specified merge strategy.
-///
-/// # Arguments
-/// * `toml_content` - TOML string with configuration
-/// * `input_dimensions` - Map of dimension values for this evaluation (e.g., {"os": "linux", "region": "us-east"})
-/// * `merge_strategy` - How to merge override values with defaults (MERGE or REPLACE)
-///
-/// # Returns
-/// * `Ok(Map<String, Value>)` - Resolved configuration after applying context overrides
-/// * `Err(String)` - Error message describing what went wrong
-///
-/// # Example Usage
-/// ```rust,no_run
-/// use superposition_core::{eval_toml_config, MergeStrategy};
-/// use serde_json::{Map, Value};
-///
-/// let toml_content = r#"
-///     [default-config]
-///     timeout = { value = 30, schema = { type = "integer" } }
-///
-///     [dimensions]
-///     os = { schema = { type = "string" } }
-///
-///     [context]
-///     "os=linux" = { timeout = 60 }
-/// "#;
-///
-/// let mut input_dims = Map::new();
-/// input_dims.insert("os".to_string(), Value::String("linux".to_string()));
-///
-/// let config = eval_toml_config(toml_content, &input_dims, MergeStrategy::MERGE)?;
-/// println!("Resolved timeout: {}", config["timeout"]);
-/// # Ok::<(), String>(())
-/// ```
-pub fn eval_toml_config(
-    toml_content: &str,
-    input_dimensions: &Map<String, Value>,
-    merge_strategy: MergeStrategy,
-) -> Result<Map<String, Value>, String> {
-    let parsed = toml_parser::parse(toml_content).map_err(|e| e.to_string())?;
-
-    eval_config(
-        (*parsed.default_configs).clone(),
-        &parsed.contexts,
-        &parsed.overrides,
-        &parsed.dimensions,
-        input_dimensions,
-        merge_strategy,
-        None, // filter_prefixes
-    )
-}
-
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");

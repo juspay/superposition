@@ -429,7 +429,6 @@ def _uniffi_future_callback_t(return_type):
 def _uniffi_load_indirect():
     """
     Load the correct prebuilt dynamic library based on the current platform and architecture.
-    Tries target/release directory first, then falls back to bindings directory.
     """
     folder = os.path.dirname(__file__)
 
@@ -444,34 +443,12 @@ def _uniffi_load_indirect():
     if not triple:
         raise RuntimeError(f"❌ Unsupported platform: {sys.platform} / {platform.machine()}")
 
-    # Determine simple library name (without platform triple)
-    if sys.platform == "win32":
-        simple_libname = "superposition_core.dll"
-    elif sys.platform == "darwin":
-        simple_libname = "libsuperposition_core.dylib"
-    else:
-        simple_libname = "libsuperposition_core.so"
+    libname = f"libsuperposition_core-{triple}"
+    libpath = os.path.join(folder, libname)
+    if not os.path.exists(libpath):
+        raise FileNotFoundError(f"❌ Required binary not found: {libpath}")
 
-    # Try multiple locations in order of preference
-    search_paths = [
-        # 1. Local build in target/release (simple name)
-        os.path.join(folder, "..", "..", "..", "..", "target", "release", simple_libname),
-        # 2. Local build in target/release (platform-specific name)
-        os.path.join(folder, "..", "..", "..", "..", "target", "release", f"libsuperposition_core-{triple}"),
-        # 3. Bindings directory (platform-specific name)
-        os.path.join(folder, f"libsuperposition_core-{triple}"),
-    ]
-
-    for libpath in search_paths:
-        normalized_path = os.path.normpath(libpath)
-        if os.path.exists(normalized_path):
-            return ctypes.cdll.LoadLibrary(normalized_path)
-
-    # If nothing found, raise error with all attempted paths
-    raise FileNotFoundError(
-        f"❌ Required binary not found. Tried:\n" +
-        "\n".join(f"  - {os.path.normpath(p)}" for p in search_paths)
-    )
+    return ctypes.cdll.LoadLibrary(libpath)
 
 def _uniffi_check_contract_api_version(lib):
     # Get the bindings contract version from our ComponentInterface

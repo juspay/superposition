@@ -417,15 +417,24 @@ test-rust-provider: provider-template
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
 
 # Target to run all TOML bindings tests
-bindings-test:
-	@echo "========================================"
-	@echo "Building Rust library for TOML bindings"
-	@echo "========================================"
-	cargo build --release -p superposition_core
+bindings-test: uniffi-bindings
+	@echo ""
 	@echo ""
 	@echo "========================================"
 	@echo "Running Python TOML binding tests"
 	@echo "========================================"
+	@# Copy library to bindings directory for Python tests with platform-specific name
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		if [ "$$(uname -m)" = "arm64" ]; then \
+			cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-aarch64-apple-darwin.dylib; \
+		else \
+			cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-apple-darwin.dylib; \
+		fi \
+	elif [ "$$(uname)" = "Linux" ]; then \
+		cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.so clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-unknown-linux-gnu.so; \
+	else \
+		cp $(CARGO_TARGET_DIR)/release/superposition_core.dll clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-pc-windows-msvc.dll; \
+	fi
 	cd clients/python/bindings && python3 test_toml_functions.py
 	@echo ""
 	@echo "========================================"
