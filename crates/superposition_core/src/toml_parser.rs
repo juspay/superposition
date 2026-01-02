@@ -479,6 +479,117 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
     })
 }
 
+/// Convert serde_json::Value to TOML representation string
+fn value_to_toml(value: &Value) -> String {
+    match value {
+        Value::String(s) => format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\"")),
+        Value::Number(n) => n.to_string(),
+        Value::Bool(b) => b.to_string(),
+        Value::Array(arr) => {
+            let items: Vec<String> = arr.iter()
+                .map(|v| value_to_toml(v))
+                .collect();
+            format!("[{}]", items.join(", "))
+        }
+        Value::Object(obj) => {
+            let items: Vec<String> = obj.iter()
+                .map(|(k, v)| format!("{} = {}", k, value_to_toml(v)))
+                .collect();
+            format!("{{ {} }}", items.join(", "))
+        }
+        Value::Null => "null".to_string(),
+    }
+}
+
+/// Convert Condition to context expression string (e.g., "city=Bangalore; vehicle_type=cab")
+fn condition_to_string(condition: &Cac<Condition>) -> Result<String, TomlError> {
+    // Clone the condition to get the inner Map
+    let condition_inner = condition.clone().into_inner();
+
+    let mut pairs: Vec<String> = condition_inner.iter()
+        .map(|(key, value)| {
+            format!("{}={}", key, value_to_string_simple(value))
+        })
+        .collect();
+
+    // Sort for deterministic output
+    pairs.sort();
+
+    Ok(pairs.join("; "))
+}
+
+/// Simple value to string for context expressions (no quotes for strings)
+fn value_to_string_simple(value: &Value) -> String {
+    match value {
+        Value::String(s) => s.clone(),
+        Value::Number(n) => n.to_string(),
+        Value::Bool(b) => b.to_string(),
+        _ => value.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod serialization_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_value_to_toml_string() {
+        let val = Value::String("hello".to_string());
+        assert_eq!(value_to_toml(&val), "\"hello\"");
+    }
+
+    #[test]
+    fn test_value_to_toml_number() {
+        let val = Value::Number(serde_json::Number::from(42));
+        assert_eq!(value_to_toml(&val), "42");
+    }
+
+    #[test]
+    fn test_value_to_toml_bool() {
+        assert_eq!(value_to_toml(&Value::Bool(true)), "true");
+        assert_eq!(value_to_toml(&Value::Bool(false)), "false");
+    }
+
+    #[test]
+    fn test_value_to_toml_array() {
+        let val = json!(["a", "b", "c"]);
+        assert_eq!(value_to_toml(&val), "[\"a\", \"b\", \"c\"]");
+    }
+
+    #[test]
+    fn test_value_to_toml_object() {
+        let val = json!({"type": "string", "enum": ["a", "b"]});
+        let result = value_to_toml(&val);
+        assert!(result.contains("type = \"string\""));
+        assert!(result.contains("enum = [\"a\", \"b\"]"));
+    }
+
+    #[test]
+    fn test_condition_to_string_simple() {
+        let mut condition_map = Map::new();
+        condition_map.insert("city".to_string(), Value::String("Bangalore".to_string()));
+        let condition = Cac::<Condition>::try_from(condition_map).unwrap();
+
+        let result = condition_to_string(&condition).unwrap();
+        assert_eq!(result, "city=Bangalore");
+    }
+
+    #[test]
+    fn test_condition_to_string_multiple() {
+        let mut condition_map = Map::new();
+        condition_map.insert("city".to_string(), Value::String("Bangalore".to_string()));
+        condition_map.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
+        let condition = Cac::<Condition>::try_from(condition_map).unwrap();
+
+        let result = condition_to_string(&condition).unwrap();
+        // Order may vary, check both parts present
+        assert!(result.contains("city=Bangalore"));
+        assert!(result.contains("vehicle_type=cab"));
+        assert!(result.contains("; "));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
