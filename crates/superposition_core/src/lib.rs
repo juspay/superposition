@@ -13,8 +13,8 @@ pub use experiment::{
 pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
 };
-pub use superposition_types::Config;
-pub use toml_parser::TomlParseError;
+pub use superposition_types::Config as ParsedTomlConfig;
+pub use toml_parser::TomlError;
 
 /// Parse TOML configuration string into structured components
 ///
@@ -30,7 +30,7 @@ pub use toml_parser::TomlParseError;
 ///   - `contexts`: Vector of context conditions
 ///   - `overrides`: HashMap of override configurations
 ///   - `dimensions`: HashMap of dimension information
-/// * `Err(TomlParseError)` - Detailed error about what went wrong
+/// * `Err(TomlError)` - Detailed error about what went wrong
 ///
 /// # Example TOML Format
 /// ```toml
@@ -64,8 +64,8 @@ pub use toml_parser::TomlParseError;
 ///
 /// let parsed = parse_toml_config(toml_content)?;
 /// println!("Parsed {} contexts", parsed.contexts.len());
-/// # Ok::<(), superposition_core::TomlParseError>(())
+/// # Ok::<(), superposition_core::TomlError>(())
 /// ```
-pub fn parse_toml_config(toml_content: &str) -> Result<Config, TomlParseError> {
+pub fn parse_toml_config(toml_content: &str) -> Result<ParsedTomlConfig, TomlError> {
     toml_parser::parse(toml_content)
 }
