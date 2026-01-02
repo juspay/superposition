@@ -28,6 +28,7 @@ serde_json = { workspace = true }
 secrecy = { workspace = true }
 service_utils = { workspace = true }
 superposition_derives = { workspace = true }
+superposition_core = { workspace = true }
 superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
     "api",
