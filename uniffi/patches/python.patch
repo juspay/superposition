@@ -3,7 +3,7 @@ index 91e5bd55..c9736754 100644
 --- a/clients/python/bindings/superposition_bindings/superposition_client.py
 +++ b/clients/python/bindings/superposition_bindings/superposition_client.py
 @@ -443,28 +443,27 @@ def _uniffi_future_callback_t(return_type):
- 
+
  def _uniffi_load_indirect():
      """
 -    This is how we find and load the dynamic library provided by the component.
@@ -41,13 +41,13 @@ index 91e5bd55..c9736754 100644
 +    libpath = os.path.join(folder, libname)
 +    if not os.path.exists(libpath):
 +        raise FileNotFoundError(f"❌ Required binary not found: {libpath}")
- 
+
 -    libname = libname.format("superposition_core")
 -    path = os.path.join(os.path.dirname(__file__), libname)
 -    lib = ctypes.cdll.LoadLibrary(path)
 -    return lib
 +    return ctypes.cdll.LoadLibrary(libpath)
- 
+
  def _uniffi_check_contract_api_version(lib):
      # Get the bindings contract version from our ComponentInterface
 diff --git a/clients/python/bindings/superposition_bindings/superposition_types.py b/clients/python/bindings/superposition_bindings/superposition_types.py
@@ -55,7 +55,7 @@ index c3760e17..4539bc4a 100644
 --- a/clients/python/bindings/superposition_bindings/superposition_types.py
 +++ b/clients/python/bindings/superposition_bindings/superposition_types.py
 @@ -428,28 +428,27 @@ def _uniffi_future_callback_t(return_type):
- 
+
  def _uniffi_load_indirect():
      """
 -    This is how we find and load the dynamic library provided by the component.
@@ -93,12 +93,12 @@ index c3760e17..4539bc4a 100644
 +    libpath = os.path.join(folder, libname)
 +    if not os.path.exists(libpath):
 +        raise FileNotFoundError(f"❌ Required binary not found: {libpath}")
- 
+
 -    libname = libname.format("superposition_core")
 -    path = os.path.join(os.path.dirname(__file__), libname)
 -    lib = ctypes.cdll.LoadLibrary(path)
 -    return lib
 +    return ctypes.cdll.LoadLibrary(libpath)
- 
+
  def _uniffi_check_contract_api_version(lib):
      # Get the bindings contract version from our ComponentInterface

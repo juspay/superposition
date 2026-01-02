@@ -68,3 +68,8 @@ clients/generated/smithy/typescript/tsconfig.*
 
 .npmrc
 .zed
+
+# Dynamic libraries copied for testing
+*.dylib
+*.so
+*.dll
