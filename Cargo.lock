@@ -1601,6 +1601,7 @@ dependencies = [
  "serde",
  "serde_json",
  "service_utils",
+ "superposition_core",
  "superposition_macros",
  "superposition_types",
  "uuid",
