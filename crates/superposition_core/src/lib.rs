@@ -5,6 +5,7 @@ pub mod experiment;
 pub mod ffi;
 pub mod ffi_legacy;
 pub mod toml_parser;
+pub mod validations;
 
 pub use config::{eval_config, eval_config_with_reasoning, merge, MergeStrategy};
 pub use experiment::{

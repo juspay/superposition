@@ -38,6 +38,10 @@ pub enum TomlError {
     ConversionError(String),
     SerializationError(String),
     InvalidContextCondition(String),
+    ValidationError {
+        key: String,
+        errors: String,
+    },
 }
 
 impl fmt::Display for TomlError {
@@ -90,6 +94,9 @@ impl fmt::Display for TomlError {
             Self::FileReadError(e) => write!(f, "File read error: {}", e),
             Self::SerializationError(msg) => write!(f, "TOML serialization error: {}", msg),
             Self::InvalidContextCondition(cond) => write!(f, "Cannot serialize context condition: {}", cond),
+            Self::ValidationError { key, errors } => {
+                write!(f, "Schema validation failed for key '{}': {}", key, errors)
+            }
         }
     }
 }
@@ -220,6 +227,20 @@ fn parse_context_expression(
             Value::String(value_str.to_string())
         };
 
+        // Validate value against dimension schema
+        let dimension_info = dimensions.get(key).unwrap();
+        let schema_json = serde_json::to_value(&dimension_info.schema)
+            .map_err(|e| TomlError::ConversionError(format!(
+                "Invalid schema for dimension '{}': {}",
+                key, e
+            )))?;
+
+        crate::validations::validate_value_against_schema(&value, &schema_json)
+            .map_err(|errors: Vec<String>| TomlError::ValidationError {
+                key: format!("{}.{}", input, key),
+                errors: crate::validations::format_validation_errors(&errors),
+            })?;
+
         result.insert(key.to_string(), value);
     }
 
@@ -227,7 +248,8 @@ fn parse_context_expression(
 }
 
 /// Parse the default-config section
-fn parse_default_config(table: &toml::Table) -> Result<Map<String, Value>, TomlError> {
+/// Returns (values, schemas) where schemas are stored for validating overrides
+fn parse_default_config(table: &toml::Table) -> Result<(Map<String, Value>, Map<String, Value>), TomlError> {
     let section = table
         .get("default-config")
         .ok_or_else(|| TomlError::MissingSection("default-config".into()))?
@@ -236,7 +258,8 @@ fn parse_default_config(table: &toml::Table) -> Result<Map<String, Value>, TomlE
             TomlError::ConversionError("default-config must be a table".into())
         })?;
 
-    let mut result = Map::new();
+    let mut values = Map::new();
+    let mut schemas = Map::new();
     for (key, value) in section {
         let table = value.as_table().ok_or_else(|| {
             TomlError::ConversionError(format!(
@@ -262,10 +285,20 @@ fn parse_default_config(table: &toml::Table) -> Result<Map<String, Value>, TomlE
         }
 
         let value = toml_value_to_serde_value(table["value"].clone());
-        result.insert(key.clone(), value);
+        let schema = toml_value_to_serde_value(table["schema"].clone());
+
+        // Validate value against schema
+        crate::validations::validate_value_against_schema(&value, &schema)
+            .map_err(|errors: Vec<String>| TomlError::ValidationError {
+                key: key.clone(),
+                errors: crate::validations::format_validation_errors(&errors),
+            })?;
+
+        values.insert(key.clone(), value);
+        schemas.insert(key.clone(), schema);
     }
 
-    Ok(result)
+    Ok((values, schemas))
 }
 
 /// Parse the dimensions section
@@ -281,6 +314,7 @@ fn parse_dimensions(
     let mut result = HashMap::new();
     let mut position_to_dimensions: HashMap<i32, Vec<String>> = HashMap::new();
 
+    // First pass: collect all dimensions without schema validation
     for (key, value) in section {
         let table = value.as_table().ok_or_else(|| {
             TomlError::ConversionError(format!(
@@ -319,6 +353,7 @@ fn parse_dimensions(
             .push(key.clone());
 
         let schema = toml_value_to_serde_value(table["schema"].clone());
+
         let schema_map = ExtendedMap::try_from(schema).map_err(|e| {
             TomlError::ConversionError(format!(
                 "Invalid schema for dimension '{}': {}",
@@ -347,7 +382,7 @@ fn parse_dimensions(
         }
     }
 
-    // Now parse dimension types and validate local_cohort references
+    // Second pass: parse dimension types and validate schemas based on type
     for (key, value) in section {
         let table = value.as_table().unwrap();
 
@@ -361,6 +396,14 @@ fn parse_dimensions(
             })?;
 
             if type_str == "regular" {
+                // Validate regular dimension schema
+                let schema = toml_value_to_serde_value(table["schema"].clone());
+                crate::validations::validate_schema(&schema).map_err(|errors| {
+                    TomlError::ValidationError {
+                        key: format!("{}.schema", key),
+                        errors: crate::validations::format_validation_errors(&errors),
+                    }
+                })?;
                 DimensionType::Regular {}
             } else if type_str.starts_with("local_cohort:") {
                 // Parse format: local_cohort:<dimension_name>
@@ -387,6 +430,15 @@ fn parse_dimensions(
                     )));
                 }
 
+                // Validate that the schema has the cohort structure (type, enum, definitions)
+                let schema = toml_value_to_serde_value(table["schema"].clone());
+                crate::validations::validate_cohort_schema_structure(&schema).map_err(|errors| {
+                    TomlError::ValidationError {
+                        key: format!("{}.schema", key),
+                        errors: crate::validations::format_validation_errors(&errors),
+                    }
+                })?;
+
                 DimensionType::LocalCohort(cohort_dimension.to_string())
             } else {
                 return Err(TomlError::ConversionError(format!(
@@ -395,6 +447,14 @@ fn parse_dimensions(
                 )));
             }
         } else {
+            // Default to regular, validate schema
+            let schema = toml_value_to_serde_value(table["schema"].clone());
+            crate::validations::validate_schema(&schema).map_err(|errors| {
+                TomlError::ValidationError {
+                    key: format!("{}.schema", key),
+                    errors: crate::validations::format_validation_errors(&errors),
+                }
+            })?;
             DimensionType::Regular {}
         };
 
@@ -409,6 +469,7 @@ fn parse_dimensions(
 fn parse_contexts(
     table: &toml::Table,
     default_config: &Map<String, Value>,
+    schemas: &Map<String, Value>,
     dimensions: &HashMap<String, DimensionInfo>,
 ) -> Result<(Vec<Context>, HashMap<String, Overrides>), TomlError> {
     let section = table
@@ -443,6 +504,16 @@ fn parse_contexts(
             }
 
             let serde_value = toml_value_to_serde_value(value.clone());
+
+            // Validate override value against schema
+            if let Some(schema) = schemas.get(key) {
+                crate::validations::validate_value_against_schema(&serde_value, schema)
+                    .map_err(|errors: Vec<String>| TomlError::ValidationError {
+                        key: format!("{}.{}", context_expr, key),
+                        errors: crate::validations::format_validation_errors(&errors),
+                    })?;
+            }
+
             override_config.insert(key.clone(), serde_value);
         }
 
@@ -511,14 +582,14 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
         .map_err(|e| TomlError::TomlSyntaxError(e.to_string()))?;
 
     // 2. Extract and validate "default-config" section
-    let default_config = parse_default_config(&toml_table)?;
+    let (default_config, schemas) = parse_default_config(&toml_table)?;
 
     // 3. Extract and validate "dimensions" section
     let dimensions = parse_dimensions(&toml_table)?;
 
     // 4. Extract and parse "context" section
     let (contexts, overrides) =
-        parse_contexts(&toml_table, &default_config, &dimensions)?;
+        parse_contexts(&toml_table, &default_config, &schemas, &dimensions)?;
 
     Ok(Config {
         default_configs: default_config.into(),
@@ -843,13 +914,26 @@ timeout = 60
 
     #[test]
     fn test_dimension_type_local_cohort() {
+        // Note: TOML cannot represent jsonlogic rules with operators like "==" as keys
+        // So we test parsing with a simplified schema that has the required structure
         let toml = r#"
 [default-config]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, schema = { type = "string" }, type = "local_cohort:os" }
+
+[dimensions.os_cohort]
+position = 2
+type = "local_cohort:os"
+
+[dimensions.os_cohort.schema]
+type = "string"
+enum = ["linux", "windows", "otherwise"]
+
+[dimensions.os_cohort.schema.definitions]
+linux = "rule_for_linux"
+windows = "rule_for_windows"
 
 [context."os=linux"]
 timeout = 60
@@ -955,8 +1039,8 @@ mod tests {
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context]
-            "os=linux" = { timeout = 60 }
+            [context."os=linux"]
+            timeout = 60
         "#;
 
         let result = parse(toml);
@@ -1006,8 +1090,8 @@ mod tests {
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context]
-            "region=us-east" = { timeout = 60 }
+            [context."region=us-east"]
+            timeout = 60
         "#;
 
         let result = parse(toml);
@@ -1024,8 +1108,8 @@ mod tests {
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context]
-            "os=linux" = { port = 8080 }
+            [context."os=linux"]
+            port = 8080
         "#;
 
         let result = parse(toml);
@@ -1065,9 +1149,11 @@ mod tests {
             os = { position = 1, schema = { type = "string" } }
             region = { position = 2, schema = { type = "string" } }
 
-            [context]
-            "os=linux" = { timeout = 60 }
-            "os=linux;region=us-east" = { timeout = 90 }
+            [context."os=linux"]
+            timeout = 60
+
+            [context."os=linux;region=us-east"]
+            timeout = 90
         "#;
 
         let result = parse(toml);
@@ -1089,8 +1175,8 @@ mod tests {
             [dimensions]
             os = { schema = { type = "string" } }
 
-            [context]
-            "os=linux" = { timeout = 60 }
+            [context."os=linux"]
+            timeout = 60
         "#;
 
         let result = parse(toml);
@@ -1115,8 +1201,8 @@ mod tests {
             os = { position = 1, schema = { type = "string" } }
             region = { position = 1, schema = { type = "string" } }
 
-            [context]
-            "os=linux" = { timeout = 60 }
+            [context."os=linux"]
+            timeout = 60
         "#;
 
         let result = parse(toml);
@@ -1128,5 +1214,230 @@ mod tests {
                 dimensions
             }) if position == 1 && dimensions.len() == 2
         ));
+    }
+
+    // Validation tests
+    #[test]
+    fn test_validation_valid_default_config() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+            enabled = { value = true, schema = { type = "boolean" } }
+            name = { value = "test", schema = { type = "string" } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string" } }
+
+            [context."os=linux"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validation_invalid_default_config_type_mismatch() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = "not_an_integer", schema = { type = "integer" } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string" } }
+
+            [context."os=linux"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("timeout"));
+    }
+
+    #[test]
+    fn test_validation_valid_context_override() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string" } }
+
+            [context."os=linux"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validation_invalid_context_override_type_mismatch() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string" } }
+
+            [context."os=linux"]
+            timeout = "not_an_integer"
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("os=linux"));
+    }
+
+    #[test]
+    fn test_validation_valid_dimension_value_in_context() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
+
+            [context."os=linux"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validation_invalid_dimension_value_in_context() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
+
+            [context."os=freebsd"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("os=freebsd.os"));
+    }
+
+    #[test]
+    fn test_validation_with_minimum_constraint() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer", minimum = 10 } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string" } }
+
+            [context."os=linux"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validation_fails_minimum_constraint() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 5, schema = { type = "integer", minimum = 10 } }
+
+            [dimensions]
+            os = { position = 1, schema = { type = "string" } }
+
+            [context."os=linux"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("timeout"));
+    }
+
+    #[test]
+    fn test_validation_numeric_dimension_value() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
+
+            [context."port=8080"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validation_invalid_numeric_dimension_value() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
+
+            [context."port=70000"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("port=70000.port"));
+    }
+
+    #[test]
+    fn test_validation_boolean_dimension_value() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            debug = { position = 1, schema = { type = "boolean" } }
+
+            [context."debug=true"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validation_invalid_boolean_dimension_value() {
+        let toml = r#"
+            [default-config]
+            timeout = { value = 30, schema = { type = "integer" } }
+
+            [dimensions]
+            debug = { position = 1, schema = { type = "boolean" } }
+
+            [context."debug=yes"]
+            timeout = 60
+        "#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("debug=yes.debug"));
     }
 }

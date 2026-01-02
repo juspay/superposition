@@ -7,15 +7,15 @@ use diesel::{
     Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
     TextExpressionMethods,
 };
-use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
-    helpers::{parse_config_tags, validation_err_to_str},
+    helpers::parse_config_tags,
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, EncryptionKey, SchemaName,
         WorkspaceContext,
     },
 };
+use superposition_core::validations::validate_value_against_schema;
 use superposition_derives::authorized;
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
@@ -105,30 +105,18 @@ async fn create_handler(
     };
 
     let schema = Value::from(&default_config.schema);
-    let schema_compile_result = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&schema);
-    let jschema = match schema_compile_result {
-        Ok(jschema) => jschema,
-        Err(e) => {
-            log::info!("Failed to compile as a Draft-7 JSON schema: {e}");
-            return Err(bad_argument!("Invalid JSON schema (failed to compile)"));
-        }
-    };
 
-    if let Err(e) = jschema.validate(&default_config.value) {
-        let verrors = e.collect::<Vec<ValidationError>>();
+    // Use shared validation from superposition_core
+    validate_value_against_schema(&default_config.value, &schema).map_err(|errors| {
         log::info!(
             "Validation for value with given JSON schema failed: {:?}",
-            verrors
+            errors
         );
-        return Err(validation_error!(
+        validation_error!(
             "Schema validation failed: {}",
-            &validation_err_to_str(verrors)
-                .first()
-                .unwrap_or(&String::new())
-        ));
-    }
+            errors.first().unwrap_or(&String::new())
+        )
+    })?;
 
     validate_default_config_with_function(
         &workspace_context,
@@ -234,21 +222,11 @@ async fn update_handler(
     if let Some(ref schema) = req.schema {
         let schema = Value::from(schema);
 
-        let jschema = JSONSchema::options()
-            .with_draft(Draft::Draft7)
-            .compile(&schema)
-            .map_err(|e| {
-                log::info!("Failed to compile JSON schema: {e}");
-                bad_argument!("Invalid JSON schema.")
-            })?;
-
-        jschema.validate(&value).map_err(|e| {
-            let verrors = e.collect::<Vec<ValidationError>>();
+        // Use shared validation from superposition_core
+        validate_value_against_schema(&value, &schema).map_err(|errors| {
             validation_error!(
                 "Schema validation failed: {}",
-                validation_err_to_str(verrors)
-                    .first()
-                    .unwrap_or(&String::new())
+                errors.first().unwrap_or(&String::new())
             )
         })?;
     }

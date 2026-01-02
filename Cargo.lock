@@ -5617,6 +5617,8 @@ dependencies = [
  "chrono",
  "derive_more 0.99.17",
  "itertools 0.10.5",
+ "jsonschema",
+ "juspay_jsonlogic",
  "log",
  "mini-moka",
  "once_cell",
