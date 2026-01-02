@@ -227,9 +227,7 @@ fn parse_context_expression(
 }
 
 /// Parse the default-config section
-fn parse_default_config(
-    table: &toml::Table,
-) -> Result<Map<String, Value>, TomlError> {
+fn parse_default_config(table: &toml::Table) -> Result<Map<String, Value>, TomlError> {
     let section = table
         .get("default-config")
         .ok_or_else(|| TomlError::MissingSection("default-config".into()))?
@@ -278,9 +276,7 @@ fn parse_dimensions(
         .get("dimensions")
         .ok_or_else(|| TomlError::MissingSection("dimensions".into()))?
         .as_table()
-        .ok_or_else(|| {
-            TomlError::ConversionError("dimensions must be a table".into())
-        })?;
+        .ok_or_else(|| TomlError::ConversionError("dimensions must be a table".into()))?;
 
     let mut result = HashMap::new();
     let mut position_to_dimensions: HashMap<i32, Vec<String>> = HashMap::new();
@@ -316,6 +312,44 @@ fn parse_dimensions(
             ))
         })? as i32;
 
+        // Parse dimension type (optional, defaults to "regular")
+        let dimension_type = if let Some(type_value) = table.get("type") {
+            let type_str = type_value.as_str().ok_or_else(|| {
+                TomlError::ConversionError(format!(
+                    "dimensions.{}.type must be a string",
+                    key
+                ))
+            })?;
+            match type_str {
+                "regular" => DimensionType::Regular {},
+                "local_cohort" => {
+                    // Local cohort requires a cohort field
+                    let cohort = table.get("cohort").ok_or_else(|| {
+                        TomlError::MissingField {
+                            section: "dimensions".into(),
+                            key: key.clone(),
+                            field: "cohort".into(),
+                        }
+                    })?;
+                    let cohort_name = cohort.as_str().ok_or_else(|| {
+                        TomlError::ConversionError(format!(
+                            "dimensions.{}.cohort must be a string",
+                            key
+                        ))
+                    })?;
+                    DimensionType::LocalCohort(cohort_name.to_string())
+                }
+                other => {
+                    return Err(TomlError::ConversionError(format!(
+                        "dimensions.{}.type must be 'regular' or 'local_cohort', got '{}'",
+                        key, other
+                    )));
+                }
+            }
+        } else {
+            DimensionType::Regular {}
+        };
+
         // Track position usage for duplicate detection
         position_to_dimensions
             .entry(position)
@@ -333,7 +367,7 @@ fn parse_dimensions(
         let dimension_info = DimensionInfo {
             position,
             schema: schema_map,
-            dimension_type: DimensionType::Regular {},
+            dimension_type,
             dependency_graph: DependencyGraph(HashMap::new()),
             value_compute_function_name: None,
         };
@@ -364,9 +398,7 @@ fn parse_contexts(
         .get("context")
         .ok_or_else(|| TomlError::MissingSection("context".into()))?
         .as_table()
-        .ok_or_else(|| {
-            TomlError::ConversionError("context must be a table".into())
-        })?;
+        .ok_or_else(|| TomlError::ConversionError("context must be a table".into()))?;
 
     let mut contexts = Vec::new();
     let mut overrides_map = HashMap::new();
@@ -482,17 +514,18 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
 /// Convert serde_json::Value to TOML representation string
 fn value_to_toml(value: &Value) -> String {
     match value {
-        Value::String(s) => format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\"")),
+        Value::String(s) => {
+            format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
+        }
         Value::Number(n) => n.to_string(),
         Value::Bool(b) => b.to_string(),
         Value::Array(arr) => {
-            let items: Vec<String> = arr.iter()
-                .map(|v| value_to_toml(v))
-                .collect();
+            let items: Vec<String> = arr.iter().map(|v| value_to_toml(v)).collect();
             format!("[{}]", items.join(", "))
         }
         Value::Object(obj) => {
-            let items: Vec<String> = obj.iter()
+            let items: Vec<String> = obj
+                .iter()
                 .map(|(k, v)| format!("{} = {}", k, value_to_toml(v)))
                 .collect();
             format!("{{ {} }}", items.join(", "))
@@ -506,10 +539,9 @@ fn condition_to_string(condition: &Cac<Condition>) -> Result<String, TomlError> 
     // Clone the condition to get the inner Map
     let condition_inner = condition.clone().into_inner();
 
-    let mut pairs: Vec<String> = condition_inner.iter()
-        .map(|(key, value)| {
-            format!("{}={}", key, value_to_string_simple(value))
-        })
+    let mut pairs: Vec<String> = condition_inner
+        .iter()
+        .map(|(key, value)| format!("{}={}", key, value_to_string_simple(value)))
         .collect();
 
     // Sort for deterministic output
@@ -578,11 +610,25 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
     for (name, info) in sorted_dims {
         let schema_json = serde_json::to_value(&info.schema)
             .map_err(|e| TomlError::SerializationError(e.to_string()))?;
+
+        // Serialize dimension type
+        let type_field = match &info.dimension_type {
+            DimensionType::Regular {} => r#"type = "regular""#.to_string(),
+            DimensionType::LocalCohort(cohort_name) => {
+                format!(r#"type = "local_cohort", cohort = "{}""#, cohort_name)
+            }
+            DimensionType::RemoteCohort(_) => {
+                // Skip remote_cohort types as they're not supported in TOML
+                continue;
+            }
+        };
+
         let toml_entry = format!(
-            "{} = {{ position = {}, schema = {} }}\n",
+            "{} = {{ position = {}, schema = {}, {} }}\n",
             name,
             info.position,
-            value_to_toml(&schema_json)
+            value_to_toml(&schema_json),
+            type_field
         );
         output.push_str(&toml_entry);
     }
@@ -597,13 +643,11 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
 
         output.push_str(&format!("[context.\"{}\"]\n", condition_str));
 
-        if let Some(overrides) = config.overrides.get(context.override_with_keys.get_key()) {
+        // DIAGNOSTIC: Print what we're looking for vs what's available
+        let override_key = context.override_with_keys.get_key();
+        if let Some(overrides) = config.overrides.get(override_key) {
             for (key, value) in overrides.clone() {
-                output.push_str(&format!(
-                    "{} = {}\n",
-                    key,
-                    value_to_toml(&value)
-                ));
+                output.push_str(&format!("{} = {}\n", key, value_to_toml(&value)));
             }
         }
         output.push('\n');
@@ -663,7 +707,8 @@ mod serialization_tests {
     fn test_condition_to_string_multiple() {
         let mut condition_map = Map::new();
         condition_map.insert("city".to_string(), Value::String("Bangalore".to_string()));
-        condition_map.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
+        condition_map
+            .insert("vehicle_type".to_string(), Value::String("cab".to_string()));
         let condition = Cac::<Condition>::try_from(condition_map).unwrap();
 
         let result = condition_to_string(&condition).unwrap();
@@ -757,6 +802,107 @@ string_val = "world"
         assert!(result.contains("outer"));
         assert!(result.contains("inner"));
     }
+
+    #[test]
+    fn test_dimension_type_regular() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" }, type = "regular" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let config = parse(toml).unwrap();
+        let serialized = serialize_to_toml(&config).unwrap();
+        let reparsed = parse(&serialized).unwrap();
+
+        assert!(serialized.contains(r#"type = "regular""#));
+        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
+    }
+
+    #[test]
+    fn test_dimension_type_local_cohort() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" }, type = "local_cohort", cohort = "test_cohort" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let config = parse(toml).unwrap();
+        let serialized = serialize_to_toml(&config).unwrap();
+        let reparsed = parse(&serialized).unwrap();
+
+        assert!(serialized.contains(r#"type = "local_cohort""#));
+        assert!(serialized.contains(r#"cohort = "test_cohort""#));
+        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
+    }
+
+    #[test]
+    fn test_dimension_type_default_regular() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let config = parse(toml).unwrap();
+        let serialized = serialize_to_toml(&config).unwrap();
+        let reparsed = parse(&serialized).unwrap();
+
+        // Default should be regular
+        assert!(serialized.contains(r#"type = "regular""#));
+        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
+    }
+
+    #[test]
+    fn test_dimension_type_local_cohort_missing_cohort() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" }, type = "local_cohort" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("cohort"));
+    }
+
+    #[test]
+    fn test_dimension_type_invalid() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" }, type = "invalid_type" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("regular"));
+    }
 }
 
 #[cfg(test)]
@@ -830,10 +976,7 @@ mod tests {
 
         let result = parse(toml);
         assert!(result.is_err());
-        assert!(matches!(
-            result,
-            Err(TomlError::UndeclaredDimension { .. })
-        ));
+        assert!(matches!(result, Err(TomlError::UndeclaredDimension { .. })));
     }
 
     #[test]
@@ -851,10 +994,7 @@ mod tests {
 
         let result = parse(toml);
         assert!(result.is_err());
-        assert!(matches!(
-            result,
-            Err(TomlError::InvalidOverrideKey { .. })
-        ));
+        assert!(matches!(result, Err(TomlError::InvalidOverrideKey { .. })));
     }
 
     #[test]
