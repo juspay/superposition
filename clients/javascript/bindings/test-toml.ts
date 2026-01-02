@@ -99,7 +99,7 @@ function testWithExternalFile(): boolean | null {
   printSectionHeader('TEST 2: Parse External TOML File');
 
   // Try to find the example TOML file
-  const exampleFile = path.join(__dirname, '..', '..', '..', 'examples', 'superposition-toml-example', 'example.toml');
+  const exampleFile = path.join(__dirname, '..', '..', '..', '..', 'examples', 'superposition-toml-example', 'example.toml');
 
   if (!fs.existsSync(exampleFile)) {
     console.log(`\n⚠ Example file not found at: ${exampleFile}`);
