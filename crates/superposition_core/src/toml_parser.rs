@@ -312,44 +312,6 @@ fn parse_dimensions(
             ))
         })? as i32;
 
-        // Parse dimension type (optional, defaults to "regular")
-        let dimension_type = if let Some(type_value) = table.get("type") {
-            let type_str = type_value.as_str().ok_or_else(|| {
-                TomlError::ConversionError(format!(
-                    "dimensions.{}.type must be a string",
-                    key
-                ))
-            })?;
-            match type_str {
-                "regular" => DimensionType::Regular {},
-                "local_cohort" => {
-                    // Local cohort requires a cohort field
-                    let cohort = table.get("cohort").ok_or_else(|| {
-                        TomlError::MissingField {
-                            section: "dimensions".into(),
-                            key: key.clone(),
-                            field: "cohort".into(),
-                        }
-                    })?;
-                    let cohort_name = cohort.as_str().ok_or_else(|| {
-                        TomlError::ConversionError(format!(
-                            "dimensions.{}.cohort must be a string",
-                            key
-                        ))
-                    })?;
-                    DimensionType::LocalCohort(cohort_name.to_string())
-                }
-                other => {
-                    return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type must be 'regular' or 'local_cohort', got '{}'",
-                        key, other
-                    )));
-                }
-            }
-        } else {
-            DimensionType::Regular {}
-        };
-
         // Track position usage for duplicate detection
         position_to_dimensions
             .entry(position)
@@ -367,7 +329,7 @@ fn parse_dimensions(
         let dimension_info = DimensionInfo {
             position,
             schema: schema_map,
-            dimension_type,
+            dimension_type: DimensionType::Regular {},
             dependency_graph: DependencyGraph(HashMap::new()),
             value_compute_function_name: None,
         };
@@ -383,6 +345,61 @@ fn parse_dimensions(
                 dimensions,
             });
         }
+    }
+
+    // Now parse dimension types and validate local_cohort references
+    for (key, value) in section {
+        let table = value.as_table().unwrap();
+
+        // Parse dimension type (optional, defaults to "regular")
+        let dimension_type = if let Some(type_value) = table.get("type") {
+            let type_str = type_value.as_str().ok_or_else(|| {
+                TomlError::ConversionError(format!(
+                    "dimensions.{}.type must be a string",
+                    key
+                ))
+            })?;
+
+            if type_str == "regular" {
+                DimensionType::Regular {}
+            } else if type_str.starts_with("local_cohort:") {
+                // Parse format: local_cohort:<dimension_name>
+                let parts: Vec<&str> = type_str.splitn(2, ':').collect();
+                if parts.len() != 2 {
+                    return Err(TomlError::ConversionError(format!(
+                        "dimensions.{}.type must be 'regular' or 'local_cohort:<dimension_name>', got '{}'",
+                        key, type_str
+                    )));
+                }
+                let cohort_dimension = parts[1];
+                if cohort_dimension.is_empty() {
+                    return Err(TomlError::ConversionError(format!(
+                        "dimensions.{}.type: cohort dimension name cannot be empty",
+                        key
+                    )));
+                }
+
+                // Validate that the referenced dimension exists
+                if !result.contains_key(cohort_dimension) {
+                    return Err(TomlError::ConversionError(format!(
+                        "dimensions.{}.type: referenced dimension '{}' does not exist in dimensions table",
+                        key, cohort_dimension
+                    )));
+                }
+
+                DimensionType::LocalCohort(cohort_dimension.to_string())
+            } else {
+                return Err(TomlError::ConversionError(format!(
+                    "dimensions.{}.type must be 'regular' or 'local_cohort:<dimension_name>', got '{}'",
+                    key, type_str
+                )));
+            }
+        } else {
+            DimensionType::Regular {}
+        };
+
+        // Update the dimension info with the parsed type
+        result.get_mut(key).unwrap().dimension_type = dimension_type;
     }
 
     Ok(result)
@@ -615,7 +632,7 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
         let type_field = match &info.dimension_type {
             DimensionType::Regular {} => r#"type = "regular""#.to_string(),
             DimensionType::LocalCohort(cohort_name) => {
-                format!(r#"type = "local_cohort", cohort = "{}""#, cohort_name)
+                format!(r#"type = "local_cohort:{}""#, cohort_name)
             }
             DimensionType::RemoteCohort(_) => {
                 // Skip remote_cohort types as they're not supported in TOML
@@ -831,7 +848,8 @@ timeout = 60
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
-os = { position = 1, schema = { type = "string" }, type = "local_cohort", cohort = "test_cohort" }
+os = { position = 1, schema = { type = "string" } }
+os_cohort = { position = 2, schema = { type = "string" }, type = "local_cohort:os" }
 
 [context."os=linux"]
 timeout = 60
@@ -841,9 +859,45 @@ timeout = 60
         let serialized = serialize_to_toml(&config).unwrap();
         let reparsed = parse(&serialized).unwrap();
 
-        assert!(serialized.contains(r#"type = "local_cohort""#));
-        assert!(serialized.contains(r#"cohort = "test_cohort""#));
+        assert!(serialized.contains(r#"type = "local_cohort:os""#));
         assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
+    }
+
+    #[test]
+    fn test_dimension_type_local_cohort_invalid_reference() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os_cohort = { position = 1, schema = { type = "string" }, type = "local_cohort:nonexistent" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("does not exist"));
+    }
+
+    #[test]
+    fn test_dimension_type_local_cohort_empty_name() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+os_cohort = { position = 2, schema = { type = "string" }, type = "local_cohort:" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("cannot be empty"));
     }
 
     #[test]
@@ -869,7 +923,7 @@ timeout = 60
     }
 
     #[test]
-    fn test_dimension_type_local_cohort_missing_cohort() {
+    fn test_dimension_type_invalid_format() {
         let toml = r#"
 [default-config]
 timeout = { value = 30, schema = { type = "integer" } }
@@ -883,25 +937,7 @@ timeout = 60
 
         let result = parse(toml);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("cohort"));
-    }
-
-    #[test]
-    fn test_dimension_type_invalid() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" }, type = "invalid_type" }
-
-[context."os=linux"]
-timeout = 60
-"#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("regular"));
+        assert!(result.unwrap_err().to_string().contains("local_cohort:<dimension_name>"));
     }
 }
 
