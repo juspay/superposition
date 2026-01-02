@@ -14,7 +14,7 @@ pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
 };
 pub use superposition_types::Config as ParsedTomlConfig;
-pub use toml_parser::TomlError;
+pub use toml_parser::{serialize_to_toml, TomlError};
 
 /// Parse TOML configuration string into structured components
 ///
