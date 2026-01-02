@@ -14,6 +14,8 @@ use superposition_types::{
     result as superposition, PaginatedResponse, SortBy, User,
 };
 
+use crate::helpers::validate_change_reason;
+
 pub fn endpoints() -> Scope {
     web::scope("")
         .service(list_handler)
@@ -100,8 +102,10 @@ async fn create_handler(
     schema_name: SchemaName,
 ) -> superposition::Result<Json<Variable>> {
     let DbConnection(mut conn) = db_conn;
-
     let req = req.into_inner();
+
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     let now = chrono::Utc::now();
 
@@ -155,6 +159,9 @@ async fn update_handler(
 ) -> superposition::Result<Json<Variable>> {
     let DbConnection(mut conn) = db_conn;
     let var_name = path.into_inner();
+
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     let updated_var = diesel::update(variables)
         .filter(name.eq(var_name))
