@@ -700,6 +700,63 @@ timeout = 60
         assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
         assert_eq!(config.contexts.len(), reparsed.contexts.len());
     }
+
+    #[test]
+    fn test_toml_round_trip_empty_config() {
+        // Note: parse() requires a context section, so we need a minimal valid TOML
+        let toml_str = r#"
+[default-config]
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[context]
+"#;
+
+        let config = parse(toml_str).unwrap();
+        assert!(config.default_configs.is_empty());
+        assert_eq!(config.contexts.len(), 0);
+    }
+
+    #[test]
+    fn test_value_to_toml_special_chars() {
+        let val = Value::String("hello\"world".to_string());
+        assert_eq!(value_to_toml(&val), r#""hello\"world""#);
+
+        let val2 = Value::String("hello\\world".to_string());
+        assert_eq!(value_to_toml(&val2), r#""hello\\world""#);
+    }
+
+    #[test]
+    fn test_toml_round_trip_all_value_types() {
+        let toml_str = r#"
+[default-config]
+string_val = { value = "hello", schema = { type = "string" } }
+int_val = { value = 42, schema = { type = "integer" } }
+float_val = { value = 3.14, schema = { type = "number" } }
+bool_val = { value = true, schema = { type = "boolean" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[context."os=linux"]
+string_val = "world"
+"#;
+
+        let config = parse(toml_str).unwrap();
+        let serialized = serialize_to_toml(&config).unwrap();
+        let reparsed = parse(&serialized).unwrap();
+
+        assert_eq!(config.default_configs, reparsed.default_configs);
+    }
+
+    #[test]
+    fn test_value_to_toml_nested() {
+        let val = json!({"outer": {"inner": "value"}});
+        let result = value_to_toml(&val);
+        assert!(result.contains("outer"));
+        assert!(result.contains("inner"));
+    }
 }
 
 #[cfg(test)]
