@@ -1,8 +1,39 @@
 # TOML Response Format for get_config API
 
 **Date:** 2026-01-02
-**Status:** Design Complete
+**Status:** Implemented
 **Author:** Claude Sonnet 4.5
+
+## Implementation Notes
+
+**Implementation Date:** 2026-01-02
+
+**Commits:**
+- `267f75fa` - refactor: rename TomlParseError to TomlError and add serialization variants
+- `bdd5474c` - feat: add TOML serialization helper functions
+- `0e6b9fd3` - feat: implement serialize_to_toml function
+- `291bd9eb` - feat: add TOML response support to get_config endpoint
+- `3cac21cf` - test: add comprehensive serialization tests
+
+**Implementation Summary:**
+1. Renamed `TomlParseError` to `TomlError` with new `SerializationError` and `InvalidContextCondition` variants
+2. Implemented helper functions: `value_to_toml`, `condition_to_string`, `value_to_string_simple`
+3. Implemented main `serialize_to_toml` function with schema inference for default-config entries
+4. Added content negotiation to `get_config` handler with `ResponseFormat` enum and `determine_response_format` function
+5. Added comprehensive tests including round-trip, special characters, and all value types
+6. Created API documentation at `docs/api/toml-response-format.md`
+
+**Key Implementation Details:**
+- Schema inference for default-config entries (string, integer, number, boolean, array, object, null)
+- Deterministic output: dimensions sorted by position, context conditions sorted alphabetically
+- Backward compatible: defaults to JSON when no Accept header or unsupported format
+- Error handling: returns 500 Internal Server Error with `AppError::UnexpectedError` on serialization failure
+
+**Test Coverage:**
+- 12 serialization tests (all passing)
+- Round-trip compatibility verified
+- Special character escaping tested
+- All value types covered
 
 ## Overview
 
