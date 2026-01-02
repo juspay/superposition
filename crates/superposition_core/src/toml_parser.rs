@@ -2,14 +2,15 @@ use std::collections::HashMap;
 use std::fmt;
 
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::ExtendedMap;
 use superposition_types::{Cac, Condition, Config, Context, DimensionInfo, Overrides};
 
-/// Detailed error type for TOML parsing
-#[derive(Debug, Clone)]
-pub enum TomlParseError {
+/// Detailed error type for TOML parsing and serialization
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TomlError {
     FileReadError(String),
     TomlSyntaxError(String),
     MissingSection(String),
@@ -35,9 +36,11 @@ pub enum TomlParseError {
         dimensions: Vec<String>,
     },
     ConversionError(String),
+    SerializationError(String),
+    InvalidContextCondition(String),
 }
 
-impl fmt::Display for TomlParseError {
+impl fmt::Display for TomlError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::MissingSection(s) => {
@@ -85,11 +88,13 @@ impl fmt::Display for TomlParseError {
             Self::TomlSyntaxError(e) => write!(f, "TOML syntax error: {}", e),
             Self::ConversionError(e) => write!(f, "TOML conversion error: {}", e),
             Self::FileReadError(e) => write!(f, "File read error: {}", e),
+            Self::SerializationError(msg) => write!(f, "TOML serialization error: {}", msg),
+            Self::InvalidContextCondition(cond) => write!(f, "Cannot serialize context condition: {}", cond),
         }
     }
 }
 
-impl std::error::Error for TomlParseError {}
+impl std::error::Error for TomlError {}
 
 /// Convert TOML value to serde_json Value
 fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
@@ -167,7 +172,7 @@ fn compute_priority(
 fn parse_context_expression(
     input: &str,
     dimensions: &HashMap<String, DimensionInfo>,
-) -> Result<Map<String, Value>, TomlParseError> {
+) -> Result<Map<String, Value>, TomlError> {
     let mut result = Map::new();
 
     for pair in input.split(';') {
@@ -178,7 +183,7 @@ fn parse_context_expression(
 
         let parts: Vec<&str> = pair.splitn(2, '=').collect();
         if parts.len() != 2 {
-            return Err(TomlParseError::InvalidContextExpression {
+            return Err(TomlError::InvalidContextExpression {
                 expression: input.to_string(),
                 reason: format!("Invalid key=value pair: '{}'", pair),
             });
@@ -188,7 +193,7 @@ fn parse_context_expression(
         let value_str = parts[1].trim();
 
         if value_str.is_empty() {
-            return Err(TomlParseError::InvalidContextExpression {
+            return Err(TomlError::InvalidContextExpression {
                 expression: input.to_string(),
                 reason: format!("Empty value after equals in: '{}'", pair),
             });
@@ -196,7 +201,7 @@ fn parse_context_expression(
 
         // Validate dimension exists
         if !dimensions.contains_key(key) {
-            return Err(TomlParseError::UndeclaredDimension {
+            return Err(TomlError::UndeclaredDimension {
                 dimension: key.to_string(),
                 context: input.to_string(),
             });
@@ -224,19 +229,19 @@ fn parse_context_expression(
 /// Parse the default-config section
 fn parse_default_config(
     table: &toml::Table,
-) -> Result<Map<String, Value>, TomlParseError> {
+) -> Result<Map<String, Value>, TomlError> {
     let section = table
         .get("default-config")
-        .ok_or_else(|| TomlParseError::MissingSection("default-config".into()))?
+        .ok_or_else(|| TomlError::MissingSection("default-config".into()))?
         .as_table()
         .ok_or_else(|| {
-            TomlParseError::ConversionError("default-config must be a table".into())
+            TomlError::ConversionError("default-config must be a table".into())
         })?;
 
     let mut result = Map::new();
     for (key, value) in section {
         let table = value.as_table().ok_or_else(|| {
-            TomlParseError::ConversionError(format!(
+            TomlError::ConversionError(format!(
                 "default-config.{} must be a table with 'value' and 'schema'",
                 key
             ))
@@ -244,14 +249,14 @@ fn parse_default_config(
 
         // Validate required fields
         if !table.contains_key("value") {
-            return Err(TomlParseError::MissingField {
+            return Err(TomlError::MissingField {
                 section: "default-config".into(),
                 key: key.clone(),
                 field: "value".into(),
             });
         }
         if !table.contains_key("schema") {
-            return Err(TomlParseError::MissingField {
+            return Err(TomlError::MissingField {
                 section: "default-config".into(),
                 key: key.clone(),
                 field: "schema".into(),
@@ -268,13 +273,13 @@ fn parse_default_config(
 /// Parse the dimensions section
 fn parse_dimensions(
     table: &toml::Table,
-) -> Result<HashMap<String, DimensionInfo>, TomlParseError> {
+) -> Result<HashMap<String, DimensionInfo>, TomlError> {
     let section = table
         .get("dimensions")
-        .ok_or_else(|| TomlParseError::MissingSection("dimensions".into()))?
+        .ok_or_else(|| TomlError::MissingSection("dimensions".into()))?
         .as_table()
         .ok_or_else(|| {
-            TomlParseError::ConversionError("dimensions must be a table".into())
+            TomlError::ConversionError("dimensions must be a table".into())
         })?;
 
     let mut result = HashMap::new();
@@ -282,14 +287,14 @@ fn parse_dimensions(
 
     for (key, value) in section {
         let table = value.as_table().ok_or_else(|| {
-            TomlParseError::ConversionError(format!(
+            TomlError::ConversionError(format!(
                 "dimensions.{} must be a table with 'schema' and 'position'",
                 key
             ))
         })?;
 
         if !table.contains_key("schema") {
-            return Err(TomlParseError::MissingField {
+            return Err(TomlError::MissingField {
                 section: "dimensions".into(),
                 key: key.clone(),
                 field: "schema".into(),
@@ -297,7 +302,7 @@ fn parse_dimensions(
         }
 
         if !table.contains_key("position") {
-            return Err(TomlParseError::MissingField {
+            return Err(TomlError::MissingField {
                 section: "dimensions".into(),
                 key: key.clone(),
                 field: "position".into(),
@@ -305,7 +310,7 @@ fn parse_dimensions(
         }
 
         let position = table["position"].as_integer().ok_or_else(|| {
-            TomlParseError::ConversionError(format!(
+            TomlError::ConversionError(format!(
                 "dimensions.{}.position must be an integer",
                 key
             ))
@@ -319,7 +324,7 @@ fn parse_dimensions(
 
         let schema = toml_value_to_serde_value(table["schema"].clone());
         let schema_map = ExtendedMap::try_from(schema).map_err(|e| {
-            TomlParseError::ConversionError(format!(
+            TomlError::ConversionError(format!(
                 "Invalid schema for dimension '{}': {}",
                 key, e
             ))
@@ -339,7 +344,7 @@ fn parse_dimensions(
     // Check for duplicate positions
     for (position, dimensions) in position_to_dimensions {
         if dimensions.len() > 1 {
-            return Err(TomlParseError::DuplicatePosition {
+            return Err(TomlError::DuplicatePosition {
                 position,
                 dimensions,
             });
@@ -354,13 +359,13 @@ fn parse_contexts(
     table: &toml::Table,
     default_config: &Map<String, Value>,
     dimensions: &HashMap<String, DimensionInfo>,
-) -> Result<(Vec<Context>, HashMap<String, Overrides>), TomlParseError> {
+) -> Result<(Vec<Context>, HashMap<String, Overrides>), TomlError> {
     let section = table
         .get("context")
-        .ok_or_else(|| TomlParseError::MissingSection("context".into()))?
+        .ok_or_else(|| TomlError::MissingSection("context".into()))?
         .as_table()
         .ok_or_else(|| {
-            TomlParseError::ConversionError("context must be a table".into())
+            TomlError::ConversionError("context must be a table".into())
         })?;
 
     let mut contexts = Vec::new();
@@ -372,7 +377,7 @@ fn parse_contexts(
 
         // Parse override values
         let override_table = override_values.as_table().ok_or_else(|| {
-            TomlParseError::ConversionError(format!(
+            TomlError::ConversionError(format!(
                 "context.{} must be a table",
                 context_expr
             ))
@@ -382,7 +387,7 @@ fn parse_contexts(
         for (key, value) in override_table {
             // Validate key exists in default_config
             if !default_config.contains_key(key) {
-                return Err(TomlParseError::InvalidOverrideKey {
+                return Err(TomlError::InvalidOverrideKey {
                     key: key.clone(),
                     context: context_expr.clone(),
                 });
@@ -398,7 +403,7 @@ fn parse_contexts(
 
         // Create Context
         let condition = Cac::<Condition>::try_from(context_map).map_err(|e| {
-            TomlParseError::ConversionError(format!(
+            TomlError::ConversionError(format!(
                 "Invalid condition for context '{}': {}",
                 context_expr, e
             ))
@@ -417,7 +422,7 @@ fn parse_contexts(
         // Create Overrides
         let overrides = Cac::<Overrides>::try_from(override_config)
             .map_err(|e| {
-                TomlParseError::ConversionError(format!(
+                TomlError::ConversionError(format!(
                     "Invalid overrides for context '{}': {}",
                     context_expr, e
                 ))
@@ -438,7 +443,7 @@ fn parse_contexts(
 ///
 /// # Returns
 /// * `Ok(Config)` - Successfully parsed configuration
-/// * `Err(TomlParseError)` - Detailed error about what went wrong
+/// * `Err(TomlError)` - Detailed error about what went wrong
 ///
 /// # Example TOML Format
 /// ```toml
@@ -451,10 +456,10 @@ fn parse_contexts(
 /// [context]
 /// "os=linux" = { timeout = 60 }
 /// ```
-pub fn parse(toml_content: &str) -> Result<Config, TomlParseError> {
+pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
     // 1. Parse TOML string
     let toml_table: toml::Table = toml::from_str(toml_content)
-        .map_err(|e| TomlParseError::TomlSyntaxError(e.to_string()))?;
+        .map_err(|e| TomlError::TomlSyntaxError(e.to_string()))?;
 
     // 2. Extract and validate "default-config" section
     let default_config = parse_default_config(&toml_table)?;
@@ -510,7 +515,7 @@ mod tests {
 
         let result = parse(toml);
         assert!(result.is_err());
-        assert!(matches!(result, Err(TomlParseError::MissingSection(_))));
+        assert!(matches!(result, Err(TomlError::MissingSection(_))));
     }
 
     #[test]
@@ -527,7 +532,7 @@ mod tests {
 
         let result = parse(toml);
         assert!(result.is_err());
-        assert!(matches!(result, Err(TomlParseError::MissingField { .. })));
+        assert!(matches!(result, Err(TomlError::MissingField { .. })));
     }
 
     #[test]
@@ -547,7 +552,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result,
-            Err(TomlParseError::UndeclaredDimension { .. })
+            Err(TomlError::UndeclaredDimension { .. })
         ));
     }
 
@@ -568,7 +573,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result,
-            Err(TomlParseError::InvalidOverrideKey { .. })
+            Err(TomlError::InvalidOverrideKey { .. })
         ));
     }
 
@@ -636,7 +641,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result,
-            Err(TomlParseError::MissingField {
+            Err(TomlError::MissingField {
                 section,
                 field,
                 ..
@@ -662,7 +667,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result,
-            Err(TomlParseError::DuplicatePosition {
+            Err(TomlError::DuplicatePosition {
                 position,
                 dimensions
             }) if position == 1 && dimensions.len() == 2
