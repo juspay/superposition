@@ -410,7 +410,7 @@ fn parse_dimensions(
                 let parts: Vec<&str> = type_str.splitn(2, ':').collect();
                 if parts.len() != 2 {
                     return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type must be 'regular' or 'local_cohort:<dimension_name>', got '{}'",
+                        "dimensions.{}.type must be 'regular', 'local_cohort:<dimension_name>', or 'remote_cohort:<dimension_name>', got '{}'",
                         key, type_str
                     )));
                 }
@@ -440,9 +440,44 @@ fn parse_dimensions(
                 })?;
 
                 DimensionType::LocalCohort(cohort_dimension.to_string())
+            } else if type_str.starts_with("remote_cohort:") {
+                // Parse format: remote_cohort:<dimension_name>
+                let parts: Vec<&str> = type_str.splitn(2, ':').collect();
+                if parts.len() != 2 {
+                    return Err(TomlError::ConversionError(format!(
+                        "dimensions.{}.type must be 'regular', 'local_cohort:<dimension_name>', or 'remote_cohort:<dimension_name>', got '{}'",
+                        key, type_str
+                    )));
+                }
+                let cohort_dimension = parts[1];
+                if cohort_dimension.is_empty() {
+                    return Err(TomlError::ConversionError(format!(
+                        "dimensions.{}.type: cohort dimension name cannot be empty",
+                        key
+                    )));
+                }
+
+                // Validate that the referenced dimension exists
+                if !result.contains_key(cohort_dimension) {
+                    return Err(TomlError::ConversionError(format!(
+                        "dimensions.{}.type: referenced dimension '{}' does not exist in dimensions table",
+                        key, cohort_dimension
+                    )));
+                }
+
+                // For remote cohorts, use normal schema validation (no definitions required)
+                let schema = toml_value_to_serde_value(table["schema"].clone());
+                crate::validations::validate_schema(&schema).map_err(|errors| {
+                    TomlError::ValidationError {
+                        key: format!("{}.schema", key),
+                        errors: crate::validations::format_validation_errors(&errors),
+                    }
+                })?;
+
+                DimensionType::RemoteCohort(cohort_dimension.to_string())
             } else {
                 return Err(TomlError::ConversionError(format!(
-                    "dimensions.{}.type must be 'regular' or 'local_cohort:<dimension_name>', got '{}'",
+                    "dimensions.{}.type must be 'regular', 'local_cohort:<dimension_name>', or 'remote_cohort:<dimension_name>', got '{}'",
                     key, type_str
                 )));
             }
@@ -705,9 +740,8 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             DimensionType::LocalCohort(cohort_name) => {
                 format!(r#"type = "local_cohort:{}""#, cohort_name)
             }
-            DimensionType::RemoteCohort(_) => {
-                // Skip remote_cohort types as they're not supported in TOML
-                continue;
+            DimensionType::RemoteCohort(cohort_name) => {
+                format!(r#"type = "remote_cohort:{}""#, cohort_name)
             }
         };
 
@@ -982,6 +1016,99 @@ timeout = 60
         let result = parse(toml);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("cannot be empty"));
+    }
+
+    #[test]
+    fn test_dimension_type_remote_cohort() {
+        // Remote cohorts use normal schema validation (no definitions required)
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[dimensions.os_cohort]
+position = 2
+type = "remote_cohort:os"
+
+[dimensions.os_cohort.schema]
+type = "string"
+enum = ["linux", "windows", "macos"]
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let config = parse(toml).unwrap();
+        let serialized = serialize_to_toml(&config).unwrap();
+        let reparsed = parse(&serialized).unwrap();
+
+        assert!(serialized.contains(r#"type = "remote_cohort:os""#));
+        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
+    }
+
+    #[test]
+    fn test_dimension_type_remote_cohort_invalid_reference() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os_cohort = { position = 1, schema = { type = "string" }, type = "remote_cohort:nonexistent" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("does not exist"));
+    }
+
+    #[test]
+    fn test_dimension_type_remote_cohort_empty_name() {
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+os_cohort = { position = 2, schema = { type = "string" }, type = "remote_cohort:" }
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("cannot be empty"));
+    }
+
+    #[test]
+    fn test_dimension_type_remote_cohort_invalid_schema() {
+        // Remote cohorts with invalid schema should fail validation
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[dimensions.os_cohort]
+position = 2
+type = "remote_cohort:os"
+
+[dimensions.os_cohort.schema]
+type = "invalid_type"
+
+[context."os=linux"]
+timeout = 60
+"#;
+
+        let result = parse(toml);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Schema validation failed"));
     }
 
     #[test]
