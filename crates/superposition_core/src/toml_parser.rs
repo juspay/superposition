@@ -597,7 +597,7 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
 
         output.push_str(&format!("[context.\"{}\"]\n", condition_str));
 
-        if let Some(overrides) = config.overrides.get(&context.id) {
+        if let Some(overrides) = config.overrides.get(context.override_with_keys.get_key()) {
             for (key, value) in overrides.clone() {
                 output.push_str(&format!(
                     "{} = {}\n",
