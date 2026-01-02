@@ -30,7 +30,7 @@ backend/.env
 /result
 /result-*
 clients/haskell/result
-clients/haskell/dist-newstyle
+dist-newstyle
 # dev
 bacon.toml
 docker-compose/localstack/export_cyphers.sh
