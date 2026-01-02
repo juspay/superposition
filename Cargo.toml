@@ -27,7 +27,7 @@ members = [
     "examples/experimentation_client_integration_example",
     "examples/cac_client_integration_example",
     "examples/superposition-demo-app",
-    "examples/superposition-toml-example",
+    "examples/superposition_toml_example",
 ]
 
 [[workspace.metadata.leptos]]
