@@ -1297,4 +1297,564 @@ The implementation is complete when:
 
 ---
 
+## Implementation Updates (2026-01-02)
+
+This section documents significant updates and refinements made to the TOML parsing implementation after the initial design.
+
+### 1. Mandatory Position Field for Dimensions
+
+**Date:** 2026-01-02
+**Status:** Implemented
+
+#### Background
+The initial implementation auto-assigned dimension positions sequentially (1, 2, 3...) based on their order in the TOML file. This approach was fragile and could lead to unintended priority changes if dimension order changed.
+
+#### Changes Made
+
+**Modified:** `crates/superposition_core/src/toml_parser.rs`
+
+1. **Parsing Logic Update:**
+   - Removed auto-assignment of positions
+   - Added mandatory `position` field validation in `parse_dimensions()`
+   - Returns `TomlParseError::MissingField` if position is absent
+
+```rust
+fn parse_dimensions(table: &toml::Table) -> Result<HashMap<String, DimensionInfo>, TomlParseError> {
+    // ...
+    for (key, value) in section {
+        let table = value.as_table()?;
+
+        // Require explicit position field
+        if !table.contains_key("position") {
+            return Err(TomlParseError::MissingField {
+                section: "dimensions".into(),
+                key: key.clone(),
+                field: "position".into(),
+            });
+        }
+
+        let position = table["position"].as_integer()? as i32;
+        // ...
+    }
+}
+```
+
+2. **Updated TOML Format:**
+
+```toml
+[dimensions]
+city = { position = 1, schema = { "type" = "string", "enum" = ["Bangalore", "Delhi"] } }
+vehicle_type = { position = 2, schema = { "type" = "string", "enum" = ["auto", "cab", "bike"] } }
+hour_of_day = { position = 3, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
+```
+
+#### Benefits
+- **Explicit Control:** Users explicitly define dimension priority
+- **Stability:** Position doesn't change due to file reorganization
+- **Clarity:** Intent is clear in the TOML file
+- **Validation:** Parser enforces position presence
+
+---
+
+### 2. Duplicate Position Validation
+
+**Date:** 2026-01-02
+**Status:** Implemented
+
+#### Background
+Without duplicate position detection, multiple dimensions could have the same position value, leading to unpredictable priority calculations and context resolution behavior.
+
+#### Changes Made
+
+**Modified:** `crates/superposition_core/src/toml_parser.rs`
+
+1. **New Error Variant:**
+
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TomlParseError {
+    // ... existing variants
+    DuplicatePosition {
+        position: i32,
+        dimensions: Vec<String>,
+    },
+}
+
+impl Display for TomlParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::DuplicatePosition { position, dimensions } => {
+                write!(
+                    f,
+                    "TOML parsing error: Duplicate position {} found for dimensions: {}",
+                    position,
+                    dimensions.join(", ")
+                )
+            }
+            // ... other variants
+        }
+    }
+}
+```
+
+2. **Validation Logic:**
+
+```rust
+fn parse_dimensions(table: &toml::Table) -> Result<HashMap<String, DimensionInfo>, TomlParseError> {
+    let mut position_to_dimensions: HashMap<i32, Vec<String>> = HashMap::new();
+
+    for (key, value) in section {
+        // ... validate and extract position
+        let position = table["position"].as_integer()? as i32;
+
+        // Track dimensions by position
+        position_to_dimensions
+            .entry(position)
+            .or_insert_with(Vec::new)
+            .push(key.clone());
+    }
+
+    // Check for duplicates
+    for (position, dimensions) in position_to_dimensions {
+        if dimensions.len() > 1 {
+            return Err(TomlParseError::DuplicatePosition {
+                position,
+                dimensions,
+            });
+        }
+    }
+
+    // ... continue parsing
+}
+```
+
+3. **Test Coverage:**
+
+```rust
+#[test]
+fn test_duplicate_position_error() {
+    let toml = r#"
+        [default-config]
+        key1 = { value = 10, schema = { type = "integer" } }
+
+        [dimensions]
+        city = { position = 1, schema = { "type" = "string" } }
+        region = { position = 1, schema = { "type" = "string" } }
+
+        [context]
+    "#;
+
+    let result = toml_parser::parse(toml);
+    assert!(matches!(result, Err(TomlParseError::DuplicatePosition { .. })));
+}
+```
+
+#### Benefits
+- **Data Integrity:** Prevents ambiguous priority calculations
+- **Early Detection:** Fails fast with clear error message
+- **Debugging Aid:** Lists all conflicting dimensions
+
+---
+
+### 3. Haskell FFI Bindings
+
+**Date:** 2026-01-02
+**Status:** Implemented
+
+#### Background
+The project had bindings for Python, JavaScript/TypeScript, and Java/Kotlin, but lacked Haskell support despite having a Haskell bindings directory structure.
+
+#### Changes Made
+
+**New Files:**
+- Test file: `clients/haskell/superposition-bindings/test/Main.hs`
+
+**Modified Files:**
+- `clients/haskell/superposition-bindings/lib/FFI/Superposition.hs`
+- `clients/haskell/superposition-bindings/superposition-bindings.cabal`
+
+1. **FFI Function Bindings (`FFI/Superposition.hs`):**
+
+```haskell
+foreign import capi "superposition_core.h core_parse_toml_config"
+  parse_toml_config ::
+    CString ->  -- toml_content
+    CString ->  -- error-buffer
+    IO CString  -- parsed config json
+
+parseTomlConfig :: String -> IO (Either String String)
+parseTomlConfig tomlContent = do
+  ebuf <- callocBytes 2048
+  tomlStr <- newCString tomlContent
+  res <- parse_toml_config tomlStr ebuf
+  err <- peekCAString ebuf
+  let peekMaybe p | p /= nullPtr = Just <$> peekCAString p
+                  | otherwise = pure Nothing
+  result <- peekMaybe res
+  free tomlStr
+  free ebuf
+  pure $ case (result, err) of
+    (Just cfg, []) -> Right cfg
+    (Nothing, []) -> Left "null pointer returned"
+    _ -> Left err
+```
+
+2. **Test Suite (`test/Main.hs`):**
+
+```haskell
+main :: IO HUnit.Counts
+main = do
+  HUnit.runTestTT $
+    HUnit.TestList
+      [ HUnit.TestLabel "Valid Call" $ HUnit.TestCase validCall,
+        HUnit.TestLabel "In-Valid Call" $ HUnit.TestCase invalidCall,
+        HUnit.TestLabel "Parse TOML - Valid" $ HUnit.TestCase parseTomlValid,
+        HUnit.TestLabel "Parse TOML - Invalid Syntax" $ HUnit.TestCase parseTomlInvalidSyntax,
+        HUnit.TestLabel "Parse TOML - Missing Section" $ HUnit.TestCase parseTomlMissingSection,
+        HUnit.TestLabel "Parse TOML - Missing Position" $ HUnit.TestCase parseTomlMissingPosition
+      ]
+```
+
+3. **Build Configuration (`superposition-bindings.cabal`):**
+
+```cabal
+library
+    exposed-modules:  FFI.Superposition
+    build-depends:    base ^>=4.18.2.0
+    default-extensions: CApiFFI
+    extra-libraries: superposition_core
+    include-dirs: ../../../target/include
+
+test-suite superposition-bindings-test
+    type:             exitcode-stdio-1.0
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.2.0,
+        HUnit,
+        async,
+        aeson,
+        bytestring,
+        superposition-bindings
+```
+
+#### Integration
+- **Header File:** Uses uniffi-generated header from `target/include/superposition_core.h`
+- **Library Path:** Requires `LIBRARY_PATH`, `LD_LIBRARY_PATH`, and `DYLD_LIBRARY_PATH` environment variables
+- **Testing:** Integrated into `make bindings-test` target
+
+#### Benefits
+- **Complete Coverage:** All major language bindings now supported
+- **Type Safety:** Haskell's strong type system provides additional safety
+- **Functional Interface:** Natural fit for functional programming patterns
+
+---
+
+### 4. Platform-Specific Library Naming for Python Bindings
+
+**Date:** 2026-01-02
+**Status:** Implemented
+
+#### Background
+Initial implementation used simple library names (`libsuperposition_core.dylib`) for local testing, but CI packaging requires platform-specific names (`libsuperposition_core-aarch64-apple-darwin.dylib`). This mismatch created inconsistencies between local development and production packaging.
+
+#### Changes Made
+
+**Modified Files:**
+- `uniffi/patches/python.patch`
+- `Makefile` (bindings-test target)
+- `.gitignore`
+
+1. **Python Patch (`uniffi/patches/python.patch`):**
+
+```python
+def _uniffi_load_indirect():
+    """
+    Load the correct prebuilt dynamic library based on the current platform and architecture.
+    """
+    folder = os.path.dirname(__file__)
+
+    triple_map = {
+        ("darwin", "arm64"): "aarch64-apple-darwin.dylib",
+        ("darwin", "x86_64"): "x86_64-apple-darwin.dylib",
+        ("linux", "x86_64"): "x86_64-unknown-linux-gnu.so",
+        ("win32", "x86_64"): "x86_64-pc-windows-msvc.dll",
+    }
+
+    triple = triple_map.get((sys.platform, platform.machine()))
+    if not triple:
+        raise RuntimeError(f"❌ Unsupported platform: {sys.platform} / {platform.machine()}")
+
+    libname = f"libsuperposition_core-{triple}"
+    libpath = os.path.join(folder, libname)
+    if not os.path.exists(libpath):
+        raise FileNotFoundError(f"❌ Required binary not found: {libpath}")
+
+    return ctypes.cdll.LoadLibrary(libpath)
+```
+
+**Key Features:**
+- Platform detection using `sys.platform` and `platform.machine()`
+- Maps to rust target triple naming convention
+- Clear error messages with platform information
+- Validates library existence before loading
+
+2. **Makefile Library Copy (`Makefile:413-424`):**
+
+```makefile
+@# Copy library to bindings directory for Python tests with platform-specific name
+@if [ "$$(uname)" = "Darwin" ]; then \
+    if [ "$$(uname -m)" = "arm64" ]; then \
+        cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-aarch64-apple-darwin.dylib; \
+    else \
+        cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-apple-darwin.dylib; \
+    fi \
+elif [ "$$(uname)" = "Linux" ]; then \
+    cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.so clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-unknown-linux-gnu.so; \
+else \
+    cp $(CARGO_TARGET_DIR)/release/superposition_core.dll clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-pc-windows-msvc.dll; \
+fi
+```
+
+**Key Features:**
+- OS detection with `uname`
+- Architecture detection with `uname -m`
+- Copies from simple name to platform-specific name
+- Handles macOS (arm64/x86_64), Linux, and Windows
+
+3. **Gitignore Update (`.gitignore`):**
+
+```gitignore
+# Dynamic libraries copied for testing
+*.dylib
+*.so
+*.dll
+```
+
+#### Workflow
+
+**Local Development:**
+```bash
+make bindings-test
+# 1. Runs uniffi-bindings → generates Python bindings and applies patch
+# 2. Copies library with platform-specific name
+# 3. Python bindings load the platform-specific library
+# 4. All tests pass ✅
+```
+
+**CI/Packaging:**
+- Libraries packaged with platform-specific names (existing behavior)
+- Python bindings (with patch applied) look for platform-specific names
+- Works seamlessly in production ✅
+
+#### Benefits
+- **Consistency:** Local dev and CI use identical naming convention
+- **Automation:** `make uniffi-bindings` applies patches automatically
+- **Cross-Platform:** Handles macOS (both architectures), Linux, and Windows
+- **No Manual Intervention:** Build system manages library placement
+
+---
+
+### 5. Unified Bindings Test Target
+
+**Date:** 2026-01-02
+**Status:** Implemented
+
+#### Background
+Testing bindings across multiple languages (Python, JavaScript, Java/Kotlin, Haskell) required running separate commands with complex environment setup. A unified test target was needed for CI integration.
+
+#### Changes Made
+
+**Modified:** `Makefile`
+
+1. **New Target (`Makefile:407-446`):**
+
+```makefile
+# Target to run all TOML bindings tests
+bindings-test: uniffi-bindings
+	@echo ""
+	@echo ""
+	@echo "========================================"
+	@echo "Running Python TOML binding tests"
+	@echo "========================================"
+	@# Copy library to bindings directory for Python tests with platform-specific name
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		if [ "$$(uname -m)" = "arm64" ]; then \
+			cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-aarch64-apple-darwin.dylib; \
+		else \
+			cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-apple-darwin.dylib; \
+		fi \
+	elif [ "$$(uname)" = "Linux" ]; then \
+		cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.so clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-unknown-linux-gnu.so; \
+	else \
+		cp $(CARGO_TARGET_DIR)/release/superposition_core.dll clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-pc-windows-msvc.dll; \
+	fi
+	cd clients/python/bindings && python3 test_toml_functions.py
+	@echo ""
+	@echo "========================================"
+	@echo "Running JavaScript/TypeScript TOML binding tests"
+	@echo "========================================"
+	cd clients/javascript/bindings && npm run build && node dist/test-toml.js
+	@echo ""
+	@echo "========================================"
+	@echo "Running Java/Kotlin TOML binding tests"
+	@echo "========================================"
+	cd clients/java/bindings && SUPERPOSITION_LIB_PATH=$(CARGO_TARGET_DIR)/release gradle test
+	@echo ""
+	@echo "========================================"
+	@echo "Running Haskell TOML binding tests"
+	@echo "========================================"
+	cd clients/haskell/superposition-bindings && \
+		export LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LIBRARY_PATH && \
+		export LD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LD_LIBRARY_PATH && \
+		export DYLD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$DYLD_LIBRARY_PATH && \
+		echo "packages: ." > cabal.project.local && \
+		cabal test --project-file=cabal.project.local && \
+		rm -f cabal.project.local
+	@echo ""
+	@echo "========================================"
+	@echo "All TOML binding tests passed!"
+	@echo "========================================"
+```
+
+2. **Dependency:** Depends on `uniffi-bindings` target to ensure bindings are regenerated before testing
+
+3. **Environment Variables:**
+   - `SUPERPOSITION_LIB_PATH`: For Java/Kotlin tests (passed to Gradle)
+   - `LIBRARY_PATH`, `LD_LIBRARY_PATH`, `DYLD_LIBRARY_PATH`: For Haskell tests
+
+#### Usage
+
+```bash
+# Run all binding tests
+make bindings-test
+
+# Output includes:
+# - Rust library build
+# - uniffi binding generation
+# - Python tests
+# - JavaScript/TypeScript tests
+# - Java/Kotlin tests
+# - Haskell tests
+# - Summary message
+```
+
+#### Benefits
+- **Single Command:** One command runs all binding tests
+- **CI Ready:** Suitable for GitHub Actions / CI pipelines
+- **Environment Management:** Handles library paths automatically
+- **Clear Output:** Sectioned output with progress indicators
+- **Dependency Management:** Ensures bindings are current before testing
+
+---
+
+### 6. Removed Evaluated TOML Function
+
+**Date:** 2026-01-02
+**Status:** Removed
+
+#### Background
+The initial implementation included `eval_toml_config()` function combining TOML parsing and configuration evaluation in a single call. This was removed to maintain separation of concerns.
+
+#### Changes Made
+
+**Modified:** `crates/superposition_core/src/lib.rs`
+
+**Removed Function:**
+```rust
+// REMOVED: This combined parse + eval in one function
+pub fn eval_toml_config(
+    toml_content: &str,
+    input_dimensions: &Map<String, Value>,
+    merge_strategy: MergeStrategy,
+) -> Result<Map<String, Value>, String> {
+    let parsed = toml_parser::parse(toml_content).map_err(|e| e.to_string())?;
+
+    eval_config(
+        (*parsed.default_configs).clone(),
+        &parsed.contexts,
+        &parsed.overrides,
+        &parsed.dimensions,
+        input_dimensions,
+        merge_strategy,
+        None,
+    )
+}
+```
+
+#### Rationale
+1. **Separation of Concerns:** Parsing and evaluation are distinct operations
+2. **Flexibility:** Users can parse once and evaluate multiple times with different inputs
+3. **API Clarity:** Clear distinction between parsing (parse_toml_config) and evaluation (existing eval_config)
+4. **Reduced Surface Area:** Smaller public API is easier to maintain
+
+#### Migration Path
+Users should now:
+```rust
+// Old: eval_toml_config(toml, dims, strategy)
+
+// New: two-step process
+let parsed = parse_toml_config(toml)?;
+let config = eval_config(
+    &parsed.default_configs,
+    &parsed.contexts,
+    &parsed.overrides,
+    &parsed.dimensions,
+    dims,
+    strategy,
+    None
+)?;
+```
+
+---
+
+## Updated File Changes Summary
+
+### New Files (Total)
+- `crates/superposition_core/src/toml_parser.rs` (~700 lines with validation)
+- `clients/haskell/superposition-bindings/test/Main.hs` (~115 lines)
+- `clients/python/bindings/superposition_bindings/.gitignore` (4 lines)
+
+### Modified Files (Total)
+- `crates/superposition_core/src/lib.rs`
+  - Added toml_parser module export
+  - Added parse_toml_config() function
+  - Removed eval_toml_config() function
+- `crates/superposition_core/src/toml_parser.rs`
+  - Added mandatory position field validation
+  - Added duplicate position detection
+  - Added DuplicatePosition error variant
+- `crates/superposition_core/src/ffi.rs`
+  - Added core_parse_toml_config() C FFI function
+- `clients/haskell/superposition-bindings/lib/FFI/Superposition.hs`
+  - Added parseTomlConfig binding
+- `clients/haskell/superposition-bindings/superposition-bindings.cabal`
+  - Updated include-dirs to target/include
+  - Added aeson, bytestring dependencies
+- `Makefile`
+  - Added bindings-test target with uniffi-bindings dependency
+  - Updated Python test step with platform-specific library copy
+  - Updated Haskell test configuration
+  - Restored git apply step in uniffi-bindings target
+- `uniffi/patches/python.patch`
+  - Updated to use platform-specific library names
+  - Added platform/architecture detection
+- `.gitignore`
+  - Added dynamic library patterns (*.dylib, *.so, *.dll)
+
+### Test Coverage
+- **Python:** 3 test functions with multiple assertions
+- **JavaScript/TypeScript:** 3 test functions with error handling validation
+- **Java/Kotlin:** 3 test functions via JUnit
+- **Haskell:** 6 test cases (2 existing + 4 new TOML tests)
+
+All tests validate:
+- Valid TOML parsing
+- External file parsing
+- Invalid syntax error handling
+- Missing section error handling
+- Missing position field error handling
+- Duplicate position detection (where applicable)
+
+---
+
 **End of Design Document**
