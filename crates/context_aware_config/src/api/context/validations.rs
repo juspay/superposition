@@ -1,11 +1,19 @@
 use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{Map, Value};
-use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
+use service_utils::service::types::SchemaName;
+use superposition_core::validations::validate_value_against_schema;
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
+
+#[cfg(feature = "jsonlogic")]
+use jsonschema::{Draft, JSONSchema, ValidationError};
+#[cfg(feature = "jsonlogic")]
+use service_utils::helpers::validation_err_to_str;
+
+#[cfg(feature = "jsonlogic")]
+use super::types::DimensionCondition;
 
 pub fn validate_override_with_default_configs(
     conn: &mut DBConnection,
@@ -28,30 +36,15 @@ pub fn validate_override_with_default_configs(
         let schema = map
             .get(key)
             .ok_or(bad_argument!("failed to get schema for config key {}", key))?;
-        let instance = value;
-        let schema_compile_result = JSONSchema::options()
-            .with_draft(Draft::Draft7)
-            .compile(schema);
-        let jschema = match schema_compile_result {
-            Ok(jschema) => jschema,
-            Err(e) => {
-                log::info!("Failed to compile as a Draft-7 JSON schema: {e}");
-                return Err(bad_argument!(
-                    "failed to compile ({}) config key schema",
-                    key
-                ));
-            }
-        };
-        if let Err(e) = jschema.validate(instance) {
-            let verrors = e.collect::<Vec<ValidationError>>();
-            log::error!("({key}) config key validation error: {:?}", verrors);
-            return Err(validation_error!(
+
+        // Use shared validation from superposition_core
+        validate_value_against_schema(value, schema).map_err(|errors| {
+            log::error!("({key}) config key validation error: {:?}", errors);
+            validation_error!(
                 "schema validation failed for {key}: {}",
-                validation_err_to_str(verrors)
-                    .first()
-                    .unwrap_or(&String::new())
-            ));
-        };
+                errors.first().unwrap_or(&String::new())
+            )
+        })?;
     }
 
     Ok(())
