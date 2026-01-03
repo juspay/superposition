@@ -28,7 +28,7 @@ use crate::providers::{
     alert_provider::enqueue_alert, csr_provider::use_client_side_ready,
 };
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::utils::use_url_base;
 
 use super::dropdown::utils::DropdownOption;
@@ -260,7 +260,7 @@ fn edit_form(
     #[prop(into)] handle_submit: Callback<String>,
     #[prop(into)] on_cancel: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let error_message_rws = RwSignal::new(String::new());
@@ -270,7 +270,7 @@ fn edit_form(
         event.prevent_default();
         logging::log!("Submitting function form");
 
-        let tenant = workspace.get_untracked().0;
+        let workspace = workspace.get_untracked().0;
         let org = org.get_untracked().0;
         let f_function_name = function_name_rws.get_untracked();
         let f_function = function_code_rws.get_untracked();
@@ -289,8 +289,8 @@ fn edit_form(
                         f_runtime_version,
                         f_description,
                         f_change_reason,
-                        tenant,
-                        org,
+                        &workspace,
+                        &org,
                     )
                     .await
                 } else {
@@ -301,8 +301,8 @@ fn edit_form(
                         f_description,
                         f_change_reason,
                         f_type,
-                        tenant,
-                        org,
+                        &workspace,
+                        &org,
                     )
                     .await
                 };
@@ -463,7 +463,7 @@ pub fn test_form(
     #[prop(into)] stage: Stage,
     #[prop(into)] on_cancel: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (error_message, set_error_message) = create_signal(String::new());
     let (output_message_rs, out_message_ws) =
@@ -475,8 +475,6 @@ pub fn test_form(
         event.prevent_default();
         logging::log!("Submitting function form");
 
-        let tenant = workspace.get().0;
-        let org = org.get().0;
         let f_function_name = function_name.clone();
         let f_args = function_args_rs.get();
 
@@ -485,8 +483,11 @@ pub fn test_form(
 
         spawn_local({
             async move {
+                let workspace = workspace.get_untracked();
+                let org = org.get_untracked();
                 let result =
-                    test_function(f_function_name, stage, &f_args, tenant, org).await;
+                    test_function(f_function_name, stage, &f_args, &workspace, &org)
+                        .await;
 
                 req_inprogress_ws.set(false);
                 match result {

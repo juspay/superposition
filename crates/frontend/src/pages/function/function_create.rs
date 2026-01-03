@@ -5,7 +5,7 @@ use superposition_types::database::models::cac::Function;
 
 use crate::{
     components::function_form::FunctionEditor,
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -15,7 +15,7 @@ struct CombinedResource {
 
 #[component]
 pub fn create_function_view() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     view! {

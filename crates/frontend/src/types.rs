@@ -174,7 +174,7 @@ impl DropdownOption for TypeTemplate {
 }
 
 #[derive(Deref, DerefMut, Clone, Debug)]
-pub struct Tenant(pub String);
+pub struct Workspace(pub String);
 
 #[derive(Deref, DerefMut, Clone, Debug)]
 pub struct OrganisationId(pub String);

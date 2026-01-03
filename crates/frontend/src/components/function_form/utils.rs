@@ -21,8 +21,8 @@ pub async fn create_function(
     description: String,
     change_reason: String,
     function_type: FunctionType,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Function, String> {
     let payload = CreateFunctionRequest {
         function_name: FunctionName::try_from(function_name)?,
@@ -39,7 +39,7 @@ pub async fn create_function(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -53,8 +53,8 @@ pub async fn update_function(
     runtime_version: FunctionRuntimeVersion,
     description: String,
     change_reason: String,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Function, String> {
     let payload = UpdateFunctionRequest {
         draft_code: Some(FunctionCode(function)),
@@ -70,7 +70,7 @@ pub async fn update_function(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
     parse_json_response(response).await
@@ -80,8 +80,8 @@ pub async fn test_function(
     function_name: String,
     stage: Stage,
     function_args: &FunctionExecutionRequest,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<FunctionExecutionResponse, String> {
     let host = use_host_server();
     let url = format!("{host}/function/{function_name}/{stage}/test");
@@ -90,7 +90,7 @@ pub async fn test_function(
         url,
         reqwest::Method::POST,
         Some(function_args),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 

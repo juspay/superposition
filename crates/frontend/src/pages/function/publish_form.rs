@@ -5,7 +5,7 @@ use crate::{
     components::{alert::AlertType, button::Button, change_form::ChangeForm},
     pages::function::utils::publish_function,
     providers::alert_provider::enqueue_alert,
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[component]
@@ -14,7 +14,7 @@ pub fn publish_form(
     #[prop(into)] handle_submit: Callback<(), ()>,
     #[prop(into)] handle_close: Callback<(), ()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let change_reason_rws =
         RwSignal::new("Publishing new version of the function".to_string());

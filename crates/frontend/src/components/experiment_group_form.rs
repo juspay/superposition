@@ -27,7 +27,7 @@ use crate::{
     logic::Conditions,
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
     schema::{JsonSchemaType, SchemaType},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[component]
@@ -35,7 +35,7 @@ pub fn add_experiment_to_group_form(
     experiment_group_id: i64,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let members_selected_rws = create_rw_signal(Vec::new());
@@ -46,7 +46,7 @@ pub fn add_experiment_to_group_form(
         loading_rws.set(true);
         event.prevent_default();
 
-        let tenant = workspace.get().0;
+        let workspace = workspace.get().0;
         let org_id = org.get().0;
 
         let change_reason =
@@ -70,7 +70,7 @@ pub fn add_experiment_to_group_form(
                 let result = add_members(
                     &experiment_group_id.to_string(),
                     payload,
-                    &tenant,
+                    &workspace,
                     &org_id,
                 )
                 .await;
@@ -178,7 +178,7 @@ pub fn experiment_group_form(
     is_edit: bool,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let experiment_group_id = StoredValue::new(group_id);
     let (context_rs, context_ws) = create_signal(context);
@@ -437,7 +437,7 @@ pub fn change_log_summary(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let exp_group = create_local_resource(

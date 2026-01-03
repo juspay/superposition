@@ -6,11 +6,11 @@ use crate::components::alert::{Alert, AlertType};
 use crate::components::badge::Badge;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::components::toast::Toast;
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[component]
 pub fn config_version() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();
     let version = params.with(|p| p.get("version").cloned().unwrap_or_default());

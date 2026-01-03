@@ -10,7 +10,7 @@ use crate::{
     api::discard_experiment,
     components::{alert::AlertType, change_form::ChangeForm},
     providers::alert_provider::enqueue_alert,
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[component]
@@ -18,7 +18,7 @@ pub fn experiment_conclude_form(
     experiment: ExperimentResponse,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let experiment = StoredValue::new(experiment);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
@@ -28,14 +28,14 @@ pub fn experiment_conclude_form(
     let handle_conclude_experiment = move |variant_id: String| {
         req_inprogess_rws.set(true);
         spawn_local(async move {
-            let tenant = workspace.get_untracked().0;
+            let workspace = workspace.get_untracked().0;
             let org = org.get_untracked().0;
             let result = conclude_experiment(
                 experiment.with_value(|e| e.id.clone()),
                 variant_id,
-                &tenant,
-                &org,
                 change_reason_rs.get_untracked(),
+                &workspace,
+                &org,
             )
             .await;
 
@@ -64,13 +64,13 @@ pub fn experiment_conclude_form(
 
     let handle_discard_experiment = move |change_reason: String| {
         req_inprogess_rws.set(true);
-        let tenant = workspace.get_untracked().0;
+        let workspace = workspace.get_untracked().0;
         let org = org.get_untracked().0;
         spawn_local(async move {
             let result = discard_experiment(
                 &experiment.with_value(|e| e.id.clone()),
                 change_reason,
-                &tenant,
+                &workspace,
                 &org,
             )
             .await;

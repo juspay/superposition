@@ -337,7 +337,7 @@ pub fn value_compute_fn_generator(
     value_compute_function_name: Option<String>,
     environment: Memo<FunctionEnvironment>,
     r#type: &KeyType,
-    tenant: String,
+    workspace: String,
     org_id: String,
 ) -> Option<(String, ValueComputeCallback)> {
     let fn_name = value_compute_function_name?;
@@ -349,7 +349,7 @@ pub fn value_compute_fn_generator(
             let fn_copy = fn_name.clone();
             let environment = environment.get();
             let org_id = org_id.clone();
-            let workspace = tenant.clone();
+            let workspace = workspace.clone();
             let type_clone = r#type.clone();
             logging::log!("Calling {fn_copy} for {key} {value}");
 

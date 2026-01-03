@@ -29,7 +29,7 @@ use crate::components::{
 use filter::{FilterSummary, VariableFilterWidget};
 
 use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[derive(Clone)]
 enum Action {
@@ -136,7 +136,7 @@ fn variable_table_columns(
 
 #[component]
 pub fn variables_list() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let filters_rws = use_signal_from_query(move |query_string| {

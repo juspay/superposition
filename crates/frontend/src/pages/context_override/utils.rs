@@ -30,12 +30,12 @@ pub fn context_payload(
 }
 
 pub async fn create_context(
-    tenant: String,
     overrides: Map<String, Value>,
     conditions: Conditions,
     description: String,
     change_reason: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Context, String> {
     let host = use_host_server();
     let url = format!("{host}/context");
@@ -45,7 +45,7 @@ pub async fn create_context(
         url,
         reqwest::Method::PUT,
         Some(request_payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -68,8 +68,8 @@ pub fn try_update_context_payload(
 
 pub async fn update_context(
     request_payload: UpdateRequest,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Context, String> {
     let host = use_host_server();
     let url = format!("{host}/context/overrides");
@@ -77,7 +77,7 @@ pub async fn update_context(
         url,
         reqwest::Method::PATCH,
         Some(request_payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 

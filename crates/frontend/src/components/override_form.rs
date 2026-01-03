@@ -13,7 +13,7 @@ use crate::{
         input::{Input, InputType},
     },
     schema::{EnumVariants, SchemaType},
-    types::{OrganisationId, Tenant, ValueComputeCallbacks},
+    types::{OrganisationId, ValueComputeCallbacks, Workspace},
     utils::value_compute_fn_generator,
 };
 
@@ -189,7 +189,7 @@ pub fn override_form(
         };
     });
 
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
 
     let value_compute_callbacks = default_config

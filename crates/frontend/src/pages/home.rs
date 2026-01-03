@@ -19,7 +19,7 @@ use crate::components::condition_pills::Condition as ConditionComponent;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::logic::Conditions;
 use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::{
     api::{dimensions, fetch_config, resolve_config},
     components::{button::Button, context_form::ContextForm},
@@ -151,16 +151,16 @@ fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
 
 #[component]
 pub fn home() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let config_data = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
-        |(tenant, org)| async move {
+        |(workspace, org)| async move {
             fetch_config(
                 &DimensionQuery::default(),
                 &ConfigQuery::default(),
-                &tenant,
+                &workspace,
                 &org,
             )
             .await

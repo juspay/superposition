@@ -10,7 +10,7 @@ use self::utils::ramp_experiment;
 use crate::{
     components::{alert::AlertType, button::Button},
     providers::alert_provider::enqueue_alert,
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[component]
@@ -22,7 +22,7 @@ where
     NF: Fn() + 'static + Clone,
 {
     let (traffic, set_traffic) = create_signal(*experiment.traffic_percentage);
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let range_max = 100 / experiment.variants.len();
@@ -33,12 +33,17 @@ where
         let experiment_clone = experiment_rc.clone();
         let handle_submit_clone = handle_submit.clone();
         spawn_local(async move {
-            let tenant = workspace.get_untracked().0;
+            let workspace = workspace.get_untracked().0;
             let org = org.get_untracked().0;
             let traffic_value = traffic.get_untracked();
-            let result =
-                ramp_experiment(&experiment_clone.id, traffic_value, None, &tenant, &org)
-                    .await;
+            let result = ramp_experiment(
+                &experiment_clone.id,
+                traffic_value,
+                None,
+                &workspace,
+                &org,
+            )
+            .await;
             req_inprogress_ws.set(false);
             match result {
                 Ok(_) => {

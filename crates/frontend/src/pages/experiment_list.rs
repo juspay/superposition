@@ -35,7 +35,7 @@ use crate::{
         editor_provider::EditorProvider,
     },
     query_updater::{use_param_updater, use_signal_from_query},
-    types::{OrganisationId, Tenant, VariantFormTs},
+    types::{OrganisationId, VariantFormTs, Workspace},
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -48,7 +48,7 @@ struct CombinedResource {
 #[component]
 pub fn experiment_list() -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (reset_exp_form, set_exp_form) = create_signal(0);
     let filters_rws = use_signal_from_query(move |query_string| {

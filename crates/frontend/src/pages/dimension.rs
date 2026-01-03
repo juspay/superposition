@@ -21,7 +21,7 @@ use crate::components::{
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{DimensionTypeOptions, OrganisationId, Tenant};
+use crate::types::{DimensionTypeOptions, OrganisationId, Workspace};
 
 #[component]
 fn tree_node(
@@ -271,7 +271,7 @@ enum Action {
 #[component]
 pub fn dimension_page() -> impl IntoView {
     let path_params = use_params_map();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let dimension_name = Memo::new(move |_| {
         path_params
@@ -294,8 +294,8 @@ pub fn dimension_page() -> impl IntoView {
         spawn_local(async move {
             let result = dimensions::delete(
                 dimension_name.get_untracked(),
-                workspace.get_untracked().0,
-                org.get_untracked().0,
+                &workspace.get_untracked(),
+                &org.get_untracked(),
             )
             .await;
             delete_inprogress_rws.set(false);
@@ -382,7 +382,7 @@ pub fn dimension_page() -> impl IntoView {
 #[component]
 pub fn edit_dimension() -> impl IntoView {
     let path_params = use_params_map();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let dimension_name = Memo::new(move |_| {
         path_params

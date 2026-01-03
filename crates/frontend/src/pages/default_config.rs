@@ -17,7 +17,7 @@ use crate::components::{
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[component]
 fn config_info(default_config: DefaultConfig) -> impl IntoView {
@@ -124,7 +124,7 @@ enum Action {
 #[component]
 pub fn default_config() -> impl IntoView {
     let path_params = use_params_map();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let default_config_key = Memo::new(move |_| {
         path_params.with(|params| params.get("config_key").cloned().unwrap_or("1".into()))
@@ -146,8 +146,8 @@ pub fn default_config() -> impl IntoView {
         spawn_local(async move {
             let result = delete_default_config(
                 default_config_key.get_untracked(),
-                workspace.get_untracked().0,
-                org.get_untracked().0,
+                &workspace.get_untracked(),
+                &org.get_untracked(),
             )
             .await;
             delete_inprogress_rws.set(false);

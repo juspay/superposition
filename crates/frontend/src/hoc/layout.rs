@@ -9,18 +9,18 @@ use crate::{
         alert_provider::{AlertProvider, AlertQueue},
         csr_provider::ClientSideReadyProvider,
     },
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 use leptos::*;
 use leptos_router::*;
 use superposition_types::custom_query::PaginationParams;
 
-pub fn use_tenant() -> Signal<Tenant> {
+pub fn use_workspace() -> Signal<Workspace> {
     let params_map = use_params_map();
 
-    Signal::derive(move || match params_map.get().get("tenant") {
-        Some(tenant) => Tenant(tenant.clone()),
-        None => Tenant("no-tenant".into()),
+    Signal::derive(move || match params_map.get().get("workspace") {
+        Some(workspace) => Workspace(workspace.clone()),
+        None => Workspace("no-workspace".into()),
     })
 }
 
@@ -52,7 +52,7 @@ pub fn common_layout(children: Children) -> impl IntoView {
 
 #[component]
 pub fn layout() -> impl IntoView {
-    let workspace = use_tenant();
+    let workspace = use_workspace();
     let org = use_org();
     provide_context(workspace);
     provide_context(org);

@@ -33,7 +33,7 @@ use crate::components::{
 use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{DimensionTypeOptions, FunctionsName, OrganisationId, Tenant};
+use crate::types::{DimensionTypeOptions, FunctionsName, OrganisationId, Workspace};
 use crate::utils::set_function;
 use crate::{
     api::{dimensions, fetch_functions, fetch_types},
@@ -66,7 +66,7 @@ pub fn dimension_form(
     #[prop(optional)] dimensions: Option<Vec<DimensionResponse>>,
     #[prop(into)] redirect_url_cancel: String,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (position_rs, position_ws) = create_signal(position);
@@ -155,13 +155,15 @@ pub fn dimension_form(
 
         spawn_local({
             async move {
+                let workspace = workspace.get_untracked();
+                let org = org.get_untracked();
                 let result = match (edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => {
                         let future = dimensions::update(
-                            workspace.get_untracked().0,
                             dimension_name,
                             update_payload,
-                            org.get_untracked().0,
+                            &workspace,
+                            &org,
                         );
                         update_request_rws.set(None);
                         future.await.map(|_| ResponseType::Response)
@@ -191,9 +193,9 @@ pub fn dimension_form(
                         value_compute_function_name,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
-                        workspace.get_untracked().0,
-                        org.get_untracked().0,
                         dimension_type,
+                        &workspace,
+                        &org,
                     )
                     .await
                     .map(|_| ResponseType::Response),
@@ -616,7 +618,7 @@ pub fn change_log_summary(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let dimension = create_local_resource(

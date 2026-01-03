@@ -24,7 +24,7 @@ use crate::components::{
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 enum ResponseType {
     UpdatePrecheck,
@@ -39,7 +39,7 @@ pub fn type_template_form(
     #[prop(into)] handle_submit: Callback<()>,
     #[prop(default = String::new())] description: String,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (error_message, set_error_message) = create_signal("".to_string());
@@ -58,15 +58,15 @@ pub fn type_template_form(
         let type_schema = type_schema_rs.get_untracked();
         let description = description_rs.get_untracked();
         let change_reason = change_reason_rs.get_untracked();
-        let workspace = workspace.get_untracked().0;
-        let org_id = org.get_untracked().0;
+        let workspace = workspace.get_untracked();
+        let org_id = org.get_untracked();
 
         spawn_local({
             async move {
                 let result = match (edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => {
                         let future =
-                            update_type(type_name, update_payload, workspace, org_id);
+                            update_type(type_name, update_payload, &workspace, &org_id);
                         update_request_rws.set(None);
                         future.await.map(|_| ResponseType::Response)
                     }
@@ -86,8 +86,8 @@ pub fn type_template_form(
                         type_schema,
                         description,
                         change_reason,
-                        workspace,
-                        org_id,
+                        &workspace,
+                        &org_id,
                     )
                     .await
                     .map(|_| ResponseType::Response),
@@ -219,7 +219,7 @@ pub fn change_log_summary(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let type_template = create_local_resource(

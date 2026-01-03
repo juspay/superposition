@@ -4,81 +4,81 @@ use superposition_types::{api::workspace::WorkspaceResponse, PaginatedResponse};
 
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::csr_provider::use_client_side_ready;
-use crate::types::{AppRoute, OrganisationId, Tenant};
+use crate::types::{AppRoute, OrganisationId, Workspace};
 use crate::utils::use_url_base;
 
-fn create_routes(org: &str, tenant: &str) -> Vec<AppRoute> {
+fn create_routes(org: &str, workspace: &str) -> Vec<AppRoute> {
     let base = use_url_base();
     vec![
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/experiments"),
-            path: format!("{base}/admin/{org}/{tenant}/experiments"),
+            key: format!("{base}/admin/{org}/{workspace}/experiments"),
+            path: format!("{base}/admin/{org}/{workspace}/experiments"),
             icon: "ri-test-tube-fill".to_string(),
             label: "Experiments".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/experiment-groups"),
-            path: format!("{base}/admin/{org}/{tenant}/experiment-groups"),
+            key: format!("{base}/admin/{org}/{workspace}/experiment-groups"),
+            path: format!("{base}/admin/{org}/{workspace}/experiment-groups"),
             icon: "ri-flask-fill".to_string(),
             label: "Experiment Groups".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/dimensions"),
-            path: format!("{base}/admin/{org}/{tenant}/dimensions"),
+            key: format!("{base}/admin/{org}/{workspace}/dimensions"),
+            path: format!("{base}/admin/{org}/{workspace}/dimensions"),
             icon: "ri-ruler-2-fill".to_string(),
             label: "Dimensions".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/default-config"),
-            path: format!("{base}/admin/{org}/{tenant}/default-config"),
+            key: format!("{base}/admin/{org}/{workspace}/default-config"),
+            path: format!("{base}/admin/{org}/{workspace}/default-config"),
             icon: "ri-tools-line".to_string(),
             label: "Default Config".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/overrides"),
-            path: format!("{base}/admin/{org}/{tenant}/overrides"),
+            key: format!("{base}/admin/{org}/{workspace}/overrides"),
+            path: format!("{base}/admin/{org}/{workspace}/overrides"),
             icon: "ri-guide-fill".to_string(),
             label: "Overrides".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/compare"),
-            path: format!("{base}/admin/{org}/{tenant}/compare"),
+            key: format!("{base}/admin/{org}/{workspace}/compare"),
+            path: format!("{base}/admin/{org}/{workspace}/compare"),
             icon: "ri-arrow-left-right-line".to_string(),
             label: "Compare".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/types"),
-            path: format!("{base}/admin/{org}/{tenant}/types"),
+            key: format!("{base}/admin/{org}/{workspace}/types"),
+            path: format!("{base}/admin/{org}/{workspace}/types"),
             icon: "ri-t-box-fill".to_string(),
             label: "Type Templates".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/variables"),
-            path: format!("{base}/admin/{org}/{tenant}/variables"),
+            key: format!("{base}/admin/{org}/{workspace}/variables"),
+            path: format!("{base}/admin/{org}/{workspace}/variables"),
             icon: "ri-braces-line".to_string(),
             label: "Variables".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/function"),
-            path: format!("{base}/admin/{org}/{tenant}/function"),
+            key: format!("{base}/admin/{org}/{workspace}/function"),
+            path: format!("{base}/admin/{org}/{workspace}/function"),
             icon: "ri-code-box-fill".to_string(),
             label: "Functions".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/webhooks"),
-            path: format!("{base}/admin/{org}/{tenant}/webhooks"),
+            key: format!("{base}/admin/{org}/{workspace}/webhooks"),
+            path: format!("{base}/admin/{org}/{workspace}/webhooks"),
             icon: "ri-webhook-line".to_string(),
             label: "Webhooks".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/config/versions"),
-            path: format!("{base}/admin/{org}/{tenant}/config/versions"),
+            key: format!("{base}/admin/{org}/{workspace}/config/versions"),
+            path: format!("{base}/admin/{org}/{workspace}/config/versions"),
             icon: "ri-camera-lens-fill".to_string(),
             label: "Config Versions".to_string(),
         },
         AppRoute {
-            key: format!("{base}/admin/{org}/{tenant}/audit-log"),
-            path: format!("{base}/admin/{org}/{tenant}/audit-log"),
+            key: format!("{base}/admin/{org}/{workspace}/audit-log"),
+            path: format!("{base}/admin/{org}/{workspace}/audit-log"),
             icon: "ri-file-list-3-line".to_string(),
             label: "Audit Log".to_string(),
         },
@@ -90,7 +90,7 @@ pub fn workspace_selector(
     workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
     #[prop(into)] app_routes: Signal<Vec<AppRoute>>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let client_side_ready = use_client_side_ready();
 
     let base = use_url_base();
@@ -109,7 +109,7 @@ pub fn workspace_selector(
         let redirect_workspace =
             std::iter::zip(original_path.split('/'), resolved_path.split('/'))
                 .map(|(o_token, r_token)| match o_token {
-                    ":tenant" => ":tenant",
+                    ":workspace" => ":workspace",
                     _ => r_token,
                 })
                 .map(String::from)
@@ -180,7 +180,7 @@ pub fn workspace_selector(
                                     .map(move |option| {
                                         let redirect_url = workspace_path_template
                                             .get()
-                                            .replace(":tenant", &option);
+                                            .replace(":workspace", &option);
                                         let selected = workspace.get_untracked().0 == option;
                                         let disable_class = if selected {
                                             "pointer-events-none cursor-default"
@@ -314,7 +314,7 @@ pub fn nav_component(
 pub fn side_nav(
     workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let app_routes =
         Signal::derive(move || create_routes(&org.get().0, &workspace.get().0));

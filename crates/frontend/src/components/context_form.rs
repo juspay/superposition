@@ -13,7 +13,7 @@ use crate::components::input::{Input, InputType};
 use crate::components::tooltip::{Tooltip, TooltipPosition};
 use crate::logic::{Condition, Conditions, Expression, Operator};
 use crate::schema::EnumVariants;
-use crate::types::{OrganisationId, Tenant, ValueComputeCallbacks};
+use crate::types::{OrganisationId, ValueComputeCallbacks, Workspace};
 use crate::utils::value_compute_fn_generator;
 use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
@@ -252,7 +252,7 @@ pub fn context_form(
     #[prop(default = DropdownDirection::Down)] dropdown_direction: DropdownDirection,
     #[prop(into)] on_context_change: Callback<Conditions, ()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
 
     let dimensions = StoredValue::new(dimensions);
