@@ -103,6 +103,9 @@ impl fmt::Display for TomlError {
 
 impl std::error::Error for TomlError {}
 
+type DefaultConfigValueMap = Map<String, Value>;
+type DefaultConfigSchemaMap = Map<String, Value>;
+
 /// Convert TOML value to serde_json Value
 fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
     match toml_value {
@@ -229,17 +232,19 @@ fn parse_context_expression(
 
         // Validate value against dimension schema
         let dimension_info = dimensions.get(key).unwrap();
-        let schema_json = serde_json::to_value(&dimension_info.schema)
-            .map_err(|e| TomlError::ConversionError(format!(
+        let schema_json = serde_json::to_value(&dimension_info.schema).map_err(|e| {
+            TomlError::ConversionError(format!(
                 "Invalid schema for dimension '{}': {}",
                 key, e
-            )))?;
+            ))
+        })?;
 
-        crate::validations::validate_value_against_schema(&value, &schema_json)
-            .map_err(|errors: Vec<String>| TomlError::ValidationError {
+        crate::validations::validate_against_schema(&value, &schema_json).map_err(
+            |errors: Vec<String>| TomlError::ValidationError {
                 key: format!("{}.{}", input, key),
                 errors: crate::validations::format_validation_errors(&errors),
-            })?;
+            },
+        )?;
 
         result.insert(key.to_string(), value);
     }
@@ -249,7 +254,9 @@ fn parse_context_expression(
 
 /// Parse the default-config section
 /// Returns (values, schemas) where schemas are stored for validating overrides
-fn parse_default_config(table: &toml::Table) -> Result<(Map<String, Value>, Map<String, Value>), TomlError> {
+fn parse_default_config(
+    table: &toml::Table,
+) -> Result<(DefaultConfigValueMap, DefaultConfigSchemaMap), TomlError> {
     let section = table
         .get("default-config")
         .ok_or_else(|| TomlError::MissingSection("default-config".into()))?
@@ -288,11 +295,12 @@ fn parse_default_config(table: &toml::Table) -> Result<(Map<String, Value>, Map<
         let schema = toml_value_to_serde_value(table["schema"].clone());
 
         // Validate value against schema
-        crate::validations::validate_value_against_schema(&value, &schema)
-            .map_err(|errors: Vec<String>| TomlError::ValidationError {
+        crate::validations::validate_against_schema(&value, &schema).map_err(
+            |errors: Vec<String>| TomlError::ValidationError {
                 key: key.clone(),
                 errors: crate::validations::format_validation_errors(&errors),
-            })?;
+            },
+        )?;
 
         values.insert(key.clone(), value);
         schemas.insert(key.clone(), schema);
@@ -432,12 +440,12 @@ fn parse_dimensions(
 
                 // Validate that the schema has the cohort structure (type, enum, definitions)
                 let schema = toml_value_to_serde_value(table["schema"].clone());
-                crate::validations::validate_cohort_schema_structure(&schema).map_err(|errors| {
-                    TomlError::ValidationError {
+                crate::validations::validate_cohort_schema_structure(&schema).map_err(
+                    |errors| TomlError::ValidationError {
                         key: format!("{}.schema", key),
                         errors: crate::validations::format_validation_errors(&errors),
-                    }
-                })?;
+                    },
+                )?;
 
                 DimensionType::LocalCohort(cohort_dimension.to_string())
             } else if type_str.starts_with("remote_cohort:") {
@@ -542,11 +550,11 @@ fn parse_contexts(
 
             // Validate override value against schema
             if let Some(schema) = schemas.get(key) {
-                crate::validations::validate_value_against_schema(&serde_value, schema)
+                crate::validations::validate_against_schema(&serde_value, schema)
                     .map_err(|errors: Vec<String>| TomlError::ValidationError {
-                        key: format!("{}.{}", context_expr, key),
-                        errors: crate::validations::format_validation_errors(&errors),
-                    })?;
+                    key: format!("{}.{}", context_expr, key),
+                    errors: crate::validations::format_validation_errors(&errors),
+                })?;
             }
 
             override_config.insert(key.clone(), serde_value);
@@ -643,7 +651,7 @@ fn value_to_toml(value: &Value) -> String {
         Value::Number(n) => n.to_string(),
         Value::Bool(b) => b.to_string(),
         Value::Array(arr) => {
-            let items: Vec<String> = arr.iter().map(|v| value_to_toml(v)).collect();
+            let items: Vec<String> = arr.iter().map(value_to_toml).collect();
             format!("[{}]", items.join(", "))
         }
         Value::Object(obj) => {
@@ -1084,7 +1092,10 @@ timeout = 60
 
         let result = parse(toml);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Schema validation failed"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Schema validation failed"));
     }
 
     #[test]
@@ -1124,7 +1135,10 @@ timeout = 60
 
         let result = parse(toml);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("local_cohort:<dimension_name>"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("local_cohort:<dimension_name>"));
     }
 }
 

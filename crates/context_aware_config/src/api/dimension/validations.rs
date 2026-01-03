@@ -7,9 +7,7 @@ use service_utils::{
     helpers::fetch_dimensions_info_map, helpers::validation_err_to_str,
     service::types::SchemaName,
 };
-use superposition_core::validations::{
-    validate_cohort_schema_structure, validate_schema,
-};
+use superposition_core::validations::{compile_schema, validate_cohort_schema_structure};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
@@ -105,12 +103,9 @@ pub fn validate_jsonschema(
     validation_schema: &JSONSchema,
     schema: &Value,
 ) -> superposition::Result<()> {
-    // Use shared validation from superposition_core for basic schema validation
-    validate_schema(schema).map_err(|errors| {
-        validation_error!(
-            "schema validation failed: {}",
-            errors.first().unwrap_or(&String::new())
-        )
+    // Compile schema first - returns specific error message
+    compile_schema(schema).map_err(|e| {
+        validation_error!("Invalid JSON schema (failed to compile): {:?}", e)
     })?;
 
     // Additional validation against the provided meta-schema

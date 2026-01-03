@@ -6,6 +6,59 @@
 use jsonschema::{Draft, JSONSchema};
 use serde_json::{json, Value};
 
+/// Compile a JSON schema for validation
+///
+/// # Arguments
+/// * `schema` - The JSON schema to compile
+///
+/// # Returns
+/// * `Ok(JSONSchema)` - Compiled schema ready for validation
+/// * `Err(String)` - Compilation error message
+pub fn compile_schema(schema: &Value) -> Result<JSONSchema, String> {
+    JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(schema)
+        .map_err(|e| e.to_string())
+}
+
+/// Validate a value against a pre-compiled JSON schema
+///
+/// # Arguments
+/// * `value` - The value to validate
+/// * `compiled_schema` - The pre-compiled JSONSchema
+///
+/// # Returns
+/// * `Ok(())` if validation succeeds
+/// * `Err(Vec<String>)` containing validation error messages
+pub fn validate_against_compiled_schema(
+    value: &Value,
+    compiled_schema: &JSONSchema,
+) -> Result<(), Vec<String>> {
+    compiled_schema
+        .validate(value)
+        .map_err(|errors| errors.map(|e| e.to_string()).collect())
+}
+
+/// Validate a value against a raw JSON schema (compiles and validates)
+///
+/// This is a convenience function that combines compilation and validation.
+/// Use this when you don't need to distinguish between compilation and validation errors.
+///
+/// # Arguments
+/// * `value` - The value to validate
+/// * `schema` - The JSON schema to validate against
+///
+/// # Returns
+/// * `Ok(())` if validation succeeds
+/// * `Err(Vec<String>)` containing all error messages (compilation + validation)
+pub fn validate_against_schema(
+    value: &Value,
+    schema: &Value,
+) -> Result<(), Vec<String>> {
+    let compiled_schema = compile_schema(schema).map_err(|e| vec![e])?;
+    validate_against_compiled_schema(value, &compiled_schema)
+}
+
 /// Validate a value against a JSON schema
 ///
 /// # Arguments
@@ -15,18 +68,13 @@ use serde_json::{json, Value};
 /// # Returns
 /// * `Ok(())` if validation succeeds
 /// * `Err(Vec<String>)` containing all validation error messages
+#[deprecated(note = "Use validate_against_schema instead")]
 pub fn validate_value_against_schema(
     value: &Value,
     schema: &Value,
 ) -> Result<(), Vec<String>> {
-    let compiled_schema = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(schema)
-        .map_err(|e| vec![e.to_string()])?;
-
-    compiled_schema
-        .validate(value)
-        .map_err(|errors| errors.map(|e| e.to_string()).collect())
+    let compiled_schema = compile_schema(schema).map_err(|e| vec![e])?;
+    validate_against_compiled_schema(value, &compiled_schema)
 }
 
 /// Validate that a JSON schema is well-formed
@@ -41,11 +89,8 @@ pub fn validate_value_against_schema(
 /// * `Ok(())` if the schema is valid
 /// * `Err(Vec<String>)` containing validation error messages
 pub fn validate_schema(schema: &Value) -> Result<(), Vec<String>> {
-    // First, try to compile the schema
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(schema)
-        .map_err(|e| vec![e.to_string()])?;
+    // Use the new compile function
+    compile_schema(schema).map_err(|e| vec![e])?;
 
     // Then validate against the meta-schema
     let meta_schema = get_meta_schema();

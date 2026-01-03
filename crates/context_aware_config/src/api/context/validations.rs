@@ -2,15 +2,12 @@ use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-use service_utils::service::types::SchemaName;
-use superposition_core::validations::validate_value_against_schema;
+use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
 
 #[cfg(feature = "jsonlogic")]
 use jsonschema::{Draft, JSONSchema, ValidationError};
-#[cfg(feature = "jsonlogic")]
-use service_utils::helpers::validation_err_to_str;
 
 #[cfg(feature = "jsonlogic")]
 use super::types::DimensionCondition;
@@ -37,12 +34,22 @@ pub fn validate_override_with_default_configs(
             .get(key)
             .ok_or(bad_argument!("failed to get schema for config key {}", key))?;
 
-        // Use shared validation from superposition_core
-        validate_value_against_schema(value, schema).map_err(|errors| {
-            log::error!("({key}) config key validation error: {:?}", errors);
+        let jschema = jsonschema::JSONSchema::options()
+            .with_draft(jsonschema::Draft::Draft7)
+            .compile(schema)
+            .map_err(|e| {
+                log::error!("({key}) schema compilation error: {}", e);
+                bad_argument!("Invalid JSON schema")
+            })?;
+
+        jschema.validate(value).map_err(|e| {
+            let verrors = e.collect::<Vec<jsonschema::ValidationError>>();
+            log::error!("({key}) config key validation error: {:?}", verrors);
             validation_error!(
                 "schema validation failed for {key}: {}",
-                errors.first().unwrap_or(&String::new())
+                &validation_err_to_str(verrors)
+                    .first()
+                    .unwrap_or(&String::new())
             )
         })?;
     }
