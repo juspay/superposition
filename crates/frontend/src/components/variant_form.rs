@@ -22,7 +22,7 @@ use crate::{
     },
     logic::Conditions,
     schema::SchemaType,
-    types::{OrganisationId, Tenant, VariantFormT},
+    types::{OrganisationId, VariantFormT, Workspace},
 };
 
 fn get_override_keys_from_variants(
@@ -57,7 +57,7 @@ where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
-    let tenant_rws = use_context::<Signal<Tenant>>().unwrap();
+    let workspace_rws = use_context::<Signal<Workspace>>().unwrap();
     let org_rws = use_context::<Signal<OrganisationId>>().unwrap();
     let init_override_keys = get_init_state(&variants);
     let (f_variants, set_variants) = create_signal(variants);
@@ -88,12 +88,12 @@ where
         move || {
             (
                 context.get(),
-                tenant_rws.get_untracked().0,
+                workspace_rws.get_untracked().0,
                 org_rws.get_untracked().0,
                 workspace_settings.with_value(|w| w.auto_populate_control),
             )
         },
-        |(context, tenant, org_id, auto_populate_control)| async move {
+        |(context, workspace, org_id, auto_populate_control)| async move {
             if auto_populate_control {
                 let context = DimensionQuery::from(context.as_resolve_context());
                 resolve_config(
@@ -102,7 +102,7 @@ where
                         resolve_remote: Some(true),
                         ..Default::default()
                     },
-                    &tenant,
+                    &workspace,
                     &org_id,
                 )
                 .await
@@ -624,7 +624,7 @@ where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
 {
     let variants_rws = RwSignal::new(variants);
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let combined_resource = create_blocking_resource(
@@ -637,12 +637,12 @@ where
                 org.get_untracked().0,
             )
         },
-        |(context, context_data, default_config, tenant, org_id)| async move {
+        |(context, context_data, default_config, workspace, org_id)| async move {
             let context_data = match context_data {
                 Some(data) => Ok(data),
                 None => get_context_from_condition(
                     &context.as_context_json(),
-                    &tenant,
+                    &workspace,
                     &org_id,
                 )
                 .await
@@ -657,7 +657,7 @@ where
                             context_id: Some(context_id),
                             ..Default::default()
                         },
-                        &tenant,
+                        &workspace,
                         &org_id,
                     )
                     .await

@@ -23,7 +23,7 @@ use crate::{
     },
     logic::Conditions,
     providers::editor_provider::EditorProvider,
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
     utils::{close_modal, show_modal},
 };
 
@@ -49,7 +49,7 @@ pub enum PopupType {
 #[component]
 pub fn experiment_page() -> impl IntoView {
     let exp_params = use_params_map();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let source = move || {
         let t = workspace.get().0;

@@ -54,7 +54,7 @@ use crate::{
         editor_provider::EditorProvider,
     },
     query_updater::{use_param_updater, use_signal_from_query},
-    types::{OrganisationId, Tenant, VariantFormTs},
+    types::{OrganisationId, VariantFormTs, Workspace},
 };
 
 #[derive(Clone, Debug, Default)]
@@ -96,7 +96,7 @@ fn form(
     #[prop(into)] handle_submit: Callback<bool, ()>,
     #[prop(default = String::new())] description: String,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
@@ -117,13 +117,11 @@ fn form(
         req_inprogress_ws.set(true);
         spawn_local(async move {
             let f_overrides = overrides_rs.get_untracked();
+            let workspace = workspace.get_untracked();
+            let org = org.get_untracked();
             let result = match (edit_id.get_value(), update_request_rws.get_untracked()) {
                 (Some(_), Some((_, payload))) => {
-                    let future = update_context(
-                        payload,
-                        workspace.get_untracked().0,
-                        org.get_untracked().0,
-                    );
+                    let future = update_context(payload, &workspace, &org);
                     update_request_rws.set(None);
                     future.await.map(|_| ResponseType::Response)
                 }
@@ -143,12 +141,12 @@ fn form(
                     }
                 }
                 _ => create_context(
-                    workspace.get_untracked().0,
                     Map::from_iter(f_overrides),
                     context_rs.get_untracked(),
                     description_rs.get_untracked(),
                     change_reason_rs.get_untracked(),
-                    org.get_untracked().0,
+                    &workspace,
+                    &org,
                 )
                 .await
                 .map(|_| ResponseType::Response),
@@ -244,13 +242,13 @@ fn form(
 fn use_context_data(
     context_id: String,
 ) -> Resource<(String, String, String), Result<(Context, Conditions), String>> {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     create_local_resource(
         move || (workspace.get().0, org.get().0, context_id.clone()),
-        |(tenant, org, context_id)| async move {
-            get_context(&context_id, &tenant, &org)
+        |(workspace, org, context_id)| async move {
+            get_context(&context_id, &workspace, &org)
                 .await
                 .and_then(|context| {
                     Conditions::from_context_json(&context.value)
@@ -383,7 +381,7 @@ fn autofill_experiment_form(
 
 #[component]
 pub fn context_override() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
     let delete_inprogress_rws = RwSignal::new(false);
@@ -431,11 +429,11 @@ pub fn context_override() -> impl IntoView {
             let default_config_filters = DefaultConfigFilters::default();
             let (contexts_result, dimensions_result, default_config_result) = join!(
                 fetch_context(
-                    &workspace,
-                    &org_id,
                     &pagination_params,
                     &context_filters,
-                    &dimension_params
+                    &dimension_params,
+                    &workspace,
+                    &org_id,
                 ),
                 dimensions::fetch(&empty_list_filters, &workspace, &org_id),
                 fetch_default_config(
@@ -483,10 +481,11 @@ pub fn context_override() -> impl IntoView {
         page_resource.refetch();
         close_drawer("create_exp_drawer");
 
-        let tenant = workspace.get().0;
+        let workspace = workspace.get().0;
         let org = org.get().0;
         let navigate = use_navigate();
-        let redirect_url = format!("/admin/{org}/{tenant}/experiments/{experiment_id}");
+        let redirect_url =
+            format!("/admin/{org}/{workspace}/experiments/{experiment_id}");
         navigate(redirect_url.as_str(), Default::default())
     };
 

@@ -37,7 +37,7 @@ use crate::components::{
 };
 use crate::logic::Conditions;
 use crate::providers::alert_provider::enqueue_alert;
-use crate::types::{OrganisationId, Tenant, VariantFormT, VariantFormTs};
+use crate::types::{OrganisationId, VariantFormT, VariantFormTs, Workspace};
 
 fn get_init_state(variants: &[VariantFormT]) -> Vec<(String, VariantFormT)> {
     variants
@@ -95,7 +95,7 @@ pub fn experiment_form(
     let edit_id = StoredValue::new(edit_id);
     let dimensions = StoredValue::new(dimensions);
     let experiment_form_type = StoredValue::new(experiment_form_type);
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
@@ -113,11 +113,11 @@ pub fn experiment_form(
     let experiment_groups_resource: Resource<(String, String), Vec<ExperimentGroup>> =
         create_blocking_resource(
             move || (workspace.get().0, org.get().0),
-            |(current_tenant, org)| async move {
+            |(workspace, org)| async move {
                 experiment_groups::fetch_all(
                     &ExpGroupFilters::default(),
                     &PaginationParams::all_entries(),
-                    &current_tenant,
+                    &workspace,
                     &org,
                 )
                 .await
@@ -153,7 +153,7 @@ pub fn experiment_form(
             .into_iter()
             .map(|(_, variant)| variant)
             .collect::<Vec<VariantFormT>>();
-        let tenant = workspace.get_untracked().0;
+        let workspace = workspace.get_untracked().0;
         let org: String = org.get_untracked().0;
         let edit_id = edit_id.get_value();
 
@@ -169,7 +169,7 @@ pub fn experiment_form(
                 let result = match (edit_id.clone(), update_request_rws.get_untracked()) {
                     (Some(ref experiment_id), Some((_, payload))) => {
                         let future =
-                            update_experiment(experiment_id, payload, tenant, org);
+                            update_experiment(experiment_id, payload, &workspace, &org);
                         update_request_rws.set(None);
                         future.await.map(ResponseType::Response)
                     }
@@ -195,11 +195,11 @@ pub fn experiment_form(
                         Some(metrics_rws.get_untracked()),
                         f_experiment_name,
                         ExperimentType::from(experiment_form_type.get_value()),
-                        tenant,
                         description_rs.get_untracked(),
                         change_reason_rs.get_untracked(),
-                        org,
                         experiment_group_id,
+                        &workspace,
+                        &org,
                     )
                     .await
                     .map(ResponseType::Response),
@@ -383,7 +383,7 @@ fn change_log_summary(
     #[prop(into)] on_confirm: Callback<()>,
     #[prop(into)] on_close: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let experiment = create_local_resource(

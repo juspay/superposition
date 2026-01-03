@@ -29,7 +29,7 @@ use crate::components::{
 use crate::query_updater::{
     use_param_updater, use_signal_from_query, use_update_url_query,
 };
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::utils::to_title_case;
 
 fn stage_to_action(stage: Stage) -> String {
@@ -90,7 +90,7 @@ fn function_code_info(
 #[component]
 pub fn function_page() -> impl IntoView {
     let path_params = use_params_map();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let function_name = Memo::new(move |_| {
         path_params

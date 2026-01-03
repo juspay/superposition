@@ -14,7 +14,7 @@ use crate::components::{
     variable_form::{ChangeLogSummary, ChangeType, VariableForm},
 };
 use crate::providers::alert_provider::enqueue_alert;
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[component]
 fn variable_info(variable: Variable) -> impl IntoView {
@@ -44,7 +44,7 @@ enum Action {
 
 #[component]
 pub fn variable() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();
     let variable_name = Signal::derive(move || {
@@ -56,8 +56,8 @@ pub fn variable() -> impl IntoView {
 
     let variable_resource = create_blocking_resource(
         move || (variable_name.get(), workspace.get().0, org.get().0),
-        |(var_name, tenant, org_id)| async move {
-            variables::get(&var_name, &tenant, &org_id).await.ok()
+        |(var_name, workspace, org_id)| async move {
+            variables::get(&var_name, &workspace, &org_id).await.ok()
         },
     );
 

@@ -34,11 +34,11 @@ pub async fn create_experiment(
     metrics: Option<Metrics>,
     name: String,
     experiment_type: ExperimentType,
-    tenant: String,
     description: String,
     change_reason: String,
-    org_id: String,
     experiment_group_id: Value,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentCreateRequest {
         name,
@@ -60,7 +60,7 @@ pub async fn create_experiment(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -90,8 +90,8 @@ pub fn try_update_payload(
 pub async fn update_experiment(
     experiment_id: &String,
     payload: OverrideKeysUpdateRequest,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let host = use_host_server();
     let url = format!("{}/experiments/{}/overrides", host, experiment_id);
@@ -100,7 +100,7 @@ pub async fn update_experiment(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 

@@ -19,7 +19,7 @@ use crate::components::{
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[component]
 fn webhook_info(webhook: Webhook) -> impl IntoView {
@@ -112,7 +112,7 @@ enum Action {
 #[component]
 pub fn webhook() -> impl IntoView {
     let path_params = use_params_map();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let webhook_name = Memo::new(move |_| {
         path_params
@@ -133,8 +133,8 @@ pub fn webhook() -> impl IntoView {
         spawn_local(async move {
             let result = delete_webhooks(
                 webhook_name.get_untracked(),
-                workspace.get_untracked().0,
-                org.get_untracked().0,
+                &workspace.get_untracked(),
+                &org.get_untracked(),
             )
             .await;
             delete_inprogress_rws.set(false);

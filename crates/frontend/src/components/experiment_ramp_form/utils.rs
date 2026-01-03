@@ -11,7 +11,7 @@ pub async fn ramp_experiment(
     exp_id: &str,
     percent: u8,
     change_reason: Option<String>,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = RampRequest {
@@ -28,7 +28,7 @@ pub async fn ramp_experiment(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 

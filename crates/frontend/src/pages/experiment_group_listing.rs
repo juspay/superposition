@@ -45,7 +45,7 @@ use crate::{
         editor_provider::EditorProvider,
     },
     query_updater::{use_param_updater, use_signal_from_query},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -219,7 +219,7 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
 
 #[component]
 pub fn experiment_group_listing() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let delete_inprogress_rws = RwSignal::new(false);
 

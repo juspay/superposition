@@ -37,7 +37,7 @@ use crate::{
         alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
     },
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -157,7 +157,7 @@ enum Action {
 pub fn experiment_groups() -> impl IntoView {
     let group_params = use_params_map();
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (delete_modal_rs, delete_modal_ws) = create_signal(false);
@@ -165,26 +165,31 @@ pub fn experiment_groups() -> impl IntoView {
     let action_rws = RwSignal::new(Action::None);
 
     let source = move || {
-        let tenant_id = workspace.get().0;
+        let workspace = workspace.get().0;
         let org_id = org.get().0;
         let group_id =
             group_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
-        (group_id, tenant_id, org_id)
+        (group_id, workspace, org_id)
     };
 
     let experiment_group_resource: Resource<
         (String, String, String),
         Option<ExperimentGroupResource>,
-    > = create_blocking_resource(source, |(group_id, tenant, org_id)| async move {
-        let group_future = fetch(&group_id, &tenant, &org_id);
+    > = create_blocking_resource(source, |(group_id, workspace, org_id)| async move {
+        let group_future = fetch(&group_id, &workspace, &org_id);
         let filters = ExperimentListFilters {
             experiment_group_ids: Some(CommaSeparatedQParams(vec![group_id.clone()])),
             ..ExperimentListFilters::default()
         };
         let pagination = PaginationParams::all_entries();
         let dimension_params = DimensionQuery::default();
-        let experiments_future =
-            fetch_experiments(&filters, &pagination, &dimension_params, &tenant, &org_id);
+        let experiments_future = fetch_experiments(
+            &filters,
+            &pagination,
+            &dimension_params,
+            &workspace,
+            &org_id,
+        );
 
         let (group_result, experiments_result) = join!(group_future, experiments_future);
 
@@ -197,7 +202,7 @@ pub fn experiment_groups() -> impl IntoView {
     let confirm_delete = Callback::new(move |change_reason: String| {
         let delete_request = delete_group_rws.get();
         spawn_local(async move {
-            let tenant = workspace.get().0;
+            let workspace = workspace.get().0;
             let org_id = org.get().0;
             let member_experiment_ids =
                 Vec::from([delete_request.experiment_id.parse().unwrap_or_default()]);
@@ -208,7 +213,7 @@ pub fn experiment_groups() -> impl IntoView {
             if let Err(e) = remove_members(
                 &delete_request.group_id,
                 &remove_request,
-                &tenant,
+                &workspace,
                 &org_id,
             )
             .await

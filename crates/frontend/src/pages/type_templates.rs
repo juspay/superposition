@@ -18,7 +18,7 @@ use crate::components::{
     type_template_form::TypeTemplateForm,
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::utils::unwrap_option_or_default_with_error;
 
 #[derive(Clone)]
@@ -29,7 +29,7 @@ enum Action {
 
 #[component]
 pub fn types_page() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let action_rws = RwSignal::new(Action::None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
