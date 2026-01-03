@@ -5,9 +5,9 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use context_aware_config::helpers::{get_workspace, validate_change_reason};
+use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
+use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_derives::authorized;
 use superposition_types::{
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
@@ -35,14 +35,12 @@ async fn create_handler(
     db_conn: DbConnection,
     schema_name: SchemaName,
     user: User,
-    workspace_request: WorkspaceContext,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
-    if workspace_settings.enable_change_reason_validation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
-    }
+
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     validate_events(&req.events, None, &schema_name, &mut conn)?;
     let now = Utc::now();
@@ -80,15 +78,13 @@ async fn update_handler(
     schema_name: SchemaName,
     user: User,
     request: Json<UpdateWebhookRequest>,
-    workspace_request: WorkspaceContext,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let w_name: String = params.into_inner().into();
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
-    if workspace_settings.enable_change_reason_validation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
-    }
+
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     if let Some(webhook_events) = &req.events {
         validate_events(webhook_events, Some(&w_name), &schema_name, &mut conn)?;

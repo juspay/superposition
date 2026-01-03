@@ -64,7 +64,8 @@ async fn create_handler(
         ));
     }
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     compile_fn(&req.function)?;
 
@@ -134,18 +135,11 @@ async fn update_handler(
 
     // Function Linter Check
     if let Some(function) = &req.draft_code {
-        let function_type = functions::functions
-            .select(schema::functions::function_type)
-            .filter(schema::functions::function_name.eq(&f_name))
-            .schema_name(&schema_name)
-            .get_result::<FunctionType>(&mut conn)?;
-
         compile_fn(function)?;
-
-        if function_type != FunctionType::ChangeReasonValidation {
-            validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
-        }
     }
+
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(schema::functions::function_name.eq(f_name))
@@ -312,9 +306,8 @@ async fn publish_handler(
     let function = fetch_function(&fun_name, &mut conn, &schema_name)?;
     let req = request.into_inner();
 
-    if function.function_type != FunctionType::ChangeReasonValidation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
-    }
+    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
+    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(functions::function_name.eq(fun_name.clone()))
@@ -324,6 +317,8 @@ async fn publish_handler(
             functions::published_runtime_version.eq(Some(function.draft_runtime_version)),
             functions::published_by.eq(Some(user.get_email())),
             functions::published_at.eq(Some(Utc::now())),
+            functions::last_modified_by.eq(user.get_email()),
+            functions::last_modified_at.eq(Utc::now()),
         ))
         .returning(Function::as_returning())
         .schema_name(&schema_name)
