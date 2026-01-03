@@ -172,10 +172,10 @@ fn ffi_get_applicable_variants(
 /// timeout = { value = 30, schema = { type = "integer" } }
 ///
 /// [dimensions]
-/// os = { schema = { type = "string" } }
+/// os = { position = 1, schema = { type = "string" } }
 ///
-/// [context]
-/// "os=linux" = { timeout = 60 }
+/// [context."os=linux"]
+/// timeout = 60
 /// ```
 #[uniffi::export]
 fn ffi_parse_toml_config(toml_content: String) -> Result<Config, OperationError> {
