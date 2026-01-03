@@ -7,6 +7,7 @@ pub mod cohort_schema;
 pub mod condition_pills;
 pub mod context_card;
 pub mod context_form;
+pub mod datetime;
 pub mod default_config_form;
 pub mod delete_modal;
 pub mod description;

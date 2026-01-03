@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use leptos::*;
 use superposition_types::database::models::{ChangeReason, Description};
 
-use crate::components::info_modal::InfoModal;
+use crate::components::{datetime::Datetime, info_modal::InfoModal};
 
 #[component]
 pub fn info_description(
@@ -74,14 +74,16 @@ pub fn content_description(
                     <div class="stat-value text-sm">{created_by}</div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Created at"</div>
-                    <div class="stat-value text-sm">{created_at.format("%v %T").to_string()}</div>
+                    <div class="stat-value text-sm">
+                        <Datetime datetime=created_at />
+                    </div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Last Modified by"</div>
                     <div class="stat-value text-sm">{last_modified_by}</div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Last Modified at"</div>
                     <div class="stat-value text-sm">
-                        {last_modified_at.format("%v %T").to_string()}
+                        <Datetime datetime=last_modified_at />
                     </div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Change Reason"</div>

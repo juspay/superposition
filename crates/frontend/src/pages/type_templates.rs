@@ -5,6 +5,7 @@ use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
 use crate::api::fetch_types;
+use crate::components::datetime::DatetimeStr;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{
     button::Button,
@@ -64,10 +65,23 @@ pub fn types_page() -> impl IntoView {
             default_column_formatter,
         ),
         Column::default("created_by".to_string()),
-        Column::default("created_at".to_string()),
-        Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
-            default_column_formatter("Modified At")
+        Column::default_with_cell_formatter("created_at".to_string(), |value, _| {
+            view! {
+                <DatetimeStr datetime=value.into() />
+            }
         }),
+        Column::new(
+            "last_modified_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
+            ColumnSortable::No,
+            Expandable::Enabled(100),
+            |_| default_column_formatter("Modified At"),
+        ),
     ]);
 
     let handle_page_change = Callback::new(move |page: i64| {
@@ -84,22 +98,8 @@ pub fn types_page() -> impl IntoView {
                     .data
                     .iter()
                     .map(|ele| {
-                        let mut ele_map = unwrap_option_or_default_with_error(
-                                json!(ele).as_object(),
-                                &Map::new(),
-                            )
-                            .to_owned();
-                        ele_map
-                            .insert(
-                                "created_at".to_string(),
-                                Value::String(ele.created_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                            .insert(
-                                "last_modified_at".to_string(),
-                                Value::String(ele.last_modified_at.format("%v %T").to_string()),
-                            );
-                        ele_map
+                        unwrap_option_or_default_with_error(json!(ele).as_object(), &Map::new())
+                            .to_owned()
                     })
                     .collect::<Vec<Map<String, Value>>>()
                     .to_owned();

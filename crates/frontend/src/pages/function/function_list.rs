@@ -97,21 +97,7 @@ pub fn function_list() -> impl IntoView {
                                         .functions
                                         .data
                                         .iter()
-                                        .map(|ele| {
-                                            let mut ele_map = json!(ele)
-                                                .as_object()
-                                                .unwrap()
-                                                .to_owned();
-                                            ele_map
-                                                .insert(
-                                                    "published_at".to_string(),
-                                                    match ele.published_at {
-                                                        Some(val) => Value::String(val.format("%v %T").to_string()),
-                                                        None => Value::String("null".to_string()),
-                                                    },
-                                                );
-                                            ele_map
-                                        })
+                                        .map(|ele| json!(ele).as_object().unwrap().to_owned())
                                         .collect::<Vec<Map<String, Value>>>()
                                         .to_owned();
                                     let total_pages = v.functions.total_pages;

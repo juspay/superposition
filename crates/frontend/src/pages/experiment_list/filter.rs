@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Deref, str::FromStr};
 
-use chrono::{DateTime, Days, Duration, Utc};
+use chrono::{DateTime, Days, Duration, TimeZone, Utc};
 use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::{
@@ -20,6 +20,7 @@ use crate::{
         button::{Button, ButtonStyle},
         condition_pills::Condition,
         context_form::ContextForm,
+        datetime::use_format_local_date,
         drawer::{close_drawer, Drawer, DrawerBtn},
         form::label::Label,
         input::{DateInput, Toggle},
@@ -167,7 +168,7 @@ pub(super) fn filter_summary(
                                     <div class="flex gap-2 items-center">
                                         <span class="text-xs">"Last Modified From"</span>
                                         <GrayPill
-                                            text=from_date.format("%Y-%m-%d").to_string()
+                                            text=use_format_local_date(&from_date)
                                             on_delete=move |_| {
                                                 filters_rws.update(|f| f.from_date = None);
                                             }
@@ -184,7 +185,7 @@ pub(super) fn filter_summary(
                                     <div class="flex gap-2 items-center">
                                         <span class="text-xs">"Last Modified To"</span>
                                         <GrayPill
-                                            text=to_date.format("%Y-%m-%d").to_string()
+                                            text=use_format_local_date(&to_date)
                                             on_delete=move |_| {
                                                 filters_rws.update(|f| f.to_date = None);
                                             }
@@ -393,13 +394,11 @@ pub(super) fn experiment_table_filter_widget(
                         <DateInput
                             id="experiment_from_date_input"
                             name="experiment_from_date"
-                            min="2020-01-01"
-                            value=filters_buffer_rws
-                                .with_untracked(|f| {
-                                    f.from_date
-                                        .map(|s| s.format("%Y-%m-%d").to_string())
-                                        .unwrap_or_default()
-                                })
+                            min=Utc
+                                .with_ymd_and_hms(2020, 1, 1, 0, 0, 0)
+                                .single()
+                                .unwrap_or_default()
+                            value=filters_buffer_rws.with_untracked(|f| { f.from_date })
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
                                 filters_buffer_rws.update(|f| f.from_date = Some(new_date));
                             })
@@ -414,12 +413,7 @@ pub(super) fn experiment_table_filter_widget(
                         <DateInput
                             id="experiment_to_date_input"
                             name="experiment_to_date"
-                            value=filters_buffer_rws
-                                .with_untracked(|f| {
-                                    f.to_date
-                                        .map(|s| s.format("%Y-%m-%d").to_string())
-                                        .unwrap_or_default()
-                                })
+                            value=filters_buffer_rws.with_untracked(|f| { f.to_date })
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
                                 filters_buffer_rws
                                     .update(|f| {
